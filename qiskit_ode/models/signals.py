@@ -404,6 +404,8 @@ class VectorSignal:
         self.envelope = envelope
         self.carrier_freqs = carrier_freqs
 
+        self._im_angular_freqs = 1j * 2 * np.pi * carrier_freqs
+
         # if not supplied nothing is assumed, constant array is taken as all
         # zeros
         if drift_array is None:
@@ -465,7 +467,7 @@ class VectorSignal:
             np.array: the value of the signal (including carrier frequencies)
                       at time t
         """
-        carrier_val = np.exp( (1j * 2 * np.pi * t) * self.carrier_freqs)
+        carrier_val = np.exp(t * self._im_angular_freqs)
         return self.envelope_value(t) * carrier_val
 
     def conjugate(self):

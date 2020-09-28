@@ -10,42 +10,129 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from abc import ABC, abstractmethod
 from typing import Callable, Union, List, Optional
 import numpy as np
+from copy import deepcopy
 
-from .signals import VectorSignal, Signal
+from .signals import VectorSignal, BaseSignal
+from .frame import BaseFrame, Frame
 from qiskit.quantum_info.operators import Operator
 
-class OperatorModel:
-    """OperatorModel representing a sum of :class:`Operator` objects with
-    time dependent coefficients.
+class BaseOperatorModel(ABC):
+    """BaseOperatorModel is an abstract interface for a time-dependent operator
+    :math:`G(t)`, with functionality of relevance for differential
+    equations of the form :math:`\dot{y}(t) = G(t)y(t)`.
 
-    Specifically, this object represents a time dependent matrix of
-    the form:
+    The core functionality is evaluation of :math:`G(t)` and the products
+    :math:`AG(t)` and :math:`G(t)A`, for operators :math:`A` of suitable
+    shape.
+
+    Additionally, this abstract class requires implementation of 3 properties
+    to facilitate the use of this object in solving differential equations:
+        - A "drift", which is meant to return the "time-independent" part of
+          :math:`G(t)`
+        - A "frame", here specified as a :class:`BaseFrame` object, which
+          represents an anti-Hermitian operator :math:`F`, specifying
+          the transformation :math:`G(t) \mapsto G'(t) = e^{-tF}G(t)e^{tF} - F`.
+
+          If a frame is set, the evaluation functions are modified to work
+          with G'(t). Furthermore, all evaluation functions have the option
+          to return the results in a basis in which :math:`F` is diagonalized,
+          to save on the cost of computing :math:`e^{\pm tF}`.
+        - A `cutoff_freq`: a cutoff frequency for further modifying the
+          evaluation of :math:`G'(t)` to remove terms above a given frequency.
+          In this abstract class the exact meaning of this is left unspecified;
+          it is left to concrete implementations to define this.
+    """
+
+    @property
+    @abstractmethod
+    def frame(self) -> BaseFrame:
+        """Get the frame."""
+        pass
+
+    @frame.setter
+    @abstractmethod
+    def frame(self, frame: BaseFrame):
+        """Set the frame."""
+        pass
+
+    @property
+    @abstractmethod
+    def cutoff_freq(self) -> float:
+        """Get cutoff frequency."""
+        pass
+
+    @cutoff_freq.setter
+    @abstractmethod
+    def cutoff_freq(self, cutoff_freq: float):
+        """Set cutoff frequency."""
+        pass
+
+    @abstractmethod
+    def evaluate(self, t: float) -> np.array:
+        """Evaluate the model at a given time."""
+        pass
+
+    def lmult(self,
+              time: float,
+              y: np.array,
+              in_frame_basis: bool = False) -> np.array:
+        """
+        Return the product evaluate(t) @ y. Default implementation is to
+        call evaluate then multiply.
+
+        Args:
+            time: Time at which to create the generator.
+            y: operator or vector to apply the model to.
+            in_frame_basis: whether to evaluate in the frame basis
+
+        Returns:
+            np.array: the product
+        """
+        return np.dot(self.evaluate(time, in_frame_basis), y)
+
+    def rmult(self,
+              time: float,
+              y: np.array,
+              in_frame_basis: bool = False) -> np.array:
+        """
+        Return the product y @ evaluate(t). Default implementation is to call
+        evaluate then multiply.
+
+        Args:
+            time: Time at which to create the generator.
+            y: operator or vector to apply the model to.
+            in_frame_basis: whether to evaluate in the frame basis
+
+        Returns:
+            np.array: the product
+        """
+        return np.dot(y, self.evaluate(time, in_frame_basis))
+
+    @property
+    @abstractmethod
+    def drift(self) -> np.array:
+        """Evaluate the constant part of the model."""
+        pass
+
+    def copy(self):
+        """Return a copy of self."""
+        return deepcopy(self)
+
+
+class OperatorModel(BaseOperatorModel):
+    """OperatorModel is a concrete instance of BaseOperatorModel, where the
+    operator :math:`G(t)` is explicitly constructed as:
 
     .. math::
 
         G(t) = \sum_{i=0}^{k-1} s_i(t) G_i,
 
-    for :math:`G_i` matrices (represented by :class:`Operator` objects),
-    and the :math:`s_i(t)` given by signals represented by a
+    where the :math:`G_i` are matrices (represented by :class:`Operator`
+    objects), and the :math:`s_i(t)` given by signals represented by a
     :class:`VectorSignal` object, or a list of :class:`Signal` objects.
-
-    This object contains functionality to evaluate :math:`G(t)` for a given
-    :math:`t`, or to compute products :math:`G(t)A` and :math:`AG(t)` for
-    :math:`A` an :class:`Operator` or array of suitable dimension.
-
-    Additionally, this class has functionality for representing :math:`G(t)`
-    in a rotating frame, and setting frequency cutoffs
-    (e.g. for the rotating wave approximation).
-    Specifically, given an anti-Hermitian frame operator :math:`F` (i.e.
-    :math:`F^\dagger = -F`), entering the frame of :math:`F` results in
-    the object representing the rotating operator :math:`e^{-Ft}G(t)e^{Ft} - F`.
-
-    Further, if a frequency cutoff is set, when evaluating the
-    `OperatorModel`, any terms with a frequency above the cutoff
-    (which combines both signal frequency information and frame frequency
-    information) will be set to :math:`0`.
 
     The signals in the model can be specified either directly (by giving a
     list of Signal objects or a VectorSignal), or by specifying a
@@ -65,13 +152,19 @@ class OperatorModel:
         # the output of signal_map(2.), converted to a VectorSignal
 
     See the signals property setter for a more detailed description.
+
+    For specifying a frame, this object works with the concrete
+    :class:`Frame`, a subclass of :class:`BaseFrame`.
+
+    To do:
+        insert mathematical description of frame/cutoff_freq handling
     """
 
     def __init__(self,
                  operators: List[Operator],
-                 signals: Optional[Union[VectorSignal, List[Signal]]] = None,
+                 signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
                  signal_mapping: Optional[Callable] = None,
-                 frame_operator: Optional[Union[Operator, np.array]] = None,
+                 frame: Optional[Union[Operator, np.array, BaseFrame]] = None,
                  cutoff_freq: Optional[float] = None):
         """Initialize.
 
@@ -84,7 +177,7 @@ class OperatorModel:
             signal_mapping: a function returning either a
                             VectorSignal or a list of Signal objects.
 
-            frame_operator: Rotating frame operator. If specified with a 1d
+            frame: Rotating frame operator. If specified with a 1d
                             array, it is interpreted as the diagonal of a
                             diagonal matrix.
             cutoff_freq: Frequency cutoff when evaluating the model.
@@ -92,20 +185,20 @@ class OperatorModel:
 
         self._operators = operators
 
-        self._frame_operator = frame_operator
         self._cutoff_freq = cutoff_freq
 
         # initialize signal-related attributes
         self._signal_params = None
         self._signals = None
-        self._carrier_freqs = None
         self.signal_mapping = signal_mapping
+        self.signals = signals
 
-        if signals is not None:
-            # note: setting signals includes a call to _construct_frame_helper()
-            self.signals = signals
-        else:
-            self._construct_frame_helper()
+        # set frame
+        self.frame = frame
+
+        # initialize internal operator representation in the frame basis
+        self.__ops_in_fb_w_cutoff = None
+        self.__ops_in_fb_w_conj_cutoff = None
 
     @property
     def signals(self) -> VectorSignal:
@@ -113,7 +206,7 @@ class OperatorModel:
         return self._signals
 
     @signals.setter
-    def signals(self, signals: Union[VectorSignal, List[Signal]]):
+    def signals(self, signals: Union[VectorSignal, List[BaseSignal]]):
         """Set the signals.
 
         Behavior:
@@ -128,7 +221,6 @@ class OperatorModel:
         if signals is None:
             self._signal_params = None
             self._signals = None
-            self._carrier_freqs = None
         else:
 
             # if a signal_mapping is specified, take signals as the input
@@ -149,48 +241,36 @@ class OperatorModel:
                 raise Exception("""signals needs to have the same length as
                                     operators.""")
 
-            # check if the new carrier frequencies are different from the old.
-            # if yes, update them and reinstantiate the frame helper.
-            new_freqs = signals.carrier_freqs
-            if any(signals.carrier_freqs != self._carrier_freqs):
-                self._carrier_freqs = signals.carrier_freqs
-                self._construct_frame_helper()
+            # determine if new signals warrant resetting of internal operators
+            # only necessary if new carrier frequencies are different from
+            # previous, and there is a cutoff frequency
+            if self._signals is not None:
+                if (any(self._signals.carrier_freqs != signals.carrier_freqs)
+                    and self._cutoff_freq is not None):
+                    self._reset_internal_ops()
 
             self._signals = signals
 
     @property
-    def frame_operator(self) -> Union[Operator, np.array]:
-        """Return the frame operator."""
-        return self._frame_operator
+    def frame(self) -> Frame:
+        """Return the frame."""
+        return self._frame
 
-    @frame_operator.setter
-    def frame_operator(self, frame_operator: Union[Operator, np.array]):
-        """Set the frame operator; must be anti-Hermitian. See class
-        docstring for the effects of setting a frame.
-
-        Accepts frame_operator as:
-            - An Operator object
-            - A 2d array
-            - A 1d array - in which case it is assumed the frame operator is a
-              diagonal matrix, and the array gives the diagonal elements.
+    @frame.setter
+    def frame(self, frame: Union[Operator, np.array, Frame]):
+        """Set the frame; either an already instantiated :class:`Frame` object
+        a valid argument for the constructor of :class:`Frame`, or `None`.
         """
 
-        if isinstance(frame_operator, np.ndarray) and frame_operator.ndim == 1:
-            # if 1d array check purely imaginary
-            if np.linalg.norm(frame_operator + frame_operator.conj()) > 10**-10:
-                raise Exception("""frame_operator must be an
-                                   anti-Hermitian matrix.""")
+        if frame is None:
+            self._frame = Frame(None)
         else:
-            # otherwise, cast as Operator and verify anti-Hermitian
-            frame_operator = Operator(frame_operator)
+            if isinstance(frame, Frame):
+                self._frame = frame
+            else:
+                self._frame = Frame(frame)
 
-            herm_part = frame_operator + frame_operator.adjoint()
-            if herm_part != Operator(np.zeros(frame_operator.dim)):
-                raise Exception("""frame_operator must be an
-                                   anti-Hermitian matrix.""")
-
-        self._frame_operator = frame_operator
-        self._construct_frame_helper()
+        self._reset_internal_ops()
 
     @property
     def cutoff_freq(self) -> float:
@@ -202,7 +282,7 @@ class OperatorModel:
         """Set the cutoff frequency."""
         if cutoff_freq != self._cutoff_freq:
             self._cutoff_freq = cutoff_freq
-            self._construct_frame_helper()
+            self._reset_internal_ops()
 
     def evaluate(self, time: float, in_frame_basis: bool = False) -> np.array:
         """
@@ -217,49 +297,19 @@ class OperatorModel:
             np.array: the evaluated model
         """
 
-        if self.signals is None:
+        if self._signals is None:
             raise Exception("""OperatorModel cannot be
                                evaluated without signals.""")
 
-        sig_envelope_vals = self.signals.envelope_value(time)
+        sig_vals = self._signals.value(time)
 
-        return self._frame_freq_helper.evaluate(time,
-                                                sig_envelope_vals,
-                                                in_frame_basis)
-
-    def lmult(self,
-              time: float,
-              y: np.array,
-              in_frame_basis: bool = False) -> np.array:
-        """
-        Return the product evaluate(t) @ y.
-
-        Args:
-            time: Time at which to create the generator.
-            y: operator or vector to apply the model to.
-            in_frame_basis: whether to evaluate in the frame basis
-
-        Returns:
-            np.array: the product
-        """
-        return np.dot(self.evaluate(time, in_frame_basis), y)
-
-    def rmult(self,
-              time: float,
-              y: np.array,
-              in_frame_basis: bool = False) -> np.array:
-        """
-        Return the product y @ evaluate(t).
-
-        Args:
-            time: Time at which to create the generator.
-            y: operator or vector to apply the model to.
-            in_frame_basis: whether to evaluate in the frame basis
-
-        Returns:
-            np.array: the product
-        """
-        return np.dot(y, self.evaluate(time, in_frame_basis))
+        # evaluate the linear combination in the frame basis with cutoffs,
+        # then map into the frame
+        op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
+        return self.frame.generator_into_frame(time,
+                                               op_combo,
+                                               operator_in_frame_basis=True,
+                                               return_in_frame_basis=in_frame_basis)
 
     @property
     def drift(self) -> np.array:
@@ -268,217 +318,70 @@ class OperatorModel:
         """
 
         # for now if the frame operator is not None raise an error
-        if self.frame_operator is not None:
+        if self.frame.frame_operator is not None:
             raise Exception("""The drift is currently ill-defined if
                                frame_operator is not None.""")
 
-        drift_env_vals = self.signals.drift_array
+        drift_sig_vals = self._signals.drift_array
 
-        return self._frame_freq_helper.evaluate(0, drift_env_vals)
+        return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
 
-    def _construct_frame_helper(self):
-        """Helper function for constructing frame helper from relevant
-        attributes.
+    def _construct_ops_in_fb_w_cutoff(self):
+        """Construct versions of operators in frame basis with cutoffs
+        and conjugate cutoffs. To be used in conjunction with
+        operators_into_frame_basis_with_cutoff to compute the operator in the
+        frame basis with frequency cutoffs applied.
         """
-        self._frame_freq_helper = FrameFreqHelper(self._operators,
-                                                  self._carrier_freqs,
-                                                  self.frame_operator,
-                                                  self.cutoff_freq)
-
-
-class FrameFreqHelper:
-    """A helper class containing some technical calculations for evaluating
-    an operator model in a rotating frame, potentially with a cutoff frequency.
-
-    Specifically, the frame operator and all operators are converted into a
-    basis in which the frame operator is diagonal (which we call the
-    'frame basis' in comments), and all calculations are
-    done in that basis to save on the cost of evaluating exp(Ft) and exp(-Ft).
-
-    It also contains additional helper methods for converting a 'state' into
-    and out of the frame, and into/out of the frame basis, which are useful
-    if the operator model is being used as the generator G(t) in a DE of the
-    form y'(t) = G(t)y(t).
-
-    Evaluation and frame conversion methods for a 'state' all have additional
-    options to specify which basis (the original or frame basis) the
-    input/output is specified in. E.g., when solving the DE y'(t) = G(t)y(t)
-    in some frame F, it is convenient to solve the DE fully in the basis in
-    which F is diagonal (avoiding basis change operations when evaluating
-    G(t)), and only convert back to the original basis when necessary.
-    """
-
-    def __init__(self,
-                 operators: List[Operator],
-                 carrier_freqs: Optional[np.array] = None,
-                 frame_operator: Optional[Union[Operator, np.array]] = None,
-                 cutoff_freq: Optional[float] = None):
-        """
-        Initialize.
-
-        Args:
-            operators: List of Operator objects.
-            carrier_freqs: List of carrier frequencies for the
-                           coefficients of the operators. If None, defaults to
-                           the zero vector.
-            frame_operator: frame operator which must be anti-Hermitian. If
-                            given as a 1d array, assumed to be the diagonal
-                            of a diagonal matrix. If None, defaults to the 0
-                            matrix.
-            cutoff_freq: Cutoff frequency when evaluating generator.
-                         If None, no cutoff is performed.
-        """
-
-        # if None, set to a 1d array of zeros
-        if frame_operator is None:
-            frame_operator = np.zeros(operators[0].dim[0])
-
-        # if frame_operator is a 1d array, assume already diagonalized
-        if isinstance(frame_operator, np.ndarray) and frame_operator.ndim == 1:
-
-            # verify that it is anti-hermitian (i.e. purely imaginary)
-            if np.linalg.norm(frame_operator + frame_operator.conj()) > 10**-10:
-                raise Exception("""frame_operator must be an
-                                   anti-Hermitian matrix.""")
-
-            self.frame_diag = frame_operator
-            self.frame_basis = np.eye(len(frame_operator))
-            self.frame_basis_adjoint = self.frame_basis
-        # if not, diagonalize it
+        carrier_freqs = None
+        if self._signals.carrier_freqs is None:
+            carrier_freqs = np.zeros(len(self._operators))
         else:
-            # Ensure that it is an Operator object
-            frame_operator = Operator(frame_operator)
+            carrier_freqs = self._signals.carrier_freqs
 
-            # verify anti-hermitian
-            herm_part = frame_operator + frame_operator.adjoint()
-            if herm_part != Operator(np.zeros(frame_operator.dim)):
-                raise Exception("""frame_operator must be an
-                                   anti-Hermitian matrix.""")
+        self.__ops_in_fb_w_cutoff, self.__ops_in_fb_w_conj_cutoff = (
+            self.frame.operators_into_frame_basis_with_cutoff(self._operators,
+                                                              self.cutoff_freq,
+                                                              carrier_freqs))
 
-            # diagonalize with eigh, utilizing assumption of anti-hermiticity
-            frame_diag, frame_basis = np.linalg.eigh(1j * frame_operator.data)
+    def _reset_internal_ops(self):
+        """Helper function to be used by various setters whose value changes
+        require reconstruction of the internal operators.
+        """
+        self.__ops_in_fb_w_cutoff = None
+        self.__ops_in_fb_w_conj_cutoff = None
 
-            self.frame_diag = -1j * frame_diag
-            self.frame_basis = frame_basis
-            self.frame_basis_adjoint = frame_basis.conj().transpose()
+    @property
+    def _ops_in_fb_w_cutoff(self):
+        """Internally stored operators in frame basis with cutoffs.
+        This corresponds to the :math:`A^+` matrices from
+        `Frame.operators_into_frame_basis_with_cutoff`.
+        """
+        if self.__ops_in_fb_w_cutoff is None:
+            self._construct_ops_in_fb_w_cutoff()
 
-        # rotate operators into frame_basis and store as a 3d array
-        self._operators_in_frame_basis = np.array([self.frame_basis_adjoint @
-                                                   op.data @
-                                                   self.frame_basis for
-                                                   op in operators])
+        return self.__ops_in_fb_w_cutoff
 
-        # set up carrier frequencies and cutoff
-        if carrier_freqs is None:
-            carrier_freqs = np.zeros(len(operators))
-        self.carrier_freqs = carrier_freqs
+    @property
+    def _ops_in_fb_w_conj_cutoff(self):
+        """Internally stored operators in frame basis with conjugate cutoffs.
+        This corresponds to the :math:`A^-` matrices from
+        `Frame.operators_into_frame_basis_with_cutoff`.
+        """
+        if self.__ops_in_fb_w_conj_cutoff is None:
+            self._construct_ops_in_fb_w_cutoff()
 
-        self.cutoff_freq = cutoff_freq
+        return self.__ops_in_fb_w_conj_cutoff
 
-        # create difference matrix for diagonal elements
-        dim = len(self.frame_diag)
-        D_diff = np.ones((dim, dim)) * self.frame_diag
-        D_diff = D_diff - D_diff.transpose()
-
-        # set up matrix encoding frequencies
-        im_angular_freqs = 1j * 2 * np.pi * self.carrier_freqs
-        self._freq_array = np.array([w + D_diff for w in im_angular_freqs])
-
-        # set up frequency cutoff matrix - i.e. same shape as self._S - with
-        # each entry a 1 if the corresponding entry of self._S has a frequency
-        # below the cutoff, and 0 otherwise
-        self._cutoff_array = None
-        if cutoff_freq is not None:
-            self._cutoff_array = ((np.abs(self._freq_array.imag) / (2 * np.pi))
-                                    < self.cutoff_freq).astype(int)
-
-    def evaluate(self,
-                 t: float,
-                 coefficients: np.array,
-                 in_frame_basis: bool = False) -> np.array:
-        """Evaluate the operator in the frame at a given time, for a given
-        array of coefficients.
+    def _evaluate_in_frame_basis_with_cutoffs(self,
+                                              sig_vals: np.array):
+        """Evaluate the operator in the frame basis with frequency cutoffs.
+        The computation here corresponds to that prescribed in
+        `Frame.operators_into_frame_basis_with_cutoff`.
 
         Args:
-            t: time
-            coefficients: coefficients for each operator
-            in_frame_basis: whether to return in the basis in which
-                            the frame operator is diagonal or not
-
-        Returns:
-            np.array the evaluated operator
+            sig_vals: Signals evaluated at some time.
         """
-
-        # first evaluate the unconjugated coefficients for each matrix element,
-        # given by the coefficient for the full matrix multiplied by the
-        # exponentiated frequency term for each entry
-        Q = (coefficients[:, np.newaxis, np.newaxis] *
-                np.exp(self._freq_array * t))
-
-        # apply cutoff if present
-        if self._cutoff_array is not None:
-            Q = self._cutoff_array * Q
-
-        # multiplying the operators by the average of the "unconjugated" and
-        # "conjugated" coefficients
-        op_list = (0.5 * (Q + Q.conj().transpose(0, 2, 1)) *
-                   self._operators_in_frame_basis)
-
-        # sum the operators and subtract the frame operator
-        op_in_frame_basis = np.sum(op_list, axis=0) - np.diag(self.frame_diag)
-
-        if in_frame_basis:
-            return op_in_frame_basis
-        else:
-            return (self.frame_basis @ op_in_frame_basis @
-                    self.frame_basis_adjoint)
-
-    def state_into_frame(self,
-                         t: float,
-                         y: np.array,
-                         y_in_frame_basis: bool = False,
-                         return_in_frame_basis: bool = False):
-        """Take a state into the frame, i.e. return exp(-Ft) @ y.
-
-        Args:
-            t: time
-            y: state (array of appropriate size)
-            y_in_frame_basis: whether or not the array y is already in
-                              the frame basis
-            return_in_frame_basis: whether or not to return the result
-                                   in the frame basis
-        """
-
-        out = y
-
-        # if not in frame basis convert it
-        if not y_in_frame_basis:
-            out = self.frame_basis_adjoint @ out
-
-        out = np.diag(np.exp(- t * self.frame_diag)) @ out
-
-        if not return_in_frame_basis:
-            out = self.frame_basis @ out
-
-        return out
-
-    def state_out_of_frame(self,
-                           t: float,
-                           y: np.array,
-                           y_in_frame_basis: bool = False,
-                           return_in_frame_basis: bool = False):
-        """Bring a state out of the frame, i.e. return exp(Ft) @ y.
-
-        Args:
-            t: time
-            y: state (array of appropriate size)
-            y_in_frame_basis: whether or not the array y is already in
-                              the frame basis
-            return_in_frame_basis: whether or not to return the result
-                                   in the frame basis
-        """
-        # same calculation as state_into_frame, just with -time
-        return self.state_into_frame(-t,
-                                     y,
-                                     y_in_frame_basis,
-                                     return_in_frame_basis)
+        return 0.5 * (np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
+                      + np.tensordot(sig_vals.conj(),
+                                     self._ops_in_fb_w_conj_cutoff,
+                                     axes=1))
