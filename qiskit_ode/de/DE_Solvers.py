@@ -18,7 +18,7 @@ from typing import Callable, Union, List, Optional
 from .DE_Methods import ODE_Method, method_from_string
 from .DE_Problems import BMDE_Problem
 from .DE_Options import DE_Options
-from .type_utils import StateTypeConverter
+from ..type_utils import StateTypeConverter
 
 class BMDE_Solver:
     """Solver class for differential equations specified in
@@ -51,13 +51,11 @@ class BMDE_Solver:
 
     def __init__(self,
                  bmde_problem: BMDE_Problem,
-                 method: Optional[ODE_Method] = None,
                  options: Optional[DE_Options] = None):
         """Construct a solver.
 
         Args:
             bmde_problem: Specification of the problem.
-            method: Specification of the underlying solver method.
             options: Container class for options.
         """
 
@@ -67,15 +65,12 @@ class BMDE_Solver:
         if options is None:
             options = DE_Options()
 
-        # if no method explicitly provided
-        if method is None:
-            method = options.method
-
+        # setup ODE method instance
         Method = None
-        if isinstance(method, str):
-            Method = method_from_string(method)
-        elif issubclass(method, ODE_Method):
-            Method = method
+        if isinstance(options.method, str):
+            Method = method_from_string(options.method)
+        elif issubclass(options.method, ODE_Method):
+            Method = options.method
 
         # instantiate method object with minimal parameters, then populate
         t0 = bmde_problem.t0

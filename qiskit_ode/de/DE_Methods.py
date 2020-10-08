@@ -27,7 +27,7 @@ from scipy.integrate import ode, solve_ivp
 from scipy.integrate._ode import zvode
 from scipy.linalg import expm
 from .DE_Options import DE_Options
-from .type_utils import StateTypeConverter
+from ..type_utils import StateTypeConverter, vec_commutator
 
 
 class ODE_Method(ABC):

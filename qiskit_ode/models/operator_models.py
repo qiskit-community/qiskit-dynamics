@@ -176,7 +176,6 @@ class OperatorModel(BaseOperatorModel):
                      signals, but it can not perform any actions without them.
             signal_mapping: a function returning either a
                             VectorSignal or a list of Signal objects.
-
             frame: Rotating frame operator. If specified with a 1d
                             array, it is interpreted as the diagonal of a
                             diagonal matrix.

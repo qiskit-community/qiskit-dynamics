@@ -178,6 +178,8 @@ class TestOperatorModel(unittest.TestCase):
                             1j * rng.uniform(low=-b,high=b, size=(num_terms)))
         rand_carriers = rng.uniform(low=-b,high=b, size=(num_terms))
 
+        self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
+
     def _test_evaluate(self, frame_op, operators, coefficients, carriers):
 
         vec_sig = VectorSignal(lambda t: coefficients, carriers)
