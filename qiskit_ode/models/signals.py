@@ -18,8 +18,14 @@ from typing import List, Callable, Union
 import numpy as np
 from matplotlib import pyplot as plt
 
+from qiskit import QiskitError
+
 
 class BaseSignal(ABC):
+
+    def __init__(self, name: str = None):
+        """Init function."""
+        self._name = name
 
     @abstractmethod
     def conjugate(self):
@@ -71,7 +77,7 @@ class Signal(BaseSignal):
     carrier frequency.
     """
 
-    def __init__(self, envelope: Union[Callable, complex, float, int], carrier_freq: float = 0.):
+    def __init__(self, envelope: Union[Callable, complex, float, int], carrier_freq: float = 0., name: str = None):
         """
         Initializes a signal given by an envelop and an optional carrier.
 
@@ -88,6 +94,8 @@ class Signal(BaseSignal):
             self.envelope = envelope
 
         self.carrier_freq = carrier_freq
+
+        super().__init__(name)
 
     def envelope_value(self, t: float = 0.) -> complex:
         """Evaluates the envelope at time t."""
@@ -107,8 +115,9 @@ class Constant(BaseSignal):
     Constant signal that has no carrier and may appear in a model.
     """
 
-    def __init__(self, value: complex):
+    def __init__(self, value: complex, name: str = None):
         self._value = value
+        super().__init__(name)
 
     def envelope_value(self, t: float = 0.) -> complex:
         return self._value
@@ -127,7 +136,7 @@ class PiecewiseConstant(BaseSignal):
     """A piecewise constant signal implemented as an array of samples."""
 
     def __init__(self, dt: float, samples: Union[np.array, List], start_time: float = 0.,
-                 duration: int = None, carrier_freq: float = 0):
+                 duration: int = None, carrier_freq: float = 0, name: str = None):
         """
         Args:
             dt: The duration of each sample.
@@ -141,11 +150,12 @@ class PiecewiseConstant(BaseSignal):
         if samples is not None:
             self._samples = [_ for _ in samples]
         else:
-            self._samples = [0] * duration
+            self._samples = [0.] * duration
 
         self._start_time = start_time
 
         self.carrier_freq = carrier_freq
+        super().__init__(name)
 
     @property
     def duration(self) -> int:
@@ -199,6 +209,25 @@ class PiecewiseConstant(BaseSignal):
                                  start_time=self._start_time,
                                  duration=self.duration,
                                  carrier_freq=self.carrier_freq)
+
+    def add_samples(self, start_sample: int, samples: List):
+        """
+        Appends samples to the pulse starting at start_sample.
+        If start_sample is larger than the number of samples currently
+        in the signal the signal is padded with zeros.
+
+        Args:
+            start_sample: number of the sample at which the new samples
+                should be appended.
+            samples: list of samples to append.
+        """
+        if start_sample < len(self._samples):
+            raise QiskitError()
+
+        while len(self._samples) < start_sample:
+            self._samples.append(0.)
+
+        self._samples.extend(samples)
 
 
 def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
