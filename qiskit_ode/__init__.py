@@ -15,3 +15,7 @@
 from .models import Signal, PiecewiseConstant, Constant
 from .models import Convolution
 from .converters import InstructionToSignals
+
+from . import version
+
+__version__ = version.__version__
