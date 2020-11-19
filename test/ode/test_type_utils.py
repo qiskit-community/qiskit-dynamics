@@ -14,9 +14,9 @@
 import unittest
 import numpy as np
 
-from qiskit.providers.aer.pulse_new.type_utils import (convert_state,
-                                                       type_spec_from_instance,
-                                                       StateTypeConverter)
+from qiskit_ode.type_utils import (convert_state,
+                                   type_spec_from_instance,
+                                   StateTypeConverter)
 
 class TestTypeUtils(unittest.TestCase):
 

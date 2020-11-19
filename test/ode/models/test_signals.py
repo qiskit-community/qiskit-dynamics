@@ -13,13 +13,13 @@
 Tests for signals.
 """
 
+import unittest
 import numpy as np
 
-from test.terra.common import QiskitAerTestCase
-from qiskit.providers.aer.pulse_new import Constant, PiecewiseConstant, Signal
+from qiskit_ode import Constant, PiecewiseConstant, Signal
 
 
-class TestSignals(QiskitAerTestCase):
+class TestSignals(unittest.TestCase):
     """Tests for signals."""
 
     def setUp(self):

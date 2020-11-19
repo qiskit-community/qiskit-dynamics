@@ -14,7 +14,7 @@
 import unittest
 import numpy as np
 from scipy.linalg import expm
-from qiskit.providers.aer.pulse_new.models.frame import Frame
+from qiskit_ode.models.frame import Frame
 from qiskit.quantum_info.operators import Operator
 
 class TestFrame(unittest.TestCase):

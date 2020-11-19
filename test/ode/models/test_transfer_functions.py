@@ -12,14 +12,12 @@
 """
 Tests for signal transfer functions.
 """
-
+import unittest
 import numpy as np
-
-from test.terra.common import QiskitAerTestCase
-from qiskit.providers.aer.pulse_new import Convolution, PiecewiseConstant
+from qiskit_ode import Convolution, PiecewiseConstant
 
 
-class TestTransferFunctions(QiskitAerTestCase):
+class TestTransferFunctions(unittest.TestCase):
     """Tests for transfer functions."""
 
     def setUp(self):

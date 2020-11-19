@@ -16,15 +16,14 @@ import warnings
 import numpy as np
 
 from qiskit.quantum_info.operators import Operator
-from qiskit.providers.aer.pulse_new.models.signals import Constant, Signal
-from qiskit.providers.aer.pulse_new.models.operator_models import OperatorModel
-from qiskit.providers.aer.pulse_new.models.quantum_models import HamiltonianModel, LindbladModel
-from qiskit.providers.aer.pulse_new.de.DE_Problems import (BMDE_Problem,
-                                                           SchrodingerProblem,
-                                                           DensityMatrixProblem,
-                                                           SuperOpProblem)
-from qiskit.providers.aer.pulse_new.type_utils import (vec_commutator,
-                                                       vec_dissipator)
+from qiskit_ode.models.signals import Constant, Signal
+from qiskit_ode.models.operator_models import OperatorModel
+from qiskit_ode.models.quantum_models import HamiltonianModel, LindbladModel
+from qiskit_ode.de.DE_Problems import (BMDE_Problem,
+                                       SchrodingerProblem,
+                                       DensityMatrixProblem,
+                                       SuperOpProblem)
+from qiskit_ode.type_utils import (vec_commutator, vec_dissipator)
 
 class TestBMDE_Problem(unittest.TestCase):
 

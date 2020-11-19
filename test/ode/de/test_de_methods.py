@@ -14,9 +14,9 @@
 import unittest
 import numpy as np
 from scipy.linalg import expm
-from qiskit.providers.aer.pulse_new.de.DE_Options import DE_Options
-from qiskit.providers.aer.pulse_new.de.DE_Methods import (ODE_Method, BMDE_Method, RK4, ScipyODE,
-                                                          QiskitZVODE, Expm, method_from_string)
+from qiskit_ode.de.DE_Options import DE_Options
+from qiskit_ode.de.DE_Methods import (ODE_Method, BMDE_Method, RK4, ScipyODE,
+                                      QiskitZVODE, Expm, method_from_string)
 
 
 class TestDE_Methods(unittest.TestCase):

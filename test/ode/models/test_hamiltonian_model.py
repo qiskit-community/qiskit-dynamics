@@ -15,8 +15,8 @@ import unittest
 import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
-from qiskit.providers.aer.pulse_new.models.quantum_models import HamiltonianModel
-from qiskit.providers.aer.pulse_new.models.signals import Constant, Signal, VectorSignal
+from qiskit_ode.models.quantum_models import HamiltonianModel
+from qiskit_ode.models.signals import Constant, Signal, VectorSignal
 
 
 class TestHamiltonianModel(unittest.TestCase):

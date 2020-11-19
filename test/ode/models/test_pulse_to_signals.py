@@ -13,17 +13,16 @@
 Tests to convert from pulse schedules to signals.
 """
 
+import unittest
 import numpy as np
 
 from qiskit.pulse import (Schedule, DriveChannel, Play, Drag, ShiftFrequency,
                           SetFrequency, GaussianSquare, ShiftPhase, Gaussian, Constant)
-from test.terra.common import QiskitAerTestCase
-
-from qiskit.providers.aer.pulse_new.converters import InstructionToSignals
-from qiskit.providers.aer.pulse_new import PiecewiseConstant
+from qiskit_ode.converters import InstructionToSignals
+from qiskit_ode import PiecewiseConstant
 
 
-class TestPulseToSignals(QiskitAerTestCase):
+class TestPulseToSignals(unittest.TestCase):
     """Tests the conversion between pulse schedules and signals."""
 
     def test_pulse_to_signals(self):

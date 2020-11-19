@@ -15,10 +15,10 @@ import unittest
 import numpy as np
 
 from qiskit.quantum_info.operators import Operator
-from qiskit.providers.aer.pulse_new.models.signals import Constant, Signal
-from qiskit.providers.aer.pulse_new.models.operator_models import OperatorModel
-from qiskit.providers.aer.pulse_new.de.DE_Problems import BMDE_Problem
-from qiskit.providers.aer.pulse_new.de.DE_Solvers import BMDE_Solver
+from qiskit_ode.models.signals import Constant, Signal
+from qiskit_ode.models.operator_models import OperatorModel
+from qiskit_ode.de.DE_Problems import BMDE_Problem
+from qiskit_ode.de.DE_Solvers import BMDE_Solver
 
 class TestDE_Solvers(unittest.TestCase):
 
