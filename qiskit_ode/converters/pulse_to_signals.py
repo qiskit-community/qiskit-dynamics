@@ -19,7 +19,7 @@ from typing import List
 
 from qiskit.pulse import Schedule, Play, ShiftPhase, SetPhase, ShiftFrequency, SetFrequency
 from qiskit import QiskitError
-from qiskit.providers.aer.pulse_new.models.signals import PiecewiseConstant
+from ..models.signals import PiecewiseConstant
 
 
 class InstructionToSignals:
