@@ -159,6 +159,9 @@ class Array(NDArrayOperatorsMixin):
             return self._data
         return numpy.asarray(self._data, dtype=dtype)
 
+    def __len__(self) -> int:
+        return len(self._data)
+
     def __str__(self) -> str:
         return str(self._data)
 
@@ -192,24 +195,34 @@ class Array(NDArrayOperatorsMixin):
             return Array(obj, backend=backend)
         return obj
 
+    @classmethod
+    def _unwrap(cls, obj):
+        """Unwrap an Array or list of Array objects"""
+        if isinstance(obj, Array):
+            return obj._data
+        if isinstance(obj, tuple):
+            return tuple(cls._unwrap(i) for i in obj)
+        if isinstance(obj, list):
+            return list(cls._unwrap(i) for i in obj)
+        return obj
+
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """Dispatcher for numpy ufuncs to support the wrapped array backend."""
-        out = kwargs.get('out', ())
+        out = kwargs.get('out', tuple())
 
-        for x in inputs + out:
+        for i in inputs + out:
             # Only support operations with instances of REGISTERED_TYPES.
             # Use ArrayLike instead of type(self) for isinstance to
             # allow subclasses that don't override __array_ufunc__ to
             # handle ArrayLike objects.
-            if not isinstance(x, Dispatch.REGISTERED_TYPES +
+            if not isinstance(i, Dispatch.REGISTERED_TYPES +
                               (Array, Number)):
                 return NotImplemented
 
         # Defer to the implementation of the ufunc on unwrapped values.
-        inputs = tuple(i._data if isinstance(i, Array) else i for i in inputs)
+        inputs = self._unwrap(inputs)
         if out:
-            kwargs['out'] = tuple(i._data if isinstance(i, Array) else i
-                                  for i in out)
+            kwargs['out'] = self._unwrap(out)
 
         # Get implementation for backend
         backend = self.backend
@@ -230,11 +243,11 @@ class Array(NDArrayOperatorsMixin):
         if not all(issubclass(t, (Array,) + Dispatch.REGISTERED_TYPES) for t in types):
             return NotImplemented
 
-        args = tuple(i._data if isinstance(i, Array) else i for i in args)
-        out = kwargs.get('out', ())
+        # Unwrap function Array arguments
+        args = self._unwrap(args)
+        out = kwargs.get('out', tuple())
         if out:
-            kwargs['out'] = tuple(i._data if isinstance(i, Array) else i
-                                  for i in out)
+            kwargs['out'] = self._unwrap(out)
 
         # Get implementation for backend
         backend = self.backend
