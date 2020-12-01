@@ -11,6 +11,7 @@
 # that they have been altered from the originals.
 """Array Class"""
 
+import copy
 from functools import wraps
 from types import BuiltinMethodType, MethodType
 from typing import Optional, Union, Tuple
@@ -116,6 +117,17 @@ class Array(NDArrayOperatorsMixin):
         return Dispatch.repr(self.backend)(
             self._data, prefix=prefix, suffix=suffix)
 
+    def __copy__(self):
+        """Return a shallow copy referencing the same wrapped data array"""
+        return Array(self._data, backend=self.backend)
+
+    def __deepcopy__(self, memo=None):
+        """Return a deep copy with a copy of the wrapped data array"""
+        return Array(copy.deepcopy(self._data), backend=self.backend)
+
+    def __iter__(self):
+        return iter(self._data)
+
     def __getitem__(self, key: str) -> any:
         """Return value from wrapped array"""
         return self._data[key]
@@ -164,6 +176,9 @@ class Array(NDArrayOperatorsMixin):
 
     def __str__(self) -> str:
         return str(self._data)
+
+    def __bool__(self) -> bool:
+        return bool(self._data)
 
     def __int__(self):
         """Convert size 1 array to an int."""
