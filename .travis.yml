@@ -1,0 +1,35 @@
+branches:
+  only:
+    - master
+cache:
+  pip: true
+  directories:
+    - .stestr
+os: linux
+install:
+  - pip install -U pip setuptools virtualenv wheel
+  - pip install -U tox coveralls
+language: python
+script:
+  - tox -epy
+notifications:
+  email: false
+jobs:
+  include:
+    - python: 3.9
+      name: "Python 3.9 Tests"
+    - python: 3.8
+      name: "Python 3.8 Tests"
+    - python: 3.7
+      name: "Python 3.7 Tests"
+    - python: 3.6
+      name: "Python 3.6 Tests"
+    - name: "Python 3.8 with JAX"
+      python: 3.8
+      script: tox -ejax
+    - name: "Python Lint"
+      python: "3.8"
+      script: tox -elint
+    - name: "Docs Build"
+      python: "3.8"
+      script: tox -edocs

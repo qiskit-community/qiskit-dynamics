@@ -1,0 +1,10 @@
+stestr>=3.0.0
+astroid==2.3.3
+pylint==2.4.4
+pycodestyle
+qiskit-sphinx-theme>=1.6
+sphinx-autodoc-typehints
+jupyter-sphinx
+sphinx-panels
+pygments>=2.4
+reno>=3.2.0
