@@ -11,47 +11,97 @@
 # that they have been altered from the originals.
 """Functions for working with Array dispatch."""
 
-from functools import wraps
+import functools
 from types import FunctionType
+from typing import Callable
 
 from .array import Array
 
 
-def wrap(func: callable, wrap_return: bool = False) -> callable:
+def wrap(func: Callable,
+         wrap_return: bool = True,
+         decorator: bool = False) -> Callable:
     """Wrap an array backend function to work with Arrays.
 
     Args:
         func: a function to wrap.
-        wrap_return: Optional. If true convert results that are
-                     registered array backend types into Array objects.
+        wrap_return: If ``True`` convert results that are registered array
+                     backend types into Array objects (Default: True).
+        decorator: If ``True`` the wrapped decorator function ``func`` will
+                   also wrap the decorated functions (Default: False).
 
     Returns:
-        callable: The wrapped function.
-    """
-    @wraps(func)
-    def wrapped_function(*args, **kwargs):
+        Callable: The wrapped function.
 
-        # Recursive wrap function arguments
+    .. note::
+
+        Setting ``decorator=True`` requires that the signature of the
+        function being wrapped is ``func(f: Callable, ...) -> Callable``.
+        Using it is equivalent to nested wrapping
+
+        .. code-block:: python
+
+            f_wrapped = wrap(func, decorator=True)(f)
+
+        is equivalent to
+
+        .. code-block:: python
+
+            f_wrapped = wrap(wrap(func)(f))
+    """
+    # pylint: disable=protected-access
+
+    @functools.wraps(func)
+    def wrapped_func(*args, **kwargs):
+
+        # Check if we are wrapping a decorator by checking that
+        # the first argument is of FunctionType
+        if decorator and args:
+            is_decorator = isinstance(args[0], FunctionType)
+        else:
+            is_decorator = False
+
         args = tuple(_wrap_function(x) if isinstance(x, FunctionType)
                      else x for x in args)
         kwargs = dict((key, _wrap_function(val))
                       if isinstance(val, FunctionType)
                       else (key, val) for key, val in kwargs.items())
 
-        # Evaluate unwrapped function
-        result = _wrap_function(func)(*args, **kwargs)
+        # Return the wrapped function
+        if not is_decorator:
+            # Evaluate unwrapped function
+            result = _wrap_function(func)(*args, **kwargs)
 
-        # Optional wrap array return types back to Arrays
-        if wrap_return:
-            result = Array._wrap(result)
-        return result
+            # Optional wrap array return types back to Arrays
+            if wrap_return:
+                result = Array._wrap(result)
+            return result
 
-    return wrapped_function
+        # Wrap the decorated function returned by the decorator
+        decorated = _wrap_function(func)(*args, **kwargs)
+
+        @functools.wraps(args[0])
+        def wrapped_decorated(*f_args, **f_kwargs):
+
+            f_args = tuple(_wrap_function(x) if isinstance(x, FunctionType)
+                           else x for x in f_args)
+            f_kwargs = dict((key, _wrap_function(val))
+                            if isinstance(val, FunctionType)
+                            else (key, val) for key, val in f_kwargs.items())
+            result = _wrap_function(decorated)(*f_args, **f_kwargs)
+
+            if wrap_return:
+                result = Array._wrap(result)
+            return result
+
+        return wrapped_decorated
+
+    return wrapped_func
 
 
 def _wrap_function(func: callable) -> callable:
     """Wrap a function to handle Array-like inputs and returns"""
-    @wraps(func)
+    @functools.wraps(func)
     def wrapped_function(*args, **kwargs):
 
         # Unwrap inputs
