@@ -23,6 +23,8 @@ import numpy as np
 
 from qiskit.quantum_info.operators import Operator
 
+from qiskit_ode.dispatch import Array
+
 
 class StateTypeConverter:
     """Contains descriptions of two type specifications for DE solvers/methods,
@@ -31,12 +33,12 @@ class StateTypeConverter:
 
     A type specification is a `dict` describing a specific expected type,
     e.g. an array of a given
-    shape. Currently only handled types are numpy arrays, specified via:
+    shape. Currently only handled types `Array`s, specified via:
         - {'type': 'array', 'shape': tuple}
 
     While this class stores exact type specifications, it can be
     instantiated with a concrete type and a more general type.
-    This facilitates the situation in which a solver requires a 1d array,
+    This facilitates the situation in which a solver requires a 1d `Array`,
     which is specified by the type:
         - {'type': 'array', 'ndim': 1}
     """
@@ -57,8 +59,8 @@ class StateTypeConverter:
         """
 
         self.inner_type_spec = inner_type_spec
-
-        self.outer_type_spec = self.inner_type_spec if outer_type_spec is None else outer_type_spec
+        self.outer_type_spec = (self.inner_type_spec if outer_type_spec is None
+                                else outer_type_spec)
         self.order = order
 
     @classmethod
@@ -67,8 +69,8 @@ class StateTypeConverter:
                        outer_y=None,
                        order='F'):
         """Instantiate from concrete instances. Type of instances must
-        be supported by type_spec_from_instance. If outer_y is None the outer
-        type is set to the inner type.
+        be supported by `type_spec_from_instance`. If `outer_y is None` the
+        outer type is set to the inner type.
 
         Args:
             inner_y (array): concrete representative of inner type
@@ -122,7 +124,7 @@ class StateTypeConverter:
             raise Exception("inner_type_spec needs a 'type' key.")
 
         if inner_type == 'array':
-            outer_y_as_array = np.array(outer_y)
+            outer_y_as_array = Array(outer_y)
 
             # if a specific shape is given attempt to instantiate from a reshaped outer_y
             shape = inner_type_spec.get('shape')
@@ -152,82 +154,53 @@ class StateTypeConverter:
         """Convert a state of outer type to one of inner type."""
         return convert_state(y, self.inner_type_spec, self.order)
 
-    def transform_rhs_funcs(self, rhs_funcs):
-        """Convert RHS funcs passed in a dictionary from functions
-        taking/returning outer type, to functions taking/returning inner type.
-
-        Currently supports:
-            - rhs_funcs['rhs'] - standard differential equation
-                                 rhs function f(t, y)
-            - rhs_funcs['generator'] - generator for a BMDE
-
-        Args:
-            rhs_funcs (dict): contains various rhs functions
-
-        Assumptions:
-            - For rhs_funcs['generator'], either inner_type == outer_type, or
-              outer_type = {'type': 'array', 'shape': (d0,d1)} and
-              inner_type = {'type': 'array', 'shape': (d0*d1,)},
-              i.e. the internal representation is the vectorized version of
-              the outer.
-
-        Returns:
-            dict: transformed rhs funcs
+    def rhs_outer_to_inner(self, rhs):
+        """Convert an rhs function f(t, y) to work on inner type.
         """
 
-        new_rhs_funcs = {}
+        # if inner and outer type specs are the same do nothing
+        if self.inner_type_spec == self.outer_type_spec:
+            return rhs
 
-        # transform standard rhs function
-        rhs = rhs_funcs.get('rhs')
+        def new_rhs(t, y):
+            outer_y = self.inner_to_outer(y)
+            rhs_val = rhs(t, outer_y)
+            return self.outer_to_inner(rhs_val)
 
-        if rhs is not None:
-            def new_rhs(t, y):
-                outer_y = self.inner_to_outer(y)
-                rhs_val = rhs(t, outer_y)
-                return self.outer_to_inner(rhs_val)
+        return new_rhs
 
-            new_rhs_funcs['rhs'] = new_rhs
+    def generator_outer_to_inner(self, generator):
+        """Convert generator from outer to inner type.
+        """
+        # if inner and outer type specs are the same do nothing
+        if self.inner_type_spec == self.outer_type_spec:
+            return generator
 
+        # raise exceptions based on assumptions
+        if ((self.inner_type_spec['type'] != 'array') or
+            (self.outer_type_spec['type'] != 'array')):
+            raise Exception("""RHS generator transformation only
+                               valid for state types Array.""")
+        if len(self.inner_type_spec['shape']) != 1:
+            raise Exception("""RHS generator transformation only valid
+                               if inner_type is 1d.""")
 
-        # transform generator
-        generator = rhs_funcs.get('generator')
+        if self.order == 'C':
+            # create identity of size the second dimension of the
+            # outer type
+            ident = Array(np.eye(self.outer_type_spec['shape'][1]))
+            def new_generator(t):
+                return Array(np.kron(generator(t), ident))
 
-        if generator is not None:
-            # With the above assumptions, returns a new generator function G' so that, for a
-            # generator G and state y of outer_shape,
-            # (Gy).reshape(inner_shape) = G' y.reshape(inner_shape)
-            if self.inner_type_spec == self.outer_type_spec:
-                new_rhs_funcs['generator'] = generator
-            else:
+            return new_generator
+        elif self.order == 'F':
+            # create identity of size the second dimension of the
+            # outer type
+            ident = Array(np.eye(self.outer_type_spec['shape'][1]))
+            def new_generator(t):
+                return Array(np.kron(ident, generator(t)))
 
-                # raise exceptions based on assumptions
-                if ((self.inner_type_spec['type'] != 'array') or
-                    (self.outer_type_spec['type'] != 'array')):
-                    raise Exception("""RHS generator transformation only
-                                       valid for state types np.array.""")
-                if len(self.inner_type_spec['shape']) != 1:
-                    raise Exception("""RHS generator transformation only valid
-                                       if inner_type is 1d.""")
-
-                if self.order == 'C':
-                    # create identity of size the second dimension of the
-                    # outer type
-                    ident = np.eye(self.outer_type_spec['shape'][1])
-                    def new_generator(t):
-                        return np.kron(generator(t), ident)
-
-                    new_rhs_funcs['generator'] = new_generator
-                elif self.order == 'F':
-                    # create identity of size the second dimension of the
-                    # outer type
-                    ident = np.eye(self.outer_type_spec['shape'][1])
-                    def new_generator(t):
-                        return np.kron(ident, generator(t))
-
-                    new_rhs_funcs['generator'] = new_generator
-
-
-        return new_rhs_funcs
+            return new_generator
 
 
 def convert_state(y, type_spec, order='F'):
@@ -244,7 +217,7 @@ def convert_state(y, type_spec, order='F'):
 
     if type_spec['type'] == 'array':
         # default array data type to complex
-        new_y = np.array(y, dtype=type_spec.get('dtype', 'complex'))
+        new_y = Array(y, dtype=type_spec.get('dtype', 'complex'))
 
         shape = type_spec.get('shape')
         if shape is not None:
@@ -256,13 +229,13 @@ def convert_state(y, type_spec, order='F'):
 def type_spec_from_instance(y):
     """Determine type spec from an instance."""
     type_spec = {}
-    if isinstance(y, np.ndarray):
+    if isinstance(y, np.ndarray) or isinstance(y, Array):
         type_spec['type'] = 'array'
         type_spec['shape'] = y.shape
 
     return type_spec
 
-def vec_commutator(A: np.array):
+def vec_commutator(A: Array):
     """Linear algebraic vectorization of the linear map X -> [A, X]
     in column-stacking convention. In column-stacking convention we have
 
@@ -280,13 +253,13 @@ def vec_commutator(A: np.array):
         A: Either a 2d array representing the matrix A described above,
            or a 3d array representing a list of matrices.
     """
-    iden = np.eye(A.shape[-1])
+    iden = Array(np.eye(A.shape[-1]))
     axes = list(range(A.ndim))
     axes[-1] = axes[-2]
     axes[-2] += 1
     return np.kron(iden, A) - np.kron(A.transpose(axes), iden)
 
-def vec_dissipator(L: np.array):
+def vec_dissipator(L: Array):
     """ Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)
     in column stacking convention.
@@ -299,7 +272,7 @@ def vec_dissipator(L: np.array):
 
     Note: this function is also "vectorized" in the programming sense.
     """
-    iden = np.eye(L.shape[-1])
+    iden = Array(np.eye(L.shape[-1]))
     axes = list(range(L.ndim))
 
     axes[-1] = axes[-2]
@@ -312,7 +285,7 @@ def vec_dissipator(L: np.array):
             - 0.5 * (np.kron(iden, LdagL) + np.kron(LdagLtrans, iden)))
 
 
-def to_array(op: Union[Operator, np.array, List[Operator], List[np.array]]):
+def to_array(op: Union[Operator, Array, List[Operator], List[Array]]):
     """Convert an operator, either specified as an `Operator` or an array
     to an array.
 
@@ -321,11 +294,15 @@ def to_array(op: Union[Operator, np.array, List[Operator], List[np.array]]):
             to be converted to a 3d array, or an array (which simply gets
             returned)
     Returns:
-        np.array
+        Array
     """
+    if op is None:
+        return None
+
     if isinstance(op, list):
-        return np.array([to_array(sub_op) for sub_op in op])
+        return Array([to_array(sub_op).data for sub_op in op])
 
     if isinstance(op, Operator):
-        return op.data
-    return op
+        return Array(op.data)
+
+    return Array(op)

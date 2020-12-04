@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 '''
-Pulse new tests
+Qiskit ode tests
 '''
 
 import os

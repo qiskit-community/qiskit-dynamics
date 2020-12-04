@@ -17,6 +17,7 @@ from qiskit.quantum_info.operators import Operator
 from .frame import Frame
 from .operator_models import OperatorModel
 from ..type_utils import vec_commutator, vec_dissipator, to_array
+from qiskit_ode.dispatch import Array
 
 class HamiltonianModel(OperatorModel):
     """A model of a Hamiltonian, i.e. a time-dependent operator of the form
@@ -44,7 +45,7 @@ class HamiltonianModel(OperatorModel):
                  operators: List[Operator],
                  signals: Optional[Union[VectorSignal, List[Signal]]] = None,
                  signal_mapping: Optional[Callable] = None,
-                 frame: Optional[Union[Operator, np.array]] = None,
+                 frame: Optional[Union[Operator, Array]] = None,
                  cutoff_freq: Optional[float] = None):
         """Initialize, ensuring that the operators are Hermitian.
 
@@ -66,9 +67,9 @@ class HamiltonianModel(OperatorModel):
         for operator in operators:
             if isinstance(operator, Operator):
                 operator = operator.data
+            operator = Array(operator)
 
-            if np.linalg.norm((operator.conj().transpose()
-                                - operator).data) > 1e-10:
+            if np.linalg.norm((operator.conj().transpose() - operator)) > 1e-10:
                 raise Exception("""HamiltonianModel only accepts Hermitian
                                     operators.""")
 
@@ -78,7 +79,7 @@ class HamiltonianModel(OperatorModel):
                          frame=frame,
                          cutoff_freq=cutoff_freq)
 
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> np.array:
+    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
         """Evaluate the Hamiltonian at a given time.
 
         Note: This function from :class:`OperatorModel` needs to be overridden,
@@ -92,7 +93,7 @@ class HamiltonianModel(OperatorModel):
                             operator is diagonal
 
         Returns:
-            np.array: the evaluated model
+            Array: the evaluated model
         """
 
         if self.signals is None:

@@ -16,7 +16,8 @@ from abc import ABC, abstractmethod
 from typing import Callable, Union, List
 from .signals import BaseSignal, Signal, PiecewiseConstant
 
-from numpy import convolve, array
+from numpy import convolve
+from qiskit_ode.dispatch import Array
 
 
 class BaseTransferFunction(ABC):
@@ -92,9 +93,9 @@ class Convolution(BaseTransferFunction):
         if isinstance(signal, PiecewiseConstant):
             # Perform a discrete time convolution.
             dt = signal.dt
-            func_samples = array([self._func(dt*i) for i in range(signal.duration)])
+            func_samples = Array([self._func(dt*i) for i in range(signal.duration)])
             func_samples = func_samples / sum(func_samples)
-            sig_samples = [signal.value(dt*i) for i in range(signal.duration)]
+            sig_samples = Array([signal.value(dt*i) for i in range(signal.duration)])
 
             convoluted_samples = convolve(func_samples, sig_samples)
 

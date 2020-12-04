@@ -17,15 +17,16 @@ from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models.operator_models import OperatorModel
 from qiskit_ode.models.signals import Constant, Signal, VectorSignal
-
+from qiskit_ode.dispatch import Array
+from ..test_jax_base import TestJaxBase
 
 class TestOperatorModel(unittest.TestCase):
     """Tests for OperatorModel."""
 
     def setUp(self):
-        self.X = Operator.from_label('X')
-        self.Y = Operator.from_label('Y')
-        self.Z = Operator.from_label('Z')
+        self.X = Array(Operator.from_label('X').data)
+        self.Y = Array(Operator.from_label('Y').data)
+        self.Z = Array(Operator.from_label('Z').data)
 
         # define a basic model
         w = 2.
@@ -43,13 +44,13 @@ class TestOperatorModel(unittest.TestCase):
 
         # 1d array
         try:
-            self.basic_model.frame = np.array([1., 1.])
+            self.basic_model.frame = Array([1., 1.])
         except Exception as e:
             self.assertTrue('anti-Hermitian' in str(e))
 
         # 2d array
         try:
-            self.basic_model.frame = np.array([[1., 0.], [0., 1.]])
+            self.basic_model.frame = Array([[1., 0.], [0., 1.]])
         except Exception as e:
             self.assertTrue('anti-Hermitian' in str(e))
 
@@ -64,8 +65,8 @@ class TestOperatorModel(unittest.TestCase):
         set up basic model.
         """
 
-        self._basic_frame_evaluate_test(np.array([1j, -1j]), 1.123)
-        self._basic_frame_evaluate_test(np.array([1j, -1j]), np.pi)
+        self._basic_frame_evaluate_test(Array([1j, -1j]), 1.123)
+        self._basic_frame_evaluate_test(Array([1j, -1j]), np.pi)
 
 
     def test_non_diag_frame_operator_basic_model(self):
@@ -85,15 +86,15 @@ class TestOperatorModel(unittest.TestCase):
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
-            frame_operator = frame_operator.data
-        if isinstance(frame_operator, np.ndarray) and frame_operator.ndim == 1:
+            frame_operator = Array(frame_operator.data)
+        if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
             frame_operator = np.diag(frame_operator)
 
         value = self.basic_model.evaluate(t)
 
         i2pi = -1j * 2 * np.pi
 
-        U = expm(- frame_operator * t)
+        U = expm(- np.array(frame_operator) * t)
 
         # drive coefficient
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
@@ -133,7 +134,7 @@ class TestOperatorModel(unittest.TestCase):
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
-        U = expm(frame_op * t) @ U
+        U = expm(np.array(frame_op) * t) @ U
         Uadj = U.conj().transpose()
 
         i2pi = -1j * 2 * np.pi
@@ -154,13 +155,13 @@ class TestOperatorModel(unittest.TestCase):
         b = 1. # bound on size of random terms
         rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
                    1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
-        frame_op = rand_op - rand_op.conj().transpose()
+        frame_op = Array(rand_op - rand_op.conj().transpose())
         rand_operators = (rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
                             1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
 
-        rand_coeffs = (rng.uniform(low=-b,high=b, size=(num_terms)) +
+        rand_coeffs = Array(rng.uniform(low=-b,high=b, size=(num_terms)) +
                             1j * rng.uniform(low=-b,high=b, size=(num_terms)))
-        rand_carriers = rng.uniform(low=-b,high=b, size=(num_terms))
+        rand_carriers = Array(rng.uniform(low=-b,high=b, size=(num_terms)))
 
         self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
 
@@ -170,13 +171,13 @@ class TestOperatorModel(unittest.TestCase):
         b = 1. # bound on size of random terms
         rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
                    1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
-        frame_op = rand_op - rand_op.conj().transpose()
-        rand_operators = (rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
-                            1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
+        frame_op = Array(rand_op - rand_op.conj().transpose())
+        rand_operators = Array(rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
+                               1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
 
-        rand_coeffs = (rng.uniform(low=-b,high=b, size=(num_terms)) +
+        rand_coeffs = Array(rng.uniform(low=-b,high=b, size=(num_terms)) +
                             1j * rng.uniform(low=-b,high=b, size=(num_terms)))
-        rand_carriers = rng.uniform(low=-b,high=b, size=(num_terms))
+        rand_carriers = Array(rng.uniform(low=-b,high=b, size=(num_terms)))
 
         self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
 
@@ -187,7 +188,7 @@ class TestOperatorModel(unittest.TestCase):
 
         value = model.evaluate(1.)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.))
-        expected = expm(-frame_op) @ np.tensordot(coeffs, operators, axes=1) @ expm(frame_op) - frame_op
+        expected = expm(-np.array(frame_op)) @ np.tensordot(coeffs, operators, axes=1) @ expm(np.array(frame_op)) - frame_op
 
         self.assertAlmostEqual(value, expected)
 
@@ -307,3 +308,10 @@ class TestOperatorModel(unittest.TestCase):
 
     def assertAlmostEqual(self, A, B, tol=1e-12):
         self.assertTrue(np.abs(A - B).max() < tol)
+
+class TestOperatorModelJax(TestOperatorModel, TestJaxBase):
+    """Jax version of TestOperatorModel tests.
+
+    Note: This class has no body but contains tests due to inheritance.
+    """
+    pass

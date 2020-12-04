@@ -13,30 +13,30 @@
 
 import unittest
 import numpy as np
+from qiskit_ode.dispatch import Array
 
 from qiskit_ode.type_utils import (convert_state,
                                    type_spec_from_instance,
                                    StateTypeConverter)
 
-class TestTypeUtils(unittest.TestCase):
+from .test_jax_base import TestJaxBase
 
-    def setUp(self):
-        pass
+class TestTypeUtils(unittest.TestCase):
 
     def test_convert_state_order_C(self):
         """Test convert_state with order parameter 'C'."""
 
         type_spec = {'type': 'array', 'shape': (4,)}
-        y = np.array([[1, 2],[3, 4]])
-        expected = np.array([1, 2, 3, 4])
+        y = Array([[1, 2],[3, 4]])
+        expected = Array([1, 2, 3, 4])
 
-        self.assertAlmostEqual(convert_state(y, type_spec, order='C'), expected)
+        self.assertAllClose(convert_state(y, type_spec, order='C'), expected)
 
         type_spec = {'type': 'array'}
         y = [[1, 2], [3, 4]]
-        expected = np.array([[1, 2],[3, 4]])
+        expected = Array([[1, 2],[3, 4]])
 
-        self.assertAlmostEqual(convert_state(y, type_spec, order='C'), expected)
+        self.assertAllClose(convert_state(y, type_spec, order='C'), expected)
 
     def test_convert_state_order_F(self):
         """Test convert_state with order 'F'.
@@ -45,26 +45,26 @@ class TestTypeUtils(unittest.TestCase):
         """
 
         type_spec = {'type': 'array', 'shape': (4,)}
-        y = np.array([[1, 2],[3, 4]])
-        expected = np.array([1, 3, 2, 4])
+        y = Array([[1, 2],[3, 4]])
+        expected = Array([1, 3, 2, 4])
 
-        self.assertAlmostEqual(convert_state(y, type_spec), expected)
+        self.assertAllClose(convert_state(y, type_spec), expected)
 
         type_spec = {'type': 'array'}
         y = [[1, 2], [3, 4]]
-        expected = np.array([[1, 2],[3, 4]])
+        expected = Array([[1, 2],[3, 4]])
 
-        self.assertAlmostEqual(convert_state(y, type_spec), expected)
+        self.assertAllClose(convert_state(y, type_spec), expected)
 
     def test_type_spec_from_instance(self):
         """Test type_spec_from_instance"""
 
-        y = np.array([1, 2, 3, 4])
+        y = Array([1, 2, 3, 4])
         type_spec = type_spec_from_instance(y)
 
         self.assertEqual(type_spec, {'type': 'array', 'shape': (4,)})
 
-        y = np.array([[1, 2], [3, 4], [5, 6]])
+        y = Array([[1, 2], [3, 4], [5, 6]])
         type_spec = type_spec_from_instance(y)
 
         self.assertEqual(type_spec, {'type': 'array', 'shape': (3, 2)})
@@ -78,14 +78,14 @@ class TestTypeUtils(unittest.TestCase):
         outer_spec = {'type': 'array', 'shape': (2,2)}
         converter = StateTypeConverter(inner_spec, outer_spec, order='C')
 
-        y_in = np.array([1,2,3,4])
-        y_out = np.array([[1, 2], [3, 4]])
+        y_in = Array([1,2,3,4])
+        y_out = Array([[1, 2], [3, 4]])
 
         convert_out = converter.inner_to_outer(y_in)
         convert_in = converter.outer_to_inner(y_out)
 
-        self.assertAlmostEqual(convert_out, y_out)
-        self.assertAlmostEqual(convert_in, y_in)
+        self.assertAllClose(convert_out, y_out)
+        self.assertAllClose(convert_in, y_in)
 
     def test_converter_inner_outer_order_F(self):
         """Test standard constructor of StateTypeConverter along with
@@ -96,20 +96,20 @@ class TestTypeUtils(unittest.TestCase):
         outer_spec = {'type': 'array', 'shape': (2,2)}
         converter = StateTypeConverter(inner_spec, outer_spec, order='F')
 
-        y_in = np.array([1,3,2,4])
-        y_out = np.array([[1, 2], [3, 4]])
+        y_in = Array([1,3,2,4])
+        y_out = Array([[1, 2], [3, 4]])
 
         convert_out = converter.inner_to_outer(y_in)
         convert_in = converter.outer_to_inner(y_out)
 
-        self.assertAlmostEqual(convert_out, y_out)
-        self.assertAlmostEqual(convert_in, y_in)
+        self.assertAllClose(convert_out, y_out)
+        self.assertAllClose(convert_in, y_in)
 
     def test_from_instances(self):
         """Test from_instances constructor"""
 
-        inner_y = np.array([1, 2, 3, 4])
-        outer_y = np.array([[1, 2], [3, 4]])
+        inner_y = Array([1, 2, 3, 4])
+        outer_y = Array([[1, 2], [3, 4]])
 
         converter = StateTypeConverter.from_instances(inner_y, outer_y)
 
@@ -130,7 +130,7 @@ class TestTypeUtils(unittest.TestCase):
 
         # test case for inner type spec with 1d array
         inner_type_spec = {'type': 'array', 'ndim': 1}
-        outer_y = np.array([[1, 2], [3, 4]])
+        outer_y = Array([[1, 2], [3, 4]])
 
         converter = StateTypeConverter.from_outer_instance_inner_type_spec(outer_y, inner_type_spec)
 
@@ -139,7 +139,7 @@ class TestTypeUtils(unittest.TestCase):
 
         # inner type spec is a generic array
         inner_type_spec = {'type': 'array'}
-        outer_y = np.array([[1, 2], [3, 4]])
+        outer_y = Array([[1, 2], [3, 4]])
 
         converter = StateTypeConverter.from_outer_instance_inner_type_spec(outer_y, inner_type_spec)
 
@@ -153,7 +153,7 @@ class TestTypeUtils(unittest.TestCase):
         outer_spec = {'type': 'array', 'shape': (2,2)}
         converter = StateTypeConverter(inner_spec, outer_spec, order='C')
 
-        X = np.array([[0., 1.], [1., 0.]])
+        X = Array([[0., 1.], [1., 0.]])
 
         # do matrix multiplication (a truly '2d' operation)
         def rhs(t, y):
@@ -162,23 +162,24 @@ class TestTypeUtils(unittest.TestCase):
         def generator(t):
             return X
 
-        rhs_funcs = {'rhs': rhs, 'generator': generator}
-        new_rhs_funcs = converter.transform_rhs_funcs(rhs_funcs)
+        new_rhs = converter.rhs_outer_to_inner(rhs)
 
         test_t = np.pi
-        y_2d = np.array([[1, 2], [3, 4]])
+        y_2d = Array([[1, 2], [3, 4]])
         y_1d = y_2d.flatten()
 
         expected_output = rhs(test_t, y_2d).flatten()
-        output = new_rhs_funcs['rhs'](test_t, y_1d)
+        output = new_rhs(test_t, y_1d)
 
-        self.assertAlmostEqual(output, expected_output)
+        self.assertAllClose(output, expected_output)
+
+        new_generator = converter.generator_outer_to_inner(generator)
 
         # verify generator vectorization
-        expected_output = np.kron(X, np.eye(2))
-        output = new_rhs_funcs['generator'](test_t)
+        expected_output = np.kron(X, Array(np.eye(2)))
+        output = new_generator(test_t)
 
-        self.assertAlmostEqual(output, expected_output)
+        self.assertAllClose(output, expected_output)
 
     def test_transform_rhs_funcs_order_F(self):
         """Test rhs function conversion"""
@@ -187,7 +188,7 @@ class TestTypeUtils(unittest.TestCase):
         outer_spec = {'type': 'array', 'shape': (2,2)}
         converter = StateTypeConverter(inner_spec, outer_spec)
 
-        X = np.array([[0., 1.], [1., 0.]])
+        X = Array([[0., 1.], [1., 0.]])
 
         # do matrix multiplication (a truly '2d' operation)
         def rhs(t, y):
@@ -196,23 +197,31 @@ class TestTypeUtils(unittest.TestCase):
         def generator(t):
             return X
 
-        rhs_funcs = {'rhs': rhs, 'generator': generator}
-        new_rhs_funcs = converter.transform_rhs_funcs(rhs_funcs)
+        new_rhs = converter.rhs_outer_to_inner(rhs)
 
         test_t = np.pi
-        y_2d = np.array([[1, 2], [3, 4]])
+        y_2d = Array([[1, 2], [3, 4]])
         y_1d = y_2d.flatten(order='F')
 
         expected_output = rhs(test_t, y_2d).flatten(order='F')
-        output = new_rhs_funcs['rhs'](test_t, y_1d)
+        output = new_rhs(test_t, y_1d)
 
-        self.assertAlmostEqual(output, expected_output)
+        self.assertAllClose(output, expected_output)
+
+        new_generator = converter.generator_outer_to_inner(generator)
 
         # verify generator vectorization
-        expected_output = np.kron(np.eye(2), X)
-        output = new_rhs_funcs['generator'](test_t)
+        expected_output = np.kron(Array(np.eye(2)), X)
+        output = new_generator(test_t)
 
-        self.assertAlmostEqual(output, expected_output)
+        self.assertAllClose(output, expected_output)
 
-    def assertAlmostEqual(self, A, B, tol=10**-15):
-        self.assertTrue(np.abs(A - B).max() < tol)
+    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+
+class TestTypeUtilsJax(TestTypeUtils, TestJaxBase):
+    """Jax version of TestTypeUtils tests.
+
+    Note: This class has no body but contains tests due to inheritance.
+    """
+    pass

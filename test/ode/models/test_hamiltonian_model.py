@@ -17,6 +17,8 @@ from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models.quantum_models import HamiltonianModel
 from qiskit_ode.models.signals import Constant, Signal, VectorSignal
+from qiskit_ode.dispatch import Array
+from ..test_jax_base import TestJaxBase
 
 
 class TestHamiltonianModel(unittest.TestCase):
@@ -24,9 +26,9 @@ class TestHamiltonianModel(unittest.TestCase):
     """
 
     def setUp(self):
-        self.X = Operator.from_label('X')
-        self.Y = Operator.from_label('Y')
-        self.Z = Operator.from_label('Z')
+        self.X = Array(Operator.from_label('X').data)
+        self.Y = Array(Operator.from_label('Y').data)
+        self.Z = Array(Operator.from_label('Z').data)
 
         # define a basic hamiltonian
         w = 2.
@@ -58,8 +60,8 @@ class TestHamiltonianModel(unittest.TestCase):
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
-            frame_operator = frame_operator.data
-        if isinstance(frame_operator, np.ndarray) and frame_operator.ndim == 1:
+            frame_operator = Array(frame_operator.data)
+        if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
             frame_operator = np.diag(frame_operator)
 
         value = self.basic_hamiltonian.evaluate(t)
@@ -67,7 +69,7 @@ class TestHamiltonianModel(unittest.TestCase):
         twopi = 2 * np.pi
 
         # frame is F=-1j * H, and need to compute exp(-F * t)
-        U = expm(1j * frame_operator * t)
+        U = expm(1j * np.array(frame_operator) * t)
 
         # drive coefficient
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
@@ -84,8 +86,8 @@ class TestHamiltonianModel(unittest.TestCase):
         set up basic hamiltonian.
         """
 
-        self._basic_frame_evaluate_test(np.array([1., -1.]), 1.123)
-        self._basic_frame_evaluate_test(np.array([1., -1.]), np.pi)
+        self._basic_frame_evaluate_test(Array([1., -1.]), 1.123)
+        self._basic_frame_evaluate_test(Array([1., -1.]), np.pi)
 
     def test_non_diag_frame_operator_basic_hamiltonian(self):
         """Test setting a non-diagonal frame operator for the internally
@@ -145,16 +147,16 @@ class TestHamiltonianModel(unittest.TestCase):
         # random hermitian frame operator
         rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
                    1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
-        frame_op = rand_op + rand_op.conj().transpose()
+        frame_op = Array(rand_op + rand_op.conj().transpose())
 
         # random hermitian operators
         rand_operators = (rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
                           1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
-        rand_operators = rand_operators + rand_operators.conj().transpose([0, 2, 1])
+        rand_operators = Array(rand_operators + rand_operators.conj().transpose([0, 2, 1]))
 
         rand_coeffs = (rng.uniform(low=-b,high=b, size=(num_terms)) +
                        1j * rng.uniform(low=-b,high=b, size=(num_terms)))
-        rand_carriers = rng.uniform(low=-b,high=b, size=(num_terms))
+        rand_carriers = Array(rng.uniform(low=-b,high=b, size=(num_terms)))
 
         self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
 
@@ -166,27 +168,28 @@ class TestHamiltonianModel(unittest.TestCase):
         # random hermitian frame operator
         rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
                    1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
-        frame_op = rand_op + rand_op.conj().transpose()
+        frame_op = Array(rand_op + rand_op.conj().transpose())
 
         # random hermitian operators
         rand_operators = (rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
                           1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
-        rand_operators = rand_operators + rand_operators.conj().transpose([0, 2, 1])
+        rand_operators = Array(rand_operators + rand_operators.conj().transpose([0, 2, 1]))
 
         rand_coeffs = (rng.uniform(low=-b,high=b, size=(num_terms)) +
                        1j * rng.uniform(low=-b,high=b, size=(num_terms)))
-        rand_carriers = rng.uniform(low=-b,high=b, size=(num_terms))
+        rand_carriers = Array(rng.uniform(low=-b,high=b, size=(num_terms)))
 
         self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
 
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers):
+
         vec_sig = VectorSignal(lambda t: coefficients, carriers)
         model = HamiltonianModel(operators, vec_sig, frame=frame_op)
 
         value = model.evaluate(1.)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.))
-        expected = expm(1j * frame_op) @ np.tensordot(coeffs, operators, axes=1) @ expm(-1j * frame_op) - frame_op
+        expected = expm(1j * np.array(frame_op)) @ np.tensordot(coeffs, operators, axes=1) @ expm(-1j * np.array(frame_op)) - frame_op
 
         self.assertAlmostEqual(value, expected)
 
@@ -219,3 +222,11 @@ class TestHamiltonianModel(unittest.TestCase):
 
     def assertAlmostEqual(self, A, B, tol=1e-12):
         self.assertTrue(np.abs(A - B).max() < tol)
+
+
+class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
+    """Jax version of TestHamiltonianModel tests.
+
+    Note: This class has no body but contains tests due to inheritance.
+    """
+    pass

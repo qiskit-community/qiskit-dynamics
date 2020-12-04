@@ -16,6 +16,7 @@ import numpy as np
 
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
+from qiskit_ode.dispatch import Array
 from ..type_utils import to_array
 
 class BaseFrame(ABC):
@@ -42,7 +43,7 @@ class BaseFrame(ABC):
         - The frame transformation is norm preserving.
     That :math:`F` is diagonalizable is especially important, as :math:`e^{tF}`
     will need repeated evaluation for different :math:`t` (e.g. at every RHS
-    sample point when solving a DE), so it is useful to work in a basis in which
+    sample point when solving a DE), so it is useful to work in a basis in
     which :math:`F` is diagonal to minimize the cost of this.
 
     Given an anti-Hermitian matrix :math:`F`, this class offers functions
@@ -73,75 +74,75 @@ class BaseFrame(ABC):
 
     @property
     @abstractmethod
-    def frame_operator(self) -> Union[Operator, np.array]:
+    def frame_operator(self) -> Union[Operator, Array]:
         """The original frame operator."""
 
     @property
     @abstractmethod
-    def frame_diag(self) -> np.array:
+    def frame_diag(self) -> Array:
         """Diagonal of the frame operator as a 1d array."""
 
     @property
     @abstractmethod
-    def frame_basis(self) -> np.array:
+    def frame_basis(self) -> Array:
         """Array containing the unitary :math:`U` that diagonalizes the
         frame operator, i.e. :math:`U` such that :math:`F = U D U^\dagger`.
         """
 
     @property
     @abstractmethod
-    def frame_basis_adjoint(self) -> np.array:
+    def frame_basis_adjoint(self) -> Array:
         """Adjoint of self.frame_basis."""
 
     @abstractmethod
-    def state_into_frame_basis(self, y: np.array) -> np.array:
+    def state_into_frame_basis(self, y: Array) -> Array:
         """Take a state into the frame basis, i.e. return
         self.frame_basis_adjoint @ y.
 
         Args:
             y: the state
         Returns:
-            np.array: the state in the frame basis
+            Array: the state in the frame basis
         """
 
     @abstractmethod
-    def state_out_of_frame_basis(self, y: np.array) -> np.array:
+    def state_out_of_frame_basis(self, y: Array) -> Array:
         """Take a state out of the frame basis, i.e.
         return self.frame_basis @ y.
 
         Args:
             y: the state
         Returns:
-            np.array: the state in the frame basis
+            Array: the state in the frame basis
         """
 
     @abstractmethod
     def operator_into_frame_basis(self,
-                                  op: Union[Operator, np.array]) -> np.array:
+                                  op: Union[Operator, Array]) -> Array:
         """Take an operator into the frame basis, i.e. return
         self.frame_basis_adjoint @ A @ self.frame_basis
 
         Args:
             op: the operator.
         Returns:
-            np.array: the operator in the frame basis
+            Array: the operator in the frame basis
         """
 
     @abstractmethod
     def operator_out_of_frame_basis(self,
-                                    op: Union[Operator, np.array]) -> np.array:
+                                    op: Union[Operator, Array]) -> Array:
         """Take an operator out of the frame basis, i.e. return
         self.frame_basis @ to_array(op) @ self.frame_basis_adjoint
 
         Args:
             op: the operator.
         Returns:
-            np.array: the operator in the frame basis
+            Array: the operator in the frame basis
         """
 
     @abstractmethod
     def operators_into_frame_basis(self,
-                                   operators: Union[List[Operator], np.array]) -> np.array:
+                                   operators: Union[List[Operator], Array]) -> Array:
         """Given a list of operators, apply self.operator_into_frame_basis to
         all and return as a 3d array.
 
@@ -151,7 +152,7 @@ class BaseFrame(ABC):
 
     @abstractmethod
     def operators_out_of_frame_basis(self,
-                                     operators: Union[List[Operator], np.array]) -> np.array:
+                                     operators: Union[List[Operator], Array]) -> Array:
         """Given a list of operators, apply self.operator_out_of_frame_basis to
         all and return as a 3d array.
 
@@ -162,7 +163,7 @@ class BaseFrame(ABC):
     @abstractmethod
     def state_into_frame(self,
                          t: float,
-                         y: np.array,
+                         y: Array,
                          y_in_frame_basis: Optional[bool] = False,
                          return_in_frame_basis: Optional[bool] = False):
         """Take a state into the frame, i.e. return exp(-tF) @ y.
@@ -178,7 +179,7 @@ class BaseFrame(ABC):
 
     def state_out_of_frame(self,
                            t: float,
-                           y: np.array,
+                           y: Array,
                            y_in_frame_basis: Optional[bool] = False,
                            return_in_frame_basis: Optional[bool] = False):
         """Take a state out of the frame, i.e. return exp(tF) @ y.
@@ -200,8 +201,8 @@ class BaseFrame(ABC):
     @abstractmethod
     def _conjugate_and_add(self,
                            t: float,
-                           operator: np.array,
-                           op_to_add_in_fb: Optional[np.array] = None,
+                           operator: Array,
+                           op_to_add_in_fb: Optional[Array] = None,
                            operator_in_frame_basis: Optional[bool] = False,
                            return_in_frame_basis: Optional[bool] = False):
         """Generalized helper function for taking operators and generators
@@ -221,7 +222,7 @@ class BaseFrame(ABC):
 
     def operator_into_frame(self,
                             t: float,
-                            operator: Union[Operator, np.array],
+                            operator: Union[Operator, Array],
                             operator_in_frame_basis: Optional[bool] = False,
                             return_in_frame_basis: Optional[bool] = False):
         """Bring an operator into the frame, i.e. return
@@ -244,7 +245,7 @@ class BaseFrame(ABC):
 
     def operator_out_of_frame(self,
                               t: float,
-                              operator: Union[Operator, np.array],
+                              operator: Union[Operator, Array],
                               operator_in_frame_basis: Optional[bool] = False,
                               return_in_frame_basis: Optional[bool] = False):
         """Bring an operator into the frame, i.e. return
@@ -268,7 +269,7 @@ class BaseFrame(ABC):
 
     def generator_into_frame(self,
                              t: float,
-                             operator: Union[Operator, np.array],
+                             operator: Union[Operator, Array],
                              operator_in_frame_basis: Optional[bool] = False,
                              return_in_frame_basis: Optional[bool] = False):
         """Take an generator into the frame, i.e. return
@@ -296,7 +297,7 @@ class BaseFrame(ABC):
 
     def generator_out_of_frame(self,
                                t: float,
-                               operator: Union[Operator, np.array],
+                               operator: Union[Operator, Array],
                                operator_in_frame_basis: Optional[bool] = False,
                                return_in_frame_basis: Optional[bool] = False):
         """Take an operator out of the frame, i.e. return
@@ -318,15 +319,15 @@ class BaseFrame(ABC):
             # conjugate and add the frame diagonal
             return self._conjugate_and_add(-t,
                                            operator,
-                                           op_to_add_in_fb=np.diag(self.frame_diag),
+                                           op_to_add_in_fb=Array(np.diag(self.frame_diag)),
                                            operator_in_frame_basis=operator_in_frame_basis,
                                            return_in_frame_basis=return_in_frame_basis)
 
     @abstractmethod
     def operators_into_frame_basis_with_cutoff(self,
-                                               operators: Union[np.array, List[Operator]],
+                                               operators: Union[Array, List[Operator]],
                                                cutoff_freq: Optional[float] = None,
-                                               carrier_freqs: Optional[np.array] = None):
+                                               carrier_freqs: Optional[Array] = None):
         """Transform operators into the frame basis, and return two lists of
         operators: one with the 'frequency cutoff' and one with 'conjugate
         frequency cutoff' (explained below). This serves as a helper function
@@ -415,7 +416,7 @@ class BaseFrame(ABC):
             carrier_freqs: list of carrier frequencies
 
         Returns:
-            Tuple[np.array, np.array]: The operators with frequency cutoff
+            Tuple[Array, Array]: The operators with frequency cutoff
             and conjugate frequency cutoff.
         """
 
@@ -424,7 +425,7 @@ class Frame(BaseFrame):
     """Concrete implementation of BaseFrame using numpy arrays."""
 
     def __init__(self,
-                 frame_operator: Union[Operator, np.array],
+                 frame_operator: Union[BaseFrame, Operator, Array],
                  atol: float = 1e-10,
                  rtol: float = 1e-10):
         """Initialize with a frame operator.
@@ -438,7 +439,11 @@ class Frame(BaseFrame):
                   Hermitian or anti-Hermitian.
         """
 
+        if issubclass(type(frame_operator), BaseFrame):
+            frame_operator = frame_operator.frame_operator
+
         self._frame_operator = frame_operator
+        frame_operator = to_array(frame_operator)
 
         if frame_operator is None:
             self._dim = None
@@ -446,40 +451,32 @@ class Frame(BaseFrame):
             self._frame_basis = None
             self._frame_basis_adjoint = None
         # if frame_operator is a 1d array, assume already diagonalized
-        elif isinstance(frame_operator, np.ndarray) and frame_operator.ndim == 1:
+        elif frame_operator.ndim == 1:
 
             # verify Hermitian or anti-Hermitian
             # if Hermitian convert to anti-Hermitian
-            if np.allclose(frame_operator, frame_operator.conj(),
-                           atol=atol, rtol=rtol):
-                frame_operator = -1j * frame_operator
-            elif not np.allclose(frame_operator, -frame_operator.conj(),
-                                 atol=atol, rtol=rtol):
-                raise Exception("""frame_operator must be either a Hermitian or
-                                   anti-Hermitian matrix.""")
+            frame_operator = _is_herm_or_anti_herm(frame_operator,
+                                                   atol=atol,
+                                                   rtol=rtol)
 
-            self._frame_diag = frame_operator
-            self._frame_basis = np.eye(len(frame_operator))
+            self._frame_diag = Array(frame_operator)
+            self._frame_basis = Array(np.eye(len(frame_operator)))
             self._frame_basis_adjoint = self.frame_basis
             self._dim = len(self._frame_diag)
         # if not, diagonalize it
         else:
-            # Ensure that its an array
-            frame_operator = to_array(frame_operator)
 
             # verify Hermitian or anti-Hermitian
             # if Hermitian convert to anti-Hermitian
-            if is_hermitian_matrix(frame_operator, rtol=rtol, atol=atol):
-                frame_operator = -1j * frame_operator
-            elif not is_hermitian_matrix(1j * frame_operator, rtol=rtol, atol=atol):
-                raise Exception("""frame_operator must be either a Hermitian or
-                                   anti-Hermitian matrix.""")
+            frame_operator = _is_herm_or_anti_herm(frame_operator,
+                                                   atol=atol,
+                                                   rtol=rtol)
 
             # diagonalize with eigh, utilizing assumption of anti-hermiticity
             frame_diag, frame_basis = np.linalg.eigh(1j * frame_operator)
 
-            self._frame_diag = -1j * frame_diag
-            self._frame_basis = frame_basis
+            self._frame_diag = Array(-1j * frame_diag)
+            self._frame_basis = Array(frame_basis)
             self._frame_basis_adjoint = frame_basis.conj().transpose()
             self._dim = len(self._frame_diag)
 
@@ -488,45 +485,45 @@ class Frame(BaseFrame):
         return self._dim
 
     @property
-    def frame_operator(self) -> np.array:
+    def frame_operator(self) -> Array:
         """The original frame operator."""
         return self._frame_operator
 
     @property
-    def frame_diag(self) -> np.array:
+    def frame_diag(self) -> Array:
         """Diagonal of the frame operator."""
         return self._frame_diag
 
     @property
-    def frame_basis(self) -> np.array:
+    def frame_basis(self) -> Array:
         """Array containing diagonalizing unitary."""
         return self._frame_basis
 
     @property
-    def frame_basis_adjoint(self) -> np.array:
+    def frame_basis_adjoint(self) -> Array:
         """Adjoint of the diagonalizing unitary."""
         return self._frame_basis_adjoint
 
-    def state_into_frame_basis(self, y: np.array) -> np.array:
+    def state_into_frame_basis(self, y: Array) -> Array:
         """Transform y into the frame basis.
 
         Args:
             y: the state
         Returns:
-            np.array: the state in the frame basis
+            Array: the state in the frame basis
         """
         if self._frame_operator is None:
             return to_array(y)
 
         return self.frame_basis_adjoint @ y
 
-    def state_out_of_frame_basis(self, y: np.array) -> np.array:
+    def state_out_of_frame_basis(self, y: Array) -> Array:
         """Transform y out of the frame basis.
 
         Args:
             y: the state
         Returns:
-            np.array: the state in the frame basis
+            Array: the state in the frame basis
         """
         if self._frame_operator is None:
             return to_array(y)
@@ -534,13 +531,13 @@ class Frame(BaseFrame):
         return self.frame_basis @ y
 
     def operator_into_frame_basis(self,
-                                  op: Union[Operator, np.array]) -> np.array:
+                                  op: Union[Operator, Array]) -> Array:
         """Transform operator into frame basis.
 
         Args:
             op: the operator.
         Returns:
-            np.array: the operator in the frame basis
+            Array: the operator in the frame basis
         """
         if self._frame_operator is None:
             return to_array(op)
@@ -548,13 +545,13 @@ class Frame(BaseFrame):
         return self.frame_basis_adjoint @ to_array(op) @ self.frame_basis
 
     def operator_out_of_frame_basis(self,
-                                    op: Union[Operator, np.array]) -> np.array:
+                                    op: Union[Operator, Array]) -> Array:
         """Transform operator into frame basis.
 
         Args:
             op: the operator.
         Returns:
-            np.array: the operator in the frame basis
+            Array: the operator in the frame basis
         """
         if self._frame_operator is None:
             return to_array(op)
@@ -562,7 +559,7 @@ class Frame(BaseFrame):
         return self.frame_basis @ to_array(op) @ self.frame_basis_adjoint
 
     def operators_into_frame_basis(self,
-                                   operators: Union[List[Operator], np.array]) -> np.array:
+                                   operators: Union[List[Operator], Array]) -> Array:
         """Given a list of operators, perform a change of basis on all into
         the frame basis, and return as a 3d array.
 
@@ -570,10 +567,12 @@ class Frame(BaseFrame):
             operators: list of operators
         """
 
-        return np.array([self.operator_into_frame_basis(o) for o in operators])
+        operators = to_array(operators)
+
+        return Array([self.operator_into_frame_basis(o).data for o in operators.data])
 
     def operators_out_of_frame_basis(self,
-                                   operators: Union[List[Operator], np.array]) -> np.array:
+                                   operators: Union[List[Operator], Array]) -> Array:
         """Given a list of operators, perform a change of basis on all out of
         the frame basis, and return as a 3d array.
 
@@ -581,11 +580,11 @@ class Frame(BaseFrame):
             operators: list of operators
         """
 
-        return np.array([self.operator_out_of_frame_basis(o) for o in operators])
+        return Array([self.operator_out_of_frame_basis(o).data for o in operators.data])
 
     def state_into_frame(self,
                          t: float,
-                         y: np.array,
+                         y: Array,
                          y_in_frame_basis: Optional[bool] = False,
                          return_in_frame_basis: Optional[bool] = False):
         """Take a state into the frame, i.e. return exp(-tF) @ y.
@@ -618,8 +617,8 @@ class Frame(BaseFrame):
 
     def _conjugate_and_add(self,
                            t: float,
-                           operator: np.array,
-                           op_to_add_in_fb: Optional[np.array] = None,
+                           operator: Array,
+                           op_to_add_in_fb: Optional[Array] = None,
                            operator_in_frame_basis: Optional[bool] = False,
                            return_in_frame_basis: Optional[bool] = False):
         """Concrete implementation of general helper function for computing
@@ -657,9 +656,9 @@ class Frame(BaseFrame):
         return out
 
     def operators_into_frame_basis_with_cutoff(self,
-                                               operators: Union[np.array, List[Operator]],
+                                               operators: Union[Array, List[Operator]],
                                                cutoff_freq: Optional[float] = None,
-                                               carrier_freqs: Optional[np.array] = None):
+                                               carrier_freqs: Optional[Array] = None):
         """Transform operators into the frame basis, and return two lists of
         operators: one with the 'frequency cutoff' and one with 'conjugate
         frequency cutoff' (see base class documentation).
@@ -670,7 +669,7 @@ class Frame(BaseFrame):
             carrier_freqs: list of carrier frequencies
 
         Returns:
-            Tuple[np.array, np.array]: The operators with frequency cutoff
+            Tuple[Array, Array]: The operators with frequency cutoff
             and conjugate frequency cutoff.
         """
 
@@ -683,22 +682,112 @@ class Frame(BaseFrame):
         # if no carrier frequencies set, set to 0
         if carrier_freqs is None:
             carrier_freqs = np.zeros(len(operators))
+        carrier_freqs = Array(carrier_freqs)
 
         # create difference matrix for diagonal elements
         dim = len(ops_in_frame_basis[0])
         D_diff = None
         if self._frame_operator is None:
-            D_diff = np.zeros((dim, dim))
+            D_diff = Array(np.zeros((dim, dim)))
         else:
-            D_diff = np.ones((dim, dim)) * self.frame_diag
+            D_diff = Array(np.ones((dim, dim))) * self.frame_diag
             D_diff = D_diff - D_diff.transpose()
 
         # set up matrix encoding frequencies
         im_angular_freqs = 1j * 2 * np.pi * carrier_freqs
-        freq_array = np.array([w + D_diff for w in im_angular_freqs])
+        freq_array = Array([w + D_diff.data for w in im_angular_freqs.data])
 
         cutoff_array = ((np.abs(freq_array.imag) / (2 * np.pi))
                                 < cutoff_freq).astype(int)
 
         return (cutoff_array * ops_in_frame_basis,
                 cutoff_array.transpose([0, 2, 1]) * ops_in_frame_basis)
+
+
+def _is_herm_or_anti_herm(a: Array,
+                          atol: Optional[float] = 1e-10,
+                          rtol: Optional[float] = 1e-10):
+    """Given `a`, the logic of this function is:
+        - if `a` is hermitian, return `-1j * a`
+        - if `a` is anti-hermitian, return `a`
+        - otherwise:
+            - if `a.backend == 'jax'` return `jnp.inf * a`
+            - otherwise raise an error
+
+    The main purpose of this function is to hide the pecularities of the
+    implementing the above logic in a compileable way in `jax`.
+
+    Args:
+        a: array to check
+        atol: absolute tolerance
+        rtol: relative tolerance
+
+    Returns:
+        Array
+    """
+    a = to_array(a)
+    a = Array(a, dtype=complex)
+
+    if a.backend == 'jax':
+        try:
+            from jax.lax import cond
+            import jax.numpy as jnp
+        except ImportError as e:
+            raise e
+
+        a = a.data
+
+        if a.ndim == 1:
+            # this function checks if pure imaginary. If yes it returns the
+            # array, otherwise it multiplies it by jnp.nan to raise an error
+            # Note: pathways in conditionals in jax cannot raise Exceptions
+            def anti_herm_conditional(b):
+                aherm_pred = jnp.allclose(b, -b.conj(),
+                                         atol=atol, rtol=rtol)
+                return cond(aherm_pred,
+                            lambda A: A,
+                            lambda A: jnp.nan * A,
+                            b)
+
+            # Check if it is purely real, if not apply anti_herm_conditional
+            herm_pred = jnp.allclose(a, a.conj(),
+                                    atol=atol, rtol=rtol)
+            return Array(cond(herm_pred,
+                         lambda A: -1j * A,
+                         anti_herm_conditional,
+                         a))
+        else:
+            # this function checks if anti-hermitian, if yes returns the array,
+            # otherwise it multiplies it by jnp.nan
+            def anti_herm_conditional(b):
+                aherm_pred = jnp.allclose(b, -b.conj().transpose(),
+                                         atol=atol, rtol=rtol)
+                return cond(aherm_pred,
+                            lambda A: A,
+                            lambda A: jnp.nan * A,
+                            b)
+
+            # the following lines check if a is hermitian, otherwise it feeds
+            # it into the anti_herm_conditional
+            herm_pred = jnp.allclose(a, a.conj().transpose(),
+                                     atol=atol, rtol=rtol)
+            return Array(cond(herm_pred,
+                        lambda A: -1j * A,
+                        anti_herm_conditional,
+                        a))
+
+    else:
+        if a.ndim == 1:
+            if np.allclose(a, a.conj(), atol=atol, rtol=rtol):
+                return -1j * a
+            elif np.allclose(a, -a.conj(), atol=atol, rtol=rtol):
+                return a
+        else:
+            if is_hermitian_matrix(a, rtol=rtol, atol=atol):
+                return -1j * a
+            elif is_hermitian_matrix(1j * a, rtol=rtol, atol=atol):
+                return a
+
+        # raise error if execution has made it this far
+        raise Exception("""frame_operator must be either a Hermitian or
+                           anti-Hermitian matrix.""")

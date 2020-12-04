@@ -18,6 +18,7 @@ from copy import deepcopy
 from .signals import VectorSignal, BaseSignal
 from .frame import BaseFrame, Frame
 from qiskit.quantum_info.operators import Operator
+from qiskit_ode.dispatch import Array
 
 class BaseOperatorModel(ABC):
     """BaseOperatorModel is an abstract interface for a time-dependent operator
@@ -71,14 +72,14 @@ class BaseOperatorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate(self, t: float) -> np.array:
+    def evaluate(self, t: float) -> Array:
         """Evaluate the model at a given time."""
         pass
 
     def lmult(self,
               time: float,
-              y: np.array,
-              in_frame_basis: bool = False) -> np.array:
+              y: Array,
+              in_frame_basis: bool = False) -> Array:
         """
         Return the product evaluate(t) @ y. Default implementation is to
         call evaluate then multiply.
@@ -89,14 +90,14 @@ class BaseOperatorModel(ABC):
             in_frame_basis: whether to evaluate in the frame basis
 
         Returns:
-            np.array: the product
+            Array: the product
         """
         return np.dot(self.evaluate(time, in_frame_basis), y)
 
     def rmult(self,
               time: float,
-              y: np.array,
-              in_frame_basis: bool = False) -> np.array:
+              y: Array,
+              in_frame_basis: bool = False) -> Array:
         """
         Return the product y @ evaluate(t). Default implementation is to call
         evaluate then multiply.
@@ -107,13 +108,13 @@ class BaseOperatorModel(ABC):
             in_frame_basis: whether to evaluate in the frame basis
 
         Returns:
-            np.array: the product
+            Array: the product
         """
         return np.dot(y, self.evaluate(time, in_frame_basis))
 
     @property
     @abstractmethod
-    def drift(self) -> np.array:
+    def drift(self) -> Array:
         """Evaluate the constant part of the model."""
         pass
 
@@ -164,7 +165,7 @@ class OperatorModel(BaseOperatorModel):
                  operators: List[Operator],
                  signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
                  signal_mapping: Optional[Callable] = None,
-                 frame: Optional[Union[Operator, np.array, BaseFrame]] = None,
+                 frame: Optional[Union[Operator, Array, BaseFrame]] = None,
                  cutoff_freq: Optional[float] = None):
         """Initialize.
 
@@ -217,6 +218,7 @@ class OperatorModel(BaseOperatorModel):
               self._signal_params, and the output of signal_mapping is saved in
               self._signals.
         """
+        
         if signals is None:
             self._signal_params = None
             self._signals = None
@@ -244,7 +246,7 @@ class OperatorModel(BaseOperatorModel):
             # only necessary if new carrier frequencies are different from
             # previous, and there is a cutoff frequency
             if self._signals is not None:
-                if (any(self._signals.carrier_freqs != signals.carrier_freqs)
+                if (not np.allclose(self._signals.carrier_freqs, signals.carrier_freqs)
                     and self._cutoff_freq is not None):
                     self._reset_internal_ops()
 
@@ -256,7 +258,7 @@ class OperatorModel(BaseOperatorModel):
         return self._frame
 
     @frame.setter
-    def frame(self, frame: Union[Operator, np.array, Frame]):
+    def frame(self, frame: Union[Operator, Array, Frame]):
         """Set the frame; either an already instantiated :class:`Frame` object
         a valid argument for the constructor of :class:`Frame`, or `None`.
         """
@@ -283,7 +285,7 @@ class OperatorModel(BaseOperatorModel):
             self._cutoff_freq = cutoff_freq
             self._reset_internal_ops()
 
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> np.array:
+    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
         """
         Evaluate the model in array format.
 
@@ -293,7 +295,7 @@ class OperatorModel(BaseOperatorModel):
                             operator is diagonal
 
         Returns:
-            np.array: the evaluated model
+            Array: the evaluated model
         """
 
         if self._signals is None:
@@ -311,7 +313,7 @@ class OperatorModel(BaseOperatorModel):
                                                return_in_frame_basis=in_frame_basis)
 
     @property
-    def drift(self) -> np.array:
+    def drift(self) -> Array:
         """Return the part of the model with only Constant coefficients as a
         numpy array.
         """
@@ -324,6 +326,7 @@ class OperatorModel(BaseOperatorModel):
         drift_sig_vals = self._signals.drift_array
 
         return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
+
 
     def _construct_ops_in_fb_w_cutoff(self):
         """Construct versions of operators in frame basis with cutoffs
@@ -372,7 +375,7 @@ class OperatorModel(BaseOperatorModel):
         return self.__ops_in_fb_w_conj_cutoff
 
     def _evaluate_in_frame_basis_with_cutoffs(self,
-                                              sig_vals: np.array):
+                                              sig_vals: Array):
         """Evaluate the operator in the frame basis with frequency cutoffs.
         The computation here corresponds to that prescribed in
         `Frame.operators_into_frame_basis_with_cutoff`.
@@ -380,6 +383,7 @@ class OperatorModel(BaseOperatorModel):
         Args:
             sig_vals: Signals evaluated at some time.
         """
+
         return 0.5 * (np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
                       + np.tensordot(sig_vals.conj(),
                                      self._ops_in_fb_w_conj_cutoff,

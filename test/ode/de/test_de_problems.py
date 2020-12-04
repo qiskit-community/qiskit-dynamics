@@ -14,23 +14,58 @@
 import unittest
 import warnings
 import numpy as np
+from scipy.linalg import expm
+
+from qiskit_ode.dispatch import Array
+from ..test_jax_base import TestJaxBase
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models.signals import Constant, Signal
 from qiskit_ode.models.operator_models import OperatorModel
 from qiskit_ode.models.quantum_models import HamiltonianModel, LindbladModel
-from qiskit_ode.de.DE_Problems import (BMDE_Problem,
-                                       SchrodingerProblem,
-                                       DensityMatrixProblem,
-                                       SuperOpProblem)
+from qiskit_ode.de.de_problems import (ODEProblem, LMDEProblem,
+                                       OperatorModelProblem, SchrodingerProblem,
+                                       DensityMatrixProblem)
 from qiskit_ode.type_utils import (vec_commutator, vec_dissipator)
 
-class TestBMDE_Problem(unittest.TestCase):
+class TestODEProblem(unittest.TestCase):
+
+    def test_set_rhs_numpy(self):
+        """Test wrapping of RHS."""
+
+        def rhs(t, y):
+            return y**2
+
+        ode_problem = ODEProblem(rhs)
+
+        output = ode_problem(0., Array([1., 2.]))
+
+        self.assertTrue(isinstance(output, Array))
+        self.assertTrue(np.allclose(output, Array([1., 4.])))
+
+class TestLMDEProblem(unittest.TestCase):
+
+    def test_set_generator(self):
+        """Test wrapping of generator."""
+
+        def generator(t):
+            return t * np.array([[0., -1j], [1j, 0.]])
+
+        lmde_problem = LMDEProblem(generator)
+
+        output = lmde_problem.generator(3.)
+
+        self.assertTrue(isinstance(output, Array))
+        self.assertTrue(np.allclose(output, 3 * Array([[0., -1j], [1j, 0.]])))
+
+class TestOperatorModelProblem(unittest.TestCase):
+    """Base class for testing OperatorModelProblem with different backends."""
 
     def setUp(self):
-        self.X = Operator.from_label('X')
-        self.Y = Operator.from_label('Y')
-        self.Z = Operator.from_label('Z')
+        # wrote it this way as not integrated with terra at time of writing
+        self.X = Array([[0., 1.], [1., 0.]], dtype=complex)
+        self.Y = Array([[0., -1j], [1j, 0.]], dtype=complex)
+        self.Z = Array([[1., 0.], [0., -1.]], dtype=complex)
 
         # define a basic model
         w = 2.
@@ -43,91 +78,134 @@ class TestBMDE_Problem(unittest.TestCase):
         self.r = r
         self.basic_model = OperatorModel(operators=operators, signals=signals)
 
-        self.y0 = np.array([1., 0.])
+        self.y0 = Array([1., 0.], dtype=complex)
 
-    def test_t0_interval_error(self):
-        """Test exception raising for specifying both t0 and an interval."""
+    def test_auto_frame_handling(self):
+        """Test automatic setting of frames."""
+        self.basic_model.frame = self.X
 
-        try:
-            bmde_problem = BMDE_Problem(generator=self.basic_model,
-                                        y0=self.y0,
-                                        t0=0.,
-                                        interval=[0.,1.])
-        except Exception as e:
-            self.assertTrue('t0 or interval.' in str(e))
+        problem = OperatorModelProblem(generator=self.basic_model)
 
-    def test_generator_copied(self):
-        """Ensure that the generator in the bmde_problem is a copy."""
-        bmde_problem = BMDE_Problem(generator=self.basic_model,
-                                    y0=self.y0,
-                                    t0=0.,
-                                    frame=None)
-        self.basic_model.frame = 1j * np.array([1, -1])
+        self.assertTrue(np.allclose(problem._user_frame.frame_operator,
+                                    Array([[0., 1.], [1., 0.]], dtype=complex)))
+        self.assertTrue(np.allclose(problem._generator.frame.frame_operator,
+                                    -1j * 2 * np.pi * self.w * self.Z / 2))
 
-        self.assertTrue(bmde_problem._generator.frame.frame_operator is None)
+    def test_user_state_to_problem(self):
+        """Test user_state_to_problem.
 
-    def test_user_in_frame(self):
-        """Test correct setting of _user_in_frame."""
-        bmde_problem = BMDE_Problem(generator=self.basic_model,
-                                    y0=self.y0,
-                                    t0=0.)
-
-        self.assertTrue(not bmde_problem._user_in_frame)
-
-        self.basic_model.frame = np.array(-1j * np.array([-1,1]))
-
-        bmde_problem = BMDE_Problem(generator=self.basic_model,
-                                    y0=self.y0,
-                                    t0=0.)
-
-        self.assertTrue(bmde_problem._user_in_frame)
-
-    def test_frame_auto(self):
-        """Test auto setting of frame."""
-        bmde_problem = BMDE_Problem(generator=self.basic_model,
-                                    y0=self.y0,
-                                    t0=0.)
-
-        self.assertAlmostEqual(bmde_problem._generator.frame.frame_operator,
-                               self.basic_model.drift)
-
-    def test_cutoff_freq_error(self):
-        """Test cutoff frequency error."""
-        self.basic_model.cutoff_freq = 2.
-        try:
-            bmde_problem = BMDE_Problem(generator=self.basic_model,
-                                        y0=self.y0,
-                                        t0=0.,
-                                        cutoff_freq=1.)
-        except Exception as e:
-            self.assertTrue('Cutoff frequency' in str(e))
-
-    def test_double_frame_warning(self):
-        """Test that specifying a frame in the model and when constructing
-        the BMDE problem raises a warning.
+        Note: To go from a user facing state to a problem state requires:
+            - transformation out of user frame
+            - transformation into problem frame
+            - transformation into problem basis
         """
-        self.basic_model.frame = np.array(-1j * np.array([-1, 1]))
-        with warnings.catch_warnings(record=True) as ws:
-            warnings.simplefilter("always")
-            bmde_problem = BMDE_Problem(generator=self.basic_model,
-                                        y0=self.y0,
-                                        t0=0.,
-                                        frame=None)
-            self.assertEqual(len(ws), 1)
-            self.assertTrue('A frame' in str(ws[-1].message))
+        problem = OperatorModelProblem(generator=self.basic_model,
+                                       user_frame=self.X)
+
+        # force use of numpy for computing expected output
+        y = np.array([0., 1.], dtype=complex)
+        t = 0.124
+        drift_frame_op = 2 * np.pi * self.w * self.Z / 2
+        expected = (self.X.data @ expm(1j * t * np.array(drift_frame_op.data)) @
+                    expm(-1j * t * np.array(self.X.data)) @ y)
+
+        output = problem.user_state_to_problem(t, y)
+
+        self.assertTrue(np.allclose(expected, output))
+
+    def test_user_state_to_problem(self):
+        """Test problem_state_to_user.
+
+        Note: To go from a user facing state to a problem state requires:
+            - transformation out of problem basis
+            - transformation out of problem frame
+            - transformation into user frame
+        """
+        problem = OperatorModelProblem(generator=self.basic_model,
+                                       user_frame=self.X)
+
+        # force use of numpy for computing expected output
+        y = np.array([0., 1.], dtype=complex)
+        t = 0.094882
+        drift_frame_op = 2 * np.pi * self.w * self.Z / 2
+        expected = (expm(1j * t * np.array(self.X.data)) @
+                    expm(-1j * t * np.array(drift_frame_op.data)) @
+                    self.X.data @ y)
+
+        output = problem.problem_state_to_user(t, y)
+
+        self.assertTrue(np.allclose(expected, output))
+
+    def test_generator(self):
+        """Test correct evaluation of generator.
+        The generator is evaluated in the solver frame in a basis in which the
+        frame operator is diagonal.
+        """
+        problem = OperatorModelProblem(generator=self.basic_model,
+                                       solver_frame=self.X)
+
+        t = 13.1231
+
+        output = problem.generator(t).data
+
+        X = np.array(self.X.data)
+        X_diag, U = np.linalg.eigh(X)
+        Uadj = U.conj().transpose()
+        gen = -1j * 2 * np.pi * (self.w * np.array(self.Z.data) / 2 +
+                                 self.r * np.cos(2 * np.pi * self.w * t) *
+                                 X / 2)
+        expected = (Uadj @ expm(1j * t * X) @ gen @ expm(-1j * t * X) @ U
+                    + 1j * np.diag(X_diag))
+
+        self.assertTrue(np.allclose(expected, output))
+
+    def test_rhs(self):
+        """Test correct evaluation of rhs.
+        The generator is evaluated in the solver frame in a basis in which the
+        frame operator is diagonal.
+        """
+        problem = OperatorModelProblem(generator=self.basic_model,
+                                       solver_frame=self.X)
+
+        t = 13.1231
+        y = np.eye(2, dtype=complex)
+
+        output = problem.rhs(t, y).data
+
+        X = np.array(self.X.data)
+        X_diag, U = np.linalg.eigh(X)
+        Uadj = U.conj().transpose()
+        gen = -1j * 2 * np.pi * (self.w * np.array(self.Z.data) / 2 +
+                                 self.r * np.cos(2 * np.pi * self.w * t) *
+                                 X / 2)
+        expected = (Uadj @ expm(1j * t * X) @ gen @ expm(-1j * t * X) @ U
+                    + 1j * np.diag(X_diag)) @ y
+
+        self.assertTrue(np.allclose(expected, output))
+
+    def test_solver_cutoff_freq(self):
+        """Test correct setting of solver cutoff freq.
+        """
+        problem = OperatorModelProblem(generator=self.basic_model,
+                                       solver_cutoff_freq=2 * self.w)
+
+        self.assertTrue(problem._generator.cutoff_freq == 2 * self.w)
+        self.assertTrue(self.basic_model.cutoff_freq is None)
 
 
-    def assertAlmostEqual(self, A, B, tol=10**-15):
-        self.assertTrue(np.abs(A - B).max() < tol)
+class TestOperatorModelProblemJax(TestOperatorModelProblem, TestJaxBase):
+    """Jax version of OperatorModelProblem tests.
 
-class TestSchrodingerProblem(unittest.TestCase):
-    """Test SchrodingerProblem.
+    Note: This class has no body but contains tests due to inheritance.
     """
 
+class TestSchrodingerProblem(unittest.TestCase):
+    """Test SchrodingerProblem."""
+
     def setUp(self):
-        self.X = Operator.from_label('X')
-        self.Y = Operator.from_label('Y')
-        self.Z = Operator.from_label('Z')
+        self.X = Array(Operator.from_label('X').data)
+        self.Y = Array(Operator.from_label('Y').data)
+        self.Z = Array(Operator.from_label('Z').data)
 
         # define a basic model
         w = 2.
@@ -141,33 +219,33 @@ class TestSchrodingerProblem(unittest.TestCase):
         self.basic_hamiltonian = HamiltonianModel(operators=operators,
                                                   signals=signals)
 
-        self.y0 = np.array([1., 0.])
-
     def test_generator_construction(self):
         """Test correct construction of the Schrodinger generator
         :math:`-iH(t)`.
         """
 
-        se_prob = SchrodingerProblem(self.basic_hamiltonian,
-                                     self.y0,
-                                     t0=0.)
+        se_prob = SchrodingerProblem(self.basic_hamiltonian)
 
-        self.assertAlmostEqual(se_prob._generator._operators[0].data,
-                         -1j * 2 * np.pi * self.Z.data / 2)
-        self.assertAlmostEqual(se_prob._generator._operators[1].data,
-                         -1j * 2 * np.pi * self.r * self.X.data / 2)
+        self.assertTrue(np.allclose(se_prob._generator._operators[0],
+                        -1j * 2 * np.pi * self.Z / 2))
+        self.assertTrue(np.allclose(se_prob._generator._operators[1],
+                        -1j * 2 * np.pi * self.r * self.X / 2))
 
-    def assertAlmostEqual(self, A, B, tol=10**-15):
-        self.assertTrue(np.abs(A - B).max() < tol)
+
+class TestSchrodingerProblemJax(TestSchrodingerProblem, TestJaxBase):
+    """Jax version of SchrodingerProblem tests.
+
+    Note: This class has no body but contains tests due to inheritance.
+    """
+    pass
 
 class TestDensityMatrixProblem(unittest.TestCase):
-    """Test DensityMatrixProblem.
-    """
+    """Test DensityMatrixProblem."""
 
     def setUp(self):
-        self.X = Operator.from_label('X')
-        self.Y = Operator.from_label('Y')
-        self.Z = Operator.from_label('Z')
+        self.X = Array(Operator.from_label('X').data)
+        self.Y = Array(Operator.from_label('Y').data)
+        self.Z = Array(Operator.from_label('Z').data)
 
         # define a basic model
         w = 2.
@@ -181,42 +259,38 @@ class TestDensityMatrixProblem(unittest.TestCase):
         hamiltonian = HamiltonianModel(operators=operators,
                                        signals=signals)
 
-        self.noise_ops =[Operator(np.array([[0., 1.], [0., 0.]])),
-                         Operator(np.array([[0., 0.], [1., 0.]]))]
+        self.noise_ops =[Array([[0., 1.], [0., 0.]], dtype=complex),
+                         Array([[0., 0.], [1., 0.]], dtype=complex)]
 
         self.basic_lindblad_model = LindbladModel.from_hamiltonian(hamiltonian=hamiltonian,
                                                                    noise_operators=self.noise_ops)
 
         # not a valid density matrix but can be used for testing
-        self.y0 = np.array([[1., 2.], [3., 4.]])
+        self.y0 = Array([[1., 2.], [3., 4.]], dtype=complex)
 
     def test_basic_generator_operators(self):
         """Test correct construction of the operators in the vectorized
         Lindblad generator.
         """
 
-        l_prob = DensityMatrixProblem(self.basic_lindblad_model,
-                                      self.y0,
-                                      t0=0.)
+        l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         # validate generator matrices
-        self.assertAlmostEqual(l_prob._generator._operators[0].data,
-                               vec_commutator(-1j * 2 * np.pi * self.Z.data / 2))
-        self.assertAlmostEqual(l_prob._generator._operators[1].data,
-                               vec_commutator(-1j * 2 * np.pi * self.r * self.X.data / 2))
-        self.assertAlmostEqual(l_prob._generator._operators[2].data,
-                               vec_dissipator(self.noise_ops[0].data))
-        self.assertAlmostEqual(l_prob._generator._operators[3].data,
-                               vec_dissipator(self.noise_ops[1].data))
+        self.assertTrue(np.allclose(l_prob._generator._operators[0],
+                                    vec_commutator(-1j * 2 * np.pi * self.Z / 2)))
+        self.assertTrue(np.allclose(l_prob._generator._operators[1],
+                                    vec_commutator(-1j * 2 * np.pi * self.r * self.X / 2)))
+        self.assertTrue(np.allclose(l_prob._generator._operators[2],
+                                    vec_dissipator(self.noise_ops[0])))
+        self.assertTrue(np.allclose(l_prob._generator._operators[3],
+                                    vec_dissipator(self.noise_ops[1])))
 
     def test_basic_generator_signals(self):
         """Test correct construction of the signals in the vectorized
         Lindblad generator.
         """
 
-        l_prob = DensityMatrixProblem(self.basic_lindblad_model,
-                                      self.y0,
-                                      t0=0.)
+        l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         # validate generator signals
         t = 0.12314
@@ -226,43 +300,41 @@ class TestDensityMatrixProblem(unittest.TestCase):
                              1.,
                              1.])
 
-        self.assertAlmostEqual(sig_vals, expected)
+        self.assertTrue(np.allclose(sig_vals, expected))
 
     def test_basic_generator_frame(self):
         """Test correct construction of the frame for the vectorized
         Lindblad generator.
         """
 
-        l_prob = DensityMatrixProblem(self.basic_lindblad_model,
-                                      self.y0,
-                                      t0=0.)
+        l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         frame_op = l_prob._generator.frame.frame_operator
-        expected = vec_commutator(-1j * 2 * np.pi * self.w * self.Z.data / 2)
-        self.assertAlmostEqual(frame_op, expected)
+        expected = vec_commutator(-1j * 2 * np.pi * self.w * self.Z / 2)
+        self.assertTrue(np.allclose(frame_op, expected))
 
     def test_state_type_converter(self):
         """Test correct construction state_type_converter for density matrix
         problem.
         """
 
-        l_prob = DensityMatrixProblem(self.basic_lindblad_model,
-                                      self.y0,
-                                      t0=0.)
-
-        # ensure that stored state is correct
-        self.assertAlmostEqual(l_prob.y0, self.y0)
+        l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         # ensure that converter correctly flattens states
-        self.assertAlmostEqual(l_prob._state_type_converter.outer_to_inner(l_prob.y0),
-                               self.y0.flatten(order='F'))
+        self.assertTrue(np.allclose(l_prob._state_type_converter.outer_to_inner(self.y0),
+                                    self.y0.flatten(order='F')))
 
         # ensure that converter correctly unflattens states
-        self.assertAlmostEqual(l_prob._state_type_converter.inner_to_outer(np.array([1.,2.,3.,4.])),
-                               np.array([1.,2.,3.,4.]).reshape((2,2),order='F'))
+        self.assertTrue(np.allclose(l_prob._state_type_converter.inner_to_outer(Array([1.,2.,3.,4.])),
+                               Array([1.,2.,3.,4.]).reshape((2,2),order='F')))
 
-    def assertAlmostEqual(self, A, B, tol=10**-15):
-        self.assertTrue(np.abs(A - B).max() < tol)
+
+class TestDensityMatrixProblemJax(TestDensityMatrixProblem, TestJaxBase):
+    """Jax version of TestDensityMatrixProblem tests.
+
+    Note: This class has no body but contains tests due to inheritance.
+    """
+    pass
 
 
 class TestSuperOpProblem(unittest.TestCase):
@@ -272,9 +344,9 @@ class TestSuperOpProblem(unittest.TestCase):
     """
 
     def setUp(self):
-        self.X = Operator.from_label('X')
-        self.Y = Operator.from_label('Y')
-        self.Z = Operator.from_label('Z')
+        self.X = Array(Operator.from_label('X').data)
+        self.Y = Array(Operator.from_label('Y').data)
+        self.Z = Array(Operator.from_label('Z').data)
 
         # define a basic model
         w = 2.
@@ -288,8 +360,8 @@ class TestSuperOpProblem(unittest.TestCase):
         hamiltonian = HamiltonianModel(operators=operators,
                                        signals=signals)
 
-        self.noise_ops =[Operator(np.array([[0., 1.], [0., 0.]])),
-                         Operator(np.array([[0., 0.], [1., 0.]]))]
+        self.noise_ops =[Array([[0., 1.], [0., 0.]]),
+                         Array([[0., 0.], [1., 0.]])]
 
         self.basic_lindblad_model = LindbladModel.from_hamiltonian(hamiltonian=hamiltonian,
                                                                    noise_operators=self.noise_ops)
@@ -302,28 +374,24 @@ class TestSuperOpProblem(unittest.TestCase):
         Lindblad generator.
         """
 
-        l_prob = SuperOpProblem(self.basic_lindblad_model,
-                                self.y0,
-                                t0=0.)
+        l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         # validate generator matrices
-        self.assertAlmostEqual(l_prob._generator._operators[0].data,
-                               vec_commutator(-1j * 2 * np.pi * self.Z.data / 2))
-        self.assertAlmostEqual(l_prob._generator._operators[1].data,
-                               vec_commutator(-1j * 2 * np.pi * self.r * self.X.data / 2))
-        self.assertAlmostEqual(l_prob._generator._operators[2].data,
-                               vec_dissipator(self.noise_ops[0].data))
-        self.assertAlmostEqual(l_prob._generator._operators[3].data,
-                               vec_dissipator(self.noise_ops[1].data))
+        self.assertTrue(np.allclose(l_prob._generator._operators[0],
+                                    vec_commutator(-1j * 2 * np.pi * self.Z / 2)))
+        self.assertTrue(np.allclose(l_prob._generator._operators[1],
+                                    vec_commutator(-1j * 2 * np.pi * self.r * self.X / 2)))
+        self.assertTrue(np.allclose(l_prob._generator._operators[2],
+                                    vec_dissipator(self.noise_ops[0])))
+        self.assertTrue(np.allclose(l_prob._generator._operators[3],
+                                    vec_dissipator(self.noise_ops[1])))
 
     def test_basic_generator_signals(self):
         """Test correct construction of the signals in the vectorized
         Lindblad generator.
         """
 
-        l_prob = SuperOpProblem(self.basic_lindblad_model,
-                                self.y0,
-                                t0=0.)
+        l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         # validate generator signals
         t = 0.12314
@@ -333,21 +401,23 @@ class TestSuperOpProblem(unittest.TestCase):
                              1.,
                              1.])
 
-        self.assertAlmostEqual(sig_vals, expected)
+        self.assertTrue(np.allclose(sig_vals, expected))
 
     def test_basic_generator_frame(self):
         """Test correct construction of the frame for the vectorized
         Lindblad generator.
         """
 
-        l_prob = SuperOpProblem(self.basic_lindblad_model,
-                                self.y0,
-                                t0=0.)
+        l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         frame_op = l_prob._generator.frame.frame_operator
-        expected = vec_commutator(-1j * 2 * np.pi * self.w * self.Z.data / 2)
+        expected = vec_commutator(-1j * 2 * np.pi * self.w * self.Z / 2)
+        self.assertTrue(np.allclose(frame_op, expected))
 
-        self.assertAlmostEqual(frame_op, expected)
 
-    def assertAlmostEqual(self, A, B, tol=10**-15):
-        self.assertTrue(np.abs(A - B).max() < tol)
+class TestSuperOpProblemJax(TestSuperOpProblem, TestJaxBase):
+    """Jax version of TestSuperOpProblem tests.
+
+    Note: This class has no body but contains tests due to inheritance.
+    """
+    pass

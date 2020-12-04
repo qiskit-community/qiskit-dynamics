@@ -17,16 +17,16 @@ from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models.quantum_models import HamiltonianModel, LindbladModel
 from qiskit_ode.models.signals import Constant, Signal, VectorSignal
-
+from qiskit_ode.dispatch import Array
+from ..test_jax_base import TestJaxBase
 
 class TestLindbladModel(unittest.TestCase):
-    """Tests for LindbladModel.
-    """
+    """Tests for LindbladModel."""
 
     def setUp(self):
-        self.X = Operator.from_label('X')
-        self.Y = Operator.from_label('Y')
-        self.Z = Operator.from_label('Z')
+        self.X = Array(Operator.from_label('X').data)
+        self.Y = Array(Operator.from_label('Y').data)
+        self.Z = Array(Operator.from_label('Z').data)
 
         # define a basic hamiltonian
         w = 2.
@@ -38,7 +38,7 @@ class TestLindbladModel(unittest.TestCase):
         self.w = w
         self.r = r
 
-        noise_operators = np.array([[[0., 0.], [1., 0.]]])
+        noise_operators = Array([[[0., 0.], [1., 0.]]])
 
         self.basic_lindblad = LindbladModel(hamiltonian_operators=ham_operators,
                                             hamiltonian_signals=ham_signals,
@@ -48,12 +48,12 @@ class TestLindbladModel(unittest.TestCase):
     def test_basic_lindblad_lmult(self):
         """Test lmult method of Lindblad generator OperatorModel.
         """
-        A = np.array([[1., 2.], [3., 4.]])
+        A = Array([[1., 2.], [3., 4.]])
 
         t = 1.123
         ham = (2 * np.pi * self.w * self.Z.data / 2
                + 2 * np.pi * self.r * np.cos(2 * np.pi * self.w * t) * self.X.data / 2)
-        sm = np.array([[0., 0.], [1., 0.]])
+        sm = Array([[0., 0.], [1., 0.]])
         sp = sm.transpose()
 
         expected = self._evaluate_lindblad_rhs(A, ham, [sm])
@@ -75,32 +75,32 @@ class TestLindbladModel(unittest.TestCase):
         # generate random hamiltonian
         rand_operators = (rng.uniform(low=-b,high=b, size=(num_ham, dim, dim)) +
                           1j * rng.uniform(low=-b,high=b, size=(num_ham, dim, dim)))
-        rand_ham_ops = rand_operators + rand_operators.conj().transpose([0, 2, 1])
+        rand_ham_ops = Array(rand_operators + rand_operators.conj().transpose([0, 2, 1]))
 
         # generate random hamiltonian coefficients
         rand_ham_coeffs = (rng.uniform(low=-b,high=b, size=(num_ham)) +
                            1j * rng.uniform(low=-b,high=b, size=(num_ham)))
-        rand_ham_carriers = rng.uniform(low=-b,high=b, size=(num_ham))
+        rand_ham_carriers = Array(rng.uniform(low=-b,high=b, size=(num_ham)))
         ham_sigs = VectorSignal(lambda t: rand_ham_coeffs, rand_ham_carriers)
 
         # generate random dissipators
-        rand_diss = (rng.uniform(low=-b,high=b, size=(num_diss, dim, dim)) +
-                     1j * rng.uniform(low=-b,high=b, size=(num_diss, dim, dim)))
+        rand_diss = Array(rng.uniform(low=-b,high=b, size=(num_diss, dim, dim)) +
+                          1j * rng.uniform(low=-b,high=b, size=(num_diss, dim, dim)))
 
         # random dissipator coefficients
         rand_diss_coeffs = (rng.uniform(low=-b,high=b, size=(num_diss)) +
                            1j * rng.uniform(low=-b,high=b, size=(num_diss)))
-        rand_diss_carriers = rng.uniform(low=-b,high=b, size=(num_diss))
+        rand_diss_carriers = Array(rng.uniform(low=-b,high=b, size=(num_diss)))
         diss_sigs = VectorSignal(lambda t: rand_diss_coeffs, rand_diss_carriers)
 
 
         # random anti-hermitian frame operator
         rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
                    1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
-        frame_op = rand_op - rand_op.conj().transpose()
+        frame_op = Array(rand_op - rand_op.conj().transpose())
 
-        lindblad_frame_op = (np.kron(np.eye(dim), frame_op)
-                             - np.kron(frame_op.transpose(), np.eye(dim)))
+        lindblad_frame_op = (np.kron(Array(np.eye(dim)), frame_op)
+                             - np.kron(frame_op.transpose(), Array(np.eye(dim))))
 
         # construct model
         hamiltonian = HamiltonianModel(operators=rand_ham_ops,
@@ -110,8 +110,8 @@ class TestLindbladModel(unittest.TestCase):
                                                  noise_signals=diss_sigs)
         lindblad_model.frame = lindblad_frame_op
 
-        A = (rng.uniform(low=-b,high=b, size=(dim, dim)) +
-             1j * rng.uniform(low=-b,high=b, size=(dim, dim)))
+        A = Array(rng.uniform(low=-b,high=b, size=(dim, dim)) +
+                  1j * rng.uniform(low=-b,high=b, size=(dim, dim)))
 
         t = rng.uniform(low=-b, high=b)
         value = lindblad_model.lmult(t, A.flatten(order='F'))
@@ -136,25 +136,36 @@ class TestLindbladModel(unittest.TestCase):
         """Evaluate the Lindblad equation
 
         frame_op assumed anti-Hermitian
+
+        Note: here we force everything into numpy arrays as these parts of
+        the test are just for confirmation
         """
         # if a frame operator is given, transform the model pieces into
         # the frame
         if frame_op is not None:
+            frame_op = np.array(frame_op)
             U = expm(-t * frame_op)
             Uadj = U.conj().transpose()
 
             ham = U @ ham @ Uadj - 1j * frame_op
 
             if dissipators is not None:
+                dissipators = np.array(dissipators)
                 dissipators = [U @ D @ Uadj for D in dissipators]
 
+        ham = np.array(ham)
+        A = np.array(A)
         ham_part = -1j * (ham @ A - A @ ham)
 
         if dissipators is None:
             return ham_part
 
+        dissipators = np.array(dissipators)
+
         if dissipator_coeffs is None:
             dissipator_coeffs = np.ones(len(dissipators))
+        else:
+            dissipator_coeffs = np.array(dissipator_coeffs)
 
         diss_part = np.zeros_like(A)
         for c, D in zip(dissipator_coeffs, dissipators):
@@ -167,3 +178,10 @@ class TestLindbladModel(unittest.TestCase):
 
     def assertAlmostEqual(self, A, B, tol=1e-12):
         self.assertTrue(np.abs(A - B).max() < tol)
+
+class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
+    """Jax version of TestLindbladModel tests.
+
+    Note: This class has no body but contains tests due to inheritance.
+    """
+    pass

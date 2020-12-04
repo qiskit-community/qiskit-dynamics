@@ -13,12 +13,13 @@
 # that they have been altered from the originals.
 
 from abc import ABC, abstractmethod
-from typing import List, Callable, Union
+from typing import List, Callable, Union, Optional
 
 import numpy as np
 from matplotlib import pyplot as plt
 
 from qiskit import QiskitError
+from qiskit_ode.dispatch import Array
 
 
 class BaseSignal(ABC):
@@ -93,15 +94,15 @@ class Signal(BaseSignal):
         else:
             self.envelope = envelope
 
-        self.carrier_freq = carrier_freq
+        self.carrier_freq = Array(carrier_freq)
 
         super().__init__(name)
 
-    def envelope_value(self, t: float = 0.) -> complex:
+    def envelope_value(self, t: float = 0.) -> Array:
         """Evaluates the envelope at time t."""
-        return self.envelope(t)
+        return Array(self.envelope(t))
 
-    def value(self, t: float = 0.) -> complex:
+    def value(self, t: float = 0.) -> Array:
         """Return the value of the signal at time t."""
         return self.envelope_value(t) * np.exp(1j * 2 * np.pi * self.carrier_freq * t)
 
@@ -135,8 +136,13 @@ class Constant(BaseSignal):
 class PiecewiseConstant(BaseSignal):
     """A piecewise constant signal implemented as an array of samples."""
 
-    def __init__(self, dt: float, samples: Union[np.array, List], start_time: float = 0.,
-                 duration: int = None, carrier_freq: float = 0, name: str = None):
+    def __init__(self,
+                 dt: float,
+                 samples: Union[Array, List],
+                 start_time: float = 0.,
+                 duration: int = None,
+                 carrier_freq: float = 0,
+                 name: str = None):
         """
         Args:
             dt: The duration of each sample.
@@ -148,13 +154,13 @@ class PiecewiseConstant(BaseSignal):
         self._dt = dt
 
         if samples is not None:
-            self._samples = [_ for _ in samples]
+            self._samples = Array(samples)
         else:
-            self._samples = [0.] * duration
+            self._samples = Array([0.] * duration)
 
         self._start_time = start_time
 
-        self.carrier_freq = carrier_freq
+        self.carrier_freq = Array(carrier_freq)
         super().__init__(name)
 
     @property
@@ -174,12 +180,12 @@ class PiecewiseConstant(BaseSignal):
         return self._dt
 
     @property
-    def samples(self) -> np.array:
+    def samples(self) -> Array:
         """
         Returns:
             samples: the samples of the piecewise constant signal.
         """
-        return np.array([_ for _ in self._samples])
+        return Array(self._samples)
 
     @property
     def start_time(self) -> float:
@@ -197,9 +203,9 @@ class PiecewiseConstant(BaseSignal):
         if idx >= self.duration or idx < 0:
             return 0.0j
 
-        return self._samples[idx]
+        return Array(self._samples[idx])
 
-    def value(self, t: float = 0.) -> complex:
+    def value(self, t: float = 0.) -> Array:
         """Return the value of the signal at time t."""
         return self.envelope_value(t) * np.exp(1j * 2 * np.pi * self.carrier_freq * t)
 
@@ -227,7 +233,7 @@ class PiecewiseConstant(BaseSignal):
         while len(self._samples) < start_sample:
             self._samples.append(0.)
 
-        self._samples.extend(samples)
+        self._samples = np.append(self._samples, samples)
 
 
 def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
@@ -417,8 +423,8 @@ class VectorSignal:
 
     def __init__(self,
                  envelope: Callable,
-                 carrier_freqs: np.array,
-                 drift_array: np.array = None):
+                 carrier_freqs: Array,
+                 drift_array: Optional[Array] = None):
         """Initialize with vector-valued envelope, carrier frequencies for
         each entry, and a drift_array, which corresponds to the value of the
         signal when the "time-dependent terms" are "off".
@@ -430,6 +436,8 @@ class VectorSignal:
             drift_array: a default array meant to be the value of the envelope
                          when all "time-dependent terms" are off.
         """
+        carrier_freqs = Array(carrier_freqs)
+
         self.envelope = envelope
         self.carrier_freqs = carrier_freqs
 
@@ -438,9 +446,9 @@ class VectorSignal:
         # if not supplied nothing is assumed, constant array is taken as all
         # zeros
         if drift_array is None:
-            self.drift_array = np.zeros(len(self.carrier_freqs))
+            self.drift_array = Array(np.zeros(len(self.carrier_freqs)))
         else:
-            self.drift_array = drift_array
+            self.drift_array = Array(drift_array)
 
     @classmethod
     def from_signal_list(cls, signal_list: List[BaseSignal]):
@@ -456,12 +464,12 @@ class VectorSignal:
 
         # define the envelope as iteratively evaluating the envelopes
         def env_func(t):
-            return np.array([sig.envelope_value(t) for sig in signal_list])
+            return Array([Array(sig.envelope_value(t)).data for sig in signal_list])
 
         # construct carrier frequency list
         # if signal doesn't have a carrier, set to 0.
-        carrier_freqs = np.array([getattr(sig, 'carrier_freq', 0.)
-                                    for sig in signal_list])
+        carrier_freqs = Array([Array(getattr(sig, 'carrier_freq', 0.)).data
+                               for sig in signal_list])
 
         # construct drift_array
         drift_array = []
@@ -473,27 +481,27 @@ class VectorSignal:
 
         return cls(envelope=env_func,
                    carrier_freqs=carrier_freqs,
-                   drift_array=np.array(drift_array))
+                   drift_array=Array(drift_array))
 
-    def envelope_value(self, t: float) -> np.array:
+    def envelope_value(self, t: float) -> Array:
         """Evaluate the envelope.
 
         Args:
             t: time
 
         Returns:
-            np.array: the signal envelope at time t
+            Array: the signal envelope at time t
         """
         return self.envelope(t)
 
-    def value(self, t: float) -> np.array:
+    def value(self, t: float) -> Array:
         """Evaluate the full value of the VectorSignal.
 
         Args:
             t (float): time
 
         Returns:
-            np.array: the value of the signal (including carrier frequencies)
+            Array: the value of the signal (including carrier frequencies)
                       at time t
         """
         carrier_val = np.exp(t * self._im_angular_freqs)
