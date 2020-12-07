@@ -17,6 +17,7 @@ from ..dispatch import Dispatch
 
 __all__ = []
 
+
 @Dispatch.register_asarray('numpy', numpy.ndarray)
 def _numpy_asarray(array, dtype=None, order=None):
     """Wrapper for numpy.asarray"""
@@ -44,7 +45,7 @@ def _numpy_repr(array, prefix='', suffix=''):
             sep = ',\n' + ' ' * len(prefix)
         else:
             sep = ', '
-    return prefix + array_str + sep +suffix
+    return prefix + array_str + sep + suffix
 
 
 @Dispatch.register_array_ufunc('numpy')

@@ -9,6 +9,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
 """tests for quantum_models.HamiltonianModel"""
 
 import unittest
@@ -42,7 +44,6 @@ class TestHamiltonianModel(unittest.TestCase):
         self.basic_hamiltonian = HamiltonianModel(operators=operators,
                                                   signals=signals)
 
-
     def _basic_frame_evaluate_test(self, frame_operator, t):
         """Routine for testing setting of valid frame operators using
         basic_hamiltonian.
@@ -52,8 +53,9 @@ class TestHamiltonianModel(unittest.TestCase):
         modifies frame handling.
 
         Args:
-            frame_operator: now assumed to be a Hermitian operator H, with the
+            frame_operator (Array): now assumed to be a Hermitian operator H, with the
                             frame being entered being F=-1j * H
+            t (float): time of frame transformation
         """
 
         self.basic_hamiltonian.frame = frame_operator
@@ -79,7 +81,7 @@ class TestHamiltonianModel(unittest.TestCase):
                     d_coeff * twopi * U @ self.X.data @ U.conj().transpose() / 2 -
                     frame_operator)
 
-        self.assertAlmostEqual(value, expected)
+        self.assertAllClose(value, expected)
 
     def test_diag_frame_operator_basic_hamiltonian(self):
         """Test setting a diagonal frame operator for the internally
@@ -103,10 +105,10 @@ class TestHamiltonianModel(unittest.TestCase):
         value = self.basic_hamiltonian.evaluate(t)
         twopi = 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        expected =  (twopi * self.w * self.Z.data / 2 +
-                     twopi * d_coeff * self.X.data / 2)
+        expected = (twopi * self.w * self.Z.data / 2 +
+                    twopi * d_coeff * self.X.data / 2)
 
-        self.assertAlmostEqual(value, expected)
+        self.assertAllClose(value, expected)
 
     def test_evaluate_in_frame_basis_basic_hamiltonian(self):
         """Test evaluation in frame basis in the basic_model."""
@@ -134,7 +136,7 @@ class TestHamiltonianModel(unittest.TestCase):
                            twopi * d_coeff * self.X.data / 2 -
                            frame_op) @ U
 
-        self.assertAlmostEqual(value, expected)
+        self.assertAllClose(value, expected)
 
     def test_evaluate_pseudorandom(self):
         """Test evaluate with pseudorandom inputs."""
@@ -142,45 +144,44 @@ class TestHamiltonianModel(unittest.TestCase):
         rng = np.random.default_rng(30493)
         num_terms = 3
         dim = 5
-        b = 1. # bound on size of random terms
+        b = 1.  # bound on size of random terms
 
         # random hermitian frame operator
-        rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
-                   1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
+        rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
+                   1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
         frame_op = Array(rand_op + rand_op.conj().transpose())
 
         # random hermitian operators
-        rand_operators = (rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
-                          1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
-        rand_operators = Array(rand_operators + rand_operators.conj().transpose([0, 2, 1]))
+        randoperators = (rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) +
+                         1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)))
+        randoperators = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
 
-        rand_coeffs = (rng.uniform(low=-b,high=b, size=(num_terms)) +
-                       1j * rng.uniform(low=-b,high=b, size=(num_terms)))
-        rand_carriers = Array(rng.uniform(low=-b,high=b, size=(num_terms)))
+        rand_coeffs = (rng.uniform(low=-b, high=b, size=(num_terms)) +
+                       1j * rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
+        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers)
 
         rng = np.random.default_rng(94818)
         num_terms = 5
         dim = 10
-        b = 1. # bound on size of random terms
+        b = 1.  # bound on size of random terms
 
         # random hermitian frame operator
-        rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
-                   1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
+        rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
+                   1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
         frame_op = Array(rand_op + rand_op.conj().transpose())
 
         # random hermitian operators
-        rand_operators = (rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
-                          1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
-        rand_operators = Array(rand_operators + rand_operators.conj().transpose([0, 2, 1]))
+        randoperators = (rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) +
+                         1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)))
+        randoperators = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
 
-        rand_coeffs = (rng.uniform(low=-b,high=b, size=(num_terms)) +
-                       1j * rng.uniform(low=-b,high=b, size=(num_terms)))
-        rand_carriers = Array(rng.uniform(low=-b,high=b, size=(num_terms)))
+        rand_coeffs = (rng.uniform(low=-b, high=b, size=(num_terms)) +
+                       1j * rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
-
+        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers)
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers):
 
@@ -189,9 +190,10 @@ class TestHamiltonianModel(unittest.TestCase):
 
         value = model.evaluate(1.)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.))
-        expected = expm(1j * np.array(frame_op)) @ np.tensordot(coeffs, operators, axes=1) @ expm(-1j * np.array(frame_op)) - frame_op
+        expected = (expm(1j * np.array(frame_op)) @ np.tensordot(coeffs, operators, axes=1) @
+                    expm(-1j * np.array(frame_op)) - frame_op)
 
-        self.assertAlmostEqual(value, expected)
+        self.assertAllClose(value, expected)
 
     def test_cutoff_freq(self):
         """Test evaluation with a cutoff frequency."""
@@ -205,9 +207,11 @@ class TestHamiltonianModel(unittest.TestCase):
         # result should just be the X term halved
         eval_rwa = self.basic_hamiltonian.evaluate(2.)
         expected = 2 * np.pi * (self.r / 2) * self.X.data / 2
-        self.assertAlmostEqual(eval_rwa, expected)
+        self.assertAllClose(eval_rwa, expected)
 
-        drive_func = lambda t: t**2 + t**3 * 1j
+        def drive_func(t):
+            return t**2 + t**3 * 1j
+
         self.basic_hamiltonian.signals = [Constant(self.w),
                                           Signal(drive_func, self.w)]
 
@@ -218,10 +222,11 @@ class TestHamiltonianModel(unittest.TestCase):
         eval_rwa = self.basic_hamiltonian.evaluate(t)
         expected = (2 * np.pi * (self.r / 2) * dRe * self.X.data / 2 +
                     2 * np.pi * (self.r / 2) * dIm * self.Y.data / 2)
-        self.assertAlmostEqual(eval_rwa, expected)
+        self.assertAllClose(eval_rwa, expected)
 
-    def assertAlmostEqual(self, A, B, tol=1e-12):
-        self.assertTrue(np.abs(A - B).max() < tol)
+    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true."""
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
@@ -229,4 +234,3 @@ class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
-    pass

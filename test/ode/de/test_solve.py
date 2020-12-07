@@ -9,20 +9,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name,broad-except
+
 """tests for solve"""
 
 import unittest
 import numpy as np
 from scipy.linalg import expm
 
-from ..test_jax_base import TestJaxBase
+from qiskit import QiskitError
 from qiskit_ode.de.de_problems import LMDEProblem, OperatorModelProblem
 from qiskit_ode.models.operator_models import OperatorModel
 from qiskit_ode.models.signals import Constant, Signal
 from qiskit_ode.de.solve import solve
-
-from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array
+
+from ..test_jax_base import TestJaxBase
 
 
 class Testsolve_exceptions(unittest.TestCase):
@@ -32,13 +34,15 @@ class Testsolve_exceptions(unittest.TestCase):
         """Test method does not exist exception."""
 
         try:
-            results = solve(lambda t, y: y,
-                            t_span=[0.,1.],
-                            y0=np.array([1.]),
-                            method='notamethod')
-        except Exception as exception:
-            self.assertTrue('method does not exist' in str(exception))
+            solve(lambda t, y: y,
+                  t_span=[0., 1.],
+                  y0=np.array([1.]),
+                  method='notamethod')
+        except QiskitError as qe:
+            self.assertTrue('method does not exist' in str(qe))
 
+
+# pylint: disable=too-many-instance-attributes
 class TestsolveBase(unittest.TestCase):
     """Some reusable routines for testing basic solving functionality."""
 
@@ -51,6 +55,7 @@ class TestsolveBase(unittest.TestCase):
         self.Z = Array([[1., 0.], [0., -1.]], dtype=complex)
 
         # simple generator and rhs
+        # pylint: disable=unused-argument
         def generator(t):
             return -1j * 2 * np.pi * self.X / 2
 
@@ -91,7 +96,7 @@ class TestsolveBase(unittest.TestCase):
 
         expected = expm(-1j * np.pi * self.X.data)
 
-        self.assertAlmostEqual(results.y[-1], expected, tol=1e-12)
+        self.assertAllClose(results.y[-1], expected)
 
     def _variable_step_method_standard_tests(self, method):
         """tests to run on a variable step solver."""
@@ -105,8 +110,9 @@ class TestsolveBase(unittest.TestCase):
 
         expected = expm(-1j * np.pi * self.X.data)
 
-        self.assertAlmostEqual(results.y[-1], expected, tol=1e-8)
+        self.assertAllClose(results.y[-1], expected)
 
+        # pylint: disable=unused-argument
         def quad_rhs(t, y):
             return Array([t**2], dtype=float)
 
@@ -117,10 +123,11 @@ class TestsolveBase(unittest.TestCase):
                         atol=1e-10,
                         rtol=1e-10)
         expected = Array([1./3])
-        self.assertAlmostEqual(results.y[-1], expected, tol=1e-9)
+        self.assertAllClose(results.y[-1], expected)
 
-    def assertAlmostEqual(self, A, B, tol=1e-15):
-        self.assertTrue(np.abs(A - B).max() < tol)
+    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true."""
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class Testsolve_numpy(TestsolveBase):

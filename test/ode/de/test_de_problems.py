@@ -9,17 +9,16 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
 """tests for DE_Problems.py"""
 
 import unittest
-import warnings
 import numpy as np
 from scipy.linalg import expm
 
-from qiskit_ode.dispatch import Array
-from ..test_jax_base import TestJaxBase
-
 from qiskit.quantum_info.operators import Operator
+from qiskit_ode.dispatch import Array
 from qiskit_ode.models.signals import Constant, Signal
 from qiskit_ode.models.operator_models import OperatorModel
 from qiskit_ode.models.quantum_models import HamiltonianModel, LindbladModel
@@ -28,11 +27,16 @@ from qiskit_ode.de.de_problems import (ODEProblem, LMDEProblem,
                                        DensityMatrixProblem)
 from qiskit_ode.type_utils import (vec_commutator, vec_dissipator)
 
+from ..test_jax_base import TestJaxBase
+
+
 class TestODEProblem(unittest.TestCase):
+    """Basic tests for ODEProblem."""
 
     def test_set_rhs_numpy(self):
         """Test wrapping of RHS."""
 
+        # pylint: disable=unused-argument
         def rhs(t, y):
             return y**2
 
@@ -43,7 +47,9 @@ class TestODEProblem(unittest.TestCase):
         self.assertTrue(isinstance(output, Array))
         self.assertTrue(np.allclose(output, Array([1., 4.])))
 
+
 class TestLMDEProblem(unittest.TestCase):
+    """Basic tests for LMDEProblem."""
 
     def test_set_generator(self):
         """Test wrapping of generator."""
@@ -57,6 +63,7 @@ class TestLMDEProblem(unittest.TestCase):
 
         self.assertTrue(isinstance(output, Array))
         self.assertTrue(np.allclose(output, 3 * Array([[0., -1j], [1j, 0.]])))
+
 
 class TestOperatorModelProblem(unittest.TestCase):
     """Base class for testing OperatorModelProblem with different backends."""
@@ -86,9 +93,9 @@ class TestOperatorModelProblem(unittest.TestCase):
 
         problem = OperatorModelProblem(generator=self.basic_model)
 
-        self.assertTrue(np.allclose(problem._user_frame.frame_operator,
+        self.assertTrue(np.allclose(problem.user_frame.frame_operator,
                                     Array([[0., 1.], [1., 0.]], dtype=complex)))
-        self.assertTrue(np.allclose(problem._generator.frame.frame_operator,
+        self.assertTrue(np.allclose(problem.generator_model.frame.frame_operator,
                                     -1j * 2 * np.pi * self.w * self.Z / 2))
 
     def test_user_state_to_problem(self):
@@ -113,7 +120,7 @@ class TestOperatorModelProblem(unittest.TestCase):
 
         self.assertTrue(np.allclose(expected, output))
 
-    def test_user_state_to_problem(self):
+    def test_problem_state_to_user(self):
         """Test problem_state_to_user.
 
         Note: To go from a user facing state to a problem state requires:
@@ -189,7 +196,7 @@ class TestOperatorModelProblem(unittest.TestCase):
         problem = OperatorModelProblem(generator=self.basic_model,
                                        solver_cutoff_freq=2 * self.w)
 
-        self.assertTrue(problem._generator.cutoff_freq == 2 * self.w)
+        self.assertTrue(problem.generator_model.cutoff_freq == 2 * self.w)
         self.assertTrue(self.basic_model.cutoff_freq is None)
 
 
@@ -198,6 +205,7 @@ class TestOperatorModelProblemJax(TestOperatorModelProblem, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+
 
 class TestSchrodingerProblem(unittest.TestCase):
     """Test SchrodingerProblem."""
@@ -226,10 +234,10 @@ class TestSchrodingerProblem(unittest.TestCase):
 
         se_prob = SchrodingerProblem(self.basic_hamiltonian)
 
-        self.assertTrue(np.allclose(se_prob._generator._operators[0],
-                        -1j * 2 * np.pi * self.Z / 2))
-        self.assertTrue(np.allclose(se_prob._generator._operators[1],
-                        -1j * 2 * np.pi * self.r * self.X / 2))
+        self.assertTrue(np.allclose(se_prob.generator_model.operators[0],
+                                    -1j * 2 * np.pi * self.Z / 2))
+        self.assertTrue(np.allclose(se_prob.generator_model.operators[1],
+                                    -1j * 2 * np.pi * self.r * self.X / 2))
 
 
 class TestSchrodingerProblemJax(TestSchrodingerProblem, TestJaxBase):
@@ -237,8 +245,9 @@ class TestSchrodingerProblemJax(TestSchrodingerProblem, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
-    pass
 
+
+# pylint: disable=too-many-instance-attributes
 class TestDensityMatrixProblem(unittest.TestCase):
     """Test DensityMatrixProblem."""
 
@@ -259,8 +268,8 @@ class TestDensityMatrixProblem(unittest.TestCase):
         hamiltonian = HamiltonianModel(operators=operators,
                                        signals=signals)
 
-        self.noise_ops =[Array([[0., 1.], [0., 0.]], dtype=complex),
-                         Array([[0., 0.], [1., 0.]], dtype=complex)]
+        self.noise_ops = [Array([[0., 1.], [0., 0.]], dtype=complex),
+                          Array([[0., 0.], [1., 0.]], dtype=complex)]
 
         self.basic_lindblad_model = LindbladModel.from_hamiltonian(hamiltonian=hamiltonian,
                                                                    noise_operators=self.noise_ops)
@@ -268,7 +277,7 @@ class TestDensityMatrixProblem(unittest.TestCase):
         # not a valid density matrix but can be used for testing
         self.y0 = Array([[1., 2.], [3., 4.]], dtype=complex)
 
-    def test_basic_generator_operators(self):
+    def test_basic_generatoroperators(self):
         """Test correct construction of the operators in the vectorized
         Lindblad generator.
         """
@@ -276,13 +285,13 @@ class TestDensityMatrixProblem(unittest.TestCase):
         l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         # validate generator matrices
-        self.assertTrue(np.allclose(l_prob._generator._operators[0],
+        self.assertTrue(np.allclose(l_prob.generator_model.operators[0],
                                     vec_commutator(-1j * 2 * np.pi * self.Z / 2)))
-        self.assertTrue(np.allclose(l_prob._generator._operators[1],
+        self.assertTrue(np.allclose(l_prob.generator_model.operators[1],
                                     vec_commutator(-1j * 2 * np.pi * self.r * self.X / 2)))
-        self.assertTrue(np.allclose(l_prob._generator._operators[2],
+        self.assertTrue(np.allclose(l_prob.generator_model.operators[2],
                                     vec_dissipator(self.noise_ops[0])))
-        self.assertTrue(np.allclose(l_prob._generator._operators[3],
+        self.assertTrue(np.allclose(l_prob.generator_model.operators[3],
                                     vec_dissipator(self.noise_ops[1])))
 
     def test_basic_generator_signals(self):
@@ -294,7 +303,7 @@ class TestDensityMatrixProblem(unittest.TestCase):
 
         # validate generator signals
         t = 0.12314
-        sig_vals = l_prob._generator.signals.value(t)
+        sig_vals = l_prob.generator_model.signals.value(t)
         expected = np.array([self.w,
                              np.exp(1j * 2 * np.pi * self.w * t),
                              1.,
@@ -309,7 +318,7 @@ class TestDensityMatrixProblem(unittest.TestCase):
 
         l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
-        frame_op = l_prob._generator.frame.frame_operator
+        frame_op = l_prob.generator_model.frame.frame_operator
         expected = vec_commutator(-1j * 2 * np.pi * self.w * self.Z / 2)
         self.assertTrue(np.allclose(frame_op, expected))
 
@@ -321,12 +330,14 @@ class TestDensityMatrixProblem(unittest.TestCase):
         l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         # ensure that converter correctly flattens states
-        self.assertTrue(np.allclose(l_prob._state_type_converter.outer_to_inner(self.y0),
+        self.assertTrue(np.allclose(l_prob.state_type_converter.outer_to_inner(self.y0),
                                     self.y0.flatten(order='F')))
 
         # ensure that converter correctly unflattens states
-        self.assertTrue(np.allclose(l_prob._state_type_converter.inner_to_outer(Array([1.,2.,3.,4.])),
-                               Array([1.,2.,3.,4.]).reshape((2,2),order='F')))
+        # pylint: disable=line-too-long
+        self.assertTrue(np.allclose(l_prob.state_type_converter.inner_to_outer(Array([1., 2.,
+                                                                                      3., 4.])),
+                                    Array([1., 2., 3., 4.]).reshape((2, 2), order='F')))
 
 
 class TestDensityMatrixProblemJax(TestDensityMatrixProblem, TestJaxBase):
@@ -334,9 +345,9 @@ class TestDensityMatrixProblemJax(TestDensityMatrixProblem, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
-    pass
 
 
+# pylint: disable=too-many-instance-attributes
 class TestSuperOpProblem(unittest.TestCase):
     """Test SuperOpProblem.
 
@@ -360,8 +371,8 @@ class TestSuperOpProblem(unittest.TestCase):
         hamiltonian = HamiltonianModel(operators=operators,
                                        signals=signals)
 
-        self.noise_ops =[Array([[0., 1.], [0., 0.]]),
-                         Array([[0., 0.], [1., 0.]])]
+        self.noise_ops = [Array([[0., 1.], [0., 0.]]),
+                          Array([[0., 0.], [1., 0.]])]
 
         self.basic_lindblad_model = LindbladModel.from_hamiltonian(hamiltonian=hamiltonian,
                                                                    noise_operators=self.noise_ops)
@@ -377,13 +388,13 @@ class TestSuperOpProblem(unittest.TestCase):
         l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
         # validate generator matrices
-        self.assertTrue(np.allclose(l_prob._generator._operators[0],
+        self.assertTrue(np.allclose(l_prob.generator_model.operators[0],
                                     vec_commutator(-1j * 2 * np.pi * self.Z / 2)))
-        self.assertTrue(np.allclose(l_prob._generator._operators[1],
+        self.assertTrue(np.allclose(l_prob.generator_model.operators[1],
                                     vec_commutator(-1j * 2 * np.pi * self.r * self.X / 2)))
-        self.assertTrue(np.allclose(l_prob._generator._operators[2],
+        self.assertTrue(np.allclose(l_prob.generator_model.operators[2],
                                     vec_dissipator(self.noise_ops[0])))
-        self.assertTrue(np.allclose(l_prob._generator._operators[3],
+        self.assertTrue(np.allclose(l_prob.generator_model.operators[3],
                                     vec_dissipator(self.noise_ops[1])))
 
     def test_basic_generator_signals(self):
@@ -395,7 +406,7 @@ class TestSuperOpProblem(unittest.TestCase):
 
         # validate generator signals
         t = 0.12314
-        sig_vals = l_prob._generator.signals.value(t)
+        sig_vals = l_prob.generator_model.signals.value(t)
         expected = np.array([self.w,
                              np.exp(1j * 2 * np.pi * self.w * t),
                              1.,
@@ -410,7 +421,7 @@ class TestSuperOpProblem(unittest.TestCase):
 
         l_prob = DensityMatrixProblem(self.basic_lindblad_model)
 
-        frame_op = l_prob._generator.frame.frame_operator
+        frame_op = l_prob.generator_model.frame.frame_operator
         expected = vec_commutator(-1j * 2 * np.pi * self.w * self.Z / 2)
         self.assertTrue(np.allclose(frame_op, expected))
 
@@ -420,4 +431,3 @@ class TestSuperOpProblemJax(TestSuperOpProblem, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
-    pass

@@ -14,8 +14,8 @@
 Pulse schedule to Signals converter.
 """
 
-import numpy as np
 from typing import List
+import numpy as np
 
 from qiskit.pulse import Schedule, Play, ShiftPhase, SetPhase, ShiftFrequency, SetFrequency
 from qiskit import QiskitError
@@ -34,6 +34,7 @@ class InstructionToSignals:
                 must be at least as many carrier frequencies as there are
                 channels in the schedules that will be converted.
         """
+
         self._dt = dt
         self._carriers = carriers
 
@@ -42,47 +43,57 @@ class InstructionToSignals:
         Args:
             schedule: The schedule to represent in terms of signals.
 
-        returns: a list of piecewise constant signals.
+        Returns:
+            a list of piecewise constant signals.
+
+        Raises:
+            qiskit.QiskitError: if not enough frequencies supplied
         """
+
         if self._carriers and len(self._carriers) < len(schedule.channels):
             raise QiskitError('Not enough carrier frequencies supplied.')
 
         signals, phases, frequency_shifts = {}, {}, {}
 
-        for idx, ch in enumerate(schedule.channels):
+        for idx, chan in enumerate(schedule.channels):
             if self._carriers:
                 carrier_freq = self._carriers[idx]
             else:
                 carrier_freq = 0.
 
-            phases[ch.name] = 0.
-            frequency_shifts[ch.name] = 0.
-            signals[ch.name] = PiecewiseConstant(samples=[], dt=self._dt, name=ch.name, carrier_freq=carrier_freq)
+            phases[chan.name] = 0.
+            frequency_shifts[chan.name] = 0.
+            signals[chan.name] = PiecewiseConstant(samples=[],
+                                                   dt=self._dt,
+                                                   name=chan.name,
+                                                   carrier_freq=carrier_freq)
 
         for start_sample, inst in schedule.instructions:
-            ch = inst.channel.name
-            phi = phases[ch]
-            freq = frequency_shifts[ch]
+            chan = inst.channel.name
+            phi = phases[chan]
+            freq = frequency_shifts[chan]
 
             if isinstance(inst, Play):
                 samples = []
-                start_idx = len(signals[ch].samples)
+                start_idx = len(signals[chan].samples)
                 for idx, sample in enumerate(inst.pulse.get_waveform().samples):
-                    t = self._dt * (idx + start_idx)
-                    samples.append(sample * np.exp(2.0j * np.pi * freq * t + 1.0j * phi))
+                    time = self._dt * (idx + start_idx)
+                    samples.append(sample * np.exp(2.0j * np.pi * freq * time
+                                                   + 1.0j * phi))
 
-                signals[ch].add_samples(start_sample, samples)
+                signals[chan].add_samples(start_sample, samples)
 
             if isinstance(inst, ShiftPhase):
-                phases[ch] += inst.phase
+                phases[chan] += inst.phase
 
             if isinstance(inst, ShiftFrequency):
-                frequency_shifts[ch] += inst.frequency
+                frequency_shifts[chan] += inst.frequency
 
             if isinstance(inst, SetPhase):
-                phases[ch] = inst.phase
+                phases[chan] = inst.phase
 
             if isinstance(inst, SetFrequency):
-                frequency_shifts[ch] = inst.frequency - signals[ch].carrier_freq
+                frequency_shifts[chan] = (inst.frequency -
+                                          signals[chan].carrier_freq)
 
         return list(signals.values())

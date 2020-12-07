@@ -9,6 +9,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
 """
 Tests for signal transfer functions.
 """
@@ -29,17 +31,21 @@ class TestTransferFunctions(unittest.TestCase):
 
         def gaussian(t):
             sigma = 4
-            return 2. * ts[1] / np.sqrt(2. * np.pi * sigma ** 2) * np.exp(-t ** 2 / (2 * sigma ** 2))
+            return (2. * ts[1] / np.sqrt(2. * np.pi * sigma ** 2) *
+                    np.exp(-t ** 2 / (2 * sigma ** 2)))
 
         # Test the simple convolution of a signal without a carrier
         convolution = Convolution(gaussian)
 
         samples = [0. if t < 20. or t > 80. else 1. for t in ts]  # Defines a square pulse.
-        piecewise_const = PiecewiseConstant(dt=ts[1] - ts[0], samples=samples, carrier_freq=0.0, start_time=0)
+        piecewise_const = PiecewiseConstant(dt=ts[1] - ts[0],
+                                            samples=samples,
+                                            carrier_freq=0.0,
+                                            start_time=0)
 
-        self.assertEquals(piecewise_const.duration, len(ts))
-        self.assertEquals(piecewise_const.value(21.0), 1.0)
-        self.assertEquals(piecewise_const.value(81.0), 0.0)
+        self.assertEqual(piecewise_const.duration, len(ts))
+        self.assertEqual(piecewise_const.value(21.0), 1.0)
+        self.assertEqual(piecewise_const.value(81.0), 0.0)
 
         convolved = convolution.apply(piecewise_const)
 
@@ -47,7 +53,7 @@ class TestTransferFunctions(unittest.TestCase):
         self.assertGreater(convolved.value(81.0), 0.0)
 
         if isinstance(convolved, PiecewiseConstant):
-            self.assertEquals(convolved.duration, 2*len(ts)-1)
+            self.assertEqual(convolved.duration, 2*len(ts)-1)
         else:
             self.fail()
 
@@ -57,7 +63,7 @@ class TestTransferFunctions(unittest.TestCase):
         signals = [pwc1, pwc2]
 
         convolved = convolution.apply(signals)
-        self.assertEquals(len(convolved), 2)
+        self.assertEqual(len(convolved), 2)
 
         # Test that the normalization happens properly
         def non_normalized_gaussian(t):
@@ -68,7 +74,7 @@ class TestTransferFunctions(unittest.TestCase):
 
         convolved2 = convolution.apply(piecewise_const)
 
-        self.assertAlmostEquals(convolved[0].value(15.0), convolved2.value(15.0), places=6)
-        self.assertAlmostEquals(convolved[0].value(20.0), convolved2.value(20.0), places=6)
-        self.assertAlmostEquals(convolved[0].value(25.0), convolved2.value(25.0), places=6)
-        self.assertAlmostEquals(convolved[0].value(30.0), convolved2.value(30.0), places=6)
+        self.assertAlmostEqual(convolved[0].value(15.0), convolved2.value(15.0), places=6)
+        self.assertAlmostEqual(convolved[0].value(20.0), convolved2.value(20.0), places=6)
+        self.assertAlmostEqual(convolved[0].value(25.0), convolved2.value(25.0), places=6)
+        self.assertAlmostEqual(convolved[0].value(30.0), convolved2.value(30.0), places=6)

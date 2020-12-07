@@ -11,21 +11,24 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name,unused-argument
 
+"""Module of differential equation problem definitions."""
+
+from typing import Union, Optional, Callable
 import numpy as np
-from typing import Union, List, Optional, Callable
-from warnings import warn
 
 from qiskit.quantum_info.operators import Operator
+from qiskit_ode.dispatch import Array
+import qiskit_ode.dispatch as dispatch
 from ..models.frame import BaseFrame, Frame
 from ..models.quantum_models import HamiltonianModel, LindbladModel
 from ..models.operator_models import BaseOperatorModel, OperatorModel
-from ..type_utils import StateTypeConverter, vec_commutator, to_array
-from qiskit_ode.dispatch import Array
-import qiskit_ode.dispatch as dispatch
+from ..type_utils import StateTypeConverter, vec_commutator
+
 
 class ODEProblem:
-    """:class:`ODEProblem` represents first order ODE problems of the form
+    r""":class:`ODEProblem` represents first order ODE problems of the form
 
     .. math::
         y'(t) = f(t, y)
@@ -44,7 +47,7 @@ class ODEProblem:
     """
 
     def __init__(self, rhs: Callable):
-        """Initialize with an rhs function `rhs(t, y) = f(t, y)`.
+        r"""Initialize with an rhs function `rhs(t, y) = f(t, y)`.
 
         Args:
             rhs: callable function of the form :math:`f(t, y)``
@@ -52,7 +55,7 @@ class ODEProblem:
         self._rhs = dispatch.wrap(rhs, wrap_return=True)
 
     def user_state_to_problem(self, t: float, y: Array) -> Array:
-        """Convert a user specified state at a given time into the internal
+        r"""Convert a user specified state at a given time into the internal
         problem format.
 
         Args:
@@ -66,7 +69,7 @@ class ODEProblem:
         return Array(y)
 
     def problem_state_to_user(self, t: float, y: Array) -> Array:
-        """Convert a state represented in the internal problem format into the
+        r"""Convert a state represented in the internal problem format into the
         user format.
 
         Args:
@@ -80,11 +83,14 @@ class ODEProblem:
         return Array(y)
 
     def rhs(self, t: float, y: Array) -> Array:
-        """Evaluate the rhs function.
+        r"""Evaluate the rhs function.
 
         Args:
             t: time
             y: state
+
+        Returns:
+            Array: value of the rhs
         """
         return self._rhs(t, y)
 
@@ -92,8 +98,9 @@ class ODEProblem:
         """Make the object callable."""
         return self.rhs(t, y)
 
+
 class LMDEProblem(ODEProblem):
-    """:class:`LMDEProblem` is the base class for representing the class of
+    r""":class:`LMDEProblem` is the base class for representing the class of
     first order Linear Matrix Differential Equations (LMDEs), which are
     ODEs of the form:
 
@@ -108,31 +115,30 @@ class LMDEProblem(ODEProblem):
     specialized to this class (such as matrix exponentiation-based solvers).
     """
 
-    def __init__(self, generator: Callable):
-        """Initialize with the generator function :math:`G(t)`.
+    def __init__(self, generator: Callable, rhs: Optional[Callable] = None):
+        r"""Initialize with the generator function :math:`G(t)`.
 
         Args:
             generator: the generator of the LMDE
+            rhs: custom rhs function computing generator(t) @ y
         """
         self._generator = dispatch.wrap(generator, wrap_return=True)
 
-    def rhs(self, t: float, y: Array) -> Array:
-        """Standard default implementation of the RHS function given
-        the generator.
+        if rhs is None:
+            def default_rhs(t, y):
+                return self.generator(t) @ y
 
-        Args:
-            t: time
-            y: state
-        """
-        return self.generator(t) @ y
+            rhs = default_rhs
+
+        super().__init__(rhs)
 
     def generator(self, t: float) -> Array:
-        """Generator at a given time."""
+        r"""Generator at a given time."""
         return self._generator(t)
 
 
 class OperatorModelProblem(LMDEProblem):
-    """Specialized subclass of :class:`LMDEProblem` in which the generator
+    r"""Specialized subclass of :class:`LMDEProblem` in which the generator
     :math:`G(t)` is specified as a :class:`BaseOperatorModel` instance.
 
     Includes optional settings related to frame and cutoff frequency
@@ -151,7 +157,7 @@ class OperatorModelProblem(LMDEProblem):
                  user_frame: Optional[Union[str, Operator, np.ndarray, BaseFrame]] = 'auto',
                  solver_cutoff_freq: Optional[float] = None,
                  state_type_converter: Optional[StateTypeConverter] = None):
-        """Specify an :class:`LMDEProblem` via a :class:`BaseOperatorModel`.
+        r"""Specify an :class:`LMDEProblem` via a :class:`BaseOperatorModel`.
 
         Args:
             generator: The generator specified as a :class:`BaseOperatorModel`.
@@ -168,30 +174,40 @@ class OperatorModelProblem(LMDEProblem):
                                   to the state type the solver needs.
         """
 
-        self._state_type_converter = state_type_converter
+        self.state_type_converter = state_type_converter
 
         # copy the generator to preserve state of user's generator
-        self._generator = generator.copy()
+        self.generator_model = generator.copy()
 
         # set user_frame
         if isinstance(user_frame, str) and user_frame == 'auto':
-            self._user_frame = self._generator.frame
+            self.user_frame = self.generator_model.frame
         else:
-            self._user_frame = Frame(user_frame)
+            self.user_frame = Frame(user_frame)
 
         # set solver frame
         if isinstance(solver_frame, str) and solver_frame == 'auto':
             # if auto, set it to the anti-hermitian part of the drift
-            self._generator.frame = None
-            self._generator.frame = anti_herm_part(self._generator.drift)
+            self.generator_model.frame = None
+            aherm_drift = anti_herm_part(self.generator_model.drift)
+            self.generator_model.frame = aherm_drift
         else:
-            self._generator.frame = Frame(solver_frame)
+            self.generator_model.frame = Frame(solver_frame)
 
         # set up cutoff frequency
-        self._generator.cutoff_freq = solver_cutoff_freq
+        self.generator_model.cutoff_freq = solver_cutoff_freq
+
+        # define generator and rhs functions
+        def generator_func(t):
+            return self.generator_model.evaluate(t, in_frame_basis=True)
+
+        def rhs_func(t, y):
+            return self.generator_model.lmult(t, y, in_frame_basis=True)
+
+        super().__init__(generator=generator_func, rhs=rhs_func)
 
     def user_state_to_problem(self, t: float, y: Array) -> Array:
-        """Convert state from user side to internal solver representation.
+        r"""Convert state from user side to internal solver representation.
         This requires:
             - Converting out of the `user_framer`.
             - Convert into the `solver_frame`.
@@ -205,21 +221,21 @@ class OperatorModelProblem(LMDEProblem):
         """
         # convert to internal representation
         new_y = None
-        if self._state_type_converter is None:
+        if self.state_type_converter is None:
             new_y = y
         else:
-            new_y = self._state_type_converter.outer_to_inner(y)
+            new_y = self.state_type_converter.outer_to_inner(y)
 
         # convert state from user_frame into lab frame
-        new_y = self._user_frame.state_out_of_frame(t, new_y)
+        new_y = self.user_frame.state_out_of_frame(t, new_y)
 
         # convert state from lab frame into solver frame, in basis in which
         # frame is diagonal
-        return self._generator.frame.state_into_frame(t, new_y,
-                                                      return_in_frame_basis=True)
+        return self.generator_model.frame.state_into_frame(t, new_y,
+                                                           return_in_frame_basis=True)
 
     def problem_state_to_user(self, t: float, y: Array) -> Array:
-        """The inverse transformation of :method:`user_state_to_problem`.
+        r"""The inverse transformation of :method:`user_state_to_problem`.
 
         Args:
             t: time
@@ -229,28 +245,20 @@ class OperatorModelProblem(LMDEProblem):
         """
 
         # take state out of solver frame and basis into lab frame
-        new_y = self._generator.frame.state_out_of_frame(t, y,
-                                                         y_in_frame_basis=True)
+        new_y = self.generator_model.frame.state_out_of_frame(t, y,
+                                                              y_in_frame_basis=True)
 
         # bring state into state_frame
-        new_y = self._user_frame.state_into_frame(t, new_y)
+        new_y = self.user_frame.state_into_frame(t, new_y)
 
-        if self._state_type_converter is None:
+        if self.state_type_converter is None:
             return new_y
         else:
-            return self._state_type_converter.inner_to_outer(new_y)
-
-    def rhs(self, t, y):
-        """RHS function from the :class:`OperatorModel`."""
-        return self._generator.lmult(t, y, in_frame_basis=True)
-
-    def generator(self, t):
-        """Generator from the :class:`OperatorModel`"""
-        return self._generator.evaluate(t, in_frame_basis=True)
+            return self.state_type_converter.inner_to_outer(new_y)
 
 
 class SchrodingerProblem(OperatorModelProblem):
-    """A differential equation problem for evolution of a state according
+    r"""A differential equation problem for evolution of a state according
     to the Schrodinger equation: :math:`\dot{A}(t) = -i H(t)A(t)`, where
     :math:`H(t)` is a Hamiltonian given by an instance of
     :class:`HamiltonianModel`.
@@ -261,7 +269,7 @@ class SchrodingerProblem(OperatorModelProblem):
                  solver_frame: Optional[Union[str, Operator, np.ndarray, BaseFrame]] = 'auto',
                  user_frame: Optional[Union[str, Operator, np.ndarray, BaseFrame]] = 'auto',
                  solver_cutoff_freq: Optional[float] = None):
-        """Constructs an :class:`OperatorModelProblem` representing the
+        r"""Constructs an :class:`OperatorModelProblem` representing the
         Schrodinger equation.
 
         Args:
@@ -277,7 +285,7 @@ class SchrodingerProblem(OperatorModelProblem):
         """
 
         generator = OperatorModel(operators=[-1j * op for
-                                             op in hamiltonian._operators],
+                                             op in hamiltonian.operators],
                                   signals=hamiltonian.signals,
                                   signal_mapping=hamiltonian.signal_mapping,
                                   frame=hamiltonian.frame,
@@ -290,7 +298,7 @@ class SchrodingerProblem(OperatorModelProblem):
 
 
 class StatevectorProblem(SchrodingerProblem):
-    """A differential equation problem for evolution of a statevector according
+    r"""A differential equation problem for evolution of a statevector according
     to the Schrodinger equation: :math:`\dot{y}(t) = -i H(t)y(t)`, where
     :math:`H(t)` is a Hamiltonian given by an instance of
     :class:`HamiltonianModel`.
@@ -298,7 +306,7 @@ class StatevectorProblem(SchrodingerProblem):
 
 
 class UnitaryProblem(SchrodingerProblem):
-    """A differential equation problem for evolution of a unitary according
+    r"""A differential equation problem for evolution of a unitary according
     to the Schrodinger equation: :math:`\dot{U}(t) = -i H(t)U(t)`, where
     :math:`H(t)` is a Hamiltonian given by an instance of
     :class:`HamiltonianModel`.
@@ -306,10 +314,12 @@ class UnitaryProblem(SchrodingerProblem):
 
 
 class DensityMatrixProblem(OperatorModelProblem):
-    """Simulate density matrix evolution according to the Lindblad equation:
+    r"""Simulate density matrix evolution according to the Lindblad equation:
 
     .. math::
-        \dot{\rho}(t) = -i[H(t), \rho(t)] + \sum_j \gamma_j(t) L_j\rho(t)L_j^\dagger - \frac{1}{2}\{L_j^\daggerL_j, \rho(t)\}
+        \dot{\rho}(t) = -i[H(t), \rho(t)]
+                        + \sum_j \gamma_j(t) L_j\rho(t)L_j^\dagger
+                        - \frac{1}{2}\{L_j^\daggerL_j, \rho(t)\}
 
     where:
         - :math:`H(t)` is the Hamiltonian,
@@ -324,7 +334,7 @@ class DensityMatrixProblem(OperatorModelProblem):
                  user_frame: Optional[Union[str, Operator, np.ndarray, BaseFrame]] = 'auto',
                  solver_cutoff_freq: Optional[float] = None):
 
-        """Constructs an :class:`OperatorModelProblem` representing the
+        r"""Constructs an :class:`OperatorModelProblem` representing the
         Lindblad equation, to act on a density matrix.
 
         Args:
@@ -353,7 +363,7 @@ class DensityMatrixProblem(OperatorModelProblem):
             user_frame = vec_commutator(user_frame.frame_operator)
 
         # specify the converter to vectorize the density matrix
-        dim = int(np.sqrt(lindblad_model._operators[0].shape[0]))
+        dim = int(np.sqrt(lindblad_model.operators[0].shape[0]))
         outer_type_spec = {'type': 'array', 'shape': (dim, dim)}
         inner_type_spec = {'type': 'array', 'shape': (dim**2,)}
         converter = StateTypeConverter(inner_type_spec, outer_type_spec)
@@ -366,7 +376,7 @@ class DensityMatrixProblem(OperatorModelProblem):
 
 
 class SuperOpProblem(OperatorModelProblem):
-    """Simulate super operator evolution according to the Lindblad equation.
+    r"""Simulate super operator evolution according to the Lindblad equation.
 
     I.e. Construct the Lindblad equation as in :class:`LindbladProblem`,
     but simulate the propagator matrix for the differential equation.
@@ -380,7 +390,7 @@ class SuperOpProblem(OperatorModelProblem):
                  user_frame: Optional[Union[str, Operator, np.ndarray, BaseFrame]] = 'auto',
                  solver_cutoff_freq: Optional[float] = None):
 
-        """Constructs an :class:`OperatorModelProblem` representing the
+        r"""Constructs an :class:`OperatorModelProblem` representing the
         Lindblad equation, to act on a density matrix.
 
         Args:
@@ -414,6 +424,6 @@ class SuperOpProblem(OperatorModelProblem):
                          solver_cutoff_freq=solver_cutoff_freq)
 
 
-def anti_herm_part(A: Array) -> Array:
+def anti_herm_part(mat: Array) -> Array:
     """Get the anti-hermitian part of an operator."""
-    return 0.5 * (A - A.conj().transpose())
+    return 0.5 * (mat - mat.conj().transpose())

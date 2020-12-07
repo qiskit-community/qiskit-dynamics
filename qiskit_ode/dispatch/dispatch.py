@@ -151,7 +151,6 @@ class Dispatch:
             cls._REGISTERED_TYPES[atype] = name
         cls.REGISTERED_TYPES = tuple(cls._REGISTERED_TYPES.keys())
 
-
     @classmethod
     def register_asarray(cls,
                          name: str,
@@ -318,11 +317,11 @@ def asarray(array: any,
     if backend:
         Dispatch.validate_backend(backend)
     else:
-        if  Dispatch.DEFAULT_BACKEND:
+        if Dispatch.DEFAULT_BACKEND:
             backend = Dispatch.DEFAULT_BACKEND
         else:
             backend = Dispatch.backend(array, fallback='numpy')
-    return  Dispatch.ASARRAY_DISPATCH[backend](array, dtype=dtype, order=order)
+    return Dispatch.ASARRAY_DISPATCH[backend](array, dtype=dtype, order=order)
 
 
 def requires_backend(backend: str) -> Callable:

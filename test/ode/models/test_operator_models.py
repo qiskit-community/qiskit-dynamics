@@ -9,16 +9,20 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""tests for operator_models.py"""
+# pylint: disable=invalid-name
+
+"""Tests for operator_models.py"""
 
 import unittest
 import numpy as np
 from scipy.linalg import expm
+from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models.operator_models import OperatorModel
 from qiskit_ode.models.signals import Constant, Signal, VectorSignal
 from qiskit_ode.dispatch import Array
 from ..test_jax_base import TestJaxBase
+
 
 class TestOperatorModel(unittest.TestCase):
     """Tests for OperatorModel."""
@@ -32,7 +36,7 @@ class TestOperatorModel(unittest.TestCase):
         w = 2.
         r = 0.5
         operators = [-1j * 2 * np.pi * self.Z / 2,
-                     -1j * 2 * np.pi *  r * self.X / 2]
+                     -1j * 2 * np.pi * r * self.X / 2]
         signals = [Constant(w), Signal(1., w)]
 
         self.w = 2
@@ -45,19 +49,19 @@ class TestOperatorModel(unittest.TestCase):
         # 1d array
         try:
             self.basic_model.frame = Array([1., 1.])
-        except Exception as e:
+        except QiskitError as e:
             self.assertTrue('anti-Hermitian' in str(e))
 
         # 2d array
         try:
             self.basic_model.frame = Array([[1., 0.], [0., 1.]])
-        except Exception as e:
+        except QiskitError as e:
             self.assertTrue('anti-Hermitian' in str(e))
 
         # Operator
         try:
             self.basic_model.frame = self.Z
-        except Exception as e:
+        except QiskitError as e:
             self.assertTrue('anti-Hermitian' in str(e))
 
     def test_diag_frame_operator_basic_model(self):
@@ -68,14 +72,12 @@ class TestOperatorModel(unittest.TestCase):
         self._basic_frame_evaluate_test(Array([1j, -1j]), 1.123)
         self._basic_frame_evaluate_test(Array([1j, -1j]), np.pi)
 
-
     def test_non_diag_frame_operator_basic_model(self):
         """Test setting a non-diagonal frame operator for the internally
         set up basic model.
         """
         self._basic_frame_evaluate_test(-1j * (self.Y + self.Z), 1.123)
         self._basic_frame_evaluate_test(-1j * (self.Y - self.Z), np.pi)
-
 
     def _basic_frame_evaluate_test(self, frame_operator, t):
         """Routine for testing setting of valid frame operators using the
@@ -104,7 +106,7 @@ class TestOperatorModel(unittest.TestCase):
                     d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2 -
                     frame_operator)
 
-        self.assertAlmostEqual(value, expected)
+        self.assertAllClose(value, expected)
 
     def test_evaluate_no_frame_basic_model(self):
         """Test evaluation without a frame in the basic model."""
@@ -113,10 +115,10 @@ class TestOperatorModel(unittest.TestCase):
         value = self.basic_model.evaluate(t)
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        expected =  (i2pi * self.w * self.Z.data / 2 +
-                     i2pi * d_coeff * self.X.data / 2)
+        expected = (i2pi * self.w * self.Z.data / 2 +
+                    i2pi * d_coeff * self.X.data / 2)
 
-        self.assertAlmostEqual(value, expected)
+        self.assertAllClose(value, expected)
 
     def test_evaluate_in_frame_basis_basic_model(self):
         """Test evaluation in frame basis in the basic_model."""
@@ -143,8 +145,7 @@ class TestOperatorModel(unittest.TestCase):
                            i2pi * d_coeff * self.X.data / 2 -
                            frame_op) @ U
 
-        self.assertAlmostEqual(value, expected)
-
+        self.assertAllClose(value, expected)
 
     def test_evaluate_pseudorandom(self):
         """Test evaluate with pseudorandom inputs."""
@@ -152,34 +153,34 @@ class TestOperatorModel(unittest.TestCase):
         rng = np.random.default_rng(30493)
         num_terms = 3
         dim = 5
-        b = 1. # bound on size of random terms
-        rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
-                   1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
+        b = 1.  # bound on size of random terms
+        rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
+                   1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
         frame_op = Array(rand_op - rand_op.conj().transpose())
-        rand_operators = (rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
-                            1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
+        randoperators = (rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) +
+                         1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)))
 
-        rand_coeffs = Array(rng.uniform(low=-b,high=b, size=(num_terms)) +
-                            1j * rng.uniform(low=-b,high=b, size=(num_terms)))
-        rand_carriers = Array(rng.uniform(low=-b,high=b, size=(num_terms)))
+        rand_coeffs = Array(rng.uniform(low=-b, high=b, size=(num_terms)) +
+                            1j * rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
+        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers)
 
         rng = np.random.default_rng(94818)
         num_terms = 5
         dim = 10
-        b = 1. # bound on size of random terms
-        rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
-                   1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
+        b = 1.  # bound on size of random terms
+        rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
+                   1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
         frame_op = Array(rand_op - rand_op.conj().transpose())
-        rand_operators = Array(rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)) +
-                               1j * rng.uniform(low=-b,high=b, size=(num_terms, dim, dim)))
+        randoperators = Array(rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) +
+                              1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)))
 
-        rand_coeffs = Array(rng.uniform(low=-b,high=b, size=(num_terms)) +
-                            1j * rng.uniform(low=-b,high=b, size=(num_terms)))
-        rand_carriers = Array(rng.uniform(low=-b,high=b, size=(num_terms)))
+        rand_coeffs = Array(rng.uniform(low=-b, high=b, size=(num_terms)) +
+                            1j * rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate(frame_op, rand_operators, rand_coeffs, rand_carriers)
+        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers)
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers):
 
@@ -188,25 +189,24 @@ class TestOperatorModel(unittest.TestCase):
 
         value = model.evaluate(1.)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.))
-        expected = expm(-np.array(frame_op)) @ np.tensordot(coeffs, operators, axes=1) @ expm(np.array(frame_op)) - frame_op
+        expected = (expm(-np.array(frame_op)) @ np.tensordot(coeffs, operators, axes=1) @
+                    expm(np.array(frame_op)) - frame_op)
 
-        self.assertAlmostEqual(value, expected)
+        self.assertAllClose(value, expected)
 
     def test_lmult_rmult_no_frame_basic_model(self):
         """Test evaluation with no frame in the basic model."""
 
         y0 = np.array([[1., 2.], [0., 4.]])
         t = 3.21412
-        value = self.basic_model.lmult(t, y0)
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        model_expected =  (i2pi * self.w * self.Z.data / 2 +
-                           i2pi * d_coeff * self.X.data / 2)
+        model_expected = i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2
 
-        self.assertAlmostEqual(self.basic_model.lmult(t, y0),
-                               model_expected @ y0)
-        self.assertAlmostEqual(self.basic_model.rmult(t, y0),
-                               y0 @ model_expected)
+        self.assertAllClose(self.basic_model.lmult(t, y0),
+                            model_expected @ y0)
+        self.assertAllClose(self.basic_model.rmult(t, y0),
+                            y0 @ model_expected)
 
     def test_signal_setting(self):
         """Test updating the signals."""
@@ -216,15 +216,13 @@ class TestOperatorModel(unittest.TestCase):
 
         self.basic_model.signals = signals
 
-
         t = 0.1
         value = self.basic_model.evaluate(t)
         i2pi = -1j * 2 * np.pi
         Z_coeff = (2 * t) * np.cos(2 * np.pi * 1 * t)
         X_coeff = self.r * (t**2) * np.cos(2 * np.pi * 2 * t)
-        expected =  (i2pi * Z_coeff * self.Z.data / 2 +
-                     i2pi * X_coeff * self.X.data / 2)
-        self.assertAlmostEqual(value, expected)
+        expected = i2pi * Z_coeff * self.Z.data / 2 + i2pi * X_coeff * self.X.data / 2
+        self.assertAllClose(value, expected)
 
     def test_signal_setting_None(self):
         """Test setting signals to None"""
@@ -237,7 +235,7 @@ class TestOperatorModel(unittest.TestCase):
 
         try:
             self.basic_model.signals = [Constant(1.)]
-        except Exception as e:
+        except QiskitError as e:
             self.assertTrue('same length' in str(e))
 
     def test_signal_mapping(self):
@@ -253,21 +251,20 @@ class TestOperatorModel(unittest.TestCase):
         output = self.basic_model.signals.envelope_value(2.)
         expected = np.array([4., 8.])
 
-        self.assertAlmostEqual(output, expected)
+        self.assertAllClose(output, expected)
 
         output = self.basic_model.evaluate(2.)
         drive_coeff = self.r * 8 * np.cos(2 * np.pi * self.w * 2.)
-        expected = (-1j * 2 * np.pi * 4 * self.Z.data /2 +
-                    -1j * 2 * np.pi * drive_coeff * self.X.data /2)
+        expected = (-1j * 2 * np.pi * 4 * self.Z.data / 2 +
+                    -1j * 2 * np.pi * drive_coeff * self.X.data / 2)
 
-        self.assertAlmostEqual(output, expected)
-
+        self.assertAllClose(output, expected)
 
     def test_drift(self):
         """Test drift evaluation."""
 
-        self.assertAlmostEqual(self.basic_model.drift,
-                               -1j * 2 * np.pi * self.w * self.Z.data / 2)
+        self.assertAllClose(self.basic_model.drift,
+                            -1j * 2 * np.pi * self.w * self.Z.data / 2)
 
     def test_drift_error_in_frame(self):
         """Test raising of error if drift is requested in a frame."""
@@ -275,7 +272,7 @@ class TestOperatorModel(unittest.TestCase):
 
         try:
             self.basic_model.drift
-        except Exception as e:
+        except QiskitError as e:
             self.assertTrue('ill-defined' in str(e))
 
     def test_cutoff_freq(self):
@@ -290,9 +287,11 @@ class TestOperatorModel(unittest.TestCase):
         # result should just be the X term halved
         eval_rwa = self.basic_model.evaluate(2.)
         expected = -1j * 2 * np.pi * (self.r / 2) * self.X.data / 2
-        self.assertAlmostEqual(eval_rwa, expected)
+        self.assertAllClose(eval_rwa, expected)
 
-        drive_func = lambda t: t**2 + t**3 * 1j
+        def drive_func(t):
+            return t**2 + t**3 * 1j
+
         self.basic_model.signals = [Constant(self.w),
                                     Signal(drive_func, self.w)]
 
@@ -303,15 +302,15 @@ class TestOperatorModel(unittest.TestCase):
         eval_rwa = self.basic_model.evaluate(t)
         expected = (-1j * 2 * np.pi * (self.r / 2) * dRe * self.X.data / 2 +
                     -1j * 2 * np.pi * (self.r / 2) * dIm * self.Y.data / 2)
-        self.assertAlmostEqual(eval_rwa, expected)
+        self.assertAllClose(eval_rwa, expected)
 
+    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true."""
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
-    def assertAlmostEqual(self, A, B, tol=1e-12):
-        self.assertTrue(np.abs(A - B).max() < tol)
 
 class TestOperatorModelJax(TestOperatorModel, TestJaxBase):
     """Jax version of TestOperatorModel tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
-    pass

@@ -9,18 +9,24 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
+"""
+Quantum models module.
+"""
 
 from typing import Callable, Union, List, Optional
 import numpy as np
-from .signals import VectorSignal, Constant, Signal, BaseSignal
+
 from qiskit.quantum_info.operators import Operator
-from .frame import Frame
+from qiskit_ode.dispatch import Array
+from .signals import VectorSignal, Signal, BaseSignal
 from .operator_models import OperatorModel
 from ..type_utils import vec_commutator, vec_dissipator, to_array
-from qiskit_ode.dispatch import Array
+
 
 class HamiltonianModel(OperatorModel):
-    """A model of a Hamiltonian, i.e. a time-dependent operator of the form
+    r"""A model of a Hamiltonian, i.e. a time-dependent operator of the form
 
     .. math::
 
@@ -61,6 +67,9 @@ class HamiltonianModel(OperatorModel):
                             array, it is interpreted as the diagonal of a
                             diagonal matrix.
             cutoff_freq: Frequency cutoff when evaluating the model.
+
+        Raises:
+            Exception: if operators are not Hermitian
         """
 
         # verify operators are Hermitian, and if so instantiate
@@ -94,11 +103,14 @@ class HamiltonianModel(OperatorModel):
 
         Returns:
             Array: the evaluated model
+
+        Raises:
+            Exception: if signals are not present
         """
 
         if self.signals is None:
-            raise Exception("""OperatorModel cannot be
-                               evaluated without signals.""")
+            raise Exception("""OperatorModel cannot be evaluated without
+                               signals.""")
 
         sig_vals = self.signals.value(time)
 
@@ -108,7 +120,6 @@ class HamiltonianModel(OperatorModel):
         if self.frame.frame_operator is not None:
             op_to_add_in_fb = -1j * np.diag(self.frame.frame_diag)
 
-
         return self.frame._conjugate_and_add(time,
                                              op_combo,
                                              op_to_add_in_fb=op_to_add_in_fb,
@@ -117,7 +128,7 @@ class HamiltonianModel(OperatorModel):
 
 
 class LindbladModel(OperatorModel):
-    """A model of a quantum system, consisting of a hamiltonian
+    r"""A model of a quantum system, consisting of a hamiltonian
     and an optional description of dissipative dynamics.
 
     Dissipation terms are understood in terms of the Lindblad master
@@ -130,7 +141,8 @@ class LindbladModel(OperatorModel):
     given by
 
     .. math::
-        \mathcal{D}(t)(\rho(t)) = \sum_j \gamma_j(t) L_j \rho L_j^\dagger - \frac{1}{2} \{L_j^\dagger L_j, \rho\},
+        \mathcal{D}(t)(\rho(t)) = \sum_j \gamma_j(t) L_j \rho L_j^\dagger
+                                  - \frac{1}{2} \{L_j^\dagger L_j, \rho\},
 
     with :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` the
     matrix commutator and anti-commutator, respectively. In the above:
@@ -153,6 +165,9 @@ class LindbladModel(OperatorModel):
             hamiltonian_signals: list of signals in the Hamiltonian
             noise_operators: list of noise operators
             noise_signals: list of noise signals
+
+        Raises:
+            Exception: if signals incorrectly specified
         """
 
         # combine operators
@@ -187,9 +202,9 @@ class LindbladModel(OperatorModel):
                 raise Exception("""noise_signals must either be a list of
                                  Signals, or a VectorSignal.""")
 
+            def full_envelope(t):
+                return np.append(hamiltonian_signals.envelope(t), noise_signals.envelope(t))
 
-            full_envelope = lambda t: np.append(hamiltonian_signals.envelope(t),
-                                                noise_signals.envelope(t))
             full_carrier_freqs = np.append(hamiltonian_signals.carrier_freqs,
                                            noise_signals.carrier_freqs)
 
@@ -214,9 +229,12 @@ class LindbladModel(OperatorModel):
             hamiltonian: the :class:`HamiltonianModel`.
             noise_operators: list of noise operators.
             noise_signals: list of noise signals.
+
+        Returns:
+            LindbladModel: Linblad model from parameters.
         """
 
-        return cls(hamiltonian_operators=hamiltonian._operators,
+        return cls(hamiltonian_operators=hamiltonian.operators,
                    hamiltonian_signals=hamiltonian.signals,
                    noise_operators=noise_operators,
                    noise_signals=noise_signals)

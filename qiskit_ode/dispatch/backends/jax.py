@@ -38,7 +38,6 @@ try:
     # Custom handling of functions not in jax.numpy
     HANDLED_FUNCTIONS = {}
 
-
     @Dispatch.register_asarray('jax', JAX_TYPES)
     def _jax_asarray(array, dtype=None, order=None):
         """Wrapper for jax.numpy.asarray"""
@@ -47,14 +46,12 @@ try:
             return array
         return jax.numpy.asarray(array, dtype=dtype, order=order)
 
-
     @Dispatch.register_repr('jax')
     def _jax_repr(array, prefix='', suffix=''):
         """Wrapper for showing DeviceArray"""
         if hasattr(array, '_value'):
             return _numpy_repr(array._value, prefix=prefix, suffix=suffix)
         return prefix + repr(array) + suffix
-
 
     @Dispatch.register_array_ufunc('jax')
     def _jax_array_ufunc(ufunc, method):
@@ -65,7 +62,6 @@ try:
         if hasattr(jax.numpy, name):
             return getattr(jax.numpy, name)
         return NotImplemented
-
 
     @Dispatch.register_array_function('jax')
     def _jax_array_function(func):

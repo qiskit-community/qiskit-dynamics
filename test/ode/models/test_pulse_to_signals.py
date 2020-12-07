@@ -42,7 +42,7 @@ class TestPulseToSignals(unittest.TestCase):
 
         signals = converter.get_signals(sched)
 
-        self.assertEquals(len(signals), 2)
+        self.assertEqual(len(signals), 2)
         self.assertTrue(isinstance(signals[0], PiecewiseConstant))
         self.assertTrue(isinstance(signals[0], PiecewiseConstant))
 
@@ -73,8 +73,9 @@ class TestPulseToSignals(unittest.TestCase):
         converter = InstructionToSignals(dt=0.222, carriers=[5.5e9])
         signals = converter.get_signals(sched)
 
-        self.assertEquals(signals[0].carrier_freq, 5.5e9)
-        self.assertEquals(signals[0]._dt, 0.222)
+        self.assertEqual(signals[0].carrier_freq, 5.5e9)
+        # pylint: disable=protected-access
+        self.assertEqual(signals[0]._dt, 0.222)
 
     def test_shift_frequency(self):
         """Test that the frequency is properly taken into account."""
@@ -87,7 +88,7 @@ class TestPulseToSignals(unittest.TestCase):
         signals = converter.get_signals(sched)
 
         for idx in range(10):
-            self.assertEquals(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * 1.0 * 0.222))
+            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * 1.0 * 0.222))
 
     def test_set_frequency(self):
         """Test that SetFrequency is properly converted."""
@@ -100,4 +101,4 @@ class TestPulseToSignals(unittest.TestCase):
         signals = converter.get_signals(sched)
 
         for idx in range(10):
-            self.assertEquals(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * 0.222))
+            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * 0.222))

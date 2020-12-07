@@ -11,24 +11,31 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
+"""
+Module for transformations between signals.
+"""
 
 from abc import ABC, abstractmethod
 from typing import Callable, Union, List
-from .signals import BaseSignal, Signal, PiecewiseConstant
-
 from numpy import convolve
+
 from qiskit_ode.dispatch import Array
+
+from .signals import BaseSignal, Signal, PiecewiseConstant
 
 
 class BaseTransferFunction(ABC):
-    """
-    Base class for transforming signals.
+    """Base class for transforming signals.
     """
 
     @abstractmethod
-    def apply(self, signal: Union[BaseSignal, List[BaseSignal]]) -> Union[BaseSignal, List[BaseSignal]]:
-        """
-        Applies a transformation on a signal, such as a convolution,
+    def apply(self,
+              signal: Union[BaseSignal,
+                            List[BaseSignal]]) -> Union[BaseSignal,
+                                                        List[BaseSignal]]:
+        """Applies a transformation on a signal, such as a convolution,
         low pass filter, etc.
 
         Args:
@@ -41,8 +48,7 @@ class BaseTransferFunction(ABC):
 
 
 class Convolution(BaseTransferFunction):
-    """
-    Applies a convolution as a sum
+    """Applies a convolution as a sum
 
         (f*g)(n) = sum_k f(k)g(n-k)
 
@@ -52,20 +58,24 @@ class Convolution(BaseTransferFunction):
     def __init__(self, func: Callable):
         """
         Args:
-            func: The convolution function specified in time. This function will be normalized
-                  to one before doing the convolution. To scale signals multiply them by a float.
+            func: The convolution function specified in time.
+                  This function will be normalized to one before doing
+                  the convolution. To scale signals multiply them by a float.
         """
         self._func = func
 
-    def apply(self, signal: Union[Signal, List[Signal]]) -> Union[BaseSignal, List[BaseSignal]]:
-        """
-        Applies a transformation on a signal, such as a convolution,
+    def apply(self,
+              signal: Union[Signal,
+                            List[Signal]]) -> Union[BaseSignal,
+                                                    List[BaseSignal]]:
+        """Applies a transformation on a signal, such as a convolution,
         low pass filter, etc. Once a convolution is applied the signal
         can longer have a carrier as the carrier is part of the signal
         value and gets convolved.
 
         Args:
-            signal: A signal or list of signals to which the transfer function will be applied.
+            signal: A signal or list of signals to which the
+                    transfer function will be applied.
 
         Returns:
             signal: The transformed signal or list of signals.
@@ -89,17 +99,24 @@ class Convolution(BaseTransferFunction):
 
         Returns:
             signal: The transformed signal.
+
+        Raises:
+            Exception: if not defiend on input
         """
         if isinstance(signal, PiecewiseConstant):
             # Perform a discrete time convolution.
             dt = signal.dt
-            func_samples = Array([self._func(dt*i) for i in range(signal.duration)])
+            func_samples = Array([self._func(dt*i) for i in
+                                  range(signal.duration)])
             func_samples = func_samples / sum(func_samples)
-            sig_samples = Array([signal.value(dt*i) for i in range(signal.duration)])
+            sig_samples = Array([signal.value(dt*i) for i in
+                                 range(signal.duration)])
 
             convoluted_samples = convolve(func_samples, sig_samples)
 
             return PiecewiseConstant(dt, convoluted_samples, carrier_freq=0.)
+        else:
+            raise Exception("""Transfer function not defined on input.""")
 
 
 class FFTConvolution(BaseTransferFunction):

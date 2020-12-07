@@ -18,9 +18,10 @@ from .array import Array
 
 __all__ = []
 
+
 def __qiskit_array__(self, dtype=None, backend=None):
     """Convert qi operator to an Array"""
-    return Array(self.data, dtype=dtype, backend=backend) 
+    return Array(self.data, dtype=dtype, backend=backend)
 
 
 def __to_matrix_array__(self, dtype=None, backend=None):

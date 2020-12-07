@@ -9,6 +9,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
+"""
+Tests for jax transformations.
+"""
 
 import numpy as np
 
@@ -24,7 +29,8 @@ from .test_jax_base import TestJaxBase
 try:
     from jax import jit, grad
     import jax.numpy as jnp
-except:
+# pylint: disable=broad-except
+except Exception:
     pass
 
 
@@ -52,7 +58,7 @@ class TestJaxTransformations(TestJaxBase):
             problem = SchrodingerProblem(ham_copy)
 
             results = solve(problem,
-                            t_span = [0., 1 / self.r],
+                            t_span=[0., 1 / self.r],
                             y0=Array([0., 1.], dtype=complex),
                             method='jax_odeint',
                             atol=1e-10,
@@ -77,7 +83,8 @@ class TestJaxTransformations(TestJaxBase):
     def test_grad_solve(self):
         """Test computing gradient of a parameterized Hamiltonian simulation."""
 
-        amp_to_prob = lambda amp: jnp.abs(self.param_sim(amp, self.w)[0])**2
+        def amp_to_prob(amp):
+            return jnp.abs(self.param_sim(amp, self.w)[0])**2
 
         grad_sim = grad(amp_to_prob)
 
@@ -90,7 +97,8 @@ class TestJaxTransformations(TestJaxBase):
         Hamiltonian simulation.
         """
 
-        amp_to_prob = lambda amp: jnp.abs(self.param_sim(amp, self.w)[0])**2
+        def amp_to_prob(amp):
+            return jnp.abs(self.param_sim(amp, self.w)[0])**2
 
         jit_grad_sim = jit(grad(amp_to_prob))
 

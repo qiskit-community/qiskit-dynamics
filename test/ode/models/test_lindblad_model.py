@@ -9,7 +9,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""tests for quantum_models.LindbladModel"""
+# pylint: disable=invalid-name
+
+"""Tests for quantum_models.LindbladModel"""
 
 import unittest
 import numpy as np
@@ -19,6 +21,7 @@ from qiskit_ode.models.quantum_models import HamiltonianModel, LindbladModel
 from qiskit_ode.models.signals import Constant, Signal, VectorSignal
 from qiskit_ode.dispatch import Array
 from ..test_jax_base import TestJaxBase
+
 
 class TestLindbladModel(unittest.TestCase):
     """Tests for LindbladModel."""
@@ -31,8 +34,7 @@ class TestLindbladModel(unittest.TestCase):
         # define a basic hamiltonian
         w = 2.
         r = 0.5
-        ham_operators = [2 * np.pi * self.Z / 2,
-                     2 * np.pi * r * self.X / 2]
+        ham_operators = [2 * np.pi * self.Z / 2, 2 * np.pi * r * self.X / 2]
         ham_signals = [Constant(w), Signal(1., w)]
 
         self.w = w
@@ -44,7 +46,6 @@ class TestLindbladModel(unittest.TestCase):
                                             hamiltonian_signals=ham_signals,
                                             noise_operators=noise_operators)
 
-
     def test_basic_lindblad_lmult(self):
         """Test lmult method of Lindblad generator OperatorModel.
         """
@@ -54,13 +55,12 @@ class TestLindbladModel(unittest.TestCase):
         ham = (2 * np.pi * self.w * self.Z.data / 2
                + 2 * np.pi * self.r * np.cos(2 * np.pi * self.w * t) * self.X.data / 2)
         sm = Array([[0., 0.], [1., 0.]])
-        sp = sm.transpose()
 
         expected = self._evaluate_lindblad_rhs(A, ham, [sm])
         value = self.basic_lindblad.lmult(t, A.flatten(order='F'))
-        self.assertAlmostEqual(expected, value.reshape(2,2, order='F'))
+        self.assertAllClose(expected, value.reshape(2, 2, order='F'))
 
-
+    # pylint: disable=too-many-locals
     def test_lindblad_lmult_pseudorandom(self):
         """Test lmult of Lindblad OperatorModel with structureless
         pseudorandom model parameters.
@@ -70,33 +70,32 @@ class TestLindbladModel(unittest.TestCase):
         num_ham = 4
         num_diss = 3
 
-        b = 1. # bound on size of random terms
+        b = 1.  # bound on size of random terms
 
         # generate random hamiltonian
-        rand_operators = (rng.uniform(low=-b,high=b, size=(num_ham, dim, dim)) +
-                          1j * rng.uniform(low=-b,high=b, size=(num_ham, dim, dim)))
-        rand_ham_ops = Array(rand_operators + rand_operators.conj().transpose([0, 2, 1]))
+        randoperators = (rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)) +
+                         1j * rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)))
+        rand_ham_ops = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
 
         # generate random hamiltonian coefficients
-        rand_ham_coeffs = (rng.uniform(low=-b,high=b, size=(num_ham)) +
-                           1j * rng.uniform(low=-b,high=b, size=(num_ham)))
-        rand_ham_carriers = Array(rng.uniform(low=-b,high=b, size=(num_ham)))
+        rand_ham_coeffs = (rng.uniform(low=-b, high=b, size=(num_ham)) +
+                           1j * rng.uniform(low=-b, high=b, size=(num_ham)))
+        rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
         ham_sigs = VectorSignal(lambda t: rand_ham_coeffs, rand_ham_carriers)
 
         # generate random dissipators
-        rand_diss = Array(rng.uniform(low=-b,high=b, size=(num_diss, dim, dim)) +
-                          1j * rng.uniform(low=-b,high=b, size=(num_diss, dim, dim)))
+        rand_diss = Array(rng.uniform(low=-b, high=b, size=(num_diss, dim, dim)) +
+                          1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim)))
 
         # random dissipator coefficients
-        rand_diss_coeffs = (rng.uniform(low=-b,high=b, size=(num_diss)) +
-                           1j * rng.uniform(low=-b,high=b, size=(num_diss)))
-        rand_diss_carriers = Array(rng.uniform(low=-b,high=b, size=(num_diss)))
+        rand_diss_coeffs = (rng.uniform(low=-b, high=b, size=(num_diss)) +
+                            1j * rng.uniform(low=-b, high=b, size=(num_diss)))
+        rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
         diss_sigs = VectorSignal(lambda t: rand_diss_coeffs, rand_diss_carriers)
 
-
         # random anti-hermitian frame operator
-        rand_op = (rng.uniform(low=-b, high=b, size=(dim,dim)) +
-                   1j*rng.uniform(low=-b, high=b, size=(dim,dim)))
+        rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
+                   1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
         frame_op = Array(rand_op - rand_op.conj().transpose())
 
         lindblad_frame_op = (np.kron(Array(np.eye(dim)), frame_op)
@@ -106,12 +105,12 @@ class TestLindbladModel(unittest.TestCase):
         hamiltonian = HamiltonianModel(operators=rand_ham_ops,
                                        signals=ham_sigs)
         lindblad_model = LindbladModel.from_hamiltonian(hamiltonian=hamiltonian,
-                                                 noise_operators=rand_diss,
-                                                 noise_signals=diss_sigs)
+                                                        noise_operators=rand_diss,
+                                                        noise_signals=diss_sigs)
         lindblad_model.frame = lindblad_frame_op
 
-        A = Array(rng.uniform(low=-b,high=b, size=(dim, dim)) +
-                  1j * rng.uniform(low=-b,high=b, size=(dim, dim)))
+        A = Array(rng.uniform(low=-b, high=b, size=(dim, dim)) +
+                  1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
 
         t = rng.uniform(low=-b, high=b)
         value = lindblad_model.lmult(t, A.flatten(order='F'))
@@ -126,8 +125,9 @@ class TestLindbladModel(unittest.TestCase):
                                                frame_op,
                                                t)
 
-        self.assertAlmostEqual(expected, value.reshape(dim,dim, order='F'))
+        self.assertAllClose(expected, value.reshape(dim, dim, order='F'))
 
+    # pylint: disable=no-self-use,too-many-arguments
     def _evaluate_lindblad_rhs(self, A, ham,
                                dissipators=None,
                                dissipator_coeffs=None,
@@ -175,13 +175,13 @@ class TestLindbladModel(unittest.TestCase):
 
         return ham_part + diss_part
 
+    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true."""
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
-    def assertAlmostEqual(self, A, B, tol=1e-12):
-        self.assertTrue(np.abs(A - B).max() < tol)
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
     """Jax version of TestLindbladModel tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
-    pass

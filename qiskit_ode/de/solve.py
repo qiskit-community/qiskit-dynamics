@@ -11,8 +11,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name,no-member,attribute-defined-outside-init
 
-"""Module for solving interfaces.
+"""
+Module for solving interfaces.
 """
 
 from typing import Optional, Union, Callable
@@ -20,17 +22,16 @@ import inspect
 
 import numpy as np
 from scipy.integrate import solve_ivp, OdeSolver
-from .de_solvers import jax_expm
 
-from .de_problems import ODEProblem, LMDEProblem
-from ..models.frame import BaseFrame
-from ..type_utils import StateTypeConverter
+from qiskit import QiskitError
 from qiskit_ode.dispatch import Array
-import qiskit_ode.dispatch as dispatch
-
+from .de_solvers import jax_expm
+from .de_problems import ODEProblem, LMDEProblem
+from ..type_utils import StateTypeConverter
 
 # supported scipy methods
 SOLVE_IVP_METHODS = ['RK45', 'RK23', 'BDF', 'DOP853']
+
 
 def solve(problem: Union[ODEProblem, Callable],
           t_span: Array,
@@ -61,7 +62,10 @@ def solve(problem: Union[ODEProblem, Callable],
         kwargs: additional arguments to pass to the solver
 
     Returns:
-        SolveResult object
+        SolveResult: results object
+
+    Raises:
+        QiskitError: if specified method does not exist
     """
 
     t_span = Array(t_span)
@@ -76,8 +80,8 @@ def solve(problem: Union[ODEProblem, Callable],
 
     # solve the problem using specified method
     results = None
-    if (method in SOLVE_IVP_METHODS or
-        (inspect.isclass(method) and issubclass(method, OdeSolver))):
+    if (method in SOLVE_IVP_METHODS or (inspect.isclass(method) and
+                                        issubclass(method, OdeSolver))):
         results = _call_scipy_solve_ivp(problem,
                                         t_span,
                                         y0,
@@ -92,7 +96,7 @@ def solve(problem: Union[ODEProblem, Callable],
 
     elif isinstance(method, str) and method == 'jax_expm':
         if not isinstance(problem, LMDEProblem):
-            raise Exception('jax_expm requires a generator.')
+            raise QiskitError('jax_expm requires a generator.')
 
         results = _call_jax_expm(problem.generator,
                                  t_span,
@@ -100,8 +104,8 @@ def solve(problem: Union[ODEProblem, Callable],
                                  **kwargs)
 
     else:
-        raise Exception('Specified method does not exist or is not supported.')
-
+        raise QiskitError("""Specified method does not exist or is
+                             not supported.""")
 
     # convert resulting states from problem format into user format
     output_states = []
@@ -129,11 +133,14 @@ def _call_scipy_solve_ivp(rhs: Callable,
         kwargs: optional arguments for `solve_ivp`.
 
     Returns:
-        SolveResult object
+        SolveResult: results object
+
+    Raises:
+        QiskitError: if unsupported kwarg present
     """
 
     if 'dense_output' in kwargs and kwargs['dense_output'] is True:
-        raise Exception('dense_output not supported for solve_ivp.')
+        raise QiskitError('dense_output not supported for solve_ivp.')
 
     # solve_ivp requires 1d arrays internally
     internal_state_spec = {'type': 'array', 'ndim': 1}
@@ -159,7 +166,11 @@ def _call_scipy_solve_ivp(rhs: Callable,
 
     return SolveResult(**dict(results))
 
-def _call_jax_odeint(rhs, t_span, y0, **kwargs):
+
+def _call_jax_odeint(rhs: Callable,
+                     t_span: Array,
+                     y0: Array,
+                     **kwargs):
     """Routine for calling `jax.experimental.ode.odeint`
 
     Args:
@@ -169,16 +180,20 @@ def _call_jax_odeint(rhs, t_span, y0, **kwargs):
         kwargs: Optional arguments for `odeint`.
 
     Returns:
-        SolveResult object
+        SolveResult: results object
+
+    Raises:
+        ImportError: if jax not installed
     """
 
     try:
         from jax.experimental.ode import odeint
-    except ImportError as e:
-        raise e
+    except ImportError as ie:
+        raise ie
 
     times = None
     if 't_eval' in kwargs:
+        t_eval = kwargs['t_eval']
         times = Array(t_eval, dtype=float).data
         if t_span[0] < t_eval[0]:
             times = np.append(Array(t_span[0], dtype=float), times)
@@ -189,30 +204,34 @@ def _call_jax_odeint(rhs, t_span, y0, **kwargs):
         times = Array(t_span, dtype=float)
 
     results = odeint(lambda t, y: Array(rhs(y, t)).data,
-                             y0=Array(y0).data,
-                             t=Array(times).data,
-                             **kwargs)
+                     y0=Array(y0).data,
+                     t=Array(times).data,
+                     **kwargs)
 
     return SolveResult(t=times, y=Array(results))
 
-def _call_jax_expm(generator,
-                  t_span,
-                  y0,
-                  **kwargs):
+
+def _call_jax_expm(generator: Callable,
+                   t_span: Array,
+                   y0: Array,
+                   **kwargs):
     """Routine for calling `qiskit_ode.de.de_solvers.jax_expm`
 
     Args:
-        rhs: Callable of the form :math:`f(t, y)`
+        generator: Callable of the form :math:`G(t)`
         t_span: Interval to solve over.
         y0: Initial state.
         kwargs: Must contain `max_dt`.
 
     Returns:
-        SolveResult object
+        SolveResult: results object
+
+    Raises:
+        QiskitError: if required kwarg max_dt is not present
     """
 
     if 'max_dt' not in kwargs:
-        raise Exception('jax_expm solver requires specification of max_dt.')
+        raise QiskitError('jax_expm solver requires specification of max_dt.')
 
     yf = jax_expm(lambda t: Array(generator(t)).data,
                   Array(t_span, backend='numpy').data,
@@ -220,6 +239,7 @@ def _call_jax_expm(generator,
                   Array(kwargs.get('max_dt'), backend='numpy').data)
 
     return SolveResult(t=Array(t_span), y=[y0, yf])
+
 
 class SolveResult:
     """Object for storing results of `solve`, with attribute access.

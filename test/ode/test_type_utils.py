@@ -9,7 +9,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""tests for type_utils.py"""
+# pylint: disable=invalid-name
+
+"""Tests for type_utils.py."""
 
 import unittest
 import numpy as np
@@ -21,20 +23,22 @@ from qiskit_ode.type_utils import (convert_state,
 
 from .test_jax_base import TestJaxBase
 
+
 class TestTypeUtils(unittest.TestCase):
+    """type_utils.py tests."""
 
     def test_convert_state_order_C(self):
         """Test convert_state with order parameter 'C'."""
 
         type_spec = {'type': 'array', 'shape': (4,)}
-        y = Array([[1, 2],[3, 4]])
+        y = Array([[1, 2], [3, 4]])
         expected = Array([1, 2, 3, 4])
 
         self.assertAllClose(convert_state(y, type_spec, order='C'), expected)
 
         type_spec = {'type': 'array'}
         y = [[1, 2], [3, 4]]
-        expected = Array([[1, 2],[3, 4]])
+        expected = Array([[1, 2], [3, 4]])
 
         self.assertAllClose(convert_state(y, type_spec, order='C'), expected)
 
@@ -45,14 +49,14 @@ class TestTypeUtils(unittest.TestCase):
         """
 
         type_spec = {'type': 'array', 'shape': (4,)}
-        y = Array([[1, 2],[3, 4]])
+        y = Array([[1, 2], [3, 4]])
         expected = Array([1, 3, 2, 4])
 
         self.assertAllClose(convert_state(y, type_spec), expected)
 
         type_spec = {'type': 'array'}
         y = [[1, 2], [3, 4]]
-        expected = Array([[1, 2],[3, 4]])
+        expected = Array([[1, 2], [3, 4]])
 
         self.assertAllClose(convert_state(y, type_spec), expected)
 
@@ -75,10 +79,10 @@ class TestTypeUtils(unittest.TestCase):
         """
 
         inner_spec = {'type': 'array', 'shape': (4,)}
-        outer_spec = {'type': 'array', 'shape': (2,2)}
+        outer_spec = {'type': 'array', 'shape': (2, 2)}
         converter = StateTypeConverter(inner_spec, outer_spec, order='C')
 
-        y_in = Array([1,2,3,4])
+        y_in = Array([1, 2, 3, 4])
         y_out = Array([[1, 2], [3, 4]])
 
         convert_out = converter.inner_to_outer(y_in)
@@ -93,10 +97,10 @@ class TestTypeUtils(unittest.TestCase):
         """
 
         inner_spec = {'type': 'array', 'shape': (4,)}
-        outer_spec = {'type': 'array', 'shape': (2,2)}
+        outer_spec = {'type': 'array', 'shape': (2, 2)}
         converter = StateTypeConverter(inner_spec, outer_spec, order='F')
 
-        y_in = Array([1,3,2,4])
+        y_in = Array([1, 3, 2, 4])
         y_out = Array([[1, 2], [3, 4]])
 
         convert_out = converter.inner_to_outer(y_in)
@@ -116,7 +120,7 @@ class TestTypeUtils(unittest.TestCase):
         self.assertEqual(converter.inner_type_spec,
                          {'type': 'array', 'shape': (4,)})
         self.assertEqual(converter.outer_type_spec,
-                         {'type': 'array', 'shape': (2,2)})
+                         {'type': 'array', 'shape': (2, 2)})
 
         converter = StateTypeConverter.from_instances(inner_y)
 
@@ -135,7 +139,7 @@ class TestTypeUtils(unittest.TestCase):
         converter = StateTypeConverter.from_outer_instance_inner_type_spec(outer_y, inner_type_spec)
 
         self.assertEqual(converter.inner_type_spec, {'type': 'array', 'shape': (4,)})
-        self.assertEqual(converter.outer_type_spec, {'type': 'array', 'shape': (2,2)})
+        self.assertEqual(converter.outer_type_spec, {'type': 'array', 'shape': (2, 2)})
 
         # inner type spec is a generic array
         inner_type_spec = {'type': 'array'}
@@ -143,14 +147,14 @@ class TestTypeUtils(unittest.TestCase):
 
         converter = StateTypeConverter.from_outer_instance_inner_type_spec(outer_y, inner_type_spec)
 
-        self.assertEqual(converter.inner_type_spec, {'type': 'array', 'shape': (2,2)})
-        self.assertEqual(converter.outer_type_spec, {'type': 'array', 'shape': (2,2)})
+        self.assertEqual(converter.inner_type_spec, {'type': 'array', 'shape': (2, 2)})
+        self.assertEqual(converter.outer_type_spec, {'type': 'array', 'shape': (2, 2)})
 
     def test_transform_rhs_funcs_order_C(self):
         """Test rhs function conversion for order C array reshaping."""
 
         inner_spec = {'type': 'array', 'shape': (4,)}
-        outer_spec = {'type': 'array', 'shape': (2,2)}
+        outer_spec = {'type': 'array', 'shape': (2, 2)}
         converter = StateTypeConverter(inner_spec, outer_spec, order='C')
 
         X = Array([[0., 1.], [1., 0.]])
@@ -159,6 +163,7 @@ class TestTypeUtils(unittest.TestCase):
         def rhs(t, y):
             return t * (y @ y)
 
+        # pylint: disable=unused-argument
         def generator(t):
             return X
 
@@ -185,7 +190,7 @@ class TestTypeUtils(unittest.TestCase):
         """Test rhs function conversion"""
 
         inner_spec = {'type': 'array', 'shape': (4,)}
-        outer_spec = {'type': 'array', 'shape': (2,2)}
+        outer_spec = {'type': 'array', 'shape': (2, 2)}
         converter = StateTypeConverter(inner_spec, outer_spec)
 
         X = Array([[0., 1.], [1., 0.]])
@@ -194,6 +199,7 @@ class TestTypeUtils(unittest.TestCase):
         def rhs(t, y):
             return t * (y @ y)
 
+        # pylint: disable=unused-argument
         def generator(t):
             return X
 
@@ -217,11 +223,12 @@ class TestTypeUtils(unittest.TestCase):
         self.assertAllClose(output, expected_output)
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true."""
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+
 
 class TestTypeUtilsJax(TestTypeUtils, TestJaxBase):
     """Jax version of TestTypeUtils tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
-    pass

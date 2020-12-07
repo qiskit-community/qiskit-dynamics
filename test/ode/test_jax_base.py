@@ -10,8 +10,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+Base class for Jax tests.
+"""
+
 import unittest
 from qiskit_ode import dispatch
+
 
 class TestJaxBase(unittest.TestCase):
     """Base class with setUpClass and tearDownClass for setting jax as the
@@ -24,10 +29,11 @@ class TestJaxBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         try:
+            # pylint: disable=import-outside-toplevel
             from jax import config
             config.update("jax_enable_x64", True)
-        except:
-            self.skipTest('Skipping jax tests.')
+        except Exception:
+            raise unittest.SkipTest('Skipping jax tests.')
 
         dispatch.set_default_backend('jax')
 

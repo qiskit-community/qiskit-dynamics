@@ -9,6 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
 Module for custom solvers.
@@ -19,10 +20,11 @@ import numpy as np
 
 from qiskit_ode.dispatch import Array
 
+
 def jax_expm(generator: Callable,
              t_span: Array,
              y0: Array,
-             max_dt: float):
+             max_dt: float) -> Array:
     """Fixed-step size matrix exponential based solver implemented with `jax`.
     This routine splits the interval `t_span` into equally sized steps of size
     no larger than `max_dt`, and solves the ODE by exponentiating the generator
@@ -36,14 +38,17 @@ def jax_expm(generator: Callable,
 
     Returns:
         Array: The final state.
+
+    Raises:
+        ImportError: if jax is not installed
     """
 
     try:
         from jax.scipy.linalg import expm as jexpm
         from jax.lax import scan
         import jax.numpy as jnp
-    except ImportError as e:
-        raise e
+    except ImportError as error:
+        raise error
 
     delta_t = t_span[1] - t_span[0]
 

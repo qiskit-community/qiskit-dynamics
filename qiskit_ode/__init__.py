@@ -12,6 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+qiskit-ode module for solving differential equations.
+"""
+
 from .models import Signal, PiecewiseConstant, Constant
 from .models import Convolution
 from .converters import InstructionToSignals

@@ -9,15 +9,19 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
 """tests for frame.py"""
 
 import unittest
 import numpy as np
-from scipy.linalg import expm
-from qiskit_ode.models.frame import Frame
+
+from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
+from qiskit_ode.models.frame import Frame
 from qiskit_ode.dispatch import Array
 from ..test_jax_base import TestJaxBase
+
 
 class TestFrame(unittest.TestCase):
     """Tests for Frame."""
@@ -30,39 +34,29 @@ class TestFrame(unittest.TestCase):
     def test_instantiation_errors(self):
         """Check different modes of error raising for frame setting."""
 
-        # 1d array
-        try:
-            frame = Frame(Array([1., 1.]))
-        except Exception as e:
-            self.assertTrue('anti-Hermitian' in str(e))
+        with self.assertRaises(QiskitError):
+            Frame(Array([1., 1j]))
 
-        # 2d array
-        try:
-            frame = Frame(Array([[1., 0.], [0., 1.]]))
-        except Exception as e:
-            self.assertTrue('anti-Hermitian' in str(e))
+        with self.assertRaises(QiskitError):
+            Frame(Array([[1., 0.], [0., 1j]]))
 
-        # Operator
-        try:
-            frame = Frame(self.Z)
-        except Exception as e:
-            self.assertTrue('anti-Hermitian' in str(e))
+        with self.assertRaises(QiskitError):
+            Frame(self.Z + 1j * self.X)
 
-    def test_state_into_frame_basis(self):
-        """Test state_into_frame_basis."""
+    def test_state_out_of_frame_basis(self):
+        """Test state_out_of_frame_basis."""
 
         rng = np.random.default_rng(10933)
-        rand_op = (rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        rand_op = (rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         frame_op = Array(rand_op - rand_op.conj().transpose())
         frame = Frame(frame_op)
 
         _, U = np.linalg.eigh(1j * frame_op)
 
-        t = 1312.132
-        y0 = Array(rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j * rng.uniform(low=-10, high=10, size=(6,6)))
+        y0 = Array(rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         val = frame.state_into_frame_basis(y0)
         expected = U.conj().transpose() @ y0
@@ -76,8 +70,8 @@ class TestFrame(unittest.TestCase):
         """Test state_into_frame_basis."""
 
         rng = np.random.default_rng(98747)
-        rand_op = (rng.uniform(low=-10, high=10, size=(10,10)) +
-                   1j*rng.uniform(low=-10, high=10, size=(10,10)))
+        rand_op = (rng.uniform(low=-10, high=10, size=(10, 10)) +
+                   1j * rng.uniform(low=-10, high=10, size=(10, 10)))
 
         frame_op = Array(rand_op - rand_op.conj().transpose())
         frame = Frame(frame_op)
@@ -85,9 +79,8 @@ class TestFrame(unittest.TestCase):
         _, U = np.linalg.eigh(1j * frame_op)
         Uadj = U.conj().transpose()
 
-        t = 1312.132
-        y0 = Array(rng.uniform(low=-10, high=10, size=(10,10)) +
-                   1j*rng.uniform(low=-10, high=10, size=(10,10)))
+        y0 = Array(rng.uniform(low=-10, high=10, size=(10, 10)) +
+                   1j * rng.uniform(low=-10, high=10, size=(10, 10)))
 
         val = frame.operator_into_frame_basis(y0)
         expected = U.conj().transpose() @ y0 @ U
@@ -126,26 +119,27 @@ class TestFrame(unittest.TestCase):
         self._test_state_into_frame(t, frame_op, y0, y_in_frame_basis=True)
         self._test_state_into_frame(t, frame_op, y0, return_in_frame_basis=True)
         self._test_state_into_frame(t, frame_op, y0, y_in_frame_basis=True,
-                                                     return_in_frame_basis=True)
+                                    return_in_frame_basis=True)
 
     def test_state_into_frame_pseudo_random(self):
         """Test state_into_frame with pseudo-random matrices."""
         rng = np.random.default_rng(30493)
-        rand_op = (rng.uniform(low=-10, high=10, size=(5,5)) +
-                   1j*rng.uniform(low=-10, high=10, size=(5,5)))
+        rand_op = (rng.uniform(low=-10, high=10, size=(5, 5)) +
+                   1j * rng.uniform(low=-10, high=10, size=(5, 5)))
 
         frame_op = Array(rand_op - rand_op.conj().transpose())
 
         t = 1312.132
-        y0 = Array(rng.uniform(low=-10, high=10, size=(5,5)) +
-                   1j*rng.uniform(low=-10, high=10, size=(5,5)))
+        y0 = Array(rng.uniform(low=-10, high=10, size=(5, 5)) +
+                   1j * rng.uniform(low=-10, high=10, size=(5, 5)))
 
         self._test_state_into_frame(t, frame_op, y0)
         self._test_state_into_frame(t, frame_op, y0, y_in_frame_basis=True)
         self._test_state_into_frame(t, frame_op, y0, return_in_frame_basis=True)
         self._test_state_into_frame(t, frame_op, y0, y_in_frame_basis=True,
-                                                     return_in_frame_basis=True)
+                                    return_in_frame_basis=True)
 
+    # pylint: disable=too-many-arguments
     def _test_state_into_frame(self,
                                t,
                                frame_op,
@@ -182,26 +176,27 @@ class TestFrame(unittest.TestCase):
         self._test_state_out_of_frame(t, frame_op, y0, y_in_frame_basis=True)
         self._test_state_out_of_frame(t, frame_op, y0, return_in_frame_basis=True)
         self._test_state_out_of_frame(t, frame_op, y0, y_in_frame_basis=True,
-                                                     return_in_frame_basis=True)
+                                      return_in_frame_basis=True)
 
     def test_state_out_of_frame_pseudo_random(self):
         """Test state_out_of_frame with pseudo-random matrices."""
         rng = np.random.default_rng(1382)
-        rand_op = (rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        rand_op = (rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         frame_op = Array(rand_op - rand_op.conj().transpose())
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        y0 = Array(rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         self._test_state_out_of_frame(t, frame_op, y0)
         self._test_state_out_of_frame(t, frame_op, y0, y_in_frame_basis=True)
         self._test_state_out_of_frame(t, frame_op, y0, return_in_frame_basis=True)
         self._test_state_out_of_frame(t, frame_op, y0, y_in_frame_basis=True,
-                                                     return_in_frame_basis=True)
+                                      return_in_frame_basis=True)
 
+    # pylint: disable=too-many-arguments
     def _test_state_out_of_frame(self,
                                  t,
                                  frame_op,
@@ -231,22 +226,22 @@ class TestFrame(unittest.TestCase):
     def test_operator_into_frame(self):
         """Test operator_into_frame."""
         rng = np.random.default_rng(94994)
-        rand_op = (rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        rand_op = (rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         frame_op = Array(rand_op - rand_op.conj().transpose())
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        y0 = Array(rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         self._test_operator_into_frame(t, frame_op, y0)
         self._test_operator_into_frame(t, frame_op, y0, y_in_frame_basis=True)
         self._test_operator_into_frame(t, frame_op, y0, return_in_frame_basis=True)
         self._test_operator_into_frame(t, frame_op, y0, y_in_frame_basis=True,
-                                                     return_in_frame_basis=True)
+                                       return_in_frame_basis=True)
 
-
+    # pylint: disable=too-many-arguments
     def _test_operator_into_frame(self,
                                   t,
                                   frame_op,
@@ -274,24 +269,26 @@ class TestFrame(unittest.TestCase):
 
         self.assertAllClose(value, expected, rtol=1e-10, atol=1e-10)
 
-    def test_operator_into_frame(self):
+    def test_operator_out_of_frame(self):
         """Test operator_out_of_frame."""
         rng = np.random.default_rng(37164093)
-        rand_op = Array(rng.uniform(low=-10, high=10, size=(6,6)) +
-                        1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        rand_op = Array(rng.uniform(low=-10, high=10, size=(6, 6)) +
+                        1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         frame_op = rand_op - rand_op.conj().transpose()
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        y0 = Array(rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         self._test_operator_out_of_frame(t, frame_op, y0)
         self._test_operator_out_of_frame(t, frame_op, y0, y_in_frame_basis=True)
-        self._test_operator_out_of_frame(t, frame_op, y0, return_in_frame_basis=True)
+        self._test_operator_out_of_frame(t, frame_op, y0,
+                                         return_in_frame_basis=True)
         self._test_operator_out_of_frame(t, frame_op, y0, y_in_frame_basis=True,
-                                                         return_in_frame_basis=True)
+                                         return_in_frame_basis=True)
 
+    # pylint: disable=too-many-arguments
     def _test_operator_out_of_frame(self,
                                     t,
                                     frame_op,
@@ -322,21 +319,23 @@ class TestFrame(unittest.TestCase):
     def test_generator_into_frame(self):
         """Test operator_out_of_frame."""
         rng = np.random.default_rng(111)
-        rand_op = Array(rng.uniform(low=-10, high=10, size=(6,6)) +
-                        1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        rand_op = Array(rng.uniform(low=-10, high=10, size=(6, 6)) +
+                        1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         frame_op = rand_op - rand_op.conj().transpose()
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        y0 = Array(rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         self._test_generator_into_frame(t, frame_op, y0)
         self._test_generator_into_frame(t, frame_op, y0, y_in_frame_basis=True)
-        self._test_generator_into_frame(t, frame_op, y0, return_in_frame_basis=True)
+        self._test_generator_into_frame(t, frame_op, y0,
+                                        return_in_frame_basis=True)
         self._test_generator_into_frame(t, frame_op, y0, y_in_frame_basis=True,
-                                                         return_in_frame_basis=True)
+                                        return_in_frame_basis=True)
 
+    # pylint: disable=too-many-arguments
     def _test_generator_into_frame(self,
                                    t,
                                    frame_op,
@@ -351,8 +350,8 @@ class TestFrame(unittest.TestCase):
         frame = Frame(frame_op)
 
         value = frame.generator_into_frame(t, y,
-                                            y_in_frame_basis,
-                                            return_in_frame_basis)
+                                           y_in_frame_basis,
+                                           return_in_frame_basis)
         expected = y
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
@@ -368,21 +367,23 @@ class TestFrame(unittest.TestCase):
     def test_generator_out_of_frame(self):
         """Test operator_out_of_frame."""
         rng = np.random.default_rng(111)
-        rand_op = (rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        rand_op = (rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         frame_op = Array(rand_op - rand_op.conj().transpose())
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(rng.uniform(low=-10, high=10, size=(6,6)) +
-                   1j*rng.uniform(low=-10, high=10, size=(6,6)))
+        y0 = Array(rng.uniform(low=-10, high=10, size=(6, 6)) +
+                   1j * rng.uniform(low=-10, high=10, size=(6, 6)))
 
         self._test_generator_out_of_frame(t, frame_op, y0)
         self._test_generator_out_of_frame(t, frame_op, y0, y_in_frame_basis=True)
-        self._test_generator_out_of_frame(t, frame_op, y0, return_in_frame_basis=True)
+        self._test_generator_out_of_frame(t, frame_op, y0,
+                                          return_in_frame_basis=True)
         self._test_generator_out_of_frame(t, frame_op, y0, y_in_frame_basis=True,
-                                                         return_in_frame_basis=True)
+                                          return_in_frame_basis=True)
 
+    # pylint: disable=too-many-arguments
     def _test_generator_out_of_frame(self,
                                      t,
                                      frame_op,
@@ -397,13 +398,14 @@ class TestFrame(unittest.TestCase):
         frame = Frame(frame_op)
 
         value = frame.generator_out_of_frame(t, y,
-                                            y_in_frame_basis,
-                                            return_in_frame_basis)
+                                             y_in_frame_basis,
+                                             return_in_frame_basis)
         expected = y
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
 
-        expected = np.diag(np.exp(t * evals)) @ expected @ np.diag(np.exp(-t * evals))
+        expected = (np.diag(np.exp(t * evals)) @ expected @
+                    np.diag(np.exp(-t * evals)))
         expected = expected + np.diag(evals)
 
         if not return_in_frame_basis:
@@ -423,8 +425,9 @@ class TestFrame(unittest.TestCase):
 
         frame = Frame(frame_op)
 
-        ops_w_cutoff, ops_w_conj_cutoff = frame.operators_into_frame_basis_with_cutoff(operators,
-                                                                                       carrier_freqs=carrier_freqs)
+        ops_w_cutoff, ops_w_conj_cutoff = \
+            frame.operators_into_frame_basis_with_cutoff(operators,
+                                                         carrier_freqs=carrier_freqs)
 
         self.assertAllClose(ops_w_cutoff, operators)
         self.assertAllClose(ops_w_conj_cutoff, operators)
@@ -437,9 +440,9 @@ class TestFrame(unittest.TestCase):
 
         frame = Frame(frame_op)
 
-        ops_w_cutoff, ops_w_conj_cutoff = frame.operators_into_frame_basis_with_cutoff(operators,
-                                                                                       carrier_freqs=carrier_freqs)
-
+        ops_w_cutoff, ops_w_conj_cutoff = \
+            frame.operators_into_frame_basis_with_cutoff(operators,
+                                                         carrier_freqs=carrier_freqs)
 
         expected_ops = Array([self.X.data, -self.Y.data, -self.Z.data])
 
@@ -458,16 +461,17 @@ class TestFrame(unittest.TestCase):
         frame = Frame(frame_op)
 
         cutoff_mat = Array([[[1, 1],
-                            [1, 1]],
-                           [[1, 0],
-                            [1, 1]],
-                           [[0, 0],
-                            [1, 0]]
-                           ])
+                             [1, 1]],
+                            [[1, 0],
+                             [1, 1]],
+                            [[0, 0],
+                             [1, 0]]
+                            ])
 
-        ops_w_cutoff, ops_w_conj_cutoff = frame.operators_into_frame_basis_with_cutoff(operators,
-                                                                                       cutoff_freq=cutoff_freq,
-                                                                                       carrier_freqs=carrier_freqs)
+        ops_w_cutoff, ops_w_conj_cutoff = \
+            frame.operators_into_frame_basis_with_cutoff(operators,
+                                                         cutoff_freq=cutoff_freq,
+                                                         carrier_freqs=carrier_freqs)
 
         ops_w_cutoff_expect = cutoff_mat * operators
         ops_w_conj_cutoff_expect = cutoff_mat.transpose([0, 2, 1]) * operators
@@ -479,16 +483,17 @@ class TestFrame(unittest.TestCase):
         cutoff_freq = 2.
 
         cutoff_mat = Array([[[1, 0],
-                            [1, 1]],
-                           [[0, 0],
-                            [1, 0]],
-                           [[0, 0],
-                            [0, 0]]
-                           ])
+                             [1, 1]],
+                            [[0, 0],
+                             [1, 0]],
+                            [[0, 0],
+                             [0, 0]]
+                            ])
 
-        ops_w_cutoff, ops_w_conj_cutoff = frame.operators_into_frame_basis_with_cutoff(operators,
-                                                                                       cutoff_freq=cutoff_freq,
-                                                                                       carrier_freqs=carrier_freqs)
+        ops_w_cutoff, ops_w_conj_cutoff = \
+            frame.operators_into_frame_basis_with_cutoff(operators,
+                                                         cutoff_freq=cutoff_freq,
+                                                         carrier_freqs=carrier_freqs)
 
         ops_w_cutoff_expect = cutoff_mat * operators
         ops_w_conj_cutoff_expect = cutoff_mat.transpose([0, 2, 1]) * operators
@@ -497,11 +502,29 @@ class TestFrame(unittest.TestCase):
         self.assertAllClose(ops_w_conj_cutoff, ops_w_conj_cutoff_expect)
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true."""
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+
 
 class TestFrameJax(TestFrame, TestJaxBase):
     """Jax version of TestFrame tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
-    pass
+
+    def test_instantiation_errors(self):
+        """Check different modes of error raising for frame setting.
+        Needs to be overwrititen for jax due to different behaviour.
+        """
+
+        # pylint: disable=import-outside-toplevel
+        import jax.numpy as jnp
+
+        frame = Frame(Array([1., 1j]))
+        self.assertTrue(jnp.isnan(frame.frame_diag[0]))
+
+        frame = Frame(Array([[1., 0.], [0., 1j]]))
+        self.assertTrue(jnp.isnan(frame.frame_diag[0]))
+
+        frame = Frame(self.Z + 1j * self.X)
+        self.assertTrue(jnp.isnan(frame.frame_diag[0]))

@@ -115,7 +115,8 @@ class StateTypeConverter:
             not a handled type
         """
 
-        # if no inner_type_spec given just instantiate both inner and outer to the outer_y
+        # if no inner_type_spec given just instantiate both inner
+        # and outer to the outer_y
         if inner_type_spec is None:
             return cls.from_instances(outer_y, order=order)
 
@@ -126,7 +127,8 @@ class StateTypeConverter:
         if inner_type == 'array':
             outer_y_as_array = Array(outer_y)
 
-            # if a specific shape is given attempt to instantiate from a reshaped outer_y
+            # if a specific shape is given attempt to instantiate from a
+            # reshaped outer_y
             shape = inner_type_spec.get('shape')
             if shape is not None:
                 return cls.from_instances(outer_y_as_array.reshape(shape,
@@ -141,7 +143,8 @@ class StateTypeConverter:
                                           outer_y,
                                           order=order)
 
-            # if neither shape nor ndim is given, assume it can be an array of any shape
+            # if neither shape nor ndim is given, assume it can be an array
+            # of any shape
             return cls.from_instances(outer_y_as_array, outer_y, order=order)
 
         raise Exception('inner_type_spec not a handled type.')
@@ -178,7 +181,7 @@ class StateTypeConverter:
 
         # raise exceptions based on assumptions
         if ((self.inner_type_spec['type'] != 'array') or
-            (self.outer_type_spec['type'] != 'array')):
+                (self.outer_type_spec['type'] != 'array')):
             raise Exception("""RHS generator transformation only
                                valid for state types Array.""")
         if len(self.inner_type_spec['shape']) != 1:
@@ -189,6 +192,7 @@ class StateTypeConverter:
             # create identity of size the second dimension of the
             # outer type
             ident = Array(np.eye(self.outer_type_spec['shape'][1]))
+
             def new_generator(t):
                 return Array(np.kron(generator(t), ident))
 
@@ -197,13 +201,16 @@ class StateTypeConverter:
             # create identity of size the second dimension of the
             # outer type
             ident = Array(np.eye(self.outer_type_spec['shape'][1]))
+
             def new_generator(t):
                 return Array(np.kron(ident, generator(t)))
 
             return new_generator
+        else:
+            raise Exception("""Unsupported order for generator conversion.""")
 
 
-def convert_state(y, type_spec, order='F'):
+def convert_state(y: Array, type_spec: dict, order='F'):
     """Convert the de state y into the type specified by type_spec.
     Accepted values of type_spec are given at the beginning of the file.
 
@@ -211,6 +218,9 @@ def convert_state(y, type_spec, order='F'):
         y: the state to convert.
         type_spec (dict): the type description to convert to.
         order (str): order argument for any array reshaping function.
+
+    Returns:
+        Array: converted state.
     """
 
     new_y = None
@@ -229,14 +239,15 @@ def convert_state(y, type_spec, order='F'):
 def type_spec_from_instance(y):
     """Determine type spec from an instance."""
     type_spec = {}
-    if isinstance(y, np.ndarray) or isinstance(y, Array):
+    if isinstance(y, (Array, np.ndarray)):
         type_spec['type'] = 'array'
         type_spec['shape'] = y.shape
 
     return type_spec
 
+
 def vec_commutator(A: Array):
-    """Linear algebraic vectorization of the linear map X -> [A, X]
+    r"""Linear algebraic vectorization of the linear map X -> [A, X]
     in column-stacking convention. In column-stacking convention we have
 
     .. math::
@@ -252,6 +263,9 @@ def vec_commutator(A: Array):
     Args:
         A: Either a 2d array representing the matrix A described above,
            or a 3d array representing a list of matrices.
+
+    Returns:
+        Array: vectorized version of the map.
     """
     iden = Array(np.eye(A.shape[-1]))
     axes = list(range(A.ndim))
@@ -259,8 +273,9 @@ def vec_commutator(A: Array):
     axes[-2] += 1
     return np.kron(iden, A) - np.kron(A.transpose(axes), iden)
 
+
 def vec_dissipator(L: Array):
-    """ Linear algebraic vectorization of the linear map
+    r""" Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)
     in column stacking convention.
 
@@ -294,7 +309,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array]]):
             to be converted to a 3d array, or an array (which simply gets
             returned)
     Returns:
-        Array
+        Array: Array version of input
     """
     if op is None:
         return None

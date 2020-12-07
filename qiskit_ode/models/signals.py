@@ -11,6 +11,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
+"""
+Module for representation of model coefficients.
+"""
 
 from abc import ABC, abstractmethod
 from typing import List, Callable, Union, Optional
@@ -23,6 +28,8 @@ from qiskit_ode.dispatch import Array
 
 
 class BaseSignal(ABC):
+    """Base class for a time-dependent mixed signal.
+    """
 
     def __init__(self, name: str = None):
         """Init function."""
@@ -53,6 +60,13 @@ class BaseSignal(ABC):
         return signal_add(self, other)
 
     def plot(self, t0: float, tf: float, n: int):
+        """Plot the mixed signal over an interval.
+
+        Args:
+            t0: initial time
+            tf: final time
+            n: number of points to sample in interval.
+        """
         x_vals = np.linspace(t0, tf, n)
 
         sig_vals = []
@@ -63,6 +77,13 @@ class BaseSignal(ABC):
         plt.plot(x_vals, np.imag(sig_vals))
 
     def plot_envelope(self, t0: float, tf: float, n: int):
+        """Plot the envelope over an interval.
+
+        Args:
+            t0: initial time
+            tf: final time
+            n: number of points to sample in interval.
+        """
         x_vals = np.linspace(t0, tf, n)
 
         sig_vals = []
@@ -74,19 +95,23 @@ class BaseSignal(ABC):
 
 
 class Signal(BaseSignal):
-    """The most general mixed signal type, represented by a callable envelope function and a
-    carrier frequency.
+    """The most general mixed signal type, represented by a callable
+    envelope function and a carrier frequency.
     """
 
-    def __init__(self, envelope: Union[Callable, complex, float, int], carrier_freq: float = 0., name: str = None):
+    def __init__(self,
+                 envelope: Union[Callable, complex, float, int],
+                 carrier_freq: float = 0.,
+                 name: str = None):
         """
         Initializes a signal given by an envelop and an optional carrier.
 
         Args:
             envelope: Envelope function of the signal.
             carrier_freq: Frequency of the carrier.
+            name: name of signal.
         """
-        if isinstance(envelope, float) or isinstance(envelope, int):
+        if isinstance(envelope, (float, int)):
             envelope = complex(envelope)
 
         if isinstance(envelope, complex):
@@ -117,6 +142,12 @@ class Constant(BaseSignal):
     """
 
     def __init__(self, value: complex, name: str = None):
+        """Initialize a constant signal.
+
+        Args:
+            value: the constant.
+            name: name of the constant.
+        """
         self._value = value
         super().__init__(name)
 
@@ -143,13 +174,15 @@ class PiecewiseConstant(BaseSignal):
                  duration: int = None,
                  carrier_freq: float = 0,
                  name: str = None):
-        """
+        """Initialize a piecewise constant signal.
+
         Args:
             dt: The duration of each sample.
             samples: The array of samples.
             start_time: The time at which the signal starts.
             duration: The duration of the signal in samples.
             carrier_freq: The frequency of the carrier.
+            name: name of the signal.
         """
         self._dt = dt
 
@@ -226,6 +259,9 @@ class PiecewiseConstant(BaseSignal):
             start_sample: number of the sample at which the new samples
                 should be appended.
             samples: list of samples to append.
+
+        Raises:
+            QiskitError: if start_sample is invalid.
         """
         if start_sample < len(self._samples):
             raise QiskitError()
@@ -236,16 +272,18 @@ class PiecewiseConstant(BaseSignal):
         self._samples = np.append(self._samples, samples)
 
 
+# pylint: disable=too-many-return-statements
 def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
                     sig2: Union[BaseSignal, float, int, complex]) -> BaseSignal:
-    """
-    Implements mathematical multiplication between two signals.
+    r"""Implements mathematical multiplication between two signals.
     Since a signal is represented by
+
     .. math::
 
         \Omega(t)*exp(2\pi i \nu t)
 
     multiplication of two signals implements
+
     .. math::
 
         \Omega_1(t)*\Omega_2(t)*exp(2\pi i (\nu_1+\nu_2) t)
@@ -260,10 +298,10 @@ def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
     """
 
     # ensure both arguments are signals
-    if type(sig1) in [int, float, complex]:
+    if isinstance(sig1, (int, float, complex)):
         sig1 = Constant(sig1)
 
-    if type(sig2) in [int, float, complex]:
+    if isinstance(sig2, (int, float, complex)):
         sig2 = Constant(sig2)
 
     # Multiplications with Constant
@@ -281,12 +319,14 @@ def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
 
     # Multiplications with Signal
     elif isinstance(sig1, Signal) and isinstance(sig2, Signal):
-        return Signal(lambda t: sig1.envelope_value() * sig2.envelope_value(t), sig1.carrier_freq + sig2.carrier_freq)
+        return Signal(lambda t: sig1.envelope_value() * sig2.envelope_value(t),
+                      sig1.carrier_freq + sig2.carrier_freq)
 
     elif isinstance(sig1, Signal) and isinstance(sig2, PiecewiseConstant):
         new_samples = []
         for idx, sample in enumerate(sig2.samples):
-            new_samples.append(sample * sig1.envelope_value(sig2.dt*idx + sig2.start_time))
+            new_samples.append(sample * sig1.envelope_value(sig2.dt * idx +
+                                                            sig2.start_time))
 
         freq = sig1.carrier_freq + sig2.carrier_freq
         return PiecewiseConstant(sig2.dt,
@@ -309,13 +349,13 @@ def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
                                  carrier_freq=sig1.carrier_freq + sig2.carrier_freq)
 
     # Other symmetric cases
+    # pylint: disable=arguments-out-of-order
     return signal_multiply(sig2, sig1)
 
 
 def signal_add(sig1: Union[BaseSignal, float, int, complex],
                sig2: Union[BaseSignal, float, int, complex]) -> BaseSignal:
-    """
-    Implements mathematical addition between two signals.
+    r"""Implements mathematical addition between two signals.
     Since a signal is represented by
     .. math::
 
@@ -333,12 +373,15 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
 
     Returns:
         signal: The type will depend on the given base class.
+
+    Raises:
+        Exception: if signals cannot be added.
     """
 
     # ensure both arguments are signals
-    if type(sig1) in [int, float, complex]:
+    if isinstance(sig1, (int, float, complex)):
         sig1 = Constant(sig1)
-    if type(sig2) in [int, float, complex]:
+    if isinstance(sig2, (int, float, complex)):
         sig2 = Constant(sig2)
 
     # Multiplications with Constant
@@ -362,7 +405,9 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
     # Multiplications with Signal
     elif isinstance(sig1, Signal) and isinstance(sig2, Signal):
         if sig1.carrier_freq == sig2.carrier_freq:
-            return Signal(lambda t: sig1.envelope_value(t) + sig2.envelope_value(t), sig1.carrier_freq)
+            return Signal(lambda t: (sig1.envelope_value(t) +
+                                     sig2.envelope_value(t)),
+                          sig1.carrier_freq)
         else:
             return Signal(lambda t: sig1.value(t) + sig2.value(t), carrier_freq=0.)
 
@@ -379,7 +424,10 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
                 t = sig2.dt*idx + sig2.start_time
                 new_samples.append(sig1.value(t) + sig2.value(t))
 
-        return PiecewiseConstant(sig2.dt, new_samples, start_time=sig2.start_time, carrier_freq=carrier_freq)
+        return PiecewiseConstant(sig2.dt,
+                                 new_samples,
+                                 start_time=sig2.start_time,
+                                 carrier_freq=carrier_freq)
 
     # Multiplications with PiecewiseConstant
     elif isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
@@ -398,16 +446,21 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
             carrier_freq = sig1.carrier_freq
             for idx in range(duration):
                 t = start_time + idx * sig1.dt
-                new_samples.append(sig1.envelope_value(t) + sig2.envelope_value(t))
+                new_samples.append(sig1.envelope_value(t) +
+                                   sig2.envelope_value(t))
         else:
             carrier_freq = 0.0
             for idx in range(duration):
                 t = start_time + idx * sig1.dt
                 new_samples.append(sig1.value(t) + sig2.value(t))
 
-        return PiecewiseConstant(sig1.dt, new_samples, start_time=start_time, carrier_freq=carrier_freq)
+        return PiecewiseConstant(sig1.dt,
+                                 new_samples,
+                                 start_time=start_time,
+                                 carrier_freq=carrier_freq)
 
     # Other symmetric cases
+    # pylint: disable=arguments-out-of-order
     return signal_add(sig2, sig1)
 
 
@@ -459,7 +512,7 @@ class VectorSignal:
             signal_list: list of Signal objects.
 
         Returns:
-            VectorSignal that evaluates the signal list
+            VectorSignal: that evaluates the signal list
         """
 
         # define the envelope as iteratively evaluating the envelopes

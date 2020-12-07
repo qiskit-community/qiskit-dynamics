@@ -10,18 +10,24 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+Operator models module.
+"""
+
 from abc import ABC, abstractmethod
 from typing import Callable, Union, List, Optional
-import numpy as np
 from copy import deepcopy
+import numpy as np
 
-from .signals import VectorSignal, BaseSignal
-from .frame import BaseFrame, Frame
+from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.dispatch import Array
+from .signals import VectorSignal, BaseSignal
+from .frame import BaseFrame, Frame
+
 
 class BaseOperatorModel(ABC):
-    """BaseOperatorModel is an abstract interface for a time-dependent operator
+    r"""BaseOperatorModel is an abstract interface for a time-dependent operator
     :math:`G(t)`, with functionality of relevance for differential
     equations of the form :math:`\dot{y}(t) = G(t)y(t)`.
 
@@ -72,7 +78,7 @@ class BaseOperatorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate(self, t: float) -> Array:
+    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
         """Evaluate the model at a given time."""
         pass
 
@@ -80,8 +86,7 @@ class BaseOperatorModel(ABC):
               time: float,
               y: Array,
               in_frame_basis: bool = False) -> Array:
-        """
-        Return the product evaluate(t) @ y. Default implementation is to
+        r"""Return the product evaluate(t) @ y. Default implementation is to
         call evaluate then multiply.
 
         Args:
@@ -98,9 +103,8 @@ class BaseOperatorModel(ABC):
               time: float,
               y: Array,
               in_frame_basis: bool = False) -> Array:
-        """
-        Return the product y @ evaluate(t). Default implementation is to call
-        evaluate then multiply.
+        r"""Return the product y @ evaluate(t). Default implementation is to
+        call evaluate then multiply.
 
         Args:
             time: Time at which to create the generator.
@@ -124,7 +128,7 @@ class BaseOperatorModel(ABC):
 
 
 class OperatorModel(BaseOperatorModel):
-    """OperatorModel is a concrete instance of BaseOperatorModel, where the
+    r"""OperatorModel is a concrete instance of BaseOperatorModel, where the
     operator :math:`G(t)` is explicitly constructed as:
 
     .. math::
@@ -183,7 +187,7 @@ class OperatorModel(BaseOperatorModel):
             cutoff_freq: Frequency cutoff when evaluating the model.
         """
 
-        self._operators = operators
+        self.operators = operators
 
         self._cutoff_freq = cutoff_freq
 
@@ -218,7 +222,7 @@ class OperatorModel(BaseOperatorModel):
               self._signal_params, and the output of signal_mapping is saved in
               self._signals.
         """
-        
+
         if signals is None:
             self._signal_params = None
             self._signals = None
@@ -235,19 +239,19 @@ class OperatorModel(BaseOperatorModel):
 
             # if it isn't a VectorSignal by now, raise an error
             if not isinstance(signals, VectorSignal):
-                raise Exception('signals specified in unaccepted format.')
+                raise QiskitError('signals specified in unaccepted format.')
 
             # verify signal length is same as operators
-            if len(signals.carrier_freqs) != len(self._operators):
-                raise Exception("""signals needs to have the same length as
+            if len(signals.carrier_freqs) != len(self.operators):
+                raise QiskitError("""signals needs to have the same length as
                                     operators.""")
 
-            # determine if new signals warrant resetting of internal operators
-            # only necessary if new carrier frequencies are different from
-            # previous, and there is a cutoff frequency
+            # internal ops need to be reset if there is a cutoff frequency
+            # and carrier_freqs has changed
             if self._signals is not None:
-                if (not np.allclose(self._signals.carrier_freqs, signals.carrier_freqs)
-                    and self._cutoff_freq is not None):
+                if (not np.allclose(self._signals.carrier_freqs,
+                                    signals.carrier_freqs)
+                        and self._cutoff_freq is not None):
                     self._reset_internal_ops()
 
             self._signals = signals
@@ -286,8 +290,7 @@ class OperatorModel(BaseOperatorModel):
             self._reset_internal_ops()
 
     def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
-        """
-        Evaluate the model in array format.
+        """Evaluate the model in array format.
 
         Args:
             time: Time to evaluate the model
@@ -296,10 +299,13 @@ class OperatorModel(BaseOperatorModel):
 
         Returns:
             Array: the evaluated model
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
         """
 
         if self._signals is None:
-            raise Exception("""OperatorModel cannot be
+            raise QiskitError("""OperatorModel cannot be
                                evaluated without signals.""")
 
         sig_vals = self._signals.value(time)
@@ -320,13 +326,12 @@ class OperatorModel(BaseOperatorModel):
 
         # for now if the frame operator is not None raise an error
         if self.frame.frame_operator is not None:
-            raise Exception("""The drift is currently ill-defined if
+            raise QiskitError("""The drift is currently ill-defined if
                                frame_operator is not None.""")
 
         drift_sig_vals = self._signals.drift_array
 
         return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
-
 
     def _construct_ops_in_fb_w_cutoff(self):
         """Construct versions of operators in frame basis with cutoffs
@@ -336,12 +341,12 @@ class OperatorModel(BaseOperatorModel):
         """
         carrier_freqs = None
         if self._signals.carrier_freqs is None:
-            carrier_freqs = np.zeros(len(self._operators))
+            carrier_freqs = np.zeros(len(self.operators))
         else:
             carrier_freqs = self._signals.carrier_freqs
 
         self.__ops_in_fb_w_cutoff, self.__ops_in_fb_w_conj_cutoff = (
-            self.frame.operators_into_frame_basis_with_cutoff(self._operators,
+            self.frame.operators_into_frame_basis_with_cutoff(self.operators,
                                                               self.cutoff_freq,
                                                               carrier_freqs))
 
@@ -354,9 +359,12 @@ class OperatorModel(BaseOperatorModel):
 
     @property
     def _ops_in_fb_w_cutoff(self):
-        """Internally stored operators in frame basis with cutoffs.
+        r"""Internally stored operators in frame basis with cutoffs.
         This corresponds to the :math:`A^+` matrices from
         `Frame.operators_into_frame_basis_with_cutoff`.
+
+        Returns:
+            Array: operators in frame basis with cutoff
         """
         if self.__ops_in_fb_w_cutoff is None:
             self._construct_ops_in_fb_w_cutoff()
@@ -368,6 +376,9 @@ class OperatorModel(BaseOperatorModel):
         """Internally stored operators in frame basis with conjugate cutoffs.
         This corresponds to the :math:`A^-` matrices from
         `Frame.operators_into_frame_basis_with_cutoff`.
+
+        Returns:
+            Array: operators in frame basis with conjugate cutoff
         """
         if self.__ops_in_fb_w_conj_cutoff is None:
             self._construct_ops_in_fb_w_cutoff()
@@ -382,6 +393,9 @@ class OperatorModel(BaseOperatorModel):
 
         Args:
             sig_vals: Signals evaluated at some time.
+
+        Returns:
+            Array: operator model evaluated for a given list of signal values
         """
 
         return 0.5 * (np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
