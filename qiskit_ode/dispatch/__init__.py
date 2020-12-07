@@ -27,7 +27,8 @@ from .dispatch import (set_default_backend,
                        default_backend,
                        available_backends,
                        backend_types,
-                       asarray)
+                       asarray,
+                       requires_backend)
 
 # Register backends
 from .backends import *
@@ -37,4 +38,5 @@ if len(available_backends()) == 1:
     set_default_backend(available_backends()[0])
 
 # Monkey patch quantum info
+# pylint: disable= wrong-import-position
 from .patch_qi import *

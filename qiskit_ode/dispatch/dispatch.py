@@ -11,7 +11,10 @@
 # that they have been altered from the originals.
 """Dispatch class"""
 
-from typing import Optional, Union, Tuple
+import functools
+from types import FunctionType
+from typing import Optional, Union, Tuple, Callable
+from .exceptions import DispatchError
 
 
 class Dispatch:
@@ -62,7 +65,7 @@ class Dispatch:
             None: If `use_default=False` and the array type is not registered.
 
         Raises:
-            ValueError: if fallback backend is not valid.
+            DispatchError: if fallback backend is not valid.
         """
         backend = cls._REGISTERED_TYPES.get(type(array), None)
         if backend is not None:
@@ -73,7 +76,7 @@ class Dispatch:
                     return backend
         if fallback is None or fallback in cls._REGISTERED_BACKENDS:
             return fallback
-        raise ValueError("fallback '{}' is not a registered backend.".format(fallback))
+        raise DispatchError("fallback '{}' is not a registered backend.".format(fallback))
 
     @classmethod
     def validate_backend(cls, backend: str):
@@ -83,11 +86,11 @@ class Dispatch:
             backend: array backend name.
 
         Raises:
-            ValueError: if backend is not registered.
+            DispatchError: if backend is not registered.
         """
         if backend not in cls._REGISTERED_BACKENDS:
             registered = cls.REGISTERED_BACKENDS if cls.REGISTERED_BACKENDS else None
-            raise ValueError(
+            raise DispatchError(
                 "'{}' is not a registered array backends (registered backends: {})"
                 .format(backend, registered))
 
@@ -320,3 +323,54 @@ def asarray(array: any,
         else:
             backend = Dispatch.backend(array, fallback='numpy')
     return  Dispatch.ASARRAY_DISPATCH[backend](array, dtype=dtype, order=order)
+
+
+def requires_backend(backend: str) -> Callable:
+    """Return a function and class decorator for checking a backend is available.
+
+    If the the required backend is not in the list of :func:`available_backends`
+    any decorated function or method will raise an exception when called, and
+    any decorated class will raise an exeption when its ``__init__`` is called.
+
+    Args:
+        backend: the backend name required by class or function.
+
+    Returns:
+        Callable: A decorator that may be used to specify that a function, class,
+                  or class method requires a specific backend to be installed.
+    """
+    def decorator(obj):
+        """Specify that the decorated object requires a specifc Array backend."""
+
+        def check_backend(descriptor):
+            if backend not in available_backends():
+                raise DispatchError(
+                    f"Array backend '{backend}' required by {descriptor} "
+                    "is not installed. Please install the optional "
+                    "library '{backend}'.")
+
+        # Decorate a function or method
+        if isinstance(obj, FunctionType):
+
+            @functools.wraps(obj)
+            def decorated_func(*args, **kwargs):
+                check_backend(f'function {obj}')
+                return obj(*args, **kwargs)
+            return decorated_func
+
+        # Decorate a class
+        elif isinstance(obj, type):
+
+            obj_init = obj.__init__
+
+            @functools.wraps(obj_init)
+            def decorated_init(self, *args, **kwargs):
+                check_backend(f'class {obj}')
+                obj_init(self, *args, **kwargs)
+            obj.__init__ = decorated_init
+            return obj
+
+        else:
+            raise Exception(f"Cannot decorate object {obj} that is not a class or function.")
+
+    return decorator

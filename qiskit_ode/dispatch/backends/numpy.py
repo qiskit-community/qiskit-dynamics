@@ -12,6 +12,7 @@
 """Register numpy backend for Dispatch"""
 
 import numpy
+from ..exceptions import DispatchError
 from ..dispatch import Dispatch
 
 __all__ = []
@@ -24,7 +25,7 @@ def _numpy_asarray(array, dtype=None, order=None):
         return array
     ret = numpy.asarray(array, dtype=dtype, order=order)
     if ret.dtype == 'O':
-        raise ValueError('Dispatch does not support numpy object arrays.')
+        raise DispatchError('Dispatch does not support numpy object arrays.')
     return ret
 
 
