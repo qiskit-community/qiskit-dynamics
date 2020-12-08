@@ -24,7 +24,7 @@ import numpy as np
 from scipy.integrate import solve_ivp, OdeSolver
 
 from qiskit import QiskitError
-from qiskit_ode.dispatch import Array
+from qiskit_ode.dispatch import Array, requires_backend
 from .de_solvers import jax_expm
 from .de_problems import ODEProblem, LMDEProblem
 from ..type_utils import StateTypeConverter
@@ -167,6 +167,7 @@ def _call_scipy_solve_ivp(rhs: Callable,
     return SolveResult(**dict(results))
 
 
+@requires_backend('jax')
 def _call_jax_odeint(rhs: Callable,
                      t_span: Array,
                      y0: Array,
@@ -181,15 +182,9 @@ def _call_jax_odeint(rhs: Callable,
 
     Returns:
         SolveResult: results object
-
-    Raises:
-        ImportError: if jax not installed
     """
 
-    try:
-        from jax.experimental.ode import odeint
-    except ImportError as ie:
-        raise ie
+    from jax.experimental.ode import odeint
 
     times = None
     if 't_eval' in kwargs:
@@ -211,10 +206,8 @@ def _call_jax_odeint(rhs: Callable,
     return SolveResult(t=times, y=Array(results))
 
 
-def _call_jax_expm(generator: Callable,
-                   t_span: Array,
-                   y0: Array,
-                   **kwargs):
+@requires_backend('jax')
+def _call_jax_expm(generator: Callable, t_span: Array, y0: Array, **kwargs):
     """Routine for calling `qiskit_ode.de.de_solvers.jax_expm`
 
     Args:
@@ -227,7 +220,7 @@ def _call_jax_expm(generator: Callable,
         SolveResult: results object
 
     Raises:
-        QiskitError: if required kwarg max_dt is not present
+        QiskitError: if required kwarg `max_dt` is not present
     """
 
     if 'max_dt' not in kwargs:

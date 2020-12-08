@@ -18,13 +18,11 @@ Module for custom solvers.
 from typing import Callable
 import numpy as np
 
-from qiskit_ode.dispatch import Array
+from qiskit_ode.dispatch import requires_backend, Array
 
 
-def jax_expm(generator: Callable,
-             t_span: Array,
-             y0: Array,
-             max_dt: float) -> Array:
+@requires_backend('jax')
+def jax_expm(generator: Callable, t_span: Array, y0: Array, max_dt: float) -> Array:
     """Fixed-step size matrix exponential based solver implemented with `jax`.
     This routine splits the interval `t_span` into equally sized steps of size
     no larger than `max_dt`, and solves the ODE by exponentiating the generator
@@ -38,17 +36,11 @@ def jax_expm(generator: Callable,
 
     Returns:
         Array: The final state.
-
-    Raises:
-        ImportError: if jax is not installed
     """
 
-    try:
-        from jax.scipy.linalg import expm as jexpm
-        from jax.lax import scan
-        import jax.numpy as jnp
-    except ImportError as error:
-        raise error
+    from jax.scipy.linalg import expm as jexpm
+    from jax.lax import scan
+    import jax.numpy as jnp
 
     delta_t = t_span[1] - t_span[0]
 
