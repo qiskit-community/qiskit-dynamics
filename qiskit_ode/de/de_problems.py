@@ -36,7 +36,7 @@ class ODEProblem:
     in terms of the RHS function :math:`f(t, y)`. It is assumed that the
     state of the system is a complex :class:`Array` of arbitrary shape.
 
-    This class provides a standardized interface for :method:`solve`
+    This class provides a standardized interface for `solve`
     to work with. Aside from storing the RHS function,
     it defines method signatures for transforming ODE states
     from the format the user expects, to a potentially different internal
@@ -235,7 +235,7 @@ class OperatorModelProblem(LMDEProblem):
                                                            return_in_frame_basis=True)
 
     def problem_state_to_user(self, t: float, y: Array) -> Array:
-        r"""The inverse transformation of :method:`user_state_to_problem`.
+        r"""The inverse transformation of ``self.user_state_to_problem``.
 
         Args:
             t: time

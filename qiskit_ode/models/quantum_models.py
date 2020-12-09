@@ -37,6 +37,7 @@ class HamiltonianModel(OperatorModel):
 
     Currently the functionality of this class is as a subclass of
     :class:`OperatorModel`, with the following modifications:
+
         - The operators in the linear decomposition are verified to be
           Hermitian.
         - Frames are dealt with assuming the structure of the Schrodinger
@@ -128,7 +129,7 @@ class HamiltonianModel(OperatorModel):
 
 
 class LindbladModel(OperatorModel):
-    r"""A model of a quantum system, consisting of a hamiltonian
+    r"""A model of a quantum system, consisting of a Hamiltonian
     and an optional description of dissipative dynamics.
 
     Dissipation terms are understood in terms of the Lindblad master
@@ -146,6 +147,7 @@ class LindbladModel(OperatorModel):
 
     with :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` the
     matrix commutator and anti-commutator, respectively. In the above:
+
         - :math:`H(t)` denotes the Hamiltonian,
         - :math:`L_j` denotes the :math:`j^{th}` noise, or Lindblad,
           operator, and

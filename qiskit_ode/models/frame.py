@@ -27,27 +27,39 @@ from ..type_utils import to_array
 
 
 class BaseFrame(ABC):
-    r"""Abstract interface for functionality for entering a constant rotating
-    frame specified by an anti-Hermitian matrix F.
+    r"""Abstract base class for core frame handling functionality.
 
-    Frames have relevance within the context of differential equations of the
-    form :math:`\dot{y}(t) = G(t)y(t)`. "Entering a frame" given by :math:`F`
-    corresponds to a change of solution variable :math:`z(t) = e^{-tF}y(t)`.
+    A 'frame' is given by an anti-Hermitian matrix :math:`F`, specified
+    either directly, or in terms of a Hermitian matrix :math:`H` with
+    :math:`F = -iH`. Frames have relevance within the context of linear
+    matrix differential equations (LMDEs), which are of the form:
+
+    .. math::
+
+        \dot{y}(t) = G(t)y(t).
+
+    For the above DE, 'entering the frame' specified by :math:`F`
+    corresponds to a change of state variable
+    :math:`y(t) \mapsto z(t) = e^{-tF}y(t)`.
     Using the definition, we may write down a differential equation for
     :math:`z(t)`:
 
-    .. math:
-        \dot{z}(t) = -F z(t) + e^{-tF}G(t)y(t) = (e^{-tF}G(t)e^{tF} - F)z(t)
+    .. math::
+
+        \dot{z}(t) &= -F z(t) + e^{-tF}G(t)y(t) \\
+                   &= (e^{-tF}G(t)e^{tF} - F)z(t)
 
     In some cases it is computationally easier to solve for :math:`z(t)`
     than it is to solve for :math:`y(t)`.
 
     While entering a frame is mathematically well-defined for arbitrary
-    matrices :math:`F`, we assume in this class that :math:`F` is
+    matrices :math:`F`, this interface assumes that :math:`F` is
     anti-Hermitian, ensuring beneficial properties:
+
         - :math:`F` is unitarily diagonalizable.
         - :math:`e^{\pm tF}` is easily inverted by taking the adjoint.
         - The frame transformation is norm preserving.
+
     That :math:`F` is diagonalizable is especially important, as :math:`e^{tF}`
     will need repeated evaluation for different :math:`t` (e.g. at every RHS
     sample point when solving a DE), so it is useful to work in a basis in
@@ -55,6 +67,7 @@ class BaseFrame(ABC):
 
     Given an anti-Hermitian matrix :math:`F`, this class offers functions
     for:
+
         - Bringing a "state" into/out of the frame:
           :math:`t, y \mapsto e^{\mp tF}y`
         - Bringing an "operator" into/out of the frame:
@@ -76,7 +89,7 @@ class BaseFrame(ABC):
     information and carrier frequency information are intrinsically tied
     together in this context.
 
-    Note: all abstract doc strings are written in a numpy style
+    Note: all abstract doc strings are written in a `numpy` style
     """
 
     @property
@@ -99,12 +112,12 @@ class BaseFrame(ABC):
     @property
     @abstractmethod
     def frame_basis_adjoint(self) -> Array:
-        r"""Adjoint of `self.frame_basis`."""
+        r"""Adjoint of ``self.frame_basis``."""
 
     @abstractmethod
     def state_into_frame_basis(self, y: Array) -> Array:
         r"""Take a state into the frame basis, i.e. return
-        `self.frame_basis_adjoint @ y`.
+        ``self.frame_basis_adjoint @ y``.
 
         Args:
             y: the state
@@ -115,7 +128,7 @@ class BaseFrame(ABC):
     @abstractmethod
     def state_out_of_frame_basis(self, y: Array) -> Array:
         r"""Take a state out of the frame basis, i.e.
-        `return self.frame_basis @ y`.
+        ``return self.frame_basis @ y``.
 
         Args:
             y: the state
@@ -127,7 +140,7 @@ class BaseFrame(ABC):
     def operator_into_frame_basis(self,
                                   op: Union[Operator, Array]) -> Array:
         r"""Take an operator into the frame basis, i.e. return
-        `self.frame_basis_adjoint @ A @ self.frame_basis`
+        ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
         Args:
             op: the operator.
@@ -139,7 +152,7 @@ class BaseFrame(ABC):
     def operator_out_of_frame_basis(self,
                                     op: Union[Operator, Array]) -> Array:
         r"""Take an operator out of the frame basis, i.e. return
-        `self.frame_basis @ to_array(op) @ self.frame_basis_adjoint`.
+        ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
 
         Args:
             op: the operator.
@@ -151,7 +164,7 @@ class BaseFrame(ABC):
     def operators_into_frame_basis(self,
                                    operators: Union[List[Operator],
                                                     Array]) -> Array:
-        r"""Given a list of operators, apply `self.operator_into_frame_basis` to
+        r"""Given a list of operators, apply ``self.operator_into_frame_basis`` to
         all and return as a 3d array.
 
         Args:
@@ -162,7 +175,7 @@ class BaseFrame(ABC):
     def operators_out_of_frame_basis(self,
                                      operators: Union[List[Operator],
                                                       Array]) -> Array:
-        r"""Given a list of operators, apply `self.operator_out_of_frame_basis`
+        r"""Given a list of operators, apply ``self.operator_out_of_frame_basis``
         to all and return as a 3d array.
 
         Args:
@@ -175,7 +188,7 @@ class BaseFrame(ABC):
                          y: Array,
                          y_in_frame_basis: Optional[bool] = False,
                          return_in_frame_basis: Optional[bool] = False) -> Array:
-        r"""Take a state into the frame, i.e. return `exp(-tF) @ y`.
+        r"""Take a state into the frame, i.e. return ``exp(-tF) @ y``.
 
         Args:
             t: time
@@ -194,9 +207,9 @@ class BaseFrame(ABC):
                            y: Array,
                            y_in_frame_basis: Optional[bool] = False,
                            return_in_frame_basis: Optional[bool] = False) -> Array:
-        r"""Take a state out of the frame, i.e. `return exp(tF) @ y`.
+        r"""Take a state out of the frame, i.e. ``return exp(tF) @ y``.
 
-        Default implementation is to call `self.state_into_frame`.
+        Default implementation is to call ``self.state_into_frame``.
 
         Args:
             t: time
@@ -223,7 +236,7 @@ class BaseFrame(ABC):
         r"""Generalized helper function for taking operators and generators
         into/out of the frame.
 
-        Given operator :math:`G`, and `op_to_add_in_fb` :math:`B`, returns
+        Given operator :math:`G`, and ``op_to_add_in_fb`` :math:`B`, returns
         :math:`exp(-tF)Gexp(tF) + B`, where :math:`B` is assumed to be
         specified in the frame basis.
 
@@ -245,9 +258,9 @@ class BaseFrame(ABC):
                             operator_in_frame_basis: Optional[bool] = False,
                             return_in_frame_basis: Optional[bool] = False) -> Array:
         r"""Bring an operator into the frame, i.e. return
-        `exp(-tF) @ operator @ exp(tF)`
+        ``exp(-tF) @ operator @ exp(tF)``
 
-        Default implementation is to use `self._conjugate_and_add`
+        Default implementation is to use ``self._conjugate_and_add``.
 
         Args:
             t: time
@@ -270,9 +283,9 @@ class BaseFrame(ABC):
                               operator_in_frame_basis: Optional[bool] = False,
                               return_in_frame_basis: Optional[bool] = False):
         r"""Bring an operator into the frame, i.e. return
-        exp(tF) @ operator @ exp(-tF)
+        ``exp(tF) @ operator @ exp(-tF)``.
 
-        Default implmentation is to use self.operator_into_frame
+        Default implmentation is to use `self.operator_into_frame`.
 
         Args:
             t: time
@@ -296,9 +309,9 @@ class BaseFrame(ABC):
                              operator_in_frame_basis: Optional[bool] = False,
                              return_in_frame_basis: Optional[bool] = False):
         r"""Take an generator into the frame, i.e. return
-        exp(-tF) @ operator @ exp(tF) - F.
+        ``exp(-tF) @ operator @ exp(tF) - F``.
 
-        Default implementation is to use self._conjugate_and_add
+        Default implementation is to use `self._conjugate_and_add`.
 
         Args:
             t: time
@@ -327,9 +340,9 @@ class BaseFrame(ABC):
                                operator_in_frame_basis: Optional[bool] = False,
                                return_in_frame_basis: Optional[bool] = False) -> Array:
         r"""Take an operator out of the frame, i.e. return
-        exp(tF) @ operator @ exp(-tF) + F.
+        ``exp(tF) @ operator @ exp(-tF) + F``.
 
-        Default implementation is to use self._conjugate_and_add
+        Default implementation is to use `self._conjugate_and_add`.
 
         Args:
             t: time
@@ -456,7 +469,9 @@ class BaseFrame(ABC):
 
 
 class Frame(BaseFrame):
-    """Concrete implementation of BaseFrame using numpy arrays."""
+    """Concrete implementation of `BaseFrame` implemented
+    using `Array`.
+    """
 
     def __init__(self,
                  frame_operator: Union[BaseFrame, Operator, Array],

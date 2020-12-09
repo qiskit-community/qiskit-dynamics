@@ -9,4 +9,6 @@ Qiskit ODE API Reference
 .. toctree::
    :maxdepth: 2
 
+   models
+   de
    converters

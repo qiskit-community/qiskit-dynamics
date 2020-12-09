@@ -13,9 +13,9 @@
 # that they have been altered from the originals.
 
 """
-=========================================================
-Pulse to Signal Converters (:mod:`qiskit_ode.converters`)
-=========================================================
+================================================
+Signal Converters (:mod:`qiskit_ode.converters`)
+================================================
 
 .. currentmodule:: qiskit_ode.converters
 

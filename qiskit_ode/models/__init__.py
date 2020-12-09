@@ -13,8 +13,38 @@
 # that they have been altered from the originals.
 
 """
-Models.
+=================================
+Models (:mod:`qiskit_ode.models`)
+=================================
+
+.. currentmodule:: qiskit_ode.models
+
+Models
+======
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   BaseFrame
+   Frame
+   OperatorModel
+   HamiltonianModel
+   LindbladModel
+
+Signals
+=======
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   BaseSignal
+   Signal
+   PiecewiseConstant
+   Constant
 """
 
-from .signals import Signal, PiecewiseConstant, Constant
+from .frame import BaseFrame, Frame
+from .operator_models import OperatorModel
+from .quantum_models import HamiltonianModel, LindbladModel
+from .signals import BaseSignal, Signal, PiecewiseConstant, Constant
 from .transfer_functions import Convolution
