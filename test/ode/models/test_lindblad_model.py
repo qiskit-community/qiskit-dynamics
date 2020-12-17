@@ -17,7 +17,7 @@ import unittest
 import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
-from qiskit_ode.models.quantum_models import HamiltonianModel, LindbladModel
+from qiskit_ode.models import HamiltonianModel, LindbladModel
 from qiskit_ode.models.signals import Constant, Signal, VectorSignal
 from qiskit_ode.dispatch import Array
 from ..test_jax_base import TestJaxBase

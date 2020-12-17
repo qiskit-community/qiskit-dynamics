@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,15 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-qiskit-ode module for solving differential equations.
+r"""
+Wrappers for calling differential equations solvers,
+providing standardized method signatures and return types.
 """
 
-from .solve import solve_ode, solve_lmde
-from .models import Signal, PiecewiseConstant, Constant
-from .models import Convolution
-from .converters import InstructionToSignals
-from . import dispatch
-from . import version
-
-__version__ = version.__version__
+from .solve_jax_expm import solve_jax_expm
+from .jax_odeint import jax_odeint
+from .scipy_solve_ivp import scipy_solve_ivp

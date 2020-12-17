@@ -13,23 +13,36 @@
 # that they have been altered from the originals.
 
 """
-=================================
-Models (:mod:`qiskit_ode.models`)
-=================================
+====================================
+Modelling (:mod:`qiskit_ode.models`)
+====================================
 
 .. currentmodule:: qiskit_ode.models
 
-Models
-======
+Tools for constructing differential equation models to pass to solving routines.
+
+Quantum Models
+==============
+
+Models for quantum systems.
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   HamiltonianModel
+   LindbladModel
+
+Generator Models
+================
+
+Tools for constructing generators for LMDEs.
 
 .. autosummary::
    :toctree: ../stubs/
 
    BaseFrame
    Frame
-   OperatorModel
-   HamiltonianModel
-   LindbladModel
+   GeneratorModel
 
 Signals
 =======
@@ -44,7 +57,8 @@ Signals
 """
 
 from .frame import BaseFrame, Frame
-from .operator_models import OperatorModel
-from .quantum_models import HamiltonianModel, LindbladModel
+from .generator_models import GeneratorModel
+from .hamiltonian_models import HamiltonianModel
+from .lindblad_models import LindbladModel
 from .signals import BaseSignal, Signal, PiecewiseConstant, Constant
 from .transfer_functions import Convolution

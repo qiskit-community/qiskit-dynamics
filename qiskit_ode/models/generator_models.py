@@ -9,9 +9,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
-Operator models module.
+Generator models module.
 """
 
 from abc import ABC, abstractmethod
@@ -21,13 +22,14 @@ import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
+from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array
 from .signals import VectorSignal, BaseSignal
 from .frame import BaseFrame, Frame
 
 
-class BaseOperatorModel(ABC):
-    r"""BaseOperatorModel is an abstract interface for a time-dependent operator
+class BaseGeneratorModel(ABC):
+    r"""BaseGeneratorModel is an abstract interface for a time-dependent operator
     :math:`G(t)`, with functionality of relevance for differential
     equations of the form :math:`\dot{y}(t) = G(t)y(t)`.
 
@@ -126,9 +128,93 @@ class BaseOperatorModel(ABC):
         """Return a copy of self."""
         return deepcopy(self)
 
+    def __call__(self,
+                 t: float,
+                 y: Optional[Array] = None,
+                 in_frame_basis: Optional[bool] = False):
+        """Evaluate generator RHS functions. If ``y is None``,
+        evaluates the model, and otherwise evaluates ``G(t) @ y``.
 
-class OperatorModel(BaseOperatorModel):
-    r"""OperatorModel is a concrete instance of BaseOperatorModel, where the
+        Args:
+            t: Time.
+            y: Optional state.
+            in_frame_basis: Whether or not to evaluate in the frame basis.
+
+        Returns:
+            Array: Either the evaluated model or the RHS for the given y
+        """
+
+        if y is None:
+            return self.evaluate(t, in_frame_basis=in_frame_basis)
+
+        return self.lmult(t, y, in_frame_basis=in_frame_basis)
+
+
+class CallableGenerator(BaseGeneratorModel):
+    """Generator specified as a callable
+    """
+
+    def __init__(self,
+                 generator: Callable,
+                 frame: Optional[Union[Operator, Array, BaseFrame]] = None,
+                 drift: Optional[Union[Operator, Array]] = None):
+
+        self._generator = dispatch.wrap(generator)
+        self.frame = frame
+        self._drift = drift
+
+    @property
+    def frame(self) -> Frame:
+        """Return the frame."""
+        return self._frame
+
+    @frame.setter
+    def frame(self, frame: Union[Operator, Array, Frame]):
+        """Set the frame; either an already instantiated :class:`Frame` object
+        a valid argument for the constructor of :class:`Frame`, or `None`.
+        """
+        self._frame = Frame(frame)
+
+    @property
+    def cutoff_freq(self) -> float:
+        """Return the cutoff frequency."""
+        return None
+
+    @cutoff_freq.setter
+    def cutoff_freq(self, cutoff_freq: float):
+        """Cutoff frequency not supported for generic."""
+        if cutoff_freq is not None:
+            raise QiskitError("""Cutoff frequency is not supported for function-based generator.""")
+
+    @property
+    def drift(self) -> Array:
+        return self._drift
+
+    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
+        """Evaluate the model in array format.
+
+        Args:
+            time: Time to evaluate the model
+            in_frame_basis: Whether to evaluate in the basis in which the frame
+                            operator is diagonal
+
+        Returns:
+            Array: the evaluated model
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
+        """
+
+        # evaluate generator and map it into the frame
+        gen = self._generator(time)
+        return self.frame.generator_into_frame(time,
+                                               gen,
+                                               operator_in_frame_basis=False,
+                                               return_in_frame_basis=in_frame_basis)
+
+
+class GeneratorModel(BaseGeneratorModel):
+    r"""GeneratorModel is a concrete instance of BaseGeneratorModel, where the
     operator :math:`G(t)` is explicitly constructed as:
 
     .. math::
@@ -148,7 +234,7 @@ class OperatorModel(BaseOperatorModel):
     .. code-block:: python
 
         signal_map = lambda a: [Signal(lambda t: a * t, 1.)]
-        model = OperatorModel(operators=[op], signal_mapping=signal_map)
+        model = GeneratorModel(operators=[op], signal_mapping=signal_map)
 
         # setting signals now will pass the value into the signal_map function
         model.signals = 2.
@@ -177,7 +263,7 @@ class OperatorModel(BaseOperatorModel):
             operators: list of Operator objects.
             signals: Specifiable as either a VectorSignal, a list of
                      Signal objects, or as the inputs to signal_mapping.
-                     OperatorModel can be instantiated without specifying
+                     GeneratorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
             signal_mapping: a function returning either a
                             VectorSignal or a list of Signal objects.
@@ -267,13 +353,7 @@ class OperatorModel(BaseOperatorModel):
         a valid argument for the constructor of :class:`Frame`, or `None`.
         """
 
-        if frame is None:
-            self._frame = Frame(None)
-        else:
-            if isinstance(frame, Frame):
-                self._frame = frame
-            else:
-                self._frame = Frame(frame)
+        self._frame = Frame(frame)
 
         self._reset_internal_ops()
 
@@ -305,8 +385,7 @@ class OperatorModel(BaseOperatorModel):
         """
 
         if self._signals is None:
-            raise QiskitError("""OperatorModel cannot be
-                               evaluated without signals.""")
+            raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
         sig_vals = self._signals.value(time)
 

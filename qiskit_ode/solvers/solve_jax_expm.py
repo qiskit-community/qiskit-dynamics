@@ -12,35 +12,50 @@
 # pylint: disable=invalid-name
 
 """
-Module for custom solvers.
+Custom jax expm-based solver.
 """
 
 from typing import Callable
 import numpy as np
+from scipy.integrate._ivp.ivp import OdeResult
 
+from qiskit import QiskitError
 from qiskit_ode.dispatch import requires_backend, Array
 
 
 @requires_backend('jax')
-def jax_expm(generator: Callable, t_span: Array, y0: Array, max_dt: float) -> Array:
-    """Fixed-step size matrix exponential based solver implemented with `jax`.
-    This routine splits the interval `t_span` into equally sized steps of size
-    no larger than `max_dt`, and solves the ODE by exponentiating the generator
+def solve_jax_expm(generator: Callable, t_span: Array, y0: Array, **kwargs):
+    """Fixed-step size matrix exponential based solver implemented with ``jax``.
+    This routine splits the interval ``t_span`` into equally sized steps of size
+    no larger than ``max_dt``, and solves the ODE by exponentiating the generator
     at every step.
 
     Args:
-        generator: Callable function for the generator.
+        generator: Callable of the form :math:`G(t)`
         t_span: Interval to solve over.
         y0: Initial state.
-        max_dt: Upper bound on step size.
+        kwargs: Must contain ``max_dt``.
 
     Returns:
-        Array: The final state.
+        OdeResult: results object
+
+    Raises:
+        QiskitError: if required kwarg ``max_dt`` is not present
     """
+
+    if 'max_dt' not in kwargs:
+        raise QiskitError('jax_expm solver requires specification of max_dt.')
 
     from jax.scipy.linalg import expm as jexpm
     from jax.lax import scan
     import jax.numpy as jnp
+
+    def gen(t):
+        return Array(generator(t)).data
+
+    t_span = Array(t_span, backend='numpy').data
+    y0 = Array(y0, backend='jax').data
+    max_dt = Array(kwargs.get('max_dt'), backend='numpy').data
 
     delta_t = t_span[1] - t_span[0]
 
@@ -52,7 +67,8 @@ def jax_expm(generator: Callable, t_span: Array, y0: Array, max_dt: float) -> Ar
 
     def scan_func(carry, step):
         eval_time = t_span[0] + (h * step) + h/2
-        return (jexpm(generator(eval_time) * h) @ carry, None)
+        return (jexpm(gen(eval_time) * h) @ carry, None)
 
     yf = scan(scan_func, y0, jnp.arange(steps))[0]
-    return yf
+
+    return OdeResult(t=Array(t_span), y=[y0, yf])

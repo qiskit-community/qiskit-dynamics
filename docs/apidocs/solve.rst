@@ -1,6 +1,6 @@
-.. _qiskit_ode-de:
+.. _qiskit_ode-solve:
 
-.. automodule:: qiskit_ode.de
+.. automodule:: qiskit_ode.solve
    :no-members:
    :no-inherited-members:
    :no-special-members:

@@ -18,10 +18,9 @@ Tests for jax transformations.
 import numpy as np
 
 from qiskit.quantum_info.operators import Operator
-from qiskit_ode.models.quantum_models import HamiltonianModel
+from qiskit_ode.models import HamiltonianModel
 from qiskit_ode.models.signals import Constant, Signal
-from qiskit_ode.de.de_problems import SchrodingerProblem
-from qiskit_ode.de.solve import solve
+from qiskit_ode import solve_lmde
 from qiskit_ode.dispatch import Array
 
 from .test_jax_base import TestJaxBase
@@ -55,14 +54,12 @@ class TestJaxTransformations(TestJaxBase):
             ham_copy = ham.copy()
             ham_copy.signals = signals
 
-            problem = SchrodingerProblem(ham_copy)
-
-            results = solve(problem,
-                            t_span=[0., 1 / self.r],
-                            y0=Array([0., 1.], dtype=complex),
-                            method='jax_odeint',
-                            atol=1e-10,
-                            rtol=1e-10)
+            results = solve_lmde(ham_copy,
+                                 t_span=[0., 1 / self.r],
+                                 y0=Array([0., 1.], dtype=complex),
+                                 method='jax_odeint',
+                                 atol=1e-10,
+                                 rtol=1e-10)
             return results.y[-1]
 
         self.param_sim = param_sim

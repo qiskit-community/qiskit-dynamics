@@ -710,7 +710,7 @@ class Frame(BaseFrame):
         out = frame_mat * out
 
         if op_to_add_in_fb is not None:
-            out = out + to_array(op_to_add_in_fb)
+            out = out + op_to_add_in_fb
 
         # if output is requested to not be in the frame basis, convert it
         if not return_in_frame_basis:
