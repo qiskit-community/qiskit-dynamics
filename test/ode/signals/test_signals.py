@@ -18,7 +18,7 @@ Tests for signals.
 import unittest
 import numpy as np
 
-from qiskit_ode import Constant, PiecewiseConstant, Signal
+from qiskit_ode.signals import Constant, PiecewiseConstant, Signal
 
 
 class TestSignals(unittest.TestCase):

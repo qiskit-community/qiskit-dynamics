@@ -14,4 +14,5 @@ for continuous-time modelling of quantum systems.
 
    solve
    models
+   signals
    converters

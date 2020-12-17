@@ -16,7 +16,7 @@ Tests for signal transfer functions.
 """
 import unittest
 import numpy as np
-from qiskit_ode import Convolution, PiecewiseConstant
+from qiskit_ode.signals import Convolution, PiecewiseConstant
 
 
 class TestTransferFunctions(unittest.TestCase):

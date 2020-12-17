@@ -19,7 +19,7 @@ import numpy as np
 from qiskit.pulse import (Schedule, DriveChannel, Play, Drag, ShiftFrequency,
                           SetFrequency, GaussianSquare, ShiftPhase, Gaussian, Constant)
 from qiskit_ode.converters import InstructionToSignals
-from qiskit_ode import PiecewiseConstant
+from qiskit_ode.signals import PiecewiseConstant
 
 
 class TestPulseToSignals(unittest.TestCase):

@@ -19,7 +19,7 @@ import numpy as np
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import HamiltonianModel
-from qiskit_ode.models.signals import Constant, Signal
+from qiskit_ode.signals import Constant, Signal
 from qiskit_ode import solve_lmde
 from qiskit_ode.dispatch import Array
 

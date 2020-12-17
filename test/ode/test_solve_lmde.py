@@ -17,8 +17,8 @@ import unittest
 import numpy as np
 from scipy.linalg import expm
 
-from qiskit_ode.models.generator_models import GeneratorModel
-from qiskit_ode.models.signals import Constant, Signal
+from qiskit_ode.models import GeneratorModel
+from qiskit_ode.signals import Constant, Signal
 from qiskit_ode import solve_lmde
 from qiskit_ode.solve import setup_lmde_frames_and_generator, lmde_y0_reshape
 from qiskit_ode.dispatch import Array

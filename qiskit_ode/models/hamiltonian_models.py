@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.dispatch import Array
-from .signals import VectorSignal, BaseSignal
+from qiskit_ode.signals import VectorSignal, BaseSignal
 from .generator_models import GeneratorModel
 
 

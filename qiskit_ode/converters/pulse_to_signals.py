@@ -19,7 +19,7 @@ import numpy as np
 
 from qiskit.pulse import Schedule, Play, ShiftPhase, SetPhase, ShiftFrequency, SetFrequency
 from qiskit import QiskitError
-from ..models.signals import PiecewiseConstant
+from qiskit_ode.signals import PiecewiseConstant
 
 
 class InstructionToSignals:

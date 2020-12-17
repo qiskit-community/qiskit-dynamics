@@ -19,10 +19,10 @@ from typing import Union, List, Optional
 import numpy as np
 
 from qiskit.quantum_info.operators import Operator
-from .signals import VectorSignal, BaseSignal
+from qiskit_ode.signals import VectorSignal, BaseSignal
+from qiskit_ode.type_utils import vec_commutator, vec_dissipator, to_array
 from .generator_models import GeneratorModel
 from .hamiltonian_models import HamiltonianModel
-from ..type_utils import vec_commutator, vec_dissipator, to_array
 
 
 class LindbladModel(GeneratorModel):

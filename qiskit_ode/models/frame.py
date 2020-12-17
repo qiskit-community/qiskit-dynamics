@@ -23,7 +23,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_ode.dispatch import Array
-from ..type_utils import to_array
+from qiskit_ode.type_utils import to_array
 
 
 class BaseFrame(ABC):

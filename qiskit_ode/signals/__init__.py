@@ -13,39 +13,34 @@
 # that they have been altered from the originals.
 
 """
-=====================================
-RHS Models (:mod:`qiskit_ode.models`)
-=====================================
+===================================
+Signals (:mod:`qiskit_ode.signals`)
+===================================
 
-.. currentmodule:: qiskit_ode.models
+.. currentmodule:: qiskit_ode.signals
 
-Tools for constructing differential equation models to pass to solving routines.
+Tools for constructing time-dependent signals in RHS :mod:`qiskit._ode.models`.
 
-Quantum Models
+Signal Classes
 ==============
 
-Models for quantum systems.
+.. autosummary::
+   :toctree: ../stubs/
+
+   BaseSignal
+   Signal
+   VectorSignal
+   PiecewiseConstant
+   Constant
+
+Transfer Functions
+==================
 
 .. autosummary::
    :toctree: ../stubs/
 
-   HamiltonianModel
-   LindbladModel
-
-Generator Models
-================
-
-Tools for constructing generators for LMDEs.
-
-.. autosummary::
-   :toctree: ../stubs/
-
-   BaseFrame
-   Frame
-   GeneratorModel
+   Convolution
 """
 
-from .frame import BaseFrame, Frame
-from .generator_models import GeneratorModel
-from .hamiltonian_models import HamiltonianModel
-from .lindblad_models import LindbladModel
+from .signals import BaseSignal, Signal, VectorSignal, PiecewiseConstant, Constant
+from .transfer_functions import Convolution

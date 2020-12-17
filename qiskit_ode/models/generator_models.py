@@ -24,7 +24,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array
-from .signals import VectorSignal, BaseSignal
+from qiskit_ode.signals import VectorSignal, BaseSignal
 from .frame import BaseFrame, Frame
 
 
