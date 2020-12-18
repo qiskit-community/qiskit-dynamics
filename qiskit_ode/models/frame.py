@@ -143,7 +143,7 @@ class BaseFrame(ABC):
         ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
         Args:
-            op: the operator.
+            op: the operator or array of operators.
         Returns:
             Array: the operator in the frame basis
         """
@@ -155,31 +155,9 @@ class BaseFrame(ABC):
         ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
 
         Args:
-            op: the operator.
+            op: the operator or array of operators.
         Returns:
             Array: the operator in the frame basis
-        """
-
-    @abstractmethod
-    def operators_into_frame_basis(self,
-                                   operators: Union[List[Operator],
-                                                    Array]) -> Array:
-        r"""Given a list of operators, apply ``self.operator_into_frame_basis`` to
-        all and return as a 3d array.
-
-        Args:
-            operators: list of operators
-        """
-
-    @abstractmethod
-    def operators_out_of_frame_basis(self,
-                                     operators: Union[List[Operator],
-                                                      Array]) -> Array:
-        r"""Given a list of operators, apply ``self.operator_out_of_frame_basis``
-        to all and return as a 3d array.
-
-        Args:
-            operators: list of operators
         """
 
     @abstractmethod
@@ -555,92 +533,30 @@ class Frame(BaseFrame):
         return self._frame_basis_adjoint
 
     def state_into_frame_basis(self, y: Array) -> Array:
-        """Transform y into the frame basis.
-
-        Args:
-            y: the state
-        Returns:
-            Array: the state in the frame basis
-        """
         if self._frame_operator is None:
             return to_array(y)
 
         return self.frame_basis_adjoint @ y
 
     def state_out_of_frame_basis(self, y: Array) -> Array:
-        """Transform y out of the frame basis.
-
-        Args:
-            y: the state
-        Returns:
-            Array: the state in the frame basis
-        """
         if self._frame_operator is None:
             return to_array(y)
 
         return self.frame_basis @ y
 
     def operator_into_frame_basis(self,
-                                  op: Union[Operator, Array]) -> Array:
-        """Transform operator into frame basis.
-
-        Args:
-            op: the operator.
-        Returns:
-            Array: the operator in the frame basis
-        """
+                                  op: Union[Operator, List[Operator], Array]) -> Array:
+        op = to_array(op)
         if self._frame_operator is None:
-            return to_array(op)
-
-        return self.frame_basis_adjoint @ to_array(op) @ self.frame_basis
+            return op
+        return self.frame_basis_adjoint @ op @ self.frame_basis
 
     def operator_out_of_frame_basis(self,
                                     op: Union[Operator, Array]) -> Array:
-        """Transform operator into frame basis.
-
-        Args:
-            op: the operator.
-        Returns:
-            Array: the operator in the frame basis
-        """
+        op = to_array(op)
         if self._frame_operator is None:
-            return to_array(op)
-
-        return self.frame_basis @ to_array(op) @ self.frame_basis_adjoint
-
-    def operators_into_frame_basis(self,
-                                   operators: Union[List[Operator],
-                                                    Array]) -> Array:
-        """Given a list of operators, perform a change of basis on all into
-        the frame basis, and return as a 3d array.
-
-        Args:
-            operators: list of operators
-
-        Returns:
-            Array: list of operators in frame basis
-        """
-
-        operators = to_array(operators)
-
-        return Array([self.operator_into_frame_basis(o).data
-                      for o in operators.data])
-
-    def operators_out_of_frame_basis(self,
-                                     operators: Union[List[Operator],
-                                                      Array]) -> Array:
-        """Given a list of operators, perform a change of basis on all out of
-        the frame basis, and return as a 3d array.
-
-        Args:
-            operators: list of operators
-
-        Returns:
-            Array: list of operators out of frame basis
-        """
-
-        return Array([self.operator_out_of_frame_basis(o).data
-                      for o in operators.data])
+            return op
+        return self.frame_basis @ op @ self.frame_basis_adjoint
 
     def state_into_frame(self,
                          t: float,
@@ -722,21 +638,7 @@ class Frame(BaseFrame):
                                                operators: Union[Array, List[Operator]],
                                                cutoff_freq: Optional[float] = None,
                                                carrier_freqs: Optional[Array] = None):
-        r"""Transform operators into the frame basis, and return two lists of
-        operators: one with the 'frequency cutoff' and one with 'conjugate
-        frequency cutoff' (see base class documentation).
-
-        Args:
-            operators: list of operators
-            cutoff_freq: cutoff frequency
-            carrier_freqs: list of carrier frequencies
-
-        Returns:
-            Tuple[Array, Array]: The operators with frequency cutoff
-            and conjugate frequency cutoff.
-        """
-
-        ops_in_frame_basis = self.operators_into_frame_basis(operators)
+        ops_in_frame_basis = self.operator_into_frame_basis(operators)
 
         # if no cutoff freq is specified, the two arrays are the same
         if cutoff_freq is None:
@@ -751,18 +653,17 @@ class Frame(BaseFrame):
         dim = len(ops_in_frame_basis[0])
         freq_diffs = None
         if self._frame_operator is None:
-            freq_diffs = Array(np.zeros((dim, dim)))
+            freq_diffs = Array(np.zeros((1, dim, dim)))
         else:
-            freq_diffs = Array(np.ones((dim, dim))) * self.frame_diag
-            freq_diffs = freq_diffs - freq_diffs.transpose()
+            freq_diffs = Array(np.ones((1, dim, dim))) * self.frame_diag
+            freq_diffs = freq_diffs - np.transpose(freq_diffs, (0, 2, 1))
 
         # set up matrix encoding frequencies
-        im_angular_freqs = 1j * 2 * np.pi * carrier_freqs
-        freq_array = Array([w + freq_diffs.data for w in im_angular_freqs.data])
-
+        im_angular_freqs = 1j * 2 * np.pi * np.reshape(
+            carrier_freqs, (len(carrier_freqs), 1, 1))
+        freq_array = im_angular_freqs + freq_diffs
         cutoff_array = ((np.abs(freq_array.imag) / (2 * np.pi))
                         < cutoff_freq).astype(int)
-
         return (cutoff_array * ops_in_frame_basis,
                 cutoff_array.transpose([0, 2, 1]) * ops_in_frame_basis)
 

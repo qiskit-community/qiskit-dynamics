@@ -21,6 +21,7 @@ import numpy as np
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.dispatch import Array
 from qiskit_ode.signals import VectorSignal, BaseSignal
+from qiskit_ode.type_utils import to_array
 from .generator_models import GeneratorModel
 
 
@@ -55,7 +56,8 @@ class HamiltonianModel(GeneratorModel):
                  operators: List[Operator],
                  signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
                  frame: Optional[Union[Operator, Array]] = None,
-                 cutoff_freq: Optional[float] = None):
+                 cutoff_freq: Optional[float] = None,
+                 validate: bool = True):
         """Initialize, ensuring that the operators are Hermitian.
 
         Args:
@@ -68,20 +70,18 @@ class HamiltonianModel(GeneratorModel):
                             array, it is interpreted as the diagonal of a
                             diagonal matrix.
             cutoff_freq: Frequency cutoff when evaluating the model.
+            validate: If True check input operators are Hermitian.
 
         Raises:
             Exception: if operators are not Hermitian
         """
-
         # verify operators are Hermitian, and if so instantiate
-        for operator in operators:
-            if isinstance(operator, Operator):
-                operator = operator.data
-            operator = Array(operator)
+        operators = to_array(operators)
 
-            if np.linalg.norm((operator.conj().transpose() - operator)) > 1e-10:
-                raise Exception("""HamiltonianModel only accepts Hermitian
-                                    operators.""")
+        if validate:
+            adj = np.transpose(np.conjugate(operators), (0, 2, 1))
+            if np.linalg.norm(adj - operators) > 1e-10:
+                raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
         super().__init__(operators=operators,
                          signals=signals,

@@ -24,6 +24,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array
+from qiskit_ode.type_utils import to_array
 from qiskit_ode.signals import VectorSignal, BaseSignal
 from .frame import BaseFrame, Frame
 
@@ -237,14 +238,14 @@ class GeneratorModel(BaseGeneratorModel):
     """
 
     def __init__(self,
-                 operators: List[Operator],
+                 operators: Array,
                  signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
                  frame: Optional[Union[Operator, Array, BaseFrame]] = None,
                  cutoff_freq: Optional[float] = None):
         """Initialize.
 
         Args:
-            operators: list of Operator objects.
+            operators: A rank-3 Array of operator components.
             signals: Specifiable as either a VectorSignal, a list of
                      Signal objects, or as the inputs to signal_mapping.
                      GeneratorModel can be instantiated without specifying
@@ -254,8 +255,7 @@ class GeneratorModel(BaseGeneratorModel):
                             diagonal matrix.
             cutoff_freq: Frequency cutoff when evaluating the model.
         """
-
-        self.operators = operators
+        self.operators = to_array(operators)
 
         self._cutoff_freq = cutoff_freq
 

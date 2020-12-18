@@ -301,8 +301,7 @@ def vec_dissipator(L: Array):
 
 
 def to_array(op: Union[Operator, Array, List[Operator], List[Array]]):
-    """Convert an operator, either specified as an `Operator` or an array
-    to an array.
+    """Convert an operator or list of operators to an Array.
 
     Args:
         op: Either an Operator to be converted to an array, a list of Operators
@@ -311,11 +310,16 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array]]):
     Returns:
         Array: Array version of input
     """
-    if op is None:
-        return None
+    if op is None or isinstance(op, Array):
+        return op
 
-    if isinstance(op, list):
-        return Array([to_array(sub_op).data for sub_op in op])
+    if isinstance(op, list) and isinstance(op[0], Operator):
+        shape = op[0].data.shape
+        dtype = op[0].data.dtype
+        arr = np.empty((len(op), *shape), dtype=dtype)
+        for i, sub_op in enumerate(op):
+            arr[i] = sub_op.data
+        return Array(arr)
 
     if isinstance(op, Operator):
         return Array(op.data)
