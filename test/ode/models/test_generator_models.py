@@ -239,28 +239,6 @@ class TestGeneratorModel(unittest.TestCase):
         except QiskitError as e:
             self.assertTrue('same length' in str(e))
 
-    def test_signal_mapping(self):
-        """Test behaviour of signal mapping."""
-
-        def sig_map(slope):
-            return VectorSignal(lambda t: np.array([slope * t, slope**2 * t]),
-                                carrier_freqs=np.array([1., self.w]))
-
-        self.basic_model.signal_mapping = sig_map
-        self.basic_model.signals = 2.
-
-        output = self.basic_model.signals.envelope_value(2.)
-        expected = np.array([4., 8.])
-
-        self.assertAllClose(output, expected)
-
-        output = self.basic_model.evaluate(2.)
-        drive_coeff = self.r * 8 * np.cos(2 * np.pi * self.w * 2.)
-        expected = (-1j * 2 * np.pi * 4 * self.Z.data / 2 +
-                    -1j * 2 * np.pi * drive_coeff * self.X.data / 2)
-
-        self.assertAllClose(output, expected)
-
     def test_drift(self):
         """Test drift evaluation."""
 

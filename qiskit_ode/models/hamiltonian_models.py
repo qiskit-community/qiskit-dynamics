@@ -15,7 +15,7 @@
 Hamiltonian models module.
 """
 
-from typing import Callable, Union, List, Optional
+from typing import Union, List, Optional
 import numpy as np
 
 from qiskit.quantum_info.operators import Operator
@@ -54,7 +54,6 @@ class HamiltonianModel(GeneratorModel):
     def __init__(self,
                  operators: List[Operator],
                  signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
-                 signal_mapping: Optional[Callable] = None,
                  frame: Optional[Union[Operator, Array]] = None,
                  cutoff_freq: Optional[float] = None):
         """Initialize, ensuring that the operators are Hermitian.
@@ -65,8 +64,6 @@ class HamiltonianModel(GeneratorModel):
                      Signal objects, or as the inputs to signal_mapping.
                      OperatorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
-            signal_mapping: a function returning either a
-                            VectorSignal or a list of Signal objects.
             frame: Rotating frame operator. If specified with a 1d
                             array, it is interpreted as the diagonal of a
                             diagonal matrix.
@@ -88,7 +85,6 @@ class HamiltonianModel(GeneratorModel):
 
         super().__init__(operators=operators,
                          signals=signals,
-                         signal_mapping=signal_mapping,
                          frame=frame,
                          cutoff_freq=cutoff_freq)
 

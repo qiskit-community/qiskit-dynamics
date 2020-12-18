@@ -225,24 +225,9 @@ class GeneratorModel(BaseGeneratorModel):
     objects), and the :math:`s_i(t)` given by signals represented by a
     :class:`VectorSignal` object, or a list of :class:`Signal` objects.
 
-    The signals in the model can be specified either directly (by giving a
-    list of Signal objects or a VectorSignal), or by specifying a
-    signal_mapping, defined as any function with return type
-    `Union[List[Signal], VectorSignal]`. In this mode, assignments to the
-    signal attribute will be treated as inputs to the signal_mapping. E.g.
-
-    .. code-block:: python
-
-        signal_map = lambda a: [Signal(lambda t: a * t, 1.)]
-        model = GeneratorModel(operators=[op], signal_mapping=signal_map)
-
-        # setting signals now will pass the value into the signal_map function
-        model.signals = 2.
-
-        # the stored signals (retrivable with model.signals) is now
-        # the output of signal_map(2.), converted to a VectorSignal
-
-    See the signals property setter for a more detailed description.
+    The signals in the model can be specified at instantiation, or afterwards
+    by setting the ``signals`` attribute, by giving a
+    list of :class:`Signal` objects or a :class:`VectorSignal`.
 
     For specifying a frame, this object works with the concrete
     :class:`Frame`, a subclass of :class:`BaseFrame`.
@@ -254,7 +239,6 @@ class GeneratorModel(BaseGeneratorModel):
     def __init__(self,
                  operators: List[Operator],
                  signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
-                 signal_mapping: Optional[Callable] = None,
                  frame: Optional[Union[Operator, Array, BaseFrame]] = None,
                  cutoff_freq: Optional[float] = None):
         """Initialize.
@@ -265,8 +249,6 @@ class GeneratorModel(BaseGeneratorModel):
                      Signal objects, or as the inputs to signal_mapping.
                      GeneratorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
-            signal_mapping: a function returning either a
-                            VectorSignal or a list of Signal objects.
             frame: Rotating frame operator. If specified with a 1d
                             array, it is interpreted as the diagonal of a
                             diagonal matrix.
@@ -280,7 +262,6 @@ class GeneratorModel(BaseGeneratorModel):
         # initialize signal-related attributes
         self._signal_params = None
         self._signals = None
-        self.signal_mapping = signal_mapping
         self.signals = signals
 
         # set frame
@@ -297,28 +278,12 @@ class GeneratorModel(BaseGeneratorModel):
 
     @signals.setter
     def signals(self, signals: Union[VectorSignal, List[BaseSignal]]):
-        """Set the signals.
-
-        Behavior:
-            - If no signal_mapping is specified, the argument signals is
-              assumed to be either a list of Signal objects, or a VectorSignal,
-              and is saved in self._signals.
-            - If a signal_mapping is specified, signals is assumed to be a valid
-              input of signal_mapping. The argument signals is set to
-              self._signal_params, and the output of signal_mapping is saved in
-              self._signals.
-        """
+        """Set the signals."""
 
         if signals is None:
             self._signal_params = None
             self._signals = None
         else:
-
-            # if a signal_mapping is specified, take signals as the input
-            if self.signal_mapping is not None:
-                self._signal_params = signals
-                signals = self.signal_mapping(signals)
-
             # if signals is a list, instantiate a VectorSignal
             if isinstance(signals, list):
                 signals = VectorSignal.from_signal_list(signals)
