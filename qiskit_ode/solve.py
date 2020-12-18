@@ -74,16 +74,12 @@ from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array
 
 from .solvers.solve_jax_expm import solve_jax_expm
-from .solvers.scipy_solve_ivp import scipy_solve_ivp
+from .solvers.scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .solvers.jax_odeint import jax_odeint
 
 from .models.frame import Frame
 from .models.generator_models import BaseGeneratorModel, CallableGenerator
 from .models import HamiltonianModel
-
-
-# supported scipy ODE methods
-SOLVE_IVP_METHODS = ['RK45', 'RK23', 'BDF', 'DOP853']
 
 
 def solve_ode(rhs: Callable,
