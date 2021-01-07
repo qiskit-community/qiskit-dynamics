@@ -13,14 +13,14 @@
 # that they have been altered from the originals.
 
 """
-================================================
-Signal Converters (:mod:`qiskit_ode.converters`)
-================================================
+=========================================
+Converters (:mod:`qiskit_ode.converters`)
+=========================================
 
 .. currentmodule:: qiskit_ode.converters
 
-Converters
-==========
+Qiskit Pulse
+============
 
 .. autosummary::
    :toctree: ../stubs/

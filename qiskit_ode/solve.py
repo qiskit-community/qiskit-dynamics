@@ -62,12 +62,18 @@ or a subclass of :class:`~qiskit_ode.models.generator_models.BaseGeneratorModel`
    solve_lmde
 """
 
-from typing import Optional, Union, Callable, Tuple
+from typing import Optional, Union, Callable, Tuple, Any, Type
 import inspect
 
 from scipy.integrate import OdeSolver
 # pylint: disable=unused-import
 from scipy.integrate._ivp.ivp import OdeResult
+
+from qiskit.circuit import Gate, QuantumCircuit
+from qiskit.quantum_info.operators.base_operator import BaseOperator
+from qiskit.quantum_info.operators.channel.quantum_channel import QuantumChannel
+from qiskit.quantum_info.states.quantum_state import QuantumState
+from qiskit.quantum_info import SuperOp, Operator
 
 from qiskit import QiskitError
 from qiskit_ode import dispatch
@@ -84,7 +90,7 @@ from .models import HamiltonianModel
 
 def solve_ode(rhs: Callable,
               t_span: Array,
-              y0: Array,
+              y0: Union[Array, QuantumState, BaseOperator],
               method: Optional[Union[str, OdeSolver]] = 'DOP853',
               **kwargs):
     r"""General interface for solving Ordinary Differential Equations (ODEs).
@@ -102,7 +108,7 @@ def solve_ode(rhs: Callable,
     Available methods are:
 
     - ``scipy.integrate.solve_ivp`` - supports methods
-      ``['RK45', 'RK23', 'BDF', 'DOP853']`` or by passing a valid
+      ``['RK45', 'RK23', 'BDF', 'DOP853', 'Radau', 'LSODA']`` or by passing a valid
       ``scipy`` :class:`OdeSolver` instance.
     - ``jax.experimental.ode.odeint`` - accessed via passing
       ``method='jax_odeint'``.
@@ -122,9 +128,8 @@ def solve_ode(rhs: Callable,
     Raises:
         QiskitError: If specified method does not exist.
     """
-
     t_span = Array(t_span)
-    y0 = Array(y0)
+    y0, y0_cls = initial_state_converter(y0, return_class=True)
 
     rhs = dispatch.wrap(rhs)
 
@@ -136,13 +141,14 @@ def solve_ode(rhs: Callable,
         results = jax_odeint(rhs, t_span, y0, **kwargs)
     else:
         raise QiskitError("""Specified method is not a supported ODE method.""")
-
+    if y0_cls is not None:
+        results.y = [final_state_converter(i, y0_cls) for i in results.y]
     return results
 
 
 def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
                t_span: Array,
-               y0: Array,
+               y0: Union[Array, QuantumState, BaseOperator],
                method: Optional[Union[str, OdeSolver]] = 'DOP853',
                input_frame: Optional[Union[str, Array]] = 'auto',
                solver_frame: Optional[Union[str, Array]] = 'auto',
@@ -201,6 +207,8 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
         QiskitError: If specified method does not exist, or if dimension of y0 is incompatible
                      with generator dimension.
     """
+    t_span = Array(t_span)
+    y0, y0_cls = initial_state_converter(y0, return_class=True)
 
     # setup input frame, output frame, and the internal solver generator based on args
     input_frame, output_frame, generator = \
@@ -226,16 +234,14 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
     def solver_rhs(t, y):
         return generator(t, y, in_frame_basis=True)
 
-    # call correct method
-    results = None
-    if isinstance(method, str) and method == 'jax_expm':
+    if method == 'jax_expm':
+        # Use generator model specific expm
         results = solve_jax_expm(solver_generator,
                                  t_span,
                                  y0,
                                  **kwargs)
-
-    # if results is None, method is not LMDE-specific, so pass to solve_ode using rhs
-    if results is None:
+    else:
+        # method is not LMDE-specific, so pass to solve_ode using rhs
         results = solve_ode(solver_rhs, t_span, y0, method=method, **kwargs)
 
     # convert any states in results to correct basis/frame
@@ -249,9 +255,11 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
         out_y = output_frame.state_into_frame(time, out_y)
 
         # reshape to match input shape if necessary
-        output_states.append(Array(out_y.reshape(return_shape, order='F')).data)
-
-    results.y = Array(output_states)
+        out_y = final_state_converter(out_y.reshape(return_shape, order='F').data, y0_cls)
+        output_states.append(out_y)
+    if y0_cls is None:
+        output_states = Array(output_states)
+    results.y = output_states
 
     return results
 
@@ -344,3 +352,52 @@ def anti_herm_part(mat: Array) -> Array:
         return None
 
     return 0.5 * (mat - mat.conj().transpose())
+
+
+def initial_state_converter(obj: Any, return_class: bool = False) -> Union[
+        Array, Tuple[Array, Type]]:
+    """Convert initial state object to an Array.
+
+    Args:
+        obj: An initial state.
+        return_class: Optional. If True return the class to use
+                      for converting the output y Array.
+
+    Returns:
+        Array: the converted initial state if ``return_class=False``.
+        tuple: (Array, class) if ``return_class=True``.
+    """
+    # pylint: disable=invalid-name
+    y0_cls = None
+    if isinstance(obj, Array):
+        y0, y0_cls = obj, None
+    if isinstance(obj, QuantumState):
+        y0, y0_cls = Array(obj.data), obj.__class__
+    elif isinstance(obj, QuantumChannel):
+        y0, y0_cls = Array(SuperOp(obj).data), SuperOp
+    elif isinstance(obj, (BaseOperator, Gate, QuantumCircuit)):
+        y0, y0_cls = Array(Operator(obj.data)), Operator
+    else:
+        y0, y0_cls = Array(obj), None
+    if return_class:
+        return y0, y0_cls
+    return y0
+
+
+def final_state_converter(obj: Any, cls: Optional[Type] = None) -> Any:
+    """Convert final state Array to custom class.
+
+    Args:
+        obj: final state Array.
+        cls: Optional. The class to convert to.
+
+    Returns:
+        Any: the final state.
+    """
+    if cls is None:
+        return obj
+
+    if issubclass(cls, (BaseOperator, QuantumState)) and isinstance(obj, Array):
+        return cls(obj.data)
+
+    return cls(obj)
