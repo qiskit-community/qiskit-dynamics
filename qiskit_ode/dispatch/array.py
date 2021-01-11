@@ -128,6 +128,14 @@ class Array(NDArrayOperatorsMixin):
     def __iter__(self):
         return iter(self._data)
 
+    def __getstate__(self):
+        return {'_data': self._data,
+                '_backend': self._backend}
+
+    def __setstate__(self, state):
+        self._backend = state['_backend']
+        self._data = state['_data']
+
     def __getitem__(self, key: str) -> any:
         """Return value from wrapped array"""
         return self._data[key]
