@@ -17,44 +17,50 @@
 Wrapper for jax.experimental.ode.odeint
 """
 
-from typing import Callable
+from typing import Callable, Optional, Union, Tuple, List
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
-from qiskit_ode.dispatch import requires_backend, Array
+from qiskit_ode.dispatch import requires_backend, Array, wrap
+
+from .solver_utils import merge_t_args, trim_t_results
+
+try:
+    from jax.experimental.ode import odeint as _odeint
+    odeint = wrap(_odeint)
+except ImportError:
+    pass
 
 
 @requires_backend('jax')
-def jax_odeint(rhs: Callable, t_span: Array, y0: Array, **kwargs):
+def jax_odeint(rhs: Callable,
+               t_span: Array,
+               y0: Array,
+               t_eval: Optional[Union[Tuple, List, Array]] = None,
+               **kwargs):
     """Routine for calling `jax.experimental.ode.odeint`
 
     Args:
         rhs: Callable of the form :math:`f(t, y)`
         t_span: Interval to solve over.
         y0: Initial state.
-        kwargs: Optional arguments for `odeint`.
+        t_eval: Optional list of time points at which to return the solution.
+        kwargs: Optional arguments to be passed to ``odeint``.
 
     Returns:
-        OdeResult: results object
+        OdeResult: Results object.
     """
 
-    from jax.experimental.ode import odeint
+    t_list = merge_t_args(t_span, t_eval)
 
-    times = None
-    if 't_eval' in kwargs:
-        t_eval = kwargs['t_eval']
-        times = Array(t_eval, dtype=float).data
-        if t_span[0] < t_eval[0]:
-            times = np.append(Array(t_span[0], dtype=float), times)
+    # determine direction of integration
+    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend='jax')).data
 
-        if t_span[-1] > t_eval[-1]:
-            times = np.append(times, Array(t_span[-1], dtype=float))
-    else:
-        times = Array(t_span, dtype=float)
-
-    results = odeint(lambda t, y: Array(rhs(y, t)).data,
-                     y0=Array(y0).data,
-                     t=Array(times).data,
+    results = odeint(lambda y, t: t_direction * rhs(t_direction * t, y),
+                     y0=y0,
+                     t=t_direction * t_list.data,
                      **kwargs)
 
-    return OdeResult(t=times, y=Array(results))
+    results = OdeResult(t=t_list, y=Array(results, backend='jax'))
+
+    return trim_t_results(results, t_span, t_eval)

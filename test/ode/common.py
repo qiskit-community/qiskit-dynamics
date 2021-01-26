@@ -9,13 +9,23 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
-Base class for Jax tests.
+Shared functionality and helpers for the unit tests.
 """
 
 import unittest
+import numpy as np
 from qiskit_ode import dispatch
+
+
+class QiskitOdeTestCase(unittest.TestCase):
+    """Helper class that contains common functionality."""
+
+    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true."""
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class TestJaxBase(unittest.TestCase):

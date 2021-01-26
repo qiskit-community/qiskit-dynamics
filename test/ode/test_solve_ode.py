@@ -13,7 +13,6 @@
 
 """Tests for solve_ode."""
 
-import unittest
 import numpy as np
 from scipy.linalg import expm
 
@@ -23,10 +22,10 @@ from qiskit_ode.models import GeneratorModel
 from qiskit_ode.signals import Constant, Signal
 from qiskit_ode.dispatch import Array
 
-from .test_jax_base import TestJaxBase
+from .common import QiskitOdeTestCase, TestJaxBase
 
 
-class Testsolve_ode_exceptions(unittest.TestCase):
+class Testsolve_ode_exceptions(QiskitOdeTestCase):
     """Test exceptions of solve_ode."""
 
     def test_method_does_not_exist(self):
@@ -42,7 +41,7 @@ class Testsolve_ode_exceptions(unittest.TestCase):
 
 
 # pylint: disable=too-many-instance-attributes
-class Testsolve_ode_Base(unittest.TestCase):
+class Testsolve_ode_Base(QiskitOdeTestCase):
     """Some reusable routines for testing basic solving functionality."""
 
     def setUp(self):
@@ -110,10 +109,6 @@ class Testsolve_ode_Base(unittest.TestCase):
                             rtol=1e-10)
         expected = Array([1./3])
         self.assertAllClose(results.y[-1], expected)
-
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class Testsolve_ode_numpy(Testsolve_ode_Base):

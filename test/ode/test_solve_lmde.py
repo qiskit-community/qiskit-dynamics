@@ -13,7 +13,6 @@
 
 """Tests for solve_lmde and related functions."""
 
-import unittest
 import numpy as np
 from scipy.linalg import expm
 
@@ -23,10 +22,10 @@ from qiskit_ode import solve_lmde
 from qiskit_ode.solve import setup_lmde_frames_and_generator, lmde_y0_reshape
 from qiskit_ode.dispatch import Array
 
-from .test_jax_base import TestJaxBase
+from .common import QiskitOdeTestCase, TestJaxBase
 
 
-class TestLMDESetup(unittest.TestCase):
+class TestLMDESetup(QiskitOdeTestCase):
     """Test solve_lmde helper functions."""
 
     def setUp(self):
@@ -128,10 +127,6 @@ class TestLMDESetup(unittest.TestCase):
 
         self.assertTrue(np.allclose(expected, output))
 
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
-
 
 class TestLMDESetupJax(TestLMDESetup, TestJaxBase):
     """Jax version of TestLMDESetup tests.
@@ -141,7 +136,7 @@ class TestLMDESetupJax(TestLMDESetup, TestJaxBase):
 
 
 # pylint: disable=too-many-instance-attributes
-class Testsolve_lmde_Base(unittest.TestCase):
+class Testsolve_lmde_Base(QiskitOdeTestCase):
     """Some reusable routines for testing basic solving functionality."""
 
     def setUp(self):
@@ -169,10 +164,6 @@ class Testsolve_lmde_Base(unittest.TestCase):
         expected = expm(-1j * np.pi * self.X.data)
 
         self.assertAllClose(results.y[-1], expected)
-
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class Testsolve_lmde_jax(Testsolve_lmde_Base, TestJaxBase):

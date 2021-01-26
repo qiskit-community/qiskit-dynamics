@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -12,11 +10,6 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-r"""
-Wrappers for calling differential equations solvers,
-providing standardized method signatures and return types.
-"""
-
-from .jax_expm_solver import jax_expm_solver
-from .jax_odeint import jax_odeint
-from .scipy_solve_ivp import scipy_solve_ivp
+'''
+solvers tests
+'''

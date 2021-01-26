@@ -15,7 +15,7 @@
 Wrapper for calling scipy.integrate.solve_ivp.
 """
 
-from typing import Callable, Union
+from typing import Callable, Union, Optional, Tuple, List
 
 import numpy as np
 from scipy.integrate import solve_ivp, OdeSolver
@@ -35,6 +35,7 @@ def scipy_solve_ivp(rhs: Callable,
                     t_span: Array,
                     y0: Array,
                     method: Union[str, OdeSolver],
+                    t_eval: Optional[Union[Tuple, List, Array]] = None,
                     **kwargs):
     """Routine for calling `scipy.integrate.solve_ivp`.
 
@@ -42,14 +43,15 @@ def scipy_solve_ivp(rhs: Callable,
         rhs: Callable of the form :math:`f(t, y)`.
         t_span: Interval to solve over.
         y0: Initial state.
-        method: solver method.
-        kwargs: optional arguments for `solve_ivp`.
+        method: Solver method.
+        t_eval: Points at which to evaluate the solution.
+        kwargs: Optional arguments to be passed to ``solve_ivp``.
 
     Returns:
         OdeResult: results object
 
     Raises:
-        QiskitError: if unsupported kwarg present
+        QiskitError: If unsupported kwarg present.
     """
 
     if kwargs.get('dense_output', False) is True:
@@ -77,6 +79,7 @@ def scipy_solve_ivp(rhs: Callable,
     results = solve_ivp(rhs,
                         t_span=t_span.data,
                         y0=y0.data,
+                        t_eval=t_eval,
                         method=method,
                         **kwargs)
     if embed_real:

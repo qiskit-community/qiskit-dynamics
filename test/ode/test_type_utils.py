@@ -13,7 +13,6 @@
 
 """Tests for type_utils.py."""
 
-import unittest
 import numpy as np
 from qiskit_ode.dispatch import Array
 
@@ -21,10 +20,10 @@ from qiskit_ode.type_utils import (convert_state,
                                    type_spec_from_instance,
                                    StateTypeConverter)
 
-from .test_jax_base import TestJaxBase
+from .common import QiskitOdeTestCase, TestJaxBase
 
 
-class TestTypeUtils(unittest.TestCase):
+class TestTypeUtils(QiskitOdeTestCase):
     """type_utils.py tests."""
 
     def test_convert_state_order_C(self):
@@ -221,10 +220,6 @@ class TestTypeUtils(unittest.TestCase):
         output = new_generator(test_t)
 
         self.assertAllClose(output, expected_output)
-
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class TestTypeUtilsJax(TestTypeUtils, TestJaxBase):

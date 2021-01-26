@@ -13,19 +13,17 @@
 
 """tests for quantum_models.HamiltonianModel"""
 
-import unittest
 import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import HamiltonianModel
 from qiskit_ode.signals import Constant, Signal, VectorSignal
 from qiskit_ode.dispatch import Array
-from ..test_jax_base import TestJaxBase
+from ..common import QiskitOdeTestCase, TestJaxBase
 
 
-class TestHamiltonianModel(unittest.TestCase):
-    """Tests for HamiltonianModel.
-    """
+class TestHamiltonianModel(QiskitOdeTestCase):
+    """Tests for HamiltonianModel."""
 
     def setUp(self):
         self.X = Array(Operator.from_label('X').data)
@@ -223,10 +221,6 @@ class TestHamiltonianModel(unittest.TestCase):
         expected = (2 * np.pi * (self.r / 2) * dRe * self.X.data / 2 +
                     2 * np.pi * (self.r / 2) * dIm * self.Y.data / 2)
         self.assertAllClose(eval_rwa, expected)
-
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):

@@ -13,17 +13,16 @@
 
 """Tests for quantum_models.LindbladModel"""
 
-import unittest
 import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import HamiltonianModel, LindbladModel
 from qiskit_ode.signals import Constant, Signal, VectorSignal
 from qiskit_ode.dispatch import Array
-from ..test_jax_base import TestJaxBase
+from ..common import QiskitOdeTestCase, TestJaxBase
 
 
-class TestLindbladModel(unittest.TestCase):
+class TestLindbladModel(QiskitOdeTestCase):
     """Tests for LindbladModel."""
 
     def setUp(self):
@@ -174,10 +173,6 @@ class TestLindbladModel(unittest.TestCase):
             diss_part += c * (D @ A @ Dadj - 0.5 * (DadjD @ A + A @ DadjD))
 
         return ham_part + diss_part
-
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):

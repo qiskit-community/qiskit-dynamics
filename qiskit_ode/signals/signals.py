@@ -230,13 +230,9 @@ class PiecewiseConstant(BaseSignal):
 
     def envelope_value(self, t: float = 0.) -> complex:
 
-        idx = int((t - self._start_time) // self._dt)
+        idx = Array((t - self._start_time) // self._dt, dtype=int)
 
-        # if the index is beyond the final time, return 0
-        if idx >= self.duration or idx < 0:
-            return 0.0j
-
-        return Array(self._samples[idx])
+        return Array(self._samples.data[idx.data])
 
     def value(self, t: float = 0.) -> Array:
         """Return the value of the signal at time t."""

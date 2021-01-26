@@ -15,13 +15,20 @@
 Tests for signals.
 """
 
-import unittest
 import numpy as np
 
 from qiskit_ode.signals import Constant, PiecewiseConstant, Signal
+from qiskit_ode.dispatch import Array
+
+from ..common import QiskitOdeTestCase, TestJaxBase
+
+try:
+    from jax import jit, grad
+except ImportError:
+    pass
 
 
-class TestSignals(unittest.TestCase):
+class TestSignals(QiskitOdeTestCase):
     """Tests for signals."""
 
     def setUp(self):
@@ -167,3 +174,36 @@ class TestSignals(unittest.TestCase):
         self.assertEqual((pwc1 + pwc2).envelope_value(4.0), expected)
         self.assertEqual((pwc1 + pwc2).value(), 0.0)
         self.assertEqual((pwc1 + pwc2).value(4.0), expected)
+
+
+class TestSignalsJax(QiskitOdeTestCase, TestJaxBase):
+    """Tests with some JAX functionality."""
+
+    def test_jit_PiecewiseConstant(self):
+        """Verify that jit works through PiecewiseConstant."""
+
+        test_sig = PiecewiseConstant(dt=1., samples=Array([1., 2., 3.]))
+
+        jit_eval = jit(lambda t: test_sig.value(t).data)
+
+        val1 = jit_eval(0.5)
+        expected = 1.
+        self.assertEqual(val1, expected)
+
+        val2 = jit_eval(2.41)
+        expected = 3.
+        self.assertEqual(val2, expected)
+
+    def test_grad_PiecewiseConstant(self):
+        """Verify that grad works through PiecewiseConstant."""
+
+        def test_func(val):
+            sig = PiecewiseConstant(dt=1., samples=val * Array([1., 2., 3.]))
+            return np.real(sig.value(1.5)).data
+
+        grad_func = grad(test_func)
+
+        output = grad_func(3.)
+        expected = 2.
+
+        self.assertEqual(output, expected)

@@ -23,7 +23,7 @@ from qiskit_ode.signals import Constant, Signal
 from qiskit_ode import solve_lmde
 from qiskit_ode.dispatch import Array
 
-from .test_jax_base import TestJaxBase
+from .common import TestJaxBase
 
 try:
     from jax import jit, grad
@@ -47,6 +47,8 @@ class TestJaxTransformations(TestJaxBase):
 
         ham = HamiltonianModel(operators=operators)
 
+        self.ham = ham
+
         def param_sim(amp, drive_freq):
             signals = [Constant(1.),
                        Signal(lambda t: amp, carrier_freq=drive_freq)]
@@ -63,6 +65,59 @@ class TestJaxTransformations(TestJaxBase):
             return results.y[-1]
 
         self.param_sim = param_sim
+
+    def test_jit_solve_t_eval_jax_odeint(self):
+        """Test compiling with a passed t_eval."""
+
+        def t_eval_param_sim(amp, drive_freq):
+            signals = [Constant(1.),
+                       Signal(lambda t: amp, carrier_freq=drive_freq)]
+
+            ham_copy = self.ham.copy()
+            ham_copy.signals = signals
+
+            results = solve_lmde(ham_copy,
+                                 t_span=[0., 1 / self.r],
+                                 y0=Array([0., 1.], dtype=complex),
+                                 method='jax_odeint',
+                                 t_eval=[0., 0.5 / self.r, 1 / self.r],
+                                 atol=1e-10,
+                                 rtol=1e-10)
+            return results.y.data
+
+        jit_sim = jit(t_eval_param_sim)
+
+        yf = jit_sim(1., self.w)
+        yf2 = jit_sim(2., self.w)
+
+        # simple tests to verify correctness
+        self.assertTrue(np.abs(yf[-1][0])**2 > 0.999)
+        self.assertTrue(np.abs(yf2[-1][0])**2 < 0.001)
+
+    def test_jit_solve_t_span(self):
+        """Test compiling when t_span is influenced by the inputs."""
+
+        def param_sim(amp, drive_freq):
+            signals = [Constant(1.),
+                       Signal(lambda t: amp, carrier_freq=drive_freq)]
+
+            ham_copy = self.ham.copy()
+            ham_copy.signals = signals
+
+            results = solve_lmde(ham_copy,
+                                 t_span=[0., (1 / self.r) * amp],
+                                 y0=Array([0., 1.], dtype=complex),
+                                 method='jax_odeint',
+                                 atol=1e-10,
+                                 rtol=1e-10)
+            return results.y[-1]
+
+        jit_sim = jit(param_sim)
+
+        yf = jit_sim(1., self.w)
+
+        # simple tests to verify correctness
+        self.assertTrue(np.abs(yf[0])**2 > 0.999)
 
     def test_jit_solve(self):
         """Test compiling a parameterized Hamiltonian simulation."""

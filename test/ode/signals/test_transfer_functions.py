@@ -14,12 +14,14 @@
 """
 Tests for signal transfer functions.
 """
-import unittest
+
 import numpy as np
 from qiskit_ode.signals import Convolution, PiecewiseConstant
 
+from ..common import QiskitOdeTestCase
 
-class TestTransferFunctions(unittest.TestCase):
+
+class TestTransferFunctions(QiskitOdeTestCase):
     """Tests for transfer functions."""
 
     def setUp(self):

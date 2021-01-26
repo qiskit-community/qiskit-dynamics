@@ -62,7 +62,7 @@ or a subclass of :class:`~qiskit_ode.models.generator_models.BaseGeneratorModel`
    solve_lmde
 """
 
-from typing import Optional, Union, Callable, Tuple, Any, Type
+from typing import Optional, Union, Callable, Tuple, Any, Type, List
 import inspect
 
 from scipy.integrate import OdeSolver
@@ -77,9 +77,9 @@ from qiskit.quantum_info import SuperOp, Operator
 
 from qiskit import QiskitError
 from qiskit_ode import dispatch
-from qiskit_ode.dispatch import Array
+from qiskit_ode.dispatch import Array, requires_backend
 
-from .solvers.solve_jax_expm import solve_jax_expm
+from .solvers.jax_expm_solver import jax_expm_solver
 from .solvers.scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .solvers.jax_odeint import jax_odeint
 
@@ -87,11 +87,17 @@ from .models.frame import Frame
 from .models.generator_models import BaseGeneratorModel, CallableGenerator
 from .models import HamiltonianModel
 
+try:
+    from jax.lax import scan
+except ImportError:
+    pass
+
 
 def solve_ode(rhs: Callable,
               t_span: Array,
               y0: Union[Array, QuantumState, BaseOperator],
               method: Optional[Union[str, OdeSolver]] = 'DOP853',
+              t_eval: Optional[Union[Tuple, List, Array]] = None,
               **kwargs):
     r"""General interface for solving Ordinary Differential Equations (ODEs).
     ODEs are differential equations of the form
@@ -120,6 +126,8 @@ def solve_ode(rhs: Callable,
         t_span: ``Tuple`` or ``list`` of initial and final time.
         y0: State at initial time.
         method: Solving method to use.
+        t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
+                the solution will be returned at the points in ``t_span``.
         kwargs: Additional arguments to pass to the solver.
 
     Returns:
@@ -136,9 +144,9 @@ def solve_ode(rhs: Callable,
     # solve the problem using specified method
     results = None
     if (method in SOLVE_IVP_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver))):
-        results = scipy_solve_ivp(rhs, t_span, y0, method, **kwargs)
+        results = scipy_solve_ivp(rhs, t_span, y0, method, t_eval, **kwargs)
     elif isinstance(method, str) and method == 'jax_odeint':
-        results = jax_odeint(rhs, t_span, y0, **kwargs)
+        results = jax_odeint(rhs, t_span, y0, t_eval, **kwargs)
     else:
         raise QiskitError("""Specified method is not a supported ODE method.""")
     if y0_cls is not None:
@@ -150,6 +158,7 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
                t_span: Array,
                y0: Union[Array, QuantumState, BaseOperator],
                method: Optional[Union[str, OdeSolver]] = 'DOP853',
+               t_eval: Optional[Union[Tuple, List, Array]] = None,
                input_frame: Optional[Union[str, Array]] = 'auto',
                solver_frame: Optional[Union[str, Array]] = 'auto',
                output_frame: Optional[Union[str, Array]] = 'auto',
@@ -179,8 +188,7 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
     Optional arguments for any of the solver routines can be passed via ``kwargs``.
     Available LMDE-specific methods are:
 
-    - ``'jax_expm'`` - a ``jax``-based exponential solver. Requires argument
-      ``max_dt`` passed in ``kwargs``.
+    - ``'jax_expm'``: a ``jax``-based exponential solver. Requires additional kwarg ``max_dt``.
 
     Results are returned as a :class:`OdeResult` object.
 
@@ -189,6 +197,8 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
         t_span: ``Tuple`` or `list` of initial and final time.
         y0: State at initial time.
         method: Solving method to use.
+        t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
+                the solution will be returned at the points in ``t_span``.
         input_frame: Frame that the initial state is specified in. If ``input_frame == 'auto'``,
                      defaults to using the frame the generator is specified in.
         solver_frame: Frame to solve the system in. If ``solver_frame == 'auto'``, defaults to
@@ -235,30 +245,44 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
         return generator(t, y, in_frame_basis=True)
 
     if method == 'jax_expm':
-        # Use generator model specific expm
-        results = solve_jax_expm(solver_generator,
-                                 t_span,
-                                 y0,
-                                 **kwargs)
+        results = jax_expm_solver(solver_generator,
+                                  t_span,
+                                  y0,
+                                  t_eval=t_eval,
+                                  **kwargs)
     else:
         # method is not LMDE-specific, so pass to solve_ode using rhs
-        results = solve_ode(solver_rhs, t_span, y0, method=method, **kwargs)
+        results = solve_ode(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
 
     # convert any states in results to correct basis/frame
-    output_states = []
-    for idx in range(len(results.y)):
-        time = results.t[idx]
-        out_y = results.y[idx]
+    output_states = None
 
-        # transform out of solver frame/basis into output frame
-        out_y = generator.frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
-        out_y = output_frame.state_into_frame(time, out_y)
+    # pylint: disable=too-many-boolean-expressions
+    if (results.y.backend == 'jax' and
+            (generator.frame.frame_diag is None or generator.frame.frame_diag.backend == 'jax') and
+            (output_frame.frame_diag is None or output_frame.frame_diag.backend == 'jax') and
+            y0_cls is None):
+        # if all relevant objects are jax-compatible, run jax-customized version
+        output_states = _jax_lmde_output_state_converter(results.t,
+                                                         results.y,
+                                                         generator.frame,
+                                                         output_frame,
+                                                         return_shape,
+                                                         y0_cls)
+    else:
+        output_states = []
+        for idx in range(len(results.y)):
+            time = results.t[idx]
+            out_y = results.y[idx]
 
-        # reshape to match input shape if necessary
-        out_y = final_state_converter(out_y.reshape(return_shape, order='F').data, y0_cls)
-        output_states.append(out_y)
-    if y0_cls is None:
-        output_states = Array(output_states)
+            # transform out of solver frame/basis into output frame
+            out_y = generator.frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
+            out_y = output_frame.state_into_frame(time, out_y)
+
+            # reshape to match input shape if necessary
+            out_y = final_state_converter(out_y.reshape(return_shape, order='F').data, y0_cls)
+            output_states.append(out_y)
+
     results.y = output_states
 
     return results
@@ -401,3 +425,47 @@ def final_state_converter(obj: Any, cls: Optional[Type] = None) -> Any:
         return cls(obj.data)
 
     return cls(obj)
+
+
+@requires_backend('jax')
+def _jax_lmde_output_state_converter(times: Array,
+                                     ys: Array,
+                                     solver_frame: Frame,
+                                     output_frame: Frame,
+                                     return_shape: Tuple,
+                                     y0_cls: object) -> Union[List, Array]:
+    """Jax control-flow based output state converter for solve_lmde.
+
+    Args:
+        times: Array of times.
+        ys: Array of output states.
+        solver_frame: Frame of the solver (that the ys are specified in). Assumed
+                      to be implemented with Jax backend.
+        output_frame: Frame to be converted to.
+        return_shape: Shape for output states.
+        y0_cls: Output state return class.
+
+    Returns:
+        Union[List, Array]: output states
+    """
+
+    def scan_f(_, x):
+        time, out_y = x
+        out_y = solver_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
+        out_y = output_frame.state_into_frame(time, out_y)
+        out_y = out_y.reshape(return_shape, order='F').data
+        return None, out_y
+
+    # scan, ensuring that the times and ys are in fact an Array
+    final_states = scan(scan_f, init=None,
+                        xs=(Array(times).data, Array(ys).data))[1]
+
+    # final class setting needs to be python-looped, if necessary
+    if y0_cls is not None:
+        output_states = []
+        for state in final_states:
+            output_states.append(final_state_converter(state, y0_cls))
+
+        return output_states
+    else:
+        return Array(final_states)

@@ -13,7 +13,6 @@
 
 """Tests for operator_models.py"""
 
-import unittest
 import numpy as np
 from scipy.linalg import expm
 from qiskit import QiskitError
@@ -22,10 +21,10 @@ from qiskit_ode.models import GeneratorModel
 from qiskit_ode.models.generator_models import CallableGenerator
 from qiskit_ode.signals import Constant, Signal, VectorSignal
 from qiskit_ode.dispatch import Array
-from ..test_jax_base import TestJaxBase
+from ..common import QiskitOdeTestCase, TestJaxBase
 
 
-class TestGeneratorModel(unittest.TestCase):
+class TestGeneratorModel(QiskitOdeTestCase):
     """Tests for GeneratorModel."""
 
     def setUp(self):
@@ -295,7 +294,7 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
     """
 
 
-class TestCallableGenerator(unittest.TestCase):
+class TestCallableGenerator(QiskitOdeTestCase):
     """Tests for CallableGenerator."""
 
     def setUp(self):
@@ -359,10 +358,6 @@ class TestCallableGenerator(unittest.TestCase):
                     frame_operator)
 
         self.assertAllClose(value, expected)
-
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):

@@ -13,17 +13,16 @@
 
 """tests for frame.py"""
 
-import unittest
 import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models.frame import Frame
 from qiskit_ode.dispatch import Array
-from ..test_jax_base import TestJaxBase
+from ..common import QiskitOdeTestCase, TestJaxBase
 
 
-class TestFrame(unittest.TestCase):
+class TestFrame(QiskitOdeTestCase):
     """Tests for Frame."""
 
     def setUp(self):
@@ -500,10 +499,6 @@ class TestFrame(unittest.TestCase):
 
         self.assertAllClose(ops_w_cutoff, ops_w_cutoff_expect)
         self.assertAllClose(ops_w_conj_cutoff, ops_w_conj_cutoff_expect)
-
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
 class TestFrameJax(TestFrame, TestJaxBase):

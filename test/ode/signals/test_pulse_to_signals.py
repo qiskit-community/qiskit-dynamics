@@ -13,7 +13,6 @@
 Tests to convert from pulse schedules to signals.
 """
 
-import unittest
 import numpy as np
 
 from qiskit.pulse import (Schedule, DriveChannel, Play, Drag, ShiftFrequency,
@@ -21,8 +20,10 @@ from qiskit.pulse import (Schedule, DriveChannel, Play, Drag, ShiftFrequency,
 from qiskit_ode.converters import InstructionToSignals
 from qiskit_ode.signals import PiecewiseConstant
 
+from ..common import QiskitOdeTestCase
 
-class TestPulseToSignals(unittest.TestCase):
+
+class TestPulseToSignals(QiskitOdeTestCase):
     """Tests the conversion between pulse schedules and signals."""
 
     def test_pulse_to_signals(self):
