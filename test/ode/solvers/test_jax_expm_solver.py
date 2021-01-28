@@ -17,6 +17,7 @@ Direct tests of jax_expm_solver
 
 import numpy as np
 
+from qiskit_ode.dispatch import Array
 from qiskit_ode.solvers import jax_expm_solver
 
 from ..common import QiskitOdeTestCase, TestJaxBase
@@ -183,3 +184,28 @@ class TestJaxExpmSolver(QiskitOdeTestCase, TestJaxBase):
         expected_y = jnp.array([expected_y0, expected_y1, expected_y2])
 
         self.assertAllClose(expected_y, results.y)
+
+    def test_t_span_with_jit(self):
+        """Test handling of t_span as a list with jit."""
+
+        from jax import jit
+
+        t_span = [0., 1.]
+        y0 = jnp.array([[1., 0.], [0., 1.]], dtype=complex)
+
+        def func(amp):
+            results = jax_expm_solver(lambda t: amp * self.constant_generator(t),
+                                      t_span,
+                                      y0,
+                                      max_dt=0.1)
+            return Array(results.y[-1]).data
+
+        jit_func = jit(func)
+
+        output = jit_func(1.)
+
+        gen = self.constant_generator(0.)
+
+        expected_y = jexpm(1. * gen)
+
+        self.assertAllClose(expected_y, output)

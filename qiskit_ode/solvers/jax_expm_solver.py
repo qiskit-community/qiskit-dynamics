@@ -59,10 +59,10 @@ def jax_expm_solver(generator: Callable,
     # time args are non-differentiable
     t_span = Array(t_span, backend='numpy').data
     max_dt = Array(max_dt, backend='numpy').data
-    t_list = merge_t_args(t_span, t_eval)
+    t_list = np.array(merge_t_args(t_span, t_eval))
 
     delta_t_list = np.diff(t_list)
-    n_steps_list = np.abs(np.array(delta_t_list / max_dt)).astype(int)
+    n_steps_list = np.abs(delta_t_list / max_dt).astype(int)
 
     # correct potential rounding errors
     # pylint: disable=consider-using-enumerate
