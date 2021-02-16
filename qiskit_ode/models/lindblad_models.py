@@ -91,8 +91,9 @@ class LindbladModel(GeneratorModel):
             if noise_signals is None:
                 sig_val = np.ones(len(noise_operators), dtype=complex)
                 carrier_freqs = np.zeros(len(noise_operators), dtype=float)
+                phases = np.zeros(len(noise_operators), dtype=float)
                 noise_signals = VectorSignal(envelope=lambda t: sig_val,
-                                             carrier_freqs=carrier_freqs)
+                                             carrier_freqs=carrier_freqs, phases=phases)
             elif isinstance(noise_signals, list):
                 noise_signals = VectorSignal.from_signal_list(noise_signals)
             elif not isinstance(noise_signals, VectorSignal):
@@ -105,11 +106,15 @@ class LindbladModel(GeneratorModel):
             full_carrier_freqs = np.append(hamiltonian_signals.carrier_freqs,
                                            noise_signals.carrier_freqs)
 
+            full_carrier_phases = np.append(hamiltonian_signals.phases,
+                                            noise_signals.phases)
+
             full_drift_array = np.append(hamiltonian_signals.drift_array,
                                          noise_signals.drift_array)
 
             full_signals = VectorSignal(envelope=full_envelope,
                                         carrier_freqs=full_carrier_freqs,
+                                        phases=full_carrier_phases,
                                         drift_array=full_drift_array)
 
         super().__init__(operators=full_operators,

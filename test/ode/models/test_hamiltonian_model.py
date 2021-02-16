@@ -157,8 +157,9 @@ class TestHamiltonianModel(QiskitOdeTestCase):
         rand_coeffs = (rng.uniform(low=-b, high=b, size=(num_terms)) +
                        1j * rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers)
+        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
         rng = np.random.default_rng(94818)
         num_terms = 5
@@ -178,16 +179,17 @@ class TestHamiltonianModel(QiskitOdeTestCase):
         rand_coeffs = (rng.uniform(low=-b, high=b, size=(num_terms)) +
                        1j * rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers)
+        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
-    def _test_evaluate(self, frame_op, operators, coefficients, carriers):
+    def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
 
-        vec_sig = VectorSignal(lambda t: coefficients, carriers)
+        vec_sig = VectorSignal(lambda t: coefficients, carriers, phases)
         model = HamiltonianModel(operators, vec_sig, frame=frame_op)
 
         value = model.evaluate(1.)
-        coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.))
+        coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1. + 1j * phases))
         expected = (expm(1j * np.array(frame_op)) @ np.tensordot(coeffs, operators, axes=1) @
                     expm(-1j * np.array(frame_op)) - frame_op)
 

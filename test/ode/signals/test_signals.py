@@ -54,12 +54,18 @@ class TestSignals(QiskitOdeTestCase):
         self.assertEqual(signal.value(), 0.25)
         self.assertEqual(signal.value(1.0), 0.25*np.exp(0.3*2.j*np.pi))
 
+        signal = Signal(0.25, carrier_freq=0.3, phase=0.5)
+        self.assertEqual(signal.value(1.0), 0.25 * np.exp(0.3 * 2.j * np.pi + 0.5j))
+
         # Signal with parabolic amplitude
         signal = Signal(lambda t: 2.0*t**2, carrier_freq=0.1)
         self.assertEqual(signal.envelope_value(), 0.0)
         self.assertEqual(signal.envelope_value(3.0), 18.0)
         self.assertEqual(signal.value(), 0.0)
         self.assertEqual(signal.value(2.0), 8.0*np.exp(0.1*2.j*np.pi*2.0))
+
+        signal = Signal(lambda t: 2.0 * t ** 2, carrier_freq=0.1, phase=-0.1)
+        self.assertEqual(signal.value(2.0), 8.0 * np.exp(0.1 * 2.j * np.pi * 2.0 - 0.1j))
 
     def test_piecewise_constant(self):
         """Test PWC signal."""
@@ -73,6 +79,10 @@ class TestSignals(QiskitOdeTestCase):
         self.assertEqual(piecewise_const.envelope_value(2.0), 1.0)
         self.assertEqual(piecewise_const.value(), 0.0)
         self.assertEqual(piecewise_const.value(3.0), 2.0*np.exp(0.5*2.j*np.pi*3.0))
+
+        piecewise_const = PiecewiseConstant(dt=dt, samples=samples,
+                                            carrier_freq=carrier_freq, phase=0.5)
+        self.assertEqual(piecewise_const.value(3.0), 2.0 * np.exp(0.5 * 2.j * np.pi * 3.0 + 0.5j))
 
     def test_multiplication(self):
         """Tests the multiplication of signals."""
@@ -124,6 +134,10 @@ class TestSignals(QiskitOdeTestCase):
         self.assertEqual((pwc1 * pwc2).value(), 0.0)
         self.assertEqual((pwc1 * pwc2).value(4.0), 1.0*np.exp(0.6*2.j*np.pi*4.0))
 
+        # Test phase
+        pwc2 = PiecewiseConstant(dt=dt, samples=samples, carrier_freq=carrier_freq, phase=0.5)
+        self.assertEqual((pwc1 * pwc2).value(4.0), 1.0 * np.exp(0.6 * 2.j * np.pi * 4.0 + 0.5j))
+
     def test_addition(self):
         """Tests the multiplication of signals."""
 
@@ -174,6 +188,11 @@ class TestSignals(QiskitOdeTestCase):
         self.assertEqual((pwc1 + pwc2).envelope_value(4.0), expected)
         self.assertEqual((pwc1 + pwc2).value(), 0.0)
         self.assertEqual((pwc1 + pwc2).value(4.0), expected)
+
+        # Test phase
+        pwc2 = PiecewiseConstant(dt=dt, samples=samples, carrier_freq=carrier_freq, phase=0.5)
+        expected = 1. * np.exp(0.5 * 2.j * np.pi * 4.0) + 1. * np.exp(0.1 * 2.j * np.pi * 4.0 + .5j)
+        self.assertEqual((pwc1 + pwc2).envelope_value(4.0), expected)
 
 
 class TestSignalsJax(QiskitOdeTestCase, TestJaxBase):

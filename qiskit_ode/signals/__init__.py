@@ -43,4 +43,4 @@ Transfer Functions
 """
 
 from .signals import BaseSignal, Signal, VectorSignal, PiecewiseConstant, Constant
-from .transfer_functions import Convolution
+from .transfer_functions import Convolution, Sampler, IQMixer

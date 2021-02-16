@@ -34,6 +34,18 @@ class BaseSignal(ABC):
     def __init__(self, name: str = None):
         """Init function."""
         self._name = name
+        self._carrier_freq = Array(0.)
+        self._phase = Array(0.)
+
+    @property
+    def carrier_freq(self):
+        """Return the carrier frequency of the signal."""
+        return self._carrier_freq
+
+    @property
+    def phase(self):
+        """Return the phase of the Signal."""
+        return self._phase
 
     @abstractmethod
     def conjugate(self):
@@ -46,6 +58,23 @@ class BaseSignal(ABC):
     @abstractmethod
     def value(self, t: float = 0.) -> complex:
         """Return the value of the signal at time t."""
+
+    def to_pwc(self, dt: float, n_samples: int, start_time: float = 0.) -> 'PiecewiseConstant':
+        """
+        Converts a signal to a piecewise constant signal.
+
+        Args:
+            dt: Time increment to use.
+            n_samples: number of steps to resample with.
+            start_time: start time from which to resample.
+
+        Returns:
+            A piecewiseConstant signal.
+        """
+        samples = [self.envelope_value(dt * idx + start_time) for idx in range(n_samples)]
+
+        return PiecewiseConstant(dt, samples, start_time=start_time,
+                                 carrier_freq=self.carrier_freq, phase=self.phase)
 
     def __mul__(self, other):
         return signal_multiply(self, other)
@@ -102,6 +131,7 @@ class Signal(BaseSignal):
     def __init__(self,
                  envelope: Union[Callable, complex, float, int],
                  carrier_freq: float = 0.,
+                 phase: float = 0.,
                  name: str = None):
         """
         Initializes a signal given by an envelop and an optional carrier.
@@ -109,8 +139,11 @@ class Signal(BaseSignal):
         Args:
             envelope: Envelope function of the signal.
             carrier_freq: Frequency of the carrier.
+            phase: The phase of the carrier.
             name: name of signal.
         """
+        super().__init__(name)
+
         if isinstance(envelope, (float, int)):
             envelope = complex(envelope)
 
@@ -119,9 +152,8 @@ class Signal(BaseSignal):
         else:
             self.envelope = envelope
 
-        self.carrier_freq = Array(carrier_freq)
-
-        super().__init__(name)
+        self._carrier_freq = Array(carrier_freq)
+        self._phase = Array(phase)
 
     def envelope_value(self, t: float = 0.) -> Array:
         """Evaluates the envelope at time t."""
@@ -129,11 +161,12 @@ class Signal(BaseSignal):
 
     def value(self, t: float = 0.) -> Array:
         """Return the value of the signal at time t."""
-        return self.envelope_value(t) * np.exp(1j * 2 * np.pi * self.carrier_freq * t)
+        arg = 1j * 2 * np.pi * self.carrier_freq * t + 1j * self.phase
+        return self.envelope_value(t) * np.exp(arg)
 
     def conjugate(self):
         """Return a new signal that is the complex conjugate of this one"""
-        return Signal(lambda t: self.envelope_value(t).conjugate(), -self.carrier_freq)
+        return Signal(lambda t: self.envelope_value(t).conjugate(), -self.carrier_freq, -self.phase)
 
 
 class Constant(BaseSignal):
@@ -172,7 +205,8 @@ class PiecewiseConstant(BaseSignal):
                  samples: Union[Array, List],
                  start_time: float = 0.,
                  duration: int = None,
-                 carrier_freq: float = 0,
+                 carrier_freq: float = 0.,
+                 phase: float = 0.,
                  name: str = None):
         """Initialize a piecewise constant signal.
 
@@ -182,8 +216,11 @@ class PiecewiseConstant(BaseSignal):
             start_time: The time at which the signal starts.
             duration: The duration of the signal in samples.
             carrier_freq: The frequency of the carrier.
+            phase: The phase of the carrier.
             name: name of the signal.
         """
+        super().__init__(name)
+
         self._dt = dt
 
         if samples is not None:
@@ -193,8 +230,8 @@ class PiecewiseConstant(BaseSignal):
 
         self._start_time = start_time
 
-        self.carrier_freq = Array(carrier_freq)
-        super().__init__(name)
+        self._carrier_freq = Array(carrier_freq)
+        self._phase = Array(phase)
 
     @property
     def duration(self) -> int:
@@ -236,14 +273,16 @@ class PiecewiseConstant(BaseSignal):
 
     def value(self, t: float = 0.) -> Array:
         """Return the value of the signal at time t."""
-        return self.envelope_value(t) * np.exp(1j * 2 * np.pi * self.carrier_freq * t)
+        arg = 1j * 2 * np.pi * self.carrier_freq * t + 1j * self.phase
+        return self.envelope_value(t) * np.exp(arg)
 
     def conjugate(self):
         return PiecewiseConstant(dt=self._dt,
                                  samples=np.conjugate(self._samples),
                                  start_time=self._start_time,
                                  duration=self.duration,
-                                 carrier_freq=self.carrier_freq)
+                                 carrier_freq=-self.carrier_freq,
+                                 phase=-self.phase)
 
     def add_samples(self, start_sample: int, samples: List):
         """
@@ -305,18 +344,20 @@ def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
         return Constant(sig1.value() * sig2.value())
 
     elif isinstance(sig1, Constant) and isinstance(sig2, Signal):
-        return Signal(lambda t: sig1.value() * sig2.envelope_value(t), sig2.carrier_freq)
+        return Signal(lambda t: sig1.value() * sig2.envelope_value(t), sig2.carrier_freq,
+                      sig2.phase)
 
     elif isinstance(sig1, Constant) and isinstance(sig2, PiecewiseConstant):
         return PiecewiseConstant(sig2.dt,
                                  sig1.value()*sig2.samples,
                                  carrier_freq=sig2.carrier_freq,
+                                 phase=sig2.phase,
                                  start_time=sig2.start_time)
 
     # Multiplications with Signal
     elif isinstance(sig1, Signal) and isinstance(sig2, Signal):
         return Signal(lambda t: sig1.envelope_value() * sig2.envelope_value(t),
-                      sig1.carrier_freq + sig2.carrier_freq)
+                      sig1.carrier_freq + sig2.carrier_freq, sig1.phase + sig2.phase)
 
     elif isinstance(sig1, Signal) and isinstance(sig2, PiecewiseConstant):
         new_samples = []
@@ -325,9 +366,11 @@ def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
                                                             sig2.start_time))
 
         freq = sig1.carrier_freq + sig2.carrier_freq
+        phase = sig1.phase + sig2.phase
         return PiecewiseConstant(sig2.dt,
                                  new_samples,
                                  carrier_freq=freq,
+                                 phase=phase,
                                  start_time=sig2.start_time)
 
     # Multiplications with PiecewiseConstant
@@ -340,9 +383,9 @@ def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
         for idx, sample in enumerate(sig1.samples):
             new_samples.append(sample * sig2.envelope_value(sig1.dt*idx + sig1.start_time))
 
-        return PiecewiseConstant(sig1.dt,
-                                 new_samples,
-                                 carrier_freq=sig1.carrier_freq + sig2.carrier_freq)
+        freq = sig1.carrier_freq + sig2.carrier_freq
+        phase = sig1.phase + sig2.phase
+        return PiecewiseConstant(sig1.dt, new_samples, carrier_freq=freq, phase=phase)
 
     # Other symmetric cases
     # pylint: disable=arguments-out-of-order
@@ -385,7 +428,7 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
         return Constant(sig1.value() + sig2.value())
 
     elif isinstance(sig1, Constant) and isinstance(sig2, Signal):
-        return Signal(lambda t: sig1.value() + sig2.value(t), carrier_freq=0.)
+        return Signal(lambda t: sig1.value() + sig2.value(t))
 
     elif isinstance(sig1, Constant) and isinstance(sig2, PiecewiseConstant):
         new_samples = []
@@ -393,29 +436,27 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
             t = sig2.dt*idx + sig2.start_time
             new_samples.append(sig1.value() + sig2.value(t))
 
-        return PiecewiseConstant(sig2.dt,
-                                 new_samples,
-                                 start_time=sig2.start_time,
-                                 carrier_freq=0.)
+        return PiecewiseConstant(sig2.dt, new_samples, start_time=sig2.start_time)
 
-    # Multiplications with Signal
+    # Addition with Signal
     elif isinstance(sig1, Signal) and isinstance(sig2, Signal):
-        if sig1.carrier_freq == sig2.carrier_freq:
-            return Signal(lambda t: (sig1.envelope_value(t) +
-                                     sig2.envelope_value(t)),
-                          sig1.carrier_freq)
+        if sig1.carrier_freq == sig2.carrier_freq and sig1.phase == sig2.phase:
+            return Signal(lambda t: (sig1.envelope_value(t) + sig2.envelope_value(t)),
+                          carrier_freq=sig1.carrier_freq, phase=sig1.phase)
         else:
-            return Signal(lambda t: sig1.value(t) + sig2.value(t), carrier_freq=0.)
+            return Signal(lambda t: sig1.value(t) + sig2.value(t))
 
     elif isinstance(sig1, Signal) and isinstance(sig2, PiecewiseConstant):
         new_samples = []
-        if sig1.carrier_freq == sig2.carrier_freq:
+        if sig1.carrier_freq == sig2.carrier_freq and sig1.phase == sig2.phase:
             carrier_freq = sig1.carrier_freq
+            phase = sig1.phase
             for idx, sample in enumerate(sig2.samples):
                 t = sig2.dt * idx + sig2.start_time
                 new_samples.append(sig1.envelope_value(t) + sample)
         else:
-            carrier_freq = 0.0
+            carrier_freq = 0.
+            phase = 0.
             for idx in range(len(sig2.samples)):
                 t = sig2.dt*idx + sig2.start_time
                 new_samples.append(sig1.value(t) + sig2.value(t))
@@ -423,9 +464,10 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
         return PiecewiseConstant(sig2.dt,
                                  new_samples,
                                  start_time=sig2.start_time,
-                                 carrier_freq=carrier_freq)
+                                 carrier_freq=carrier_freq,
+                                 phase=phase)
 
-    # Multiplications with PiecewiseConstant
+    # Additions with PiecewiseConstant
     elif isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
         if sig1.dt != sig2.dt:
             raise Exception('Cannot sum signals with different dt.')
@@ -438,14 +480,16 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
         duration = int((end_time - start_time) // sig1.dt)
 
         new_samples = []
-        if sig1.carrier_freq == sig2.carrier_freq:
+        if sig1.carrier_freq == sig2.carrier_freq and sig1.phase == sig2.phase:
             carrier_freq = sig1.carrier_freq
+            phase = sig1.phase
             for idx in range(duration):
                 t = start_time + idx * sig1.dt
                 new_samples.append(sig1.envelope_value(t) +
                                    sig2.envelope_value(t))
         else:
-            carrier_freq = 0.0
+            carrier_freq = 0.
+            phase = 0.
             for idx in range(duration):
                 t = start_time + idx * sig1.dt
                 new_samples.append(sig1.value(t) + sig2.value(t))
@@ -453,7 +497,8 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
         return PiecewiseConstant(sig1.dt,
                                  new_samples,
                                  start_time=start_time,
-                                 carrier_freq=carrier_freq)
+                                 carrier_freq=carrier_freq,
+                                 phase=phase)
 
     # Other symmetric cases
     # pylint: disable=arguments-out-of-order
@@ -473,6 +518,7 @@ class VectorSignal:
     def __init__(self,
                  envelope: Callable,
                  carrier_freqs: Array,
+                 phases: Array,
                  drift_array: Optional[Array] = None):
         """Initialize with vector-valued envelope, carrier frequencies for
         each entry, and a drift_array, which corresponds to the value of the
@@ -480,15 +526,18 @@ class VectorSignal:
 
         Args:
             envelope: function of a single float returning an array.
-            carrier_freqs: list of carrier frequences for each component of the
+            carrier_freqs: list of carrier frequencies for each component of the
                            envelope.
+            phases: list of carrier phases for each component of the envelope.
             drift_array: a default array meant to be the value of the envelope
                          when all "time-dependent terms" are off.
         """
         carrier_freqs = Array(carrier_freqs)
+        phases = Array(phases)
 
         self.envelope = envelope
         self.carrier_freqs = carrier_freqs
+        self.phases = phases
 
         self._im_angular_freqs = 1j * 2 * np.pi * carrier_freqs
 
@@ -515,10 +564,12 @@ class VectorSignal:
         def env_func(t):
             return Array([Array(sig.envelope_value(t)).data for sig in signal_list])
 
-        # construct carrier frequency list
+        # construct carrier frequency and phase list
         # if signal doesn't have a carrier, set to 0.
         carrier_freqs = Array([Array(getattr(sig, 'carrier_freq', 0.)).data
                                for sig in signal_list])
+
+        phases = Array([Array(getattr(sig, 'phase', 0.)).data for sig in signal_list])
 
         # construct drift_array
         drift_array = []
@@ -530,6 +581,7 @@ class VectorSignal:
 
         return cls(envelope=env_func,
                    carrier_freqs=carrier_freqs,
+                   phases=phases,
                    drift_array=Array(drift_array))
 
     def envelope_value(self, t: float) -> Array:
@@ -553,7 +605,7 @@ class VectorSignal:
             Array: the value of the signal (including carrier frequencies)
                       at time t
         """
-        carrier_val = np.exp(t * self._im_angular_freqs)
+        carrier_val = np.exp(t * self._im_angular_freqs + 1.0j * self.phases)
         return self.envelope_value(t) * carrier_val
 
     def conjugate(self):
@@ -564,4 +616,5 @@ class VectorSignal:
         """
         return VectorSignal(lambda t: np.conjugate(self.envelope_value(t)),
                             -self.carrier_freqs,
+                            -self.phases,
                             np.conjugate(self.drift_array))

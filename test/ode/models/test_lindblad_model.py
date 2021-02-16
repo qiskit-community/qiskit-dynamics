@@ -80,7 +80,8 @@ class TestLindbladModel(QiskitOdeTestCase):
         rand_ham_coeffs = (rng.uniform(low=-b, high=b, size=(num_ham)) +
                            1j * rng.uniform(low=-b, high=b, size=(num_ham)))
         rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
-        ham_sigs = VectorSignal(lambda t: rand_ham_coeffs, rand_ham_carriers)
+        rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
+        ham_sigs = VectorSignal(lambda t: rand_ham_coeffs, rand_ham_carriers, rand_ham_phases)
 
         # generate random dissipators
         rand_diss = Array(rng.uniform(low=-b, high=b, size=(num_diss, dim, dim)) +
@@ -90,7 +91,8 @@ class TestLindbladModel(QiskitOdeTestCase):
         rand_diss_coeffs = (rng.uniform(low=-b, high=b, size=(num_diss)) +
                             1j * rng.uniform(low=-b, high=b, size=(num_diss)))
         rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
-        diss_sigs = VectorSignal(lambda t: rand_diss_coeffs, rand_diss_carriers)
+        rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
+        diss_sigs = VectorSignal(lambda t: rand_diss_coeffs, rand_diss_carriers, rand_diss_phases)
 
         # random anti-hermitian frame operator
         rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
@@ -114,9 +116,11 @@ class TestLindbladModel(QiskitOdeTestCase):
         t = rng.uniform(low=-b, high=b)
         value = lindblad_model.lmult(t, A.flatten(order='F'))
 
-        ham_coeffs = np.real(rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t))
+        ham_coeffs = np.real(rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t +
+                                                      1j * rand_ham_phases))
         ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
-        diss_coeffs = np.real(rand_diss_coeffs * np.exp(1j * 2 * np.pi * rand_diss_carriers * t))
+        diss_coeffs = np.real(rand_diss_coeffs * np.exp(1j * 2 * np.pi * rand_diss_carriers * t +
+                                                        1j * rand_diss_phases))
 
         expected = self._evaluate_lindblad_rhs(A, ham,
                                                rand_diss,
