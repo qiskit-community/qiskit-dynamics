@@ -137,7 +137,7 @@ class TestLMDESetupJax(TestLMDESetup, TestJaxBase):
 
 # pylint: disable=too-many-instance-attributes
 class Testsolve_lmde_Base(QiskitOdeTestCase):
-    """Some reusable routines for testing basic solving functionality."""
+    """Some reusable routines for high level solve_lmde tests."""
 
     def setUp(self):
         self.t_span = [0., 1.]
@@ -166,9 +166,17 @@ class Testsolve_lmde_Base(QiskitOdeTestCase):
         self.assertAllClose(results.y[-1], expected)
 
 
-class Testsolve_lmde_jax(Testsolve_lmde_Base, TestJaxBase):
-    """Basic tests for jax lmde solvers."""
+class Testsolve_lmde_scipy_expm(Testsolve_lmde_Base):
+    """Basic tests for solve_lmde with method=='expm'."""
 
-    def test_jax_expm(self):
-        """Test jax_expm solver."""
+    def test_scipy_expm_solver(self):
+        """Test scipy_expm_solver."""
+        self._fixed_step_LMDE_method_tests('scipy_expm')
+
+
+class Testsolve_lmde_jax_expm(Testsolve_lmde_Base, TestJaxBase):
+    """Basic tests for solve_lmde with method=='jax_expm'."""
+
+    def test_jax_expm_solver(self):
+        """Test jax_expm_solver."""
         self._fixed_step_LMDE_method_tests('jax_expm')

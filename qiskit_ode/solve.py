@@ -79,7 +79,7 @@ from qiskit import QiskitError
 from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array, requires_backend
 
-from .solvers.jax_expm_solver import jax_expm_solver
+from .solvers.fixed_step_solvers import scipy_expm_solver, jax_expm_solver
 from .solvers.scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .solvers.jax_odeint import jax_odeint
 
@@ -188,7 +188,9 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
     Optional arguments for any of the solver routines can be passed via ``kwargs``.
     Available LMDE-specific methods are:
 
-    - ``'jax_expm'``: a ``jax``-based exponential solver. Requires additional kwarg ``max_dt``.
+    - ``'scipy_expm'``: A matrix-exponential solver using ``scipy.linalg.expm``.
+                        Requires additional kwarg ``max_dt``.
+    - ``'jax_expm'``: A ``jax``-based exponential solver. Requires additional kwarg ``max_dt``.
 
     Results are returned as a :class:`OdeResult` object.
 
@@ -244,7 +246,13 @@ def solve_lmde(generator: Union[Callable, BaseGeneratorModel],
     def solver_rhs(t, y):
         return generator(t, y, in_frame_basis=True)
 
-    if method == 'jax_expm':
+    if method == 'scipy_expm':
+        results = scipy_expm_solver(solver_generator,
+                                    t_span,
+                                    y0,
+                                    t_eval=t_eval,
+                                    **kwargs)
+    elif method == 'jax_expm':
         results = jax_expm_solver(solver_generator,
                                   t_span,
                                   y0,

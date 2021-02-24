@@ -17,6 +17,6 @@ Wrappers for calling differential equations solvers,
 providing standardized method signatures and return types.
 """
 
-from .jax_expm_solver import jax_expm_solver
+from .fixed_step_solvers import scipy_expm_solver, jax_expm_solver
 from .jax_odeint import jax_odeint
 from .scipy_solve_ivp import scipy_solve_ivp
