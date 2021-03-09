@@ -71,7 +71,7 @@ class TestSignals(QiskitOdeTestCase):
         """Test PWC signal."""
 
         dt = 1.
-        samples = np.array([0., 0., 1., 2., 1., 0., 0.])
+        samples = Array([0., 0., 1., 2., 1., 0., 0.])
         carrier_freq = 0.5
         piecewise_const = PiecewiseConstant(dt=dt, samples=samples, carrier_freq=carrier_freq)
 
@@ -90,8 +90,9 @@ class TestSignals(QiskitOdeTestCase):
         # Test Constant
         const1 = Constant(0.3)
         const2 = Constant(0.5)
-        self.assertTrue(isinstance(const1*const2, Constant))
-        self.assertEqual((const1*const2).value(), 0.15)
+        self.assertTrue(isinstance(const1 * const2, Signal))
+        self.assertEqual((const1 * const2).value(), 0.15)
+        self.assertEqual((const1 * const2).value(10.0), 0.15)
 
         # Test Signal
         signal1 = Signal(3.0, carrier_freq=0.1)
@@ -99,7 +100,7 @@ class TestSignals(QiskitOdeTestCase):
         self.assertTrue(isinstance(const1 * signal1, Signal))
         self.assertTrue(isinstance(signal1 * const1, Signal))
         self.assertTrue(isinstance(signal1 * signal2, Signal))
-        self.assertEqual((signal1*signal2).carrier_freq, 0.2)
+        self.assertEqual((signal1 * signal2).carrier_freq, 0.2)
         self.assertEqual((signal1 * const1).carrier_freq, 0.1)
         self.assertEqual((signal1 * signal2).envelope_value(), 0.0)
         self.assertEqual((signal1 * signal2).envelope_value(3.0), 3.*18.0)
@@ -108,27 +109,24 @@ class TestSignals(QiskitOdeTestCase):
 
         # Test piecewise constant
         dt = 1.
-        samples = np.array([0., 0., 1., 2., 1., 0., 0.])
+        samples = Array([0., 0., 1., 2., 1., 0., 0.])
         carrier_freq = 0.5
         pwc1 = PiecewiseConstant(dt=dt, samples=samples, carrier_freq=carrier_freq)
 
         dt = 2.
-        samples = np.array([0., 0., 1., 2., 1., 0., 0.])
+        samples = Array([0., 0., 1., 2., 1., 0., 0.])
         carrier_freq = 0.1
         pwc2 = PiecewiseConstant(dt=dt, samples=samples, carrier_freq=carrier_freq)
 
         # Test types
-        self.assertTrue(isinstance(const1 * pwc1, PiecewiseConstant))
-        self.assertTrue(isinstance(signal1 * pwc1, PiecewiseConstant))
-        self.assertTrue(isinstance(pwc1 * pwc2, PiecewiseConstant))
-        self.assertTrue(isinstance(pwc1 * const1, PiecewiseConstant))
-        self.assertTrue(isinstance(pwc1 * signal1, PiecewiseConstant))
+        self.assertTrue(isinstance(const1 * pwc1, Signal))
+        self.assertTrue(isinstance(signal1 * pwc1, Signal))
+        self.assertTrue(isinstance(pwc1 * pwc2, Signal))
+        self.assertTrue(isinstance(pwc1 * const1, Signal))
+        self.assertTrue(isinstance(pwc1 * signal1, Signal))
 
         # Test values
-        self.assertEqual((pwc1 * pwc2).dt, 1.0)
-        self.assertEqual((pwc1 * pwc2).duration, 7.0)
         self.assertEqual((pwc1 * pwc2).carrier_freq, 0.6)
-
         self.assertEqual((pwc1 * pwc2).envelope_value(), 0.0)
         self.assertEqual((pwc1 * pwc2).envelope_value(4.0), 1.)
         self.assertEqual((pwc1 * pwc2).value(), 0.0)
@@ -144,7 +142,7 @@ class TestSignals(QiskitOdeTestCase):
         # Test Constant
         const1 = Constant(0.3)
         const2 = Constant(0.5)
-        self.assertTrue(isinstance(const1 + const2, Constant))
+        self.assertTrue(isinstance(const1 + const2, Signal))
         self.assertEqual((const1 + const2).value(), 0.8)
 
         # Test Signal
@@ -154,45 +152,44 @@ class TestSignals(QiskitOdeTestCase):
         self.assertTrue(isinstance(signal1 + const1, Signal))
         self.assertTrue(isinstance(signal1 + signal2, Signal))
         self.assertEqual((signal1 + signal2).carrier_freq, 0.1)
-        self.assertEqual((signal1 + const1).carrier_freq, 0.)
+        self.assertEqual((signal1 + const1).carrier_freq, 0.05)
         self.assertEqual((signal1 + signal2).envelope_value(), 3.)
-        self.assertEqual((signal1 + signal2).envelope_value(3.0), 3. + 18.)
+        self.assertAlmostEqual((signal1 + signal2).envelope_value(3.0), 21., places=8)
         self.assertEqual((signal1 + signal2).value(), 3.0)
         self.assertEqual((signal1 + signal2).value(2.0), 11.0*np.exp(0.1*2.j*np.pi*2.0))
 
         # Test piecewise constant
         dt = 1.
-        samples = np.array([0., 0., 1., 2., 1., 0., 0.])
+        samples = Array([0., 0., 1., 2., 1., 0., 0.])
         carrier_freq = 0.5
         pwc1 = PiecewiseConstant(dt=dt, samples=samples, carrier_freq=carrier_freq)
 
         dt = 1.
-        samples = np.array([0., 0., 1., 2., 1., 0., 0.])
+        samples = Array([0., 0., 1., 2., 1., 0., 0.])
         carrier_freq = 0.1
         pwc2 = PiecewiseConstant(dt=dt, samples=samples, carrier_freq=carrier_freq)
 
         # Test types
-        self.assertTrue(isinstance(const1 + pwc1, PiecewiseConstant))
-        self.assertTrue(isinstance(signal1 + pwc1, PiecewiseConstant))
-        self.assertTrue(isinstance(pwc1 + pwc2, PiecewiseConstant))
-        self.assertTrue(isinstance(pwc1 + const1, PiecewiseConstant))
-        self.assertTrue(isinstance(pwc1 + signal1, PiecewiseConstant))
+        self.assertTrue(isinstance(const1 + pwc1, Signal))
+        self.assertTrue(isinstance(signal1 + pwc1, Signal))
+        self.assertTrue(isinstance(pwc1 + pwc2, Signal))
+        self.assertTrue(isinstance(pwc1 + const1, Signal))
+        self.assertTrue(isinstance(pwc1 + signal1, Signal))
 
         # Test values
-        self.assertEqual((pwc1 + pwc2).dt, 1.0)
-        self.assertEqual((pwc1 + pwc2).duration, 7.0)
-        self.assertEqual((pwc1 + pwc2).carrier_freq, 0.0)
+        self.assertEqual((pwc1 + pwc2).carrier_freq, 0.3)
 
         self.assertEqual((pwc1 + pwc2).envelope_value(), 0.0)
-        expected = 1.*np.exp(0.5*2.j*np.pi*4.0) + 1.*np.exp(0.1*2.j*np.pi*4.0)
-        self.assertEqual((pwc1 + pwc2).envelope_value(4.0), expected)
+        expected = 1.*np.exp(0.2*2.j*np.pi*4.0) + 1.*np.exp(-0.2*2.j*np.pi*4.0)
+        self.assertAlmostEqual((pwc1 + pwc2).envelope_value(4.0), expected, places=8)
         self.assertEqual((pwc1 + pwc2).value(), 0.0)
-        self.assertEqual((pwc1 + pwc2).value(4.0), expected)
+        expected = 1. * np.exp(0.5 * 2.j * np.pi * 4.0) + 1. * np.exp(0.1 * 2.j * np.pi * 4.0)
+        self.assertAlmostEqual((pwc1 + pwc2).value(4.0), expected, places=8)
 
         # Test phase
         pwc2 = PiecewiseConstant(dt=dt, samples=samples, carrier_freq=carrier_freq, phase=0.5)
-        expected = 1. * np.exp(0.5 * 2.j * np.pi * 4.0) + 1. * np.exp(0.1 * 2.j * np.pi * 4.0 + .5j)
-        self.assertEqual((pwc1 + pwc2).envelope_value(4.0), expected)
+        expected = 1. * np.exp(0.2*2.j*np.pi*4.0) + 1. * np.exp(-0.2*2.j*np.pi*4.0 + .5j)
+        self.assertAlmostEqual((pwc1 + pwc2).envelope_value(4.0), expected, places=8)
 
 
 class TestSignalsJax(QiskitOdeTestCase, TestJaxBase):

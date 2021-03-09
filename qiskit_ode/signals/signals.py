@@ -307,9 +307,8 @@ class PiecewiseConstant(BaseSignal):
         self._samples = np.append(self._samples, samples)
 
 
-# pylint: disable=too-many-return-statements
 def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
-                    sig2: Union[BaseSignal, float, int, complex]) -> BaseSignal:
+                    sig2: Union[BaseSignal, float, int, complex]) -> Signal:
     r"""Implements mathematical multiplication between two signals.
     Since a signal is represented by
 
@@ -339,57 +338,8 @@ def signal_multiply(sig1: Union[BaseSignal, float, int, complex],
     if isinstance(sig2, (int, float, complex)):
         sig2 = Constant(sig2)
 
-    # Multiplications with Constant
-    if isinstance(sig1, Constant) and isinstance(sig2, Constant):
-        return Constant(sig1.value() * sig2.value())
-
-    elif isinstance(sig1, Constant) and isinstance(sig2, Signal):
-        return Signal(lambda t: sig1.value() * sig2.envelope_value(t), sig2.carrier_freq,
-                      sig2.phase)
-
-    elif isinstance(sig1, Constant) and isinstance(sig2, PiecewiseConstant):
-        return PiecewiseConstant(sig2.dt,
-                                 sig1.value()*sig2.samples,
-                                 carrier_freq=sig2.carrier_freq,
-                                 phase=sig2.phase,
-                                 start_time=sig2.start_time)
-
-    # Multiplications with Signal
-    elif isinstance(sig1, Signal) and isinstance(sig2, Signal):
-        return Signal(lambda t: sig1.envelope_value() * sig2.envelope_value(t),
-                      sig1.carrier_freq + sig2.carrier_freq, sig1.phase + sig2.phase)
-
-    elif isinstance(sig1, Signal) and isinstance(sig2, PiecewiseConstant):
-        new_samples = []
-        for idx, sample in enumerate(sig2.samples):
-            new_samples.append(sample * sig1.envelope_value(sig2.dt * idx +
-                                                            sig2.start_time))
-
-        freq = sig1.carrier_freq + sig2.carrier_freq
-        phase = sig1.phase + sig2.phase
-        return PiecewiseConstant(sig2.dt,
-                                 new_samples,
-                                 carrier_freq=freq,
-                                 phase=phase,
-                                 start_time=sig2.start_time)
-
-    # Multiplications with PiecewiseConstant
-    elif isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
-        # Assume sig2 always has the larger dt
-        if sig1.dt > sig2.dt:
-            sig1, sig2 = sig2, sig1
-
-        new_samples = []
-        for idx, sample in enumerate(sig1.samples):
-            new_samples.append(sample * sig2.envelope_value(sig1.dt*idx + sig1.start_time))
-
-        freq = sig1.carrier_freq + sig2.carrier_freq
-        phase = sig1.phase + sig2.phase
-        return PiecewiseConstant(sig1.dt, new_samples, carrier_freq=freq, phase=phase)
-
-    # Other symmetric cases
-    # pylint: disable=arguments-out-of-order
-    return signal_multiply(sig2, sig1)
+    return Signal(lambda t: sig1.envelope_value(t) * sig2.envelope_value(t),
+                  sig1.carrier_freq + sig2.carrier_freq, sig1.phase + sig2.phase)
 
 
 def signal_add(sig1: Union[BaseSignal, float, int, complex],
@@ -423,86 +373,10 @@ def signal_add(sig1: Union[BaseSignal, float, int, complex],
     if isinstance(sig2, (int, float, complex)):
         sig2 = Constant(sig2)
 
-    # Multiplications with Constant
-    if isinstance(sig1, Constant) and isinstance(sig2, Constant):
-        return Constant(sig1.value() + sig2.value())
+    avg_freq = (sig1.carrier_freq + sig2.carrier_freq)/2
 
-    elif isinstance(sig1, Constant) and isinstance(sig2, Signal):
-        return Signal(lambda t: sig1.value() + sig2.value(t))
-
-    elif isinstance(sig1, Constant) and isinstance(sig2, PiecewiseConstant):
-        new_samples = []
-        for idx in range(len(sig2.samples)):
-            t = sig2.dt*idx + sig2.start_time
-            new_samples.append(sig1.value() + sig2.value(t))
-
-        return PiecewiseConstant(sig2.dt, new_samples, start_time=sig2.start_time)
-
-    # Addition with Signal
-    elif isinstance(sig1, Signal) and isinstance(sig2, Signal):
-        if sig1.carrier_freq == sig2.carrier_freq and sig1.phase == sig2.phase:
-            return Signal(lambda t: (sig1.envelope_value(t) + sig2.envelope_value(t)),
-                          carrier_freq=sig1.carrier_freq, phase=sig1.phase)
-        else:
-            return Signal(lambda t: sig1.value(t) + sig2.value(t))
-
-    elif isinstance(sig1, Signal) and isinstance(sig2, PiecewiseConstant):
-        new_samples = []
-        if sig1.carrier_freq == sig2.carrier_freq and sig1.phase == sig2.phase:
-            carrier_freq = sig1.carrier_freq
-            phase = sig1.phase
-            for idx, sample in enumerate(sig2.samples):
-                t = sig2.dt * idx + sig2.start_time
-                new_samples.append(sig1.envelope_value(t) + sample)
-        else:
-            carrier_freq = 0.
-            phase = 0.
-            for idx in range(len(sig2.samples)):
-                t = sig2.dt*idx + sig2.start_time
-                new_samples.append(sig1.value(t) + sig2.value(t))
-
-        return PiecewiseConstant(sig2.dt,
-                                 new_samples,
-                                 start_time=sig2.start_time,
-                                 carrier_freq=carrier_freq,
-                                 phase=phase)
-
-    # Additions with PiecewiseConstant
-    elif isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
-        if sig1.dt != sig2.dt:
-            raise Exception('Cannot sum signals with different dt.')
-
-        start_time = min(sig1.start_time, sig2.start_time)
-        end_time1 = sig1.dt * sig1.duration + sig1.start_time
-        end_time2 = sig2.dt * sig2.duration + sig2.start_time
-        end_time = max(end_time1, end_time2)
-
-        duration = int((end_time - start_time) // sig1.dt)
-
-        new_samples = []
-        if sig1.carrier_freq == sig2.carrier_freq and sig1.phase == sig2.phase:
-            carrier_freq = sig1.carrier_freq
-            phase = sig1.phase
-            for idx in range(duration):
-                t = start_time + idx * sig1.dt
-                new_samples.append(sig1.envelope_value(t) +
-                                   sig2.envelope_value(t))
-        else:
-            carrier_freq = 0.
-            phase = 0.
-            for idx in range(duration):
-                t = start_time + idx * sig1.dt
-                new_samples.append(sig1.value(t) + sig2.value(t))
-
-        return PiecewiseConstant(sig1.dt,
-                                 new_samples,
-                                 start_time=start_time,
-                                 carrier_freq=carrier_freq,
-                                 phase=phase)
-
-    # Other symmetric cases
-    # pylint: disable=arguments-out-of-order
-    return signal_add(sig2, sig1)
+    return Signal(lambda t: (sig1.value(t) + sig2.value(t))*np.exp(-2.0j*np.pi*t*avg_freq),
+                  avg_freq, 0)
 
 
 class VectorSignal:
