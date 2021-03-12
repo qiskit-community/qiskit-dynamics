@@ -27,17 +27,20 @@ from .solver_utils import merge_t_args, trim_t_results
 
 try:
     from jax.experimental.ode import odeint as _odeint
+
     odeint = wrap(_odeint)
 except ImportError:
     pass
 
 
-@requires_backend('jax')
-def jax_odeint(rhs: Callable,
-               t_span: Array,
-               y0: Array,
-               t_eval: Optional[Union[Tuple, List, Array]] = None,
-               **kwargs):
+@requires_backend("jax")
+def jax_odeint(
+    rhs: Callable,
+    t_span: Array,
+    y0: Array,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    **kwargs,
+):
     """Routine for calling `jax.experimental.ode.odeint`
 
     Args:
@@ -54,13 +57,15 @@ def jax_odeint(rhs: Callable,
     t_list = merge_t_args(t_span, t_eval)
 
     # determine direction of integration
-    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend='jax')).data
+    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax")).data
 
-    results = odeint(lambda y, t: t_direction * rhs(t_direction * t, y),
-                     y0=y0,
-                     t=t_direction * t_list.data,
-                     **kwargs)
+    results = odeint(
+        lambda y, t: t_direction * rhs(t_direction * t, y),
+        y0=y0,
+        t=t_direction * t_list.data,
+        **kwargs,
+    )
 
-    results = OdeResult(t=t_list, y=Array(results, backend='jax'))
+    results = OdeResult(t=t_list, y=Array(results, backend="jax"))
 
     return trim_t_results(results, t_span, t_eval)

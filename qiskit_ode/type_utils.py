@@ -43,10 +43,7 @@ class StateTypeConverter:
         - {'type': 'array', 'ndim': 1}
     """
 
-    def __init__(self,
-                 inner_type_spec,
-                 outer_type_spec=None,
-                 order='F'):
+    def __init__(self, inner_type_spec, outer_type_spec=None, order="F"):
         """Instantiate with the inner and return types for the state.
 
         Args:
@@ -59,15 +56,11 @@ class StateTypeConverter:
         """
 
         self.inner_type_spec = inner_type_spec
-        self.outer_type_spec = (self.inner_type_spec if outer_type_spec is None
-                                else outer_type_spec)
+        self.outer_type_spec = self.inner_type_spec if outer_type_spec is None else outer_type_spec
         self.order = order
 
     @classmethod
-    def from_instances(cls,
-                       inner_y,
-                       outer_y=None,
-                       order='F'):
+    def from_instances(cls, inner_y, outer_y=None, order="F"):
         """Instantiate from concrete instances. Type of instances must
         be supported by `type_spec_from_instance`. If `outer_y is None` the
         outer type is set to the inner type.
@@ -89,10 +82,7 @@ class StateTypeConverter:
         return cls(inner_type_spec, outer_type_spec, order)
 
     @classmethod
-    def from_outer_instance_inner_type_spec(cls,
-                                            outer_y,
-                                            inner_type_spec=None,
-                                            order='F'):
+    def from_outer_instance_inner_type_spec(cls, outer_y, inner_type_spec=None, order="F"):
         """Instantiate from concrete instance of the outer type,
         and an inner type-spec. The inner type spec can be either
         be fully specified, or be more general (i.e. to
@@ -120,34 +110,33 @@ class StateTypeConverter:
         if inner_type_spec is None:
             return cls.from_instances(outer_y, order=order)
 
-        inner_type = inner_type_spec.get('type')
+        inner_type = inner_type_spec.get("type")
         if inner_type is None:
             raise Exception("inner_type_spec needs a 'type' key.")
 
-        if inner_type == 'array':
+        if inner_type == "array":
             outer_y_as_array = Array(outer_y)
 
             # if a specific shape is given attempt to instantiate from a
             # reshaped outer_y
-            shape = inner_type_spec.get('shape')
+            shape = inner_type_spec.get("shape")
             if shape is not None:
-                return cls.from_instances(outer_y_as_array.reshape(shape,
-                                                                   order=order),
-                                          outer_y,
-                                          order=order)
+                return cls.from_instances(
+                    outer_y_as_array.reshape(shape, order=order), outer_y, order=order
+                )
 
             # handle the case that ndim == 1 is given
-            ndim = inner_type_spec.get('ndim')
+            ndim = inner_type_spec.get("ndim")
             if ndim == 1:
-                return cls.from_instances(outer_y_as_array.flatten(order=order),
-                                          outer_y,
-                                          order=order)
+                return cls.from_instances(
+                    outer_y_as_array.flatten(order=order), outer_y, order=order
+                )
 
             # if neither shape nor ndim is given, assume it can be an array
             # of any shape
             return cls.from_instances(outer_y_as_array, outer_y, order=order)
 
-        raise Exception('inner_type_spec not a handled type.')
+        raise Exception("inner_type_spec not a handled type.")
 
     def inner_to_outer(self, y):
         """Convert a state of inner type to one of outer type."""
@@ -158,8 +147,7 @@ class StateTypeConverter:
         return convert_state(y, self.inner_type_spec, self.order)
 
     def rhs_outer_to_inner(self, rhs):
-        """Convert an rhs function f(t, y) to work on inner type.
-        """
+        """Convert an rhs function f(t, y) to work on inner type."""
 
         # if inner and outer type specs are the same do nothing
         if self.inner_type_spec == self.outer_type_spec:
@@ -173,34 +161,36 @@ class StateTypeConverter:
         return new_rhs
 
     def generator_outer_to_inner(self, generator):
-        """Convert generator from outer to inner type.
-        """
+        """Convert generator from outer to inner type."""
         # if inner and outer type specs are the same do nothing
         if self.inner_type_spec == self.outer_type_spec:
             return generator
 
         # raise exceptions based on assumptions
-        if ((self.inner_type_spec['type'] != 'array') or
-                (self.outer_type_spec['type'] != 'array')):
-            raise Exception("""RHS generator transformation only
-                               valid for state types Array.""")
-        if len(self.inner_type_spec['shape']) != 1:
-            raise Exception("""RHS generator transformation only valid
-                               if inner_type is 1d.""")
+        if (self.inner_type_spec["type"] != "array") or (self.outer_type_spec["type"] != "array"):
+            raise Exception(
+                """RHS generator transformation only
+                               valid for state types Array."""
+            )
+        if len(self.inner_type_spec["shape"]) != 1:
+            raise Exception(
+                """RHS generator transformation only valid
+                               if inner_type is 1d."""
+            )
 
-        if self.order == 'C':
+        if self.order == "C":
             # create identity of size the second dimension of the
             # outer type
-            ident = Array(np.eye(self.outer_type_spec['shape'][1]))
+            ident = Array(np.eye(self.outer_type_spec["shape"][1]))
 
             def new_generator(t):
                 return Array(np.kron(generator(t), ident))
 
             return new_generator
-        elif self.order == 'F':
+        elif self.order == "F":
             # create identity of size the second dimension of the
             # outer type
-            ident = Array(np.eye(self.outer_type_spec['shape'][1]))
+            ident = Array(np.eye(self.outer_type_spec["shape"][1]))
 
             def new_generator(t):
                 return Array(np.kron(ident, generator(t)))
@@ -210,7 +200,7 @@ class StateTypeConverter:
             raise Exception("""Unsupported order for generator conversion.""")
 
 
-def convert_state(y: Array, type_spec: dict, order='F'):
+def convert_state(y: Array, type_spec: dict, order="F"):
     """Convert the de state y into the type specified by type_spec.
     Accepted values of type_spec are given at the beginning of the file.
 
@@ -225,11 +215,11 @@ def convert_state(y: Array, type_spec: dict, order='F'):
 
     new_y = None
 
-    if type_spec['type'] == 'array':
+    if type_spec["type"] == "array":
         # default array data type to complex
-        new_y = Array(y, dtype=type_spec.get('dtype', 'complex'))
+        new_y = Array(y, dtype=type_spec.get("dtype", "complex"))
 
-        shape = type_spec.get('shape')
+        shape = type_spec.get("shape")
         if shape is not None:
             new_y = new_y.reshape(shape, order=order)
 
@@ -240,8 +230,8 @@ def type_spec_from_instance(y):
     """Determine type spec from an instance."""
     type_spec = {}
     if isinstance(y, (Array, np.ndarray)):
-        type_spec['type'] = 'array'
-        type_spec['shape'] = y.shape
+        type_spec["type"] = "array"
+        type_spec["shape"] = y.shape
 
     return type_spec
 
@@ -275,7 +265,7 @@ def vec_commutator(A: Array):
 
 
 def vec_dissipator(L: Array):
-    r""" Linear algebraic vectorization of the linear map
+    r"""Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)
     in column stacking convention.
 
@@ -296,8 +286,9 @@ def vec_dissipator(L: Array):
     LdagL = Lconj.transpose(axes) @ L
     LdagLtrans = LdagL.transpose(axes)
 
-    return (np.kron(Lconj, iden) @ np.kron(iden, L)
-            - 0.5 * (np.kron(iden, LdagL) + np.kron(LdagLtrans, iden)))
+    return np.kron(Lconj, iden) @ np.kron(iden, L) - 0.5 * (
+        np.kron(iden, LdagL) + np.kron(LdagLtrans, iden)
+    )
 
 
 def to_array(op: Union[Operator, Array, List[Operator], List[Array]]):

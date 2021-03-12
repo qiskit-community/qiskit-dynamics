@@ -12,8 +12,17 @@
 """Monkey patch qiskit.quantum_info to work easier with Array."""
 
 from qiskit.quantum_info import (
-    Statevector, DensityMatrix, Operator, SuperOp, Choi, PTM, Chi,
-    Pauli, Clifford, SparsePauliOp)
+    Statevector,
+    DensityMatrix,
+    Operator,
+    SuperOp,
+    Choi,
+    PTM,
+    Chi,
+    Pauli,
+    Clifford,
+    SparsePauliOp,
+)
 from .array import Array
 
 __all__ = []

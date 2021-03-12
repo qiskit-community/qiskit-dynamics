@@ -41,13 +41,14 @@ class TestJaxBase(unittest.TestCase):
         try:
             # pylint: disable=import-outside-toplevel
             from jax import config
-            config.update("jax_enable_x64", True)
-        except Exception:
-            raise unittest.SkipTest('Skipping jax tests.')
 
-        dispatch.set_default_backend('jax')
+            config.update("jax_enable_x64", True)
+        except Exception as err:
+            raise unittest.SkipTest("Skipping jax tests.") from err
+
+        dispatch.set_default_backend("jax")
 
     @classmethod
     def tearDownClass(cls):
         """Set numpy back to the default backend."""
-        dispatch.set_default_backend('numpy')
+        dispatch.set_default_backend("numpy")

@@ -137,8 +137,7 @@ class BaseFrame(ABC):
         """
 
     @abstractmethod
-    def operator_into_frame_basis(self,
-                                  op: Union[Operator, Array]) -> Array:
+    def operator_into_frame_basis(self, op: Union[Operator, Array]) -> Array:
         r"""Take an operator into the frame basis, i.e. return
         ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
@@ -149,8 +148,7 @@ class BaseFrame(ABC):
         """
 
     @abstractmethod
-    def operator_out_of_frame_basis(self,
-                                    op: Union[Operator, Array]) -> Array:
+    def operator_out_of_frame_basis(self, op: Union[Operator, Array]) -> Array:
         r"""Take an operator out of the frame basis, i.e. return
         ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
 
@@ -161,11 +159,13 @@ class BaseFrame(ABC):
         """
 
     @abstractmethod
-    def state_into_frame(self,
-                         t: float,
-                         y: Array,
-                         y_in_frame_basis: Optional[bool] = False,
-                         return_in_frame_basis: Optional[bool] = False) -> Array:
+    def state_into_frame(
+        self,
+        t: float,
+        y: Array,
+        y_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ) -> Array:
         r"""Take a state into the frame, i.e. return ``exp(-tF) @ y``.
 
         Args:
@@ -180,11 +180,13 @@ class BaseFrame(ABC):
             Array: state in frame
         """
 
-    def state_out_of_frame(self,
-                           t: float,
-                           y: Array,
-                           y_in_frame_basis: Optional[bool] = False,
-                           return_in_frame_basis: Optional[bool] = False) -> Array:
+    def state_out_of_frame(
+        self,
+        t: float,
+        y: Array,
+        y_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ) -> Array:
         r"""Take a state out of the frame, i.e. ``return exp(tF) @ y``.
 
         Default implementation is to call ``self.state_into_frame``.
@@ -200,17 +202,17 @@ class BaseFrame(ABC):
         Returns:
             Array: state out of frame
         """
-        return self.state_into_frame(-t, y,
-                                     y_in_frame_basis,
-                                     return_in_frame_basis)
+        return self.state_into_frame(-t, y, y_in_frame_basis, return_in_frame_basis)
 
     @abstractmethod
-    def _conjugate_and_add(self,
-                           t: float,
-                           operator: Array,
-                           op_to_add_in_fb: Optional[Array] = None,
-                           operator_in_frame_basis: Optional[bool] = False,
-                           return_in_frame_basis: Optional[bool] = False) -> Array:
+    def _conjugate_and_add(
+        self,
+        t: float,
+        operator: Array,
+        op_to_add_in_fb: Optional[Array] = None,
+        operator_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ) -> Array:
         r"""Generalized helper function for taking operators and generators
         into/out of the frame.
 
@@ -230,11 +232,13 @@ class BaseFrame(ABC):
             Array:
         """
 
-    def operator_into_frame(self,
-                            t: float,
-                            operator: Union[Operator, Array],
-                            operator_in_frame_basis: Optional[bool] = False,
-                            return_in_frame_basis: Optional[bool] = False) -> Array:
+    def operator_into_frame(
+        self,
+        t: float,
+        operator: Union[Operator, Array],
+        operator_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ) -> Array:
         r"""Bring an operator into the frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF)``
 
@@ -250,16 +254,20 @@ class BaseFrame(ABC):
         Returns:
             Array: operator in frame
         """
-        return self._conjugate_and_add(t,
-                                       operator,
-                                       operator_in_frame_basis=operator_in_frame_basis,
-                                       return_in_frame_basis=return_in_frame_basis)
+        return self._conjugate_and_add(
+            t,
+            operator,
+            operator_in_frame_basis=operator_in_frame_basis,
+            return_in_frame_basis=return_in_frame_basis,
+        )
 
-    def operator_out_of_frame(self,
-                              t: float,
-                              operator: Union[Operator, Array],
-                              operator_in_frame_basis: Optional[bool] = False,
-                              return_in_frame_basis: Optional[bool] = False):
+    def operator_out_of_frame(
+        self,
+        t: float,
+        operator: Union[Operator, Array],
+        operator_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ):
         r"""Bring an operator into the frame, i.e. return
         ``exp(tF) @ operator @ exp(-tF)``.
 
@@ -276,16 +284,20 @@ class BaseFrame(ABC):
         Returns:
             Array: operator out of frame
         """
-        return self.operator_into_frame(-t,
-                                        operator,
-                                        operator_in_frame_basis=operator_in_frame_basis,
-                                        return_in_frame_basis=return_in_frame_basis)
+        return self.operator_into_frame(
+            -t,
+            operator,
+            operator_in_frame_basis=operator_in_frame_basis,
+            return_in_frame_basis=return_in_frame_basis,
+        )
 
-    def generator_into_frame(self,
-                             t: float,
-                             operator: Union[Operator, Array],
-                             operator_in_frame_basis: Optional[bool] = False,
-                             return_in_frame_basis: Optional[bool] = False):
+    def generator_into_frame(
+        self,
+        t: float,
+        operator: Union[Operator, Array],
+        operator_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ):
         r"""Take an generator into the frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF) - F``.
 
@@ -306,17 +318,21 @@ class BaseFrame(ABC):
             return to_array(operator)
         else:
             # conjugate and subtract the frame diagonal
-            return self._conjugate_and_add(t,
-                                           operator,
-                                           op_to_add_in_fb=-np.diag(self.frame_diag),
-                                           operator_in_frame_basis=operator_in_frame_basis,
-                                           return_in_frame_basis=return_in_frame_basis)
+            return self._conjugate_and_add(
+                t,
+                operator,
+                op_to_add_in_fb=-np.diag(self.frame_diag),
+                operator_in_frame_basis=operator_in_frame_basis,
+                return_in_frame_basis=return_in_frame_basis,
+            )
 
-    def generator_out_of_frame(self,
-                               t: float,
-                               operator: Union[Operator, Array],
-                               operator_in_frame_basis: Optional[bool] = False,
-                               return_in_frame_basis: Optional[bool] = False) -> Array:
+    def generator_out_of_frame(
+        self,
+        t: float,
+        operator: Union[Operator, Array],
+        operator_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ) -> Array:
         r"""Take an operator out of the frame, i.e. return
         ``exp(tF) @ operator @ exp(-tF) + F``.
 
@@ -337,18 +353,21 @@ class BaseFrame(ABC):
             return to_array(operator)
         else:
             # conjugate and add the frame diagonal
-            return self._conjugate_and_add(-t,
-                                           operator,
-                                           op_to_add_in_fb=Array(np.diag(self.frame_diag)),
-                                           operator_in_frame_basis=operator_in_frame_basis,
-                                           return_in_frame_basis=return_in_frame_basis)
+            return self._conjugate_and_add(
+                -t,
+                operator,
+                op_to_add_in_fb=Array(np.diag(self.frame_diag)),
+                operator_in_frame_basis=operator_in_frame_basis,
+                return_in_frame_basis=return_in_frame_basis,
+            )
 
     @abstractmethod
-    def operators_into_frame_basis_with_cutoff(self,
-                                               operators: Union[Array, List[Operator]],
-                                               cutoff_freq: Optional[float] = None,
-                                               carrier_freqs: Optional[Array] = None) \
-            -> Tuple[Array]:
+    def operators_into_frame_basis_with_cutoff(
+        self,
+        operators: Union[Array, List[Operator]],
+        cutoff_freq: Optional[float] = None,
+        carrier_freqs: Optional[Array] = None,
+    ) -> Tuple[Array]:
         r"""Transform operators into the frame basis, and return two lists of
         operators: one with the 'frequency cutoff' and one with 'conjugate
         frequency cutoff' (explained below). This serves as a helper function
@@ -451,10 +470,12 @@ class Frame(BaseFrame):
     using `Array`.
     """
 
-    def __init__(self,
-                 frame_operator: Union[BaseFrame, Operator, Array],
-                 atol: float = 1e-10,
-                 rtol: float = 1e-10):
+    def __init__(
+        self,
+        frame_operator: Union[BaseFrame, Operator, Array],
+        atol: float = 1e-10,
+        rtol: float = 1e-10,
+    ):
         """Initialize with a frame operator.
 
         Args:
@@ -482,9 +503,7 @@ class Frame(BaseFrame):
 
             # verify Hermitian or anti-Hermitian
             # if Hermitian convert to anti-Hermitian
-            frame_operator = _is_herm_or_anti_herm(frame_operator,
-                                                   atol=atol,
-                                                   rtol=rtol)
+            frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
 
             self._frame_diag = Array(frame_operator)
             self._frame_basis = Array(np.eye(len(frame_operator)))
@@ -495,9 +514,7 @@ class Frame(BaseFrame):
 
             # verify Hermitian or anti-Hermitian
             # if Hermitian convert to anti-Hermitian
-            frame_operator = _is_herm_or_anti_herm(frame_operator,
-                                                   atol=atol,
-                                                   rtol=rtol)
+            frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
 
             # diagonalize with eigh, utilizing assumption of anti-hermiticity
             frame_diag, frame_basis = np.linalg.eigh(1j * frame_operator)
@@ -544,25 +561,25 @@ class Frame(BaseFrame):
 
         return self.frame_basis @ y
 
-    def operator_into_frame_basis(self,
-                                  op: Union[Operator, List[Operator], Array]) -> Array:
+    def operator_into_frame_basis(self, op: Union[Operator, List[Operator], Array]) -> Array:
         op = to_array(op)
         if self._frame_operator is None:
             return op
         return self.frame_basis_adjoint @ op @ self.frame_basis
 
-    def operator_out_of_frame_basis(self,
-                                    op: Union[Operator, Array]) -> Array:
+    def operator_out_of_frame_basis(self, op: Union[Operator, Array]) -> Array:
         op = to_array(op)
         if self._frame_operator is None:
             return op
         return self.frame_basis @ op @ self.frame_basis_adjoint
 
-    def state_into_frame(self,
-                         t: float,
-                         y: Array,
-                         y_in_frame_basis: Optional[bool] = False,
-                         return_in_frame_basis: Optional[bool] = False):
+    def state_into_frame(
+        self,
+        t: float,
+        y: Array,
+        y_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ):
         """Take a state into the frame, i.e. return exp(-tF) @ y.
 
         Args:
@@ -586,7 +603,7 @@ class Frame(BaseFrame):
             out = self.state_into_frame_basis(out)
 
         # go into the frame
-        out = np.diag(np.exp(- t * self.frame_diag)) @ out
+        out = np.diag(np.exp(-t * self.frame_diag)) @ out
 
         # if output is requested to not be in the frame basis, convert it
         if not return_in_frame_basis:
@@ -594,12 +611,14 @@ class Frame(BaseFrame):
 
         return out
 
-    def _conjugate_and_add(self,
-                           t: float,
-                           operator: Array,
-                           op_to_add_in_fb: Optional[Array] = None,
-                           operator_in_frame_basis: Optional[bool] = False,
-                           return_in_frame_basis: Optional[bool] = False):
+    def _conjugate_and_add(
+        self,
+        t: float,
+        operator: Array,
+        op_to_add_in_fb: Optional[Array] = None,
+        operator_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,
+    ):
         r"""Concrete implementation of general helper function for computing
             exp(-tF)Gexp(tF) + B
 
@@ -634,10 +653,12 @@ class Frame(BaseFrame):
 
         return out
 
-    def operators_into_frame_basis_with_cutoff(self,
-                                               operators: Union[Array, List[Operator]],
-                                               cutoff_freq: Optional[float] = None,
-                                               carrier_freqs: Optional[Array] = None):
+    def operators_into_frame_basis_with_cutoff(
+        self,
+        operators: Union[Array, List[Operator]],
+        cutoff_freq: Optional[float] = None,
+        carrier_freqs: Optional[Array] = None,
+    ):
         ops_in_frame_basis = self.operator_into_frame_basis(operators)
 
         # if no cutoff freq is specified, the two arrays are the same
@@ -659,18 +680,16 @@ class Frame(BaseFrame):
             freq_diffs = freq_diffs - np.transpose(freq_diffs, (0, 2, 1))
 
         # set up matrix encoding frequencies
-        im_angular_freqs = 1j * 2 * np.pi * np.reshape(
-            carrier_freqs, (len(carrier_freqs), 1, 1))
+        im_angular_freqs = 1j * 2 * np.pi * np.reshape(carrier_freqs, (len(carrier_freqs), 1, 1))
         freq_array = im_angular_freqs + freq_diffs
-        cutoff_array = ((np.abs(freq_array.imag) / (2 * np.pi))
-                        < cutoff_freq).astype(int)
-        return (cutoff_array * ops_in_frame_basis,
-                cutoff_array.transpose([0, 2, 1]) * ops_in_frame_basis)
+        cutoff_array = ((np.abs(freq_array.imag) / (2 * np.pi)) < cutoff_freq).astype(int)
+        return (
+            cutoff_array * ops_in_frame_basis,
+            cutoff_array.transpose([0, 2, 1]) * ops_in_frame_basis,
+        )
 
 
-def _is_herm_or_anti_herm(mat: Array,
-                          atol: Optional[float] = 1e-10,
-                          rtol: Optional[float] = 1e-10):
+def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10):
     r"""Given `mat`, the logic of this function is:
         - if `mat` is hermitian, return `-1j * mat`
         - if `mat` is anti-hermitian, return `mat`
@@ -696,7 +715,7 @@ def _is_herm_or_anti_herm(mat: Array,
     mat = to_array(mat)
     mat = Array(mat, dtype=complex)
 
-    if mat.backend == 'jax':
+    if mat.backend == "jax":
 
         from jax.lax import cond
         import jax.numpy as jnp
@@ -709,36 +728,22 @@ def _is_herm_or_anti_herm(mat: Array,
             # Note: pathways in conditionals in jax cannot raise Exceptions
             def anti_herm_conditional(b):
                 aherm_pred = jnp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
-                return cond(aherm_pred,
-                            lambda A: A,
-                            lambda A: jnp.nan * A,
-                            b)
+                return cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b)
 
             # Check if it is purely real, if not apply anti_herm_conditional
             herm_pred = jnp.allclose(mat, mat.conj(), atol=atol, rtol=rtol)
-            return Array(cond(herm_pred,
-                              lambda A: -1j * A,
-                              anti_herm_conditional,
-                              mat))
+            return Array(cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
         else:
             # this function checks if anti-hermitian, if yes returns the array,
             # otherwise it multiplies it by jnp.nan
             def anti_herm_conditional(b):
-                aherm_pred = jnp.allclose(b, -b.conj().transpose(),
-                                          atol=atol, rtol=rtol)
-                return cond(aherm_pred,
-                            lambda A: A,
-                            lambda A: jnp.nan * A,
-                            b)
+                aherm_pred = jnp.allclose(b, -b.conj().transpose(), atol=atol, rtol=rtol)
+                return cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b)
 
             # the following lines check if a is hermitian, otherwise it feeds
             # it into the anti_herm_conditional
-            herm_pred = jnp.allclose(mat, mat.conj().transpose(),
-                                     atol=atol, rtol=rtol)
-            return Array(cond(herm_pred,
-                              lambda A: -1j * A,
-                              anti_herm_conditional,
-                              mat))
+            herm_pred = jnp.allclose(mat, mat.conj().transpose(), atol=atol, rtol=rtol)
+            return Array(cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
 
     else:
         if mat.ndim == 1:
@@ -753,5 +758,7 @@ def _is_herm_or_anti_herm(mat: Array,
                 return mat
 
         # raise error if execution has made it this far
-        raise QiskitError("""frame_operator must be either a Hermitian or
-                           anti-Hermitian matrix.""")
+        raise QiskitError(
+            """frame_operator must be either a Hermitian or
+                           anti-Hermitian matrix."""
+        )

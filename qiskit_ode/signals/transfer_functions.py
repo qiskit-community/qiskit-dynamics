@@ -52,8 +52,10 @@ class BaseTransferFunction(ABC):
         """
 
         if len(args) != self.n_inputs:
-            raise QiskitError(self.__class__.__name__ + ' expected %i input signals but %i '
-                                                        'were given' % (len(args), self.n_inputs))
+            raise QiskitError(
+                self.__class__.__name__ + " expected %i input signals but %i "
+                "were given" % (len(args), self.n_inputs)
+            )
 
         return self._apply(*args, **kwargs)
 
@@ -115,15 +117,15 @@ class Convolution(BaseTransferFunction):
         if isinstance(signal, PiecewiseConstant):
             # Perform a discrete time convolution.
             dt = signal.dt
-            func_samples = Array([self._func(dt*i) for i in range(signal.duration)])
+            func_samples = Array([self._func(dt * i) for i in range(signal.duration)])
             func_samples = func_samples / sum(func_samples)
-            sig_samples = Array([signal.value(dt*i) for i in range(signal.duration)])
+            sig_samples = Array([signal.value(dt * i) for i in range(signal.duration)])
 
             convoluted_samples = list(np.convolve(func_samples, sig_samples))
 
-            return PiecewiseConstant(dt, convoluted_samples, carrier_freq=0., phase=0.)
+            return PiecewiseConstant(dt, convoluted_samples, carrier_freq=0.0, phase=0.0)
         else:
-            raise QiskitError('Transfer function not defined on input.')
+            raise QiskitError("Transfer function not defined on input.")
 
 
 class FFTConvolution(BaseTransferFunction):
@@ -147,6 +149,7 @@ class Sampler(BaseTransferFunction):
     """
     Re sample a signal by wrapping BaseSignal.to_pwc.
     """
+
     def __init__(self, dt: float, n_samples: int, start_time: float = 0):
         """
         Args:
@@ -219,12 +222,12 @@ class IQMixer(BaseTransferFunction):
 
         # Check compatibility of the input signals
         if si.carrier_freq != sq.carrier_freq:
-            raise QiskitError('IQ mixer requires the same sideband frequencies for I and Q.')
+            raise QiskitError("IQ mixer requires the same sideband frequencies for I and Q.")
 
         phi_i, phi_q = si.phase, sq.phase
         wp, wm = self._lo + si.carrier_freq, self._lo - si.carrier_freq
-        wp *= 2*np.pi
-        wm *= 2*np.pi
+        wp *= 2 * np.pi
+        wm *= 2 * np.pi
 
         def mixer_func(t):
             """Function of the IQ mixer."""

@@ -23,12 +23,14 @@ from .array import Array
 from .wrap import wrap
 
 # Import dispatch utilities
-from .dispatch import (set_default_backend,
-                       default_backend,
-                       available_backends,
-                       backend_types,
-                       asarray,
-                       requires_backend)
+from .dispatch import (
+    set_default_backend,
+    default_backend,
+    available_backends,
+    backend_types,
+    asarray,
+    requires_backend,
+)
 
 # Register backends
 from .backends import *

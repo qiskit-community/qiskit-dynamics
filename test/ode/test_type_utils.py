@@ -16,9 +16,7 @@
 import numpy as np
 from qiskit_ode.dispatch import Array
 
-from qiskit_ode.type_utils import (convert_state,
-                                   type_spec_from_instance,
-                                   StateTypeConverter)
+from qiskit_ode.type_utils import convert_state, type_spec_from_instance, StateTypeConverter
 
 from .common import QiskitOdeTestCase, TestJaxBase
 
@@ -29,17 +27,17 @@ class TestTypeUtils(QiskitOdeTestCase):
     def test_convert_state_order_C(self):
         """Test convert_state with order parameter 'C'."""
 
-        type_spec = {'type': 'array', 'shape': (4,)}
+        type_spec = {"type": "array", "shape": (4,)}
         y = Array([[1, 2], [3, 4]])
         expected = Array([1, 2, 3, 4])
 
-        self.assertAllClose(convert_state(y, type_spec, order='C'), expected)
+        self.assertAllClose(convert_state(y, type_spec, order="C"), expected)
 
-        type_spec = {'type': 'array'}
+        type_spec = {"type": "array"}
         y = [[1, 2], [3, 4]]
         expected = Array([[1, 2], [3, 4]])
 
-        self.assertAllClose(convert_state(y, type_spec, order='C'), expected)
+        self.assertAllClose(convert_state(y, type_spec, order="C"), expected)
 
     def test_convert_state_order_F(self):
         """Test convert_state with order 'F'.
@@ -47,13 +45,13 @@ class TestTypeUtils(QiskitOdeTestCase):
         Note the order='F' is the default so no need to specify
         """
 
-        type_spec = {'type': 'array', 'shape': (4,)}
+        type_spec = {"type": "array", "shape": (4,)}
         y = Array([[1, 2], [3, 4]])
         expected = Array([1, 3, 2, 4])
 
         self.assertAllClose(convert_state(y, type_spec), expected)
 
-        type_spec = {'type': 'array'}
+        type_spec = {"type": "array"}
         y = [[1, 2], [3, 4]]
         expected = Array([[1, 2], [3, 4]])
 
@@ -65,21 +63,21 @@ class TestTypeUtils(QiskitOdeTestCase):
         y = Array([1, 2, 3, 4])
         type_spec = type_spec_from_instance(y)
 
-        self.assertEqual(type_spec, {'type': 'array', 'shape': (4,)})
+        self.assertEqual(type_spec, {"type": "array", "shape": (4,)})
 
         y = Array([[1, 2], [3, 4], [5, 6]])
         type_spec = type_spec_from_instance(y)
 
-        self.assertEqual(type_spec, {'type': 'array', 'shape': (3, 2)})
+        self.assertEqual(type_spec, {"type": "array", "shape": (3, 2)})
 
     def test_converter_inner_outer_order_C(self):
         """Test standard constructor of StateTypeConverter along with
         basic state conversion functions with array order 'C'.
         """
 
-        inner_spec = {'type': 'array', 'shape': (4,)}
-        outer_spec = {'type': 'array', 'shape': (2, 2)}
-        converter = StateTypeConverter(inner_spec, outer_spec, order='C')
+        inner_spec = {"type": "array", "shape": (4,)}
+        outer_spec = {"type": "array", "shape": (2, 2)}
+        converter = StateTypeConverter(inner_spec, outer_spec, order="C")
 
         y_in = Array([1, 2, 3, 4])
         y_out = Array([[1, 2], [3, 4]])
@@ -95,9 +93,9 @@ class TestTypeUtils(QiskitOdeTestCase):
         basic state conversion functions with array order 'C'.
         """
 
-        inner_spec = {'type': 'array', 'shape': (4,)}
-        outer_spec = {'type': 'array', 'shape': (2, 2)}
-        converter = StateTypeConverter(inner_spec, outer_spec, order='F')
+        inner_spec = {"type": "array", "shape": (4,)}
+        outer_spec = {"type": "array", "shape": (2, 2)}
+        converter = StateTypeConverter(inner_spec, outer_spec, order="F")
 
         y_in = Array([1, 3, 2, 4])
         y_out = Array([[1, 2], [3, 4]])
@@ -116,47 +114,43 @@ class TestTypeUtils(QiskitOdeTestCase):
 
         converter = StateTypeConverter.from_instances(inner_y, outer_y)
 
-        self.assertEqual(converter.inner_type_spec,
-                         {'type': 'array', 'shape': (4,)})
-        self.assertEqual(converter.outer_type_spec,
-                         {'type': 'array', 'shape': (2, 2)})
+        self.assertEqual(converter.inner_type_spec, {"type": "array", "shape": (4,)})
+        self.assertEqual(converter.outer_type_spec, {"type": "array", "shape": (2, 2)})
 
         converter = StateTypeConverter.from_instances(inner_y)
 
-        self.assertEqual(converter.inner_type_spec,
-                         {'type': 'array', 'shape': (4,)})
-        self.assertEqual(converter.outer_type_spec,
-                         {'type': 'array', 'shape': (4,)})
+        self.assertEqual(converter.inner_type_spec, {"type": "array", "shape": (4,)})
+        self.assertEqual(converter.outer_type_spec, {"type": "array", "shape": (4,)})
 
     def test_from_outer_instance_inner_type_spec(self):
         """Test from_outer_instance_inner_type_spec constructor"""
 
         # test case for inner type spec with 1d array
-        inner_type_spec = {'type': 'array', 'ndim': 1}
+        inner_type_spec = {"type": "array", "ndim": 1}
         outer_y = Array([[1, 2], [3, 4]])
 
         converter = StateTypeConverter.from_outer_instance_inner_type_spec(outer_y, inner_type_spec)
 
-        self.assertEqual(converter.inner_type_spec, {'type': 'array', 'shape': (4,)})
-        self.assertEqual(converter.outer_type_spec, {'type': 'array', 'shape': (2, 2)})
+        self.assertEqual(converter.inner_type_spec, {"type": "array", "shape": (4,)})
+        self.assertEqual(converter.outer_type_spec, {"type": "array", "shape": (2, 2)})
 
         # inner type spec is a generic array
-        inner_type_spec = {'type': 'array'}
+        inner_type_spec = {"type": "array"}
         outer_y = Array([[1, 2], [3, 4]])
 
         converter = StateTypeConverter.from_outer_instance_inner_type_spec(outer_y, inner_type_spec)
 
-        self.assertEqual(converter.inner_type_spec, {'type': 'array', 'shape': (2, 2)})
-        self.assertEqual(converter.outer_type_spec, {'type': 'array', 'shape': (2, 2)})
+        self.assertEqual(converter.inner_type_spec, {"type": "array", "shape": (2, 2)})
+        self.assertEqual(converter.outer_type_spec, {"type": "array", "shape": (2, 2)})
 
     def test_transform_rhs_funcs_order_C(self):
         """Test rhs function conversion for order C array reshaping."""
 
-        inner_spec = {'type': 'array', 'shape': (4,)}
-        outer_spec = {'type': 'array', 'shape': (2, 2)}
-        converter = StateTypeConverter(inner_spec, outer_spec, order='C')
+        inner_spec = {"type": "array", "shape": (4,)}
+        outer_spec = {"type": "array", "shape": (2, 2)}
+        converter = StateTypeConverter(inner_spec, outer_spec, order="C")
 
-        X = Array([[0., 1.], [1., 0.]])
+        X = Array([[0.0, 1.0], [1.0, 0.0]])
 
         # do matrix multiplication (a truly '2d' operation)
         def rhs(t, y):
@@ -188,11 +182,11 @@ class TestTypeUtils(QiskitOdeTestCase):
     def test_transform_rhs_funcs_order_F(self):
         """Test rhs function conversion"""
 
-        inner_spec = {'type': 'array', 'shape': (4,)}
-        outer_spec = {'type': 'array', 'shape': (2, 2)}
+        inner_spec = {"type": "array", "shape": (4,)}
+        outer_spec = {"type": "array", "shape": (2, 2)}
         converter = StateTypeConverter(inner_spec, outer_spec)
 
-        X = Array([[0., 1.], [1., 0.]])
+        X = Array([[0.0, 1.0], [1.0, 0.0]])
 
         # do matrix multiplication (a truly '2d' operation)
         def rhs(t, y):
@@ -206,9 +200,9 @@ class TestTypeUtils(QiskitOdeTestCase):
 
         test_t = np.pi
         y_2d = Array([[1, 2], [3, 4]])
-        y_1d = y_2d.flatten(order='F')
+        y_1d = y_2d.flatten(order="F")
 
-        expected_output = rhs(test_t, y_2d).flatten(order='F')
+        expected_output = rhs(test_t, y_2d).flatten(order="F")
         output = new_rhs(test_t, y_1d)
 
         self.assertAllClose(output, expected_output)

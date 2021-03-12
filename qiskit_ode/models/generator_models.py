@@ -85,10 +85,7 @@ class BaseGeneratorModel(ABC):
         """Evaluate the model at a given time."""
         pass
 
-    def lmult(self,
-              time: float,
-              y: Array,
-              in_frame_basis: bool = False) -> Array:
+    def lmult(self, time: float, y: Array, in_frame_basis: bool = False) -> Array:
         r"""Return the product evaluate(t) @ y. Default implementation is to
         call evaluate then multiply.
 
@@ -102,10 +99,7 @@ class BaseGeneratorModel(ABC):
         """
         return np.dot(self.evaluate(time, in_frame_basis), y)
 
-    def rmult(self,
-              time: float,
-              y: Array,
-              in_frame_basis: bool = False) -> Array:
+    def rmult(self, time: float, y: Array, in_frame_basis: bool = False) -> Array:
         r"""Return the product y @ evaluate(t). Default implementation is to
         call evaluate then multiply.
 
@@ -129,10 +123,7 @@ class BaseGeneratorModel(ABC):
         """Return a copy of self."""
         return deepcopy(self)
 
-    def __call__(self,
-                 t: float,
-                 y: Optional[Array] = None,
-                 in_frame_basis: Optional[bool] = False):
+    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
         """Evaluate generator RHS functions. If ``y is None``,
         evaluates the model, and otherwise evaluates ``G(t) @ y``.
 
@@ -152,13 +143,14 @@ class BaseGeneratorModel(ABC):
 
 
 class CallableGenerator(BaseGeneratorModel):
-    """Generator specified as a callable
-    """
+    """Generator specified as a callable"""
 
-    def __init__(self,
-                 generator: Callable,
-                 frame: Optional[Union[Operator, Array, BaseFrame]] = None,
-                 drift: Optional[Union[Operator, Array]] = None):
+    def __init__(
+        self,
+        generator: Callable,
+        frame: Optional[Union[Operator, Array, BaseFrame]] = None,
+        drift: Optional[Union[Operator, Array]] = None,
+    ):
 
         self._generator = dispatch.wrap(generator)
         self.frame = frame
@@ -208,10 +200,9 @@ class CallableGenerator(BaseGeneratorModel):
 
         # evaluate generator and map it into the frame
         gen = self._generator(time)
-        return self.frame.generator_into_frame(time,
-                                               gen,
-                                               operator_in_frame_basis=False,
-                                               return_in_frame_basis=in_frame_basis)
+        return self.frame.generator_into_frame(
+            time, gen, operator_in_frame_basis=False, return_in_frame_basis=in_frame_basis
+        )
 
 
 class GeneratorModel(BaseGeneratorModel):
@@ -237,11 +228,13 @@ class GeneratorModel(BaseGeneratorModel):
         insert mathematical description of frame/cutoff_freq handling
     """
 
-    def __init__(self,
-                 operators: Array,
-                 signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
-                 frame: Optional[Union[Operator, Array, BaseFrame]] = None,
-                 cutoff_freq: Optional[float] = None):
+    def __init__(
+        self,
+        operators: Array,
+        signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
+        frame: Optional[Union[Operator, Array, BaseFrame]] = None,
+        cutoff_freq: Optional[float] = None,
+    ):
         """Initialize.
 
         Args:
@@ -290,19 +283,22 @@ class GeneratorModel(BaseGeneratorModel):
 
             # if it isn't a VectorSignal by now, raise an error
             if not isinstance(signals, VectorSignal):
-                raise QiskitError('signals specified in unaccepted format.')
+                raise QiskitError("signals specified in unaccepted format.")
 
             # verify signal length is same as operators
             if len(signals.carrier_freqs) != len(self.operators):
-                raise QiskitError("""signals needs to have the same length as
-                                    operators.""")
+                raise QiskitError(
+                    """signals needs to have the same length as
+                                    operators."""
+                )
 
             # internal ops need to be reset if there is a cutoff frequency
             # and carrier_freqs has changed
             if self._signals is not None:
-                if (not np.allclose(self._signals.carrier_freqs,
-                                    signals.carrier_freqs)
-                        and self._cutoff_freq is not None):
+                if (
+                    not np.allclose(self._signals.carrier_freqs, signals.carrier_freqs)
+                    and self._cutoff_freq is not None
+                ):
                     self._reset_internal_ops()
 
             self._signals = signals
@@ -357,10 +353,9 @@ class GeneratorModel(BaseGeneratorModel):
         # evaluate the linear combination in the frame basis with cutoffs,
         # then map into the frame
         op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
-        return self.frame.generator_into_frame(time,
-                                               op_combo,
-                                               operator_in_frame_basis=True,
-                                               return_in_frame_basis=in_frame_basis)
+        return self.frame.generator_into_frame(
+            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+        )
 
     @property
     def drift(self) -> Array:
@@ -370,8 +365,10 @@ class GeneratorModel(BaseGeneratorModel):
 
         # for now if the frame operator is not None raise an error
         if self.frame.frame_operator is not None:
-            raise QiskitError("""The drift is currently ill-defined if
-                               frame_operator is not None.""")
+            raise QiskitError(
+                """The drift is currently ill-defined if
+                               frame_operator is not None."""
+            )
 
         drift_sig_vals = self._signals.drift_array
 
@@ -389,10 +386,12 @@ class GeneratorModel(BaseGeneratorModel):
         else:
             carrier_freqs = self._signals.carrier_freqs
 
-        self.__ops_in_fb_w_cutoff, self.__ops_in_fb_w_conj_cutoff = (
-            self.frame.operators_into_frame_basis_with_cutoff(self.operators,
-                                                              self.cutoff_freq,
-                                                              carrier_freqs))
+        (
+            self.__ops_in_fb_w_cutoff,
+            self.__ops_in_fb_w_conj_cutoff,
+        ) = self.frame.operators_into_frame_basis_with_cutoff(
+            self.operators, self.cutoff_freq, carrier_freqs
+        )
 
     def _reset_internal_ops(self):
         """Helper function to be used by various setters whose value changes
@@ -429,8 +428,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         return self.__ops_in_fb_w_conj_cutoff
 
-    def _evaluate_in_frame_basis_with_cutoffs(self,
-                                              sig_vals: Array):
+    def _evaluate_in_frame_basis_with_cutoffs(self, sig_vals: Array):
         """Evaluate the operator in the frame basis with frequency cutoffs.
         The computation here corresponds to that prescribed in
         `Frame.operators_into_frame_basis_with_cutoff`.
@@ -442,7 +440,7 @@ class GeneratorModel(BaseGeneratorModel):
             Array: operator model evaluated for a given list of signal values
         """
 
-        return 0.5 * (np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
-                      + np.tensordot(sig_vals.conj(),
-                                     self._ops_in_fb_w_conj_cutoff,
-                                     axes=1))
+        return 0.5 * (
+            np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
+            + np.tensordot(sig_vals.conj(), self._ops_in_fb_w_conj_cutoff, axes=1)
+        )

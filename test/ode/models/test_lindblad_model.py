@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,redundant-keyword-arg
 
 """Tests for quantum_models.LindbladModel"""
 
@@ -26,38 +26,41 @@ class TestLindbladModel(QiskitOdeTestCase):
     """Tests for LindbladModel."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label('X').data)
-        self.Y = Array(Operator.from_label('Y').data)
-        self.Z = Array(Operator.from_label('Z').data)
+        self.X = Array(Operator.from_label("X").data)
+        self.Y = Array(Operator.from_label("Y").data)
+        self.Z = Array(Operator.from_label("Z").data)
 
         # define a basic hamiltonian
-        w = 2.
+        w = 2.0
         r = 0.5
         ham_operators = [2 * np.pi * self.Z / 2, 2 * np.pi * r * self.X / 2]
-        ham_signals = [Constant(w), Signal(1., w)]
+        ham_signals = [Constant(w), Signal(1.0, w)]
 
         self.w = w
         self.r = r
 
-        noise_operators = Array([[[0., 0.], [1., 0.]]])
+        noise_operators = Array([[[0.0, 0.0], [1.0, 0.0]]])
 
-        self.basic_lindblad = LindbladModel(hamiltonian_operators=ham_operators,
-                                            hamiltonian_signals=ham_signals,
-                                            noise_operators=noise_operators)
+        self.basic_lindblad = LindbladModel(
+            hamiltonian_operators=ham_operators,
+            hamiltonian_signals=ham_signals,
+            noise_operators=noise_operators,
+        )
 
     def test_basic_lindblad_lmult(self):
-        """Test lmult method of Lindblad generator OperatorModel.
-        """
-        A = Array([[1., 2.], [3., 4.]])
+        """Test lmult method of Lindblad generator OperatorModel."""
+        A = Array([[1.0, 2.0], [3.0, 4.0]])
 
         t = 1.123
-        ham = (2 * np.pi * self.w * self.Z.data / 2
-               + 2 * np.pi * self.r * np.cos(2 * np.pi * self.w * t) * self.X.data / 2)
-        sm = Array([[0., 0.], [1., 0.]])
+        ham = (
+            2 * np.pi * self.w * self.Z.data / 2
+            + 2 * np.pi * self.r * np.cos(2 * np.pi * self.w * t) * self.X.data / 2
+        )
+        sm = Array([[0.0, 0.0], [1.0, 0.0]])
 
         expected = self._evaluate_lindblad_rhs(A, ham, [sm])
-        value = self.basic_lindblad.lmult(t, A.flatten(order='F'))
-        self.assertAllClose(expected, value.reshape(2, 2, order='F'))
+        value = self.basic_lindblad.lmult(t, A.flatten(order="F"))
+        self.assertAllClose(expected, value.reshape(2, 2, order="F"))
 
     # pylint: disable=too-many-locals
     def test_lindblad_lmult_pseudorandom(self):
@@ -69,73 +72,78 @@ class TestLindbladModel(QiskitOdeTestCase):
         num_ham = 4
         num_diss = 3
 
-        b = 1.  # bound on size of random terms
+        b = 1.0  # bound on size of random terms
 
         # generate random hamiltonian
-        randoperators = (rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)) +
-                         1j * rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)))
+        randoperators = rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_ham, dim, dim)
+        )
         rand_ham_ops = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
 
         # generate random hamiltonian coefficients
-        rand_ham_coeffs = (rng.uniform(low=-b, high=b, size=(num_ham)) +
-                           1j * rng.uniform(low=-b, high=b, size=(num_ham)))
+        rand_ham_coeffs = rng.uniform(low=-b, high=b, size=(num_ham)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_ham)
+        )
         rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
         rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
         ham_sigs = VectorSignal(lambda t: rand_ham_coeffs, rand_ham_carriers, rand_ham_phases)
 
         # generate random dissipators
-        rand_diss = Array(rng.uniform(low=-b, high=b, size=(num_diss, dim, dim)) +
-                          1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim)))
+        rand_diss = Array(
+            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        )
 
         # random dissipator coefficients
-        rand_diss_coeffs = (rng.uniform(low=-b, high=b, size=(num_diss)) +
-                            1j * rng.uniform(low=-b, high=b, size=(num_diss)))
+        rand_diss_coeffs = rng.uniform(low=-b, high=b, size=(num_diss)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_diss)
+        )
         rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
         rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
         diss_sigs = VectorSignal(lambda t: rand_diss_coeffs, rand_diss_carriers, rand_diss_phases)
 
         # random anti-hermitian frame operator
-        rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
-                   1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
+        rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
         frame_op = Array(rand_op - rand_op.conj().transpose())
 
-        lindblad_frame_op = (np.kron(Array(np.eye(dim)), frame_op)
-                             - np.kron(frame_op.transpose(), Array(np.eye(dim))))
+        lindblad_frame_op = np.kron(Array(np.eye(dim)), frame_op) - np.kron(
+            frame_op.transpose(), Array(np.eye(dim))
+        )
 
         # construct model
-        hamiltonian = HamiltonianModel(operators=rand_ham_ops,
-                                       signals=ham_sigs)
-        lindblad_model = LindbladModel.from_hamiltonian(hamiltonian=hamiltonian,
-                                                        noise_operators=rand_diss,
-                                                        noise_signals=diss_sigs)
+        hamiltonian = HamiltonianModel(operators=rand_ham_ops, signals=ham_sigs)
+        lindblad_model = LindbladModel.from_hamiltonian(
+            hamiltonian=hamiltonian, noise_operators=rand_diss, noise_signals=diss_sigs
+        )
         lindblad_model.frame = lindblad_frame_op
 
-        A = Array(rng.uniform(low=-b, high=b, size=(dim, dim)) +
-                  1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
+        A = Array(
+            rng.uniform(low=-b, high=b, size=(dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
+        )
 
         t = rng.uniform(low=-b, high=b)
-        value = lindblad_model.lmult(t, A.flatten(order='F'))
+        value = lindblad_model.lmult(t, A.flatten(order="F"))
 
-        ham_coeffs = np.real(rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t +
-                                                      1j * rand_ham_phases))
+        ham_coeffs = np.real(
+            rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
+        )
         ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
-        diss_coeffs = np.real(rand_diss_coeffs * np.exp(1j * 2 * np.pi * rand_diss_carriers * t +
-                                                        1j * rand_diss_phases))
+        diss_coeffs = np.real(
+            rand_diss_coeffs
+            * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
+        )
 
-        expected = self._evaluate_lindblad_rhs(A, ham,
-                                               rand_diss,
-                                               diss_coeffs,
-                                               frame_op,
-                                               t)
+        expected = self._evaluate_lindblad_rhs(A, ham, rand_diss, diss_coeffs, frame_op, t)
 
-        self.assertAllClose(expected, value.reshape(dim, dim, order='F'))
+        self.assertAllClose(expected, value.reshape(dim, dim, order="F"))
 
     # pylint: disable=no-self-use,too-many-arguments
-    def _evaluate_lindblad_rhs(self, A, ham,
-                               dissipators=None,
-                               dissipator_coeffs=None,
-                               frame_op=None,
-                               t=0.):
+    def _evaluate_lindblad_rhs(
+        self, A, ham, dissipators=None, dissipator_coeffs=None, frame_op=None, t=0.0
+    ):
         """Evaluate the Lindblad equation
 
         frame_op assumed anti-Hermitian

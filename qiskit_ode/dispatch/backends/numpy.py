@@ -18,43 +18,49 @@ from ..dispatch import Dispatch
 __all__ = []
 
 
-@Dispatch.register_asarray('numpy', numpy.ndarray)
+@Dispatch.register_asarray("numpy", numpy.ndarray)
 def _numpy_asarray(array, dtype=None, order=None):
     """Wrapper for numpy.asarray"""
-    if isinstance(array, numpy.ndarray) and order is None and (
-            dtype is None or (dtype == array.dtype and array.dtype != 'O')):
+    if (
+        isinstance(array, numpy.ndarray)
+        and order is None
+        and (dtype is None or (dtype == array.dtype and array.dtype != "O"))
+    ):
         return array
     ret = numpy.asarray(array, dtype=dtype, order=order)
-    if ret.dtype == 'O':
-        raise DispatchError('Dispatch does not support numpy object arrays.')
+    if ret.dtype == "O":
+        raise DispatchError("Dispatch does not support numpy object arrays.")
     return ret
 
 
-@Dispatch.register_repr('numpy')
-def _numpy_repr(array, prefix='', suffix=''):
+@Dispatch.register_repr("numpy")
+def _numpy_repr(array, prefix="", suffix=""):
     """Wrapper for showing Numpy array in custom class"""
-    max_line_width = numpy.get_printoptions()['linewidth']
+    max_line_width = numpy.get_printoptions()["linewidth"]
     array_str = numpy.array2string(
-        array, separator=', ', prefix=prefix,
-        suffix=',' if suffix else None,
-        max_line_width=max_line_width)
-    sep = ''
+        array,
+        separator=", ",
+        prefix=prefix,
+        suffix="," if suffix else None,
+        max_line_width=max_line_width,
+    )
+    sep = ""
     if len(suffix) > 1:
-        last_line_width = len(array_str) - array_str.rfind('\n') + 1
+        last_line_width = len(array_str) - array_str.rfind("\n") + 1
         if last_line_width + len(suffix) + 1 > max_line_width:
-            sep = ',\n' + ' ' * len(prefix)
+            sep = ",\n" + " " * len(prefix)
         else:
-            sep = ', '
+            sep = ", "
     return prefix + array_str + sep + suffix
 
 
-@Dispatch.register_array_ufunc('numpy')
+@Dispatch.register_array_ufunc("numpy")
 def _numpy_array_ufunc(ufunc, method):
     """Trival wrapper for numpy.ufunc"""
     return getattr(ufunc, method)
 
 
-@Dispatch.register_array_function('numpy')
+@Dispatch.register_array_function("numpy")
 def _numpy_array_function(func):
     """Trival wrapper for numpy array function"""
     return func

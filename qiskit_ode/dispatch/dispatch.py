@@ -48,8 +48,9 @@ class Dispatch:
     ARRAY_FUNCTION_DISPATCH = {}
 
     @classmethod
-    def backend(cls, array: any, subclass: Optional[bool] = False,
-                fallback: Optional[str] = None) -> str:
+    def backend(
+        cls, array: any, subclass: Optional[bool] = False, fallback: Optional[str] = None
+    ) -> str:
         """Return the registered backend string of a array object.
 
         Args:
@@ -91,12 +92,13 @@ class Dispatch:
         if backend not in cls._REGISTERED_BACKENDS:
             registered = cls.REGISTERED_BACKENDS if cls.REGISTERED_BACKENDS else None
             raise DispatchError(
-                "'{}' is not a registered array backends (registered backends: {})"
-                .format(backend, registered))
+                "'{}' is not a registered array backends (registered backends: {})".format(
+                    backend, registered
+                )
+            )
 
     @classmethod
-    def array_ufunc(cls, backend: str, ufunc: callable,
-                    method: str) -> callable:
+    def array_ufunc(cls, backend: str, ufunc: callable, method: str) -> callable:
         """Return the ufunc for the specified array backend
 
         Args:
@@ -152,10 +154,9 @@ class Dispatch:
         cls.REGISTERED_TYPES = tuple(cls._REGISTERED_TYPES.keys())
 
     @classmethod
-    def register_asarray(cls,
-                         name: str,
-                         array_types: Optional[Union[any, Tuple[any]]] = None
-                         ) -> callable:
+    def register_asarray(
+        cls, name: str, array_types: Optional[Union[any, Tuple[any]]] = None
+    ) -> callable:
         """Decorator to register an asarray function for an array backend.
 
         The function being wrapped must have signature
@@ -179,10 +180,9 @@ class Dispatch:
         return decorator
 
     @classmethod
-    def register_repr(cls,
-                      name: str,
-                      array_types: Optional[Union[any, Tuple[any]]] = None
-                      ) -> callable:
+    def register_repr(
+        cls, name: str, array_types: Optional[Union[any, Tuple[any]]] = None
+    ) -> callable:
         """Decorator to register an asarray function for an array backend.
 
         The function being wrapped must have signature
@@ -207,8 +207,8 @@ class Dispatch:
 
     @classmethod
     def register_array_ufunc(
-            cls, name: str,
-            array_types: Optional[Union[any, Tuple[any]]] = None) -> callable:
+        cls, name: str, array_types: Optional[Union[any, Tuple[any]]] = None
+    ) -> callable:
         """Decorator to register a ufunc dispatch function.
 
         This is used for handling of dispatch of Numpy ufuncs using
@@ -234,8 +234,8 @@ class Dispatch:
 
     @classmethod
     def register_array_function(
-            cls, name: str,
-            array_types: Optional[Union[any, Tuple[any]]] = None) -> callable:
+        cls, name: str, array_types: Optional[Union[any, Tuple[any]]] = None
+    ) -> callable:
         """Decorator to register an array function dispatch function.
 
         This is used for handling of dispatch of Numpy functions using
@@ -262,13 +262,16 @@ class Dispatch:
     @staticmethod
     def implements(np_function, dispatch_dict):
         """Register a numpy __array_function__ implementation."""
+
         def decorator(func):
             dispatch_dict[np_function] = func
             return func
+
         return decorator
 
 
 # Public functions
+
 
 def set_default_backend(backend: Optional[str] = None):
     """Set the default array backend."""
@@ -292,10 +295,12 @@ def available_backends():
     return Dispatch.REGISTERED_BACKENDS
 
 
-def asarray(array: any,
-            dtype: Optional[any] = None,
-            order: Optional[str] = None,
-            backend: Optional[str] = None) -> any:
+def asarray(
+    array: any,
+    dtype: Optional[any] = None,
+    order: Optional[str] = None,
+    backend: Optional[str] = None,
+) -> any:
     """Convert input array to an array on the specified backend.
 
     This functions like `numpy.asarray` but optionally supports
@@ -320,7 +325,7 @@ def asarray(array: any,
         if Dispatch.DEFAULT_BACKEND:
             backend = Dispatch.DEFAULT_BACKEND
         else:
-            backend = Dispatch.backend(array, fallback='numpy')
+            backend = Dispatch.backend(array, fallback="numpy")
     return Dispatch.ASARRAY_DISPATCH[backend](array, dtype=dtype, order=order)
 
 
@@ -338,6 +343,7 @@ def requires_backend(backend: str) -> Callable:
         Callable: A decorator that may be used to specify that a function, class,
                   or class method requires a specific backend to be installed.
     """
+
     def decorator(obj):
         """Specify that the decorated object requires a specifc Array backend."""
 
@@ -346,15 +352,17 @@ def requires_backend(backend: str) -> Callable:
                 raise DispatchError(
                     f"Array backend '{backend}' required by {descriptor} "
                     "is not installed. Please install the optional "
-                    "library '{backend}'.")
+                    "library '{backend}'."
+                )
 
         # Decorate a function or method
         if isinstance(obj, FunctionType):
 
             @functools.wraps(obj)
             def decorated_func(*args, **kwargs):
-                check_backend(f'function {obj}')
+                check_backend(f"function {obj}")
                 return obj(*args, **kwargs)
+
             return decorated_func
 
         # Decorate a class
@@ -364,8 +372,9 @@ def requires_backend(backend: str) -> Callable:
 
             @functools.wraps(obj_init)
             def decorated_init(self, *args, **kwargs):
-                check_backend(f'class {obj}')
+                check_backend(f"class {obj}")
                 obj_init(self, *args, **kwargs)
+
             obj.__init__ = decorated_init
             return obj
 

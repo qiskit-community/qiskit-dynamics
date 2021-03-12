@@ -39,29 +39,32 @@ class TestJaxTransformations(TestJaxBase):
     def setUp(self):
         """Set up a basic parameterized simulation."""
 
-        self.w = 5.
+        self.w = 5.0
         self.r = 0.1
 
-        operators = [2 * np.pi * self.w * Array(Operator.from_label('Z').data) / 2,
-                     2 * np.pi * self.r * Array(Operator.from_label('X').data) / 2]
+        operators = [
+            2 * np.pi * self.w * Array(Operator.from_label("Z").data) / 2,
+            2 * np.pi * self.r * Array(Operator.from_label("X").data) / 2,
+        ]
 
         ham = HamiltonianModel(operators=operators)
 
         self.ham = ham
 
         def param_sim(amp, drive_freq):
-            signals = [Constant(1.),
-                       Signal(lambda t: amp, carrier_freq=drive_freq)]
+            signals = [Constant(1.0), Signal(lambda t: amp, carrier_freq=drive_freq)]
 
             ham_copy = ham.copy()
             ham_copy.signals = signals
 
-            results = solve_lmde(ham_copy,
-                                 t_span=[0., 1 / self.r],
-                                 y0=Array([0., 1.], dtype=complex),
-                                 method='jax_odeint',
-                                 atol=1e-10,
-                                 rtol=1e-10)
+            results = solve_lmde(
+                ham_copy,
+                t_span=[0.0, 1 / self.r],
+                y0=Array([0.0, 1.0], dtype=complex),
+                method="jax_odeint",
+                atol=1e-10,
+                rtol=1e-10,
+            )
             return results.y[-1]
 
         self.param_sim = param_sim
@@ -70,54 +73,56 @@ class TestJaxTransformations(TestJaxBase):
         """Test compiling with a passed t_eval."""
 
         def t_eval_param_sim(amp, drive_freq):
-            signals = [Constant(1.),
-                       Signal(lambda t: amp, carrier_freq=drive_freq)]
+            signals = [Constant(1.0), Signal(lambda t: amp, carrier_freq=drive_freq)]
 
             ham_copy = self.ham.copy()
             ham_copy.signals = signals
 
-            results = solve_lmde(ham_copy,
-                                 t_span=[0., 1 / self.r],
-                                 y0=Array([0., 1.], dtype=complex),
-                                 method='jax_odeint',
-                                 t_eval=[0., 0.5 / self.r, 1 / self.r],
-                                 atol=1e-10,
-                                 rtol=1e-10)
+            results = solve_lmde(
+                ham_copy,
+                t_span=[0.0, 1 / self.r],
+                y0=Array([0.0, 1.0], dtype=complex),
+                method="jax_odeint",
+                t_eval=[0.0, 0.5 / self.r, 1 / self.r],
+                atol=1e-10,
+                rtol=1e-10,
+            )
             return results.y.data
 
         jit_sim = jit(t_eval_param_sim)
 
-        yf = jit_sim(1., self.w)
-        yf2 = jit_sim(2., self.w)
+        yf = jit_sim(1.0, self.w)
+        yf2 = jit_sim(2.0, self.w)
 
         # simple tests to verify correctness
-        self.assertTrue(np.abs(yf[-1][0])**2 > 0.999)
-        self.assertTrue(np.abs(yf2[-1][0])**2 < 0.001)
+        self.assertTrue(np.abs(yf[-1][0]) ** 2 > 0.999)
+        self.assertTrue(np.abs(yf2[-1][0]) ** 2 < 0.001)
 
     def test_jit_solve_t_span(self):
         """Test compiling when t_span is influenced by the inputs."""
 
         def param_sim(amp, drive_freq):
-            signals = [Constant(1.),
-                       Signal(lambda t: amp, carrier_freq=drive_freq)]
+            signals = [Constant(1.0), Signal(lambda t: amp, carrier_freq=drive_freq)]
 
             ham_copy = self.ham.copy()
             ham_copy.signals = signals
 
-            results = solve_lmde(ham_copy,
-                                 t_span=[0., (1 / self.r) * amp],
-                                 y0=Array([0., 1.], dtype=complex),
-                                 method='jax_odeint',
-                                 atol=1e-10,
-                                 rtol=1e-10)
+            results = solve_lmde(
+                ham_copy,
+                t_span=[0.0, (1 / self.r) * amp],
+                y0=Array([0.0, 1.0], dtype=complex),
+                method="jax_odeint",
+                atol=1e-10,
+                rtol=1e-10,
+            )
             return results.y[-1]
 
         jit_sim = jit(param_sim)
 
-        yf = jit_sim(1., self.w)
+        yf = jit_sim(1.0, self.w)
 
         # simple tests to verify correctness
-        self.assertTrue(np.abs(yf[0])**2 > 0.999)
+        self.assertTrue(np.abs(yf[0]) ** 2 > 0.999)
 
     def test_jit_solve(self):
         """Test compiling a parameterized Hamiltonian simulation."""
@@ -125,22 +130,22 @@ class TestJaxTransformations(TestJaxBase):
         jit_sim = jit(self.param_sim)
 
         # run the simulation twice, make sure it compiles and runs again
-        yf = jit_sim(1., self.w)
-        yf2 = jit_sim(2., self.w)
+        yf = jit_sim(1.0, self.w)
+        yf2 = jit_sim(2.0, self.w)
 
         # simple tests to verify correctness
-        self.assertTrue(np.abs(yf[0])**2 > 0.999)
-        self.assertTrue(np.abs(yf2[0])**2 < 0.001)
+        self.assertTrue(np.abs(yf[0]) ** 2 > 0.999)
+        self.assertTrue(np.abs(yf2[0]) ** 2 < 0.001)
 
     def test_grad_solve(self):
         """Test computing gradient of a parameterized Hamiltonian simulation."""
 
         def amp_to_prob(amp):
-            return jnp.abs(self.param_sim(amp, self.w)[0])**2
+            return jnp.abs(self.param_sim(amp, self.w)[0]) ** 2
 
         grad_sim = grad(amp_to_prob)
 
-        grad_p0 = grad_sim(1.)
+        grad_p0 = grad_sim(1.0)
 
         self.assertTrue(np.abs(grad_p0) < 0.001)
 
@@ -150,10 +155,10 @@ class TestJaxTransformations(TestJaxBase):
         """
 
         def amp_to_prob(amp):
-            return jnp.abs(self.param_sim(amp, self.w)[0])**2
+            return jnp.abs(self.param_sim(amp, self.w)[0]) ** 2
 
         jit_grad_sim = jit(grad(amp_to_prob))
 
-        grad_p0 = jit_grad_sim(1.)
+        grad_p0 = jit_grad_sim(1.0)
 
         self.assertTrue(np.abs(grad_p0) < 0.001)

@@ -33,17 +33,20 @@ class TestTransferFunctions(QiskitOdeTestCase):
 
         def gaussian(t):
             sigma = 4
-            return (2. * ts[1] / np.sqrt(2. * np.pi * sigma ** 2) *
-                    np.exp(-t ** 2 / (2 * sigma ** 2)))
+            return (
+                2.0
+                * ts[1]
+                / np.sqrt(2.0 * np.pi * sigma ** 2)
+                * np.exp(-(t ** 2) / (2 * sigma ** 2))
+            )
 
         # Test the simple convolution of a signal without a carrier
         convolve = Convolution(gaussian)
 
-        samples = [0. if t < 20. or t > 80. else 1. for t in ts]  # Defines a square pulse.
-        piecewise_const = PiecewiseConstant(dt=ts[1] - ts[0],
-                                            samples=samples,
-                                            carrier_freq=0.0,
-                                            start_time=0)
+        samples = [0.0 if t < 20.0 or t > 80.0 else 1.0 for t in ts]  # Defines a square pulse.
+        piecewise_const = PiecewiseConstant(
+            dt=ts[1] - ts[0], samples=samples, carrier_freq=0.0, start_time=0
+        )
 
         self.assertEqual(piecewise_const.duration, len(ts))
         self.assertEqual(piecewise_const.value(21.0), 1.0)
@@ -55,14 +58,14 @@ class TestTransferFunctions(QiskitOdeTestCase):
         self.assertGreater(convolved.value(81.0), 0.0)
 
         if isinstance(convolved, PiecewiseConstant):
-            self.assertEqual(convolved.duration, 2*len(ts)-1)
+            self.assertEqual(convolved.duration, 2 * len(ts) - 1)
         else:
             self.fail()
 
         # Test that the normalization happens properly
         def non_normalized_gaussian(t):
             sigma = 4
-            return 20. * np.exp(-t ** 2 / (2 * sigma ** 2))
+            return 20.0 * np.exp(-(t ** 2) / (2 * sigma ** 2))
 
         convolve = Convolution(non_normalized_gaussian)
 
@@ -77,14 +80,14 @@ class TestTransferFunctions(QiskitOdeTestCase):
         """Test the sampler."""
         dt = 0.5
         signal = PiecewiseConstant(dt=dt, samples=[0.3, 0.5], carrier_freq=0.2)
-        sampler = Sampler(dt/2, 4)
+        sampler = Sampler(dt / 2, 4)
 
         new_signal = sampler(signal)
 
         self.assertTrue(np.allclose(new_signal.samples, [0.3, 0.3, 0.5, 0.5]))
 
         signal = PiecewiseConstant(dt=dt, samples=[0.3, 0.4, 0.6, 0.8], carrier_freq=0.2)
-        sampler = Sampler(2*dt, 2)
+        sampler = Sampler(2 * dt, 2)
 
         new_signal = sampler(signal)
         self.assertTrue(np.allclose(new_signal.samples, [0.3, 0.6]))
@@ -97,7 +100,7 @@ class TestTransferFunctions(QiskitOdeTestCase):
         in_phase = PiecewiseConstant(dt, [1.0] * 200, carrier_freq=0.1, phase=0)
         quadrature = PiecewiseConstant(dt, [1.0] * 200, carrier_freq=0.1, phase=np.pi / 2)
 
-        sampler = Sampler(dt/25, 5000)
+        sampler = Sampler(dt / 25, 5000)
         in_phase = sampler(in_phase)
         quadrature = sampler(quadrature)
 
@@ -107,11 +110,11 @@ class TestTransferFunctions(QiskitOdeTestCase):
         # Check max amplitude of the fourier transform
         import scipy.fftpack
 
-        rf_samples = rf.to_pwc(dt/25, 5000).samples
+        rf_samples = rf.to_pwc(dt / 25, 5000).samples
         yf = scipy.fftpack.fft(np.real(rf_samples))
         xf = np.linspace(0.0, 1.0 / (2.0 * dt / 25), len(rf_samples) // 2)
 
-        self.assertAlmostEqual(5.0, xf[np.argmax(np.abs(yf[:len(rf_samples) // 2]))], 2)
+        self.assertAlmostEqual(5.0, xf[np.argmax(np.abs(yf[: len(rf_samples) // 2]))], 2)
 
         # Test the same using Signals and not PieceWiseConstant
         in_phase = Signal(1.0, carrier_freq=0.1, phase=0)
@@ -123,4 +126,4 @@ class TestTransferFunctions(QiskitOdeTestCase):
         yf = scipy.fftpack.fft(np.real(samples))
         xf = np.linspace(0.0, 1.0 / (2.0 * dt), len(samples) // 2)
 
-        self.assertAlmostEqual(4.8, xf[np.argmax(np.abs(yf[:len(samples) // 2]))], 1)
+        self.assertAlmostEqual(4.8, xf[np.argmax(np.abs(yf[: len(samples) // 2]))], 1)

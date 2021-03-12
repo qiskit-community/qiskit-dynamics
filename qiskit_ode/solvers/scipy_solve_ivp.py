@@ -26,17 +26,19 @@ from qiskit_ode.dispatch import Array
 from ..type_utils import StateTypeConverter
 
 # Supported scipy ODE methods
-COMPLEX_METHODS = ['RK45', 'RK23', 'BDF', 'DOP853']
-REAL_METHODS = ['LSODA', 'Radau']
+COMPLEX_METHODS = ["RK45", "RK23", "BDF", "DOP853"]
+REAL_METHODS = ["LSODA", "Radau"]
 SOLVE_IVP_METHODS = COMPLEX_METHODS + REAL_METHODS
 
 
-def scipy_solve_ivp(rhs: Callable,
-                    t_span: Array,
-                    y0: Array,
-                    method: Union[str, OdeSolver],
-                    t_eval: Optional[Union[Tuple, List, Array]] = None,
-                    **kwargs):
+def scipy_solve_ivp(
+    rhs: Callable,
+    t_span: Array,
+    y0: Array,
+    method: Union[str, OdeSolver],
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    **kwargs,
+):
     """Routine for calling `scipy.integrate.solve_ivp`.
 
     Args:
@@ -54,13 +56,12 @@ def scipy_solve_ivp(rhs: Callable,
         QiskitError: If unsupported kwarg present.
     """
 
-    if kwargs.get('dense_output', False) is True:
-        raise QiskitError('dense_output not supported for solve_ivp.')
+    if kwargs.get("dense_output", False) is True:
+        raise QiskitError("dense_output not supported for solve_ivp.")
 
     # solve_ivp requires 1d arrays internally
-    internal_state_spec = {'type': 'array', 'ndim': 1}
-    type_converter = StateTypeConverter.from_outer_instance_inner_type_spec(
-        y0, internal_state_spec)
+    internal_state_spec = {"type": "array", "ndim": 1}
+    type_converter = StateTypeConverter.from_outer_instance_inner_type_spec(y0, internal_state_spec)
 
     # modify the rhs to work with 1d arrays or real solvers
     rhs = type_converter.rhs_outer_to_inner(rhs)
@@ -76,12 +77,7 @@ def scipy_solve_ivp(rhs: Callable,
         rhs = real_rhs(rhs)
         y0 = c2r(y0)
 
-    results = solve_ivp(rhs,
-                        t_span=t_span.data,
-                        y0=y0.data,
-                        t_eval=t_eval,
-                        method=method,
-                        **kwargs)
+    results = solve_ivp(rhs, t_span=t_span.data, y0=y0.data, t_eval=t_eval, method=method, **kwargs)
     if embed_real:
         results.y = r2c(results.y)
 
@@ -95,8 +91,10 @@ def scipy_solve_ivp(rhs: Callable,
 
 def real_rhs(rhs):
     """Convert complex RHS to real RHS function"""
+
     def _real_rhs(t, y):
         return c2r(rhs(t, r2c(y)))
+
     return _real_rhs
 
 

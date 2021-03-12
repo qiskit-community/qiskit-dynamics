@@ -23,8 +23,9 @@ from scipy.integrate._ivp.ivp import OdeResult
 from qiskit_ode.dispatch import Array
 
 
-def merge_t_args(t_span: Union[List, Tuple, Array],
-                 t_eval: Optional[Union[List, Tuple, Array]] = None) -> Array:
+def merge_t_args(
+    t_span: Union[List, Tuple, Array], t_eval: Optional[Union[List, Tuple, Array]] = None
+) -> Array:
     """Merge ``t_span`` and ``t_eval`` into a single array without
     duplicates. Validity of the passed ``t_span`` and ``t_eval``
     follow scipy ``solve_ivp`` validation logic:
@@ -49,24 +50,24 @@ def merge_t_args(t_span: Union[List, Tuple, Array],
     if t_eval is None:
         return Array(t_span)
 
-    t_span = Array(t_span, backend='numpy')
+    t_span = Array(t_span, backend="numpy")
 
     t_min = np.min(t_span)
     t_max = np.max(t_span)
     t_direction = np.sign(t_span[1] - t_span[0])
 
-    t_eval = Array(t_eval, backend='numpy')
+    t_eval = Array(t_eval, backend="numpy")
 
     if t_eval.ndim > 1:
-        raise ValueError('t_eval must be 1 dimensional.')
+        raise ValueError("t_eval must be 1 dimensional.")
 
     if np.min(t_eval) < t_min or np.max(t_eval) > t_max:
-        raise ValueError('t_eval entries must lie in t_span.')
+        raise ValueError("t_eval entries must lie in t_span.")
 
     diff = np.diff(t_eval)
 
-    if np.any(t_direction * diff <= 0.):
-        raise ValueError('t_eval must be ordered according to the direction of integration.')
+    if np.any(t_direction * diff <= 0.0):
+        raise ValueError("t_eval must be ordered according to the direction of integration.")
 
     # if endpoints are not included in t_span, add them
     if t_eval[0] != t_span[0]:
@@ -75,12 +76,14 @@ def merge_t_args(t_span: Union[List, Tuple, Array],
     if t_span[1] != t_eval[-1]:
         t_eval = np.append(t_eval, t_span[1])
 
-    return Array(t_eval, backend='numpy')
+    return Array(t_eval, backend="numpy")
 
 
-def trim_t_results(results: OdeResult,
-                   t_span: Union[List, Tuple, Array],
-                   t_eval: Optional[Union[List, Tuple, Array]] = None) -> OdeResult:
+def trim_t_results(
+    results: OdeResult,
+    t_span: Union[List, Tuple, Array],
+    t_eval: Optional[Union[List, Tuple, Array]] = None,
+) -> OdeResult:
     """Trim ``OdeResult`` object based on value of ``t_span`` and ``t_eval``.
 
     Args:
@@ -97,7 +100,7 @@ def trim_t_results(results: OdeResult,
     if t_eval is None:
         return results
 
-    t_span = Array(t_span, backend='numpy')
+    t_span = Array(t_span, backend="numpy")
 
     # remove endpoints if not included in t_eval
     if t_eval[0] != t_span[0]:

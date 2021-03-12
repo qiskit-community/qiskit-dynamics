@@ -28,16 +28,15 @@ class TestGeneratorModel(QiskitOdeTestCase):
     """Tests for GeneratorModel."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label('X').data)
-        self.Y = Array(Operator.from_label('Y').data)
-        self.Z = Array(Operator.from_label('Z').data)
+        self.X = Array(Operator.from_label("X").data)
+        self.Y = Array(Operator.from_label("Y").data)
+        self.Z = Array(Operator.from_label("Z").data)
 
         # define a basic model
-        w = 2.
+        w = 2.0
         r = 0.5
-        operators = [-1j * 2 * np.pi * self.Z / 2,
-                     -1j * 2 * np.pi * r * self.X / 2]
-        signals = [Constant(w), Signal(1., w)]
+        operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * r * self.X / 2]
+        signals = [Constant(w), Signal(1.0, w)]
 
         self.w = 2
         self.r = r
@@ -48,21 +47,21 @@ class TestGeneratorModel(QiskitOdeTestCase):
 
         # 1d array
         try:
-            self.basic_model.frame = Array([1., 1.])
+            self.basic_model.frame = Array([1.0, 1.0])
         except QiskitError as e:
-            self.assertTrue('anti-Hermitian' in str(e))
+            self.assertTrue("anti-Hermitian" in str(e))
 
         # 2d array
         try:
-            self.basic_model.frame = Array([[1., 0.], [0., 1.]])
+            self.basic_model.frame = Array([[1.0, 0.0], [0.0, 1.0]])
         except QiskitError as e:
-            self.assertTrue('anti-Hermitian' in str(e))
+            self.assertTrue("anti-Hermitian" in str(e))
 
         # Operator
         try:
             self.basic_model.frame = self.Z
         except QiskitError as e:
-            self.assertTrue('anti-Hermitian' in str(e))
+            self.assertTrue("anti-Hermitian" in str(e))
 
     def test_diag_frame_operator_basic_model(self):
         """Test setting a diagonal frame operator for the internally
@@ -96,15 +95,17 @@ class TestGeneratorModel(QiskitOdeTestCase):
 
         i2pi = -1j * 2 * np.pi
 
-        U = expm(- np.array(frame_operator) * t)
+        U = expm(-np.array(frame_operator) * t)
 
         # drive coefficient
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
 
         # manually evaluate frame
-        expected = (i2pi * self.w * U @ self.Z.data @ U.conj().transpose() / 2 +
-                    d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2 -
-                    frame_operator)
+        expected = (
+            i2pi * self.w * U @ self.Z.data @ U.conj().transpose() / 2
+            + d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2
+            - frame_operator
+        )
 
         self.assertAllClose(value, expected)
 
@@ -115,8 +116,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         value = self.basic_model.evaluate(t)
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        expected = (i2pi * self.w * self.Z.data / 2 +
-                    i2pi * d_coeff * self.X.data / 2)
+        expected = i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2
 
         self.assertAllClose(value, expected)
 
@@ -141,9 +141,11 @@ class TestGeneratorModel(QiskitOdeTestCase):
 
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        expected = Uadj @ (i2pi * self.w * self.Z.data / 2 +
-                           i2pi * d_coeff * self.X.data / 2 -
-                           frame_op) @ U
+        expected = (
+            Uadj
+            @ (i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2 - frame_op)
+            @ U
+        )
 
         self.assertAllClose(value, expected)
 
@@ -153,15 +155,19 @@ class TestGeneratorModel(QiskitOdeTestCase):
         rng = np.random.default_rng(30493)
         num_terms = 3
         dim = 5
-        b = 1.  # bound on size of random terms
-        rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
-                   1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
+        b = 1.0  # bound on size of random terms
+        rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
         frame_op = Array(rand_op - rand_op.conj().transpose())
-        randoperators = (rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) +
-                         1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)))
+        randoperators = rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_terms, dim, dim)
+        )
 
-        rand_coeffs = Array(rng.uniform(low=-b, high=b, size=(num_terms)) +
-                            1j * rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_coeffs = Array(
+            rng.uniform(low=-b, high=b, size=(num_terms))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_terms))
+        )
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
@@ -170,15 +176,20 @@ class TestGeneratorModel(QiskitOdeTestCase):
         rng = np.random.default_rng(94818)
         num_terms = 5
         dim = 10
-        b = 1.  # bound on size of random terms
-        rand_op = (rng.uniform(low=-b, high=b, size=(dim, dim)) +
-                   1j * rng.uniform(low=-b, high=b, size=(dim, dim)))
+        b = 1.0  # bound on size of random terms
+        rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
         frame_op = Array(rand_op - rand_op.conj().transpose())
-        randoperators = Array(rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) +
-                              1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)))
+        randoperators = Array(
+            rng.uniform(low=-b, high=b, size=(num_terms, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim))
+        )
 
-        rand_coeffs = Array(rng.uniform(low=-b, high=b, size=(num_terms)) +
-                            1j * rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_coeffs = Array(
+            rng.uniform(low=-b, high=b, size=(num_terms))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_terms))
+        )
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
@@ -189,32 +200,34 @@ class TestGeneratorModel(QiskitOdeTestCase):
         vec_sig = VectorSignal(lambda t: coefficients, carriers, phases)
         model = GeneratorModel(operators, vec_sig, frame=frame_op)
 
-        value = model.evaluate(1.)
-        coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1. + 1j * phases))
-        expected = (expm(-np.array(frame_op)) @ np.tensordot(coeffs, operators, axes=1) @
-                    expm(np.array(frame_op)) - frame_op)
+        value = model.evaluate(1.0)
+        coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
+        expected = (
+            expm(-np.array(frame_op))
+            @ np.tensordot(coeffs, operators, axes=1)
+            @ expm(np.array(frame_op))
+            - frame_op
+        )
 
         self.assertAllClose(value, expected)
 
     def test_lmult_rmult_no_frame_basic_model(self):
         """Test evaluation with no frame in the basic model."""
 
-        y0 = np.array([[1., 2.], [0., 4.]])
+        y0 = np.array([[1.0, 2.0], [0.0, 4.0]])
         t = 3.21412
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
         model_expected = i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2
 
-        self.assertAllClose(self.basic_model.lmult(t, y0),
-                            model_expected @ y0)
-        self.assertAllClose(self.basic_model.rmult(t, y0),
-                            y0 @ model_expected)
+        self.assertAllClose(self.basic_model.lmult(t, y0), model_expected @ y0)
+        self.assertAllClose(self.basic_model.rmult(t, y0), y0 @ model_expected)
 
     def test_signal_setting(self):
         """Test updating the signals."""
-        signals = VectorSignal(lambda t: np.array([2 * t, t**2]),
-                               np.array([1., 2.]),
-                               np.array([0., 0.]))
+        signals = VectorSignal(
+            lambda t: np.array([2 * t, t ** 2]), np.array([1.0, 2.0]), np.array([0.0, 0.0])
+        )
 
         self.basic_model.signals = signals
 
@@ -222,7 +235,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         value = self.basic_model.evaluate(t)
         i2pi = -1j * 2 * np.pi
         Z_coeff = (2 * t) * np.cos(2 * np.pi * 1 * t)
-        X_coeff = self.r * (t**2) * np.cos(2 * np.pi * 2 * t)
+        X_coeff = self.r * (t ** 2) * np.cos(2 * np.pi * 2 * t)
         expected = i2pi * Z_coeff * self.Z.data / 2 + i2pi * X_coeff * self.X.data / 2
         self.assertAllClose(value, expected)
 
@@ -236,15 +249,14 @@ class TestGeneratorModel(QiskitOdeTestCase):
         """Test error being raised if signals is the wrong length."""
 
         try:
-            self.basic_model.signals = [Constant(1.)]
+            self.basic_model.signals = [Constant(1.0)]
         except QiskitError as e:
-            self.assertTrue('same length' in str(e))
+            self.assertTrue("same length" in str(e))
 
     def test_drift(self):
         """Test drift evaluation."""
 
-        self.assertAllClose(self.basic_model.drift,
-                            -1j * 2 * np.pi * self.w * self.Z.data / 2)
+        self.assertAllClose(self.basic_model.drift, -1j * 2 * np.pi * self.w * self.Z.data / 2)
 
     def test_drift_error_in_frame(self):
         """Test raising of error if drift is requested in a frame."""
@@ -253,7 +265,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         try:
             self.basic_model.drift
         except QiskitError as e:
-            self.assertTrue('ill-defined' in str(e))
+            self.assertTrue("ill-defined" in str(e))
 
     def test_cutoff_freq(self):
         """Test evaluation with a cutoff frequency."""
@@ -265,23 +277,24 @@ class TestGeneratorModel(QiskitOdeTestCase):
         self.basic_model.cutoff_freq = 2 * self.w
 
         # result should just be the X term halved
-        eval_rwa = self.basic_model.evaluate(2.)
+        eval_rwa = self.basic_model.evaluate(2.0)
         expected = -1j * 2 * np.pi * (self.r / 2) * self.X.data / 2
         self.assertAllClose(eval_rwa, expected)
 
         def drive_func(t):
-            return t**2 + t**3 * 1j
+            return t ** 2 + t ** 3 * 1j
 
-        self.basic_model.signals = [Constant(self.w),
-                                    Signal(drive_func, self.w)]
+        self.basic_model.signals = [Constant(self.w), Signal(drive_func, self.w)]
 
         # result should now contain both X and Y terms halved
         t = 2.1231 * np.pi
         dRe = np.real(drive_func(t))
         dIm = np.imag(drive_func(t))
         eval_rwa = self.basic_model.evaluate(t)
-        expected = (-1j * 2 * np.pi * (self.r / 2) * dRe * self.X.data / 2 +
-                    -1j * 2 * np.pi * (self.r / 2) * dIm * self.Y.data / 2)
+        expected = (
+            -1j * 2 * np.pi * (self.r / 2) * dRe * self.X.data / 2
+            + -1j * 2 * np.pi * (self.r / 2) * dIm * self.Y.data / 2
+        )
         self.assertAllClose(eval_rwa, expected)
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
@@ -300,15 +313,14 @@ class TestCallableGenerator(QiskitOdeTestCase):
     """Tests for CallableGenerator."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label('X').data)
-        self.Y = Array(Operator.from_label('Y').data)
-        self.Z = Array(Operator.from_label('Z').data)
+        self.X = Array(Operator.from_label("X").data)
+        self.Y = Array(Operator.from_label("Y").data)
+        self.Z = Array(Operator.from_label("Z").data)
 
         # define a basic model
-        w = Array(2.)
+        w = Array(2.0)
         r = Array(0.5)
-        operators = [-1j * 2 * np.pi * self.Z / 2,
-                     -1j * 2 * np.pi * r * self.X / 2]
+        operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * r * self.X / 2]
 
         def generator(t):
             return w * operators[0] + np.cos(2 * np.pi * w * t) * operators[1]
@@ -349,15 +361,17 @@ class TestCallableGenerator(QiskitOdeTestCase):
 
         i2pi = -1j * 2 * np.pi
 
-        U = expm(- np.array(frame_operator) * t)
+        U = expm(-np.array(frame_operator) * t)
 
         # drive coefficient
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
 
         # manually evaluate frame
-        expected = (i2pi * self.w * U @ self.Z.data @ U.conj().transpose() / 2 +
-                    d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2 -
-                    frame_operator)
+        expected = (
+            i2pi * self.w * U @ self.Z.data @ U.conj().transpose() / 2
+            + d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2
+            - frame_operator
+        )
 
         self.assertAllClose(value, expected)
 

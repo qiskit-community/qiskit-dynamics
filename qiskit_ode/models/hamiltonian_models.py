@@ -52,12 +52,14 @@ class HamiltonianModel(GeneratorModel):
           evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
     """
 
-    def __init__(self,
-                 operators: List[Operator],
-                 signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
-                 frame: Optional[Union[Operator, Array]] = None,
-                 cutoff_freq: Optional[float] = None,
-                 validate: bool = True):
+    def __init__(
+        self,
+        operators: List[Operator],
+        signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
+        frame: Optional[Union[Operator, Array]] = None,
+        cutoff_freq: Optional[float] = None,
+        validate: bool = True,
+    ):
         """Initialize, ensuring that the operators are Hermitian.
 
         Args:
@@ -83,10 +85,7 @@ class HamiltonianModel(GeneratorModel):
             if np.linalg.norm(adj - operators) > 1e-10:
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
-        super().__init__(operators=operators,
-                         signals=signals,
-                         frame=frame,
-                         cutoff_freq=cutoff_freq)
+        super().__init__(operators=operators, signals=signals, frame=frame, cutoff_freq=cutoff_freq)
 
     def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
         """Evaluate the Hamiltonian at a given time.
@@ -109,8 +108,10 @@ class HamiltonianModel(GeneratorModel):
         """
 
         if self.signals is None:
-            raise Exception("""OperatorModel cannot be evaluated without
-                               signals.""")
+            raise Exception(
+                """OperatorModel cannot be evaluated without
+                               signals."""
+            )
 
         sig_vals = self.signals.value(time)
 
@@ -120,16 +121,15 @@ class HamiltonianModel(GeneratorModel):
         if self.frame.frame_operator is not None:
             op_to_add_in_fb = -1j * np.diag(self.frame.frame_diag)
 
-        return self.frame._conjugate_and_add(time,
-                                             op_combo,
-                                             op_to_add_in_fb=op_to_add_in_fb,
-                                             operator_in_frame_basis=True,
-                                             return_in_frame_basis=in_frame_basis)
+        return self.frame._conjugate_and_add(
+            time,
+            op_combo,
+            op_to_add_in_fb=op_to_add_in_fb,
+            operator_in_frame_basis=True,
+            return_in_frame_basis=in_frame_basis,
+        )
 
-    def __call__(self,
-                 t: float,
-                 y: Optional[Array] = None,
-                 in_frame_basis: Optional[bool] = False):
+    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
         """Evaluate generator RHS functions. Needs to be overriden from base class
         to include :math:`-i`. I.e. if ``y is None``, returns :math:`-iH(t)`,
         and otherwise returns :math:`-iH(t)y`.

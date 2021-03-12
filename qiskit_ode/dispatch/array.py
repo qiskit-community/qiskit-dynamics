@@ -21,7 +21,7 @@ import numpy
 from numpy.lib.mixins import NDArrayOperatorsMixin
 from .dispatch import Dispatch, asarray
 
-__all__ = ['Array']
+__all__ = ["Array"]
 
 
 class Array(NDArrayOperatorsMixin):
@@ -46,11 +46,14 @@ class Array(NDArrayOperatorsMixin):
     through this class, but with any array return types wrapped into Array
     objects.
     """
-    def __init__(self,
-                 data: any,
-                 dtype: Optional[any] = None,
-                 order: Optional[str] = None,
-                 backend: Optional[str] = None):
+
+    def __init__(
+        self,
+        data: any,
+        dtype: Optional[any] = None,
+        order: Optional[str] = None,
+        backend: Optional[str] = None,
+    ):
         """Initialize an Array container.
 
         Args:
@@ -67,10 +70,10 @@ class Array(NDArrayOperatorsMixin):
         Raises:
             ValueError: if input cannot be converted to an Array.
         """
-        if hasattr(data, '__qiskit_array__'):
+        if hasattr(data, "__qiskit_array__"):
             array = data.__qiskit_array__(dtype=dtype, backend=backend)
             if not isinstance(array, Array):
-                raise ValueError('object __qiskit_array__ method is not producing an Array')
+                raise ValueError("object __qiskit_array__ method is not producing an Array")
             self._data = array._data
             self._backend = array._backend
             if dtype or order or (backend and backend != self._backend):
@@ -78,8 +81,7 @@ class Array(NDArrayOperatorsMixin):
                     backend = self._backend
                 else:
                     self._backend = backend
-                self._data = asarray(
-                    self._data, dtype=dtype, order=order, backend=backend)
+                self._data = asarray(self._data, dtype=dtype, order=order, backend=backend)
             return
 
         # Standard init
@@ -109,13 +111,12 @@ class Array(NDArrayOperatorsMixin):
         self._backend = value
 
     def __repr__(self):
-        prefix = 'Array('
+        prefix = "Array("
         if self._backend == Dispatch.DEFAULT_BACKEND:
             suffix = ")"
         else:
             suffix = "backend='{}')".format(self._backend)
-        return Dispatch.repr(self.backend)(
-            self._data, prefix=prefix, suffix=suffix)
+        return Dispatch.repr(self.backend)(self._data, prefix=prefix, suffix=suffix)
 
     def __copy__(self):
         """Return a shallow copy referencing the same wrapped data array"""
@@ -129,12 +130,11 @@ class Array(NDArrayOperatorsMixin):
         return iter(self._data)
 
     def __getstate__(self):
-        return {'_data': self._data,
-                '_backend': self._backend}
+        return {"_data": self._data, "_backend": self._backend}
 
     def __setstate__(self, state):
-        self._backend = state['_backend']
-        self._data = state['_data']
+        self._backend = state["_backend"]
+        self._data = state["_data"]
 
     def __getitem__(self, key: str) -> any:
         """Return value from wrapped array"""
@@ -146,7 +146,7 @@ class Array(NDArrayOperatorsMixin):
 
     def __setattr__(self, name: str, value: any):
         """Set attribute of wrapped array."""
-        if name in ('_data', 'data', '_backend', 'backend'):
+        if name in ("_data", "data", "_backend", "backend"):
             super().__setattr__(name, value)
         else:
             setattr(self._data, name, value)
@@ -158,6 +158,7 @@ class Array(NDArrayOperatorsMixin):
 
         # If attribute is a function wrap the return values
         if isinstance(attr, (MethodType, BuiltinMethodType)):
+
             @wraps(attr)
             def wrapped_method(*args, **kwargs):
                 return self._wrap(attr(*args, **kwargs))
@@ -168,14 +169,12 @@ class Array(NDArrayOperatorsMixin):
         return self._wrap(attr)
 
     def __qiskit_array__(self, dtype=None, backend=None):
-        if (backend and backend != self.backend) or (
-                dtype and dtype != self.data.dtype):
+        if (backend and backend != self.backend) or (dtype and dtype != self.data.dtype):
             return Array(self.data, dtype=dtype, backend=backend)
         return self
 
     def __array__(self, dtype=None) -> numpy.ndarray:
-        if isinstance(self._data, numpy.ndarray) and (
-                dtype is None or dtype == self._data.dtype):
+        if isinstance(self._data, numpy.ndarray) and (dtype is None or dtype == self._data.dtype):
             return self._data
         return numpy.asarray(self._data, dtype=dtype)
 
@@ -191,29 +190,29 @@ class Array(NDArrayOperatorsMixin):
     def __int__(self):
         """Convert size 1 array to an int."""
         if numpy.size(self) != 1:
-            raise TypeError('only size-1 Arrays can be converted to Python scalars')
+            raise TypeError("only size-1 Arrays can be converted to Python scalars")
         return int(self._data)
 
     def __float__(self):
         """Convert size 1 array to a float."""
         if numpy.size(self) != 1:
-            raise TypeError('only size-1 Arrays can be converted to Python scalars')
+            raise TypeError("only size-1 Arrays can be converted to Python scalars")
         return float(self._data)
 
     def __complex__(self):
         """Convert size 1 array to a complex."""
         if numpy.size(self) != 1:
-            raise TypeError('only size-1 Arrays can be converted to Python scalars')
+            raise TypeError("only size-1 Arrays can be converted to Python scalars")
         return complex(self._data)
 
     @staticmethod
-    def _wrap(obj: Union[any, Tuple[any]],
-              backend: Optional[str] = None) -> Union[any, Tuple[any]]:
+    def _wrap(obj: Union[any, Tuple[any]], backend: Optional[str] = None) -> Union[any, Tuple[any]]:
         """Wrap return array backend objects as Array objects"""
         if isinstance(obj, tuple):
-            return tuple(Array(x, backend=backend)
-                         if isinstance(x, Dispatch.REGISTERED_TYPES)
-                         else x for x in obj)
+            return tuple(
+                Array(x, backend=backend) if isinstance(x, Dispatch.REGISTERED_TYPES) else x
+                for x in obj
+            )
         if isinstance(obj, Dispatch.REGISTERED_TYPES):
             return Array(obj, backend=backend)
         return obj
@@ -231,21 +230,20 @@ class Array(NDArrayOperatorsMixin):
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """Dispatcher for numpy ufuncs to support the wrapped array backend."""
-        out = kwargs.get('out', tuple())
+        out = kwargs.get("out", tuple())
 
         for i in inputs + out:
             # Only support operations with instances of REGISTERED_TYPES.
             # Use ArrayLike instead of type(self) for isinstance to
             # allow subclasses that don't override __array_ufunc__ to
             # handle ArrayLike objects.
-            if not isinstance(i, Dispatch.REGISTERED_TYPES +
-                              (Array, Number)):
+            if not isinstance(i, Dispatch.REGISTERED_TYPES + (Array, Number)):
                 return NotImplemented
 
         # Defer to the implementation of the ufunc on unwrapped values.
         inputs = self._unwrap(inputs)
         if out:
-            kwargs['out'] = self._unwrap(out)
+            kwargs["out"] = self._unwrap(out)
 
         # Get implementation for backend
         backend = self.backend
@@ -255,7 +253,7 @@ class Array(NDArrayOperatorsMixin):
         result = dispatch_func(*inputs, **kwargs)
 
         # Not sure what this case from Numpy docs is?
-        if method == 'at':
+        if method == "at":
             return None
 
         # Wrap array results back into Array objects
@@ -268,9 +266,9 @@ class Array(NDArrayOperatorsMixin):
 
         # Unwrap function Array arguments
         args = self._unwrap(args)
-        out = kwargs.get('out', tuple())
+        out = kwargs.get("out", tuple())
         if out:
-            kwargs['out'] = self._unwrap(out)
+            kwargs["out"] = self._unwrap(out)
 
         # Get implementation for backend
         backend = self.backend

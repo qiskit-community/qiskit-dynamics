@@ -18,9 +18,7 @@ from typing import Callable
 from .array import Array
 
 
-def wrap(func: Callable,
-         wrap_return: bool = True,
-         decorator: bool = False) -> Callable:
+def wrap(func: Callable, wrap_return: bool = True, decorator: bool = False) -> Callable:
     """Wrap an array backend function to work with Arrays.
 
     Args:
@@ -61,11 +59,11 @@ def wrap(func: Callable,
         else:
             is_decorator = False
 
-        args = tuple(_wrap_function(x) if isinstance(x, FunctionType)
-                     else x for x in args)
-        kwargs = dict((key, _wrap_function(val))
-                      if isinstance(val, FunctionType)
-                      else (key, val) for key, val in kwargs.items())
+        args = tuple(_wrap_function(x) if isinstance(x, FunctionType) else x for x in args)
+        kwargs = dict(
+            (key, _wrap_function(val)) if isinstance(val, FunctionType) else (key, val)
+            for key, val in kwargs.items()
+        )
 
         # Return the wrapped function
         if not is_decorator:
@@ -83,11 +81,11 @@ def wrap(func: Callable,
         @functools.wraps(args[0])
         def wrapped_decorated(*f_args, **f_kwargs):
 
-            f_args = tuple(_wrap_function(x) if isinstance(x, FunctionType)
-                           else x for x in f_args)
-            f_kwargs = dict((key, _wrap_function(val))
-                            if isinstance(val, FunctionType)
-                            else (key, val) for key, val in f_kwargs.items())
+            f_args = tuple(_wrap_function(x) if isinstance(x, FunctionType) else x for x in f_args)
+            f_kwargs = dict(
+                (key, _wrap_function(val)) if isinstance(val, FunctionType) else (key, val)
+                for key, val in f_kwargs.items()
+            )
             result = _wrap_function(decorated)(*f_args, **f_kwargs)
 
             if wrap_return:
@@ -101,26 +99,28 @@ def wrap(func: Callable,
 
 def _wrap_function(func: callable) -> callable:
     """Wrap a function to handle Array-like inputs and returns"""
+
     @functools.wraps(func)
     def wrapped_function(*args, **kwargs):
 
         # Unwrap inputs
-        args = tuple(x.__qiskit_array__().data
-                     if hasattr(x, '__qiskit_array__')
-                     else x for x in args)
-        kwargs = dict((key, val.__qiskit_array__().data)
-                      if hasattr(val, '__qiskit_array__') else (key, val)
-                      for key, val in kwargs.items())
+        args = tuple(
+            x.__qiskit_array__().data if hasattr(x, "__qiskit_array__") else x for x in args
+        )
+        kwargs = dict(
+            (key, val.__qiskit_array__().data) if hasattr(val, "__qiskit_array__") else (key, val)
+            for key, val in kwargs.items()
+        )
 
         # Evaluate function with unwrapped inputs
         result = func(*args, **kwargs)
 
         # Unwrap result
         if isinstance(result, tuple):
-            result = tuple(x.__qiskit_array__().data
-                           if hasattr(x, '__qiskit_array__') else x
-                           for x in result)
-        elif hasattr(result, '__qiskit_array__'):
+            result = tuple(
+                x.__qiskit_array__().data if hasattr(x, "__qiskit_array__") else x for x in result
+            )
+        elif hasattr(result, "__qiskit_array__"):
             result = result.__qiskit_array__().data
         return result
 

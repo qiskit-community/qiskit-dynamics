@@ -51,7 +51,7 @@ class InstructionToSignals:
         """
 
         if self._carriers and len(self._carriers) < len(schedule.channels):
-            raise QiskitError('Not enough carrier frequencies supplied.')
+            raise QiskitError("Not enough carrier frequencies supplied.")
 
         signals, phases, frequency_shifts = {}, {}, {}
 
@@ -59,14 +59,13 @@ class InstructionToSignals:
             if self._carriers:
                 carrier_freq = self._carriers[idx]
             else:
-                carrier_freq = 0.
+                carrier_freq = 0.0
 
-            phases[chan.name] = 0.
-            frequency_shifts[chan.name] = 0.
-            signals[chan.name] = PiecewiseConstant(samples=[],
-                                                   dt=self._dt,
-                                                   name=chan.name,
-                                                   carrier_freq=carrier_freq)
+            phases[chan.name] = 0.0
+            frequency_shifts[chan.name] = 0.0
+            signals[chan.name] = PiecewiseConstant(
+                samples=[], dt=self._dt, name=chan.name, carrier_freq=carrier_freq
+            )
 
         for start_sample, inst in schedule.instructions:
             chan = inst.channel.name
@@ -78,8 +77,7 @@ class InstructionToSignals:
                 start_idx = len(signals[chan].samples)
                 for idx, sample in enumerate(inst.pulse.get_waveform().samples):
                     time = self._dt * (idx + start_idx)
-                    samples.append(sample * np.exp(2.0j * np.pi * freq * time
-                                                   + 1.0j * phi))
+                    samples.append(sample * np.exp(2.0j * np.pi * freq * time + 1.0j * phi))
 
                 signals[chan].add_samples(start_sample, samples)
 
@@ -93,7 +91,6 @@ class InstructionToSignals:
                 phases[chan] = inst.phase
 
             if isinstance(inst, SetFrequency):
-                frequency_shifts[chan] = (inst.frequency -
-                                          signals[chan].carrier_freq)
+                frequency_shifts[chan] = inst.frequency - signals[chan].carrier_freq
 
         return list(signals.values())

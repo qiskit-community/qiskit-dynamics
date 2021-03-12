@@ -15,8 +15,18 @@ Tests to convert from pulse schedules to signals.
 
 import numpy as np
 
-from qiskit.pulse import (Schedule, DriveChannel, Play, Drag, ShiftFrequency,
-                          SetFrequency, GaussianSquare, ShiftPhase, Gaussian, Constant)
+from qiskit.pulse import (
+    Schedule,
+    DriveChannel,
+    Play,
+    Drag,
+    ShiftFrequency,
+    SetFrequency,
+    GaussianSquare,
+    ShiftPhase,
+    Gaussian,
+    Constant,
+)
 from qiskit_ode.converters import InstructionToSignals
 from qiskit_ode.signals import PiecewiseConstant
 
@@ -29,7 +39,7 @@ class TestPulseToSignals(QiskitOdeTestCase):
     def test_pulse_to_signals(self):
         """Generic test."""
 
-        sched = Schedule(name='Schedule')
+        sched = Schedule(name="Schedule")
         sched += Play(Drag(duration=20, amp=0.5, sigma=4, beta=0.5), DriveChannel(0))
         sched += ShiftPhase(1.0, DriveChannel(0))
         sched += Play(Drag(duration=20, amp=0.5, sigma=4, beta=0.5), DriveChannel(0))
@@ -48,14 +58,14 @@ class TestPulseToSignals(QiskitOdeTestCase):
         self.assertTrue(isinstance(signals[0], PiecewiseConstant))
 
         samples = test_gaussian.get_waveform().samples
-        self.assertTrue(np.allclose(signals[1].samples[0:len(samples)], samples))
+        self.assertTrue(np.allclose(signals[1].samples[0 : len(samples)], samples))
 
     def test_shift_phase_to_signals(self):
         """Test that a shift phase gives negative envelope."""
 
         gaussian = Gaussian(duration=20, amp=0.5, sigma=4)
 
-        sched = Schedule(name='Schedule')
+        sched = Schedule(name="Schedule")
         sched += ShiftPhase(np.pi, DriveChannel(0))
         sched += Play(gaussian, DriveChannel(0))
 
@@ -68,7 +78,7 @@ class TestPulseToSignals(QiskitOdeTestCase):
     def test_carriers_and_dt(self):
         """Test that the carriers go into the signals."""
 
-        sched = Schedule(name='Schedule')
+        sched = Schedule(name="Schedule")
         sched += Play(Gaussian(duration=20, amp=0.5, sigma=4), DriveChannel(0))
 
         converter = InstructionToSignals(dt=0.222, carriers=[5.5e9])

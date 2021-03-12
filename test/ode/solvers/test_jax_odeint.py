@@ -36,99 +36,92 @@ class TestJaxOdeint(QiskitOdeTestCase, TestJaxBase):
 
         # pylint: disable=unused-argument
         def simple_rhs(t, y):
-            return cond(t < 1.,
-                        lambda s: s,
-                        lambda s: s**2,
-                        jnp.array([t]))
+            return cond(t < 1.0, lambda s: s, lambda s: s ** 2, jnp.array([t]))
 
         self.simple_rhs = simple_rhs
 
     def test_t_eval_arg_no_overlap(self):
         """Test handling of t_eval when no overlap with t_span."""
 
-        t_span = np.array([0., 2.])
-        t_eval = np.array([1., 1.5, 1.7])
-        y0 = jnp.array([1.])
+        t_span = np.array([0.0, 2.0])
+        t_eval = np.array([1.0, 1.5, 1.7])
+        y0 = jnp.array([1.0])
 
-        results = jax_odeint(self.simple_rhs,
-                             t_span,
-                             y0,
-                             t_eval=t_eval,
-                             atol=1e-10,
-                             rtol=1e-10)
+        results = jax_odeint(self.simple_rhs, t_span, y0, t_eval=t_eval, atol=1e-10, rtol=1e-10)
 
         self.assertAllClose(t_eval, results.t)
 
-        expected_y = jnp.array([[1 + 0.5],
-                                [1 + 0.5 + (1.5**3 - 1.**3)/3],
-                                [1 + 0.5 + (1.7**3 - 1.**3)/3]])
+        expected_y = jnp.array(
+            [
+                [1 + 0.5],
+                [1 + 0.5 + (1.5 ** 3 - 1.0 ** 3) / 3],
+                [1 + 0.5 + (1.7 ** 3 - 1.0 ** 3) / 3],
+            ]
+        )
 
         self.assertAllClose(expected_y, results.y)
 
     def test_t_eval_arg_no_overlap_backwards(self):
         """Test handling of t_eval when no overlap with t_span with backwards integration."""
 
-        t_span = np.array([2., 0.])
-        t_eval = np.array([1.7, 1.5, 1.])
-        y0 = jnp.array([1 + 0.5 + (2.**3 - 1.**3)/3])
+        t_span = np.array([2.0, 0.0])
+        t_eval = np.array([1.7, 1.5, 1.0])
+        y0 = jnp.array([1 + 0.5 + (2.0 ** 3 - 1.0 ** 3) / 3])
 
-        results = jax_odeint(self.simple_rhs,
-                             t_span,
-                             y0,
-                             t_eval=t_eval,
-                             atol=1e-10,
-                             rtol=1e-10)
+        results = jax_odeint(self.simple_rhs, t_span, y0, t_eval=t_eval, atol=1e-10, rtol=1e-10)
 
         self.assertAllClose(t_eval, results.t)
 
-        expected_y = jnp.array([[1 + 0.5 + (1.7**3 - 1.**3)/3],
-                                [1 + 0.5 + (1.5**3 - 1.**3)/3],
-                                [1 + 0.5]])
+        expected_y = jnp.array(
+            [
+                [1 + 0.5 + (1.7 ** 3 - 1.0 ** 3) / 3],
+                [1 + 0.5 + (1.5 ** 3 - 1.0 ** 3) / 3],
+                [1 + 0.5],
+            ]
+        )
 
         self.assertAllClose(expected_y, results.y)
 
     def test_t_eval_arg_overlap(self):
         """Test handling of t_eval with overlap with t_span."""
 
-        t_span = np.array([0., 2.])
-        t_eval = np.array([1., 1.5, 1.7, 2.])
-        y0 = jnp.array([1.])
+        t_span = np.array([0.0, 2.0])
+        t_eval = np.array([1.0, 1.5, 1.7, 2.0])
+        y0 = jnp.array([1.0])
 
-        results = jax_odeint(self.simple_rhs,
-                             t_span,
-                             y0,
-                             t_eval=t_eval,
-                             atol=1e-10,
-                             rtol=1e-10)
+        results = jax_odeint(self.simple_rhs, t_span, y0, t_eval=t_eval, atol=1e-10, rtol=1e-10)
 
         self.assertAllClose(t_eval, results.t)
 
-        expected_y = jnp.array([[1 + 0.5],
-                                [1 + 0.5 + (1.5**3 - 1.**3)/3],
-                                [1 + 0.5 + (1.7**3 - 1.**3)/3],
-                                [1 + 0.5 + (2**3 - 1.**3)/3]])
+        expected_y = jnp.array(
+            [
+                [1 + 0.5],
+                [1 + 0.5 + (1.5 ** 3 - 1.0 ** 3) / 3],
+                [1 + 0.5 + (1.7 ** 3 - 1.0 ** 3) / 3],
+                [1 + 0.5 + (2 ** 3 - 1.0 ** 3) / 3],
+            ]
+        )
 
         self.assertAllClose(expected_y, results.y)
 
     def test_t_eval_arg_overlap_backwards(self):
         """Test handling of t_eval with overlap with t_span with backwards integration."""
 
-        t_span = np.array([2., 0.])
-        t_eval = np.array([2., 1.7, 1.5, 1.])
-        y0 = jnp.array([1 + 0.5 + (2.**3 - 1.**3)/3])
+        t_span = np.array([2.0, 0.0])
+        t_eval = np.array([2.0, 1.7, 1.5, 1.0])
+        y0 = jnp.array([1 + 0.5 + (2.0 ** 3 - 1.0 ** 3) / 3])
 
-        results = jax_odeint(self.simple_rhs,
-                             t_span,
-                             y0,
-                             t_eval=t_eval,
-                             atol=1e-10,
-                             rtol=1e-10)
+        results = jax_odeint(self.simple_rhs, t_span, y0, t_eval=t_eval, atol=1e-10, rtol=1e-10)
 
         self.assertAllClose(t_eval, results.t)
 
-        expected_y = jnp.array([[1 + 0.5 + (2**3 - 1.**3)/3],
-                                [1 + 0.5 + (1.7**3 - 1.**3)/3],
-                                [1 + 0.5 + (1.5**3 - 1.**3)/3],
-                                [1 + 0.5]])
+        expected_y = jnp.array(
+            [
+                [1 + 0.5 + (2 ** 3 - 1.0 ** 3) / 3],
+                [1 + 0.5 + (1.7 ** 3 - 1.0 ** 3) / 3],
+                [1 + 0.5 + (1.5 ** 3 - 1.0 ** 3) / 3],
+                [1 + 0.5],
+            ]
+        )
 
         self.assertAllClose(expected_y, results.y)

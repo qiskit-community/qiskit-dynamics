@@ -32,11 +32,13 @@ except ImportError:
 from .solver_utils import merge_t_args, trim_t_results
 
 
-def scipy_expm_solver(generator: Callable,
-                      t_span: Array,
-                      y0: Array,
-                      max_dt: float,
-                      t_eval: Optional[Union[Tuple, List, Array]] = None):
+def scipy_expm_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
     """Fixed-step size matrix exponential based solver implemented with
     ``scipy.linalg.expm``. Solves the specified problem by taking steps of
     size no larger than ``max_dt``.
@@ -56,20 +58,19 @@ def scipy_expm_solver(generator: Callable,
         eval_time = t0 + (h / 2)
         return expm(generator(eval_time) * h) @ y
 
-    return fixed_step_solver_template(take_step,
-                                      rhs_func=generator,
-                                      t_span=t_span,
-                                      y0=y0,
-                                      max_dt=max_dt,
-                                      t_eval=t_eval)
+    return fixed_step_solver_template(
+        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
 
 
-@requires_backend('jax')
-def jax_expm_solver(generator: Callable,
-                    t_span: Array,
-                    y0: Array,
-                    max_dt: float,
-                    t_eval: Optional[Union[Tuple, List, Array]] = None):
+@requires_backend("jax")
+def jax_expm_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
     """Fixed-step size matrix exponential based solver implemented with ``jax``.
     Solves the specified problem by taking steps of size no larger than ``max_dt``.
 
@@ -88,20 +89,19 @@ def jax_expm_solver(generator: Callable,
         eval_time = t + (h / 2)
         return jexpm(generator(eval_time) * h) @ y
 
-    return fixed_step_solver_template_jax(take_step,
-                                          rhs_func=generator,
-                                          t_span=t_span,
-                                          y0=y0,
-                                          max_dt=max_dt,
-                                          t_eval=t_eval)
+    return fixed_step_solver_template_jax(
+        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
 
 
-def fixed_step_solver_template(take_step: Callable,
-                               rhs_func: Callable,
-                               t_span: Array,
-                               y0: Array,
-                               max_dt: float,
-                               t_eval: Optional[Union[Tuple, List, Array]] = None):
+def fixed_step_solver_template(
+    take_step: Callable,
+    rhs_func: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
     """Helper function for implementing fixed-step solvers supporting both
     ``t_span`` and ``max_dt`` arguments. ``take_step`` is assumed to be a
     function implementing a single step of size h of a fixed-step method.
@@ -154,12 +154,14 @@ def fixed_step_solver_template(take_step: Callable,
     return trim_t_results(results, t_span, t_eval)
 
 
-def fixed_step_solver_template_jax(take_step: Callable,
-                                   rhs_func: Callable,
-                                   t_span: Array,
-                                   y0: Array,
-                                   max_dt: float,
-                                   t_eval: Optional[Union[Tuple, List, Array]] = None):
+def fixed_step_solver_template_jax(
+    take_step: Callable,
+    rhs_func: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
     """This function is the jax control-flow version of
     :meth:`fixed_step_solver_template`. See the documentation of :meth:`fixed_step_solver_template`
     for details.
@@ -178,9 +180,9 @@ def fixed_step_solver_template_jax(take_step: Callable,
 
     # ensure the output of rhs_func is a raw array
     def wrapped_rhs_func(*args):
-        return Array(rhs_func(*args), backend='jax').data
+        return Array(rhs_func(*args), backend="jax").data
 
-    y0 = Array(y0, backend='jax').data
+    y0 = Array(y0, backend="jax").data
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
 
@@ -197,10 +199,7 @@ def fixed_step_solver_template_jax(take_step: Callable,
 
         def scan_take_step(carry, step):
             t, y = carry
-            y = cond(step < n_steps,
-                     lambda y: take_step(wrapped_rhs_func, t, y, h),
-                     identity,
-                     y)
+            y = cond(step < n_steps, lambda y: take_step(wrapped_rhs_func, t, y, h), identity, y)
             t = t + h
             return (t, y), None
 
@@ -208,11 +207,13 @@ def fixed_step_solver_template_jax(take_step: Callable,
 
         return next_y, next_y
 
-    ys = scan(scan_interval_integrate, init=y0, xs=(jnp.array(t_list[:-1]),
-                                                    jnp.array(h_list),
-                                                    jnp.array(n_steps_list)))[1]
+    ys = scan(
+        scan_interval_integrate,
+        init=y0,
+        xs=(jnp.array(t_list[:-1]), jnp.array(h_list), jnp.array(n_steps_list)),
+    )[1]
 
-    ys = Array(jnp.append(jnp.expand_dims(y0, axis=0), ys, axis=0), backend='jax')
+    ys = Array(jnp.append(jnp.expand_dims(y0, axis=0), ys, axis=0), backend="jax")
 
     results = OdeResult(t=t_list, y=ys)
 
@@ -235,8 +236,8 @@ def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[A
     """
 
     # time args are non-differentiable
-    t_span = Array(t_span, backend='numpy').data
-    max_dt = Array(max_dt, backend='numpy').data
+    t_span = Array(t_span, backend="numpy").data
+    max_dt = Array(max_dt, backend="numpy").data
     t_list = np.array(merge_t_args(t_span, t_eval))
 
     # set the number of time steps required in each interval so that
