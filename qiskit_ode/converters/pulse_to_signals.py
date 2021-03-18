@@ -17,7 +17,15 @@ Pulse schedule to Signals converter.
 from typing import List
 import numpy as np
 
-from qiskit.pulse import Schedule, Play, ShiftPhase, SetPhase, ShiftFrequency, SetFrequency
+from qiskit.pulse import (
+    Schedule,
+    Play,
+    ShiftPhase,
+    SetPhase,
+    ShiftFrequency,
+    SetFrequency,
+    Waveform,
+)
 from qiskit import QiskitError
 from qiskit_ode.signals import PiecewiseConstant
 
@@ -73,9 +81,18 @@ class InstructionToSignals:
             freq = frequency_shifts[chan]
 
             if isinstance(inst, Play):
-                samples = []
                 start_idx = len(signals[chan].samples)
-                for idx, sample in enumerate(inst.pulse.get_waveform().samples):
+
+                # get the instruction samples
+                inst_samples = None
+                if isinstance(inst.pulse, Waveform):
+                    inst_samples = inst.pulse.samples
+                else:
+                    inst_samples = inst.pulse.get_waveform().samples
+
+                # build sample array to append to signal
+                samples = []
+                for idx, sample in enumerate(inst_samples):
                     time = self._dt * (idx + start_idx)
                     samples.append(sample * np.exp(2.0j * np.pi * freq * time + 1.0j * phi))
 
@@ -92,5 +109,17 @@ class InstructionToSignals:
 
             if isinstance(inst, SetFrequency):
                 frequency_shifts[chan] = inst.frequency - signals[chan].carrier_freq
+
+        # ensure all signals have the same number of samples
+        max_duration = 0
+        for sig in signals.values():
+            max_duration = max(max_duration, sig.duration)
+
+        for sig in signals.values():
+            if sig.duration < max_duration:
+                sig.add_samples(
+                    start_sample=sig.duration,
+                    samples=np.zeros(max_duration - sig.duration, dtype=complex),
+                )
 
         return list(signals.values())

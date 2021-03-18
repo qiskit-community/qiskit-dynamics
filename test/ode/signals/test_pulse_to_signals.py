@@ -26,6 +26,7 @@ from qiskit.pulse import (
     ShiftPhase,
     Gaussian,
     Constant,
+    Waveform,
 )
 from qiskit_ode.converters import InstructionToSignals
 from qiskit_ode.signals import PiecewiseConstant
@@ -113,3 +114,23 @@ class TestPulseToSignals(QiskitOdeTestCase):
 
         for idx in range(10):
             self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * 0.222))
+
+    def test_uneven_pulse_length(self):
+        """Test conversion when length of pulses on a schedule is uneven."""
+
+        schedule = Schedule()
+        schedule |= Play(Waveform(np.ones(10)), DriveChannel(0))
+        schedule += Play(Constant(20, 1), DriveChannel(1))
+
+        converter = InstructionToSignals(dt=0.1, carriers=[2.0, 3.0])
+
+        signals = converter.get_signals(schedule)
+
+        self.assertTrue(signals[0].duration == 20)
+        self.assertTrue(signals[1].duration == 20)
+
+        self.assertAllClose(signals[0]._samples, np.append(np.ones(10), np.zeros(10)))
+        self.assertAllClose(signals[1]._samples, np.ones(20))
+
+        self.assertTrue(signals[0].carrier_freq == 2.0)
+        self.assertTrue(signals[1].carrier_freq == 3.0)

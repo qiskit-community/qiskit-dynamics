@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """
-Tests for model modules
+Tests for converter functions
 """
 
 import os

@@ -307,8 +307,10 @@ class PiecewiseConstant(BaseSignal):
         if start_sample < len(self._samples):
             raise QiskitError()
 
-        while len(self._samples) < start_sample:
-            self._samples = np.append(self._samples, [0.0])
+        if len(self._samples) < start_sample:
+            self._samples = np.append(
+                self._samples, np.zeros(start_sample - len(self._samples), dtype=complex)
+            )
 
         self._samples = np.append(self._samples, samples)
 
