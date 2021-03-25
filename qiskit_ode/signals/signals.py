@@ -157,9 +157,9 @@ class Signal(BaseSignal):
         self._carrier_freq = Array(carrier_freq)
         self._phase = Array(phase)
 
-    def envelope_value(self, t: float = 0.0) -> Array:
+    def envelope_value(self, t: float = 0.0) -> complex:
         """Evaluates the envelope at time t."""
-        return Array(self.envelope(t))
+        return self.envelope(t)
 
     def value(self, t: float = 0.0) -> Array:
         """Return the value of the signal at time t."""
@@ -454,8 +454,7 @@ class VectorSignal:
 
         # define the envelope as iteratively evaluating the envelopes
         def env_func(t):
-            return Array([Array(sig.envelope_value(t)).data for sig in signal_list])
-
+            return Array([sig.envelope_value(t) for sig in signal_list])
         # construct carrier frequency and phase list
         # if signal doesn't have a carrier, set to 0.
         carrier_freqs = Array(
