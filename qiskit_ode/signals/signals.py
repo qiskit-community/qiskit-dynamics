@@ -100,7 +100,7 @@ class BaseSignal(ABC):
             t0: initial time
             tf: final time
             n: number of points to sample in interval.
-            axis: the axis to use for plotting.
+            axis (AxesSubplot): the axis to use for plotting.
         """
         x_vals = np.linspace(t0, tf, n)
 
@@ -120,7 +120,7 @@ class BaseSignal(ABC):
             t0: initial time
             tf: final time
             n: number of points to sample in interval.
-            axis: the axis to use for plotting.
+            axis (AxesSubplot): the axis to use for plotting.
         """
         x_vals = np.linspace(t0, tf, n)
 
@@ -398,8 +398,6 @@ def signal_add(
         sig1 = Constant(sig1)
     if isinstance(sig2, (int, float, complex)):
         sig2 = Constant(sig2)
-
-    avg_freq = (sig1.carrier_freq + sig2.carrier_freq) / 2
 
     return Signal(
         lambda t: sig1.value(t) + sig2.value(t),
