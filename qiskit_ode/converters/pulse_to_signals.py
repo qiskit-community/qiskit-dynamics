@@ -27,7 +27,7 @@ from qiskit.pulse import (
     Waveform,
 )
 from qiskit import QiskitError
-from qiskit_ode.signals import PiecewiseConstant, Signal
+from qiskit_ode.signals import PiecewiseConstant
 
 
 class InstructionToSignals:
@@ -146,9 +146,23 @@ class InstructionToSignals:
         for sig in signals:
             new_freq = sig.carrier_freq + if_modulation
 
-            sig_i = Signal(lambda t: sig.envelope_value(t), new_freq, sig.phase, sig.name + "_i")
-            sig_q = Signal(
-                lambda t: np.imag(sig.envelope_value(t)) - 1.0j * np.real(sig.envelope_value(t)),
+            samples_i = sig.samples
+            samples_q = np.imag(samples_i) - 1.0j * np.real(samples_i)
+
+            sig_i = PiecewiseConstant(
+                sig.dt,
+                samples_i,
+                sig.start_time,
+                sig.duration,
+                new_freq,
+                sig.phase,
+                sig.name + "_i",
+            )
+            sig_q = PiecewiseConstant(
+                sig.dt,
+                samples_q,
+                sig.start_time,
+                sig.duration,
                 new_freq,
                 sig.phase,
                 sig.name + "_q",
