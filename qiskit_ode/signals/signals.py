@@ -455,6 +455,7 @@ class VectorSignal:
         # define the envelope as iteratively evaluating the envelopes
         def env_func(t):
             return Array([sig.envelope_value(t) for sig in signal_list])
+
         # construct carrier frequency and phase list
         # if signal doesn't have a carrier, set to 0.
         carrier_freqs = Array(

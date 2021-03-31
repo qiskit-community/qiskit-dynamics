@@ -73,13 +73,18 @@ class Array(NDArrayOperatorsMixin):
 
         # Check if we can override setattr and
         # set _data and _backend directly
-        if isinstance(data, numpy.ndarray) \
-                and (backend == "numpy" or (not backend and Dispatch.DEFAULT_BACKEND == "numpy")) \
-                and (not dtype or dtype == data.dtype) \
-                and (not order or (order == "C" and data.flags["C_CONTIGUOUS"]) \
-                or (order == "F" and data.flags["F_CONTIGUOUS"])):
-            self.__dict__['_data'] = data
-            self.__dict__['_backend'] = "numpy"
+        if (
+            isinstance(data, numpy.ndarray)
+            and (backend == "numpy" or (not backend and Dispatch.DEFAULT_BACKEND == "numpy"))
+            and (not dtype or dtype == data.dtype)
+            and (
+                not order
+                or (order == "C" and data.flags["C_CONTIGUOUS"])
+                or (order == "F" and data.flags["F_CONTIGUOUS"])
+            )
+        ):
+            self.__dict__["_data"] = data
+            self.__dict__["_backend"] = "numpy"
             return
 
         if hasattr(data, "__qiskit_array__"):
