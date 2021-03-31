@@ -27,7 +27,7 @@ from qiskit.pulse import (
     Waveform,
 )
 from qiskit import QiskitError
-from qiskit_ode.signals import PiecewiseConstant
+from qiskit_ode.signals import PiecewiseConstant, Signal
 
 
 class InstructionToSignals:
@@ -123,3 +123,37 @@ class InstructionToSignals:
                 )
 
         return list(signals.values())
+
+    @staticmethod
+    def get_awg_signals(
+        signals: List[PiecewiseConstant], if_modulation: float
+    ) -> List[PiecewiseConstant]:
+        """
+        Create signals that correspond to the output ports of an Arbitrary Waveform Generator
+        to be used with IQ mixers. For each signal in the list the number of signals is double
+        to create the I and Q components.
+
+        Args:
+            signals: A list of signals for which to create I and Q.
+            if_modulation: The intermediate frequency with which the AWG
+
+        Returns:
+            iq signals: A list of signals which is twice as long as the input list of signals.
+                For each input signal get_awg_signals returns two
+        """
+        new_signals = []
+
+        for sig in signals:
+            new_freq = sig.carrier_freq + if_modulation
+
+            sig_i = Signal(lambda t: sig.envelope_value(t), new_freq, sig.phase, sig.name + "_i")
+            sig_q = Signal(
+                lambda t: np.imag(sig.envelope_value(t)) - 1.0j * np.real(sig.envelope_value(t)),
+                new_freq,
+                sig.phase,
+                sig.name + "_q",
+            )
+
+            new_signals += [sig_i, sig_q]
+
+        return new_signals

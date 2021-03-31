@@ -55,8 +55,13 @@ class BaseSignal(ABC):
         """Evaluates the envelope at time t."""
 
     @abstractmethod
-    def value(self, t: float = 0.0) -> complex:
+    def value(self, t: float = 0.0) -> float:
         """Return the value of the signal at time t."""
+
+    @property
+    def name(self) -> str:
+        """Return the name of the signal."""
+        return self._name
 
     def to_pwc(self, dt: float, n_samples: int, start_time: float = 0.0) -> "PiecewiseConstant":
         """
@@ -88,13 +93,14 @@ class BaseSignal(ABC):
     def __radd__(self, other):
         return signal_add(self, other)
 
-    def plot(self, t0: float, tf: float, n: int):
+    def plot(self, t0: float, tf: float, n: int, axis=None):
         """Plot the mixed signal over an interval.
 
         Args:
             t0: initial time
             tf: final time
             n: number of points to sample in interval.
+            axis: the axis to use for plotting.
         """
         x_vals = np.linspace(t0, tf, n)
 
@@ -102,16 +108,19 @@ class BaseSignal(ABC):
         for x in x_vals:
             sig_vals.append(self.value(x))
 
-        plt.plot(x_vals, np.real(sig_vals))
-        plt.plot(x_vals, np.imag(sig_vals))
+        if axis:
+            axis.plot(x_vals, sig_vals)
+        else:
+            plt.plot(x_vals, sig_vals)
 
-    def plot_envelope(self, t0: float, tf: float, n: int):
+    def plot_envelope(self, t0: float, tf: float, n: int, axis=None):
         """Plot the envelope over an interval.
 
         Args:
             t0: initial time
             tf: final time
             n: number of points to sample in interval.
+            axis: the axis to use for plotting.
         """
         x_vals = np.linspace(t0, tf, n)
 
@@ -119,8 +128,12 @@ class BaseSignal(ABC):
         for x in x_vals:
             sig_vals.append(self.envelope_value(x))
 
-        plt.plot(x_vals, np.real(sig_vals))
-        plt.plot(x_vals, np.imag(sig_vals))
+        if axis:
+            axis.plot(x_vals, np.real(sig_vals))
+            axis.plot(x_vals, np.imag(sig_vals))
+        else:
+            plt.plot(x_vals, np.real(sig_vals))
+            plt.plot(x_vals, np.imag(sig_vals))
 
 
 class Signal(BaseSignal):
@@ -164,7 +177,7 @@ class Signal(BaseSignal):
     def value(self, t: float = 0.0) -> Array:
         """Return the value of the signal at time t."""
         arg = 1j * 2 * np.pi * self.carrier_freq * t + 1j * self.phase
-        return self.envelope_value(t) * np.exp(arg)
+        return np.real(self.envelope_value(t) * np.exp(arg))
 
     def conjugate(self):
         """Return a new signal that is the complex conjugate of this one"""
@@ -189,8 +202,8 @@ class Constant(BaseSignal):
     def envelope_value(self, t: float = 0.0) -> complex:
         return self._value
 
-    def value(self, t: float = 0.0) -> complex:
-        return self._value
+    def value(self, t: float = 0.0) -> float:
+        return np.real(self._value)
 
     def conjugate(self):
         return Constant(self._value.conjugate())
@@ -278,7 +291,7 @@ class PiecewiseConstant(BaseSignal):
     def value(self, t: float = 0.0) -> Array:
         """Return the value of the signal at time t."""
         arg = 1j * 2 * np.pi * self.carrier_freq * t + 1j * self.phase
-        return self.envelope_value(t) * np.exp(arg)
+        return np.real(self.envelope_value(t) * np.exp(arg))
 
     def conjugate(self):
         return PiecewiseConstant(
@@ -389,8 +402,8 @@ def signal_add(
     avg_freq = (sig1.carrier_freq + sig2.carrier_freq) / 2
 
     return Signal(
-        lambda t: (sig1.value(t) + sig2.value(t)) * np.exp(-2.0j * np.pi * t * avg_freq),
-        avg_freq,
+        lambda t: sig1.value(t) + sig2.value(t),
+        0,
         0,
     )
 
