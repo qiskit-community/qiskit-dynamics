@@ -76,7 +76,6 @@ class Array(NDArrayOperatorsMixin):
         if (
             isinstance(data, numpy.ndarray)
             and _is_numpy_backend(backend)
-            and (not dtype or dtype == data.dtype)
             and _is_equivalent_numpy_array(data, dtype, order)
         ):
             self.__dict__["_data"] = data
