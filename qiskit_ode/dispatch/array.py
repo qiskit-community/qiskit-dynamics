@@ -75,13 +75,9 @@ class Array(NDArrayOperatorsMixin):
         # set _data and _backend directly
         if (
             isinstance(data, numpy.ndarray)
-            and (backend == "numpy" or (not backend and Dispatch.DEFAULT_BACKEND == "numpy"))
+            and _is_numpy_backend(backend)
             and (not dtype or dtype == data.dtype)
-            and (
-                not order
-                or (order == "C" and data.flags["C_CONTIGUOUS"])
-                or (order == "F" and data.flags["F_CONTIGUOUS"])
-            )
+            and _is_equivalent_numpy_array(data, dtype, order)
         ):
             self.__dict__["_data"] = data
             self.__dict__["_backend"] = "numpy"
@@ -294,3 +290,15 @@ class Array(NDArrayOperatorsMixin):
             return NotImplemented
         result = dispatch_func(*args, **kwargs)
         return self._wrap(result, backend=self.backend)
+
+
+def _is_numpy_backend(backend: Optional[str] = None):
+    return backend == "numpy" or (not backend and Dispatch.DEFAULT_BACKEND == "numpy")
+
+
+def _is_equivalent_numpy_array(data: any, dtype: Optional[any] = None, order: Optional[str] = None):
+    return (not dtype or dtype == data.dtype) and (
+        not order
+        or (order == "C" and data.flags["C_CONTIGUOUS"])
+        or (order == "F" and data.flags["F_CONTIGUOUS"])
+    )
