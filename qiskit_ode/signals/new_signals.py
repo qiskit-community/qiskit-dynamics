@@ -19,6 +19,7 @@ Module for representation of model coefficients.
 
 from abc import ABC, abstractmethod
 from typing import List, Callable, Union, Optional
+import itertools
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -114,8 +115,7 @@ class Signal:
 
     def __call__(self, t: Union[float, np.array, Array]) -> Array:
         """Vectorized evaluation of the signal at time t."""
-        arg = self._carrier_arg * t + self._phase_arg
-        return np.real(self.envelope(t) * np.exp(arg))
+        return np.real(self.complex_value(t))
 
     def __str__(self) -> str:
         """Return string representation."""
@@ -123,6 +123,18 @@ class Signal:
             return str(self.name)
 
         return 'Signal(carrier_freq={freq}, phase={phase})'.format(freq=str(self.carrier_freq), phase=str(self.phase))
+
+    def __add__(self, other: 'Signal') -> 'SignalSum':
+        return signal_add(self, other)
+
+    def __radd__(self, other: 'Signal') -> 'SignalSum':
+        return self.__add__(other)
+
+    def __mul__(self, other: 'Signal') -> 'SignalSum':
+        return signal_multiply(self, other)
+
+    def __rmul__(self, other: 'Signal') -> 'SignalSum':
+        return self.__mul__(other)
 
     def conjugate(self):
         """Return a new signal obtained via complex conjugation of the envelope and phase."""
@@ -187,6 +199,163 @@ class Signal:
             plt.plot(t_vals, np.imag(sig_vals))
 
 
+class Constant(Signal):
+    """:class:`Signal` representing a constant value."""
+
+    def __init__(self, value: complex, name: str = None):
+        """Initialize a constant signal.
+
+        Args:
+            value: the constant.
+            name: name of the constant.
+        """
+        self.name = name
+        self._value = Array(value)
+        self.phase = 0.0
+        self.carrier_freq = 0.0
+
+    def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+        return self._value * np.ones(np.shape(t), dtype=complex)
+
+    def conjugate(self):
+        return Constant(np.conjugate(self._value))
+
+    def __str__(self) -> str:
+        if self.name is not None:
+            return str(self.name)
+
+        return 'Constant({})'.format(str(self._value))
+
+
+class PiecewiseConstant(Signal):
+    """A piecewise constant signal implemented as an array of samples."""
+
+    def __init__(
+        self,
+        dt: float,
+        samples: Union[Array, List],
+        start_time: float = 0.0,
+        duration: int = None,
+        carrier_freq: float = 0.0,
+        phase: float = 0.0,
+        name: str = None,
+    ):
+        """Initialize a piecewise constant signal.
+
+        Args:
+            dt: The duration of each sample.
+            samples: The array of samples.
+            start_time: The time at which the signal starts.
+            duration: The duration of the signal in samples.
+            carrier_freq: The frequency of the carrier.
+            phase: The phase of the carrier.
+            name: name of the signal.
+        """
+        self.name = name
+
+        self._dt = dt
+
+        if samples is not None:
+            self._samples = Array(samples)
+        else:
+            self._samples = Array([0.0] * duration)
+
+        self._start_time = start_time
+
+        # initialize internally stored carrier/phase information
+        self._carrier_freq = None
+        self._phase = None
+        self._carrier_arg = None
+        self._phase_arg = None
+
+        # set carrier and phase
+        self.carrier_freq = carrier_freq
+        self.phase = phase
+
+    @property
+    def duration(self) -> int:
+        """
+        Returns:
+            duration: The duration of the signal in samples.
+        """
+        return len(self._samples)
+
+    @property
+    def dt(self) -> float:
+        """
+        Returns:
+             dt: the duration of each sample.
+        """
+        return self._dt
+
+    @property
+    def samples(self) -> Array:
+        """
+        Returns:
+            samples: the samples of the piecewise constant signal.
+        """
+        return Array(self._samples)
+
+    @property
+    def start_time(self) -> float:
+        """
+        Returns:
+            start_time: The time at which the list of samples start.
+        """
+        return self._start_time
+
+    def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+        idx = Array((t - self._start_time) // self._dt, dtype=int)
+        return Array(self._samples.data[idx.data])
+
+    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+        """Return the value of the signal at time t."""
+        arg = self._carrier_arg * t + self._phase_arg
+        return self.envelope(t) * np.exp(arg)
+
+    def conjugate(self):
+        return PiecewiseConstant(
+            dt=self._dt,
+            samples=np.conjugate(self._samples),
+            start_time=self._start_time,
+            duration=self.duration,
+            carrier_freq=self.carrier_freq,
+            phase=-self.phase,
+        )
+
+    def add_samples(self, start_sample: int, samples: List):
+        """
+        Appends samples to the pulse starting at start_sample.
+        If start_sample is larger than the number of samples currently
+        in the signal the signal is padded with zeros.
+
+        Args:
+            start_sample: number of the sample at which the new samples
+                should be appended.
+            samples: list of samples to append.
+
+        Raises:
+            QiskitError: if start_sample is invalid.
+        """
+        if start_sample < len(self._samples):
+            raise QiskitError()
+
+        if len(self._samples) < start_sample:
+            self._samples = np.append(
+                self._samples, np.zeros(start_sample - len(self._samples), dtype=complex)
+            )
+
+        self._samples = np.append(self._samples, samples)
+
+    def __str__(self) -> str:
+        """Return string representation."""
+        if self.name is not None:
+            return str(self.name)
+
+        return 'PiecewiseConstant(dt={dt}, carrier_freq={freq}, phase={phase})'.format(dt=self.dt, freq=str(self.carrier_freq), phase=str(self.phase))
+
+
+
 class SignalSum(Signal):
     """Class representing a sum of ``Signal`` objects."""
 
@@ -242,9 +411,6 @@ class SignalSum(Signal):
         exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
-    def __call__(self, t: Union[float, np.array, Array]) -> Array:
-        return np.real(self.complex_value(t))
-
     def __len__(self):
         return len(self.components)
 
@@ -266,6 +432,8 @@ class SignalSum(Signal):
 
     def simplify(self):
         """Merge terms with the same frequency.
+
+        To do: add special handling for Constant and PiecewiseConstant
         """
         new_sigs = []
         new_freqs = []
@@ -303,6 +471,8 @@ class SignalSum(Signal):
     def merge(self) -> Signal:
         """Merge into a single ``Signal``. The output frequency is given by the
         average.
+
+        To do: add special handling for Constant and PiecewiseConstant
         """
 
         if len(self) == 0:
@@ -323,6 +493,8 @@ class SignalSum(Signal):
 def add_envelopes(sig1: Signal, sig2: Signal, conj2: bool = False) -> Callable:
     """Utility function for adding the envelopes (including phases) of two :class:`Signal`s.
 
+    To do: add special handling for Constant and PiecewiseConstant
+
     Args:
         sig1: First :class:`Signal`.
         sig2: Second :class:`Signal`
@@ -342,3 +514,107 @@ def add_envelopes(sig1: Signal, sig2: Signal, conj2: bool = False) -> Callable:
         return env1_shift * sig1.envelope(t) + env2_shift * sig2.envelope(t)
 
     return new_env
+
+def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
+    """Add two signals.
+
+    To do: add special handling for Constant and PiecewiseConstant
+    """
+
+    # convert to SignalSum instances
+    try:
+        sig1 = to_SignalSum(sig1)
+        sig2 = to_SignalSum(sig2)
+    except:
+        raise QiskitError('Only a number or a Signal instance can be added to a Signal.')
+
+    # merge components and define new sum with both components
+    return SignalSum(*(sig1.components + sig2.components))
+
+
+def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
+    """Multiply two signals.
+
+    To do: add special handling for Constant and PiecewiseConstant
+    """
+
+    # convert to SignalSum instances
+    try:
+        sig1 = to_SignalSum(sig1)
+        sig2 = to_SignalSum(sig2)
+    except:
+        raise QiskitError('Only a number or a Signal instance can multiply a Signal.')
+
+    # initialize to empty sum
+    product = SignalSum()
+
+    for comp1, comp2 in itertools.product(sig1.components, sig2.components):
+        env1 = multiply_envelopes(comp1, comp2)
+        carrier_freq1 = comp1.carrier_freq + comp2.carrier_freq
+
+        env2 = multiply_envelopes(comp1, comp2, conj2=True)
+        carrier_freq2 = comp1.carrier_freq - comp2.carrier_freq
+
+        product += SignalSum(Signal(envelope=env1,
+                                    carrier_freq=carrier_freq1),
+                             Signal(envelope=env2,
+                                    carrier_freq=carrier_freq2))
+
+    return product
+
+
+def multiply_envelopes(sig1: Signal, sig2: Signal, conj2: bool = False) -> Callable:
+    """Utility function for multiplying the envelopes (including phases) of two :class:`Signal`s.
+    Note that this returns the multiplication with a factor of `0.5` which is required for
+    defining the envelopes of the decomposition of multiplied :class:`Signal`s.
+
+    To do: add special handling for Constant and PiecewiseConstant
+
+    Args:
+        sig1: First :class:`Signal`.
+        sig2: Second :class:`Signal`
+        conj2: Whether or not to conjugate the second :class:`Signal`.
+
+    Returns:
+        Callable: Function attained by multiplying both envelopes (including phases),
+                  with a factor of `0.5`.
+    """
+    if conj2:
+        sig2 = sig2.conjugate()
+
+    env_shift = 0.5 * np.exp(1j * (sig1.phase + sig2.phase))
+
+    def new_env(t):
+        return env_shift * sig1.envelope(t) * sig2.envelope(t)
+
+    return new_env
+
+
+def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
+    """Convert the input to a SignalSum according to:
+
+    - If it is already a SignalSum, do nothing.
+    - If it is a Signal but not a SignalSum, wrap in a SignalSum.
+    - If it is a number, wrap in Constant in a SignalSum.
+    - Otherwise, raise an error.
+
+    Args:
+        sig: A SignalSum compatible input.
+
+    Returns:
+        SignalSum
+
+    Raises:
+        QiskitError: If the input type is incompatible with SignalSum.
+    """
+
+    if isinstance(sig, (int, float, complex)) or (isinstance(sig, Array) and sig.ndim == 0):
+        sig = Constant(sig)
+
+    if isinstance(sig, Signal) and not isinstance(sig, SignalSum):
+        sig = SignalSum(sig)
+
+    if not isinstance(sig, SignalSum):
+        raise QiskitError('Input type incompatible with SignalSum.')
+
+    return sig
