@@ -18,7 +18,7 @@ Module for representation of model coefficients.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Callable, Union, Optional
+from typing import List, Callable, Union, Optional, Tuple
 import itertools
 
 import numpy as np
@@ -548,46 +548,127 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     # initialize to empty sum
     product = SignalSum()
 
+    # loop through every pair of components and multiply
     for comp1, comp2 in itertools.product(sig1.components, sig2.components):
-        env1 = multiply_envelopes(comp1, comp2)
-        carrier_freq1 = comp1.carrier_freq + comp2.carrier_freq
-
-        env2 = multiply_envelopes(comp1, comp2, conj2=True)
-        carrier_freq2 = comp1.carrier_freq - comp2.carrier_freq
-
-        product += SignalSum(Signal(envelope=env1,
-                                    carrier_freq=carrier_freq1),
-                             Signal(envelope=env2,
-                                    carrier_freq=carrier_freq2))
+        product += base_signal_multiply(comp1, comp2)
 
     return product
 
+def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
+    r"""Utility function for multiplying two elementary (non SignalSum) signals.
+    This function assumes sig1 and sig2 are legitimate Signals.
 
-def multiply_envelopes(sig1: Signal, sig2: Signal, conj2: bool = False) -> Callable:
-    """Utility function for multiplying the envelopes (including phases) of two :class:`Signal`s.
-    Note that this returns the multiplication with a factor of `0.5` which is required for
-    defining the envelopes of the decomposition of multiplied :class:`Signal`s.
+    Mathematically, this implements:
 
-    To do: add special handling for Constant and PiecewiseConstant
+    .. math::
+        Re[f(t)e^{i(2 \pi \nu t + \phi)}]Re[g(t)e^{i(2 \pi \omega t + \psi)}]
+         = Re[\frac{1}{2} f(t)g(t)e^{i(2\pi (\omega + \nu)t + (\phi + \psi))} ]
+          + Re[\frac{1}{2} f(t)\overline{g(t)}e^{i(2\pi (\omega - \nu)t + (\phi - \psi))} ]
 
-    Args:
-        sig1: First :class:`Signal`.
-        sig2: Second :class:`Signal`
-        conj2: Whether or not to conjugate the second :class:`Signal`.
-
-    Returns:
-        Callable: Function attained by multiplying both envelopes (including phases),
-                  with a factor of `0.5`.
     """
-    if conj2:
-        sig2 = sig2.conjugate()
 
-    env_shift = 0.5 * np.exp(1j * (sig1.phase + sig2.phase))
+    # ensure signals are ordered from most to least specialized
+    sig1, sig2 = sort_signals(sig1, sig2)
 
-    def new_env(t):
-        return env_shift * sig1.envelope(t) * sig2.envelope(t)
+    if isinstance(sig1, Constant) and isinstance(sig2, Constant):
+        return Constant(sig1(0.0) * sig2(0.0))
+    elif isinstance(sig1, Constant) and isinstance(sig2, PiecewiseConstant):
+        # multiply the samples by the constant
+        return PiecewiseConstant(
+            dt=sig2.dt,
+            samples=sig1(0.0) * sig2.samples,
+            start_time=sig2.start_time,
+            duration=sig2.duration,
+            carrier_freq=sig2.carrier_freq,
+            phase=sig2.phase,
+        )
+    elif isinstance(sig1, Constant) and type(sig2) == Signal:
+        const = sig1(0.0)
+        def new_env(t):
+            return const * sig2.envelope(t)
+        return Signal(envelope=new_env,
+                      carrier_freq=sig2.carrier_freq,
+                      phase=sig2.phase)
+    elif isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
+        # verify compatible parameters before applying special rule
+        if sig1.start_time == sig2.start_time and sig1.dt == sig2.dt and len(sig1.samples) == len(sig2.samples):
+            if sig1.carrier_freq == 0:
+                # absorb phase into envelope for signal 1 and multiply real part
+                real_sig_samples = np.real(sig1.samples * np.exp(1j * sig1.phase))
+                return PiecewiseConstant(
+                            dt=sig2.dt,
+                            samples=real_sig_samples * sig2.samples,
+                            start_time=sig2.start_time,
+                            duration=sig2.duration,
+                            carrier_freq=sig2.carrier_freq,
+                            phase=sig2.phase,
+                        )
+            else:
+                pwc1 = PiecewiseConstant(
+                            dt=sig2.dt,
+                            samples=0.5 * sig1.samples * sig2.samples,
+                            start_time=sig2.start_time,
+                            duration=sig2.duration,
+                            carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
+                            phase=sig1.phase + sig2.phase,
+                        )
+                pwc2 = PiecewiseConstant(
+                            dt=sig2.dt,
+                            samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
+                            start_time=sig2.start_time,
+                            duration=sig2.duration,
+                            carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
+                            phase=sig1.phase - sig2.phase,
+                        )
+                return pwc1 + pwc2
+    elif sig1.carrier_freq == 0.0:
+        # rule for generic signals if one has zero carrier frequency
+        phase_factor = np.exp(1j * sig1.phase)
+        def new_env(t):
+            return np.real(sig1.envelope(t) * phase_factor) * sig2.envelope(t)
 
-    return new_env
+        return Signal(envelope=new_env,
+                      carrier_freq=sig2.carrier_freq,
+                      phase=sig2.phase)
+
+
+    # if no special cases apply, implement generic rule
+    def new_env1(t):
+        return 0.5 * sig1.envelope(t) * sig2.envelope(t)
+
+    def new_env2(t):
+        return 0.5 * sig1.envelope(t) * np.conjugate(sig2.envelope(t))
+
+    prod1 = Signal(envelope=new_env1,
+                   carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
+                   phase=sig1.phase + sig2.phase)
+    prod2 = Signal(envelope=new_env1,
+                   carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
+                   phase=sig1.phase - sig2.phase)
+    return prod1 + prod2
+
+
+def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
+    """Sort signals into a canonical order: Constant < PiecewiseConstant < Signal.
+    Furthermore, for signals of the same type, sig1 < sig2 if sig1.carrier_freq == 0.
+
+    Useful for binary operations on signals that require special behaviour for different
+    ``Signal`` types.
+    """
+    # if sig2 has zero carrier frequency, swap them
+    if sig2.carrier_freq == 0.0:
+        sig1, sig2 = sig2, sig1
+
+    if isinstance(sig1, Constant):
+        return sig1, sig2
+    elif isinstance(sig2, Constant):
+        return sig2, sig1
+    elif isinstance(sig1, PiecewiseConstant):
+        return sig1, sig2
+    elif isinstance(sig2, PiecewiseConstant):
+        return sig2, sig1
+
+    return sig1, sig2
 
 
 def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
