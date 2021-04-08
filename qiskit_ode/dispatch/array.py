@@ -70,6 +70,18 @@ class Array(NDArrayOperatorsMixin):
         Raises:
             ValueError: if input cannot be converted to an Array.
         """
+
+        # Check if we can override setattr and
+        # set _data and _backend directly
+        if (
+            isinstance(data, numpy.ndarray)
+            and _is_numpy_backend(backend)
+            and _is_equivalent_numpy_array(data, dtype, order)
+        ):
+            self.__dict__["_data"] = data
+            self.__dict__["_backend"] = "numpy"
+            return
+
         if hasattr(data, "__qiskit_array__"):
             array = data.__qiskit_array__(dtype=dtype, backend=backend)
             if not isinstance(array, Array):
@@ -277,3 +289,15 @@ class Array(NDArrayOperatorsMixin):
             return NotImplemented
         result = dispatch_func(*args, **kwargs)
         return self._wrap(result, backend=self.backend)
+
+
+def _is_numpy_backend(backend: Optional[str] = None):
+    return backend == "numpy" or (not backend and Dispatch.DEFAULT_BACKEND == "numpy")
+
+
+def _is_equivalent_numpy_array(data: any, dtype: Optional[any] = None, order: Optional[str] = None):
+    return (not dtype or dtype == data.dtype) and (
+        not order
+        or (order == "C" and data.flags["C_CONTIGUOUS"])
+        or (order == "F" and data.flags["F_CONTIGUOUS"])
+    )
