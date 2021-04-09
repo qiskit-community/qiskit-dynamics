@@ -430,49 +430,50 @@ class SignalSum(Signal):
 
         return default_str
 
-    def simplify(self):
-        """Merge terms with the same frequency.
-
-        To do: add special handling for Constant and PiecewiseConstant
+    def simplify(self, combine_types: Optional[bool] = False) -> 'SignalSum':
+        """Combine similar terms in the sum. If ``combine_types == False`` terms will only
+        be combined if their types can be preserved. If
+        ``combine_types == True``, all terms with compatible frequencies will combined,
+        regardless of type.
         """
-        new_sigs = []
-        new_freqs = []
-        new_phases = []
+        if len(self) == 0:
+            return SignalSum()
+        elif len(self) == 1:
+            return SignalSum(self[0])
 
-        for sig in self.components:
-            freq = Array(sig.carrier_freq)
-            # if the negative of the frequency is present, signals can be combined by
-            # conjugating the envelope
-            if Array(-freq) in new_freqs:
-                idx = new_freqs.index(-freq)
-                compatible_sig = new_sigs[idx]
-                new_env = add_envelopes(compatible_sig, sig, conj2=True)
-                new_sigs[idx] = Signal(new_env, carrier_freq=-freq)
-                # phases absorbed into envelope
-                new_phases[idx] = 0.
-            # if frequency is already present, just add the envelopes
-            elif freq in new_freqs:
-                idx = new_freqs.index(freq)
-                compatible_sig = new_sigs[idx]
-                new_env = add_envelopes(compatible_sig, sig)
-                new_sigs[idx] = Signal(new_env, carrier_freq=freq)
-                # phases are absorbed in envelope
-                new_phases[idx] = 0.
-            else:
-                new_sigs.append(sig)
-                new_freqs.append(freq)
-                new_phases.append(sig.phase)
+        new_sigs = [self[0]]
+        for sig1 in self.components[1:]:
+            merge = False
+            for idx, sig2 in enumerate(new_sigs):
+                # iterate through cases deciding if to merge
+                if sig1.carrier_freq == sig2.carrier_freq or -sig1.carrier_freq == sig2.carrier_freq:
+                    if combine_types:
+                        merge = True
 
-        self.components = new_sigs
-        self.carrier_freq = new_freqs
-        self.phase = new_phases
-        self._envelopes = [sig.envelope for sig in self.components]
+                    # if not combine types, verify same type and further compatibility
+                    # requirements before merging
+                    elif type(sig1) == type(sig2):
+                        if type(sig1) == PiecewiseConstant:
+                            # for piecewise constants, only merge if compatible parameters
+                            if sig1.start_time == sig2.start_time and sig1.dt == sig2.dt and len(sig1.samples) == len(sig2.samples):
+                                merge = True
+                        else:
+                            merge = True
 
-    def merge(self) -> Signal:
+                # if merge
+                if merge:
+                    new_sigs[idx] = merge_freq_compatible_pair(sig1, sig2)
+                    break
+
+            # if it wasn't merged, add it to the list as a new signal
+            if not merge:
+                new_sigs.append(sig1)
+
+        return SignalSum(*new_sigs, name=self.name)
+
+    def collapse(self) -> Signal:
         """Merge into a single ``Signal``. The output frequency is given by the
         average.
-
-        To do: add special handling for Constant and PiecewiseConstant
         """
 
         if len(self) == 0:
@@ -490,30 +491,147 @@ class SignalSum(Signal):
         return Signal(envelope=merged_env, carrier_freq=ave_freq, name=str(self))
 
 
-def add_envelopes(sig1: Signal, sig2: Signal, conj2: bool = False) -> Callable:
-    """Utility function for adding the envelopes (including phases) of two :class:`Signal`s.
-
-    To do: add special handling for Constant and PiecewiseConstant
-
-    Args:
-        sig1: First :class:`Signal`.
-        sig2: Second :class:`Signal`
-        conj2: Whether or not to conjugate the second :class:`Signal`.
-
-    Returns:
-        Callable: Function attained by adding both envelopes (including phases).
+class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
+    """Represents a sum of piecewise constant signals, all with the same
+    time parameters: dt, number of samples, and start time.
     """
 
-    if conj2:
-        sig2 = sig2.conjugate()
+    def __init__(
+        self,
+        dt: float,
+        samples: Union[Array, List],
+        start_time: float = 0.0,
+        duration: int = None,
+        carrier_freqs: float = None,
+        phases: float = None,
+        name: str = None,
+    ):
+        """samples array assumed to have 0th axis corresponding to a signal, 1st axis the samples
+        of that signal."""
+        self.name=name
+        self._dt = dt
+        self._samples = Array(samples)
+        self._start_time = start_time
 
-    env1_shift = np.exp(1j * sig1.phase)
-    env2_shift = np.exp(1j * sig2.phase)
+        if carrier_freqs is None:
+            carrier_freqs = np.zeros(len(samples), dtype=float)
+
+        if phases is None:
+            phases = np.zeros(len(samples), dtype=float)
+
+        # construct individual components so they can be accessed as in SignalSum
+        components = []
+        for sample_row, freq, phase in zip(self.samples, carrier_freqs, phases):
+            components.append(PiecewiseConstant(
+                                                dt=self.dt,
+                                                samples=sample_row,
+                                                start_time=self.start_time,
+                                                duration=self.duration,
+                                                carrier_freq=freq,
+                                                phase=phase,
+                                                )
+                                )
+
+        self.components = components
+
+        # initialize internally stored carrier/phase information
+        self._carrier_freq = None
+        self._phase = None
+        self._carrier_arg = None
+        self._phase_arg = None
+
+        self.carrier_freq = carrier_freqs
+        self.phase = phases
+
+
+    @property
+    def duration(self) -> int:
+        """
+        Returns:
+            duration: The duration of the signal in samples.
+        """
+        return self._samples.shape[1]
+
+    def envelope(self, t: Union[float, np.array, Array]) -> Array:
+        """Evaluate envelopes of each component. For vectorized operation,
+        last axis indexes the envelope, and all proceeding axes are the
+        same as the ``t`` arg.
+        """
+        # to do: jax version
+        # not sure what the right way to do this is, here we actually need
+        # to get it to use np/jnp
+        idx = Array((t - self.start_time) // self.dt, dtype=int)
+
+        return np.moveaxis(Array(self.samples[:, idx]), 0, -1)
+
+    def complex_value(self, t: Union[float, np.array, Array]) -> Array:
+        import pdb; pdb.set_trace()
+        exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
+        return np.sum(self.envelope(t) * exp_phases, axis=-1)
+
+
+def merge_freq_compatible_pair(sig1: Signal, sig2: Signal) -> Signal:
+    """Helper function for merging two non-``SignalSum`` ``Signal``s that satisfy
+    ``sig1.carrier_freq == sig2.carrier_freq or sig1.carrier_freq == - sig2.carrier_freq``,
+    with the ``opposite`` argument indicating which of the two cases holds.
+
+    The returned ``Signal`` has the same carrier frequency as ``sig1`` in either case.
+    """
+
+    sig1, sig2 = sort_signals(sig1, sig2)
+
+    equal_sign = sig1.carrier_freq == sig2.carrier_freq
+
+    if type(sig1) == Constant and type(sig2) == Constant:
+        return Constant(sig1(0.0) + sig2(0.0))
+    elif type(sig1) == Constant and type(sig2) == PiecewiseConstant:
+        # return a PiecewiseConstant shifted by sig1
+        return PiecewiseConstant(
+            dt=sig2.dt,
+            samples=sig1(0.0) * np.exp(-1j * sig2.phase) + sig2.samples,
+            start_time=sig2.start_time,
+            duration=sig2.duration,
+            carrier_freq=0.0,
+            phase=sig2.phase,
+        )
+    elif type(sig1) == Constant and type(sig2) == Signal:
+        const = sig1(0.0) * np.exp(-1j * sig2.phase)
+        def new_env(t):
+            return const + sig2.envelope(t)
+
+        return Signal(envelope=new_env,
+                      carrier_freq=0.0,
+                      phase=sig2.phase)
+    elif type(sig1) == PiecewiseConstant and type(sig2) == PiecewiseConstant:
+        if sig1.start_time == sig2.start_time and sig1.dt == sig2.dt and len(sig1.samples) == len(sig2.samples):
+            if not equal_sign:
+                sig2 = sig2.conjugate()
+
+            new_samples = (sig1.samples * np.exp(1j * 0.5 * (sig1.phase - sig2.phase)) +
+                           sig2.samples * np.exp(1j * 0.5 * (sig2.phase - sig1.phase)))
+            new_phase = 0.5 * (sig1.phase + sig2.phase)
+
+            return PiecewiseConstant(
+                dt=sig1.dt,
+                samples=new_samples,
+                start_time=sig1.start_time,
+                duration=sig1.duration,
+                carrier_freq=sig1.carrier_freq,
+                phase=new_phase,
+            )
+
+    # if no special cases apply, do generic signal addition
+    # average phases
+    new_phase = 0.5 * (sig1.phase + sig2.phase)
+    sig1_phase_shift = np.exp(1j * 0.5 * (sig1.phase - sig2.phase))
+    sig2_phase_shift = np.exp(1j * 0.5 * (sig2.phase - sig1.phase))
 
     def new_env(t):
-        return env1_shift * sig1.envelope(t) + env2_shift * sig2.envelope(t)
+        return sig1.envelope(t) * sig1_phase_shift + sig2.envelope(t) * sig2_phase_shift
 
-    return new_env
+    return Signal(envelope=new_env,
+                  carrier_freq=sig1.carrier_freq,
+                  phase=new_phase)
 
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     """Add two signals."""
@@ -530,10 +648,7 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
 
 
 def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
-    """Multiply two signals.
-
-    To do: add special handling for Constant and PiecewiseConstant
-    """
+    """Multiply two signals."""
 
     # convert to SignalSum instances
     try:
