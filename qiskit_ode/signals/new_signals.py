@@ -516,10 +516,7 @@ def add_envelopes(sig1: Signal, sig2: Signal, conj2: bool = False) -> Callable:
     return new_env
 
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
-    """Add two signals.
-
-    To do: add special handling for Constant and PiecewiseConstant
-    """
+    """Add two signals."""
 
     # convert to SignalSum instances
     try:
@@ -528,7 +525,7 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     except:
         raise QiskitError('Only a number or a Signal instance can be added to a Signal.')
 
-    # merge components and define new sum with both components
+    # join component lists and define new sum
     return SignalSum(*(sig1.components + sig2.components))
 
 
@@ -555,16 +552,37 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     return product
 
 def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
-    r"""Utility function for multiplying two elementary (non SignalSum) signals.
-    This function assumes sig1 and sig2 are legitimate Signals.
+    r"""Utility function for multiplying two elementary (non ``SignalSum``) signals.
+    This function assumes ``sig1`` and ``sig2`` are legitimate instances of ``Signal``
+    subclasses.
 
-    Mathematically, this implements:
+    Mathematically, this implements the multiplication:
 
     .. math::
-        Re[f(t)e^{i(2 \pi \nu t + \phi)}]Re[g(t)e^{i(2 \pi \omega t + \psi)}]
+        Re[f(t)e^{i(2 \pi \nu t + \phi)}] \times Re[g(t)e^{i(2 \pi \omega t + \psi)}]
          = Re[\frac{1}{2} f(t)g(t)e^{i(2\pi (\omega + \nu)t + (\phi + \psi))} ]
           + Re[\frac{1}{2} f(t)\overline{g(t)}e^{i(2\pi (\omega - \nu)t + (\phi - \psi))} ]
 
+    i.e. a ``SignalSum`` representing the RHS is returned. Special cases in which the above
+    formula can be simplified are handled:
+
+    - Multiplication of two ``Constant``s returns a ``Constant``.
+    - Multiplication of a ``Constant`` and a ``PiecewiseConstant`` returns a ``PiecewiseConstant``.
+    - If two ``PiecewiseConstant``s have compatible parameters, the resulting signals are
+    ``PiecewiseConstant``, with the multiplication being implemented by array multiplication of
+    the samples.
+    - Beyond this, if one of the two signals has zero frequency, then the RHS is simplified to
+    only return a single ``Signal`` (in both the compatible ``PiecewiseConstant`` and
+    general ``Signal`` cases.)
+    - Lastly, if no special rules apply, the two ``Signal``s are multiplied generically via
+    multiplication of the envelopes as functions.
+
+    Args:
+        sig1: First signal.
+        sig2: Second signal.
+
+    Returns:
+        SignalSum: Representing the RHS of the formula when two Signals are multiplied.
     """
 
     # ensure signals are ordered from most to least specialized
@@ -649,11 +667,16 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
 
 
 def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
-    """Sort signals into a canonical order: Constant < PiecewiseConstant < Signal.
-    Furthermore, for signals of the same type, sig1 < sig2 if sig1.carrier_freq == 0.
+    """Sorts signals according to the partial order: ``sig1 <= sig2`` if and only if:
+    - The ``type(sig1)`` preceds ``type(sig2)`` in the list
+    ``[Constant, PiecewiseConstant, Signal]``, or
+    - If ``type(sig1) == type(sig2)``, ``sig1.carrier_freq == 0``.
 
-    Useful for binary operations on signals that require special behaviour for different
-    ``Signal`` types.
+    This is a utility function useful for binary operations between ``Signal``s, in which
+    special cases can be implemented for signals of "simpler" types. For example,
+    once sorting, checking if one signal is ``Constant`` and the other is ``PiecewiseConstant``
+    only requires checking the single case:
+    ``type(sig1) == Constant and type(sig2) == PiecewiseConstant``.
     """
     # if sig2 has zero carrier frequency, swap them
     if sig2.carrier_freq == 0.0:
