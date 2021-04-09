@@ -136,6 +136,15 @@ class Signal:
     def __rmul__(self, other: 'Signal') -> 'SignalSum':
         return self.__mul__(other)
 
+    def __neg__(self) -> 'SignalSum':
+        return -1 * self
+
+    def __sub__(self, other: 'Signal') -> 'SignalSum':
+        return self + (-other)
+
+    def __rsub__(self, other: 'Signal') -> 'SignalSum':
+        return other + (-self)
+
     def conjugate(self):
         """Return a new signal obtained via complex conjugation of the envelope and phase."""
         def conj_env(t):
@@ -565,7 +574,6 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
         return np.moveaxis(Array(self.samples[:, idx]), 0, -1)
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Array:
-        import pdb; pdb.set_trace()
         exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
