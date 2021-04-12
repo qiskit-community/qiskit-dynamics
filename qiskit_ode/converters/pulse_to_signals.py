@@ -128,7 +128,7 @@ class InstructionToSignals:
     def get_awg_signals(
         signals: List[PiecewiseConstant], if_modulation: float
     ) -> List[PiecewiseConstant]:
-        """
+        r"""
         Create signals that correspond to the output ports of an Arbitrary Waveform Generator
         to be used with IQ mixers. For each signal in the list the number of signals is double
         to create the I and Q components. The I and Q signals represent the real and imaginary
