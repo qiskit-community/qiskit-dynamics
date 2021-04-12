@@ -135,7 +135,8 @@ class InstructionToSignals:
 
         Args:
             signals: A list of signals for which to create I and Q.
-            if_modulation: The intermediate frequency with which the AWG
+            if_modulation: The intermediate frequency with which the AWG modulates the pulse
+                envelopes.
 
         Returns:
             iq signals: A list of signals which is twice as long as the input list of signals.
