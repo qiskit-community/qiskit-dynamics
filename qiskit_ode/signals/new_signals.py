@@ -61,7 +61,7 @@ class Signal:
             name: Name of the signal.
             vectorize_envelope: Whether or not automatically vectorize the envelope function.
         """
-        self.name = name
+        self._name = name
 
         if isinstance(envelope, (float, int)):
             envelope = Array(complex(envelope))
@@ -85,6 +85,11 @@ class Signal:
         # set carrier and phase
         self.carrier_freq = carrier_freq
         self.phase = phase
+
+    @property
+    def name(self) -> str:
+        """Return the name of the signal."""
+        return self._name
 
     @property
     def carrier_freq(self) -> Array:
@@ -116,6 +121,41 @@ class Signal:
     def __call__(self, t: Union[float, np.array, Array]) -> Array:
         """Vectorized evaluation of the signal at time t."""
         return np.real(self.complex_value(t))
+
+    def to_pwc(self,
+               dt: float,
+               n_samples: int,
+               start_time: float = 0.0,
+               sample_carrier: bool = False) -> "PiecewiseConstant":
+        """
+        Converts a signal to a piecewise constant signal.
+
+        Args:
+            dt: Time increment to use.
+            n_samples: Number of steps to resample with.
+            start_time: Start time from which to resample.
+            sample_carrier: Whether or not to keep the carrier analog or include it in the
+                             sampling.
+
+        Returns:
+            A piecewiseConstant signal.
+        """
+
+        times = start_time + (np.arange(n_samples) + 0.5) * dt
+
+        freq = self.carrier_freq
+        samples = None
+
+        if sample_carrier:
+            freq = 0.0
+            samples = self(times)
+        else:
+            samples = self.envelope(times)
+
+
+        return PiecewiseConstant(
+            dt, samples, start_time=start_time, carrier_freq=freq, phase=self.phase
+        )
 
     def __str__(self) -> str:
         """Return string representation."""
@@ -218,7 +258,7 @@ class Constant(Signal):
             value: the constant.
             name: name of the constant.
         """
-        self.name = name
+        self._name = name
         self._value = Array(value)
         self.phase = 0.0
         self.carrier_freq = 0.0
@@ -260,7 +300,7 @@ class PiecewiseConstant(Signal):
             phase: The phase of the carrier.
             name: name of the signal.
         """
-        self.name = name
+        self._name = name
 
         self._dt = dt
 
@@ -314,8 +354,8 @@ class PiecewiseConstant(Signal):
         return self._start_time
 
     def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        idx = Array((t - self._start_time) // self._dt, dtype=int)
-        return Array(self._samples.data[idx.data])
+        idx = np.clip(Array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1)
+        return self._samples[idx]
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Return the value of the signal at time t."""
@@ -364,7 +404,6 @@ class PiecewiseConstant(Signal):
         return 'PiecewiseConstant(dt={dt}, carrier_freq={freq}, phase={phase})'.format(dt=self.dt, freq=str(self.carrier_freq), phase=str(self.phase))
 
 
-
 class SignalSum(Signal):
     """Class representing a sum of ``Signal`` objects."""
 
@@ -375,7 +414,7 @@ class SignalSum(Signal):
             args: ``Signal`` subclass objects.
             name: Name of the sum.
         """
-        self.name = name
+        self._name = name
 
         self.components = []
         for sig in args:
@@ -419,6 +458,40 @@ class SignalSum(Signal):
     def complex_value(self, t: Union[float, np.array, Array]) -> Array:
         exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
+
+
+    def to_pwc(self,
+               dt: float,
+               n_samples: int,
+               start_time: float = 0.0,
+               sample_carrier: bool = False) -> "PiecewiseConstantSignalSum":
+        """
+        Converts a signal to a `PiecewiseConstantSignalSum` by sampling at the midpoints.
+
+        Args:
+            dt: Time increment to use.
+            n_samples: number of steps to resample with.
+            start_time: start time from which to resample.
+
+        Returns:
+            A piecewiseConstant signal.
+        """
+
+        times = start_time + (np.arange(n_samples) + 0.5) * dt
+
+        freq = self.carrier_freq
+        samples = None
+
+        if sample_carrier:
+            freq = 0.0 * freq
+            exp_phases = np.exp(np.expand_dims(Array(times), -1) * self._carrier_arg)
+            samples = self.envelope(times) * exp_phases
+        else:
+            samples = self.envelope(times)
+
+        return PiecewiseConstantSignalSum(
+            dt, samples, start_time=start_time, carrier_freqs=freq, phases=self.phase
+        )
 
     def __len__(self):
         return len(self.components)
@@ -476,7 +549,7 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
     ):
         """samples array assumed to have 0th axis corresponding to a signal, 1st axis the samples
         of that signal."""
-        self.name=name
+        self._name=name
         self._dt = dt
         self._samples = Array(samples)
         self._start_time = start_time
@@ -489,7 +562,7 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
 
         # construct individual components so they can be accessed as in SignalSum
         components = []
-        for sample_row, freq, phase in zip(self.samples, carrier_freqs, phases):
+        for sample_row, freq, phase in zip(self.samples.transpose(), carrier_freqs, phases):
             components.append(PiecewiseConstant(
                                                 dt=self.dt,
                                                 samples=sample_row,
@@ -511,30 +584,22 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
         self.carrier_freq = carrier_freqs
         self.phase = phases
 
-
-    @property
-    def duration(self) -> int:
-        """
-        Returns:
-            duration: The duration of the signal in samples.
-        """
-        return self._samples.shape[1]
-
-    def envelope(self, t: Union[float, np.array, Array]) -> Array:
-        """Evaluate envelopes of each component. For vectorized operation,
-        last axis indexes the envelope, and all proceeding axes are the
-        same as the ``t`` arg.
-        """
-        # to do: jax version
-        # not sure what the right way to do this is, here we actually need
-        # to get it to use np/jnp
-        idx = Array((t - self.start_time) // self.dt, dtype=int)
-
-        return np.moveaxis(Array(self.samples[:, idx]), 0, -1)
-
     def complex_value(self, t: Union[float, np.array, Array]) -> Array:
         exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
+
+    def __str__(self):
+        if self.name is not None:
+            return str(self.name)
+
+        if len(self) == 0:
+            return 'PiecewiseConstantSignalSum()'
+
+        default_str = str(self[0])
+        for sig in self.components[1:]:
+            default_str += ' + {}'.format(str(sig))
+
+        return default_str
 
 
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
@@ -567,6 +632,10 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     # loop through every pair of components and multiply
     for comp1, comp2 in itertools.product(sig1.components, sig2.components):
         product += base_signal_multiply(comp1, comp2)
+
+    if isinstance(sig1, PiecewiseConstantSignalSum) and isinstance(sig2, PiecewiseConstantSignalSum):
+        if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
+            product = product.to_pwc(dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration)
 
     return product
 
@@ -655,7 +724,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     prod1 = Signal(envelope=new_env1,
                    carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
                    phase=sig1.phase + sig2.phase)
-    prod2 = Signal(envelope=new_env1,
+    prod2 = Signal(envelope=new_env2,
                    carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
                    phase=sig1.phase - sig2.phase)
     return prod1 + prod2
