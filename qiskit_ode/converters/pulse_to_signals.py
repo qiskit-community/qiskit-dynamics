@@ -131,7 +131,14 @@ class InstructionToSignals:
         """
         Create signals that correspond to the output ports of an Arbitrary Waveform Generator
         to be used with IQ mixers. For each signal in the list the number of signals is double
-        to create the I and Q components.
+        to create the I and Q components. The I and Q signals represent the real and imaginary
+        parts, respectively, of
+        
+        .. math::
+            \Omega(t) e^{i \omega_{if} t}
+
+        where :math:`\Omega` is the complex-valued pulse envelope and :math:`\omega_{if}` is the
+        intermediate frequency.
 
         Args:
             signals: A list of signals for which to create I and Q.
