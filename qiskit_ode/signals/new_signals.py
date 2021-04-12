@@ -439,47 +439,6 @@ class SignalSum(Signal):
 
         return default_str
 
-    def simplify(self, combine_types: Optional[bool] = False) -> 'SignalSum':
-        """Combine similar terms in the sum. If ``combine_types == False`` terms will only
-        be combined if their types can be preserved. If
-        ``combine_types == True``, all terms with compatible frequencies will combined,
-        regardless of type.
-        """
-        if len(self) == 0:
-            return SignalSum()
-        elif len(self) == 1:
-            return SignalSum(self[0])
-
-        new_sigs = [self[0]]
-        for sig1 in self.components[1:]:
-            merge = False
-            for idx, sig2 in enumerate(new_sigs):
-                # iterate through cases deciding if to merge
-                if sig1.carrier_freq == sig2.carrier_freq or -sig1.carrier_freq == sig2.carrier_freq:
-                    if combine_types:
-                        merge = True
-
-                    # if not combine types, verify same type and further compatibility
-                    # requirements before merging
-                    elif type(sig1) == type(sig2):
-                        if type(sig1) == PiecewiseConstant:
-                            # for piecewise constants, only merge if compatible parameters
-                            if sig1.start_time == sig2.start_time and sig1.dt == sig2.dt and len(sig1.samples) == len(sig2.samples):
-                                merge = True
-                        else:
-                            merge = True
-
-                # if merge
-                if merge:
-                    new_sigs[idx] = merge_freq_compatible_pair(sig1, sig2)
-                    break
-
-            # if it wasn't merged, add it to the list as a new signal
-            if not merge:
-                new_sigs.append(sig1)
-
-        return SignalSum(*new_sigs, name=self.name)
-
     def collapse(self) -> Signal:
         """Merge into a single ``Signal``. The output frequency is given by the
         average.
@@ -578,69 +537,6 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
 
-def merge_freq_compatible_pair(sig1: Signal, sig2: Signal) -> Signal:
-    """Helper function for merging two non-``SignalSum`` ``Signal``s that satisfy
-    ``sig1.carrier_freq == sig2.carrier_freq or sig1.carrier_freq == - sig2.carrier_freq``,
-    with the ``opposite`` argument indicating which of the two cases holds.
-
-    The returned ``Signal`` has the same carrier frequency as ``sig1`` in either case.
-    """
-
-    sig1, sig2 = sort_signals(sig1, sig2)
-
-    equal_sign = sig1.carrier_freq == sig2.carrier_freq
-
-    if type(sig1) == Constant and type(sig2) == Constant:
-        return Constant(sig1(0.0) + sig2(0.0))
-    elif type(sig1) == Constant and type(sig2) == PiecewiseConstant:
-        # return a PiecewiseConstant shifted by sig1
-        return PiecewiseConstant(
-            dt=sig2.dt,
-            samples=sig1(0.0) * np.exp(-1j * sig2.phase) + sig2.samples,
-            start_time=sig2.start_time,
-            duration=sig2.duration,
-            carrier_freq=0.0,
-            phase=sig2.phase,
-        )
-    elif type(sig1) == Constant and type(sig2) == Signal:
-        const = sig1(0.0) * np.exp(-1j * sig2.phase)
-        def new_env(t):
-            return const + sig2.envelope(t)
-
-        return Signal(envelope=new_env,
-                      carrier_freq=0.0,
-                      phase=sig2.phase)
-    elif type(sig1) == PiecewiseConstant and type(sig2) == PiecewiseConstant:
-        if sig1.start_time == sig2.start_time and sig1.dt == sig2.dt and len(sig1.samples) == len(sig2.samples):
-            if not equal_sign:
-                sig2 = sig2.conjugate()
-
-            new_samples = (sig1.samples * np.exp(1j * 0.5 * (sig1.phase - sig2.phase)) +
-                           sig2.samples * np.exp(1j * 0.5 * (sig2.phase - sig1.phase)))
-            new_phase = 0.5 * (sig1.phase + sig2.phase)
-
-            return PiecewiseConstant(
-                dt=sig1.dt,
-                samples=new_samples,
-                start_time=sig1.start_time,
-                duration=sig1.duration,
-                carrier_freq=sig1.carrier_freq,
-                phase=new_phase,
-            )
-
-    # if no special cases apply, do generic signal addition
-    # average phases
-    new_phase = 0.5 * (sig1.phase + sig2.phase)
-    sig1_phase_shift = np.exp(1j * 0.5 * (sig1.phase - sig2.phase))
-    sig2_phase_shift = np.exp(1j * 0.5 * (sig2.phase - sig1.phase))
-
-    def new_env(t):
-        return sig1.envelope(t) * sig1_phase_shift + sig2.envelope(t) * sig2_phase_shift
-
-    return Signal(envelope=new_env,
-                  carrier_freq=sig1.carrier_freq,
-                  phase=new_phase)
-
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     """Add two signals."""
 
@@ -694,9 +590,6 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     - If two ``PiecewiseConstant``s have compatible parameters, the resulting signals are
     ``PiecewiseConstant``, with the multiplication being implemented by array multiplication of
     the samples.
-    - Beyond this, if one of the two signals has zero frequency, then the RHS is simplified to
-    only return a single ``Signal`` (in both the compatible ``PiecewiseConstant`` and
-    general ``Signal`` cases.)
     - Lastly, if no special rules apply, the two ``Signal``s are multiplied generically via
     multiplication of the envelopes as functions.
 
@@ -733,44 +626,23 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     elif isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
         # verify compatible parameters before applying special rule
         if sig1.start_time == sig2.start_time and sig1.dt == sig2.dt and len(sig1.samples) == len(sig2.samples):
-            if sig1.carrier_freq == 0:
-                # absorb phase into envelope for signal 1 and multiply real part
-                real_sig_samples = np.real(sig1.samples * np.exp(1j * sig1.phase))
-                return PiecewiseConstant(
-                            dt=sig2.dt,
-                            samples=real_sig_samples * sig2.samples,
-                            start_time=sig2.start_time,
-                            duration=sig2.duration,
-                            carrier_freq=sig2.carrier_freq,
-                            phase=sig2.phase,
-                        )
-            else:
-                pwc1 = PiecewiseConstant(
-                            dt=sig2.dt,
-                            samples=0.5 * sig1.samples * sig2.samples,
-                            start_time=sig2.start_time,
-                            duration=sig2.duration,
-                            carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
-                            phase=sig1.phase + sig2.phase,
-                        )
-                pwc2 = PiecewiseConstant(
-                            dt=sig2.dt,
-                            samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
-                            start_time=sig2.start_time,
-                            duration=sig2.duration,
-                            carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
-                            phase=sig1.phase - sig2.phase,
-                        )
-                return pwc1 + pwc2
-    elif sig1.carrier_freq == 0.0:
-        # rule for generic signals if one has zero carrier frequency
-        phase_factor = np.exp(1j * sig1.phase)
-        def new_env(t):
-            return np.real(sig1.envelope(t) * phase_factor) * sig2.envelope(t)
-
-        return Signal(envelope=new_env,
-                      carrier_freq=sig2.carrier_freq,
-                      phase=sig2.phase)
+            pwc1 = PiecewiseConstant(
+                        dt=sig2.dt,
+                        samples=0.5 * sig1.samples * sig2.samples,
+                        start_time=sig2.start_time,
+                        duration=sig2.duration,
+                        carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
+                        phase=sig1.phase + sig2.phase,
+                    )
+            pwc2 = PiecewiseConstant(
+                        dt=sig2.dt,
+                        samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
+                        start_time=sig2.start_time,
+                        duration=sig2.duration,
+                        carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
+                        phase=sig1.phase - sig2.phase,
+                    )
+            return pwc1 + pwc2
 
 
     # if no special cases apply, implement generic rule
@@ -792,8 +664,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
 def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     """Sorts signals according to the partial order: ``sig1 <= sig2`` if and only if:
     - The ``type(sig1)`` preceds ``type(sig2)`` in the list
-    ``[Constant, PiecewiseConstant, Signal]``, or
-    - If ``type(sig1) == type(sig2)``, ``sig1.carrier_freq == 0``.
+    ``[Constant, PiecewiseConstant, Signal]``.
 
     This is a utility function useful for binary operations between ``Signal``s, in which
     special cases can be implemented for signals of "simpler" types. For example,
@@ -801,10 +672,6 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     only requires checking the single case:
     ``type(sig1) == Constant and type(sig2) == PiecewiseConstant``.
     """
-    # if sig2 has zero carrier frequency, swap them
-    if sig2.carrier_freq == 0.0:
-        sig1, sig2 = sig2, sig1
-
     if isinstance(sig1, Constant):
         return sig1, sig2
     elif isinstance(sig2, Constant):
