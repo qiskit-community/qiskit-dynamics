@@ -123,3 +123,59 @@ class InstructionToSignals:
                 )
 
         return list(signals.values())
+
+    @staticmethod
+    def get_awg_signals(
+        signals: List[PiecewiseConstant], if_modulation: float
+    ) -> List[PiecewiseConstant]:
+        r"""
+        Create signals that correspond to the output ports of an Arbitrary Waveform Generator
+        to be used with IQ mixers. For each signal in the list the number of signals is double
+        to create the I and Q components. The I and Q signals represent the real and imaginary
+        parts, respectively, of
+
+        .. math::
+            \Omega(t) e^{i \omega_{if} t}
+
+        where :math:`\Omega` is the complex-valued pulse envelope and :math:`\omega_{if}` is the
+        intermediate frequency.
+
+        Args:
+            signals: A list of signals for which to create I and Q.
+            if_modulation: The intermediate frequency with which the AWG modulates the pulse
+                envelopes.
+
+        Returns:
+            iq signals: A list of signals which is twice as long as the input list of signals.
+                For each input signal get_awg_signals returns two
+        """
+        new_signals = []
+
+        for sig in signals:
+            new_freq = sig.carrier_freq + if_modulation
+
+            samples_i = sig.samples
+            samples_q = np.imag(samples_i) - 1.0j * np.real(samples_i)
+
+            sig_i = PiecewiseConstant(
+                sig.dt,
+                samples_i,
+                sig.start_time,
+                sig.duration,
+                new_freq,
+                sig.phase,
+                sig.name + "_i",
+            )
+            sig_q = PiecewiseConstant(
+                sig.dt,
+                samples_q,
+                sig.start_time,
+                sig.duration,
+                new_freq,
+                sig.phase,
+                sig.name + "_q",
+            )
+
+            new_signals += [sig_i, sig_q]
+
+        return new_signals
