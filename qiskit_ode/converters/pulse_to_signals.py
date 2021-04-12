@@ -133,7 +133,7 @@ class InstructionToSignals:
         to be used with IQ mixers. For each signal in the list the number of signals is double
         to create the I and Q components. The I and Q signals represent the real and imaginary
         parts, respectively, of
-        
+
         .. math::
             \Omega(t) e^{i \omega_{if} t}
 
