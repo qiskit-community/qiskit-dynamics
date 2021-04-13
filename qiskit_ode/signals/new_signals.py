@@ -41,6 +41,10 @@ class Signal:
     - :math:`\phi` is the phase.
 
     The envelope function can be complex-valued, and the frequency and phase must be real.
+
+    Note: this class assumes that the envelope function is vectorized. If it is not, pass set the
+    argument ``vectorize_envelope=True`` at construction to automatically vectorize the
+    envelope.
     """
 
     def __init__(
@@ -128,7 +132,7 @@ class Signal:
                start_time: float = 0.0,
                sample_carrier: bool = False) -> "PiecewiseConstant":
         """
-        Converts a signal to a piecewise constant signal.
+        Converts a signal to a ``PiecewiseConstant`` signal.
 
         Args:
             dt: Time increment to use.
@@ -138,7 +142,7 @@ class Signal:
                              sampling.
 
         Returns:
-            A piecewiseConstant signal.
+            A PiecewiseConstant signal.
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
@@ -354,6 +358,9 @@ class PiecewiseConstant(Signal):
         return self._start_time
 
     def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+        """Envelope. If ``t`` is before (resp. after) the start (resp. end) of the definition of
+        the ``PiecewiseConstant```, this will return the start value (resp. end value).
+        """
         idx = np.clip(Array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1)
         return self._samples[idx]
 
@@ -547,8 +554,8 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
         phases: float = None,
         name: str = None,
     ):
-        """samples array assumed to have 0th axis corresponding to a signal, 1st axis the samples
-        of that signal."""
+        """Samples array has 0th axis corresponding to a signal, 1st axis corresponding to samples
+        for each signal."""
         self._name=name
         self._dt = dt
         self._samples = Array(samples)
@@ -617,7 +624,17 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
 
 
 def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
-    """Multiply two signals."""
+    r"""Multiply two ``Signal``s. For a pair of elementary (non-``SignalSum``) ``Signal``s,
+    expands the product of two signals into a ``SignalSum`` via the formula:
+
+    .. math::
+        Re[f(t)e^{i(2 \pi \nu t + \phi)}] \times Re[g(t)e^{i(2 \pi \omega t + \psi)}]
+         = Re[\frac{1}{2} f(t)g(t)e^{i(2\pi (\omega + \nu)t + (\phi + \psi))} ]
+          + Re[\frac{1}{2} f(t)\overline{g(t)}e^{i(2\pi (\omega - \nu)t + (\phi - \psi))} ]
+
+    If either (or both) of ``sig1`` or ``sig2`` are ``SignalSum``s, the multiplication is
+    distributed over addition.
+    """
 
     # convert to SignalSum instances
     try:
@@ -644,23 +661,15 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     This function assumes ``sig1`` and ``sig2`` are legitimate instances of ``Signal``
     subclasses.
 
-    Mathematically, this implements the multiplication:
+    Special cases:
 
-    .. math::
-        Re[f(t)e^{i(2 \pi \nu t + \phi)}] \times Re[g(t)e^{i(2 \pi \omega t + \psi)}]
-         = Re[\frac{1}{2} f(t)g(t)e^{i(2\pi (\omega + \nu)t + (\phi + \psi))} ]
-          + Re[\frac{1}{2} f(t)\overline{g(t)}e^{i(2\pi (\omega - \nu)t + (\phi - \psi))} ]
-
-    i.e. a ``SignalSum`` representing the RHS is returned. Special cases in which the above
-    formula can be simplified are handled:
-
-    - Multiplication of two ``Constant``s returns a ``Constant``.
-    - Multiplication of a ``Constant`` and a ``PiecewiseConstant`` returns a ``PiecewiseConstant``.
-    - If two ``PiecewiseConstant``s have compatible parameters, the resulting signals are
-    ``PiecewiseConstant``, with the multiplication being implemented by array multiplication of
-    the samples.
-    - Lastly, if no special rules apply, the two ``Signal``s are multiplied generically via
-    multiplication of the envelopes as functions.
+        - Multiplication of two ``Constant``s returns a ``Constant``.
+        - Multiplication of a ``Constant`` and a ``PiecewiseConstant`` returns a ``PiecewiseConstant``.
+        - If two ``PiecewiseConstant``s have compatible parameters, the resulting signals are
+        ``PiecewiseConstant``, with the multiplication being implemented by array multiplication of
+        the samples.
+        - Lastly, if no special rules apply, the two ``Signal``s are multiplied generically via
+        multiplication of the envelopes as functions.
 
     Args:
         sig1: First signal.
@@ -731,15 +740,10 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
 
 
 def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
-    """Sorts signals according to the partial order: ``sig1 <= sig2`` if and only if:
-    - The ``type(sig1)`` preceds ``type(sig2)`` in the list
-    ``[Constant, PiecewiseConstant, Signal]``.
-
-    This is a utility function useful for binary operations between ``Signal``s, in which
-    special cases can be implemented for signals of "simpler" types. For example,
-    once sorting, checking if one signal is ``Constant`` and the other is ``PiecewiseConstant``
-    only requires checking the single case:
-    ``type(sig1) == Constant and type(sig2) == PiecewiseConstant``.
+    """Utility function for ordering a pair of ``Signal``s according to the partial order:
+    ``sig1 <= sig2`` if and only if:
+        - ``type(sig1)`` precedes ``type(sig2)`` in the list
+        ``[Constant, PiecewiseConstant, Signal]``.
     """
     if isinstance(sig1, Constant):
         return sig1, sig2
