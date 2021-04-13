@@ -609,6 +609,33 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
         return default_str
 
 
+class SignalList:
+
+    def __init__(self, signal_list: List):
+        self.components = signal_list
+
+    def __call__(self, t) -> Array:
+        """Vectorized evaluation of all components."""
+        return np.moveaxis(Array([sig(t) for sig in self.components]), 0, -1)
+
+    def collapse(self) -> 'SignalList':
+        """Return a ``SignalList`` with each component collapsed."""
+        collapsed_list = []
+        for sig in self.components:
+            if isinstance(sig, SignalSum):
+                collapsed_list.append(sig.collapse())
+            else:
+                collapsed_list.append(sig)
+
+        return SignalList(collapsed_list)
+
+    def __getitem__(self, idx) -> Signal:
+        return self.components[idx]
+
+    def __len__(self):
+        return len(self.components)
+
+
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     """Add two signals."""
 
