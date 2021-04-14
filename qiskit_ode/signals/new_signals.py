@@ -503,7 +503,7 @@ class SignalSum(Signal):
     def __len__(self):
         return len(self.components)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> Signal:
         return self.components[idx]
 
     def __str__(self):
@@ -611,10 +611,10 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
 
 class SignalList:
 
-    def __init__(self, signal_list: List):
+    def __init__(self, signal_list: List[Signal]):
         self.components = signal_list
 
-    def __call__(self, t) -> Array:
+    def __call__(self, t: Union[float, np.array, Array]) -> Array:
         """Vectorized evaluation of all components."""
         return np.moveaxis(Array([sig(t) for sig in self.components]), 0, -1)
 
@@ -629,7 +629,7 @@ class SignalList:
 
         return SignalList(collapsed_list)
 
-    def __getitem__(self, idx) -> Signal:
+    def __getitem__(self, idx: int) -> Signal:
         return self.components[idx]
 
     def __len__(self):
@@ -639,15 +639,23 @@ class SignalList:
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     """Add two signals."""
 
+    # generic routine
     # convert to SignalSum instances
     try:
-        sig1 = to_SignalSum(sig1)
-        sig2 = to_SignalSum(sig2)
+        wrapped_sig1 = to_SignalSum(sig1)
+        wrapped_sig2 = to_SignalSum(sig2)
     except:
         raise QiskitError('Only a number or a Signal instance can be added to a Signal.')
 
-    # join component lists and define new sum
-    return SignalSum(*(sig1.components + sig2.components))
+    sig_sum = SignalSum(*(wrapped_sig1.components + wrapped_sig2.components))
+
+    # if they were originally PiecewiseConstantSignalSum objects with compatible structure,
+    # convert back
+    if isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
+        if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
+            sig_sum = sig_sum.to_pwc(dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration)
+
+    return sig_sum
 
 
 def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
@@ -665,8 +673,8 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
 
     # convert to SignalSum instances
     try:
-        sig1 = to_SignalSum(sig1)
-        sig2 = to_SignalSum(sig2)
+        wrapped_sig1 = to_SignalSum(sig1)
+        wrapped_sig2 = to_SignalSum(sig2)
     except:
         raise QiskitError('Only a number or a Signal instance can multiply a Signal.')
 
@@ -674,9 +682,11 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     product = SignalSum()
 
     # loop through every pair of components and multiply
-    for comp1, comp2 in itertools.product(sig1.components, sig2.components):
+    for comp1, comp2 in itertools.product(wrapped_sig1.components, wrapped_sig2.components):
         product += base_signal_multiply(comp1, comp2)
 
+    # if they were originally PiecewiseConstantSignalSum objects with compatible structure,
+    # convert back
     if isinstance(sig1, PiecewiseConstantSignalSum) and isinstance(sig2, PiecewiseConstantSignalSum):
         if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
             product = product.to_pwc(dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration)
@@ -770,7 +780,7 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     """Utility function for ordering a pair of ``Signal``s according to the partial order:
     ``sig1 <= sig2`` if and only if:
         - ``type(sig1)`` precedes ``type(sig2)`` in the list
-        ``[Constant, PiecewiseConstant, Signal]``.
+        ``[Constant, PiecewiseConstant, Signal, SignalSum, PiecewiseConstantSignalSum]``.
     """
     if isinstance(sig1, Constant):
         return sig1, sig2
@@ -779,6 +789,14 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     elif isinstance(sig1, PiecewiseConstant):
         return sig1, sig2
     elif isinstance(sig2, PiecewiseConstant):
+        return sig2, sig1
+    elif isinstance(sig1, Signal):
+        return sig1, sig2
+    elif isinstance(sig2, Signal):
+        return sig2, sig1
+    elif isinstance(sig1, SignalSum):
+        return sig1, sig2
+    elif isinstance(sig2, SignalSum):
         return sig2, sig1
 
     return sig1, sig2
