@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.dispatch import Array
-from qiskit_ode.signals import VectorSignal, BaseSignal
+from qiskit_ode.signals import Signal, SignalList
 from qiskit_ode.type_utils import to_array
 from .generator_models import GeneratorModel
 
@@ -55,7 +55,7 @@ class HamiltonianModel(GeneratorModel):
     def __init__(
         self,
         operators: List[Operator],
-        signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
+        signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array]] = None,
         cutoff_freq: Optional[float] = None,
         validate: bool = True,
@@ -64,7 +64,7 @@ class HamiltonianModel(GeneratorModel):
 
         Args:
             operators: list of Operator objects.
-            signals: Specifiable as either a VectorSignal, a list of
+            signals: Specifiable as either a SignalList, a list of
                      Signal objects, or as the inputs to signal_mapping.
                      OperatorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.

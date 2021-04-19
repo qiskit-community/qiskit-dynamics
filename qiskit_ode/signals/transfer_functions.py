@@ -24,7 +24,7 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit_ode.dispatch import Array
 
-from .signals import BaseSignal, Signal, PiecewiseConstant
+from .signals import Signal, PiecewiseConstant
 
 
 class BaseTransferFunction(ABC):
@@ -36,7 +36,7 @@ class BaseTransferFunction(ABC):
         """Number of input signals to the transfer function."""
         pass
 
-    def __call__(self, *args, **kwargs) -> Union[BaseSignal, List[BaseSignal]]:
+    def __call__(self, *args, **kwargs) -> Union[Signal, List[Signal]]:
         """
         Apply the transfer function to the input signals.
 
@@ -45,7 +45,7 @@ class BaseTransferFunction(ABC):
             **kwargs: Key word arguments to control the transfer functions.
 
         Returns:
-            BaseSignal: The transformed signal.
+            Signal: The transformed signal.
 
         Raises:
             QiskitError: if the number of args is not correct.
@@ -60,7 +60,7 @@ class BaseTransferFunction(ABC):
         return self._apply(*args, **kwargs)
 
     @abstractmethod
-    def _apply(self, *args, **kwargs) -> Union[BaseSignal, List[BaseSignal]]:
+    def _apply(self, *args, **kwargs) -> Union[Signal, List[Signal]]:
         """
         Applies a transformation on a signal, such as a convolution,
         low pass filter, etc.
@@ -70,7 +70,7 @@ class BaseTransferFunction(ABC):
             **kwargs: Key word arguments to control the transfer functions.
 
         Returns:
-            BaseSignal: The transformed signal.
+            Signal: The transformed signal.
         """
         pass
 
@@ -97,7 +97,7 @@ class Convolution(BaseTransferFunction):
         return 1
 
     # pylint: disable=arguments-differ
-    def _apply(self, signal: BaseSignal) -> BaseSignal:
+    def _apply(self, signal: Signal) -> Signal:
         """
         Applies a transformation on a signal, such as a convolution,
         low pass filter, etc. Once a convolution is applied the signal
@@ -147,7 +147,7 @@ class FFTConvolution(BaseTransferFunction):
 
 class Sampler(BaseTransferFunction):
     """
-    Re sample a signal by wrapping BaseSignal.to_pwc.
+    Re sample a signal by wrapping Signal.to_pwc.
     """
 
     def __init__(self, dt: float, n_samples: int, start_time: float = 0):
@@ -167,7 +167,7 @@ class Sampler(BaseTransferFunction):
         return 1
 
     # pylint: disable=arguments-differ
-    def _apply(self, signal: BaseSignal) -> BaseSignal:
+    def _apply(self, signal: Signal) -> Signal:
         """Apply the transfer function to the signal."""
         return signal.to_pwc(self._dt, self._n_samples, self._start_time)
 
@@ -207,7 +207,7 @@ class IQMixer(BaseTransferFunction):
         return 2
 
     # pylint: disable=arguments-differ
-    def _apply(self, si: BaseSignal, sq: BaseSignal) -> BaseSignal:
+    def _apply(self, si: Signal, sq: Signal) -> Signal:
         """
         Args:
             si: In phase signal

@@ -42,9 +42,9 @@ class Signal:
 
     The envelope function can be complex-valued, and the frequency and phase must be real.
 
-    Note: this class assumes that the envelope function is vectorized. If it is not, pass set the
-    argument ``vectorize_envelope=True`` at construction to automatically vectorize the
-    envelope.
+    Note: this class assumes that the envelope function is vectorized. If it isn't, it can
+    be vectorized automatically by calling ``np.vectorize``, or, if using JAX, by
+    calling ``jax.vmap``.
     """
 
     def __init__(
@@ -52,8 +52,7 @@ class Signal:
         envelope: Union[Callable, complex, float, int],
         carrier_freq: float = 0.0,
         phase: float = 0.0,
-        name: Optional[str] = None,
-        vectorize_envelope: Optional[bool] = False,
+        name: Optional[str] = None
     ):
         """
         Initializes a signal given by an envelope and a carrier.
@@ -63,7 +62,6 @@ class Signal:
             carrier_freq: Frequency of the carrier.
             phase: The phase of the carrier.
             name: Name of the signal.
-            vectorize_envelope: Whether or not automatically vectorize the envelope function.
         """
         self._name = name
 
@@ -74,10 +72,6 @@ class Signal:
             self._envelope = lambda t: envelope
 
         if isinstance(envelope, Callable):
-            # to do: put jax version
-            if vectorize_envelope:
-                envelope = np.vectorize(envelope)
-
             self._envelope = envelope
 
         # initialize internally stored carrier/phase information

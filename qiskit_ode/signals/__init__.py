@@ -27,11 +27,10 @@ Signal Classes
 .. autosummary::
    :toctree: ../stubs/
 
-   BaseSignal
    Signal
-   VectorSignal
    PiecewiseConstant
    Constant
+   SignalList
 
 Transfer Functions
 ==================
@@ -42,5 +41,5 @@ Transfer Functions
    Convolution
 """
 
-from .signals import BaseSignal, Signal, VectorSignal, PiecewiseConstant, Constant
+from .signals import Signal, PiecewiseConstant, Constant, SignalList
 from .transfer_functions import Convolution, Sampler, IQMixer

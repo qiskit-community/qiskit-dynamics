@@ -25,7 +25,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array
 from qiskit_ode.type_utils import to_array
-from qiskit_ode.signals import VectorSignal, BaseSignal
+from qiskit_ode.signals import Signal, SignalList
 from .frame import BaseFrame, Frame
 
 
@@ -215,11 +215,11 @@ class GeneratorModel(BaseGeneratorModel):
 
     where the :math:`G_i` are matrices (represented by :class:`Operator`
     objects), and the :math:`s_i(t)` given by signals represented by a
-    :class:`VectorSignal` object, or a list of :class:`Signal` objects.
+    :class:`SignalList` object, or a list of :class:`Signal` objects.
 
     The signals in the model can be specified at instantiation, or afterwards
     by setting the ``signals`` attribute, by giving a
-    list of :class:`Signal` objects or a :class:`VectorSignal`.
+    list of :class:`Signal` objects or a :class:`SignalList`.
 
     For specifying a frame, this object works with the concrete
     :class:`Frame`, a subclass of :class:`BaseFrame`.
@@ -231,7 +231,7 @@ class GeneratorModel(BaseGeneratorModel):
     def __init__(
         self,
         operators: Array,
-        signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
+        signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array, BaseFrame]] = None,
         cutoff_freq: Optional[float] = None,
     ):
@@ -239,7 +239,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         Args:
             operators: A rank-3 Array of operator components.
-            signals: Specifiable as either a VectorSignal, a list of
+            signals: Specifiable as either a SignalList, a list of
                      Signal objects, or as the inputs to signal_mapping.
                      GeneratorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
@@ -265,24 +265,24 @@ class GeneratorModel(BaseGeneratorModel):
         self.__ops_in_fb_w_conj_cutoff = None
 
     @property
-    def signals(self) -> VectorSignal:
+    def signals(self) -> SignalList:
         """Return the signals in the model."""
         return self._signals
 
     @signals.setter
-    def signals(self, signals: Union[VectorSignal, List[BaseSignal]]):
+    def signals(self, signals: Union[SignalList, List[Signal]]):
         """Set the signals."""
 
         if signals is None:
             self._signal_params = None
             self._signals = None
         else:
-            # if signals is a list, instantiate a VectorSignal
+            # if signals is a list, instantiate a SignalList
             if isinstance(signals, list):
-                signals = VectorSignal.from_signal_list(signals)
+                signals = SignalList.from_signal_list(signals)
 
-            # if it isn't a VectorSignal by now, raise an error
-            if not isinstance(signals, VectorSignal):
+            # if it isn't a SignalList by now, raise an error
+            if not isinstance(signals, SignalList):
                 raise QiskitError("signals specified in unaccepted format.")
 
             # verify signal length is same as operators
