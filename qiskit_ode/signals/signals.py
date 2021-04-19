@@ -20,6 +20,7 @@ Module for representation of model coefficients.
 from abc import ABC, abstractmethod
 from typing import List, Callable, Union, Optional, Tuple
 import itertools
+import operator
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -124,9 +125,9 @@ class Signal:
                dt: float,
                n_samples: int,
                start_time: float = 0.0,
-               sample_carrier: bool = False) -> "PiecewiseConstant":
+               sample_carrier: bool = False) -> "DiscreteSignal":
         """
-        Converts a signal to a ``PiecewiseConstant`` signal.
+        Converts a signal to a ``DiscreteSignal`` signal.
 
         Args:
             dt: Time increment to use.
@@ -136,7 +137,7 @@ class Signal:
                              sampling.
 
         Returns:
-            A PiecewiseConstant signal.
+            A DiscreteSignal signal.
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
@@ -151,7 +152,7 @@ class Signal:
             samples = self.envelope(times)
 
 
-        return PiecewiseConstant(
+        return DiscreteSignal(
             dt, samples, start_time=start_time, carrier_freq=freq, phase=self.phase
         )
 
@@ -274,7 +275,7 @@ class Constant(Signal):
         return 'Constant({})'.format(str(self._value))
 
 
-class PiecewiseConstant(Signal):
+class DiscreteSignal(Signal):
     """A piecewise constant signal implemented as an array of samples."""
 
     def __init__(
@@ -353,7 +354,7 @@ class PiecewiseConstant(Signal):
 
     def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Envelope. If ``t`` is before (resp. after) the start (resp. end) of the definition of
-        the ``PiecewiseConstant```, this will return the start value (resp. end value).
+        the ``DiscreteSignal```, this will return the start value (resp. end value).
         """
         idx = np.clip(Array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1)
         return self._samples[idx]
@@ -364,7 +365,7 @@ class PiecewiseConstant(Signal):
         return self.envelope(t) * np.exp(arg)
 
     def conjugate(self):
-        return PiecewiseConstant(
+        return DiscreteSignal(
             dt=self._dt,
             samples=np.conjugate(self._samples),
             start_time=self._start_time,
@@ -402,7 +403,7 @@ class PiecewiseConstant(Signal):
         if self.name is not None:
             return str(self.name)
 
-        return 'PiecewiseConstant(dt={dt}, carrier_freq={freq}, phase={phase})'.format(dt=self.dt, freq=str(self.carrier_freq), phase=str(self.phase))
+        return 'DiscreteSignal(dt={dt}, carrier_freq={freq}, phase={phase})'.format(dt=self.dt, freq=str(self.carrier_freq), phase=str(self.phase))
 
 
 class SignalSum(Signal):
@@ -465,9 +466,9 @@ class SignalSum(Signal):
                dt: float,
                n_samples: int,
                start_time: float = 0.0,
-               sample_carrier: bool = False) -> "PiecewiseConstantSignalSum":
+               sample_carrier: bool = False) -> "DiscreteSignalSum":
         """
-        Converts a signal to a `PiecewiseConstantSignalSum` by sampling at the midpoints.
+        Converts a signal to a `DiscreteSignalSum` by sampling at the midpoints.
 
         Args:
             dt: Time increment to use.
@@ -475,7 +476,7 @@ class SignalSum(Signal):
             start_time: start time from which to resample.
 
         Returns:
-            A piecewiseConstant signal.
+            A DiscreteSignal signal.
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
@@ -490,15 +491,31 @@ class SignalSum(Signal):
         else:
             samples = self.envelope(times)
 
-        return PiecewiseConstantSignalSum(
+        return DiscreteSignalSum(
             dt, samples, start_time=start_time, carrier_freqs=freq, phases=self.phase
         )
 
     def __len__(self):
         return len(self.components)
 
-    def __getitem__(self, idx: int) -> Signal:
-        return self.components[idx]
+    def __getitem__(self, idx: Union[int, List, Tuple, np.array, slice]) -> Signal:
+        """Enables numpy-style subscripting, as if this class were a 1d array."""
+
+        if type(idx) == np.ndarray and idx.ndim > 0:
+            idx = list(idx)
+
+        sublist = None
+
+        if type(idx) == list:
+            sublist = operator.itemgetter(*idx)(self.components)
+
+            # in this case, it will either return a Signal or a tuple of Signals.
+            if type(sublist) == tuple:
+                return SignalSum(*sublist)
+            else:
+                return SignalSum(sublist)
+        else:
+            return operator.itemgetter(idx)(self.components)
 
     def __str__(self):
         if self.name is not None:
@@ -513,7 +530,7 @@ class SignalSum(Signal):
 
         return default_str
 
-    def collapse(self) -> Signal:
+    def flatten(self) -> Signal:
         """Merge into a single ``Signal``. The output frequency is given by the
         average.
         """
@@ -533,7 +550,7 @@ class SignalSum(Signal):
         return Signal(envelope=merged_env, carrier_freq=ave_freq, name=str(self))
 
 
-class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
+class DiscreteSignalSum(DiscreteSignal, SignalSum):
     """Represents a sum of piecewise constant signals, all with the same
     time parameters: dt, number of samples, and start time.
     """
@@ -564,7 +581,7 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
         # construct individual components so they can be accessed as in SignalSum
         components = []
         for sample_row, freq, phase in zip(self.samples.transpose(), carrier_freqs, phases):
-            components.append(PiecewiseConstant(
+            components.append(DiscreteSignal(
                                                 dt=self.dt,
                                                 samples=sample_row,
                                                 start_time=self.start_time,
@@ -594,7 +611,7 @@ class PiecewiseConstantSignalSum(PiecewiseConstant, SignalSum):
             return str(self.name)
 
         if len(self) == 0:
-            return 'PiecewiseConstantSignalSum()'
+            return 'DiscreteSignalSignalSum()'
 
         default_str = str(self[0])
         for sig in self.components[1:]:
@@ -612,16 +629,16 @@ class SignalList:
         """Vectorized evaluation of all components."""
         return np.moveaxis(Array([sig(t) for sig in self.components]), 0, -1)
 
-    def collapse(self) -> 'SignalList':
-        """Return a ``SignalList`` with each component collapsed."""
-        collapsed_list = []
+    def flatten(self) -> 'SignalList':
+        """Return a ``SignalList`` with each component flattened."""
+        flattened_list = []
         for sig in self.components:
             if isinstance(sig, SignalSum):
-                collapsed_list.append(sig.collapse())
+                flattened_list.append(sig.flatten())
             else:
-                collapsed_list.append(sig)
+                flattened_list.append(sig)
 
-        return SignalList(collapsed_list)
+        return SignalList(flattened_list)
 
     def __getitem__(self, idx: int) -> Signal:
         return self.components[idx]
@@ -643,9 +660,9 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
 
     sig_sum = SignalSum(*(wrapped_sig1.components + wrapped_sig2.components))
 
-    # if they were originally PiecewiseConstantSignalSum objects with compatible structure,
+    # if they were originally DiscreteSignalSum objects with compatible structure,
     # convert back
-    if isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
+    if isinstance(sig1, DiscreteSignal) and isinstance(sig2, DiscreteSignal):
         if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
             sig_sum = sig_sum.to_pwc(dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration)
 
@@ -679,9 +696,9 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     for comp1, comp2 in itertools.product(wrapped_sig1.components, wrapped_sig2.components):
         product += base_signal_multiply(comp1, comp2)
 
-    # if they were originally PiecewiseConstantSignalSum objects with compatible structure,
+    # if they were originally DiscreteSignalSum objects with compatible structure,
     # convert back
-    if isinstance(sig1, PiecewiseConstantSignalSum) and isinstance(sig2, PiecewiseConstantSignalSum):
+    if isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
         if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
             product = product.to_pwc(dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration)
 
@@ -695,9 +712,9 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     Special cases:
 
         - Multiplication of two ``Constant``s returns a ``Constant``.
-        - Multiplication of a ``Constant`` and a ``PiecewiseConstant`` returns a ``PiecewiseConstant``.
-        - If two ``PiecewiseConstant``s have compatible parameters, the resulting signals are
-        ``PiecewiseConstant``, with the multiplication being implemented by array multiplication of
+        - Multiplication of a ``Constant`` and a ``DiscreteSignal`` returns a ``DiscreteSignal``.
+        - If two ``DiscreteSignal``s have compatible parameters, the resulting signals are
+        ``DiscreteSignal``, with the multiplication being implemented by array multiplication of
         the samples.
         - Lastly, if no special rules apply, the two ``Signal``s are multiplied generically via
         multiplication of the envelopes as functions.
@@ -715,9 +732,9 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
 
     if isinstance(sig1, Constant) and isinstance(sig2, Constant):
         return Constant(sig1(0.0) * sig2(0.0))
-    elif isinstance(sig1, Constant) and isinstance(sig2, PiecewiseConstant):
+    elif isinstance(sig1, Constant) and isinstance(sig2, DiscreteSignal):
         # multiply the samples by the constant
-        return PiecewiseConstant(
+        return DiscreteSignal(
             dt=sig2.dt,
             samples=sig1(0.0) * sig2.samples,
             start_time=sig2.start_time,
@@ -732,10 +749,10 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
         return Signal(envelope=new_env,
                       carrier_freq=sig2.carrier_freq,
                       phase=sig2.phase)
-    elif isinstance(sig1, PiecewiseConstant) and isinstance(sig2, PiecewiseConstant):
+    elif isinstance(sig1, DiscreteSignal) and isinstance(sig2, DiscreteSignal):
         # verify compatible parameters before applying special rule
         if sig1.start_time == sig2.start_time and sig1.dt == sig2.dt and len(sig1.samples) == len(sig2.samples):
-            pwc1 = PiecewiseConstant(
+            pwc1 = DiscreteSignal(
                         dt=sig2.dt,
                         samples=0.5 * sig1.samples * sig2.samples,
                         start_time=sig2.start_time,
@@ -743,7 +760,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
                         carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
                         phase=sig1.phase + sig2.phase,
                     )
-            pwc2 = PiecewiseConstant(
+            pwc2 = DiscreteSignal(
                         dt=sig2.dt,
                         samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
                         start_time=sig2.start_time,
@@ -774,15 +791,15 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     """Utility function for ordering a pair of ``Signal``s according to the partial order:
     ``sig1 <= sig2`` if and only if:
         - ``type(sig1)`` precedes ``type(sig2)`` in the list
-        ``[Constant, PiecewiseConstant, Signal, SignalSum, PiecewiseConstantSignalSum]``.
+        ``[Constant, DiscreteSignal, Signal, SignalSum, DiscreteSignalSum]``.
     """
     if isinstance(sig1, Constant):
         return sig1, sig2
     elif isinstance(sig2, Constant):
         return sig2, sig1
-    elif isinstance(sig1, PiecewiseConstant):
+    elif isinstance(sig1, DiscreteSignal):
         return sig1, sig2
-    elif isinstance(sig2, PiecewiseConstant):
+    elif isinstance(sig2, DiscreteSignal):
         return sig2, sig1
     elif isinstance(sig1, Signal):
         return sig1, sig2

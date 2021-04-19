@@ -28,7 +28,7 @@ Signal Classes
    :toctree: ../stubs/
 
    Signal
-   PiecewiseConstant
+   DiscreteSignal
    Constant
    SignalList
 
@@ -41,5 +41,5 @@ Transfer Functions
    Convolution
 """
 
-from .signals import Signal, PiecewiseConstant, Constant, SignalList
+from .signals import Signal, DiscreteSignal, Constant, SignalList
 from .transfer_functions import Convolution, Sampler, IQMixer

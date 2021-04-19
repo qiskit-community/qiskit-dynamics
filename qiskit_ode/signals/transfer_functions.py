@@ -24,7 +24,7 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit_ode.dispatch import Array
 
-from .signals import Signal, PiecewiseConstant
+from .signals import Signal, DiscreteSignal
 
 
 class BaseTransferFunction(ABC):
@@ -114,7 +114,7 @@ class Convolution(BaseTransferFunction):
         Raises:
             QiskitError: if the signal is not pwc.
         """
-        if isinstance(signal, PiecewiseConstant):
+        if isinstance(signal, DiscreteSignal):
             # Perform a discrete time convolution.
             dt = signal.dt
             func_samples = Array([self._func(dt * i) for i in range(signal.duration)])
@@ -123,7 +123,7 @@ class Convolution(BaseTransferFunction):
 
             convoluted_samples = list(np.convolve(func_samples, sig_samples))
 
-            return PiecewiseConstant(dt, convoluted_samples, carrier_freq=0.0, phase=0.0)
+            return DiscreteSignal(dt, convoluted_samples, carrier_freq=0.0, phase=0.0)
         else:
             raise QiskitError("Transfer function not defined on input.")
 
