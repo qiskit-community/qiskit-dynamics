@@ -191,60 +191,48 @@ class Signal:
 
         return Signal(conj_env, self.carrier_freq, -self.phase)
 
-    def plot(self, t0: float, tf: float, n: int, axis=None):
-        """Plot the signal over an interval.
+    def draw(self, t0: float, tf: float, n: int, function: Optional[str] = 'signal', axis: Optional[plt.axis] = None):
+        """Plot the signal over an interval. The `function` arg specifies which function to
+        plot:
+            - `function == 'signal'` plots the full signal.
+            - `function == 'envelope'` plots the complex envelope.
+            - `function == 'complex_value'` plots the `complex_value`.
 
         Args:
             t0: Initial time.
             tf: Final time.
             n: Number of points to sample in interval.
+            method: What to plot.
             axis: The axis to use for plotting.
         """
+
         t_vals = np.linspace(t0, tf, n)
-        sig_vals = self(t_vals)
 
-        if axis:
-            axis.plot(t_vals, sig_vals)
+        y_vals = None
+        data_type = 'real'
+        if function == 'signal':
+            y_vals = self(t_vals)
+        elif function == 'envelope':
+            y_vals = self.envelope(t_vals)
+            data_type = 'complex'
+        elif function == 'complex_value':
+            y_vals = self.complex_value(t_vals)
+            data_type = 'complex'
+
+        if data_type == 'complex':
+            if axis:
+                axis.plot(t_vals, np.real(y_vals))
+                axis.plot(t_vals, np.imag(y_vals))
+            else:
+                plt.plot(t_vals, np.real(y_vals))
+                plt.plot(t_vals, np.imag(y_vals))
         else:
-            plt.plot(t_vals, sig_vals)
+            if axis:
+                axis.plot(t_vals, y_vals)
+            else:
+                plt.plot(t_vals, y_vals)
 
-    def plot_envelope(self, t0: float, tf: float, n: int, axis=None):
-        """Plot the signal over an interval.
 
-        Args:
-            t0: Initial time.
-            tf: Final time.
-            n: Number of points to sample in interval.
-            axis: The axis to use for plotting.
-        """
-        t_vals = np.linspace(t0, tf, n)
-        env_vals = self.envelope(t_vals)
-
-        if axis:
-            axis.plot(t_vals, np.real(env_vals))
-            axis.plot(t_vals, np.imag(env_vals))
-        else:
-            plt.plot(t_vals, np.real(env_vals))
-            plt.plot(t_vals, np.imag(env_vals))
-
-    def plot_complex_value(self, t0: float, tf: float, n: int, axis=None):
-        """Plot the complex value over an interval.
-
-        Args:
-            t0: Initial time.
-            tf: Final time.
-            n: Number of points to sample in interval.
-            axis: The axis to use for plotting.
-        """
-        t_vals = np.linspace(t0, tf, n)
-        sig_vals = self.complex_value(t_vals)
-
-        if axis:
-            axis.plot(t_vals, np.real(sig_vals))
-            axis.plot(t_vals, np.imag(sig_vals))
-        else:
-            plt.plot(t_vals, np.real(sig_vals))
-            plt.plot(t_vals, np.imag(sig_vals))
 
 
 class Constant(Signal):
