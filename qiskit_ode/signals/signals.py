@@ -121,7 +121,7 @@ class Signal:
         """Vectorized evaluation of the signal at time t."""
         return np.real(self.complex_value(t))
 
-    def to_pwc(self,
+    def discretize(self,
                dt: float,
                n_samples: int,
                start_time: float = 0.0,
@@ -462,7 +462,7 @@ class SignalSum(Signal):
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
 
-    def to_pwc(self,
+    def discretize(self,
                dt: float,
                n_samples: int,
                start_time: float = 0.0,
@@ -664,7 +664,7 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     # convert back
     if isinstance(sig1, DiscreteSignal) and isinstance(sig2, DiscreteSignal):
         if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
-            sig_sum = sig_sum.to_pwc(dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration)
+            sig_sum = sig_sum.discretize(dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration)
 
     return sig_sum
 
@@ -700,7 +700,7 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     # convert back
     if isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
         if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
-            product = product.to_pwc(dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration)
+            product = product.discretize(dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration)
 
     return product
 

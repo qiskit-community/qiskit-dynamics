@@ -147,7 +147,7 @@ class FFTConvolution(BaseTransferFunction):
 
 class Sampler(BaseTransferFunction):
     """
-    Re sample a signal by wrapping Signal.to_pwc.
+    Re sample a signal by wrapping Signal.discretize.
     """
 
     def __init__(self, dt: float, n_samples: int, start_time: float = 0):
@@ -169,7 +169,7 @@ class Sampler(BaseTransferFunction):
     # pylint: disable=arguments-differ
     def _apply(self, signal: Signal) -> Signal:
         """Apply the transfer function to the signal."""
-        return signal.to_pwc(self._dt, self._n_samples, self._start_time)
+        return signal.discretize(self._dt, self._n_samples, self._start_time)
 
 
 class IQMixer(BaseTransferFunction):
