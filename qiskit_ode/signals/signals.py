@@ -121,41 +121,6 @@ class Signal:
         """Vectorized evaluation of the signal at time t."""
         return np.real(self.complex_value(t))
 
-    def discretize(self,
-               dt: float,
-               n_samples: int,
-               start_time: float = 0.0,
-               sample_carrier: bool = False) -> "DiscreteSignal":
-        """
-        Converts a signal to a ``DiscreteSignal`` signal.
-
-        Args:
-            dt: Time increment to use.
-            n_samples: Number of steps to resample with.
-            start_time: Start time from which to resample.
-            sample_carrier: Whether or not to keep the carrier analog or include it in the
-                             sampling.
-
-        Returns:
-            A DiscreteSignal signal.
-        """
-
-        times = start_time + (np.arange(n_samples) + 0.5) * dt
-
-        freq = self.carrier_freq
-        samples = None
-
-        if sample_carrier:
-            freq = 0.0
-            samples = self(times)
-        else:
-            samples = self.envelope(times)
-
-
-        return DiscreteSignal(
-            dt, samples, start_time=start_time, carrier_freq=freq, phase=self.phase
-        )
-
     def __str__(self) -> str:
         """Return string representation."""
         if self.name is not None:
@@ -233,8 +198,6 @@ class Signal:
                 plt.plot(t_vals, y_vals)
 
 
-
-
 class Constant(Signal):
     """:class:`Signal` representing a constant value."""
 
@@ -307,6 +270,44 @@ class DiscreteSignal(Signal):
         # set carrier and phase
         self.carrier_freq = carrier_freq
         self.phase = phase
+
+    @classmethod
+    def from_Signal(cls,
+                    signal: Signal,
+                    dt: float,
+                    n_samples: int,
+                    start_time: Optional[float] = 0.0,
+                    sample_carrier: Optional[bool] = False):
+        """
+        Constructs a ``DiscreteSignal`` signal object by sampling a ``Signal``.
+
+        Args:
+            signal: Signal to sample.
+            dt: Time increment to use.
+            n_samples: Number of steps to resample with.
+            start_time: Start time from which to resample.
+            sample_carrier: Whether or not to keep the carrier analog or include it in the
+                            sampling.
+
+        Returns:
+            A DiscreteSignal signal.
+        """
+
+        times = start_time + (np.arange(n_samples) + 0.5) * dt
+
+        freq = signal.carrier_freq
+        samples = None
+
+        if sample_carrier:
+            freq = 0.0
+            samples = signal(times)
+        else:
+            samples = signal.envelope(times)
+
+
+        return DiscreteSignal(
+            dt, samples, start_time=start_time, carrier_freq=freq, phase=signal.phase
+        )
 
     @property
     def duration(self) -> int:
@@ -449,40 +450,6 @@ class SignalSum(Signal):
         exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
-
-    def discretize(self,
-               dt: float,
-               n_samples: int,
-               start_time: float = 0.0,
-               sample_carrier: bool = False) -> "DiscreteSignalSum":
-        """
-        Converts a signal to a `DiscreteSignalSum` by sampling at the midpoints.
-
-        Args:
-            dt: Time increment to use.
-            n_samples: number of steps to resample with.
-            start_time: start time from which to resample.
-
-        Returns:
-            A DiscreteSignal signal.
-        """
-
-        times = start_time + (np.arange(n_samples) + 0.5) * dt
-
-        freq = self.carrier_freq
-        samples = None
-
-        if sample_carrier:
-            freq = 0.0 * freq
-            exp_phases = np.exp(np.expand_dims(Array(times), -1) * self._carrier_arg)
-            samples = self.envelope(times) * exp_phases
-        else:
-            samples = self.envelope(times)
-
-        return DiscreteSignalSum(
-            dt, samples, start_time=start_time, carrier_freqs=freq, phases=self.phase
-        )
-
     def __len__(self):
         return len(self.components)
 
@@ -590,6 +557,45 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         self.carrier_freq = carrier_freqs
         self.phase = phases
 
+
+    @classmethod
+    def from_SignalSum(cls,
+                    signal_sum: SignalSum,
+                    dt: float,
+                    n_samples: int,
+                    start_time: Optional[float] = 0.0,
+                    sample_carrier: Optional[bool] = False):
+        """
+        Constructs a ``DiscreteSignalSum`` signal object by sampling a ``SignalSum``.
+
+        Args:
+            signal_sum: SignalSum to sample.
+            dt: Time increment to use.
+            n_samples: Number of steps to resample with.
+            start_time: Start time from which to resample.
+            sample_carrier: Whether or not to keep the carrier analog or include it in the
+                            sampling.
+
+        Returns:
+            A DiscreteSignalSum signal.
+        """
+
+        times = start_time + (np.arange(n_samples) + 0.5) * dt
+
+        freq = signal_sum.carrier_freq
+        samples = None
+
+        if sample_carrier:
+            freq = 0.0 * freq
+            exp_phases = np.exp(np.expand_dims(Array(times), -1) * signal_sum._carrier_arg)
+            samples = signal_sum.envelope(times) * exp_phases
+        else:
+            samples = signal_sum.envelope(times)
+
+        return DiscreteSignalSum(
+            dt, samples, start_time=start_time, carrier_freqs=freq, phases=signal_sum.phase
+        )
+
     def complex_value(self, t: Union[float, np.array, Array]) -> Array:
         exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
@@ -652,7 +658,7 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     # convert back
     if isinstance(sig1, DiscreteSignal) and isinstance(sig2, DiscreteSignal):
         if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
-            sig_sum = sig_sum.discretize(dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration)
+            sig_sum = DiscreteSignalSum.from_SignalSum(sig_sum, dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration)
 
     return sig_sum
 
@@ -688,7 +694,7 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     # convert back
     if isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
         if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
-            product = product.discretize(dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration)
+            product = DiscreteSignalSum.from_SignalSum(product, dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration)
 
     return product
 
