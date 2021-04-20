@@ -113,7 +113,7 @@ class HamiltonianModel(GeneratorModel):
                                signals."""
             )
 
-        sig_vals = self.signals.value(time)
+        sig_vals = self.signals(time)
 
         op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
 

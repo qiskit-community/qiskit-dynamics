@@ -253,7 +253,6 @@ class GeneratorModel(BaseGeneratorModel):
         self._cutoff_freq = cutoff_freq
 
         # initialize signal-related attributes
-        self._signal_params = None
         self._signals = None
         self.signals = signals
 
@@ -274,29 +273,31 @@ class GeneratorModel(BaseGeneratorModel):
         """Set the signals."""
 
         if signals is None:
-            self._signal_params = None
             self._signals = None
         else:
             # if signals is a list, instantiate a SignalList
             if isinstance(signals, list):
-                signals = SignalList.from_signal_list(signals)
+                signals = SignalList(signals)
 
             # if it isn't a SignalList by now, raise an error
             if not isinstance(signals, SignalList):
-                raise QiskitError("signals specified in unaccepted format.")
+                raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals.carrier_freqs) != len(self.operators):
+            if len(signals) != len(self.operators):
                 raise QiskitError(
-                    """signals needs to have the same length as
+                    """Signals needs to have the same length as
                                     operators."""
                 )
 
             # internal ops need to be reset if there is a cutoff frequency
             # and carrier_freqs has changed
             if self._signals is not None:
+                # compare flattened carrier frequencies
+                old_carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
+                new_carrier_freqs = [sig.carrier_freq for sig in signals.flatten()]
                 if (
-                    not np.allclose(self._signals.carrier_freqs, signals.carrier_freqs)
+                    not np.allclose(old_carrier_freqs, new_carrier_freqs)
                     and self._cutoff_freq is not None
                 ):
                     self._reset_internal_ops()
@@ -348,7 +349,7 @@ class GeneratorModel(BaseGeneratorModel):
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        sig_vals = self._signals.value(time)
+        sig_vals = self._signals(time)
 
         # evaluate the linear combination in the frame basis with cutoffs,
         # then map into the frame
@@ -370,7 +371,7 @@ class GeneratorModel(BaseGeneratorModel):
                                frame_operator is not None."""
             )
 
-        drift_sig_vals = self._signals.drift_array
+        drift_sig_vals = self._signals.drift
 
         return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
 
@@ -381,10 +382,10 @@ class GeneratorModel(BaseGeneratorModel):
         frame basis with frequency cutoffs applied.
         """
         carrier_freqs = None
-        if self._signals.carrier_freqs is None:
+        if self._signals is None:
             carrier_freqs = np.zeros(len(self.operators))
         else:
-            carrier_freqs = self._signals.carrier_freqs
+            carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
 
         (
             self.__ops_in_fb_w_cutoff,

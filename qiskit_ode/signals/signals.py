@@ -96,6 +96,8 @@ class Signal:
 
     @carrier_freq.setter
     def carrier_freq(self, carrier_freq: float):
+        if type(carrier_freq) == list:
+            carrier_freq = [Array(entry).data for entry in carrier_freq]
         self._carrier_freq = Array(carrier_freq)
         self._carrier_arg = 1j * 2 * np.pi * self._carrier_freq
 
@@ -105,6 +107,8 @@ class Signal:
 
     @phase.setter
     def phase(self, phase: float):
+        if type(phase) == list:
+            phase = [Array(entry).data for entry in phase]
         self._phase = Array(phase)
         self._phase_arg = 1j * self._phase
 
@@ -657,7 +661,7 @@ class SignalList:
 
     def __call__(self, t: Union[float, np.array, Array]) -> Array:
         """Vectorized evaluation of all components."""
-        return np.moveaxis(Array([sig(t) for sig in self.components]), 0, -1)
+        return np.moveaxis(Array([Array(sig(t)).data for sig in self.components]), 0, -1)
 
     def flatten(self) -> 'SignalList':
         """Return a ``SignalList`` with each component flattened."""
@@ -684,7 +688,7 @@ class SignalList:
 
             for term in sig_entry:
                 if isinstance(term, Constant):
-                    val += term(0.0)
+                    val += term._value.data
 
             drift_array.append(val)
 
