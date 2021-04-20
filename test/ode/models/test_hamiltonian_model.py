@@ -194,10 +194,14 @@ class TestHamiltonianModel(QiskitOdeTestCase):
 
         sig_list = []
         for coeff, freq, phase in zip(coefficients, carriers, phases):
+
             def get_env_func(coeff=coeff):
+                # pylint: disable=unused-argument
                 def env(t):
                     return coeff
+
                 return env
+
             sig_list.append(Signal(get_env_func(), freq, phase))
         sig_list = SignalList(sig_list)
         model = HamiltonianModel(operators, sig_list, frame=frame_op)

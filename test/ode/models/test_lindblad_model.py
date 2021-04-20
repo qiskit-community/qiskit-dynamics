@@ -89,11 +89,7 @@ class TestLindbladModel(QiskitOdeTestCase):
 
         ham_sigs = []
         for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
-            def get_env_func(coeff=coeff):
-                def env(t):
-                    return coeff
-                return env
-            ham_sigs.append(Signal(get_env_func(), freq, phase))
+            ham_sigs.append(Signal(get_const_func(coeff), freq, phase))
 
         ham_sigs = SignalList(ham_sigs)
 
@@ -112,11 +108,7 @@ class TestLindbladModel(QiskitOdeTestCase):
 
         diss_sigs = []
         for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
-            def get_env_func(coeff=coeff):
-                def env(t):
-                    return coeff
-                return env
-            diss_sigs.append(Signal(get_env_func(), freq, phase))
+            diss_sigs.append(Signal(get_const_func(coeff), freq, phase))
 
         diss_sigs = SignalList(diss_sigs)
 
@@ -210,3 +202,12 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+
+
+def get_const_func(const):
+    """Helper function for defining a constant function."""
+    # pylint: disable=unused-argument
+    def env(t):
+        return const
+
+    return env

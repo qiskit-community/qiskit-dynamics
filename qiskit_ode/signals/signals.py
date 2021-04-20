@@ -11,13 +11,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, unidiomatic-typecheck, super-init-not-called
 
 """
 Module for representation of model coefficients.
 """
 
-from abc import ABC, abstractmethod
 from typing import List, Callable, Union, Optional, Tuple
 import itertools
 import operator
@@ -27,6 +26,7 @@ from matplotlib import pyplot as plt
 
 from qiskit import QiskitError
 from qiskit_ode.dispatch import Array
+
 
 class Signal:
     r"""General signal class representing a function of the form:
@@ -53,7 +53,7 @@ class Signal:
         envelope: Union[Callable, complex, float, int],
         carrier_freq: float = 0.0,
         phase: float = 0.0,
-        name: Optional[str] = None
+        name: Optional[str] = None,
     ):
         """
         Initializes a signal given by an envelope and a carrier.
@@ -72,7 +72,7 @@ class Signal:
         if isinstance(envelope, Array):
             self._envelope = lambda t: envelope
 
-        if isinstance(envelope, Callable):
+        if callable(envelope):
             self._envelope = envelope
 
         # initialize internally stored carrier/phase information
@@ -92,10 +92,12 @@ class Signal:
 
     @property
     def carrier_freq(self) -> Array:
+        """The carrier frequency of the signal."""
         return self._carrier_freq
 
     @carrier_freq.setter
     def carrier_freq(self, carrier_freq: float):
+        """Carrier frequency setter."""
         if type(carrier_freq) == list:
             carrier_freq = [Array(entry).data for entry in carrier_freq]
         self._carrier_freq = Array(carrier_freq)
@@ -103,10 +105,12 @@ class Signal:
 
     @property
     def phase(self) -> Array:
+        """The phase of the signal."""
         return self._phase
 
     @phase.setter
     def phase(self, phase: float):
+        """Phase setter."""
         if type(phase) == list:
             phase = [Array(entry).data for entry in phase]
         self._phase = Array(phase)
@@ -130,37 +134,47 @@ class Signal:
         if self.name is not None:
             return str(self.name)
 
-        return 'Signal(carrier_freq={freq}, phase={phase})'.format(freq=str(self.carrier_freq), phase=str(self.phase))
+        return "Signal(carrier_freq={freq}, phase={phase})".format(
+            freq=str(self.carrier_freq), phase=str(self.phase)
+        )
 
-    def __add__(self, other: 'Signal') -> 'SignalSum':
+    def __add__(self, other: "Signal") -> "SignalSum":
         return signal_add(self, other)
 
-    def __radd__(self, other: 'Signal') -> 'SignalSum':
+    def __radd__(self, other: "Signal") -> "SignalSum":
         return self.__add__(other)
 
-    def __mul__(self, other: 'Signal') -> 'SignalSum':
+    def __mul__(self, other: "Signal") -> "SignalSum":
         return signal_multiply(self, other)
 
-    def __rmul__(self, other: 'Signal') -> 'SignalSum':
+    def __rmul__(self, other: "Signal") -> "SignalSum":
         return self.__mul__(other)
 
-    def __neg__(self) -> 'SignalSum':
+    def __neg__(self) -> "SignalSum":
         return -1 * self
 
-    def __sub__(self, other: 'Signal') -> 'SignalSum':
+    def __sub__(self, other: "Signal") -> "SignalSum":
         return self + (-other)
 
-    def __rsub__(self, other: 'Signal') -> 'SignalSum':
+    def __rsub__(self, other: "Signal") -> "SignalSum":
         return other + (-self)
 
     def conjugate(self):
         """Return a new signal obtained via complex conjugation of the envelope and phase."""
+
         def conj_env(t):
             return np.conjugate(self.envelope(t))
 
         return Signal(conj_env, self.carrier_freq, -self.phase)
 
-    def draw(self, t0: float, tf: float, n: int, function: Optional[str] = 'signal', axis: Optional[plt.axis] = None):
+    def draw(
+        self,
+        t0: float,
+        tf: float,
+        n: int,
+        function: Optional[str] = "signal",
+        axis: Optional[plt.axis] = None,
+    ):
         """Plot the signal over an interval. The `function` arg specifies which function to
         plot:
             - `function == 'signal'` plots the full signal.
@@ -171,24 +185,24 @@ class Signal:
             t0: Initial time.
             tf: Final time.
             n: Number of points to sample in interval.
-            method: What to plot.
+            function: Which function to plot.
             axis: The axis to use for plotting.
         """
 
         t_vals = np.linspace(t0, tf, n)
 
         y_vals = None
-        data_type = 'real'
-        if function == 'signal':
+        data_type = "real"
+        if function == "signal":
             y_vals = self(t_vals)
-        elif function == 'envelope':
+        elif function == "envelope":
             y_vals = self.envelope(t_vals)
-            data_type = 'complex'
-        elif function == 'complex_value':
+            data_type = "complex"
+        elif function == "complex_value":
             y_vals = self.complex_value(t_vals)
-            data_type = 'complex'
+            data_type = "complex"
 
-        if data_type == 'complex':
+        if data_type == "complex":
             if axis:
                 axis.plot(t_vals, np.real(y_vals))
                 axis.plot(t_vals, np.imag(y_vals))
@@ -227,7 +241,7 @@ class Constant(Signal):
         if self.name is not None:
             return str(self.name)
 
-        return 'Constant({})'.format(str(self._value))
+        return "Constant({})".format(str(self._value))
 
 
 class DiscreteSignal(Signal):
@@ -276,12 +290,14 @@ class DiscreteSignal(Signal):
         self.phase = phase
 
     @classmethod
-    def from_Signal(cls,
-                    signal: Signal,
-                    dt: float,
-                    n_samples: int,
-                    start_time: Optional[float] = 0.0,
-                    sample_carrier: Optional[bool] = False):
+    def from_Signal(
+        cls,
+        signal: Signal,
+        dt: float,
+        n_samples: int,
+        start_time: Optional[float] = 0.0,
+        sample_carrier: Optional[bool] = False,
+    ):
         """
         Constructs a ``DiscreteSignal`` signal object by sampling a ``Signal``.
 
@@ -294,7 +310,7 @@ class DiscreteSignal(Signal):
                             sampling.
 
         Returns:
-            A DiscreteSignal signal.
+            DiscreteSignal: The discretized ``Signal``.
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
@@ -306,7 +322,6 @@ class DiscreteSignal(Signal):
             samples = signal(times)
         else:
             samples = signal.envelope(times)
-
 
         return DiscreteSignal(
             dt, samples, start_time=start_time, carrier_freq=freq, phase=signal.phase
@@ -348,7 +363,9 @@ class DiscreteSignal(Signal):
         """Envelope. If ``t`` is before (resp. after) the start (resp. end) of the definition of
         the ``DiscreteSignal```, this will return the start value (resp. end value).
         """
-        idx = np.clip(Array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1)
+        idx = np.clip(
+            Array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1
+        )
         return self._samples[idx.data]
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
@@ -395,7 +412,9 @@ class DiscreteSignal(Signal):
         if self.name is not None:
             return str(self.name)
 
-        return 'DiscreteSignal(dt={dt}, carrier_freq={freq}, phase={phase})'.format(dt=self.dt, freq=str(self.carrier_freq), phase=str(self.phase))
+        return "DiscreteSignal(dt={dt}, carrier_freq={freq}, phase={phase})".format(
+            dt=self.dt, freq=str(self.carrier_freq), phase=str(self.phase)
+        )
 
 
 class SignalSum(Signal):
@@ -407,6 +426,9 @@ class SignalSum(Signal):
         Args:
             args: ``Signal`` subclass objects.
             name: Name of the sum.
+
+        Raises:
+            QiskitError: If ``args`` are not subclasses of ``Signal``.
         """
         self._name = name
 
@@ -417,7 +439,9 @@ class SignalSum(Signal):
             elif isinstance(sig, Signal):
                 self.components.append(sig)
             else:
-                raise QiskitError('Components of a SignalSum must be instances of a Signal subclass.')
+                raise QiskitError(
+                    "Components of a SignalSum must be instances of a Signal subclass."
+                )
 
         self._envelopes = [sig.envelope for sig in self.components]
 
@@ -487,11 +511,11 @@ class SignalSum(Signal):
             return str(self.name)
 
         if len(self) == 0:
-            return 'SignalSum()'
+            return "SignalSum()"
 
         default_str = str(self[0])
         for sig in self.components[1:]:
-            default_str += ' + {}'.format(str(sig))
+            default_str += " + {}".format(str(sig))
 
         return default_str
 
@@ -501,7 +525,7 @@ class SignalSum(Signal):
         """
 
         if len(self) == 0:
-            return Constant(0.)
+            return Constant(0.0)
         elif len(self) == 1:
             return self.components[0]
 
@@ -532,7 +556,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
     ):
         """Samples array has 0th axis corresponding to a signal, 1st axis corresponding to samples
         for each signal."""
-        self._name=name
+        self._name = name
         self._dt = dt
         self._samples = Array(samples)
         self._start_time = start_time
@@ -546,15 +570,16 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         # construct individual components so they can be accessed as in SignalSum
         components = []
         for sample_row, freq, phase in zip(self.samples.transpose(), carrier_freqs, phases):
-            components.append(DiscreteSignal(
-                                                dt=self.dt,
-                                                samples=sample_row,
-                                                start_time=self.start_time,
-                                                duration=self.duration,
-                                                carrier_freq=freq,
-                                                phase=phase,
-                                                )
-                                )
+            components.append(
+                DiscreteSignal(
+                    dt=self.dt,
+                    samples=sample_row,
+                    start_time=self.start_time,
+                    duration=self.duration,
+                    carrier_freq=freq,
+                    phase=phase,
+                )
+            )
 
         self.components = components
 
@@ -567,16 +592,16 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         self.carrier_freq = carrier_freqs
         self.phase = phases
 
-
     @classmethod
-    def from_SignalSum(cls,
-                    signal_sum: SignalSum,
-                    dt: float,
-                    n_samples: int,
-                    start_time: Optional[float] = 0.0,
-                    sample_carrier: Optional[bool] = False):
-        """
-        Constructs a ``DiscreteSignalSum`` signal object by sampling a ``SignalSum``.
+    def from_SignalSum(
+        cls,
+        signal_sum: SignalSum,
+        dt: float,
+        n_samples: int,
+        start_time: Optional[float] = 0.0,
+        sample_carrier: Optional[bool] = False,
+    ):
+        """Constructs a ``DiscreteSignalSum`` signal object by sampling a ``SignalSum``.
 
         Args:
             signal_sum: SignalSum to sample.
@@ -587,7 +612,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
                             sampling.
 
         Returns:
-            A DiscreteSignalSum signal.
+            DiscreteSignalSum: Discretized signal.
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
@@ -615,11 +640,11 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             return str(self.name)
 
         if len(self) == 0:
-            return 'DiscreteSignalSignalSum()'
+            return "DiscreteSignalSignalSum()"
 
         default_str = str(self[0])
         for sig in self.components[1:]:
-            default_str += ' + {}'.format(str(sig))
+            default_str += " + {}".format(str(sig))
 
         return default_str
 
@@ -640,33 +665,40 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             phases = Array([phases])
 
         if len(samples) == 1:
-            return DiscreteSignal(dt=self.dt,
-                                  samples=samples[0],
-                                  start_time=self.start_time,
-                                  carrier_freq=carrier_freqs[0],
-                                  phase=phases[0])
+            return DiscreteSignal(
+                dt=self.dt,
+                samples=samples[0],
+                start_time=self.start_time,
+                carrier_freq=carrier_freqs[0],
+                phase=phases[0],
+            )
 
-        return DiscreteSignalSum(dt=self.dt,
-                                 samples=samples,
-                                 start_time=self.start_time,
-                                 carrier_freqs=carrier_freqs,
-                                 phases=phases)
+        return DiscreteSignalSum(
+            dt=self.dt,
+            samples=samples,
+            start_time=self.start_time,
+            carrier_freqs=carrier_freqs,
+            phases=phases,
+        )
 
 
 class SignalList:
+    """A list of ``Signal``s, with functionality for simultaneous evaluation."""
 
     def __init__(self, signal_list: List[Signal]):
         self.components = signal_list
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Array:
         """Vectorized evaluation of complex value of components."""
-        return np.moveaxis(Array([Array(sig.complex_value(t)).data for sig in self.components]), 0, -1)
+        return np.moveaxis(
+            Array([Array(sig.complex_value(t)).data for sig in self.components]), 0, -1
+        )
 
     def __call__(self, t: Union[float, np.array, Array]) -> Array:
         """Vectorized evaluation of all components."""
         return np.moveaxis(Array([Array(sig(t)).data for sig in self.components]), 0, -1)
 
-    def flatten(self) -> 'SignalList':
+    def flatten(self) -> "SignalList":
         """Return a ``SignalList`` with each component flattened."""
         flattened_list = []
         for sig in self.components:
@@ -736,16 +768,22 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     try:
         wrapped_sig1 = to_SignalSum(sig1)
         wrapped_sig2 = to_SignalSum(sig2)
-    except:
-        raise QiskitError('Only a number or a Signal instance can be added to a Signal.')
+    except QiskitError as e:
+        raise QiskitError("Only a number or a Signal instance can be added to a Signal.") from e
 
     sig_sum = SignalSum(*(wrapped_sig1.components + wrapped_sig2.components))
 
     # if they were originally DiscreteSignalSum objects with compatible structure,
     # convert back
     if isinstance(sig1, DiscreteSignal) and isinstance(sig2, DiscreteSignal):
-        if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
-            sig_sum = DiscreteSignalSum.from_SignalSum(sig_sum, dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration)
+        if (
+            sig1.dt == sig2.dt
+            and sig1.start_time == sig2.start_time
+            and sig1.duration == sig2.duration
+        ):
+            sig_sum = DiscreteSignalSum.from_SignalSum(
+                sig_sum, dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration
+            )
 
     return sig_sum
 
@@ -767,8 +805,8 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     try:
         wrapped_sig1 = to_SignalSum(sig1)
         wrapped_sig2 = to_SignalSum(sig2)
-    except:
-        raise QiskitError('Only a number or a Signal instance can multiply a Signal.')
+    except QiskitError as e:
+        raise QiskitError("Only a number or a Signal instance can multiply a Signal.") from e
 
     # initialize to empty sum
     product = SignalSum()
@@ -780,10 +818,17 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     # if they were originally DiscreteSignalSum objects with compatible structure,
     # convert back
     if isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
-        if sig1.dt == sig2.dt and sig1.start_time == sig2.start_time and sig1.duration == sig2.duration:
-            product = DiscreteSignalSum.from_SignalSum(product, dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration)
+        if (
+            sig1.dt == sig2.dt
+            and sig1.start_time == sig2.start_time
+            and sig1.duration == sig2.duration
+        ):
+            product = DiscreteSignalSum.from_SignalSum(
+                product, dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration
+            )
 
     return product
+
 
 def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     r"""Utility function for multiplying two elementary (non ``SignalSum``) signals.
@@ -811,9 +856,9 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     # ensure signals are ordered from most to least specialized
     sig1, sig2 = sort_signals(sig1, sig2)
 
-    if isinstance(sig1, Constant) and isinstance(sig2, Constant):
+    if type(sig1) is Constant and type(sig2) is Constant:
         return Constant(sig1(0.0) * sig2(0.0))
-    elif isinstance(sig1, Constant) and isinstance(sig2, DiscreteSignal):
+    elif type(sig1) is Constant and type(sig2) is DiscreteSignal:
         # multiply the samples by the constant
         return DiscreteSignal(
             dt=sig2.dt,
@@ -823,34 +868,37 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
             carrier_freq=sig2.carrier_freq,
             phase=sig2.phase,
         )
-    elif isinstance(sig1, Constant) and type(sig2) == Signal:
+    elif type(sig1) is Constant and type(sig2) is Signal:
         const = sig1(0.0)
+
         def new_env(t):
             return const * sig2.envelope(t)
-        return Signal(envelope=new_env,
-                      carrier_freq=sig2.carrier_freq,
-                      phase=sig2.phase)
-    elif isinstance(sig1, DiscreteSignal) and isinstance(sig2, DiscreteSignal):
-        # verify compatible parameters before applying special rule
-        if sig1.start_time == sig2.start_time and sig1.dt == sig2.dt and len(sig1.samples) == len(sig2.samples):
-            pwc1 = DiscreteSignal(
-                        dt=sig2.dt,
-                        samples=0.5 * sig1.samples * sig2.samples,
-                        start_time=sig2.start_time,
-                        duration=sig2.duration,
-                        carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
-                        phase=sig1.phase + sig2.phase,
-                    )
-            pwc2 = DiscreteSignal(
-                        dt=sig2.dt,
-                        samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
-                        start_time=sig2.start_time,
-                        duration=sig2.duration,
-                        carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
-                        phase=sig1.phase - sig2.phase,
-                    )
-            return pwc1 + pwc2
 
+        return Signal(envelope=new_env, carrier_freq=sig2.carrier_freq, phase=sig2.phase)
+    elif type(sig1) is DiscreteSignal and type(sig2) is DiscreteSignal:
+        # verify compatible parameters before applying special rule
+        if (
+            sig1.start_time == sig2.start_time
+            and sig1.dt == sig2.dt
+            and len(sig1.samples) == len(sig2.samples)
+        ):
+            pwc1 = DiscreteSignal(
+                dt=sig2.dt,
+                samples=0.5 * sig1.samples * sig2.samples,
+                start_time=sig2.start_time,
+                duration=sig2.duration,
+                carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
+                phase=sig1.phase + sig2.phase,
+            )
+            pwc2 = DiscreteSignal(
+                dt=sig2.dt,
+                samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
+                start_time=sig2.start_time,
+                duration=sig2.duration,
+                carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
+                phase=sig1.phase - sig2.phase,
+            )
+            return pwc1 + pwc2
 
     # if no special cases apply, implement generic rule
     def new_env1(t):
@@ -859,12 +907,16 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     def new_env2(t):
         return 0.5 * sig1.envelope(t) * np.conjugate(sig2.envelope(t))
 
-    prod1 = Signal(envelope=new_env1,
-                   carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
-                   phase=sig1.phase + sig2.phase)
-    prod2 = Signal(envelope=new_env2,
-                   carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
-                   phase=sig1.phase - sig2.phase)
+    prod1 = Signal(
+        envelope=new_env1,
+        carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
+        phase=sig1.phase + sig2.phase,
+    )
+    prod2 = Signal(
+        envelope=new_env2,
+        carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
+        phase=sig1.phase - sig2.phase,
+    )
     return prod1 + prod2
 
 
@@ -875,21 +927,21 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
         ``[Constant, DiscreteSignal, Signal, SignalSum, DiscreteSignalSum]``.
     """
     if isinstance(sig1, Constant):
-        return sig1, sig2
+        pass
     elif isinstance(sig2, Constant):
-        return sig2, sig1
+        sig1, sig2 = sig2, sig1
     elif isinstance(sig1, DiscreteSignal):
-        return sig1, sig2
+        pass
     elif isinstance(sig2, DiscreteSignal):
-        return sig2, sig1
+        sig2, sig1 = sig1, sig2
     elif isinstance(sig1, Signal):
-        return sig1, sig2
+        pass
     elif isinstance(sig2, Signal):
-        return sig2, sig1
+        sig2, sig1 = sig1, sig2
     elif isinstance(sig1, SignalSum):
-        return sig1, sig2
+        pass
     elif isinstance(sig2, SignalSum):
-        return sig2, sig1
+        sig2, sig1 = sig1, sig2
 
     return sig1, sig2
 
@@ -919,6 +971,6 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
         sig = SignalSum(sig)
 
     if not isinstance(sig, SignalSum):
-        raise QiskitError('Input type incompatible with SignalSum.')
+        raise QiskitError("Input type incompatible with SignalSum.")
 
     return sig

@@ -93,9 +93,7 @@ class LindbladModel(GeneratorModel):
             full_signals = hamiltonian_signals
         else:
             if noise_signals is None:
-                noise_signals = SignalList(
-                    [Constant(1.) for _ in noise_operators]
-                )
+                noise_signals = SignalList([Constant(1.0) for _ in noise_operators])
             elif isinstance(noise_signals, list):
                 noise_signals = SignalList(noise_signals)
             elif not isinstance(noise_signals, SignalList):

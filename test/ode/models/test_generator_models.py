@@ -19,7 +19,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import GeneratorModel
 from qiskit_ode.models.generator_models import CallableGenerator
-from qiskit_ode.signals import Constant, Signal, SignalList
+from qiskit_ode.signals import Constant, Signal
 from qiskit_ode.dispatch import Array
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -199,10 +199,14 @@ class TestGeneratorModel(QiskitOdeTestCase):
 
         sig_list = []
         for coeff, freq, phase in zip(coefficients, carriers, phases):
+
             def get_env_func(coeff=coeff):
+                # pylint: disable=unused-argument
                 def env(t):
                     return coeff
+
                 return env
+
             sig_list.append(Signal(get_env_func(), freq, phase))
         model = GeneratorModel(operators, sig_list, frame=frame_op)
 
@@ -232,7 +236,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
     def test_signal_setting(self):
         """Test updating the signals."""
 
-        signals = [Signal(lambda t: 2 * t, 1.), Signal(lambda t: t**2, 2.)]
+        signals = [Signal(lambda t: 2 * t, 1.0), Signal(lambda t: t ** 2, 2.0)]
         self.basic_model.signals = signals
 
         t = 0.1

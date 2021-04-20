@@ -169,7 +169,9 @@ class Sampler(BaseTransferFunction):
     # pylint: disable=arguments-differ
     def _apply(self, signal: Signal) -> Signal:
         """Apply the transfer function to the signal."""
-        return DiscreteSignal.from_Signal(signal, dt=self._dt, n_samples=self._n_samples, start_time=self._start_time)
+        return DiscreteSignal.from_Signal(
+            signal, dt=self._dt, n_samples=self._n_samples, start_time=self._start_time
+        )
 
 
 class IQMixer(BaseTransferFunction):

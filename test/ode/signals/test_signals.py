@@ -105,7 +105,9 @@ class TestSignals(QiskitOdeTestCase):
         self.assertAllClose((signal1 * signal2).carrier_freq, Array([0.2, 0.0]))
         self.assertEqual((signal1 * const1).carrier_freq, 0.1)
         self.assertAllClose((signal1 * signal2).envelope(0.0), Array([0.0, 0.0]))
-        self.assertAllClose((signal1 * signal2).envelope(3.0), 0.5 * Array([3.0 * 18.0, 3.0 * 18.0]))
+        self.assertAllClose(
+            (signal1 * signal2).envelope(3.0), 0.5 * Array([3.0 * 18.0, 3.0 * 18.0])
+        )
         self.assertEqual((signal1 * signal2)(0.0), 0.0)
         self.assertAllClose((signal1 * signal2)(2.0), signal1(2.0) * signal2(2.0))
 
@@ -161,7 +163,7 @@ class TestSignals(QiskitOdeTestCase):
         self.assertAllClose((signal1 + signal2).carrier_freq, Array([0.1, 0.1]))
         self.assertAllClose((signal1 + const1).carrier_freq, Array([0.1, 0.0]))
         self.assertAllClose((signal1 + signal2).envelope(0.0), Array([3.0, 0.0]))
-        expected = Array([3.0, 2.0 * (3.0)**2])
+        expected = Array([3.0, 2.0 * (3.0) ** 2])
         self.assertAllClose((signal1 + signal2).envelope(3.0), expected)
         self.assertEqual((signal1 + signal2)(0.0), 3.0)
         self.assertEqual((signal1 + signal2)(2.0), 11.0 * np.cos(0.1 * 2.0 * np.pi * 2.0))
