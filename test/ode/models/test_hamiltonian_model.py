@@ -17,7 +17,7 @@ import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import HamiltonianModel
-from qiskit_ode.signals import Constant, Signal, VectorSignal
+from qiskit_ode.signals import Constant, Signal, SignalList
 from qiskit_ode.dispatch import Array
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -192,8 +192,15 @@ class TestHamiltonianModel(QiskitOdeTestCase):
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
 
-        vec_sig = VectorSignal(lambda t: coefficients, carriers, phases)
-        model = HamiltonianModel(operators, vec_sig, frame=frame_op)
+        sig_list = []
+        for coeff, freq, phase in zip(coefficients, carriers, phases):
+            def get_env_func(coeff=coeff):
+                def env(t):
+                    return coeff
+                return env
+            sig_list.append(Signal(get_env_func(), freq, phase))
+        sig_list = SignalList(sig_list)
+        model = HamiltonianModel(operators, sig_list, frame=frame_op)
 
         value = model.evaluate(1.0)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))

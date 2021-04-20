@@ -349,7 +349,7 @@ class GeneratorModel(BaseGeneratorModel):
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        sig_vals = self._signals(time)
+        sig_vals = self._signals.complex_value(time)
 
         # evaluate the linear combination in the frame basis with cutoffs,
         # then map into the frame

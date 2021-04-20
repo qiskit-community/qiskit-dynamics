@@ -658,6 +658,10 @@ class SignalList:
     def __init__(self, signal_list: List[Signal]):
         self.components = signal_list
 
+    def complex_value(self, t: Union[float, np.array, Array]) -> Array:
+        """Vectorized evaluation of complex value of components."""
+        return np.moveaxis(Array([Array(sig.complex_value(t)).data for sig in self.components]), 0, -1)
+
     def __call__(self, t: Union[float, np.array, Array]) -> Array:
         """Vectorized evaluation of all components."""
         return np.moveaxis(Array([Array(sig(t)).data for sig in self.components]), 0, -1)

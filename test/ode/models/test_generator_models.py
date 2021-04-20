@@ -19,7 +19,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import GeneratorModel
 from qiskit_ode.models.generator_models import CallableGenerator
-from qiskit_ode.signals import Constant, Signal, VectorSignal
+from qiskit_ode.signals import Constant, Signal, SignalList
 from qiskit_ode.dispatch import Array
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -197,8 +197,14 @@ class TestGeneratorModel(QiskitOdeTestCase):
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
 
-        vec_sig = VectorSignal(lambda t: coefficients, carriers, phases)
-        model = GeneratorModel(operators, vec_sig, frame=frame_op)
+        sig_list = []
+        for coeff, freq, phase in zip(coefficients, carriers, phases):
+            def get_env_func(coeff=coeff):
+                def env(t):
+                    return coeff
+                return env
+            sig_list.append(Signal(get_env_func(), freq, phase))
+        model = GeneratorModel(operators, sig_list, frame=frame_op)
 
         value = model.evaluate(1.0)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
@@ -225,10 +231,8 @@ class TestGeneratorModel(QiskitOdeTestCase):
 
     def test_signal_setting(self):
         """Test updating the signals."""
-        signals = VectorSignal(
-            lambda t: np.array([2 * t, t ** 2]), np.array([1.0, 2.0]), np.array([0.0, 0.0])
-        )
 
+        signals = [Signal(lambda t: 2 * t, 1.), Signal(lambda t: t**2, 2.)]
         self.basic_model.signals = signals
 
         t = 0.1

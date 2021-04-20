@@ -17,7 +17,7 @@ import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import HamiltonianModel, LindbladModel
-from qiskit_ode.signals import Constant, Signal, VectorSignal
+from qiskit_ode.signals import Constant, Signal, SignalList
 from qiskit_ode.dispatch import Array
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -86,7 +86,16 @@ class TestLindbladModel(QiskitOdeTestCase):
         )
         rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
         rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
-        ham_sigs = VectorSignal(lambda t: rand_ham_coeffs, rand_ham_carriers, rand_ham_phases)
+
+        ham_sigs = []
+        for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
+            def get_env_func(coeff=coeff):
+                def env(t):
+                    return coeff
+                return env
+            ham_sigs.append(Signal(get_env_func(), freq, phase))
+
+        ham_sigs = SignalList(ham_sigs)
 
         # generate random dissipators
         rand_diss = Array(
@@ -100,7 +109,16 @@ class TestLindbladModel(QiskitOdeTestCase):
         )
         rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
         rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
-        diss_sigs = VectorSignal(lambda t: rand_diss_coeffs, rand_diss_carriers, rand_diss_phases)
+
+        diss_sigs = []
+        for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
+            def get_env_func(coeff=coeff):
+                def env(t):
+                    return coeff
+                return env
+            diss_sigs.append(Signal(get_env_func(), freq, phase))
+
+        diss_sigs = SignalList(diss_sigs)
 
         # random anti-hermitian frame operator
         rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
