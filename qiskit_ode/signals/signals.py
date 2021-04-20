@@ -44,8 +44,8 @@ class Signal:
     The envelope function can be complex-valued, and the frequency and phase must be real.
 
     Note: this class assumes that the envelope function is vectorized. If it isn't, it can
-    be vectorized automatically by calling ``np.vectorize``, or, if using JAX, by
-    calling ``jax.vmap``.
+    be vectorized automatically by calling ``numpy.vectorize``, or, if using JAX, by
+    calling ``jax.numpy.vectorize``.
     """
 
     def __init__(
@@ -453,24 +453,31 @@ class SignalSum(Signal):
     def __len__(self):
         return len(self.components)
 
-    def __getitem__(self, idx: Union[int, List, Tuple, np.array, slice]) -> Signal:
+    def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
         """Enables numpy-style subscripting, as if this class were a 1d array."""
 
         if type(idx) == np.ndarray and idx.ndim > 0:
             idx = list(idx)
 
         sublist = None
-
+        # get a list of the subcomponents
         if type(idx) == list:
+            # handle lists
             sublist = operator.itemgetter(*idx)(self.components)
 
-            # in this case, it will either return a Signal or a tuple of Signals.
+            # output will either be a single signal or a tuple of Signals
+            # convert to list if tuple
             if type(sublist) == tuple:
-                return SignalSum(*sublist)
-            else:
-                return SignalSum(sublist)
+                sublist = list(sublist)
         else:
-            return operator.itemgetter(idx)(self.components)
+            # handle slices or singletons
+            sublist = operator.itemgetter(idx)(self.components)
+
+        # sublist should either be a single Signal, or a list of Signals
+        if isinstance(sublist, Signal):
+            return sublist
+        else:
+            return SignalSum(*sublist)
 
     def __str__(self):
         if self.name is not None:
@@ -613,6 +620,35 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         return default_str
 
+    def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
+        """Enables numpy-style subscripting, as if this class were a 1d array."""
+
+        samples = self.samples[idx]
+        carrier_freqs = self.carrier_freq[idx]
+        phases = self.phase[idx]
+
+        if samples.ndim == 1:
+            samples = Array([samples])
+
+        if carrier_freqs.ndim == 0:
+            carrier_freqs = Array([carrier_freqs])
+
+        if phases.ndim == 0:
+            phases = Array([phases])
+
+        if len(samples) == 1:
+            return DiscreteSignal(dt=self.dt,
+                                  samples=samples[0],
+                                  start_time=self.start_time,
+                                  carrier_freq=carrier_freqs[0],
+                                  phase=phases[0])
+
+        return DiscreteSignalSum(dt=self.dt,
+                                 samples=samples,
+                                 start_time=self.start_time,
+                                 carrier_freqs=carrier_freqs,
+                                 phases=phases)
+
 
 class SignalList:
 
@@ -634,8 +670,52 @@ class SignalList:
 
         return SignalList(flattened_list)
 
-    def __getitem__(self, idx: int) -> Signal:
-        return self.components[idx]
+    @property
+    def drift(self) -> Array:
+        """Return the 'drift' Array, i.e. the constant part of the ``SignalList``."""
+
+        drift_array = []
+
+        for sig_entry in self.components:
+            val = 0.0
+
+            if not isinstance(sig_entry, SignalSum):
+                sig_entry = SignalSum(sig_entry)
+
+            for term in sig_entry:
+                if isinstance(term, Constant):
+                    val += term(0.0)
+
+            drift_array.append(val)
+
+        return Array(drift_array)
+
+    def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
+        """Enables numpy-style subscripting, as if this class were a 1d array."""
+
+        if type(idx) == np.ndarray and idx.ndim > 0:
+            idx = list(idx)
+
+        sublist = None
+
+        # get a list of the subcomponents
+        if type(idx) == list:
+            # handle lists
+            sublist = operator.itemgetter(*idx)(self.components)
+
+            # output will either be a single signal or a tuple of Signals
+            # convert to list if tuple
+            if type(sublist) == tuple:
+                sublist = list(sublist)
+        else:
+            # handle slices or singletons
+            sublist = operator.itemgetter(idx)(self.components)
+
+        # sublist should either be a single Signal, or a list of Signals
+        if isinstance(sublist, Signal):
+            return sublist
+        else:
+            return SignalList(*sublist)
 
     def __len__(self):
         return len(self.components)
