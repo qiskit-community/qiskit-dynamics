@@ -206,7 +206,7 @@ class TestSignalsJax(QiskitOdeTestCase, TestJaxBase):
 
         test_sig = DiscreteSignal(dt=1.0, samples=Array([1.0, 2.0, 3.0]))
 
-        jit_eval = jit(lambda t: test_sig.value(t).data)
+        jit_eval = jit(lambda t: test_sig(t).data)
 
         val1 = jit_eval(0.5)
         expected = 1.0
@@ -221,7 +221,7 @@ class TestSignalsJax(QiskitOdeTestCase, TestJaxBase):
 
         def test_func(val):
             sig = DiscreteSignal(dt=1.0, samples=val * Array([1.0, 2.0, 3.0]))
-            return np.real(sig.value(1.5)).data
+            return np.real(sig(1.5)).data
 
         grad_func = grad(test_func)
 

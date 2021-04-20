@@ -350,7 +350,7 @@ class DiscreteSignal(Signal):
         the ``DiscreteSignal```, this will return the start value (resp. end value).
         """
         idx = np.clip(Array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1)
-        return self._samples[idx]
+        return self._samples[idx.data]
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Return the value of the signal at time t."""
