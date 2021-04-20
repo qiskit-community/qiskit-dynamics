@@ -298,7 +298,6 @@ class DiscreteSignal(Signal):
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
-
         freq = signal.carrier_freq
         samples = None
 
