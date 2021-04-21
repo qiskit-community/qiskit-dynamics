@@ -556,7 +556,7 @@ class SignalSum(Signal):
 
 
 class DiscreteSignalSum(DiscreteSignal, SignalSum):
-    """Represents a sum of piecewise constant signals, all with the same
+    """Represents a sum of discretized signals, all with the same
     time parameters: dt, number of samples, and start time.
     """
 
