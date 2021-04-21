@@ -75,12 +75,6 @@ class Signal:
         if callable(envelope):
             self._envelope = envelope
 
-        # initialize internally stored carrier/phase information
-        self._carrier_freq = None
-        self._phase = None
-        self._carrier_arg = None
-        self._phase_arg = None
-
         # set carrier and phase
         self.carrier_freq = carrier_freq
         self.phase = phase
@@ -96,8 +90,9 @@ class Signal:
         return self._carrier_freq
 
     @carrier_freq.setter
-    def carrier_freq(self, carrier_freq: float):
-        """Carrier frequency setter."""
+    def carrier_freq(self, carrier_freq: Union[float, list, Array]):
+        """Carrier frequency setter. List handling is to support subclasses storing a
+        list of frequencies."""
         if type(carrier_freq) == list:
             carrier_freq = [Array(entry).data for entry in carrier_freq]
         self._carrier_freq = Array(carrier_freq)
@@ -109,8 +104,9 @@ class Signal:
         return self._phase
 
     @phase.setter
-    def phase(self, phase: float):
-        """Phase setter."""
+    def phase(self, phase: Union[float, list, Array]):
+        """Phase setter. List handling is to support subclasses storing a
+        list of phases."""
         if type(phase) == list:
             phase = [Array(entry).data for entry in phase]
         self._phase = Array(phase)
@@ -298,16 +294,29 @@ class DiscreteSignal(Signal):
         start_time: Optional[float] = 0.0,
         sample_carrier: Optional[bool] = False,
     ):
-        """
-        Constructs a ``DiscreteSignal`` signal object by sampling a ``Signal``.
+        """Constructs a ``DiscreteSignal`` object by sampling a ``Signal``.
+
+        The optional argument ``sample_carrier`` controls whether or not to include the carrier
+        in the sampling. I.e.:
+
+            - If ``sample_carrier == False``, a ``DiscreteSignal`` is constructed with:
+                - ``samples`` obtained by sampling ``signal.envelope``.
+                - ``carrier_freq = signal.carrier_freq``.
+                - ``phase = signal.phase``.
+
+            - If ``sample_carrier == True``, a ``DiscreteSignal`` is constructed with:
+                - ``samples`` obtained by sampling ``signal`` (as a ``callable``)
+                - ``carrier_freq = 0``.
+                - ``phase = signal.phase``.
+
+        In either case, samples are obtained from the midpoint of each interval.
 
         Args:
             signal: Signal to sample.
             dt: Time increment to use.
             n_samples: Number of steps to resample with.
             start_time: Start time from which to resample.
-            sample_carrier: Whether or not to keep the carrier analog or include it in the
-                            sampling.
+            sample_carrier: Whether or not to include the carrier in the sampling.
 
         Returns:
             DiscreteSignal: The discretized ``Signal``.
@@ -418,22 +427,37 @@ class DiscreteSignal(Signal):
 
 
 class SignalSum(Signal):
-    """Class representing a sum of ``Signal`` objects."""
+    r"""Represents a sum of ``Signal`` objects:
 
-    def __init__(self, *args, name: Optional[str] = None):
+    .. math::
+        s_1(t) + \dots + s_k(t)
+
+    For basic evaluation, this class behaves in the same manner as ``Signal``:
+    - ``__call__`` evaluates the sum.
+    - ``complex_value`` evaluates the sum of the complex values of the individual summands.
+
+    Attributes ``carrier_freq`` and ``phase`` here correspond to an ``Array`` of
+    frequencies/phases for each term in the sum, and the ``envelope`` method returns an
+    ``Array`` of the envelopes for each summand.
+
+    Internally, the signals are stored as a list in the ``components`` attribute, which can
+    be accessed via direct subscripting of the object.
+    """
+
+    def __init__(self, *signals, name: Optional[str] = None):
         """Initialize with a list of Signal objects through ``args``.
 
         Args:
-            args: ``Signal`` subclass objects.
+            signals: ``Signal`` subclass objects.
             name: Name of the sum.
 
         Raises:
-            QiskitError: If ``args`` are not subclasses of ``Signal``.
+            QiskitError: If ``signals`` are not subclasses of ``Signal``.
         """
         self._name = name
 
         self.components = []
-        for sig in args:
+        for sig in signals:
             if isinstance(sig, SignalSum):
                 self.components += sig.components
             elif isinstance(sig, Signal):
@@ -444,12 +468,6 @@ class SignalSum(Signal):
                 )
 
         self._envelopes = [sig.envelope for sig in self.components]
-
-        # initialize internally stored carrier/phase information
-        self._carrier_freq = None
-        self._phase = None
-        self._carrier_arg = None
-        self._phase_arg = None
 
         carrier_freqs = []
         for sig in self.components:
@@ -464,16 +482,14 @@ class SignalSum(Signal):
         self.phase = phases
 
     def envelope(self, t: Union[float, np.array, Array]) -> Array:
-        """Evaluate envelopes of each component. For vectorized operation,
-        last axis indexes the envelope, and all proceeding axes are the
-        same as the ``t`` arg.
-        """
+        """Return an array of the envelope values of each component."""
         # to do: jax version
         # not sure what the right way to do this is, here we actually need
         # to get it to use np/jnp
         return np.moveaxis(Array([env(t) for env in self._envelopes]), 0, -1)
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Array:
+        """Return the sum of the complex values of each component."""
         exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
@@ -582,13 +598,6 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             )
 
         self.components = components
-
-        # initialize internally stored carrier/phase information
-        self._carrier_freq = None
-        self._phase = None
-        self._carrier_arg = None
-        self._phase_arg = None
-
         self.carrier_freq = carrier_freqs
         self.phase = phases
 
@@ -601,18 +610,32 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         start_time: Optional[float] = 0.0,
         sample_carrier: Optional[bool] = False,
     ):
-        """Constructs a ``DiscreteSignalSum`` signal object by sampling a ``SignalSum``.
+        """Constructs a ``DiscreteSignalSum`` object by sampling a ``SignalSum``.
+
+        The optional argument ``sample_carrier`` controls whether or not to include the carrier
+        in the sampling. I.e.:
+
+            - If ``sample_carrier == False``, a ``DiscreteSignalSum`` is constructed with:
+                - ``samples`` obtained by sampling ``signal_sum.envelope``.
+                - ``carrier_freq = signal_sum.carrier_freq``.
+                - ``phase = signal_sum.phase``.
+
+            - If ``sample_carrier == True``, a ``DiscreteSignal`` is constructed with:
+                - ``samples`` obtained by sampling ``signal_sum`` (as a ``callable``)
+                - ``carrier_freq = 0``.
+                - ``phase = signal_sum.phase``.
+
+        In either case, samples are obtained from the midpoint of each interval.
 
         Args:
-            signal_sum: SignalSum to sample.
+            signal: Signal to sample.
             dt: Time increment to use.
             n_samples: Number of steps to resample with.
             start_time: Start time from which to resample.
-            sample_carrier: Whether or not to keep the carrier analog or include it in the
-                            sampling.
+            sample_carrier: Whether or not to include the carrier in the sampling.
 
         Returns:
-            DiscreteSignalSum: Discretized signal.
+            DiscreteSignalSum: The discretized ``SignalSum``.
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
