@@ -570,8 +570,20 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         phases: float = None,
         name: str = None,
     ):
-        """Samples array has 0th axis corresponding to a signal, 1st axis corresponding to samples
-        for each signal."""
+        """Directly initialize a ``DiscreteSignalSum``. Samples of all terms in the
+        sum are specified as a 2d array, representing a list of the samples for
+        each term in the sum.
+
+        Args:
+            dt: The duration of each sample.
+            samples: The 2d array representing a list whose elements are the sample lists
+                     of each term in the sum.
+            start_time: The time at which the signal starts.
+            duration: The duration of the signal in samples.
+            carrier_freqs: Array with the carrier frequencies of each term in the sum.
+            phases: Array with the phases of each term in the sum.
+            name: name of the signal.
+        """
         self._name = name
         self._dt = dt
         self._samples = Array(samples)
@@ -628,7 +640,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         In either case, samples are obtained from the midpoint of each interval.
 
         Args:
-            signal: Signal to sample.
+            signal_sum: SignalSum to sample.
             dt: Time increment to use.
             n_samples: Number of steps to resample with.
             start_time: Start time from which to resample.
@@ -706,9 +718,17 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
 
 class SignalList:
-    """A list of ``Signal``s, with functionality for simultaneous evaluation."""
+    """A list of ``Signal``s, with functionality for simultaneous evaluation.
+
+    The passed list is stored in the ``components`` attribute.
+    """
 
     def __init__(self, signal_list: List[Signal]):
+        """Initialize with a list of ``Signal`` subclasses.
+
+        Args:
+            signal_list: a list of ``Signal``s.
+        """
         self.components = signal_list
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Array:
@@ -734,7 +754,9 @@ class SignalList:
 
     @property
     def drift(self) -> Array:
-        """Return the 'drift' Array, i.e. the constant part of the ``SignalList``."""
+        """Return the 'drift' ``Array``, i.e. return an ``Array`` whose entries are the sum
+        of the ``Constant`` parts of the corresponding component of this ``SignalList``.
+        """
 
         drift_array = []
 
@@ -791,8 +813,8 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     try:
         wrapped_sig1 = to_SignalSum(sig1)
         wrapped_sig2 = to_SignalSum(sig2)
-    except QiskitError as e:
-        raise QiskitError("Only a number or a Signal instance can be added to a Signal.") from e
+    except QiskitError as qe:
+        raise QiskitError("Only a number or a Signal instance can be added to a Signal.") from qe
 
     sig_sum = SignalSum(*(wrapped_sig1.components + wrapped_sig2.components))
 
@@ -828,8 +850,8 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     try:
         wrapped_sig1 = to_SignalSum(sig1)
         wrapped_sig2 = to_SignalSum(sig2)
-    except QiskitError as e:
-        raise QiskitError("Only a number or a Signal instance can multiply a Signal.") from e
+    except QiskitError as qe:
+        raise QiskitError("Only a number or a Signal instance can multiply a Signal.") from qe
 
     # initialize to empty sum
     product = SignalSum()
@@ -867,6 +889,11 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
         the samples.
         - Lastly, if no special rules apply, the two ``Signal``s are multiplied generically via
         multiplication of the envelopes as functions.
+
+    When a sum with two signals is produced, the carrier frequency (phase) of each component are,
+    respectively, the sum and difference of the two frequencies (phases). For special cases
+    involving a ``Constant``s and a non-``Constant`` signal, the carrier frequency and phase
+    are preserved as that of the non-constant piece.
 
     Args:
         sig1: First signal.
