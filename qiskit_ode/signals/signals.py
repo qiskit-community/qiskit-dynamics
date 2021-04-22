@@ -426,7 +426,51 @@ class DiscreteSignal(Signal):
         )
 
 
-class SignalSum(Signal):
+class SignalCollection:
+    """Base class for a list-like collection of signals."""
+
+    def __init__(self, signal_list: List[Signal]):
+        self._components = signal_list
+
+    @property
+    def components(self) -> List[Signal]:
+        """The list of components."""
+        return self._components
+
+    def __len__(self):
+        """Number of components."""
+        return len(self.components)
+
+    def __getitem__(
+        self, idx: Union[int, List, np.array, slice]
+    ) -> Union[Signal, "SignalCollection"]:
+        """Get item with Numpy-style subscripting, as if this class were a 1d array."""
+
+        if type(idx) == np.ndarray and idx.ndim > 0:
+            idx = list(idx)
+
+        sublist = None
+        # get a list of the subcomponents
+        if type(idx) == list:
+            # handle lists
+            sublist = operator.itemgetter(*idx)(self.components)
+
+            # output will either be a single signal or a tuple of Signals
+            # convert to list if tuple
+            if type(sublist) == tuple:
+                sublist = list(sublist)
+        else:
+            # handle slices or singletons
+            sublist = operator.itemgetter(idx)(self.components)
+
+        # sublist should either be a single Signal, or a list of Signals
+        if isinstance(sublist, list):
+            return self.__class__(sublist)
+        else:
+            return sublist
+
+
+class SignalSum(SignalCollection, Signal):
     r"""Represents a sum of ``Signal`` objects:
 
     .. math::
@@ -456,16 +500,21 @@ class SignalSum(Signal):
         """
         self._name = name
 
-        self.components = []
+        components = []
         for sig in signals:
+            if isinstance(sig, list):
+                sig = SignalSum(*sig)
+
             if isinstance(sig, SignalSum):
-                self.components += sig.components
+                components += sig.components
             elif isinstance(sig, Signal):
-                self.components.append(sig)
+                components.append(sig)
             else:
                 raise QiskitError(
                     "Components of a SignalSum must be instances of a Signal subclass."
                 )
+
+        super().__init__(components)
 
         self._envelopes = [sig.envelope for sig in self.components]
 
@@ -492,35 +541,6 @@ class SignalSum(Signal):
         """Return the sum of the complex values of each component."""
         exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
-
-    def __len__(self):
-        return len(self.components)
-
-    def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
-        """Enables numpy-style subscripting, as if this class were a 1d array."""
-
-        if type(idx) == np.ndarray and idx.ndim > 0:
-            idx = list(idx)
-
-        sublist = None
-        # get a list of the subcomponents
-        if type(idx) == list:
-            # handle lists
-            sublist = operator.itemgetter(*idx)(self.components)
-
-            # output will either be a single signal or a tuple of Signals
-            # convert to list if tuple
-            if type(sublist) == tuple:
-                sublist = list(sublist)
-        else:
-            # handle slices or singletons
-            sublist = operator.itemgetter(idx)(self.components)
-
-        # sublist should either be a single Signal, or a list of Signals
-        if isinstance(sublist, Signal):
-            return sublist
-        else:
-            return SignalSum(*sublist)
 
     def __str__(self):
         if self.name is not None:
@@ -609,7 +629,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
                 )
             )
 
-        self.components = components
+        self._components = components
         self.carrier_freq = carrier_freqs
         self.phase = phases
 
@@ -717,19 +737,11 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         )
 
 
-class SignalList:
+class SignalList(SignalCollection):
     """A list of ``Signal``s, with functionality for simultaneous evaluation.
 
     The passed list is stored in the ``components`` attribute.
     """
-
-    def __init__(self, signal_list: List[Signal]):
-        """Initialize with a list of ``Signal`` subclasses.
-
-        Args:
-            signal_list: a list of ``Signal``s.
-        """
-        self.components = signal_list
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Array:
         """Vectorized evaluation of complex value of components."""
@@ -773,36 +785,6 @@ class SignalList:
             drift_array.append(val)
 
         return Array(drift_array)
-
-    def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
-        """Enables numpy-style subscripting, as if this class were a 1d array."""
-
-        if type(idx) == np.ndarray and idx.ndim > 0:
-            idx = list(idx)
-
-        sublist = None
-
-        # get a list of the subcomponents
-        if type(idx) == list:
-            # handle lists
-            sublist = operator.itemgetter(*idx)(self.components)
-
-            # output will either be a single signal or a tuple of Signals
-            # convert to list if tuple
-            if type(sublist) == tuple:
-                sublist = list(sublist)
-        else:
-            # handle slices or singletons
-            sublist = operator.itemgetter(idx)(self.components)
-
-        # sublist should either be a single Signal, or a list of Signals
-        if isinstance(sublist, Signal):
-            return sublist
-        else:
-            return SignalList(*sublist)
-
-    def __len__(self):
-        return len(self.components)
 
 
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
