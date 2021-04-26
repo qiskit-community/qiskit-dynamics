@@ -216,7 +216,7 @@ class Signal:
         legend = False
         if data_type == "complex":
             plotter.plot(t_vals, np.real(y_vals), label='Real')
-            plotter.plot(t_vals, np.imag(y_vals), label='Complex')
+            plotter.plot(t_vals, np.imag(y_vals), label='Imag')
             legend = True
         else:
             plotter.plot(t_vals, y_vals)
