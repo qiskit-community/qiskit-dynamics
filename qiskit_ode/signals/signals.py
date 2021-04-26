@@ -176,6 +176,7 @@ class Signal:
         n: int,
         function: Optional[str] = "signal",
         axis: Optional[plt.axis] = None,
+        title: Optional[str] = None
     ):
         """Plot the signal over an interval. The `function` arg specifies which function to
         plot:
@@ -189,7 +190,12 @@ class Signal:
             n: Number of points to sample in interval.
             function: Which function to plot.
             axis: The axis to use for plotting.
+            title: Title of plot.
         """
+
+        plotter = plt
+        if axis:
+            plotter = axis
 
         t_vals = np.linspace(t0, tf, n)
 
@@ -197,25 +203,27 @@ class Signal:
         data_type = "real"
         if function == "signal":
             y_vals = self(t_vals)
+            title = title or 'Value of ' + str(self)
         elif function == "envelope":
             y_vals = self.envelope(t_vals)
             data_type = "complex"
+            title = title or 'Envelope of ' + str(self)
         elif function == "complex_value":
             y_vals = self.complex_value(t_vals)
             data_type = "complex"
+            title = title or 'Complex value of ' + str(self)
 
+        legend = False
         if data_type == "complex":
-            if axis:
-                axis.plot(t_vals, np.real(y_vals))
-                axis.plot(t_vals, np.imag(y_vals))
-            else:
-                plt.plot(t_vals, np.real(y_vals))
-                plt.plot(t_vals, np.imag(y_vals))
+            plotter.plot(t_vals, np.real(y_vals), label='Real')
+            plotter.plot(t_vals, np.imag(y_vals), label='Complex')
+            legend = True
         else:
-            if axis:
-                axis.plot(t_vals, y_vals)
-            else:
-                plt.plot(t_vals, y_vals)
+            plotter.plot(t_vals, y_vals)
+
+        plotter.title(title)
+        if legend:
+            plotter.legend()
 
 
 class Constant(Signal):
