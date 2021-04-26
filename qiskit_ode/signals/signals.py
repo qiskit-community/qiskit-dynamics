@@ -162,12 +162,12 @@ class Signal:
         return other + (-self)
 
     def conjugate(self):
-        """Return a new signal obtained via complex conjugation of the envelope and phase."""
+        """Return a new signal whose complex value is the complex conjugate of this one."""
 
         def conj_env(t):
             return np.conjugate(self.envelope(t))
 
-        return Signal(conj_env, self.carrier_freq, -self.phase)
+        return Signal(conj_env, -self.carrier_freq, -self.phase)
 
     def draw(
         self,
@@ -409,7 +409,7 @@ class DiscreteSignal(Signal):
             samples=np.conjugate(self._samples),
             start_time=self._start_time,
             duration=self.duration,
-            carrier_freq=self.carrier_freq,
+            carrier_freq=-self.carrier_freq,
             phase=-self.phase,
         )
 
