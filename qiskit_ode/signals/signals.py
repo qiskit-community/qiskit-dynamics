@@ -24,7 +24,13 @@ import operator
 import numpy as np
 from matplotlib import pyplot as plt
 
+try:
+    import jax.numpy as jnp
+except ImportError:
+    pass
+
 from qiskit import QiskitError
+from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array
 
 
@@ -121,7 +127,7 @@ class Signal:
         arg = self._carrier_arg * t + self._phase_arg
         return self.envelope(t) * np.exp(arg)
 
-    def __call__(self, t: Union[float, np.array, Array]) -> Array:
+    def __call__(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Vectorized evaluation of the signal at time t."""
         return np.real(self.complex_value(t))
 
@@ -358,7 +364,7 @@ class DiscreteSignal(Signal):
         Returns:
             samples: the samples of the piecewise constant signal.
         """
-        return Array(self._samples)
+        return self._samples
 
     @property
     def start_time(self) -> float:
@@ -372,10 +378,17 @@ class DiscreteSignal(Signal):
         """Envelope. If ``t`` is before (resp. after) the start (resp. end) of the definition of
         the ``DiscreteSignal```, this will return the start value (resp. end value).
         """
-        idx = np.clip(
-            Array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1
-        )
-        return self._samples[idx.data]
+        if self._samples.backend == "jax":
+            t = Array(t).data
+            idx = jnp.clip(
+                jnp.array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1
+            )
+            return Array(self._samples[idx])
+        else:
+            idx = np.clip(
+                np.array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1
+            )
+            return self._samples[idx]
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Return the value of the signal at time t."""
@@ -430,6 +443,11 @@ class SignalCollection:
     """Base class for a list-like collection of signals."""
 
     def __init__(self, signal_list: List[Signal]):
+        """Initialize by storing list of signals.
+
+        Args:
+            signal_list: List of signals.
+        """
         self._components = signal_list
 
     @property
@@ -463,7 +481,7 @@ class SignalCollection:
             # handle slices or singletons
             sublist = operator.itemgetter(idx)(self.components)
 
-        # sublist should either be a single Signal, or a list of Signals
+        # at this point sublist should either be a single Signal, or a list of Signals
         if isinstance(sublist, list):
             return self.__class__(sublist)
         else:
@@ -516,7 +534,13 @@ class SignalSum(SignalCollection, Signal):
 
         super().__init__(components)
 
-        self._envelopes = [sig.envelope for sig in self.components]
+        # set up routine for evaluating envelopes if jax
+        if dispatch.default_backend() == "jax":
+            self._eval_envelopes = array_funclist_evaluate(
+                [sig.envelope for sig in self.components]
+            )
+        else:
+            self._eval_envelopes = lambda t: [sig.envelope(t) for sig in self.components]
 
         carrier_freqs = []
         for sig in self.components:
@@ -530,16 +554,15 @@ class SignalSum(SignalCollection, Signal):
         self.carrier_freq = carrier_freqs
         self.phase = phases
 
-    def envelope(self, t: Union[float, np.array, Array]) -> Array:
+    def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Return an array of the envelope values of each component."""
-        # to do: jax version
-        # not sure what the right way to do this is, here we actually need
-        # to get it to use np/jnp
-        return np.moveaxis(Array([env(t) for env in self._envelopes]), 0, -1)
+        return np.moveaxis(self._eval_envelopes(t), 0, -1)
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Array:
+    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Return the sum of the complex values of each component."""
-        exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
+        if dispatch.default_backend() == "jax":
+            t = Array(t)
+        exp_phases = np.exp(np.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
     def __str__(self):
@@ -686,8 +709,10 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             dt, samples, start_time=start_time, carrier_freqs=freq, phases=signal_sum.phase
         )
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Array:
-        exp_phases = np.exp(np.expand_dims(Array(t), -1) * self._carrier_arg + self._phase_arg)
+    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+        if dispatch.default_backend() == "jax":
+            t = Array(t)
+        exp_phases = np.exp(np.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
     def __str__(self):
@@ -743,15 +768,27 @@ class SignalList(SignalCollection):
     The passed list is stored in the ``components`` attribute.
     """
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Array:
-        """Vectorized evaluation of complex value of components."""
-        return np.moveaxis(
-            Array([Array(sig.complex_value(t)).data for sig in self.components]), 0, -1
-        )
+    def __init__(self, signal_list: List[Signal]):
 
-    def __call__(self, t: Union[float, np.array, Array]) -> Array:
+        super().__init__(signal_list)
+
+        # setup complex value and full signal evaluation
+        if dispatch.default_backend() == "jax":
+            self._eval_complex_value = array_funclist_evaluate(
+                [sig.complex_value for sig in self.components]
+            )
+            self._eval_signals = array_funclist_evaluate(self.components)
+        else:
+            self._eval_complex_value = lambda t: [sig.complex_value(t) for sig in self.components]
+            self._eval_signals = lambda t: [sig(t) for sig in self.components]
+
+    def complex_value(self, t: Union[float, np.array, Array]) -> Union[np.array, Array]:
+        """Vectorized evaluation of complex value of components."""
+        return np.moveaxis(self._eval_complex_value(t), 0, -1)
+
+    def __call__(self, t: Union[float, np.array, Array]) -> Union[np.array, Array]:
         """Vectorized evaluation of all components."""
-        return np.moveaxis(Array([Array(sig(t)).data for sig in self.components]), 0, -1)
+        return np.moveaxis(self._eval_signals(t), 0, -1)
 
     def flatten(self) -> "SignalList":
         """Return a ``SignalList`` with each component flattened."""
@@ -1006,3 +1043,14 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
         raise QiskitError("Input type incompatible with SignalSum.")
 
     return sig
+
+
+def array_funclist_evaluate(func_list: List[Callable]) -> Callable:
+    """Utility for evaluating a list of functions in a way that respects Arrays.
+    Currently relevant for JAX evaluation.
+    """
+
+    def eval_func(t):
+        return Array([Array(func(t)).data for func in func_list])
+
+    return eval_func
