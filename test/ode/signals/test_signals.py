@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2019, 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -27,6 +27,95 @@ try:
     from jax import jit, grad
 except ImportError:
     pass
+
+
+class TestSignal(QiskitOdeTestCase):
+    """Tests for Signal object."""
+
+    def setUp(self):
+        self.signal1 = Signal(lambda t: 0.25, carrier_freq=0.3)
+        self.signal2 = Signal(lambda t: 2.0 * (t ** 2), carrier_freq=0.1)
+        self.signal3 = Signal(lambda t: 2.0 * (t ** 2) + 1j * t, carrier_freq=0.1, phase=-0.1)
+
+    def test_envelope(self):
+        """Test envelope evaluation."""
+        self.assertEqual(self.signal1.envelope(0.0), 0.25)
+        self.assertEqual(self.signal1.envelope(1.23), 0.25)
+
+        self.assertEqual(self.signal2.envelope(1.1), 2 * (1.1**2))
+        self.assertEqual(self.signal2.envelope(1.23), 2 * (1.23**2))
+
+        self.assertEqual(self.signal3.envelope(1.1), 2 * (1.1**2) + 1j * 1.1)
+        self.assertEqual(self.signal3.envelope(1.23), 2 * (1.23**2) + 1j * 1.23)
+
+    def test_envelope_vectorized(self):
+        """Test vectorized evaluation of envelope."""
+        t_vals = np.array([1.1, 1.23])
+        self.assertAllClose(self.signal1.envelope(t_vals), np.array([0.25, 0.25]))
+        self.assertAllClose(self.signal2.envelope(t_vals), np.array([2 * (1.1**2), 2 * (1.23**2)]))
+        self.assertAllClose(self.signal3.envelope(t_vals), np.array([2 * (1.1**2) + 1j * 1.1, 2 * (1.23**2) + 1j * 1.23]))
+
+        t_vals = np.array([[1.1, 1.23],
+                           [0.1, 0.24]])
+        self.assertAllClose(self.signal1.envelope(t_vals), np.array([[0.25, 0.25], [0.25, 0.25]]))
+        self.assertAllClose(self.signal2.envelope(t_vals), np.array([[2 * (1.1**2), 2 * (1.23**2)],
+                                                                     [2 * (0.1**2), 2 * (0.24**2)]]))
+        self.assertAllClose(self.signal3.envelope(t_vals), np.array([[2 * (1.1**2) + 1j * 1.1, 2 * (1.23**2) + 1j * 1.23],
+                                                                     [2 * (0.1**2) + 1j * 0.1, 2 * (0.24**2) + 1j * 0.24]]))
+
+    def test_complex_value(self):
+        """Test complex_value evaluation."""
+        self.assertEqual(self.signal1.complex_value(0.0), 0.25 * np.exp(1j * 2 * np.pi * 0.3 * 0))
+        self.assertEqual(self.signal1.complex_value(1.23), 0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23))
+
+        self.assertEqual(self.signal2.complex_value(1.1), 2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1))
+        self.assertEqual(self.signal2.complex_value(1.23), 2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23))
+
+        self.assertEqual(self.signal3.complex_value(1.1), (2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)))
+        self.assertEqual(self.signal3.complex_value(1.23), (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)))
+
+    def test_complex_value_vectorized(self):
+        """Test vectorized complex_value evaluation."""
+        t_vals = np.array([1.1, 1.23])
+        self.assertAllClose(self.signal1.complex_value(t_vals), np.array([0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.1), 0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23)]))
+        self.assertAllClose(self.signal2.complex_value(t_vals), np.array([2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1), 2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23)]))
+        self.assertAllClose(self.signal3.complex_value(t_vals), np.array([(2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)), (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1))]))
+
+        t_vals = np.array([[1.1, 1.23],
+                           [0.1, 0.24]])
+        self.assertAllClose(self.signal1.complex_value(t_vals), np.array([[0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.1), 0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23)],
+                                                                          [0.25 * np.exp(1j * 2 * np.pi * 0.3 * 0.1), 0.25 * np.exp(1j * 2 * np.pi * 0.3 * 0.24)]]))
+        self.assertAllClose(self.signal2.complex_value(t_vals), np.array([[2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1), 2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23)],
+                                                                          [2 * (0.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 0.1), 2 * (0.24**2) * np.exp(1j * 2 * np.pi * 0.1 * 0.24)]]))
+        self.assertAllClose(self.signal3.complex_value(t_vals), np.array([[(2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)), (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1))],
+                                                                          [(2 * (0.1**2) + 1j * 0.1) * np.exp(1j * 2 * np.pi * 0.1 * 0.1 + 1j * (-0.1)), (2 * (0.24**2) + 1j * 0.24) * np.exp(1j * 2 * np.pi * 0.1 * 0.24 + 1j * (-0.1))]]))
+
+    def test_call(self):
+        """Test __call__."""
+        self.assertEqual(self.signal1(0.0), np.real(0.25 * np.exp(1j * 2 * np.pi * 0.3 * 0)))
+        self.assertEqual(self.signal1(1.23), np.real(0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23)))
+
+        self.assertEqual(self.signal2(1.1), np.real(2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1)))
+        self.assertEqual(self.signal2(1.23), np.real(2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23)))
+
+        self.assertEqual(self.signal3(1.1), np.real((2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1))))
+        self.assertEqual(self.signal3(1.23), np.real((2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1))))
+
+    def test_call_vectorized(self):
+        """Test vectorized __call__."""
+        t_vals = np.array([1.1, 1.23])
+        self.assertAllClose(self.signal1(t_vals), np.array([0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.1), 0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23)]).real)
+        self.assertAllClose(self.signal2(t_vals), np.array([2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1), 2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23)]).real)
+        self.assertAllClose(self.signal3(t_vals), np.array([(2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)), (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1))]).real)
+
+        t_vals = np.array([[1.1, 1.23],
+                           [0.1, 0.24]])
+        self.assertAllClose(self.signal1(t_vals), np.array([[0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.1), 0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23)],
+                                                                          [0.25 * np.exp(1j * 2 * np.pi * 0.3 * 0.1), 0.25 * np.exp(1j * 2 * np.pi * 0.3 * 0.24)]]).real)
+        self.assertAllClose(self.signal2(t_vals), np.array([[2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1), 2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23)],
+                                                                          [2 * (0.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 0.1), 2 * (0.24**2) * np.exp(1j * 2 * np.pi * 0.1 * 0.24)]]).real)
+        self.assertAllClose(self.signal3(t_vals), np.array([[(2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)), (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1))],
+                                                                          [(2 * (0.1**2) + 1j * 0.1) * np.exp(1j * 2 * np.pi * 0.1 * 0.1 + 1j * (-0.1)), (2 * (0.24**2) + 1j * 0.24) * np.exp(1j * 2 * np.pi * 0.1 * 0.24 + 1j * (-0.1))]]).real)
 
 
 class TestSignals(QiskitOdeTestCase):
