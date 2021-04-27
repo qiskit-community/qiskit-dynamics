@@ -82,7 +82,10 @@ class Signal:
                 self._envelope = lambda t: envelope * np.ones_like(t)
 
         if callable(envelope):
-            self._envelope = envelope
+            if dispatch.default_backend() == 'jax':
+                self._envelope = lambda t: Array(envelope(t))
+            else:
+                self._envelope = envelope
 
         # set carrier and phase
         self.carrier_freq = carrier_freq
@@ -245,7 +248,10 @@ class Constant(Signal):
         self.carrier_freq = 0.0
 
     def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        return self._value * np.ones(np.shape(t), dtype=complex)
+        if self._value.backend == 'jax':
+            return self._value * jnp.ones_like(t)
+        else:
+            return self._value * np.ones_like(t)
 
     def conjugate(self):
         return Constant(self._value)
