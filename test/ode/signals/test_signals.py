@@ -17,8 +17,8 @@ Tests for signals.
 
 import numpy as np
 
-from qiskit_ode.signals import Constant, DiscreteSignal, Signal
-from qiskit_ode.signals.signals import SignalSum
+from qiskit_ode.signals import Signal, Constant, DiscreteSignal
+from qiskit_ode.signals.signals import SignalSum, DiscreteSignalSum
 from qiskit_ode.dispatch import Array
 
 from ..common import QiskitOdeTestCase, TestJaxBase
@@ -279,6 +279,95 @@ class TestDiscreteSignal(QiskitOdeTestCase):
         self.assertEqual(discrete_conj.carrier_freq, -self.discrete2.carrier_freq)
         self.assertEqual(discrete_conj.phase, -self.discrete2.phase)
         self.assertEqual(discrete_conj.dt, self.discrete2.dt)
+
+
+class TestSignalSum(QiskitOdeTestCase):
+    """Test evaluation functions for ``SignalSum``."""
+
+    def setUp(self):
+        self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
+        self.signal2 = Signal(lambda t: 2.0 * (t ** 2), carrier_freq=0.1)
+        self.signal3 = Signal(lambda t: 2.0 * (t ** 2) + 1j * t, carrier_freq=0.1, phase=-0.1)
+
+        self.sig_sum1 = self.signal1 + self.signal2
+        self.sig_sum2 = self.signal2 - self.signal3
+
+    def test_envelope(self):
+        """Test envelope evaluation."""
+        t = 0.0
+        self.assertAllClose(self.sig_sum1.envelope(t), [self.signal1.envelope(t), self.signal2.envelope(t)])
+        self.assertAllClose(self.sig_sum2.envelope(t), [self.signal2.envelope(t), -self.signal3.envelope(t)])
+        t = 1.23
+        self.assertAllClose(self.sig_sum1.envelope(t), [self.signal1.envelope(t), self.signal2.envelope(t)])
+        self.assertAllClose(self.sig_sum2.envelope(t), [self.signal2.envelope(t), -self.signal3.envelope(t)])
+
+    def test_envelope_vectorized(self):
+        """Test vectorized envelope evaluation."""
+        t_vals = np.array([0.0, 1.23])
+        self.assertAllClose(self.sig_sum1.envelope(t_vals), [[self.signal1.envelope(t), self.signal2.envelope(t)] for t in t_vals])
+        self.assertAllClose(self.sig_sum2.envelope(t_vals), [[self.signal2.envelope(t), -self.signal3.envelope(t)] for t in t_vals])
+        t_vals = np.array([[0.0, 1.23], [0.1, 2.]])
+        self.assertAllClose(self.sig_sum1.envelope(t_vals), [[[self.signal1.envelope(t), self.signal2.envelope(t)] for t in t_row] for t_row in t_vals])
+        self.assertAllClose(self.sig_sum2.envelope(t_vals), [[[self.signal2.envelope(t), -self.signal3.envelope(t)] for t in t_row] for t_row in t_vals])
+
+    def test_complex_value(self):
+        """Test complex_value evaluation."""
+        t = 0.0
+        self.assertAllClose(self.sig_sum1.complex_value(t), self.signal1.complex_value(t) + self.signal2.complex_value(t))
+        self.assertAllClose(self.sig_sum2.complex_value(t), self.signal2.complex_value(t) - self.signal3.complex_value(t))
+        t = 1.23
+        self.assertAllClose(self.sig_sum1.complex_value(t), self.signal1.complex_value(t) + self.signal2.complex_value(t))
+        self.assertAllClose(self.sig_sum2.complex_value(t), self.signal2.complex_value(t) - self.signal3.complex_value(t))
+
+    def test_complex_value_vectorized(self):
+        """Test vectorized complex_value evaluation."""
+        t_vals = np.array([0.0, 1.23])
+        self.assertAllClose(self.sig_sum1.complex_value(t_vals), [self.signal1.complex_value(t) + self.signal2.complex_value(t) for t in t_vals])
+        self.assertAllClose(self.sig_sum2.complex_value(t_vals), [self.signal2.complex_value(t) - self.signal3.complex_value(t) for t in t_vals])
+        t_vals = np.array([[0.0, 1.23], [0.1, 2.]])
+        self.assertAllClose(self.sig_sum1.complex_value(t_vals), [[self.signal1.complex_value(t) + self.signal2.complex_value(t) for t in t_row] for t_row in t_vals])
+        self.assertAllClose(self.sig_sum2.complex_value(t_vals), [[self.signal2.complex_value(t) - self.signal3.complex_value(t) for t in t_row] for t_row in t_vals])
+
+    def test_call(self):
+        """Test __call__."""
+        t = 0.0
+        self.assertAllClose(self.sig_sum1(t), self.signal1(t) + self.signal2(t))
+        self.assertAllClose(self.sig_sum2(t), self.signal2(t) - self.signal3(t))
+        t = 1.23
+        self.assertAllClose(self.sig_sum1(t), self.signal1(t) + self.signal2(t))
+        self.assertAllClose(self.sig_sum2(t), self.signal2(t) - self.signal3(t))
+
+    def test_call_vectorized(self):
+        """Test vectorized __call__."""
+        t_vals = np.array([0.0, 1.23])
+        self.assertAllClose(self.sig_sum1(t_vals), [self.signal1(t) + self.signal2(t) for t in t_vals])
+        self.assertAllClose(self.sig_sum2(t_vals), [self.signal2(t) - self.signal3(t) for t in t_vals])
+        t_vals = np.array([[0.0, 1.23], [0.1, 2.]])
+        self.assertAllClose(self.sig_sum1(t_vals), [[self.signal1(t) + self.signal2(t) for t in t_row] for t_row in t_vals])
+        self.assertAllClose(self.sig_sum2(t_vals), [[self.signal2(t) - self.signal3(t) for t in t_row] for t_row in t_vals])
+
+    def test_conjugate(self):
+        """Verify conjugate() functioning correctly."""
+
+        sig_sum1_conj = self.sig_sum1.conjugate()
+        self.assertAllClose(sig_sum1_conj.complex_value(2.313), np.conjugate(self.sig_sum1.complex_value(2.313)))
+        self.assertAllClose(sig_sum1_conj.complex_value(0.1232), np.conjugate(self.sig_sum1.complex_value(0.1232)))
+
+
+class TestDiscreteSignalSum(TestSignalSum):
+    """Tests for DiscreteSignalSum."""
+
+    def setUp(self):
+        self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
+        self.signal2 = Signal(lambda t: 2.0 * (t ** 2), carrier_freq=0.1)
+        self.signal3 = Signal(lambda t: 2.0 * (t ** 2) + 1j * t, carrier_freq=0.1, phase=-0.1)
+
+        self.sig_sum1 = DiscreteSignalSum.from_SignalSum(self.signal1 + self.signal2, dt=0.5, start_time=0, n_samples=10)
+        self.sig_sum2 = DiscreteSignalSum.from_SignalSum(self.signal2 - self.signal3, dt=0.5, start_time=0, n_samples=10)
+
+        self.signal1 = DiscreteSignal.from_Signal(self.signal1, dt=0.5, start_time=0, n_samples=10)
+        self.signal2 = DiscreteSignal.from_Signal(self.signal2, dt=0.5, start_time=0, n_samples=10)
+        self.signal3 = DiscreteSignal.from_Signal(self.signal3, dt=0.5, start_time=0, n_samples=10)
 
 
 class TestSignalsOLD(QiskitOdeTestCase):

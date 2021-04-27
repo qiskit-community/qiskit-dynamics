@@ -72,11 +72,14 @@ class Signal:
         """
         self._name = name
 
-        if isinstance(envelope, (float, int)):
+        if isinstance(envelope, (complex, float, int)):
             envelope = Array(complex(envelope))
 
         if isinstance(envelope, Array):
-            self._envelope = lambda t: envelope
+            if envelope.backend == 'jax':
+                self._envelope = lambda t: envelope * jnp.ones_like(t)
+            else:
+                self._envelope = lambda t: envelope * np.ones_like(t)
 
         if callable(envelope):
             self._envelope = envelope
@@ -495,6 +498,10 @@ class SignalCollection:
         else:
             return sublist
 
+    def conjugate(self) -> 'SignalCollection':
+        """Return the conjugation of this collection."""
+        return self.__class__([sig.conjugate() for sig in self.components])
+
 
 class SignalSum(SignalCollection, Signal):
     r"""Represents a sum of ``Signal`` objects:
@@ -548,7 +555,9 @@ class SignalSum(SignalCollection, Signal):
                 [sig.envelope for sig in self.components]
             )
         else:
-            self._eval_envelopes = lambda t: [sig.envelope(t) for sig in self.components]
+            def eval_envelopes(t):
+                return [sig.envelope(t) for sig in self.components]
+            self._eval_envelopes = eval_envelopes
 
         carrier_freqs = []
         for sig in self.components:
@@ -769,6 +778,15 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             phases=phases,
         )
 
+    def conjugate(self):
+        return DiscreteSignalSum(
+            dt=self._dt,
+            samples=np.conjugate(self._samples),
+            start_time=self._start_time,
+            duration=self.duration,
+            carrier_freqs=-self.carrier_freq,
+            phases=-self.phase,
+        )
 
 class SignalList(SignalCollection):
     """A list of ``Signal``s, with functionality for simultaneous evaluation.
