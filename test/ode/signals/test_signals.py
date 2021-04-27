@@ -117,8 +117,171 @@ class TestSignal(QiskitOdeTestCase):
         self.assertAllClose(self.signal3(t_vals), np.array([[(2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)), (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1))],
                                                                           [(2 * (0.1**2) + 1j * 0.1) * np.exp(1j * 2 * np.pi * 0.1 * 0.1 + 1j * (-0.1)), (2 * (0.24**2) + 1j * 0.24) * np.exp(1j * 2 * np.pi * 0.1 * 0.24 + 1j * (-0.1))]]).real)
 
+    def test_conjugate(self):
+        """Verify conjugate() functioning correctly."""
 
-class TestSignals(QiskitOdeTestCase):
+        sig3_conj = self.signal3.conjugate()
+
+        self.assertEqual(self.signal3.phase, -sig3_conj.phase)
+        self.assertEqual(self.signal3.carrier_freq, -sig3_conj.carrier_freq)
+        self.assertEqual(self.signal3.complex_value(1.231), np.conjugate(sig3_conj.complex_value(1.231)))
+        self.assertEqual(self.signal3.complex_value(1.231 * np.pi), np.conjugate(sig3_conj.complex_value(1.231 * np.pi)))
+
+
+class TestConstant(QiskitOdeTestCase):
+    """Tests for Constant object."""
+
+    def setUp(self):
+        self.constant1 = Constant(1.)
+        self.constant2 = Constant(3. + 1j * 2)
+
+    def test_envelope(self):
+        """Test envelope evaluation."""
+        self.assertEqual(self.constant1.envelope(0.0), 1.)
+        self.assertEqual(self.constant1.envelope(1.23), 1.)
+
+        self.assertEqual(self.constant2.envelope(1.1), 3.)
+        self.assertEqual(self.constant2.envelope(1.23), 3.)
+
+    def test_envelope_vectorized(self):
+        """Test vectorized evaluation of envelope."""
+        t_vals = np.array([1.1, 1.23])
+        self.assertAllClose(self.constant1.envelope(t_vals), np.array([1., 1.]))
+        self.assertAllClose(self.constant2.envelope(t_vals), np.array([3., 3.]))
+
+        t_vals = np.array([[1.1, 1.23],
+                           [0.1, 0.24]])
+        self.assertAllClose(self.constant1.envelope(t_vals), np.array([[1., 1.], [1., 1.]]))
+        self.assertAllClose(self.constant2.envelope(t_vals), np.array([[3., 3.], [3., 3.]]))
+
+
+    def test_complex_value(self):
+        """Test complex_value evaluation."""
+        self.assertEqual(self.constant1.complex_value(0.0), 1.)
+        self.assertEqual(self.constant1.complex_value(1.23), 1.)
+
+        self.assertEqual(self.constant2.complex_value(1.1), 3.)
+        self.assertEqual(self.constant2.complex_value(1.23), 3.)
+
+    def test_complex_value_vectorized(self):
+        """Test vectorized complex_value evaluation."""
+        t_vals = np.array([1.1, 1.23])
+        self.assertAllClose(self.constant1.complex_value(t_vals), np.array([1., 1.]))
+        self.assertAllClose(self.constant2.complex_value(t_vals), np.array([3., 3.]))
+
+        t_vals = np.array([[1.1, 1.23],
+                           [0.1, 0.24]])
+        self.assertAllClose(self.constant1.complex_value(t_vals), np.array([[1., 1.], [1., 1.]]))
+        self.assertAllClose(self.constant2.complex_value(t_vals), np.array([[3., 3.], [3., 3.]]))
+
+    def test_call(self):
+        """Test __call__."""
+        self.assertEqual(self.constant1(0.0), 1.)
+        self.assertEqual(self.constant1(1.23), 1.)
+
+        self.assertEqual(self.constant2(1.1), 3.)
+        self.assertEqual(self.constant2(1.23), 3.)
+
+    def test_call_vectorized(self):
+        """Test vectorized __call__."""
+        t_vals = np.array([1.1, 1.23])
+        self.assertAllClose(self.constant1(t_vals), np.array([1., 1.]))
+        self.assertAllClose(self.constant2(t_vals), np.array([3., 3.]))
+
+        t_vals = np.array([[1.1, 1.23],
+                           [0.1, 0.24]])
+        self.assertAllClose(self.constant1(t_vals), np.array([[1., 1.], [1., 1.]]))
+        self.assertAllClose(self.constant2(t_vals), np.array([[3., 3.], [3., 3.]]))
+
+    def test_conjugate(self):
+        """Verify conjugate() functioning correctly."""
+
+        const_conj = self.constant2.conjugate()
+        self.assertEqual(const_conj(1.1), 3.)
+
+
+class TestDiscreteSignal(QiskitOdeTestCase):
+    """Tests for DiscreteSignal object."""
+
+    def setUp(self):
+        self.discrete1 = DiscreteSignal(dt=0.5, samples=np.array([1., 2., 3.]), carrier_freq=3.)
+        self.discrete2 = DiscreteSignal(dt=0.5, samples=np.array([1. + 2j, 2. + 1j, 3.]), carrier_freq=1., phase=3.)
+
+    def test_envelope(self):
+        """Test envelope evaluation."""
+        self.assertEqual(self.discrete1.envelope(0.0), 1.)
+        self.assertEqual(self.discrete1.envelope(1.23), 3.)
+
+        self.assertEqual(self.discrete2.envelope(0.1), 1. + 2j)
+        self.assertEqual(self.discrete2.envelope(1.23), 3.)
+
+    def test_envelope_vectorized(self):
+        """Test vectorized evaluation of envelope."""
+        t_vals = np.array([0.1, 1.23])
+        self.assertAllClose(self.discrete1.envelope(t_vals), np.array([1., 3.]))
+        self.assertAllClose(self.discrete2.envelope(t_vals), np.array([1. + 2j, 3.]))
+
+        t_vals = np.array([[0.8, 1.23],
+                           [0.1, 0.24]])
+        self.assertAllClose(self.discrete1.envelope(t_vals), np.array([[2., 3.], [1., 1.]]))
+        self.assertAllClose(self.discrete2.envelope(t_vals), np.array([[2. + 1j, 3.], [1 + 2j, 1. + 2j]]))
+
+    def test_complex_value(self):
+        """Test complex_value evaluation."""
+        self.assertEqual(self.discrete1.complex_value(0.0), 1.)
+        self.assertEqual(self.discrete1.complex_value(1.23), 3. * np.exp(1j * 2 * np.pi * 3.0 * 1.23))
+
+        self.assertEqual(self.discrete2.complex_value(0.1), (1. + 2j) * np.exp(1j * 2 * np.pi * 1.0 * 0.1 + 1j * 3.))
+        self.assertEqual(self.discrete2.complex_value(1.23), 3. * np.exp(1j * 2 * np.pi * 1.0 * 1.23 + 1j * 3.))
+
+    def test_complex_value_vectorized(self):
+        """Test vectorized complex_value evaluation."""
+        t_vals = np.array([0.1, 1.23])
+        phases = np.exp(1j * 2 * np.pi * 3. * t_vals)
+        self.assertAllClose(self.discrete1.complex_value(t_vals), np.array([1., 3.]) * phases)
+        phases = np.exp(1j * 2 * np.pi * 1. * t_vals + 1j * 3.)
+        self.assertAllClose(self.discrete2.complex_value(t_vals), np.array([1. + 2j, 3.]) * phases)
+
+        t_vals = np.array([[0.8, 1.23],
+                           [0.1, 0.24]])
+        phases = np.exp(1j * 2 * np.pi * 3. * t_vals)
+        self.assertAllClose(self.discrete1.complex_value(t_vals), np.array([[2., 3.], [1., 1.]]) * phases)
+        phases = np.exp(1j * 2 * np.pi * 1. * t_vals + 1j * 3.)
+        self.assertAllClose(self.discrete2.complex_value(t_vals), np.array([[2. + 1j, 3.], [1 + 2j, 1. + 2j]]) * phases)
+
+    def test_call(self):
+        """Test __call__."""
+        self.assertEqual(self.discrete1(0.0), 1.)
+        self.assertEqual(self.discrete1(1.23), np.real(3. * np.exp(1j * 2 * np.pi * 3.0 * 1.23)))
+
+        self.assertEqual(self.discrete2(0.1), np.real((1. + 2j) * np.exp(1j * 2 * np.pi * 1.0 * 0.1 + 1j * 3.)))
+        self.assertEqual(self.discrete2(1.23), np.real(3. * np.exp(1j * 2 * np.pi * 1.0 * 1.23 + 1j * 3.)))
+
+    def test_call_vectorized(self):
+        """Test vectorized __call__."""
+        t_vals = np.array([0.1, 1.23])
+        phases = np.exp(1j * 2 * np.pi * 3. * t_vals)
+        self.assertAllClose(self.discrete1(t_vals), np.real(np.array([1., 3.]) * phases))
+        phases = np.exp(1j * 2 * np.pi * 1. * t_vals + 1j * 3.)
+        self.assertAllClose(self.discrete2(t_vals), np.real(np.array([1. + 2j, 3.]) * phases))
+
+        t_vals = np.array([[0.8, 1.23],
+                           [0.1, 0.24]])
+        phases = np.exp(1j * 2 * np.pi * 3. * t_vals)
+        self.assertAllClose(self.discrete1(t_vals), np.real(np.array([[2., 3.], [1., 1.]]) * phases))
+        phases = np.exp(1j * 2 * np.pi * 1. * t_vals + 1j * 3.)
+        self.assertAllClose(self.discrete2(t_vals), np.real(np.array([[2. + 1j, 3.], [1 + 2j, 1. + 2j]]) * phases))
+
+    def test_conjugate(self):
+        """Verify conjugate() functioning correctly."""
+        discrete_conj = self.discrete2.conjugate()
+        self.assertAllClose(discrete_conj.samples, np.conjugate(self.discrete2.samples))
+        self.assertEqual(discrete_conj.carrier_freq, -self.discrete2.carrier_freq)
+        self.assertEqual(discrete_conj.phase, -self.discrete2.phase)
+        self.assertEqual(discrete_conj.dt, self.discrete2.dt)
+
+
+class TestSignalsOLD(QiskitOdeTestCase):
     """Tests for signals."""
 
     def setUp(self):
@@ -289,7 +452,7 @@ class TestSignals(QiskitOdeTestCase):
         self.assertAllClose((pwc1 + pwc2).envelope(4.0), Array([1.0, 1.0]))
 
 
-class TestSignalsJax(QiskitOdeTestCase, TestJaxBase):
+class TestSignalsJaxOLD(QiskitOdeTestCase, TestJaxBase):
     """Tests with some JAX functionality."""
 
     def test_jit_DiscreteSignal(self):

@@ -237,7 +237,7 @@ class Constant(Signal):
             name: name of the constant.
         """
         self._name = name
-        self._value = Array(value)
+        self._value = np.real(Array(value))
         self.phase = 0.0
         self.carrier_freq = 0.0
 
@@ -245,7 +245,7 @@ class Constant(Signal):
         return self._value * np.ones(np.shape(t), dtype=complex)
 
     def conjugate(self):
-        return Constant(np.conjugate(self._value))
+        return Constant(self._value)
 
     def __str__(self) -> str:
         if self.name is not None:
