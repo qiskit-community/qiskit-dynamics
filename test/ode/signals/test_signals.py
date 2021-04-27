@@ -621,36 +621,3 @@ class TestSignalsOLD(QiskitOdeTestCase):
         # Test phase
         pwc2 = DiscreteSignal(dt=dt, samples=samples, carrier_freq=carrier_freq, phase=0.5)
         self.assertAllClose((pwc1 + pwc2).envelope(4.0), Array([1.0, 1.0]))
-
-
-class TestSignalsJaxOLD(QiskitOdeTestCase, TestJaxBase):
-    """Tests with some JAX functionality."""
-
-    def test_jit_DiscreteSignal(self):
-        """Verify that jit works through DiscreteSignal."""
-
-        test_sig = DiscreteSignal(dt=1.0, samples=Array([1.0, 2.0, 3.0]))
-
-        jit_eval = jit(lambda t: test_sig(t).data)
-
-        val1 = jit_eval(0.5)
-        expected = 1.0
-        self.assertAllClose(val1, expected)
-
-        val2 = jit_eval(2.41)
-        expected = 3.0
-        self.assertAllClose(val2, expected)
-
-    def test_grad_DiscreteSignal(self):
-        """Verify that grad works through DiscreteSignal."""
-
-        def test_func(val):
-            sig = DiscreteSignal(dt=1.0, samples=val * Array([1.0, 2.0, 3.0]))
-            return np.real(sig(1.5)).data
-
-        grad_func = grad(test_func)
-
-        output = grad_func(3.0)
-        expected = 2.0
-
-        self.assertAllClose(output, expected)
