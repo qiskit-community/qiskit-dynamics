@@ -407,7 +407,7 @@ class DiscreteSignal(Signal):
         return self.envelope(t) * np.exp(arg)
 
     def conjugate(self):
-        return DiscreteSignal(
+        return self.__class__(
             dt=self._dt,
             samples=np.conjugate(self._samples),
             start_time=self._start_time,
@@ -623,11 +623,11 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
     def __init__(
         self,
         dt: float,
-        samples: Union[Array, List],
+        samples: Union[List, Array],
         start_time: float = 0.0,
         duration: int = None,
-        carrier_freqs: float = None,
-        phases: float = None,
+        carrier_freq: Union[List, np.array, Array] = None,
+        phase: Union[List, np.array, Array] = None,
         name: str = None,
     ):
         """Directly initialize a ``DiscreteSignalSum``. Samples of all terms in the
@@ -640,8 +640,8 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
                      of each term in the sum.
             start_time: The time at which the signal starts.
             duration: The duration of the signal in samples.
-            carrier_freqs: Array with the carrier frequencies of each term in the sum.
-            phases: Array with the phases of each term in the sum.
+            carrier_freq: Array with the carrier frequencies of each term in the sum.
+            phase: Array with the phases of each term in the sum.
             name: name of the signal.
         """
         self._name = name
@@ -649,15 +649,15 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         self._samples = Array(samples)
         self._start_time = start_time
 
-        if carrier_freqs is None:
-            carrier_freqs = np.zeros(len(samples), dtype=float)
+        if carrier_freq is None:
+            carrier_freq = np.zeros(samples.shape[-1], dtype=float)
 
-        if phases is None:
-            phases = np.zeros(len(samples), dtype=float)
+        if phase is None:
+            phase = np.zeros(samples.shape[-1], dtype=float)
 
         # construct individual components so they can be accessed as in SignalSum
         components = []
-        for sample_row, freq, phase in zip(self.samples.transpose(), carrier_freqs, phases):
+        for sample_row, freq, phi in zip(self.samples.transpose(), carrier_freq, phase):
             components.append(
                 DiscreteSignal(
                     dt=self.dt,
@@ -665,13 +665,13 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
                     start_time=self.start_time,
                     duration=self.duration,
                     carrier_freq=freq,
-                    phase=phase,
+                    phase=phi,
                 )
             )
 
         self._components = components
-        self.carrier_freq = carrier_freqs
-        self.phase = phases
+        self.carrier_freq = carrier_freq
+        self.phase = phase
 
     @classmethod
     def from_SignalSum(
@@ -723,7 +723,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             samples = signal_sum.envelope(times)
 
         return DiscreteSignalSum(
-            dt, samples, start_time=start_time, carrier_freqs=freq, phases=signal_sum.phase
+            dt, samples, start_time=start_time, carrier_freq=freq, phase=signal_sum.phase
         )
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
@@ -774,19 +774,10 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             dt=self.dt,
             samples=samples,
             start_time=self.start_time,
-            carrier_freqs=carrier_freqs,
-            phases=phases,
+            carrier_freq=carrier_freqs,
+            phase=phases,
         )
 
-    def conjugate(self):
-        return DiscreteSignalSum(
-            dt=self._dt,
-            samples=np.conjugate(self._samples),
-            start_time=self._start_time,
-            duration=self.duration,
-            carrier_freqs=-self.carrier_freq,
-            phases=-self.phase,
-        )
 
 class SignalList(SignalCollection):
     """A list of ``Signal``s, with functionality for simultaneous evaluation.
