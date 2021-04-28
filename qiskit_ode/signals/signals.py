@@ -901,8 +901,19 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     except QiskitError as qe:
         raise QiskitError("Only a number or a Signal instance can multiply a Signal.") from qe
 
+    sig1, sig2 = sort_signals(sig1, sig2)
+
+    # if sig1 contains only a constant and sig2 is a DiscreteSignalSum
+    if len(sig1) == 1 and isinstance(sig1[0], Constant) and isinstance(sig2, DiscreteSignalSum):
+        return DiscreteSignalSum(
+                                 dt=sig2.dt,
+                                 samples=sig1(0.0) * sig2.samples,
+                                 start_time=sig2.start_time,
+                                 carrier_freq=sig2.carrier_freq,
+                                 phase=sig2.phase,
+                                )
     # if both are DiscreteSignalSum objects with compatible structure, append data together
-    if isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
+    elif isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
         if (
             sig1.dt == sig2.dt
             and sig1.start_time == sig2.start_time
@@ -934,7 +945,7 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     product = SignalSum()
 
     # loop through every pair of components and multiply
-    for comp1, comp2 in itertools.product(wrapped_sig1.components, wrapped_sig2.components):
+    for comp1, comp2 in itertools.product(sig1.components, sig2.components):
         product += base_signal_multiply(comp1, comp2)
 
     return product
@@ -1045,17 +1056,17 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
         pass
     elif isinstance(sig2, Constant):
         sig1, sig2 = sig2, sig1
-    elif isinstance(sig1, DiscreteSignal):
+    elif isinstance(sig1, DiscreteSignal) and not isinstance(sig1, DiscreteSignalSum):
         pass
-    elif isinstance(sig2, DiscreteSignal):
+    elif isinstance(sig2, DiscreteSignal) and not isinstance(sig2, DiscreteSignalSum):
         sig2, sig1 = sig1, sig2
-    elif isinstance(sig1, Signal):
+    elif isinstance(sig1, Signal) and not isinstance(sig1, SignalSum):
         pass
-    elif isinstance(sig2, Signal):
+    elif isinstance(sig2, Signal) and not isinstance(sig2, SignalSum):
         sig2, sig1 = sig1, sig2
-    elif isinstance(sig1, SignalSum):
+    elif isinstance(sig1, SignalSum) and not isinstance(sig1, DiscreteSignalSum):
         pass
-    elif isinstance(sig2, SignalSum):
+    elif isinstance(sig2, SignalSum) and not isinstance(sig2, DiscreteSignalSum):
         sig2, sig1 = sig1, sig2
     elif isinstance(sig1, DiscreteSignalSum):
         pass
