@@ -637,13 +637,13 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         name: str = None,
     ):
         """Directly initialize a ``DiscreteSignalSum``. Samples of all terms in the
-        sum are specified as a 2d array, representing a list of the samples for
-        each term in the sum.
+        sum are specified as a 2d array, with 0th axis indicating time, and 1st axis
+        indicating a term in the sum.
 
         Args:
             dt: The duration of each sample.
-            samples: The 2d array representing a list whose elements are the sample lists
-                     of each term in the sum.
+            samples: The 2d array representing a list whose elements are all envelope values
+                     at a given time.
             start_time: The time at which the signal starts.
             duration: The duration of the signal in samples.
             carrier_freq: Array with the carrier frequencies of each term in the sum.
@@ -754,7 +754,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
     def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
         """Enables numpy-style subscripting, as if this class were a 1d array."""
 
-        samples = self.samples[idx]
+        samples = self.samples[:, idx]
         carrier_freqs = self.carrier_freq[idx]
         phases = self.phase[idx]
 
@@ -853,24 +853,30 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
     # generic routine
     # convert to SignalSum instances
     try:
-        wrapped_sig1 = to_SignalSum(sig1)
-        wrapped_sig2 = to_SignalSum(sig2)
+        sig1 = to_SignalSum(sig1)
+        sig2 = to_SignalSum(sig2)
     except QiskitError as qe:
         raise QiskitError("Only a number or a Signal instance can be added to a Signal.") from qe
 
-    sig_sum = SignalSum(*(wrapped_sig1.components + wrapped_sig2.components))
-
-    # if they were originally DiscreteSignalSum objects with compatible structure,
-    # convert back
-    if isinstance(sig1, DiscreteSignal) and isinstance(sig2, DiscreteSignal):
+    # if both are DiscreteSignalSum objects with compatible structure, append data together
+    if isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
         if (
             sig1.dt == sig2.dt
             and sig1.start_time == sig2.start_time
             and sig1.duration == sig2.duration
         ):
-            sig_sum = DiscreteSignalSum.from_SignalSum(
-                sig_sum, dt=sig2.dt, start_time=sig2.start_time, n_samples=sig2.duration
-            )
+            samples = np.append(sig1.samples, sig2.samples, axis=1)
+            carrier_freq = np.append(sig1.carrier_freq, sig2.carrier_freq)
+            phase = np.append(sig1.phase, sig2.phase)
+            return DiscreteSignalSum(
+                                     dt=sig1.dt,
+                                     samples=samples,
+                                     start_time=sig1.start_time,
+                                     carrier_freq=carrier_freq,
+                                     phase=phase,
+                                    )
+
+    sig_sum = SignalSum(*(sig1.components + sig2.components))
 
     return sig_sum
 
@@ -890,10 +896,39 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
 
     # convert to SignalSum instances
     try:
-        wrapped_sig1 = to_SignalSum(sig1)
-        wrapped_sig2 = to_SignalSum(sig2)
+        sig1 = to_SignalSum(sig1)
+        sig2 = to_SignalSum(sig2)
     except QiskitError as qe:
         raise QiskitError("Only a number or a Signal instance can multiply a Signal.") from qe
+
+    # if both are DiscreteSignalSum objects with compatible structure, append data together
+    if isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
+        if (
+            sig1.dt == sig2.dt
+            and sig1.start_time == sig2.start_time
+            and sig1.duration == sig2.duration
+        ):
+            # this vectorized operation produces a 2d array whose columns are the products of
+            # the original columns
+            new_samples = Array(0.5 * (sig1.samples[:, :, None] * sig2.samples[:, None, :]).reshape((sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]), order='C'))
+            new_samples_conj = Array(0.5 * (sig1.samples[:, :, None] * sig2.samples[:, None, :].conj()).reshape((sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]), order='C'))
+            samples = np.append(new_samples, new_samples_conj, axis=1)
+
+            new_freqs = (sig1.carrier_freq[:, None] + sig2.carrier_freq).flatten()
+            new_freqs_conj = (sig1.carrier_freq - sig2.carrier_freq).flatten()
+            freqs = np.append(Array(new_freqs), Array(new_freqs_conj))
+
+            new_phases = (sig1.phase[:, None] + sig2.phase).flatten()
+            new_phases_conj = (sig1.phase[:, None] - sig2.phase).flatten()
+            phases = np.append(Array(new_phases), Array(new_phases_conj))
+
+            return DiscreteSignalSum(
+                                     dt=sig1.dt,
+                                     samples=samples,
+                                     start_time=sig1.start_time,
+                                     carrier_freq=freqs,
+                                     phase=phases,
+                                    )
 
     # initialize to empty sum
     product = SignalSum()
@@ -901,18 +936,6 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     # loop through every pair of components and multiply
     for comp1, comp2 in itertools.product(wrapped_sig1.components, wrapped_sig2.components):
         product += base_signal_multiply(comp1, comp2)
-
-    # if they were originally DiscreteSignalSum objects with compatible structure,
-    # convert back
-    if isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
-        if (
-            sig1.dt == sig2.dt
-            and sig1.start_time == sig2.start_time
-            and sig1.duration == sig2.duration
-        ):
-            product = DiscreteSignalSum.from_SignalSum(
-                product, dt=sig1.dt, start_time=sig1.start_time, n_samples=sig1.duration
-            )
 
     return product
 
@@ -1034,6 +1057,10 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
         pass
     elif isinstance(sig2, SignalSum):
         sig2, sig1 = sig1, sig2
+    elif isinstance(sig1, DiscreteSignalSum):
+        pass
+    elif isinstance(sig2, DiscreteSignalSum):
+        sig2, sig1 = sig1, sig2
 
     return sig1, sig2
 
@@ -1059,13 +1086,19 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
     if isinstance(sig, (int, float, complex)) or (isinstance(sig, Array) and sig.ndim == 0):
         sig = Constant(sig)
 
+    if isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
+        return DiscreteSignalSum(
+            dt=sig.dt, samples=Array([sig.samples.data]).transpose(1, 0), start_time=sig.start_time, carrier_freq=Array([sig.carrier_freq.data]), phase=Array([sig.phase.data])
+        )
+
     if isinstance(sig, Signal) and not isinstance(sig, SignalSum):
         sig = SignalSum(sig)
 
+    if isinstance(sig, SignalSum):
+        return sig
+
     if not isinstance(sig, SignalSum):
         raise QiskitError("Input type incompatible with SignalSum.")
-
-    return sig
 
 
 def array_funclist_evaluate(func_list: List[Callable]) -> Callable:

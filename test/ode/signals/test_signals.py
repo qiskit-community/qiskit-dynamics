@@ -455,60 +455,6 @@ class TestSignalsJaxTransformations(QiskitOdeTestCase, TestJaxBase):
 class TestSignalsOLD(QiskitOdeTestCase):
     """Tests for signals."""
 
-    def setUp(self):
-        pass
-
-    def test_constant(self):
-        """Test Constant signal"""
-
-        constant = Constant(0.5)
-
-        self.assertAllClose(constant.envelope(0.0), 0.5)
-        self.assertAllClose(constant.envelope(10.0), 0.5)
-        self.assertAllClose(constant(0.0), 0.5)
-        self.assertAllClose(constant(10.0), 0.5)
-
-    def test_signal(self):
-        """Test Signal."""
-
-        # Signal with constant amplitude
-        signal = Signal(0.25, carrier_freq=0.3)
-        self.assertAllClose(signal.envelope(0.0), 0.25)
-        self.assertAllClose(signal.envelope(1.23), 0.25)
-        self.assertAllClose(signal(0.0), 0.25)
-        self.assertAllClose(signal(1.0), 0.25 * np.cos(0.3 * 2.0 * np.pi))
-
-        signal = Signal(0.25, carrier_freq=0.3, phase=0.5)
-        self.assertAllClose(signal(1.0), 0.25 * np.cos(0.3 * 2.0 * np.pi + 0.5))
-
-        # Signal with parabolic amplitude
-        signal = Signal(lambda t: 2.0 * t ** 2, carrier_freq=0.1)
-        self.assertAllClose(signal.envelope(0.0), 0.0)
-        self.assertAllClose(signal.envelope(3.0), 18.0)
-        self.assertAllClose(signal(0.0), 0.0)
-        self.assertAllClose(signal(2.0), 8.0 * np.cos(0.1 * 2.0 * np.pi * 2.0))
-
-        signal = Signal(lambda t: 2.0 * t ** 2, carrier_freq=0.1, phase=-0.1)
-        self.assertAllClose(signal(2.0), 8.0 * np.cos(0.1 * 2.0 * np.pi * 2.0 - 0.1))
-
-    def test_piecewise_constant(self):
-        """Test PWC signal."""
-
-        dt = 1.0
-        samples = Array([0.0, 0.0, 1.0, 2.0, 1.0, 0.0, 0.0])
-        carrier_freq = 0.5
-        piecewise_const = DiscreteSignal(dt=dt, samples=samples, carrier_freq=carrier_freq)
-
-        self.assertAllClose(piecewise_const.envelope(0.0), 0.0)
-        self.assertAllClose(piecewise_const.envelope(2.0), 1.0)
-        self.assertAllClose(piecewise_const(0.0), 0.0)
-        self.assertAllClose(piecewise_const(3.0), 2.0 * np.cos(0.5 * 2.0 * np.pi * 3.0))
-
-        piecewise_const = DiscreteSignal(
-            dt=dt, samples=samples, carrier_freq=carrier_freq, phase=0.5
-        )
-        self.assertAllClose(piecewise_const(3.0), 2.0 * np.cos(0.5 * 2.0 * np.pi * 3.0 + 0.5))
-
     def test_multiplication(self):
         """Tests the multiplication of signals."""
 
