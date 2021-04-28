@@ -50,8 +50,8 @@ class Signal:
     The envelope function can be complex-valued, and the frequency and phase must be real.
 
     Note: this class assumes that the envelope function is vectorized. If it isn't, it can
-    be vectorized automatically by calling ``numpy.vectorize``, or, if using JAX, by
-    calling ``jax.numpy.vectorize``.
+    be vectorized automatically by calling ``numpy.vectorize``\, or, if using JAX, by
+    calling ``jax.numpy.vectorize``\.
     """
 
     def __init__(
@@ -186,6 +186,7 @@ class Signal:
     ):
         """Plot the signal over an interval. The `function` arg specifies which function to
         plot:
+        
             - `function == 'signal'` plots the full signal.
             - `function == 'envelope'` plots the complex envelope.
             - `function == 'complex_value'` plots the `complex_value`.
@@ -233,7 +234,7 @@ class Signal:
 
 
 class Constant(Signal):
-    """:class:`Signal` representing a constant value."""
+    """Signal representing a constant value."""
 
     def __init__(self, value: complex, name: str = None):
         """Initialize a constant signal.
@@ -317,20 +318,20 @@ class DiscreteSignal(Signal):
         start_time: Optional[float] = 0.0,
         sample_carrier: Optional[bool] = False,
     ):
-        """Constructs a ``DiscreteSignal`` object by sampling a ``Signal``.
+        r"""Constructs a ``DiscreteSignal`` object by sampling a ``Signal``\.
 
         The optional argument ``sample_carrier`` controls whether or not to include the carrier
         in the sampling. I.e.:
 
-            - If ``sample_carrier == False``, a ``DiscreteSignal`` is constructed with:
-                - ``samples`` obtained by sampling ``signal.envelope``.
-                - ``carrier_freq = signal.carrier_freq``.
-                - ``phase = signal.phase``.
+            - If ``sample_carrier == False``\, a ``DiscreteSignal`` is constructed with:
+                - ``samples`` obtained by sampling ``signal.envelope``\.
+                - ``carrier_freq = signal.carrier_freq``\.
+                - ``phase = signal.phase``\.
 
-            - If ``sample_carrier == True``, a ``DiscreteSignal`` is constructed with:
-                - ``samples`` obtained by sampling ``signal`` (as a ``callable``)
-                - ``carrier_freq = 0``.
-                - ``phase = signal.phase``.
+            - If ``sample_carrier == True``\, a ``DiscreteSignal`` is constructed with:
+                - ``samples`` obtained by sampling ``signal`` (as a ``callable``\)
+                - ``carrier_freq = 0``\.
+                - ``phase = signal.phase``\.
 
         In either case, samples are obtained from the midpoint of each interval.
 
@@ -342,7 +343,7 @@ class DiscreteSignal(Signal):
             sample_carrier: Whether or not to include the carrier in the sampling.
 
         Returns:
-            DiscreteSignal: The discretized ``Signal``.
+            DiscreteSignal: The discretized ``Signal``\.
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
@@ -393,7 +394,7 @@ class DiscreteSignal(Signal):
 
     def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Envelope. If ``t`` is before (resp. after) the start (resp. end) of the definition of
-        the ``DiscreteSignal```, this will return the start value (resp. end value).
+        the ``DiscreteSignal``\, this will return the start value (resp. end value).
         """
         if self._samples.backend == "jax":
             t = Array(t).data
@@ -516,8 +517,9 @@ class SignalSum(SignalCollection, Signal):
         s_1(t) + \dots + s_k(t)
 
     For basic evaluation, this class behaves in the same manner as ``Signal``:
-    - ``__call__`` evaluates the sum.
-    - ``complex_value`` evaluates the sum of the complex values of the individual summands.
+
+        - ``__call__`` evaluates the sum.
+        - ``complex_value`` evaluates the sum of the complex values of the individual summands.
 
     Attributes ``carrier_freq`` and ``phase`` here correspond to an ``Array`` of
     frequencies/phases for each term in the sum, and the ``envelope`` method returns an
@@ -528,14 +530,14 @@ class SignalSum(SignalCollection, Signal):
     """
 
     def __init__(self, *signals, name: Optional[str] = None):
-        """Initialize with a list of Signal objects through ``args``.
+        r"""Initialize with a list of Signal objects through ``args``\.
 
         Args:
             signals: ``Signal`` subclass objects.
             name: Name of the sum.
 
         Raises:
-            QiskitError: If ``signals`` are not subclasses of ``Signal``.
+            QiskitError: If ``signals`` are not subclasses of ``Signal``\.
         """
         self._name = name
 
@@ -604,7 +606,7 @@ class SignalSum(SignalCollection, Signal):
         return default_str
 
     def flatten(self) -> Signal:
-        """Merge into a single ``Signal``. The output frequency is given by the
+        """Merge into a single ``Signal``\. The output frequency is given by the
         average.
         """
 
@@ -638,7 +640,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         phase: Union[List, np.array, Array] = None,
         name: str = None,
     ):
-        """Directly initialize a ``DiscreteSignalSum``. Samples of all terms in the
+        """Directly initialize a ``DiscreteSignalSum``\. Samples of all terms in the
         sum are specified as a 2d array, with 0th axis indicating time, and 1st axis
         indicating a term in the sum.
 
@@ -690,20 +692,20 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         start_time: Optional[float] = 0.0,
         sample_carrier: Optional[bool] = False,
     ):
-        """Constructs a ``DiscreteSignalSum`` object by sampling a ``SignalSum``.
+        r"""Constructs a ``DiscreteSignalSum`` object by sampling a ``SignalSum``\.
 
         The optional argument ``sample_carrier`` controls whether or not to include the carrier
         in the sampling. I.e.:
 
             - If ``sample_carrier == False``, a ``DiscreteSignalSum`` is constructed with:
-                - ``samples`` obtained by sampling ``signal_sum.envelope``.
-                - ``carrier_freq = signal_sum.carrier_freq``.
-                - ``phase = signal_sum.phase``.
+                - ``samples`` obtained by sampling ``signal_sum.envelope``\.
+                - ``carrier_freq = signal_sum.carrier_freq``\.
+                - ``phase = signal_sum.phase``\.
 
-            - If ``sample_carrier == True``, a ``DiscreteSignal`` is constructed with:
-                - ``samples`` obtained by sampling ``signal_sum`` (as a ``callable``)
-                - ``carrier_freq = 0``.
-                - ``phase = signal_sum.phase``.
+            - If ``sample_carrier == True``\, a ``DiscreteSignal`` is constructed with:
+                - ``samples`` obtained by sampling ``signal_sum`` (as a ``callable``\)
+                - ``carrier_freq = 0``\.
+                - ``phase = signal_sum.phase``\.
 
         In either case, samples are obtained from the midpoint of each interval.
 
@@ -715,7 +717,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             sample_carrier: Whether or not to include the carrier in the sampling.
 
         Returns:
-            DiscreteSignalSum: The discretized ``SignalSum``.
+            DiscreteSignalSum: The discretized ``SignalSum``\.
         """
 
         times = start_time + (np.arange(n_samples) + 0.5) * dt
@@ -788,7 +790,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
 
 class SignalList(SignalCollection):
-    """A list of ``Signal``s, with functionality for simultaneous evaluation.
+    """A list of ``Signal``\s, with functionality for simultaneous evaluation.
 
     The passed list is stored in the ``components`` attribute.
     """
@@ -828,8 +830,8 @@ class SignalList(SignalCollection):
 
     @property
     def drift(self) -> Array:
-        """Return the 'drift' ``Array``, i.e. return an ``Array`` whose entries are the sum
-        of the ``Constant`` parts of the corresponding component of this ``SignalList``.
+        r"""Return the drift ``Array``\, i.e. return an ``Array`` whose entries are the sum
+        of the ``Constant`` parts of the corresponding component of this ``SignalList``\.
         """
 
         drift_array = []
@@ -884,7 +886,7 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
 
 
 def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
-    r"""Multiply two ``Signal``s. For a pair of elementary (non-``SignalSum``) ``Signal``s,
+    r"""Multiply two ``Signal``\s. For a pair of elementary (non-``SignalSum``\) ``Signal``\s,
     expands the product of two signals into a ``SignalSum`` via the formula:
 
     .. math::
@@ -892,7 +894,7 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
          = Re[\frac{1}{2} f(t)g(t)e^{i(2\pi (\omega + \nu)t + (\phi + \psi))} ]
           + Re[\frac{1}{2} f(t)\overline{g(t)}e^{i(2\pi (\omega - \nu)t + (\phi - \psi))} ]
 
-    If either (or both) of ``sig1`` or ``sig2`` are ``SignalSum``s, the multiplication is
+    If either (or both) of ``sig1`` or ``sig2`` are ``SignalSum``\s, the multiplication is
     distributed over addition.
     """
 
@@ -966,23 +968,23 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
 
 
 def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
-    r"""Utility function for multiplying two elementary (non ``SignalSum``) signals.
+    r"""Utility function for multiplying two elementary (non ``SignalSum``\) signals.
     This function assumes ``sig1`` and ``sig2`` are legitimate instances of ``Signal``
     subclasses.
 
     Special cases:
 
-        - Multiplication of two ``Constant``s returns a ``Constant``.
-        - Multiplication of a ``Constant`` and a ``DiscreteSignal`` returns a ``DiscreteSignal``.
-        - If two ``DiscreteSignal``s have compatible parameters, the resulting signals are
-        ``DiscreteSignal``, with the multiplication being implemented by array multiplication of
+        - Multiplication of two ``Constant``\s returns a ``Constant``\.
+        - Multiplication of a ``Constant`` and a ``DiscreteSignal`` returns a ``DiscreteSignal``\.
+        - If two ``DiscreteSignal``\s have compatible parameters, the resulting signals are
+        ``DiscreteSignal``\, with the multiplication being implemented by array multiplication of
         the samples.
-        - Lastly, if no special rules apply, the two ``Signal``s are multiplied generically via
+        - Lastly, if no special rules apply, the two ``Signal``\s are multiplied generically via
         multiplication of the envelopes as functions.
 
     When a sum with two signals is produced, the carrier frequency (phase) of each component are,
     respectively, the sum and difference of the two frequencies (phases). For special cases
-    involving a ``Constant``s and a non-``Constant`` signal, the carrier frequency and phase
+    involving a ``Constant``\s and a non-``Constant`` signal, the carrier frequency and phase
     are preserved as that of the non-constant piece.
 
     Args:
@@ -1061,10 +1063,10 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
 
 
 def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
-    """Utility function for ordering a pair of ``Signal``s according to the partial order:
+    r"""Utility function for ordering a pair of ``Signal``\s according to the partial order:
     ``sig1 <= sig2`` if and only if:
         - ``type(sig1)`` precedes ``type(sig2)`` in the list
-        ``[Constant, DiscreteSignal, Signal, SignalSum, DiscreteSignalSum]``.
+        ``[Constant, DiscreteSignal, Signal, SignalSum, DiscreteSignalSum]``\.
     """
     if isinstance(sig1, Constant):
         pass
@@ -1091,12 +1093,12 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
 
 
 def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
-    """Convert the input to a SignalSum according to:
+    r"""Convert the input to a SignalSum according to:
 
-    - If it is already a SignalSum, do nothing.
-    - If it is a Signal but not a SignalSum, wrap in a SignalSum.
-    - If it is a number, wrap in Constant in a SignalSum.
-    - Otherwise, raise an error.
+        - If it is already a ``SignalSum``\, do nothing.
+        - If it is a Signal but not a ``SignalSum``\, wrap in a ``SignalSum``\.
+        - If it is a number, wrap in ``Constant`` in a ``SignalSum``\.
+        - Otherwise, raise an error.
 
     Args:
         sig: A SignalSum compatible input.
