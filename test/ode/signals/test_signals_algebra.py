@@ -17,8 +17,7 @@ Tests for algebraic operations on signals.
 
 import numpy as np
 
-from qiskit_ode.signals import Signal, Constant, DiscreteSignal
-from qiskit_ode.signals.signals import SignalSum, DiscreteSignalSum
+from qiskit_ode.signals import Signal, Constant, DiscreteSignal, SignalSum, DiscreteSignalSum
 
 from ..common import QiskitOdeTestCase, TestJaxBase
 

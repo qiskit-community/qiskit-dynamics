@@ -186,7 +186,7 @@ class Signal:
     ):
         """Plot the signal over an interval. The `function` arg specifies which function to
         plot:
-        
+
             - `function == 'signal'` plots the full signal.
             - `function == 'envelope'` plots the complex envelope.
             - `function == 'complex_value'` plots the `complex_value`.
@@ -393,7 +393,7 @@ class DiscreteSignal(Signal):
         return self._start_time
 
     def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        """Envelope. If ``t`` is before (resp. after) the start (resp. end) of the definition of
+        r"""Envelope. If ``t`` is before (resp. after) the start (resp. end) of the definition of
         the ``DiscreteSignal``\, this will return the start value (resp. end value).
         """
         if self._samples.backend == "jax":
@@ -606,7 +606,7 @@ class SignalSum(SignalCollection, Signal):
         return default_str
 
     def flatten(self) -> Signal:
-        """Merge into a single ``Signal``\. The output frequency is given by the
+        r"""Merge into a single ``Signal``\. The output frequency is given by the
         average.
         """
 
@@ -640,7 +640,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         phase: Union[List, np.array, Array] = None,
         name: str = None,
     ):
-        """Directly initialize a ``DiscreteSignalSum``\. Samples of all terms in the
+        r"""Directly initialize a ``DiscreteSignalSum``\. Samples of all terms in the
         sum are specified as a 2d array, with 0th axis indicating time, and 1st axis
         indicating a term in the sum.
 
@@ -790,7 +790,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
 
 class SignalList(SignalCollection):
-    """A list of ``Signal``\s, with functionality for simultaneous evaluation.
+    r"""A list of ``Signal``\s, with functionality for simultaneous evaluation.
 
     The passed list is stored in the ``components`` attribute.
     """
