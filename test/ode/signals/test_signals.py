@@ -18,7 +18,7 @@ Tests for signals.
 import numpy as np
 
 from qiskit_ode.signals import Signal, Constant, DiscreteSignal
-from qiskit_ode.signals.signals import SignalSum, DiscreteSignalSum
+from qiskit_ode.signals.signals import SignalSum, DiscreteSignalSum, SignalList
 from qiskit_ode.dispatch import Array
 
 from ..common import QiskitOdeTestCase, TestJaxBase
@@ -371,6 +371,77 @@ class TestDiscreteSignalSum(TestSignalSum):
         self.signal3 = DiscreteSignal.from_Signal(self.signal3, dt=0.5, start_time=0, n_samples=10)
 
 
+class TestSignalList(QiskitOdeTestCase):
+    """Test cases for SignalList class."""
+
+    def setUp(self):
+        self.sig = Signal(lambda t: t, carrier_freq=3.)
+        self.const = Constant(5.)
+        self.discrete_sig = DiscreteSignal(dt=0.5, samples=[1., 2., 3.], carrier_freq=1., phase=0.1)
+
+        self.sig_list = SignalList([self.sig + self.const, self.sig * self.discrete_sig, self.const])
+
+    def test_eval(self):
+        """Test evaluation of signal sum."""
+
+        t_vals = np.array([0.12, 0.23, 1.23])
+
+        expected = np.array([self.sig(t_vals) + self.const(t_vals),
+                             self.sig(t_vals) * self.discrete_sig(t_vals),
+                             self.const(t_vals)]).transpose(1, 0)
+
+        self.assertAllClose(self.sig_list(t_vals), expected)
+
+    def test_complex_value(self):
+        """Test evaluation of signal sum."""
+
+        t_vals = np.array([0.12, 0.23, 1.23])
+
+        expected = np.array([self.sig.complex_value(t_vals) + self.const.complex_value(t_vals),
+                             np.real(self.sig.complex_value(t_vals)) * self.discrete_sig.complex_value(t_vals),
+                             self.const.complex_value(t_vals)]).transpose(1, 0)
+
+        self.assertAllClose(self.sig_list.complex_value(t_vals), expected)
+
+    def test_drift(self):
+        """Test drift evaluation."""
+
+        expected = np.array([self.const(0.0), 0, self.const(0.0)])
+        self.assertAllClose(self.sig_list.drift, expected)
+
+
+class TestSignalCollection(QiskitOdeTestCase):
+    """Test cases for SignalCollection functionality."""
+
+    def setUp(self):
+        self.sig1 = Signal(lambda t: t, carrier_freq=0.1)
+        self.sig2 = Signal(lambda t: t + 1j * t**2, carrier_freq=3., phase=1.)
+        self.sig3 = Signal(lambda t: t + 1j * t**2, carrier_freq=3., phase=1.2)
+
+        self.discrete_sig1 = DiscreteSignal(dt=0.5, samples=[1., 2., 3.], carrier_freq=3.)
+        self.discrete_sig2 = DiscreteSignal(dt=0.5, samples=[2., 2.1, 3.4], carrier_freq=2.1)
+        self.discrete_sig3 = DiscreteSignal(dt=0.5, samples=[1.353, 2.223, 3.2312], carrier_freq=1.1)
+
+        self.sig_sum = self.sig1 + self.sig2 + self.sig3
+        self.discrete_sig_sum = self.discrete_sig1 + self.discrete_sig2 + self.discrete_sig3
+
+    def test_SignalSum_subscript(self):
+        """Test subscripting of SignalSum."""
+
+        sub02 = self.sig_sum[[0, 2]]
+        self.assertTrue(len(sub02) == 2)
+        t_vals = np.array([[1., 2., 3.], [4., 5., 6.]])
+        self.assertAllClose(sub02(t_vals), self.sig1(t_vals) + self.sig3(t_vals))
+
+    def test_DiscreteSignalSum_subscript(self):
+        """Test subscripting of SignalSum."""
+
+        sub02 = self.discrete_sig_sum[[0, 2]]
+        self.assertTrue(len(sub02) == 2)
+        t_vals = np.array([[1., 2., 3.], [4., 5., 6.]]) / 4.
+        self.assertAllClose(sub02(t_vals), self.discrete_sig1(t_vals) + self.discrete_sig3(t_vals))
+
+
 class TestSignalJax(TestSignal, TestJaxBase):
     """Jax version of TestSignal."""
 
@@ -391,6 +462,10 @@ class TestDiscreteSignalSumJax(TestDiscreteSignalSum, TestJaxBase):
     """Jax version of TestSignalSum."""
 
 
+class TestSignalListJax(TestSignalList, TestJaxBase):
+    """Jax version of TestSignalList."""
+
+
 class TestSignalsJaxTransformations(QiskitOdeTestCase, TestJaxBase):
     """Test cases for jax transformations of signals."""
 
@@ -400,6 +475,7 @@ class TestSignalsJaxTransformations(QiskitOdeTestCase, TestJaxBase):
         self.discrete_signal = DiscreteSignal(dt=0.5, samples=jnp.ones(20, dtype=complex), carrier_freq=2.)
         self.signal_sum = self.signal + self.discrete_signal
         self.discrete_signal_sum = DiscreteSignalSum.from_SignalSum(self.signal_sum, dt=0.5, n_samples=20)
+        self.signal_list = SignalList([self.signal, self.signal_sum, self.discrete_signal])
 
     def test_jit_eval(self):
         """Test jit-compilation of signal evaluation."""
@@ -408,6 +484,13 @@ class TestSignalsJaxTransformations(QiskitOdeTestCase, TestJaxBase):
         self._test_jit_signal_eval(self.discrete_signal, t=2.1)
         self._test_jit_signal_eval(self.signal_sum, t=2.1)
         self._test_jit_signal_eval(self.discrete_signal_sum, t=2.1)
+
+    def test_signal_list_jit_eval(self):
+        """Test jit-compilation of SignalList evaluation."""
+        call_jit = jit(lambda t: Array(self.signal_list(t)).data)
+
+        t_vals = np.array([0.123, 0.5324, 1.232])
+        self.assertAllClose(call_jit(t_vals), self.signal_list(t_vals))
 
     def test_jit_grad_eval(self):
         """Test taking the gradient and then jitting signal evaluation functions."""
