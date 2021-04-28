@@ -76,13 +76,13 @@ class Signal:
             envelope = Array(complex(envelope))
 
         if isinstance(envelope, Array):
-            if envelope.backend == 'jax':
+            if envelope.backend == "jax":
                 self._envelope = lambda t: envelope * jnp.ones_like(t)
             else:
                 self._envelope = lambda t: envelope * np.ones_like(t)
 
         if callable(envelope):
-            if dispatch.default_backend() == 'jax':
+            if dispatch.default_backend() == "jax":
                 self._envelope = lambda t: Array(envelope(t))
             else:
                 self._envelope = envelope
@@ -248,7 +248,7 @@ class Constant(Signal):
         self.carrier_freq = 0.0
 
     def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        if self._value.backend == 'jax':
+        if self._value.backend == "jax":
             return self._value * jnp.ones_like(t)
         else:
             return self._value * np.ones_like(t)
@@ -504,7 +504,7 @@ class SignalCollection:
         else:
             return sublist
 
-    def conjugate(self) -> 'SignalCollection':
+    def conjugate(self) -> "SignalCollection":
         """Return the conjugation of this collection."""
         return self.__class__([sig.conjugate() for sig in self.components])
 
@@ -561,8 +561,10 @@ class SignalSum(SignalCollection, Signal):
                 [sig.envelope for sig in self.components]
             )
         else:
+
             def eval_envelopes(t):
                 return [sig.envelope(t) for sig in self.components]
+
             self._eval_envelopes = eval_envelopes
 
         carrier_freqs = []
@@ -869,12 +871,12 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
             carrier_freq = np.append(sig1.carrier_freq, sig2.carrier_freq)
             phase = np.append(sig1.phase, sig2.phase)
             return DiscreteSignalSum(
-                                     dt=sig1.dt,
-                                     samples=samples,
-                                     start_time=sig1.start_time,
-                                     carrier_freq=carrier_freq,
-                                     phase=phase,
-                                    )
+                dt=sig1.dt,
+                samples=samples,
+                start_time=sig1.start_time,
+                carrier_freq=carrier_freq,
+                phase=phase,
+            )
 
     sig_sum = SignalSum(*(sig1.components + sig2.components))
 
@@ -906,12 +908,12 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     # if sig1 contains only a constant and sig2 is a DiscreteSignalSum
     if len(sig1) == 1 and isinstance(sig1[0], Constant) and isinstance(sig2, DiscreteSignalSum):
         return DiscreteSignalSum(
-                                 dt=sig2.dt,
-                                 samples=sig1(0.0) * sig2.samples,
-                                 start_time=sig2.start_time,
-                                 carrier_freq=sig2.carrier_freq,
-                                 phase=sig2.phase,
-                                )
+            dt=sig2.dt,
+            samples=sig1(0.0) * sig2.samples,
+            start_time=sig2.start_time,
+            carrier_freq=sig2.carrier_freq,
+            phase=sig2.phase,
+        )
     # if both are DiscreteSignalSum objects with compatible structure, append data together
     elif isinstance(sig1, DiscreteSignalSum) and isinstance(sig2, DiscreteSignalSum):
         if (
@@ -921,8 +923,20 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
         ):
             # this vectorized operation produces a 2d array whose columns are the products of
             # the original columns
-            new_samples = Array(0.5 * (sig1.samples[:, :, None] * sig2.samples[:, None, :]).reshape((sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]), order='C'))
-            new_samples_conj = Array(0.5 * (sig1.samples[:, :, None] * sig2.samples[:, None, :].conj()).reshape((sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]), order='C'))
+            new_samples = Array(
+                0.5
+                * (sig1.samples[:, :, None] * sig2.samples[:, None, :]).reshape(
+                    (sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]),
+                    order="C",
+                )
+            )
+            new_samples_conj = Array(
+                0.5
+                * (sig1.samples[:, :, None] * sig2.samples[:, None, :].conj()).reshape(
+                    (sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]),
+                    order="C",
+                )
+            )
             samples = np.append(new_samples, new_samples_conj, axis=1)
 
             new_freqs = (sig1.carrier_freq[:, None] + sig2.carrier_freq).flatten()
@@ -934,12 +948,12 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
             phases = np.append(Array(new_phases), Array(new_phases_conj))
 
             return DiscreteSignalSum(
-                                     dt=sig1.dt,
-                                     samples=samples,
-                                     start_time=sig1.start_time,
-                                     carrier_freq=freqs,
-                                     phase=phases,
-                                    )
+                dt=sig1.dt,
+                samples=samples,
+                start_time=sig1.start_time,
+                carrier_freq=freqs,
+                phase=phases,
+            )
 
     # initialize to empty sum
     product = SignalSum()
@@ -1095,21 +1109,21 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
     """
 
     if isinstance(sig, (int, float, complex)) or (isinstance(sig, Array) and sig.ndim == 0):
-        sig = Constant(sig)
-
-    if isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
+        return SignalSum(Constant(sig))
+    elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
         return DiscreteSignalSum(
-            dt=sig.dt, samples=Array([sig.samples.data]).transpose(1, 0), start_time=sig.start_time, carrier_freq=Array([sig.carrier_freq.data]), phase=Array([sig.phase.data])
+            dt=sig.dt,
+            samples=Array([sig.samples.data]).transpose(1, 0),
+            start_time=sig.start_time,
+            carrier_freq=Array([sig.carrier_freq.data]),
+            phase=Array([sig.phase.data]),
         )
-
-    if isinstance(sig, Signal) and not isinstance(sig, SignalSum):
-        sig = SignalSum(sig)
-
-    if isinstance(sig, SignalSum):
+    elif isinstance(sig, Signal) and not isinstance(sig, SignalSum):
+        return SignalSum(sig)
+    elif isinstance(sig, SignalSum):
         return sig
 
-    if not isinstance(sig, SignalSum):
-        raise QiskitError("Input type incompatible with SignalSum.")
+    raise QiskitError("Input type incompatible with SignalSum.")
 
 
 def array_funclist_evaluate(func_list: List[Callable]) -> Callable:
