@@ -134,7 +134,7 @@ class Signal:
         return self.envelope(t) * np.exp(arg)
 
     def __call__(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        """Vectorized evaluation of the signal at time t."""
+        """Vectorized evaluation of the signal at time(s) t."""
         return np.real(self.complex_value(t))
 
     def __str__(self) -> str:
