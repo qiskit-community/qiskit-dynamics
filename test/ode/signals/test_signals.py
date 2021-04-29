@@ -325,11 +325,11 @@ class TestConstant(QiskitOdeTestCase):
         """Test vectorized evaluation of envelope."""
         t_vals = np.array([1.1, 1.23])
         self.assertAllClose(self.constant1.envelope(t_vals), np.array([1.0, 1.0]))
-        self.assertAllClose(self.constant2.envelope(t_vals), np.array([3.0, 3.0]))
+        self.assertAllClose(self.constant2.envelope(t_vals), 3.0 * np.ones_like(t_vals))
 
         t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
         self.assertAllClose(self.constant1.envelope(t_vals), np.array([[1.0, 1.0], [1.0, 1.0]]))
-        self.assertAllClose(self.constant2.envelope(t_vals), np.array([[3.0, 3.0], [3.0, 3.0]]))
+        self.assertAllClose(self.constant2.envelope(t_vals), 3.0 * np.ones_like(t_vals))
 
     def test_complex_value(self):
         """Test complex_value evaluation."""
@@ -343,15 +343,13 @@ class TestConstant(QiskitOdeTestCase):
         """Test vectorized complex_value evaluation."""
         t_vals = np.array([1.1, 1.23])
         self.assertAllClose(self.constant1.complex_value(t_vals), np.array([1.0, 1.0]))
-        self.assertAllClose(self.constant2.complex_value(t_vals), np.array([3.0, 3.0]))
+        self.assertAllClose(self.constant2.complex_value(t_vals), 3.0 * np.ones_like(t_vals))
 
         t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
         self.assertAllClose(
             self.constant1.complex_value(t_vals), np.array([[1.0, 1.0], [1.0, 1.0]])
         )
-        self.assertAllClose(
-            self.constant2.complex_value(t_vals), np.array([[3.0, 3.0], [3.0, 3.0]])
-        )
+        self.assertAllClose(self.constant2.complex_value(t_vals), 3.0 * np.ones_like(t_vals))
 
     def test_call(self):
         """Test __call__."""
@@ -495,6 +493,7 @@ class TestSignalSum(QiskitOdeTestCase):
 
         self.sig_sum1 = self.signal1 + self.signal2
         self.sig_sum2 = self.signal2 - self.signal3
+        self.double_sig_sum = self.sig_sum1 - self.sig_sum2
 
     def test_envelope(self):
         """Test envelope evaluation."""
@@ -505,12 +504,30 @@ class TestSignalSum(QiskitOdeTestCase):
         self.assertAllClose(
             self.sig_sum2.envelope(t), [self.signal2.envelope(t), -self.signal3.envelope(t)]
         )
+        self.assertAllClose(
+            self.double_sig_sum.envelope(t),
+            [
+                self.signal1.envelope(t),
+                self.signal2.envelope(t),
+                -self.signal2.envelope(t),
+                self.signal3.envelope(t),
+            ],
+        )
         t = 1.23
         self.assertAllClose(
             self.sig_sum1.envelope(t), [self.signal1.envelope(t), self.signal2.envelope(t)]
         )
         self.assertAllClose(
             self.sig_sum2.envelope(t), [self.signal2.envelope(t), -self.signal3.envelope(t)]
+        )
+        self.assertAllClose(
+            self.double_sig_sum.envelope(t),
+            [
+                self.signal1.envelope(t),
+                self.signal2.envelope(t),
+                -self.signal2.envelope(t),
+                self.signal3.envelope(t),
+            ],
         )
 
     def test_envelope_vectorized(self):
@@ -523,6 +540,18 @@ class TestSignalSum(QiskitOdeTestCase):
         self.assertAllClose(
             self.sig_sum2.envelope(t_vals),
             [[self.signal2.envelope(t), -self.signal3.envelope(t)] for t in t_vals],
+        )
+        self.assertAllClose(
+            self.double_sig_sum.envelope(t_vals),
+            [
+                [
+                    self.signal1.envelope(t),
+                    self.signal2.envelope(t),
+                    -self.signal2.envelope(t),
+                    self.signal3.envelope(t),
+                ]
+                for t in t_vals
+            ],
         )
         t_vals = np.array([[0.0, 1.23], [0.1, 2.0]])
         self.assertAllClose(
@@ -539,6 +568,21 @@ class TestSignalSum(QiskitOdeTestCase):
                 for t_row in t_vals
             ],
         )
+        self.assertAllClose(
+            self.double_sig_sum.envelope(t_vals),
+            [
+                [
+                    [
+                        self.signal1.envelope(t),
+                        self.signal2.envelope(t),
+                        -self.signal2.envelope(t),
+                        self.signal3.envelope(t),
+                    ]
+                    for t in t_row
+                ]
+                for t_row in t_vals
+            ],
+        )
 
     def test_complex_value(self):
         """Test complex_value evaluation."""
@@ -551,6 +595,10 @@ class TestSignalSum(QiskitOdeTestCase):
             self.sig_sum2.complex_value(t),
             self.signal2.complex_value(t) - self.signal3.complex_value(t),
         )
+        self.assertAllClose(
+            self.double_sig_sum.complex_value(t),
+            self.signal1.complex_value(t) + self.signal3.complex_value(t),
+        )
         t = 1.23
         self.assertAllClose(
             self.sig_sum1.complex_value(t),
@@ -559,6 +607,10 @@ class TestSignalSum(QiskitOdeTestCase):
         self.assertAllClose(
             self.sig_sum2.complex_value(t),
             self.signal2.complex_value(t) - self.signal3.complex_value(t),
+        )
+        self.assertAllClose(
+            self.double_sig_sum.complex_value(t),
+            self.signal1.complex_value(t) + self.signal3.complex_value(t),
         )
 
     def test_complex_value_vectorized(self):
@@ -571,6 +623,10 @@ class TestSignalSum(QiskitOdeTestCase):
         self.assertAllClose(
             self.sig_sum2.complex_value(t_vals),
             [self.signal2.complex_value(t) - self.signal3.complex_value(t) for t in t_vals],
+        )
+        self.assertAllClose(
+            self.double_sig_sum.complex_value(t_vals),
+            [self.signal1.complex_value(t) + self.signal3.complex_value(t) for t in t_vals],
         )
         t_vals = np.array([[0.0, 1.23], [0.1, 2.0]])
         self.assertAllClose(
@@ -587,15 +643,24 @@ class TestSignalSum(QiskitOdeTestCase):
                 for t_row in t_vals
             ],
         )
+        self.assertAllClose(
+            self.double_sig_sum.complex_value(t_vals),
+            [
+                [self.signal1.complex_value(t) + self.signal3.complex_value(t) for t in t_row]
+                for t_row in t_vals
+            ],
+        )
 
     def test_call(self):
         """Test __call__."""
         t = 0.0
         self.assertAllClose(self.sig_sum1(t), self.signal1(t) + self.signal2(t))
         self.assertAllClose(self.sig_sum2(t), self.signal2(t) - self.signal3(t))
+        self.assertAllClose(self.double_sig_sum(t), self.signal1(t) + self.signal3(t))
         t = 1.23
         self.assertAllClose(self.sig_sum1(t), self.signal1(t) + self.signal2(t))
         self.assertAllClose(self.sig_sum2(t), self.signal2(t) - self.signal3(t))
+        self.assertAllClose(self.double_sig_sum(t), self.signal1(t) + self.signal3(t))
 
     def test_call_vectorized(self):
         """Test vectorized __call__."""
@@ -606,6 +671,9 @@ class TestSignalSum(QiskitOdeTestCase):
         self.assertAllClose(
             self.sig_sum2(t_vals), [self.signal2(t) - self.signal3(t) for t in t_vals]
         )
+        self.assertAllClose(
+            self.double_sig_sum(t_vals), [self.signal1(t) + self.signal3(t) for t in t_vals]
+        )
         t_vals = np.array([[0.0, 1.23], [0.1, 2.0]])
         self.assertAllClose(
             self.sig_sum1(t_vals),
@@ -614,6 +682,10 @@ class TestSignalSum(QiskitOdeTestCase):
         self.assertAllClose(
             self.sig_sum2(t_vals),
             [[self.signal2(t) - self.signal3(t) for t in t_row] for t_row in t_vals],
+        )
+        self.assertAllClose(
+            self.double_sig_sum(t_vals),
+            [[self.signal1(t) + self.signal3(t) for t in t_row] for t_row in t_vals],
         )
 
     def test_conjugate(self):
@@ -646,6 +718,8 @@ class TestDiscreteSignalSum(TestSignalSum):
         self.signal1 = DiscreteSignal.from_Signal(self.signal1, dt=0.5, start_time=0, n_samples=10)
         self.signal2 = DiscreteSignal.from_Signal(self.signal2, dt=0.5, start_time=0, n_samples=10)
         self.signal3 = DiscreteSignal.from_Signal(self.signal3, dt=0.5, start_time=0, n_samples=10)
+
+        self.double_sig_sum = self.sig_sum1 - self.sig_sum2
 
 
 class TestSignalList(QiskitOdeTestCase):

@@ -51,7 +51,12 @@ class Signal:
 
     Note: this class assumes that the envelope function is vectorized. If it isn't, it can
     be vectorized automatically by calling ``numpy.vectorize``\, or, if using JAX, by
-    calling ``jax.numpy.vectorize``\.
+    calling ``jax.numpy.vectorize``\. E.g.:
+
+    .. code-block:: python
+
+        vectorized_func = np.vectorize(non_vectorized_func)
+        signal = Signal(envelope=vectorized_func, carrier_freq=5.)
     """
 
     def __init__(
@@ -243,25 +248,13 @@ class Constant(Signal):
             value: the constant.
             name: name of the constant.
         """
-        self._name = name
-        self._value = np.real(Array(value))
-        self.phase = 0.0
-        self.carrier_freq = 0.0
-
-    def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        if self._value.backend == "jax":
-            return self._value * jnp.ones_like(t)
-        else:
-            return self._value * np.ones_like(t)
-
-    def conjugate(self):
-        return Constant(self._value)
+        super().__init__(np.real(Array(value)), name=name)
 
     def __str__(self) -> str:
         if self.name is not None:
             return str(self.name)
 
-        return "Constant({})".format(str(self._value))
+        return "Constant({})".format(str(self(0.0)))
 
 
 class DiscreteSignal(Signal):
@@ -272,7 +265,6 @@ class DiscreteSignal(Signal):
         dt: float,
         samples: Union[Array, List],
         start_time: float = 0.0,
-        duration: int = None,
         carrier_freq: float = 0.0,
         phase: float = 0.0,
         name: str = None,
@@ -283,20 +275,13 @@ class DiscreteSignal(Signal):
             dt: The duration of each sample.
             samples: The array of samples.
             start_time: The time at which the signal starts.
-            duration: The duration of the signal in samples.
             carrier_freq: The frequency of the carrier.
             phase: The phase of the carrier.
             name: name of the signal.
         """
         self._name = name
-
         self._dt = dt
-
-        if samples is not None:
-            self._samples = Array(samples)
-        else:
-            self._samples = Array([0.0] * duration)
-
+        self._samples = Array(samples)
         self._start_time = start_time
 
         # initialize internally stored carrier/phase information
@@ -417,7 +402,6 @@ class DiscreteSignal(Signal):
             dt=self._dt,
             samples=np.conjugate(self._samples),
             start_time=self._start_time,
-            duration=self.duration,
             carrier_freq=-self.carrier_freq,
             phase=-self.phase,
         )
@@ -633,7 +617,6 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         dt: float,
         samples: Union[List, Array],
         start_time: float = 0.0,
-        duration: int = None,
         carrier_freq: Union[List, np.array, Array] = None,
         phase: Union[List, np.array, Array] = None,
         name: str = None,
@@ -647,7 +630,6 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             samples: The 2d array representing a list whose elements are all envelope values
                      at a given time.
             start_time: The time at which the signal starts.
-            duration: The duration of the signal in samples.
             carrier_freq: Array with the carrier frequencies of each term in the sum.
             phase: Array with the phases of each term in the sum.
             name: name of the signal.
@@ -671,7 +653,6 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
                     dt=self.dt,
                     samples=sample_row,
                     start_time=self.start_time,
-                    duration=self.duration,
                     carrier_freq=freq,
                     phase=phi,
                 )
@@ -734,12 +715,14 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         )
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+        """Compute the complex value."""
         if dispatch.default_backend() == "jax":
             t = Array(t)
         exp_phases = np.exp(np.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
 
     def __str__(self):
+        """Get the string rep."""
         if self.name is not None:
             return str(self.name)
 
@@ -841,7 +824,7 @@ class SignalList(SignalCollection):
 
             for term in sig_entry:
                 if isinstance(term, Constant):
-                    val += term._value.data
+                    val += Array(term(0.0)).data
 
             drift_array.append(val)
 
@@ -1003,7 +986,6 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
             dt=sig2.dt,
             samples=sig1(0.0) * sig2.samples,
             start_time=sig2.start_time,
-            duration=sig2.duration,
             carrier_freq=sig2.carrier_freq,
             phase=sig2.phase,
         )
@@ -1025,7 +1007,6 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
                 dt=sig2.dt,
                 samples=0.5 * sig1.samples * sig2.samples,
                 start_time=sig2.start_time,
-                duration=sig2.duration,
                 carrier_freq=sig1.carrier_freq + sig2.carrier_freq,
                 phase=sig1.phase + sig2.phase,
             )
@@ -1033,7 +1014,6 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
                 dt=sig2.dt,
                 samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
                 start_time=sig2.start_time,
-                duration=sig2.duration,
                 carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
                 phase=sig1.phase - sig2.phase,
             )
