@@ -721,7 +721,6 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         times = start_time + (np.arange(n_samples) + 0.5) * dt
 
         freq = signal_sum.carrier_freq
-        samples = None
 
         if sample_carrier:
             freq = 0.0 * freq
