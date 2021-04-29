@@ -484,7 +484,6 @@ class SignalCollection:
         if type(idx) == np.ndarray and idx.ndim > 0:
             idx = list(idx)
 
-        sublist = None
         # get a list of the subcomponents
         if type(idx) == list:
             # handle lists
