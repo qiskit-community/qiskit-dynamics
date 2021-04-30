@@ -59,7 +59,7 @@ class Signal:
       same shape via entry-wise application of the function. If it isn't, it can be vectorized
       automatically by calling ``numpy.vectorize``\, or, if using JAX, by
       calling ``jax.numpy.vectorize``\. E.g.:
-      
+
     .. code-block:: python
 
         vectorized_func = np.vectorize(non_vectorized_func)
