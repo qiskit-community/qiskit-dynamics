@@ -47,12 +47,19 @@ class Signal:
     - :math:`\nu` is the carrier frequency.
     - :math:`\phi` is the phase.
 
-    The envelope function can be complex-valued, and the frequency and phase must be real.
+    The envelope function can be specified either as a constant numeric value
+    (indicating a constant function), or as a complex-valued callable,
+    and the frequency and phase must be real.
 
-    Note: this class assumes that the envelope function is vectorized. If it isn't, it can
-    be vectorized automatically by calling ``numpy.vectorize``\, or, if using JAX, by
-    calling ``jax.numpy.vectorize``\. E.g.:
+    Notes:
 
+    - If the envelope is specified as a constant, the real part is automatically taken.
+    - If the envelope is passed as a callable, this class assumes that the function is
+      vectorized: i.e. if called with an array of time values, it will return an array of the
+      same shape via entry-wise application of the function. If it isn't, it can be vectorized
+      automatically by calling ``numpy.vectorize``\, or, if using JAX, by
+      calling ``jax.numpy.vectorize``\. E.g.:
+      
     .. code-block:: python
 
         vectorized_func = np.vectorize(non_vectorized_func)
@@ -76,17 +83,23 @@ class Signal:
             name: Name of the signal.
         """
         self._name = name
+        self._is_constant = False
 
         if isinstance(envelope, (complex, float, int)):
             envelope = Array(complex(envelope))
 
         if isinstance(envelope, Array):
+            envelope = np.real(envelope)
+
+            # if envelope is constant and the carrier is zero, this is a constant signal
+            if carrier_freq == 0.0:
+                self._is_constant = True
+
             if envelope.backend == "jax":
                 self._envelope = lambda t: envelope * jnp.ones_like(t)
             else:
                 self._envelope = lambda t: envelope * np.ones_like(t)
-
-        if callable(envelope):
+        elif callable(envelope):
             if dispatch.default_backend() == "jax":
                 self._envelope = lambda t: Array(envelope(t))
             else:
@@ -100,6 +113,11 @@ class Signal:
     def name(self) -> str:
         """Return the name of the signal."""
         return self._name
+
+    @property
+    def is_constant(self) -> bool:
+        """Whether or not the signal is constant."""
+        return self._is_constant
 
     @property
     def carrier_freq(self) -> Array:
@@ -146,6 +164,9 @@ class Signal:
         """Return string representation."""
         if self.name is not None:
             return str(self.name)
+
+        if self.is_constant:
+            return "Constant({})".format(str(self(0.0)))
 
         return "Signal(carrier_freq={freq}, phase={phase})".format(
             freq=str(self.carrier_freq), phase=str(self.phase)
@@ -238,25 +259,6 @@ class Signal:
             plotter.legend()
 
 
-class Constant(Signal):
-    """Signal representing a constant value."""
-
-    def __init__(self, value: complex, name: str = None):
-        """Initialize a constant signal.
-
-        Args:
-            value: the constant.
-            name: name of the constant.
-        """
-        super().__init__(np.real(Array(value)), name=name)
-
-    def __str__(self) -> str:
-        if self.name is not None:
-            return str(self.name)
-
-        return "Constant({})".format(str(self(0.0)))
-
-
 class DiscreteSignal(Signal):
     """A piecewise constant signal implemented as an array of samples."""
 
@@ -280,6 +282,7 @@ class DiscreteSignal(Signal):
             name: name of the signal.
         """
         self._name = name
+        self._is_constant = False
         self._dt = dt
         self._samples = Array(samples)
         self._start_time = start_time
@@ -449,6 +452,7 @@ class SignalCollection:
         Args:
             signal_list: List of signals.
         """
+        self._is_constant = False
         self._components = signal_list
 
     @property
@@ -532,6 +536,10 @@ class SignalSum(SignalCollection, Signal):
                 components += sig.components
             elif isinstance(sig, Signal):
                 components.append(sig)
+            elif isinstance(sig, (int, float, complex)) or (
+                isinstance(sig, Array) and sig.ndim == 0
+            ):
+                components.append(Signal(sig))
             else:
                 raise QiskitError(
                     "Components of a SignalSum must be instances of a Signal subclass."
@@ -593,7 +601,7 @@ class SignalSum(SignalCollection, Signal):
         """
 
         if len(self) == 0:
-            return Constant(0.0)
+            return Signal(0.0)
         elif len(self) == 1:
             return self.components[0]
 
@@ -635,6 +643,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             name: name of the signal.
         """
         self._name = name
+        self._is_constant = False
         self._dt = dt
         self._samples = Array(samples)
         self._start_time = start_time
@@ -777,6 +786,8 @@ class SignalList(SignalCollection):
 
     def __init__(self, signal_list: List[Signal]):
 
+        signal_list = [to_SignalSum(signal) for signal in signal_list]
+
         super().__init__(signal_list)
 
         # setup complex value and full signal evaluation
@@ -811,7 +822,7 @@ class SignalList(SignalCollection):
     @property
     def drift(self) -> Array:
         r"""Return the drift ``Array``\, i.e. return an ``Array`` whose entries are the sum
-        of the ``Constant`` parts of the corresponding component of this ``SignalList``\.
+        of the constant parts of the corresponding component of this ``SignalList``\.
         """
 
         drift_array = []
@@ -823,7 +834,7 @@ class SignalList(SignalCollection):
                 sig_entry = SignalSum(sig_entry)
 
             for term in sig_entry:
-                if isinstance(term, Constant):
+                if term.is_constant:
                     val += Array(term(0.0)).data
 
             drift_array.append(val)
@@ -888,7 +899,7 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
     sig1, sig2 = sort_signals(sig1, sig2)
 
     # if sig1 contains only a constant and sig2 is a DiscreteSignalSum
-    if len(sig1) == 1 and isinstance(sig1[0], Constant) and isinstance(sig2, DiscreteSignalSum):
+    if len(sig1) == 1 and sig1[0].is_constant and isinstance(sig2, DiscreteSignalSum):
         return DiscreteSignalSum(
             dt=sig2.dt,
             samples=sig1(0.0) * sig2.samples,
@@ -954,8 +965,9 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
 
     Special cases:
 
-        - Multiplication of two ``Constant``\s returns a ``Constant``\.
-        - Multiplication of a ``Constant`` and a ``DiscreteSignal`` returns a ``DiscreteSignal``\.
+        - Multiplication of two constant ``Signal``\s returns a constant ``Signal``\.
+        - Multiplication of a constant ``Signal`` and a ``DiscreteSignal`` returns
+        a ``DiscreteSignal``\.
         - If two ``DiscreteSignal``\s have compatible parameters, the resulting signals are
         ``DiscreteSignal``\, with the multiplication being implemented by array multiplication of
         the samples.
@@ -964,7 +976,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
 
     When a sum with two signals is produced, the carrier frequency (phase) of each component are,
     respectively, the sum and difference of the two frequencies (phases). For special cases
-    involving a ``Constant``\s and a non-``Constant`` signal, the carrier frequency and phase
+    involving constant ``Signal``\s and a non-constant ``Signal``, the carrier frequency and phase
     are preserved as that of the non-constant piece.
 
     Args:
@@ -978,9 +990,9 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
     # ensure signals are ordered from most to least specialized
     sig1, sig2 = sort_signals(sig1, sig2)
 
-    if type(sig1) is Constant and type(sig2) is Constant:
-        return Constant(sig1(0.0) * sig2(0.0))
-    elif type(sig1) is Constant and type(sig2) is DiscreteSignal:
+    if sig1.is_constant and sig2.is_constant:
+        return Signal(sig1(0.0) * sig2(0.0))
+    elif sig1.is_constant and type(sig2) is DiscreteSignal:
         # multiply the samples by the constant
         return DiscreteSignal(
             dt=sig2.dt,
@@ -989,7 +1001,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
             carrier_freq=sig2.carrier_freq,
             phase=sig2.phase,
         )
-    elif type(sig1) is Constant and type(sig2) is Signal:
+    elif sig1.is_constant and type(sig2) is Signal:
         const = sig1(0.0)
 
         def new_env(t):
@@ -1043,11 +1055,11 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     r"""Utility function for ordering a pair of ``Signal``\s according to the partial order:
     ``sig1 <= sig2`` if and only if:
         - ``type(sig1)`` precedes ``type(sig2)`` in the list
-        ``[Constant, DiscreteSignal, Signal, SignalSum, DiscreteSignalSum]``\.
+        ``[constant, DiscreteSignal, Signal, SignalSum, DiscreteSignalSum]``\.
     """
-    if isinstance(sig1, Constant):
+    if sig1.is_constant:
         pass
-    elif isinstance(sig2, Constant):
+    elif sig2.is_constant:
         sig1, sig2 = sig2, sig1
     elif isinstance(sig1, DiscreteSignal) and not isinstance(sig1, DiscreteSignalSum):
         pass
@@ -1074,7 +1086,7 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
 
         - If it is already a ``SignalSum``\, do nothing.
         - If it is a Signal but not a ``SignalSum``\, wrap in a ``SignalSum``\.
-        - If it is a number, wrap in ``Constant`` in a ``SignalSum``\.
+        - If it is a number, wrap in constant ``Signal`` in a ``SignalSum``\.
         - Otherwise, raise an error.
 
     Args:
@@ -1088,7 +1100,7 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
     """
 
     if isinstance(sig, (int, float, complex)) or (isinstance(sig, Array) and sig.ndim == 0):
-        return SignalSum(Constant(sig))
+        return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
         return DiscreteSignalSum(
             dt=sig.dt,

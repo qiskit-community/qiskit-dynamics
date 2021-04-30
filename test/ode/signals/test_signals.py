@@ -17,7 +17,7 @@ Tests for signals.
 
 import numpy as np
 
-from qiskit_ode.signals import Signal, Constant, DiscreteSignal, DiscreteSignalSum, SignalList
+from qiskit_ode.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
 from qiskit_ode.dispatch import Array
 
 from ..common import QiskitOdeTestCase, TestJaxBase
@@ -307,11 +307,11 @@ class TestSignal(QiskitOdeTestCase):
 
 
 class TestConstant(QiskitOdeTestCase):
-    """Tests for Constant object."""
+    """Tests for constant signal object."""
 
     def setUp(self):
-        self.constant1 = Constant(1.0)
-        self.constant2 = Constant(3.0 + 1j * 2)
+        self.constant1 = Signal(1.0)
+        self.constant2 = Signal(3.0 + 1j * 2)
 
     def test_envelope(self):
         """Test envelope evaluation."""
@@ -727,7 +727,7 @@ class TestSignalList(QiskitOdeTestCase):
 
     def setUp(self):
         self.sig = Signal(lambda t: t, carrier_freq=3.0)
-        self.const = Constant(5.0)
+        self.const = Signal(5.0)
         self.discrete_sig = DiscreteSignal(
             dt=0.5, samples=[1.0, 2.0, 3.0], carrier_freq=1.0, phase=0.1
         )
@@ -771,6 +771,19 @@ class TestSignalList(QiskitOdeTestCase):
 
         expected = np.array([self.const(0.0), 0, self.const(0.0)])
         self.assertAllClose(self.sig_list.drift, expected)
+
+    def test_construction_with_numbers(self):
+        """Test construction with non-wrapped constant values."""
+
+        sig_list = SignalList([4.0, 2.0, Signal(lambda t: t)])
+        # pylint: disable=no-member
+        self.assertTrue(sig_list[0][0].is_constant)
+        # pylint: disable=no-member
+        self.assertTrue(sig_list[1][0].is_constant)
+        # pylint: disable=no-member
+        self.assertFalse(sig_list[2][0].is_constant)
+
+        self.assertAllClose(sig_list(3.0), np.array([4.0, 2.0, 3.0]))
 
 
 class TestSignalCollection(QiskitOdeTestCase):
@@ -836,7 +849,7 @@ class TestSignalsJaxTransformations(QiskitOdeTestCase, TestJaxBase):
 
     def setUp(self):
         self.signal = Signal(lambda t: t ** 2, carrier_freq=3.0)
-        self.constant = Constant(3 * np.pi)
+        self.constant = Signal(3 * np.pi)
         self.discrete_signal = DiscreteSignal(
             dt=0.5, samples=jnp.ones(20, dtype=complex), carrier_freq=2.0
         )
@@ -853,6 +866,19 @@ class TestSignalsJaxTransformations(QiskitOdeTestCase, TestJaxBase):
         self._test_jit_signal_eval(self.discrete_signal, t=2.1)
         self._test_jit_signal_eval(self.signal_sum, t=2.1)
         self._test_jit_signal_eval(self.discrete_signal_sum, t=2.1)
+
+    def test_jit_grad_constant_construct(self):
+        """Test jitting and grad through a function which constructs a constant signal."""
+
+        def eval_const(a):
+            a = Array(a)
+            return Signal(a)(1.1).data
+
+        jit_eval = jit(eval_const)
+        self.assertAllClose(jit_eval(3.0), 3.0)
+
+        jit_grad_eval = jit(grad(eval_const))
+        self.assertAllClose(jit_grad_eval(3.0), 1.0)
 
     def test_signal_list_jit_eval(self):
         """Test jit-compilation of SignalList evaluation."""

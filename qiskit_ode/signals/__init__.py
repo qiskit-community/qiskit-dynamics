@@ -29,7 +29,6 @@ Signal Classes
 
    Signal
    DiscreteSignal
-   Constant
    SignalSum
    DiscreteSignalSum
    SignalList
@@ -43,5 +42,5 @@ Transfer Functions
    Convolution
 """
 
-from .signals import Signal, DiscreteSignal, Constant, SignalSum, DiscreteSignalSum, SignalList
+from .signals import Signal, DiscreteSignal, SignalSum, DiscreteSignalSum, SignalList
 from .transfer_functions import Convolution, Sampler, IQMixer

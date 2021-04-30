@@ -19,7 +19,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import GeneratorModel
 from qiskit_ode.models.generator_models import CallableGenerator
-from qiskit_ode.signals import Constant, Signal
+from qiskit_ode.signals import Signal
 from qiskit_ode.dispatch import Array
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -36,7 +36,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         w = 2.0
         r = 0.5
         operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * r * self.X / 2]
-        signals = [Constant(w), Signal(1.0, w)]
+        signals = [w, Signal(1.0, w)]
 
         self.w = 2
         self.r = r
@@ -257,7 +257,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         """Test error being raised if signals is the wrong length."""
 
         try:
-            self.basic_model.signals = [Constant(1.0)]
+            self.basic_model.signals = [1.0]
         except QiskitError as e:
             self.assertTrue("same length" in str(e))
 
@@ -292,7 +292,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         def drive_func(t):
             return t ** 2 + t ** 3 * 1j
 
-        self.basic_model.signals = [Constant(self.w), Signal(drive_func, self.w)]
+        self.basic_model.signals = [self.w, Signal(drive_func, self.w)]
 
         # result should now contain both X and Y terms halved
         t = 2.1231 * np.pi

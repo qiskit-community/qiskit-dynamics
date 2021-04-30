@@ -17,7 +17,7 @@ Tests for algebraic operations on signals.
 
 import numpy as np
 
-from qiskit_ode.signals import Signal, Constant, DiscreteSignal, SignalSum, DiscreteSignalSum
+from qiskit_ode.signals import Signal, DiscreteSignal, SignalSum, DiscreteSignalSum
 
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -34,7 +34,7 @@ class TestSignalAddition(QiskitOdeTestCase):
     def test_SignalSum_construction(self):
         """Test correct construction of signal sum."""
 
-        sig_sum = Constant(1.0) + Signal(lambda t: t)
+        sig_sum = 1.0 + Signal(lambda t: t)
         self.assertTrue(isinstance(sig_sum, SignalSum))
 
         self.assertAllClose(sig_sum(3.0), 4.0)
@@ -66,12 +66,12 @@ class TestSignalAddition(QiskitOdeTestCase):
 
         sig_sum = 1.0 + Signal(3.0, carrier_freq=2.0)
         self.assertTrue(isinstance(sig_sum, SignalSum))
-        self.assertTrue(isinstance(sig_sum[1], Constant))  # calls __radd__
+        self.assertTrue(sig_sum[1].is_constant)  # calls __radd__
         self.assertAllClose(sig_sum.envelope(1.5), np.array([3.0, 1.0]))
 
         sig_sum = Signal(3.0, carrier_freq=2.0) - 1
         self.assertTrue(isinstance(sig_sum, SignalSum))
-        self.assertTrue(isinstance(sig_sum[1], Constant))  # calls __radd__
+        self.assertTrue(sig_sum[1].is_constant)  # calls __radd__
         self.assertAllClose(sig_sum.envelope(1.5), np.array([3.0, -1.0]))
 
 
@@ -117,18 +117,18 @@ class TestSignalMultiplication(QiskitOdeTestCase):
         self.assertAllClose(sig_prod(t_vals), sig1(t_vals) * sig2(t_vals) * sig3(t_vals))
 
     def test_constant_product(self):
-        """Test special handling of Constant products."""
+        """Test special handling of constant products."""
 
-        sig_prod = Constant(3.0) * Constant(2.0)
+        sig_prod = Signal(3.0) * Signal(2.0)
 
         self.assertTrue(len(sig_prod) == 1)
-        self.assertTrue(isinstance(sig_prod[0], Constant))
+        self.assertTrue(sig_prod[0].is_constant)
         self.assertAllClose(sig_prod(0.1), 6.0)
 
     def test_constant_discrete_product(self):
         """Test constant multiplied by DiscreteSignalSum."""
 
-        sig_prod = Constant(3.0) * DiscreteSignal(
+        sig_prod = 3.0 * DiscreteSignal(
             dt=0.5, samples=[1, 2, 3], start_time=0, carrier_freq=3.0, phase=0.1
         )
 
@@ -139,7 +139,7 @@ class TestSignalMultiplication(QiskitOdeTestCase):
 
         sig_prod = DiscreteSignal(
             dt=0.5, samples=[1, 2, 3], start_time=0, carrier_freq=3.0, phase=0.1
-        ) * Constant(3.0)
+        ) * Signal(3.0)
 
         self.assertTrue(isinstance(sig_prod, DiscreteSignalSum))
         self.assertAllClose(sig_prod.samples, 3 * np.array([[1], [2], [3]]))
@@ -149,7 +149,7 @@ class TestSignalMultiplication(QiskitOdeTestCase):
     def test_constant_signal_product(self):
         """Test constant multiplied by a general Signal."""
 
-        sig_prod = Constant(3.0) * Signal(lambda t: t, carrier_freq=3.0, phase=0.1)
+        sig_prod = 3.0 * Signal(lambda t: t, carrier_freq=3.0, phase=0.1)
 
         self.assertTrue(isinstance(sig_prod, SignalSum))
         self.assertTrue(len(sig_prod) == 1)
@@ -157,7 +157,7 @@ class TestSignalMultiplication(QiskitOdeTestCase):
             sig_prod(2.0), np.real(3.0 * 2.0 * np.exp(1j * (2 * np.pi * 3.0 * 2.0 + 0.1)))
         )
 
-        sig_prod = Signal(lambda t: t, carrier_freq=3.0, phase=0.1) * Constant(3.0)
+        sig_prod = Signal(lambda t: t, carrier_freq=3.0, phase=0.1) * Signal(3.0)
 
         self.assertTrue(isinstance(sig_prod, SignalSum))
         self.assertTrue(len(sig_prod) == 1)
@@ -205,7 +205,7 @@ class TestSignalAlgebraJaxTransformations(QiskitOdeTestCase, TestJaxBase):
 
     def setUp(self):
         self.signal = Signal(lambda t: t ** 2, carrier_freq=3.0)
-        self.constant = Constant(3 * np.pi)
+        self.constant = Signal(3 * np.pi)
         self.discrete_signal = DiscreteSignal(
             dt=0.5, samples=jnp.ones(20, dtype=complex), carrier_freq=2.0
         )

@@ -17,7 +17,7 @@ import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import HamiltonianModel
-from qiskit_ode.signals import Constant, Signal, SignalList
+from qiskit_ode.signals import Signal, SignalList
 from qiskit_ode.dispatch import Array
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -34,7 +34,7 @@ class TestHamiltonianModel(QiskitOdeTestCase):
         w = 2.0
         r = 0.5
         operators = [2 * np.pi * self.Z / 2, 2 * np.pi * r * self.X / 2]
-        signals = [Constant(w), Signal(1.0, w)]
+        signals = [w, Signal(1.0, w)]
 
         self.w = w
         self.r = r
@@ -234,7 +234,7 @@ class TestHamiltonianModel(QiskitOdeTestCase):
         def drive_func(t):
             return t ** 2 + t ** 3 * 1j
 
-        self.basic_hamiltonian.signals = [Constant(self.w), Signal(drive_func, self.w)]
+        self.basic_hamiltonian.signals = [self.w, Signal(drive_func, self.w)]
 
         # result should now contain both X and Y terms halved
         t = 2.1231 * np.pi
