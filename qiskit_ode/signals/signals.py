@@ -68,7 +68,7 @@ class Signal:
 
     def __init__(
         self,
-        envelope: Union[Callable, complex, float, int],
+        envelope: Union[Callable, complex, float, int, Array],
         carrier_freq: float = 0.0,
         phase: float = 0.0,
         name: Optional[str] = None,
@@ -258,7 +258,12 @@ class Signal:
 
 
 class DiscreteSignal(Signal):
-    """A piecewise constant signal implemented as an array of samples."""
+    r"""A piecewise constant signal implemented as an array of samples.
+
+    Envelope evaluation determines which sample to return based on `dt` and `start_time`.
+    If ``t`` is before (resp. after) the start (resp. end) of the definition of
+    the ``DiscreteSignal``\, the envelope will return the start value (resp. end value).
+    """
 
     def __init__(
         self,
@@ -279,21 +284,33 @@ class DiscreteSignal(Signal):
             phase: The phase of the carrier.
             name: name of the signal.
         """
-        self._name = name
-        self._is_constant = False
         self._dt = dt
         self._samples = Array(samples)
         self._start_time = start_time
 
-        # initialize internally stored carrier/phase information
-        self._carrier_freq = None
-        self._phase = None
-        self._carrier_arg = None
-        self._phase_arg = None
+        # define internal envelope function
+        if self._samples.backend == "jax":
 
-        # set carrier and phase
-        self.carrier_freq = carrier_freq
-        self.phase = phase
+            def envelope(t):
+                t = Array(t).data
+                idx = jnp.clip(
+                    jnp.array((t - self._start_time) // self._dt, dtype=int),
+                    0,
+                    len(self._samples) - 1,
+                )
+                return self._samples[idx]
+
+        else:
+
+            def envelope(t):
+                idx = np.clip(
+                    np.array((t - self._start_time) // self._dt, dtype=int),
+                    0,
+                    len(self._samples) - 1,
+                )
+                return self._samples[idx]
+
+        Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
     @classmethod
     def from_Signal(
@@ -376,27 +393,6 @@ class DiscreteSignal(Signal):
             start_time: The time at which the list of samples start.
         """
         return self._start_time
-
-    def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        r"""Envelope. If ``t`` is before (resp. after) the start (resp. end) of the definition of
-        the ``DiscreteSignal``\, this will return the start value (resp. end value).
-        """
-        if self._samples.backend == "jax":
-            t = Array(t).data
-            idx = jnp.clip(
-                jnp.array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1
-            )
-            return Array(self._samples[idx])
-        else:
-            idx = np.clip(
-                np.array((t - self._start_time) // self._dt, dtype=int), 0, len(self._samples) - 1
-            )
-            return self._samples[idx]
-
-    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        """Return the value of the signal at time t."""
-        arg = self._carrier_arg * t + self._phase_arg
-        return self.envelope(t) * np.exp(arg)
 
     def conjugate(self):
         return self.__class__(
@@ -543,19 +539,19 @@ class SignalSum(SignalCollection, Signal):
                     "Components of a SignalSum must be instances of a Signal subclass."
                 )
 
-        super().__init__(components)
+        SignalCollection.__init__(self, components)
 
         # set up routine for evaluating envelopes if jax
         if dispatch.default_backend() == "jax":
-            self._eval_envelopes = array_funclist_evaluate(
-                [sig.envelope for sig in self.components]
-            )
+            jax_arraylist_eval = array_funclist_evaluate([sig.envelope for sig in self.components])
+
+            def envelope(t):
+                return np.moveaxis(jax_arraylist_eval(t), 0, -1)
+
         else:
 
-            def eval_envelopes(t):
-                return [sig.envelope(t) for sig in self.components]
-
-            self._eval_envelopes = eval_envelopes
+            def envelope(t):
+                return np.moveaxis([sig.envelope(t) for sig in self.components], 0, -1)
 
         carrier_freqs = []
         for sig in self.components:
@@ -565,13 +561,7 @@ class SignalSum(SignalCollection, Signal):
         for sig in self.components:
             phases.append(sig.phase)
 
-        # set carrier and phase
-        self.carrier_freq = carrier_freqs
-        self.phase = phases
-
-    def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        """Return an array of the envelope values of each component."""
-        return np.moveaxis(self._eval_envelopes(t), 0, -1)
+        Signal.__init__(self, envelope, carrier_freqs, phases)
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Return the sum of the complex values of each component."""
@@ -640,17 +630,14 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             phase: Array with the phases of each term in the sum.
             name: name of the signal.
         """
-        self._name = name
-        self._is_constant = False
-        self._dt = dt
-        self._samples = Array(samples)
-        self._start_time = start_time
 
         if carrier_freq is None:
             carrier_freq = np.zeros(samples.shape[-1], dtype=float)
 
         if phase is None:
             phase = np.zeros(samples.shape[-1], dtype=float)
+
+        DiscreteSignal.__init__(self, dt, samples, start_time, carrier_freq, phase)
 
         # construct individual components so they can be accessed as in SignalSum
         components = []
@@ -666,8 +653,6 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             )
 
         self._components = components
-        self.carrier_freq = carrier_freq
-        self.phase = phase
 
     @classmethod
     def from_SignalSum(
@@ -721,20 +706,13 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             dt, samples, start_time=start_time, carrier_freq=freq, phase=signal_sum.phase
         )
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
-        """Compute the complex value."""
-        if dispatch.default_backend() == "jax":
-            t = Array(t)
-        exp_phases = np.exp(np.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
-        return np.sum(self.envelope(t) * exp_phases, axis=-1)
-
     def __str__(self):
         """Get the string rep."""
         if self.name is not None:
             return str(self.name)
 
         if len(self) == 0:
-            return "DiscreteSignalSignalSum()"
+            return "DiscreteSignalSum()"
 
         default_str = str(self[0])
         for sig in self.components[1:]:
