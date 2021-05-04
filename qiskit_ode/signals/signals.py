@@ -226,9 +226,7 @@ class Signal:
             title: Title of plot.
         """
 
-        plotter = plt
-        if axis:
-            plotter = axis
+        plotter = axis if axis else plt
 
         t_vals = np.linspace(t0, tf, n)
 
