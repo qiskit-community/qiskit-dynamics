@@ -78,8 +78,10 @@ class Signal:
 
         Args:
             envelope: Envelope function of the signal, must be vectorized.
-            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums represent the carriers of each signal in an array.
-            phase: The phase of the carrier. Subclasses such as SignalSums represent the phase of each signal in an array.
+            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums
+                          represent the carriers of each signal in an array.
+            phase: The phase of the carrier. Subclasses such as SignalSums
+                   represent the phase of each signal in an array.
             name: Name of the signal.
         """
         self._name = name
@@ -270,8 +272,8 @@ class DiscreteSignal(Signal):
         dt: float,
         samples: Union[Array, List],
         start_time: float = 0.0,
-        carrier_freq: float = 0.0,
-        phase: float = 0.0,
+        carrier_freq: Union[float, List, Array] = 0.0,
+        phase: Union[float, List, Array] = 0.0,
         name: str = None,
     ):
         """Initialize a piecewise constant signal.
@@ -280,8 +282,10 @@ class DiscreteSignal(Signal):
             dt: The duration of each sample.
             samples: The array of samples.
             start_time: The time at which the signal starts.
-            carrier_freq: The frequency of the carrier.
-            phase: The phase of the carrier.
+            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums
+                          represent the carriers of each signal in an array.
+            phase: The phase of the carrier. Subclasses such as SignalSums
+                   represent the phase of each signal in an array.
             name: name of the signal.
         """
         self._dt = dt
@@ -359,7 +363,12 @@ class DiscreteSignal(Signal):
             samples = signal.envelope(times)
 
         return DiscreteSignal(
-            dt, samples, start_time=start_time, carrier_freq=freq, phase=signal.phase
+            dt,
+            samples,
+            start_time=start_time,
+            carrier_freq=freq,
+            phase=signal.phase,
+            name=signal.name,
         )
 
     @property
@@ -561,7 +570,9 @@ class SignalSum(SignalCollection, Signal):
         for sig in self.components:
             phases.append(sig.phase)
 
-        Signal.__init__(self, envelope, carrier_freqs, phases)
+        Signal.__init__(
+            self, envelope=envelope, carrier_freq=carrier_freqs, phase=phases, name=name
+        )
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Return the sum of the complex values of each component."""
@@ -637,7 +648,15 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         if phase is None:
             phase = np.zeros(samples.shape[-1], dtype=float)
 
-        DiscreteSignal.__init__(self, dt, samples, start_time, carrier_freq, phase)
+        DiscreteSignal.__init__(
+            self,
+            dt=dt,
+            samples=samples,
+            start_time=start_time,
+            carrier_freq=carrier_freq,
+            phase=phase,
+            name=name,
+        )
 
         # construct individual components so they can be accessed as in SignalSum
         components = []
@@ -703,7 +722,12 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             samples = signal_sum.envelope(times)
 
         return DiscreteSignalSum(
-            dt, samples, start_time=start_time, carrier_freq=freq, phase=signal_sum.phase
+            dt,
+            samples,
+            start_time=start_time,
+            carrier_freq=freq,
+            phase=signal_sum.phase,
+            name=signal_sum.name,
         )
 
     def __str__(self):
