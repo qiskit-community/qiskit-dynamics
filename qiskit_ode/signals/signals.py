@@ -79,7 +79,7 @@ class Signal:
         Args:
             envelope: Envelope function of the signal, must be vectorized.
             carrier_freq: Frequency of the carrier. Subclasses such as SignalSums represent the carriers of each signal in an array.
-            phase: The phase of the carrier.
+            phase: The phase of the carrier. Subclasses such as SignalSums represent the phase of each signal in an array.
             name: Name of the signal.
         """
         self._name = name
