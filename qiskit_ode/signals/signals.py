@@ -69,8 +69,8 @@ class Signal:
     def __init__(
         self,
         envelope: Union[Callable, complex, float, int, Array],
-        carrier_freq: float = 0.0,
-        phase: float = 0.0,
+        carrier_freq: Union[float, List, Array] = 0.0,
+        phase: Union[float, List, Array] = 0.0,
         name: Optional[str] = None,
     ):
         """
