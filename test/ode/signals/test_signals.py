@@ -819,6 +819,24 @@ class TestSignalCollection(QiskitOdeTestCase):
         t_vals = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]) / 4.0
         self.assertAllClose(sub02(t_vals), self.discrete_sig1(t_vals) + self.discrete_sig3(t_vals))
 
+    def test_SignalSum_iterator(self):
+        """Test iteration of SignalSum."""
+
+        sum_val = 0.0
+        for sig in self.sig_sum:
+            sum_val += sig(3.0)
+
+        self.assertAllClose(sum_val, self.sig_sum(3.0))
+
+    def test_DiscreteSignalSum_iterator(self):
+        """Test iteration of DiscreteSignalSum."""
+
+        sum_val = 0.0
+        for sig in self.discrete_sig_sum:
+            sum_val += sig(3.0)
+
+        self.assertAllClose(sum_val, self.discrete_sig_sum(3.0))
+
 
 class TestSignalJax(TestSignal, TestJaxBase):
     """Jax version of TestSignal."""
