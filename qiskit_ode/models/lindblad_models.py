@@ -19,7 +19,7 @@ from typing import Union, List, Optional
 import numpy as np
 
 from qiskit.quantum_info.operators import Operator
-from qiskit_ode.signals import VectorSignal, BaseSignal
+from qiskit_ode.signals import Signal, SignalList
 from qiskit_ode.type_utils import vec_commutator, vec_dissipator, to_array
 from .generator_models import GeneratorModel
 from .hamiltonian_models import HamiltonianModel
@@ -53,9 +53,9 @@ class LindbladModel(GeneratorModel):
     def __init__(
         self,
         hamiltonian_operators: List[Operator],
-        hamiltonian_signals: Union[List[BaseSignal], VectorSignal],
+        hamiltonian_signals: Union[List[Signal], SignalList],
         noise_operators: Optional[List[Operator]] = None,
-        noise_signals: Optional[Union[List[BaseSignal], VectorSignal]] = None,
+        noise_signals: Optional[Union[List[Signal], SignalList]] = None,
     ):
         """Initialize.
 
@@ -81,11 +81,11 @@ class LindbladModel(GeneratorModel):
 
         # combine signals
         if isinstance(hamiltonian_signals, list):
-            hamiltonian_signals = VectorSignal.from_signal_list(hamiltonian_signals)
-        elif not isinstance(hamiltonian_signals, VectorSignal):
+            hamiltonian_signals = SignalList(hamiltonian_signals)
+        elif not isinstance(hamiltonian_signals, SignalList):
             raise Exception(
                 """hamiltonian_signals must either be a list of
-                             Signals, or a VectorSignal."""
+                             Signals, or a SignalList."""
             )
 
         full_signals = None
@@ -93,37 +93,16 @@ class LindbladModel(GeneratorModel):
             full_signals = hamiltonian_signals
         else:
             if noise_signals is None:
-                sig_val = np.ones(len(noise_operators), dtype=complex)
-                carrier_freqs = np.zeros(len(noise_operators), dtype=float)
-                phases = np.zeros(len(noise_operators), dtype=float)
-                noise_signals = VectorSignal(
-                    envelope=lambda t: sig_val, carrier_freqs=carrier_freqs, phases=phases
-                )
+                noise_signals = SignalList([1.0 for _ in noise_operators])
             elif isinstance(noise_signals, list):
-                noise_signals = VectorSignal.from_signal_list(noise_signals)
-            elif not isinstance(noise_signals, VectorSignal):
+                noise_signals = SignalList(noise_signals)
+            elif not isinstance(noise_signals, SignalList):
                 raise Exception(
                     """noise_signals must either be a list of
-                                 Signals, or a VectorSignal."""
+                                 Signals, or a SignalList."""
                 )
 
-            def full_envelope(t):
-                return np.append(hamiltonian_signals.envelope(t), noise_signals.envelope(t))
-
-            full_carrier_freqs = np.append(
-                hamiltonian_signals.carrier_freqs, noise_signals.carrier_freqs
-            )
-
-            full_carrier_phases = np.append(hamiltonian_signals.phases, noise_signals.phases)
-
-            full_drift_array = np.append(hamiltonian_signals.drift_array, noise_signals.drift_array)
-
-            full_signals = VectorSignal(
-                envelope=full_envelope,
-                carrier_freqs=full_carrier_freqs,
-                phases=full_carrier_phases,
-                drift_array=full_drift_array,
-            )
+            full_signals = SignalList(hamiltonian_signals.components + noise_signals.components)
 
         super().__init__(operators=full_operators, signals=full_signals)
 
@@ -132,7 +111,7 @@ class LindbladModel(GeneratorModel):
         cls,
         hamiltonian: HamiltonianModel,
         noise_operators: Optional[List[Operator]] = None,
-        noise_signals: Optional[Union[List[BaseSignal], VectorSignal]] = None,
+        noise_signals: Optional[Union[List[Signal], SignalList]] = None,
     ):
         """Construct from a :class:`HamiltonianModel`.
 

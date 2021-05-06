@@ -19,7 +19,7 @@ import numpy as np
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import HamiltonianModel
-from qiskit_ode.signals import Constant, Signal
+from qiskit_ode.signals import Signal
 from qiskit_ode import solve_lmde
 from qiskit_ode.dispatch import Array
 
@@ -52,7 +52,7 @@ class TestJaxTransformations(TestJaxBase):
         self.ham = ham
 
         def param_sim(amp, drive_freq):
-            signals = [Constant(1.0), Signal(lambda t: amp, carrier_freq=drive_freq)]
+            signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
             ham_copy = ham.copy()
             ham_copy.signals = signals
@@ -73,7 +73,7 @@ class TestJaxTransformations(TestJaxBase):
         """Test compiling with a passed t_eval."""
 
         def t_eval_param_sim(amp, drive_freq):
-            signals = [Constant(1.0), Signal(lambda t: amp, carrier_freq=drive_freq)]
+            signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
             ham_copy = self.ham.copy()
             ham_copy.signals = signals
@@ -102,7 +102,7 @@ class TestJaxTransformations(TestJaxBase):
         """Test compiling when t_span is influenced by the inputs."""
 
         def param_sim(amp, drive_freq):
-            signals = [Constant(1.0), Signal(lambda t: amp, carrier_freq=drive_freq)]
+            signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
             ham_copy = self.ham.copy()
             ham_copy.signals = signals

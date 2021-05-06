@@ -27,7 +27,7 @@ from qiskit.pulse import (
     Waveform,
 )
 from qiskit import QiskitError
-from qiskit_ode.signals import PiecewiseConstant
+from qiskit_ode.signals import DiscreteSignal
 
 
 class InstructionToSignals:
@@ -46,7 +46,7 @@ class InstructionToSignals:
         self._dt = dt
         self._carriers = carriers
 
-    def get_signals(self, schedule: Schedule) -> List[PiecewiseConstant]:
+    def get_signals(self, schedule: Schedule) -> List[DiscreteSignal]:
         """
         Args:
             schedule: The schedule to represent in terms of signals.
@@ -71,7 +71,7 @@ class InstructionToSignals:
 
             phases[chan.name] = 0.0
             frequency_shifts[chan.name] = 0.0
-            signals[chan.name] = PiecewiseConstant(
+            signals[chan.name] = DiscreteSignal(
                 samples=[], dt=self._dt, name=chan.name, carrier_freq=carrier_freq
             )
 
@@ -126,8 +126,8 @@ class InstructionToSignals:
 
     @staticmethod
     def get_awg_signals(
-        signals: List[PiecewiseConstant], if_modulation: float
-    ) -> List[PiecewiseConstant]:
+        signals: List[DiscreteSignal], if_modulation: float
+    ) -> List[DiscreteSignal]:
         r"""
         Create signals that correspond to the output ports of an Arbitrary Waveform Generator
         to be used with IQ mixers. For each signal in the list the number of signals is double
@@ -157,20 +157,18 @@ class InstructionToSignals:
             samples_i = sig.samples
             samples_q = np.imag(samples_i) - 1.0j * np.real(samples_i)
 
-            sig_i = PiecewiseConstant(
+            sig_i = DiscreteSignal(
                 sig.dt,
                 samples_i,
                 sig.start_time,
-                sig.duration,
                 new_freq,
                 sig.phase,
                 sig.name + "_i",
             )
-            sig_q = PiecewiseConstant(
+            sig_q = DiscreteSignal(
                 sig.dt,
                 samples_q,
                 sig.start_time,
-                sig.duration,
                 new_freq,
                 sig.phase,
                 sig.name + "_q",

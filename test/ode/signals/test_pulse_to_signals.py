@@ -29,7 +29,7 @@ from qiskit.pulse import (
     Waveform,
 )
 from qiskit_ode.converters import InstructionToSignals
-from qiskit_ode.signals import PiecewiseConstant
+from qiskit_ode.signals import DiscreteSignal
 
 from ..common import QiskitOdeTestCase
 
@@ -55,8 +55,8 @@ class TestPulseToSignals(QiskitOdeTestCase):
         signals = converter.get_signals(sched)
 
         self.assertEqual(len(signals), 2)
-        self.assertTrue(isinstance(signals[0], PiecewiseConstant))
-        self.assertTrue(isinstance(signals[0], PiecewiseConstant))
+        self.assertTrue(isinstance(signals[0], DiscreteSignal))
+        self.assertTrue(isinstance(signals[0], DiscreteSignal))
 
         samples = test_gaussian.get_waveform().samples
         self.assertTrue(np.allclose(signals[1].samples[0 : len(samples)], samples))

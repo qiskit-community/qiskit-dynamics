@@ -19,7 +19,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import GeneratorModel
 from qiskit_ode.models.generator_models import CallableGenerator
-from qiskit_ode.signals import Constant, Signal, VectorSignal
+from qiskit_ode.signals import Signal
 from qiskit_ode.dispatch import Array
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -36,7 +36,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         w = 2.0
         r = 0.5
         operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * r * self.X / 2]
-        signals = [Constant(w), Signal(1.0, w)]
+        signals = [w, Signal(1.0, w)]
 
         self.w = 2
         self.r = r
@@ -197,8 +197,18 @@ class TestGeneratorModel(QiskitOdeTestCase):
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
 
-        vec_sig = VectorSignal(lambda t: coefficients, carriers, phases)
-        model = GeneratorModel(operators, vec_sig, frame=frame_op)
+        sig_list = []
+        for coeff, freq, phase in zip(coefficients, carriers, phases):
+
+            def get_env_func(coeff=coeff):
+                # pylint: disable=unused-argument
+                def env(t):
+                    return coeff
+
+                return env
+
+            sig_list.append(Signal(get_env_func(), freq, phase))
+        model = GeneratorModel(operators, sig_list, frame=frame_op)
 
         value = model.evaluate(1.0)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
@@ -225,10 +235,8 @@ class TestGeneratorModel(QiskitOdeTestCase):
 
     def test_signal_setting(self):
         """Test updating the signals."""
-        signals = VectorSignal(
-            lambda t: np.array([2 * t, t ** 2]), np.array([1.0, 2.0]), np.array([0.0, 0.0])
-        )
 
+        signals = [Signal(lambda t: 2 * t, 1.0), Signal(lambda t: t ** 2, 2.0)]
         self.basic_model.signals = signals
 
         t = 0.1
@@ -249,7 +257,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         """Test error being raised if signals is the wrong length."""
 
         try:
-            self.basic_model.signals = [Constant(1.0)]
+            self.basic_model.signals = [1.0]
         except QiskitError as e:
             self.assertTrue("same length" in str(e))
 
@@ -284,7 +292,7 @@ class TestGeneratorModel(QiskitOdeTestCase):
         def drive_func(t):
             return t ** 2 + t ** 3 * 1j
 
-        self.basic_model.signals = [Constant(self.w), Signal(drive_func, self.w)]
+        self.basic_model.signals = [self.w, Signal(drive_func, self.w)]
 
         # result should now contain both X and Y terms halved
         t = 2.1231 * np.pi

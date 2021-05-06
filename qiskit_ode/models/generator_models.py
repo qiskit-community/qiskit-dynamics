@@ -25,7 +25,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_ode import dispatch
 from qiskit_ode.dispatch import Array
 from qiskit_ode.type_utils import to_array
-from qiskit_ode.signals import VectorSignal, BaseSignal
+from qiskit_ode.signals import Signal, SignalList
 from .frame import BaseFrame, Frame
 
 
@@ -215,11 +215,11 @@ class GeneratorModel(BaseGeneratorModel):
 
     where the :math:`G_i` are matrices (represented by :class:`Operator`
     objects), and the :math:`s_i(t)` given by signals represented by a
-    :class:`VectorSignal` object, or a list of :class:`Signal` objects.
+    :class:`SignalList` object, or a list of :class:`Signal` objects.
 
     The signals in the model can be specified at instantiation, or afterwards
     by setting the ``signals`` attribute, by giving a
-    list of :class:`Signal` objects or a :class:`VectorSignal`.
+    list of :class:`Signal` objects or a :class:`SignalList`.
 
     For specifying a frame, this object works with the concrete
     :class:`Frame`, a subclass of :class:`BaseFrame`.
@@ -231,7 +231,7 @@ class GeneratorModel(BaseGeneratorModel):
     def __init__(
         self,
         operators: Array,
-        signals: Optional[Union[VectorSignal, List[BaseSignal]]] = None,
+        signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array, BaseFrame]] = None,
         cutoff_freq: Optional[float] = None,
     ):
@@ -239,7 +239,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         Args:
             operators: A rank-3 Array of operator components.
-            signals: Specifiable as either a VectorSignal, a list of
+            signals: Specifiable as either a SignalList, a list of
                      Signal objects, or as the inputs to signal_mapping.
                      GeneratorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
@@ -253,7 +253,6 @@ class GeneratorModel(BaseGeneratorModel):
         self._cutoff_freq = cutoff_freq
 
         # initialize signal-related attributes
-        self._signal_params = None
         self._signals = None
         self.signals = signals
 
@@ -265,38 +264,40 @@ class GeneratorModel(BaseGeneratorModel):
         self.__ops_in_fb_w_conj_cutoff = None
 
     @property
-    def signals(self) -> VectorSignal:
+    def signals(self) -> SignalList:
         """Return the signals in the model."""
         return self._signals
 
     @signals.setter
-    def signals(self, signals: Union[VectorSignal, List[BaseSignal]]):
+    def signals(self, signals: Union[SignalList, List[Signal]]):
         """Set the signals."""
 
         if signals is None:
-            self._signal_params = None
             self._signals = None
         else:
-            # if signals is a list, instantiate a VectorSignal
+            # if signals is a list, instantiate a SignalList
             if isinstance(signals, list):
-                signals = VectorSignal.from_signal_list(signals)
+                signals = SignalList(signals)
 
-            # if it isn't a VectorSignal by now, raise an error
-            if not isinstance(signals, VectorSignal):
-                raise QiskitError("signals specified in unaccepted format.")
+            # if it isn't a SignalList by now, raise an error
+            if not isinstance(signals, SignalList):
+                raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals.carrier_freqs) != len(self.operators):
+            if len(signals) != len(self.operators):
                 raise QiskitError(
-                    """signals needs to have the same length as
+                    """Signals needs to have the same length as
                                     operators."""
                 )
 
             # internal ops need to be reset if there is a cutoff frequency
             # and carrier_freqs has changed
             if self._signals is not None:
+                # compare flattened carrier frequencies
+                old_carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
+                new_carrier_freqs = [sig.carrier_freq for sig in signals.flatten()]
                 if (
-                    not np.allclose(self._signals.carrier_freqs, signals.carrier_freqs)
+                    not np.allclose(old_carrier_freqs, new_carrier_freqs)
                     and self._cutoff_freq is not None
                 ):
                     self._reset_internal_ops()
@@ -348,7 +349,7 @@ class GeneratorModel(BaseGeneratorModel):
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        sig_vals = self._signals.value(time)
+        sig_vals = self._signals.complex_value(time)
 
         # evaluate the linear combination in the frame basis with cutoffs,
         # then map into the frame
@@ -370,7 +371,7 @@ class GeneratorModel(BaseGeneratorModel):
                                frame_operator is not None."""
             )
 
-        drift_sig_vals = self._signals.drift_array
+        drift_sig_vals = self._signals.drift
 
         return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
 
@@ -381,10 +382,10 @@ class GeneratorModel(BaseGeneratorModel):
         frame basis with frequency cutoffs applied.
         """
         carrier_freqs = None
-        if self._signals.carrier_freqs is None:
+        if self._signals is None:
             carrier_freqs = np.zeros(len(self.operators))
         else:
-            carrier_freqs = self._signals.carrier_freqs
+            carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
 
         (
             self.__ops_in_fb_w_cutoff,

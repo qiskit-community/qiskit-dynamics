@@ -17,7 +17,7 @@ import numpy as np
 from scipy.linalg import expm
 
 from qiskit_ode.models import GeneratorModel
-from qiskit_ode.signals import Constant, Signal
+from qiskit_ode.signals import Signal
 from qiskit_ode import solve_lmde
 from qiskit_ode.solve import setup_lmde_frames_and_generator, lmde_y0_reshape
 from qiskit_ode.dispatch import Array
@@ -37,7 +37,7 @@ class TestLMDESetup(QiskitOdeTestCase):
         w = 2.0
         r = 0.5
         operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * r * self.X / 2]
-        signals = [Constant(w), Signal(1.0, w)]
+        signals = [w, Signal(1.0, w)]
 
         self.w = 2
         self.r = r

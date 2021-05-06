@@ -19,7 +19,7 @@ from scipy.linalg import expm
 from qiskit import QiskitError
 from qiskit_ode import solve_ode
 from qiskit_ode.models import GeneratorModel
-from qiskit_ode.signals import Constant, Signal
+from qiskit_ode.signals import Signal
 from qiskit_ode.dispatch import Array
 
 from .common import QiskitOdeTestCase, TestJaxBase
@@ -63,7 +63,7 @@ class Testsolve_ode_Base(QiskitOdeTestCase):
         # define simple model
         self.w = 2.0
         self.r = 0.1
-        signals = [Constant(self.w), Signal(lambda t: 1.0, self.w)]
+        signals = [self.w, Signal(lambda t: 1.0, self.w)]
         operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * self.r * self.X / 2]
         self.basic_model = GeneratorModel(operators=operators, signals=signals)
 

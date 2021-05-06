@@ -24,7 +24,7 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit_ode.dispatch import Array
 
-from .signals import BaseSignal, Signal, PiecewiseConstant
+from .signals import Signal, DiscreteSignal
 
 
 class BaseTransferFunction(ABC):
@@ -36,7 +36,7 @@ class BaseTransferFunction(ABC):
         """Number of input signals to the transfer function."""
         pass
 
-    def __call__(self, *args, **kwargs) -> Union[BaseSignal, List[BaseSignal]]:
+    def __call__(self, *args, **kwargs) -> Union[Signal, List[Signal]]:
         """
         Apply the transfer function to the input signals.
 
@@ -45,7 +45,7 @@ class BaseTransferFunction(ABC):
             **kwargs: Key word arguments to control the transfer functions.
 
         Returns:
-            BaseSignal: The transformed signal.
+            Signal: The transformed signal.
 
         Raises:
             QiskitError: if the number of args is not correct.
@@ -60,7 +60,7 @@ class BaseTransferFunction(ABC):
         return self._apply(*args, **kwargs)
 
     @abstractmethod
-    def _apply(self, *args, **kwargs) -> Union[BaseSignal, List[BaseSignal]]:
+    def _apply(self, *args, **kwargs) -> Union[Signal, List[Signal]]:
         """
         Applies a transformation on a signal, such as a convolution,
         low pass filter, etc.
@@ -70,7 +70,7 @@ class BaseTransferFunction(ABC):
             **kwargs: Key word arguments to control the transfer functions.
 
         Returns:
-            BaseSignal: The transformed signal.
+            Signal: The transformed signal.
         """
         pass
 
@@ -97,7 +97,7 @@ class Convolution(BaseTransferFunction):
         return 1
 
     # pylint: disable=arguments-differ
-    def _apply(self, signal: BaseSignal) -> BaseSignal:
+    def _apply(self, signal: Signal) -> Signal:
         """
         Applies a transformation on a signal, such as a convolution,
         low pass filter, etc. Once a convolution is applied the signal
@@ -114,16 +114,16 @@ class Convolution(BaseTransferFunction):
         Raises:
             QiskitError: if the signal is not pwc.
         """
-        if isinstance(signal, PiecewiseConstant):
+        if isinstance(signal, DiscreteSignal):
             # Perform a discrete time convolution.
             dt = signal.dt
             func_samples = Array([self._func(dt * i) for i in range(signal.duration)])
             func_samples = func_samples / sum(func_samples)
-            sig_samples = Array([signal.value(dt * i) for i in range(signal.duration)])
+            sig_samples = Array([signal(dt * i) for i in range(signal.duration)])
 
             convoluted_samples = list(np.convolve(func_samples, sig_samples))
 
-            return PiecewiseConstant(dt, convoluted_samples, carrier_freq=0.0, phase=0.0)
+            return DiscreteSignal(dt, convoluted_samples, carrier_freq=0.0, phase=0.0)
         else:
             raise QiskitError("Transfer function not defined on input.")
 
@@ -147,7 +147,7 @@ class FFTConvolution(BaseTransferFunction):
 
 class Sampler(BaseTransferFunction):
     """
-    Re sample a signal by wrapping BaseSignal.to_pwc.
+    Re sample a signal by wrapping DiscreteSignal.from_Signal.
     """
 
     def __init__(self, dt: float, n_samples: int, start_time: float = 0):
@@ -167,9 +167,11 @@ class Sampler(BaseTransferFunction):
         return 1
 
     # pylint: disable=arguments-differ
-    def _apply(self, signal: BaseSignal) -> BaseSignal:
+    def _apply(self, signal: Signal) -> Signal:
         """Apply the transfer function to the signal."""
-        return signal.to_pwc(self._dt, self._n_samples, self._start_time)
+        return DiscreteSignal.from_Signal(
+            signal, dt=self._dt, n_samples=self._n_samples, start_time=self._start_time
+        )
 
 
 class IQMixer(BaseTransferFunction):
@@ -207,7 +209,7 @@ class IQMixer(BaseTransferFunction):
         return 2
 
     # pylint: disable=arguments-differ
-    def _apply(self, si: BaseSignal, sq: BaseSignal) -> BaseSignal:
+    def _apply(self, si: Signal, sq: Signal) -> Signal:
         """
         Args:
             si: In phase signal
@@ -233,6 +235,6 @@ class IQMixer(BaseTransferFunction):
             """Function of the IQ mixer."""
             osc_i = np.cos(wp * t + phi_i) + np.cos(wm * t + phi_i)
             osc_q = np.cos(wp * t + phi_q - np.pi / 2) + np.cos(wm * t + phi_q + np.pi / 2)
-            return si.envelope_value(t) * osc_i / 2 + sq.envelope_value(t) * osc_q / 2
+            return si.envelope(t) * osc_i / 2 + sq.envelope(t) * osc_q / 2
 
         return Signal(mixer_func, carrier_freq=0, phase=0)

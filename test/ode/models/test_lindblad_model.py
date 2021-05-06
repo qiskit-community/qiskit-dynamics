@@ -17,7 +17,7 @@ import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_ode.models import HamiltonianModel, LindbladModel
-from qiskit_ode.signals import Constant, Signal, VectorSignal
+from qiskit_ode.signals import Signal, SignalList
 from qiskit_ode.dispatch import Array
 from ..common import QiskitOdeTestCase, TestJaxBase
 
@@ -34,7 +34,7 @@ class TestLindbladModel(QiskitOdeTestCase):
         w = 2.0
         r = 0.5
         ham_operators = [2 * np.pi * self.Z / 2, 2 * np.pi * r * self.X / 2]
-        ham_signals = [Constant(w), Signal(1.0, w)]
+        ham_signals = [w, Signal(1.0, w)]
 
         self.w = w
         self.r = r
@@ -86,7 +86,12 @@ class TestLindbladModel(QiskitOdeTestCase):
         )
         rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
         rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
-        ham_sigs = VectorSignal(lambda t: rand_ham_coeffs, rand_ham_carriers, rand_ham_phases)
+
+        ham_sigs = []
+        for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
+            ham_sigs.append(Signal(get_const_func(coeff), freq, phase))
+
+        ham_sigs = SignalList(ham_sigs)
 
         # generate random dissipators
         rand_diss = Array(
@@ -100,7 +105,12 @@ class TestLindbladModel(QiskitOdeTestCase):
         )
         rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
         rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
-        diss_sigs = VectorSignal(lambda t: rand_diss_coeffs, rand_diss_carriers, rand_diss_phases)
+
+        diss_sigs = []
+        for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
+            diss_sigs.append(Signal(get_const_func(coeff), freq, phase))
+
+        diss_sigs = SignalList(diss_sigs)
 
         # random anti-hermitian frame operator
         rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
@@ -192,3 +202,12 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+
+
+def get_const_func(const):
+    """Helper function for defining a constant function."""
+    # pylint: disable=unused-argument
+    def env(t):
+        return const
+
+    return env
