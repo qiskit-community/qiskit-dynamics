@@ -494,6 +494,10 @@ class SignalCollection:
         else:
             return sublist
 
+    def __iter__(self):
+        """Return iterator over component list."""
+        return self.components.__iter__()
+
     def conjugate(self) -> "SignalCollection":
         """Return the conjugation of this collection."""
         return self.__class__([sig.conjugate() for sig in self.components])
@@ -747,6 +751,9 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
     def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
         """Enables numpy-style subscripting, as if this class were a 1d array."""
 
+        if type(idx) == int and idx >= len(self):
+            raise IndexError("index out of range for DiscreteSignalSum of length " + str(len(self)))
+
         samples = self.samples[:, idx]
         carrier_freqs = self.carrier_freq[idx]
         phases = self.phase[idx]
@@ -826,7 +833,6 @@ class SignalList(SignalCollection):
         """
 
         drift_array = []
-
         for sig_entry in self.components:
             val = 0.0
 
