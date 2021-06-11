@@ -1,6 +1,6 @@
-.. _qiskit_ode-signals:
+.. _qiskit_dynamics-signals:
 
-.. automodule:: qiskit_ode.signals
+.. automodule:: qiskit_dynamics.signals
    :no-members:
    :no-inherited-members:
    :no-special-members:

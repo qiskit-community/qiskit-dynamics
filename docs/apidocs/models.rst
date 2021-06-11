@@ -1,6 +1,6 @@
-.. _qiskit_ode-models:
+.. _qiskit_dynamics-models:
 
-.. automodule:: qiskit_ode.models
+.. automodule:: qiskit_dynamics.models
    :no-members:
    :no-inherited-members:
    :no-special-members:

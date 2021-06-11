@@ -1,10 +1,10 @@
-.. _qiskit-ode:
+.. _qiskit-dynamics:
 
-.. module:: qiskit_ode
+.. module:: qiskit_dynamics
 
-========================
-Qiskit ODE API Reference
-========================
+=============================
+Qiskit Dynamics API Reference
+=============================
 
 Constructing and solving differential equations
 for continuous-time modelling of quantum systems.

@@ -1,6 +1,6 @@
-##########################
-Qiskit ODE documentation
-##########################
+#############################
+Qiskit Dynamics documentation
+#############################
 
 .. toctree::
   :maxdepth: 2
