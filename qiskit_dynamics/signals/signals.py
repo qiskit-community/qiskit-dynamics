@@ -228,7 +228,12 @@ class Signal:
             title: Title of plot.
         """
 
-        plotter = axis if axis else plt
+        if axis is None:
+            plotter = plt
+            plotter.title(title)
+        else:
+            plotter = axis
+            plotter.set_title(title)
 
         t_vals = np.linspace(t0, tf, n)
 
@@ -254,7 +259,6 @@ class Signal:
         else:
             plotter.plot(t_vals, y_vals)
 
-        plotter.title(title)
         if legend:
             plotter.legend()
 
