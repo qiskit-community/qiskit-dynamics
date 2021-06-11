@@ -1,6 +1,6 @@
-.. _qiskit_ode-solve:
+.. _qiskit_dynamics-solve:
 
-.. automodule:: qiskit_ode.solve
+.. automodule:: qiskit_dynamics.solve
    :no-members:
    :no-inherited-members:
    :no-special-members:

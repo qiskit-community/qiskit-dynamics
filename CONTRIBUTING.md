@@ -5,10 +5,10 @@ included in the qiskit documentation:
 
 https://qiskit.org/documentation/contributing_to_qiskit.html
 
-## Contributing to Qiskit ODE
+## Contributing to Qiskit Dynamics
 
 In addition to the general guidelines there are specific details for
-contributing to Qiskit ODE, these are documented below.
+contributing to Qiskit Dynamics, these are documented below.
 
 ### Pull request checklist
 
@@ -53,7 +53,7 @@ The current categories for each label are as follows:
 ### Release Notes
 
 When making any end user facing changes in a contribution we have to make sure
-we document that when we release a new version of qiskit-ode. The expectation
+we document that when we release a new version of qiskit-dynamics. The expectation
 is that if your code contribution has user facing changes that you will write
 the release documentation for these changes. This documentation must explain
 what was changed, why it was changed, and how users can either use or adapt
@@ -152,7 +152,7 @@ as:
 fixes:
   - |
     Fixes a race condition in the function ``foo()``. Refer to
-    `#12345 <https://github.com/Qiskit/qiskit-ode/issues/12345>` for more
+    `#12345 <https://github.com/Qiskit/qiskit-dynamics/issues/12345>` for more
     details.
 ```
 
@@ -162,7 +162,7 @@ After release notes have been added if you want to see what the full output of
 the release notes. In general the output from reno that we'll get is a rst
 (ReStructuredText) file that can be compiled by
 [sphinx](https://www.sphinx-doc.org/en/master/). To generate the rst file you
-use the ``reno report`` command. If you want to generate the full qiskit-ode release
+use the ``reno report`` command. If you want to generate the full qiskit-dynamics release
 notes for all releases (since we started using reno during 0.9) you just run::
 
     reno report
@@ -179,7 +179,7 @@ https://github.com/Qiskit/qiskit/blob/master/docs/release_notes.rst)
 
 #### Building release notes locally
 
-Building The release notes are part of the standard qiskit-ode documentation
+Building The release notes are part of the standard qiskit-dynamics documentation
 builds. To check what the rendered html output of the release notes will look
 like for the current state of the repo you can run: `tox -edocs` which will
 build all the documentation into `docs/_build/html` and the release notes in
@@ -252,7 +252,7 @@ option (e.g. `python -m unittest discover --buffer ./test/python`).
 
 ### Code style
 
-The qiskit-ode repo uses black for code formatting and style and pylint
+The qiskit-dynamics repo uses black for code formatting and style and pylint
 is run to do a deeper check on the code. You can run these checks locally with
 
 ```
@@ -266,7 +266,7 @@ run it).
 
 ### Development Cycle
 
-The development cycle for qiskit-ode is all handled in the open using
+The development cycle for qiskit-dynamics is all handled in the open using
 the project boards in Github for project management. We use milestones
 in Github to track work for specific releases. The features or other changes
 that we want to include in a release will be tagged and discussed in Github.
@@ -275,14 +275,14 @@ previous version in the release notes.
 
 ### Branches
 
-* `master`:
+* `main`:
 
-The master branch is used for development of the next version of qiskit-ode.
+The master branch is used for development of the next version of qiskit-dynamics.
 It will be updated frequently and should not be considered stable. The API
 can and will change on master as we introduce and refine new features.
 
 * `stable/*` branches:
-Branches under `stable/*` are used to maintain released versions of qiskit-ode.
+Branches under `stable/*` are used to maintain released versions of qiskit-dynamics.
 It contains the version of the code corresponding to the latest release for
 that minor version on pypi. For example, stable/0.8 contains the code for the
 0.8.2 release on pypi. The API on these branches are stable and the only changes
@@ -290,7 +290,7 @@ merged to it are bugfixes.
 
 ### Release cycle
 
-When it is time to release a new minor version of qiskit-ode we will:
+When it is time to release a new minor version of qiskit-dynamics we will:
 
 1.  Create a new tag with the version number and push it to github
 2.  Change the `master` version to the next release version.
@@ -302,7 +302,7 @@ the following steps:
     on the `master` branch
 2.  Build and upload binary wheels to pypi
 3.  Create a github release page with a generated changelog
-4.  Generate a PR on the meta-repository to bump the qiskit-ode version and
+4.  Generate a PR on the meta-repository to bump the qiskit-dynamics version and
     meta-package version.
 
 The `stable/*` branches should only receive changes in the form of bug

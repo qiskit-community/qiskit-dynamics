@@ -12,7 +12,7 @@ assignees: ''
 
 ### Informations
 
-- **Qiskit ODE version**:
+- **Qiskit Dynamics version**:
 - **Python version**:
 - **Operating system**:
 

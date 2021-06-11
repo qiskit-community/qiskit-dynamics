@@ -25,7 +25,7 @@ requirements = [
 PACKAGES = setuptools.find_packages(exclude=['test*'])
 
 version_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'qiskit_ode',
+    os.path.join(os.path.dirname(__file__), 'qiskit_dynamics',
                  'VERSION.txt'))
 
 with open(version_path, 'r') as fd:
@@ -37,13 +37,13 @@ with open(README_PATH) as readme_file:
     README = readme_file.read()
 
 setuptools.setup(
-    name="qiskit-ode",
+    name="qiskit-dynamics",
     version=version,
     packages=PACKAGES,
     description="Qiskit ODE solver",
     long_description=README,
     long_description_content_type='text/markdown',
-    url="https://github.ibm.com/cjwood/qiskit-ode",
+    url="https://github.com/Qiskit/qiskit-dynamics",
     author="Qiskit Development Team",
     author_email="qiskit@qiskit.org",
     license="Apache 2.0",
