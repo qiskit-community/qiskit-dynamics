@@ -12,7 +12,7 @@ assignees: ''
 
 ### Informations
 
-- **Qiskit Ignis version**:
+- **Qiskit ODE version**:
 - **Python version**:
 - **Operating system**:
 
