@@ -43,7 +43,7 @@ setuptools.setup(
     description="Qiskit ODE solver",
     long_description=README,
     long_description_content_type='text/markdown',
-    url="https://github.ibm.com/cjwood/qiskit-dynamics",
+    url="https://github.com/Qiskit/qiskit-dynamics",
     author="Qiskit Development Team",
     author_email="qiskit@qiskit.org",
     license="Apache 2.0",
