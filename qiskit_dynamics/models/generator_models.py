@@ -287,7 +287,7 @@ class GeneratorModel(BaseGeneratorModel):
                 operators are in frame basis.
         """
 
-        self._operator_collection = DenseOperatorCollection(self.operators)
+        self._operator_collection = None
 
         self._cutoff_freq = cutoff_freq
 
@@ -413,18 +413,22 @@ class GeneratorModel(BaseGeneratorModel):
             self.operators, self.cutoff_freq, carrier_freqs
         )
 
-    def evaluate_rhs(
-        self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
-    ) -> Array:
-        """Evaluate the model in array format as a vector, given the current state.
-        Args:
-            time: Time to evaluate the model
-            y: (n) Array specifying system state, in basis choice specified by
-                in_frame_basis. If not in frame basis, assumed to not include
-                the rotating term e^{-Ft}. If in the frame basis, assumed to
-                include the rotating term e^{-Ft}.
-            in_frame_basis: Whether to evaluate in the basis in which the frame
-                operator is diagonal
+        self._operator_collection = DenseOperatorCollection()
+
+    def _reset_internal_ops(self):
+        """Helper function to be used by various setters whose value changes
+        require reconstruction of the internal operators.
+        """
+        self.__ops_in_fb_w_cutoff = None
+        self.__ops_in_fb_w_conj_cutoff = None
+        self._operator_collection = None
+
+    @property
+    def _ops_in_fb_w_cutoff(self):
+        r"""Internally stored operators in frame basis with cutoffs.
+        This corresponds to the :math:`A^+` matrices from
+        `Frame.operators_into_frame_basis_with_cutoff`.
+
         Returns:
             Array: the evaluated model as (n) vector
         Raises:
@@ -551,3 +555,7 @@ def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union
     return new_model
 
 
+        return 0.5 * (
+            np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
+            + np.tensordot(sig_vals.conj(), self._ops_in_fb_w_conj_cutoff, axes=1)
+        )
