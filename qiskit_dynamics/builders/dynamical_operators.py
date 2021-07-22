@@ -152,7 +152,7 @@ class DynamicalOperator(ABC):
 
 
 class DynamicalOperatorKey:
-	"""A placeholder for a unique key identifying an operator and a subsystem."""
+	"""A container for a unique key identifying an operator and a subsystem."""
 
 	def __init__(self, op: DynamicalOperator):
 		self.system_id = op.system_id

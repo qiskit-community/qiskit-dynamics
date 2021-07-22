@@ -7,6 +7,7 @@ from qiskit_dynamics import solve_lmde
 
 
 class SimulationDef:
+	"""A container for the defining elements of a dynamical simulation."""
 
 	def __init__(self,
 				 t_span: Array,
@@ -18,6 +19,13 @@ class SimulationDef:
 				 noise_signals: Optional[Union[List[Signal], SignalList]] = None,
 				 observable_operators: Optional[Union[List[Array], List[Operator], List[DynamicalOperator]]] = None,
 				 observable_labels: Optional[List] = None):
+		"""Initialize the definition of a dynamical simulation.
+
+		Args:
+			t_span: ``Tuple`` or `list` of initial and final time.
+			t_eval: Times at which to return the solution. Must lie within ``t_span``.
+			initial_state: State at initial time.
+		"""
 		self.t_span = t_span
 		self.t_eval = t_eval
 		self.initial_state = initial_state
@@ -30,6 +38,7 @@ class SimulationDef:
 
 
 class SimulationBuilder(ABC):
+	"""A base class for storing, building and solving a simulation, and calculating observables."""
 
 	def __init__(self, sim_def: SimulationDef):
 		self.sim_def = sim_def
