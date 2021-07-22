@@ -1,5 +1,4 @@
 ##COPYRIGHT STUFF
-# Ensuring Git push working as intended. 
 
 """Generic operator for general linear maps"""
 
@@ -10,7 +9,7 @@ import numpy as np
 
 from qiskit import QiskitError
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array
+from qiskit_dynamics.type_utils import to_array 
 
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
@@ -22,6 +21,12 @@ class BaseOperatorCollection(ABC):
     right-multiplication \Lambda_i(y,t) = y(t)B(t), and both, with 
     \Lambda_i(y,t) = A(t)y(t)B(t), but this implementation
     will only engage with these at the level of \Lambda(y,t)"""
+
+    @property
+    @abstractmethod
+    def num_operators(self):
+        """Get number of operators"""
+        pass
 
     @abstractmethod
     def evaluate_without_state(self, time: float, in_frame_basis: bool = False) -> Array:
@@ -66,8 +71,11 @@ class DenseOperatorCollection(BaseOperatorCollection):
     \forall j. In this case, we pass to a LMultDenseOperatorCollection,
     which is intended for use with models of the form \dot{y} = G(t)y. 
     """
-    
-    @signals.setter
+
+    @property
+    def num_operators(self):
+        return self._num_operators    
+
     def filter_signals(signals: SignalList):
             """To be called by Model objects to sort
             a SignalList of signals s_j into 
@@ -104,7 +112,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
                 raise ValueError("Operators must be an array of square matrices")
         
         self._hilbert_space_dimension = operators.shape[-1]
-
+        self._num_operators = operators.shape[-3]
         if len(operators.shape)==4:
             #More general case. Requires y be a matrix
             if operators.shape[0]!=2:

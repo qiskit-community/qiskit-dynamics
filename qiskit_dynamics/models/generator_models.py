@@ -287,16 +287,9 @@ class GeneratorModel(BaseGeneratorModel):
                 operators are in frame basis.
         """
 
-        # initialize internal operator representation
-        self._operator_collection = None
-        self._operators = Array(np.array(operators))
-        self._drift = None
-        self.drift = drift
-        self.evaluation_mode = evaluation_mode
+        self._operator_collection = OperatorCollection(self.operators)
 
-        # set frame and transform operators into frame basis.
-        self._frame = None
-        self.frame = Frame(frame)
+        self._cutoff_freq = cutoff_freq
 
         # initialize signal-related attributes
         self._signals = None
@@ -390,9 +383,34 @@ class GeneratorModel(BaseGeneratorModel):
         # Evaluated in frame basis, but without rotations
         op_combo = self._operator_collection(sig_vals)
 
-        # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
-        return self.frame.operator_into_frame(
-            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+        # for now if the frame operator is not None raise an error
+        if self.frame.frame_operator is not None:
+            raise QiskitError(
+                """The drift is currently ill-defined if
+                               frame_operator is not None."""
+            )
+
+        drift_sig_vals = self._signals.drift
+
+        return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
+
+    def _construct_ops_in_fb_w_cutoff(self):
+        """Construct versions of operators in frame basis with cutoffs
+        and conjugate cutoffs. To be used in conjunction with
+        operators_into_frame_basis_with_cutoff to compute the operator in the
+        frame basis with frequency cutoffs applied.
+        """
+        carrier_freqs = None
+        if self._signals is None:
+            carrier_freqs = np.zeros(self._operator_collection.num_operators)
+        else:
+            carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
+
+        (
+            self.__ops_in_fb_w_cutoff,
+            self.__ops_in_fb_w_conj_cutoff,
+        ) = self.frame.operators_into_frame_basis_with_cutoff(
+            self.operators, self.cutoff_freq, carrier_freqs
         )
 
     def evaluate_rhs(
