@@ -22,6 +22,7 @@ import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
+from qiskit_dynamics.models.operator_collection import DenseOperatorCollection
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
@@ -250,7 +251,7 @@ class GeneratorModel(BaseGeneratorModel):
         """
         self.operators = to_array(operators)
 
-        self._operator_collection = OperatorCollection(self.operators)
+        self._operator_collection = DenseOperatorCollection(self.operators)
 
         self._cutoff_freq = cutoff_freq
 
