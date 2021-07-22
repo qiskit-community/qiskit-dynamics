@@ -250,6 +250,8 @@ class GeneratorModel(BaseGeneratorModel):
         """
         self.operators = to_array(operators)
 
+        self._operator_collection = OperatorCollection(self.operators)
+
         self._cutoff_freq = cutoff_freq
 
         # initialize signal-related attributes
@@ -284,7 +286,7 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != len(self.operators):
+            if len(signals) != self._operator_collection.num_operators:
                 raise QiskitError(
                     """Signals needs to have the same length as
                                     operators."""
@@ -383,7 +385,7 @@ class GeneratorModel(BaseGeneratorModel):
         """
         carrier_freqs = None
         if self._signals is None:
-            carrier_freqs = np.zeros(len(self.operators))
+            carrier_freqs = np.zeros(self._operator_collection.num_operators)
         else:
             carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
 
