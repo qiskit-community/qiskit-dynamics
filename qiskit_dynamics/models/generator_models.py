@@ -251,7 +251,7 @@ class GeneratorModel(BaseGeneratorModel):
         """
         self.operators = to_array(operators)
 
-        self._operator_collection = DenseOperatorCollection(self.operators)
+        self._operator_collection = None
 
         self._cutoff_freq = cutoff_freq
 
@@ -397,12 +397,15 @@ class GeneratorModel(BaseGeneratorModel):
             self.operators, self.cutoff_freq, carrier_freqs
         )
 
+        self._operator_collection = DenseOperatorCollection()
+
     def _reset_internal_ops(self):
         """Helper function to be used by various setters whose value changes
         require reconstruction of the internal operators.
         """
         self.__ops_in_fb_w_cutoff = None
         self.__ops_in_fb_w_conj_cutoff = None
+        self._operator_collection = None
 
     @property
     def _ops_in_fb_w_cutoff(self):
