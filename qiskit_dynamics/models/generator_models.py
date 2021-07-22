@@ -22,7 +22,7 @@ import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.models.operator_collections import DenseOperatorCollection
+from qiskit_dynamics.models.operator_collection import DenseOperatorCollection
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList,SignalSum
@@ -287,7 +287,7 @@ class GeneratorModel(BaseGeneratorModel):
                 operators are in frame basis.
         """
 
-        self._operator_collection = OperatorCollection(self.operators)
+        self._operator_collection = DenseOperatorCollection(self.operators)
 
         self._cutoff_freq = cutoff_freq
 
