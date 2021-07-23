@@ -79,21 +79,21 @@ class DenseGeneralOperatorCollection(BaseOperatorCollection):
         return self._num_operators    
 
     def filter_signals(self,signals: SignalList):
-            """To be called by Model objects to sort
-            a SignalList of signals s_j into 
-            the signal values associated to
-            left-only, right-only, and left-and-right 
-            multiplication in our linear maps \Lambda_j"""
+        """To be called by Model objects to sort
+        a SignalList of signals s_j into 
+        the signal values associated to
+        left-only, right-only, and left-and-right 
+        multiplication in our linear maps \Lambda_j"""
 
-            filtered_signals = [[],[],[]]
-            
-            actual_signal_array = np.array(signals.components()) #object array; temporary
+        filtered_signals = [[],[],[]]
+        
+        actual_signal_array = np.array(signals.components()) #object array; temporary
 
-            left_signals = SignalList(actual_signal_array[self._left_operator_filter].tolist())
-            right_signals = SignalList(actual_signal_array[self._right_operator_filter].toarray())
-            both_signals = SignalList(actual_signal_array[self._both_operator_filter].toarray())
+        left_signals = SignalList(actual_signal_array[self._left_operator_filter].tolist())
+        right_signals = SignalList(actual_signal_array[self._right_operator_filter].toarray())
+        both_signals = SignalList(actual_signal_array[self._both_operator_filter].toarray())
 
-            return left_signals,right_signals,both_signals
+        return left_signals,right_signals,both_signals
 
     def __init__(
         self,
@@ -188,15 +188,54 @@ class DenseGeneralOperatorCollection(BaseOperatorCollection):
             raise NotImplementedError("Representing linear maps without state is not currently supported.")
         # Note that OperatorCollection is not aware of frames
         return np.tensordot(signal_values,self._operators[0],axes=1)
-        
+
+class DenseSingleSideOperatorCollection(BaseOperatorCollection): 
+    """Meant to be a calculation object for models that 
+    only ever need left multiplication–those of the form
+    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j. 
+    Is able to evaluate G(t) independently of y. Also 
+    preserves the LMult and RMult functionality. 
+    """
+    @property
+    def num_operators(self):
+        return self._num_operators
+    
+    def evaluate_without_state(self, signal_values: Array) -> Array:
+        """Evaluates the operator G at time t given
+        the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j"""
+        return np.tensordot(signal_values,self._operators)
+
+    def LMult(self, signal_values: Array, y: Array) -> Array:
+        """Evaluates the product G(t)y"""
+        return np.dot(self.evaluate_without_state(signal_values),y)
+    
+    def RMult(self, signal_values: Array, y: Array) -> Array: 
+        """Evaluates the product yG(t)"""
+        return np.dot(y,self.evaluate_without_state(signal_values))
+
+    def __init__(self, operators: Array,right_mult_calculation: bool = False):
+        """Initialize an LMult model
+        Args: 
+            operators: (k,n,n) Array specifying the terms G_j
+            right_mult_calculation: boolean flag to override 
+                the default functionality and assume that 
+                all multiplicaiton is right multiplication
+                (instead of the deafult left multiplication)"""
+        self._operators = operators
+        self._num_operators = operators.shape[0]
+        if right_mult_calculation: 
+            self.evaluate_with_state = self.Rult
+        else:
+            self.evaluate_with_state = self.LMult
+
+
 class DenseLindbladCollection(BaseOperatorCollection):
     """Intended to be the calculation object for the Lindblad equation
     \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t) (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
     where [,] and {,} are the operator commutator and anticommutator, respectively. 
     In the case that the Hamiltonian is also a function of time, varying as H(t) = \sum_j s_j(t) H_j, this
     can be further decomposed. We will allow for both our dissipator terms and our Hamiltonian terms to 
-    have different signal decompositions. 
-    """
+    have different signal decompositions."""
 
     def num_operators(self):
         return self._num_ham_terms,self._num_dis_terms
@@ -250,12 +289,3 @@ class DenseLindbladCollection(BaseOperatorCollection):
         dissipator_contribution+= np.tensordot(signal_values[1], np.matmul(np.matmul(
             self._dissipator_operators,y),self._dissipator_operators_conj))
         return dissipator_contribution + hamiltonian_contribution 
-
-
-
-        
-        
-        
-
-
-
