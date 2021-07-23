@@ -283,11 +283,9 @@ class GeneratorModel(BaseGeneratorModel):
                 signals, but it can not perform any actions without them.
             frame: Rotating frame operator. If specified with a 1d
                 array, it is interpreted as the diagonal of a
-                diagonal matrix. If provided, it is assumed that all
-                operators are in frame basis.
+                diagonal matrix.
+            cutoff_freq: Frequency cutoff when evaluating the model.
         """
-
-        self._operator_collection = DenseOperatorCollection(self.operators)
 
         self._cutoff_freq = cutoff_freq
 
@@ -299,19 +297,9 @@ class GeneratorModel(BaseGeneratorModel):
     def operators(self) -> Array:
         return self._operators
 
-    @property
-    def hilbert_space_dimension(self) -> int:
-        return self._operators.shape[-1]
-
-    @property
-    def evaluation_mode(self) -> str:
-        return super().evaluation_mode
-
-    @evaluation_mode.setter
-    def evaluation_mode(self, new_mode: str):
-        if new_mode == "dense_operator_collection":
-            self._operator_collection = DenseOperatorCollection(self._operators, drift=self.drift)
-            self._evaluation_mode = new_mode
+        # initialize internal operator representation in the frame basis
+        self._fb_op_collection = None
+        self._fb_op_conj_collection = None
 
     @property
     def signals(self) -> SignalList:
@@ -334,7 +322,7 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != self._operator_collection.num_operators:
+            if len(signals) != len(self.operators):
                 raise QiskitError(
                     """Signals needs to have the same length as
                                     operators."""
@@ -402,46 +390,25 @@ class GeneratorModel(BaseGeneratorModel):
         """
         carrier_freqs = None
         if self._signals is None:
-            carrier_freqs = np.zeros(self._operator_collection.num_operators)
+            carrier_freqs = np.zeros(len(self.operators))
         else:
             carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
 
         (
-            self.__ops_in_fb_w_cutoff,
-            self.__ops_in_fb_w_conj_cutoff,
+            ops_in_fb_w_cutoff,
+            ops_in_fb_w_conj_cutoff,
         ) = self.frame.operators_into_frame_basis_with_cutoff(
             self.operators, self.cutoff_freq, carrier_freqs
         )
-
-        # self._operator_collection = DenseOperatorCollection()
+        self._fb_op_collection = DenseOperatorCollection(ops_in_fb_w_cutoff)
+        self._fb_op_conj_collection = DenseOperatorCollection(ops_in_fb_w_conj_cutoff)
 
     def _reset_internal_ops(self):
         """Helper function to be used by various setters whose value changes
         require reconstruction of the internal operators.
         """
-        self.__ops_in_fb_w_cutoff = None
-        self.__ops_in_fb_w_conj_cutoff = None
-        self._operator_collection = None
-
-    @property
-    def _ops_in_fb_w_cutoff(self):
-        r"""Internally stored operators in frame basis with cutoffs.
-        This corresponds to the :math:`A^+` matrices from
-        `Frame.operators_into_frame_basis_with_cutoff`.
-
-        Returns:
-            Array: the evaluated model as (n) vector
-        Raises:
-            QiskitError: If model cannot be evaluated.
-        """
-
-        if self._signals is None:
-            raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
-
-        sig_vals = self._signals.__call__(time)
-
-        # Evaluated in frame basis, but without rotations e^{\pm Ft}
-        op_combo = self._operator_collection(sig_vals)
+        self._fb_op_collection = None
+        self._fb_op_conj_collection = None
 
         if self.frame is not None:
             # First, compute e^{tF}y as a pre-rotation in the frame basis
@@ -554,8 +521,10 @@ def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union
     new_model = GeneratorModel(new_operators,drift=new_drift,signals=new_signals,frame=deepcopy(model.frame.frame_operator))
     return new_model
 
-
-        return 0.5 * (
-            np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
-            + np.tensordot(sig_vals.conj(), self._ops_in_fb_w_conj_cutoff, axes=1)
-        )
+        Returns:
+            Array: operator model evaluated for a given list of signal values
+        """
+        if self._fb_op_collection is None or self._fb_op_conj_collection is None:
+            self._construct_ops_in_fb_w_cutoff()
+        
+        return 0.5 * (self._fb_op_collection(sig_vals)+self._fb_op_conj_collection(sig_vals.conj()))
