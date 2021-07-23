@@ -132,3 +132,6 @@ dmypy.json
 
 # System files
 *.DS_Store
+
+#VS Code Settings Folder
+.vscode/
