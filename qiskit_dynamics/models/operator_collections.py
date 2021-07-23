@@ -64,7 +64,7 @@ class BaseOperatorCollection(ABC):
         """Return a copy of self."""
         return deepcopy(self)
 
-class DenseOperatorCollection(BaseOperatorCollection):
+class DenseGeneralOperatorCollection(BaseOperatorCollection):
     """Most general form of dense-matrix stored operator collections. 
     Generically for models of the form \dot{y} = \Lambda(y,t) where
     \Lambda(y,t) = \sum_j s_j(t) \Lambda_j(y). We choose to support 
@@ -189,7 +189,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
         # Note that OperatorCollection is not aware of frames
         return np.tensordot(signal_values,self._operators[0],axes=1)
         
-class DenseLindbladCollection(DenseOperatorCollection):
+class DenseLindbladCollection(BaseOperatorCollection):
     """Intended to be the calculation object for the Lindblad equation
     \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t) (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
     where [,] and {,} are the operator commutator and anticommutator, respectively. 
