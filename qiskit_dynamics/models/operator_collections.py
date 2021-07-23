@@ -3,13 +3,13 @@
 """Generic operator for general linear maps"""
 
 from abc import ABC, abstractmethod
-from typing import Callable, Union, List, Optional
+from typing import Union, List, Optional
 from copy import deepcopy
 import numpy as np
 
-from qiskit import QiskitError
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array 
+from qiskit_dynamics.signals import Signal,SignalList
 
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
@@ -76,7 +76,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
     def num_operators(self):
         return self._num_operators    
 
-    def filter_signals(signals: SignalList):
+    def filter_signals(self,signals: SignalList):
             """To be called by Model objects to sort
             a SignalList of signals s_j into 
             the signal values associated to
@@ -85,7 +85,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
             filtered_signals = [[],[],[]]
             
-            actual_signal_array = np.array(signals.components) #object array; temporary
+            actual_signal_array = np.array(signals.components()) #object array; temporary
 
             left_signals = SignalList(actual_signal_array[self._left_operator_filter].tolist())
             right_signals = SignalList(actual_signal_array[self._right_operator_filter].toarray())
@@ -122,7 +122,8 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
             # tracks whether operator (ij) where i = 0,1 and j associated to \Lambda_j is the identity map
             # i.e. is_identity[0,j] = True if A_j = I; likewise for [1,j] and B_j = I.
-            is_identity = np.all(np.all(np.isclose(operators,np.eye(self.hilbert_space_dimension)),axis=3),axis=2)
+            is_identity = np.all(np.all(
+                np.isclose(operators,np.eye(self._hilbert_space_dimension)),axis=3),axis=2)
 
         elif len(operators.shape)==3:
             #Assume that all operators are left-multiplying
@@ -155,7 +156,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
                 s_j(t) [will in general be complex]. 
             y: Array, either vector or matrix. Represents state of system. 
         """
-        
+
         left_sig_vals,right_sig_vals,both_sig_vals = signal_values
         if self._multiplication_mode=="left-only":
             res = np.dot(np.tensordot(left_sig_vals,self._operators[0],axes=1),y)
@@ -172,7 +173,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
             if len(both_sig_vals)>0:
                 res += np.tensordot(both_sig_vals,
                     np.matmul(np.matmul(self._operators[2][0],y),
-                        self.operators[2][1]))
+                        self._operators[2][1]))
         return res
         
     def evaluate_without_state(self, signal_values: Array): 
@@ -186,7 +187,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
         # Note that OperatorCollection is not aware of frames
         return np.tensordot(signal_values,self._operators[0],axes=1)
         
-
+        
         
 
 
