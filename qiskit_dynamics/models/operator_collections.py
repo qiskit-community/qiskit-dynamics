@@ -8,17 +8,15 @@ from copy import deepcopy
 import numpy as np
 
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array 
-from qiskit_dynamics.signals import Signal,SignalList
 
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
     intended to store a general set of linear mappings {\Lambda_i}
-    in order to implement differential equations of the form 
-    \dot{y} = \Lambda(y,t). Generically, \Lambda will be a sum of 
+    in order to implement differential equations of the form
+    \dot{y} = \Lambda(y,t). Generically, \Lambda will be a sum of
     other linear maps \Lambda_i(y,t), which are in turn some
-    combination of left-multiplication \Lambda_i(y,t) = A(t)y(t), 
-    right-multiplication \Lambda_i(y,t) = y(t)B(t), and both, with 
+    combination of left-multiplication \Lambda_i(y,t) = A(t)y(t),
+    right-multiplication \Lambda_i(y,t) = y(t)B(t), and both, with
     \Lambda_i(y,t) = A(t)y(t)B(t), but this implementation
     will only engage with these at the level of \Lambda(y,t)"""
 
@@ -35,16 +33,16 @@ class BaseOperatorCollection(ABC):
     @abstractmethod
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""If the model can be represented simply and
-        without reference to the state involved, e.g. 
+        without reference to the state involved, e.g.
         in the case \dot{y} = G(t)y(t) being represented
-        as G(t), returns this independent representation. 
+        as G(t), returns this independent representation.
         If the model cannot be represented in such a
         manner (c.f. Lindblad model), then errors. """
         pass
 
     @abstractmethod
     def evaluate_with_state(self, signal_values: Union[List[Array],Array], y: Array) -> Array:
-        """Evaluates the model for a given state 
+        """Evaluates the model for a given state
         y provided the values of each signal
         component s_j(t). Must be defined for all
         models. """
@@ -67,10 +65,10 @@ class BaseOperatorCollection(ABC):
         """Return a copy of self."""
         return deepcopy(self)
 
-class DenseOperatorCollection(BaseOperatorCollection): 
+class DenseOperatorCollection(BaseOperatorCollection):
     r"""Meant to be a calculation object for models that
     only ever need left multiplication–those of the form
-    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j. 
+    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j.
     Is able to evaluate G(t) independently of y.
     """
 
@@ -79,7 +77,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
     def num_operators(self):
         return self._num_operators
-    
+
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""Evaluates the operator G at time t given
         the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j"""
@@ -91,7 +89,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
     def __init__(self, operators: Array):
         """Initialize
-        Args: 
+        Args:
             operators: (k,n,n) Array specifying the terms G_j
         """
         self._operators = operators
@@ -102,7 +100,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
     r"""Intended to be the calculation object for the Lindblad equation
     \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)
         (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
-    where [,] and {,} are the operator commutator and anticommutator, respectively. 
+    where [,] and {,} are the operator commutator and anticommutator, respectively.
     In the case that the Hamiltonian is also a function of time, varying as
     H(t) = \sum_j s_j(t) H_j, this can be further decomposed. We will allow
     for both our dissipator terms and our Hamiltonian terms to have different
@@ -113,7 +111,6 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def num_operators(self):
         return self._num_ham_terms,self._num_dis_terms
-        
 
     def __init__(self,
         hamiltonian_operators: Array,
@@ -123,24 +120,26 @@ class DenseLindbladCollection(BaseOperatorCollection):
         as well as Lindbladians, into a way of calculating the RHS
         of the Lindblad equation.
 
-        Args: 
-            hamiltonian_operators: Specifies breakdown of Hamiltonian 
+        Args:
+            hamiltonian_operators: Specifies breakdown of Hamiltonian
                 as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
-            dissipator_operators: the terms L_j in Lindblad equation. 
-                (m,n,n) array. 
+            dissipator_operators: the terms L_j in Lindblad equation.
+                (m,n,n) array.
         """
         self._hamiltonian_operators = hamiltonian_operators
         self._num_ham_terms = hamiltonian_operators.shape[0]
-        if dissipator_operators == None:
+        if dissipator_operators is None:
             self._num_dis_terms = 0
             self._dissipator_operators = Array([[]])
-        else: 
+        else:
             self._num_dis_terms = dissipator_operators.shape[0]
 
             self._dissipator_operators = dissipator_operators
-            self._dissipator_operators_conj = np.conjugate(np.transpose(dissipator_operators,[0,2,1])).copy()
-            self._dissipator_products = np.matmul(self._dissipator_operators_conj,self._dissipator_operators)
-        
+            self._dissipator_operators_conj = np.conjugate(
+                np.transpose(dissipator_operators,[0,2,1])).copy()
+            self._dissipator_products = np.matmul(self._dissipator_operators_conj,
+                self._dissipator_operators)
+
     def evaluate_with_state(self, signal_values: List[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
@@ -148,7 +147,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             A = (-1/2)*\sum_j\gamma(t) L_j^\dagger L_j
             B = -iH
             C = \sum_j \gamma_j(t) L_j y L_j^\dagger
-        Args: 
+        Args:
             signal_values: length-2 list of Arrays. has the following components
                 signal_values[0]: hamiltonian signal values, s_j(t)
                     Must have length self._num_ham_terms
@@ -165,5 +164,5 @@ class DenseLindbladCollection(BaseOperatorCollection):
         left_mult_contribution = np.dot(hamiltonian_matrix+dissipators_matrix,y)
         right_mult_contribution = np.dot(y,-hamiltonian_matrix+dissipators_matrix)
         both_mult_contribution = np.tensordot(signal_values[1], np.matmul(np.matmul(
-            self._dissipator_operators,y),self._dissipator_operators_conj)) #C
+            self._dissipator_operators,y),self._dissipator_operators_conj),axes=1) #C
         return left_mult_contribution + right_mult_contribution + both_mult_contribution
