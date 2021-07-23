@@ -270,7 +270,13 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def evaluate_with_state(self, signal_values: List[Array], y: Array):
         """Evaluates Lindblad equation RHS given a pair of signal values 
-        for the hamiltonian terms. 
+        for the hamiltonian terms and the dissipator terms. Expresses
+        the RHS of the Lindblad equation 
+        -i[H,y] + \sum_j\gamma_j(t) (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
+        as (A+B)y + y(A-B) + C, where 
+            A = (-1/2)*\sum_j\gamma(t) L_j^\dagger L_j
+            B = -iH
+            C = \sum_j \gamma_j(t) L_j y L_j^\dagger
         Args: 
             signal_values: length-2 list of Arrays. 
             components: 
@@ -280,12 +286,11 @@ class DenseLindbladCollection(BaseOperatorCollection):
                     Must have length self._num_dis_terms
             y: density matrix [(n,n) array] representing the state at time t
         """
-        hamiltonian = np.tensordot(signal_values[0],self._hamiltonian_operators)
-        hamiltonian_contribution = -1j*(np.dot(hamiltonian,y)-np.dot(y,hamiltonian))
-        dissipator_product_matrix = np.tensordot(signal_values[1],self._dissipator_products)
-        # Note that \sum_j \gamma_j(t) (-1/2){L_j^\dagger L_j,\rho} = (-1/2){\sum_j\gamma_j L_j^\dagger L_j,\rho} 
-        # by bilinearity of anticommutator
-        dissipator_contribution = (-1/2)*(np.dot(dissipator_product_matrix,y)+np.dot(y,dissipator_product_matrix))
-        dissipator_contribution+= np.tensordot(signal_values[1], np.matmul(np.matmul(
-            self._dissipator_operators,y),self._dissipator_operators_conj))
-        return dissipator_contribution + hamiltonian_contribution 
+        dissipators_matrix = (-1/2)*np.tensordot(signal_values[1],self._dissipator_products) #A
+        hamiltonian_matrix = -1j*np.tensordot(signal_values[0],self._hamiltonian_operators) #B
+
+        left_mult_contribution = np.dot(hamiltonian_matrix+dissipators_matrix,y)
+        right_mult_contribution = np.dot(y,-hamiltonian_matrix+dissipators_matrix)
+        both_mult_contribution = np.tensordot(signal_values[1], np.matmul(np.matmul(
+            self._dissipator_operators,y),self._dissipator_operators_conj)) #C
+        return left_mult_contribution + right_mult_contribution + both_mult_contribution
