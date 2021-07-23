@@ -187,6 +187,71 @@ class DenseOperatorCollection(BaseOperatorCollection):
         # Note that OperatorCollection is not aware of frames
         return np.tensordot(signal_values,self._operators[0],axes=1)
         
+class DenseLindbladCollection(DenseOperatorCollection):
+    """Intended to be the calculation object for the Lindblad equation
+    \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t) (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
+    where [,] and {,} are the operator commutator and anticommutator, respectively. 
+    In the case that the Hamiltonian is also a function of time, varying as H(t) = \sum_j s_j(t) H_j, this
+    can be further decomposed. We will allow for both our dissipator terms and our Hamiltonian terms to 
+    have different signal decompositions. 
+    """
+
+    def num_operators(self):
+        return self._num_ham_terms,self._num_dis_terms
+        
+
+    def __init__(self,
+        hamiltonian_operators: Array,
+        dissipator_operators: Optional[Array],
+    ):
+        """Converts an array of Hamiltonian components and signals, 
+        as well as Lindbladians, into a way of calculating the RHS
+        of the Lindblad equation.
+
+        Args: 
+            hamiltonian_operators: Specifies breakdown of Hamiltonian 
+                as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
+            dissipator_operators: the terms L_j in Lindblad equation. 
+                (m,n,n) array. 
+        """
+        self._hamiltonian_operators = hamiltonian_operators
+        self._num_ham_terms = hamiltonian_operators.shape[0]
+        if dissipator_operators == None:
+            self._num_dis_terms = 0
+            self._dissipator_operators = Array([[]])
+        else: 
+            self._num_dis_terms = dissipator_operators.shape[0]
+
+            self._dissipator_operators = dissipator_operators
+            self._dissipator_operators_conj = np.conjugate(np.transpose(dissipator_operators,[0,2,1])).copy()
+            self._dissipator_products = np.matmul(self._dissipator_operators_conj,self._dissipator_operators)
+        
+
+    def evaluate_with_state(self, signal_values: List[Array], y: Array):
+        """Evaluates Lindblad equation RHS given a pair of signal values 
+        for the hamiltonian terms. 
+        Args: 
+            signal_values: length-2 list of Arrays. 
+            components: 
+                signal_values[0]: hamiltonian signal values, s_j(t)
+                    Must have length self._num_ham_terms
+                signal_values[1]: dissipator signal values, \gamma_j(t)
+                    Must have length self._num_dis_terms
+            y: density matrix [(n,n) array] representing the state at time t
+        """
+        hamiltonian = np.tensordot(signal_values[0],self._hamiltonian_operators)
+        hamiltonian_contribution = -1j*(np.dot(hamiltonian,y)-np.dot(y,hamiltonian))
+        dissipator_product_matrix = np.tensordot(signal_values[1],self._dissipator_products)
+        # Note that \sum_j \gamma_j(t) (-1/2){L_j^\dagger L_j,\rho} = (-1/2){\sum_j\gamma_j L_j^\dagger L_j,\rho} 
+        # by bilinearity of anticommutator
+        dissipator_contribution = (-1/2)*(np.dot(dissipator_product_matrix,y)+np.dot(y,dissipator_product_matrix))
+        dissipator_contribution+= np.tensordot(signal_values[1], np.matmul(np.matmul(
+            self._dissipator_operators,y),self._dissipator_operators_conj))
+        return dissipator_contribution + hamiltonian_contribution 
+
+
+
+        
         
         
 
