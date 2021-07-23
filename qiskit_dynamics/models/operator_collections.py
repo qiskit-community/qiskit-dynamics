@@ -20,9 +20,9 @@ class BaseOperatorCollection(ABC):
     right-multiplication \Lambda_i(y,t) = y(t)B(t), and both, with
     \Lambda_i(y,t) = A(t)y(t)B(t), but this implementation
     will only engage with these at the level of \Lambda(y,t)
-    
+
     Drift is a property that represents some time-independent
-    component \Lambda_d of the decpmoosition, which will be 
+    component \Lambda_d of the decpmoosition, which will be
     used to facilitate frame transformations."""
 
     @abstractmethod
@@ -99,16 +99,16 @@ class DenseLindbladCollection(BaseOperatorCollection):
         (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
     where [,] and {,} are the operator commutator and anticommutator, respectively.
     In the case that the Hamiltonian is also a function of time, varying as
-    H(t) = H_d + \sum_j s_j(t) H_j, where H_d is the drift term, 
+    H(t) = H_d + \sum_j s_j(t) H_j, where H_d is the drift term,
     this can be further decomposed. We will allow for both our dissipator terms
-    and our Hamiltonian terms to have different signal decompositions. 
+    and our Hamiltonian terms to have different signal decompositions.
     """
 
     def __init__(
         self,
         hamiltonian_operators: Array,
         drift: Optional[Array],
-        dissipator_operators: Optional[Array]
+        dissipator_operators: Optional[Array],
     ):
         r"""Converts an array of Hamiltonian components and signals,
         as well as Lindbladians, into a way of calculating the RHS
@@ -125,12 +125,13 @@ class DenseLindbladCollection(BaseOperatorCollection):
         self._dissipator_operators = dissipator_operators
         self._drift = drift
 
-
         if dissipator_operators is not None:
             self._dissipator_operators_conj = np.conjugate(
-                np.transpose(dissipator_operators, [0, 2, 1])).copy()
+                np.transpose(dissipator_operators, [0, 2, 1])
+            ).copy()
             self._dissipator_products = np.matmul(
-                self._dissipator_operators_conj, self._dissipator_operators)
+                self._dissipator_operators_conj, self._dissipator_operators
+            )
 
     def evaluate_with_state(self, signal_values: List[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
@@ -150,23 +151,28 @@ class DenseLindbladCollection(BaseOperatorCollection):
             RHS of Lindblad equation -i[H,y] + \sum_j\gamma_j(t)
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
-        hamiltonian_matrix = -1j * (np.tensordot( #B matrix
-            signal_values[0], self._hamiltonian_operators, axes=1) + self._drift)
-        
+        hamiltonian_matrix = -1j * (
+            np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)  # B matrix
+            + self._drift
+        )
+
         if self._dissipator_operators is not None:
 
-            dissipators_matrix = (-1 / 2) * np.tensordot( #A matrix
-                signal_values[1], self._dissipator_products, axes=1)
+            dissipators_matrix = (-1 / 2) * np.tensordot(  # A matrix
+                signal_values[1], self._dissipator_products, axes=1
+            )
 
             left_mult_contribution = np.dot(hamiltonian_matrix + dissipators_matrix, y)
             right_mult_contribution = np.dot(y, -hamiltonian_matrix + dissipators_matrix)
             both_mult_contribution = np.tensordot(
                 signal_values[1],
-                np.matmul(np.matmul(self._dissipator_operators, y), self._dissipator_operators_conj),
-                axes=1)  # C
-                
+                np.matmul(
+                    np.matmul(self._dissipator_operators, y), self._dissipator_operators_conj
+                ),
+                axes=1,
+            )  # C
+
             return left_mult_contribution + right_mult_contribution + both_mult_contribution
 
-        else: 
+        else:
             return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
-        
