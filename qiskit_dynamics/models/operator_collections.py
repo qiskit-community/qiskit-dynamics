@@ -9,6 +9,7 @@ import numpy as np
 
 from qiskit_dynamics.dispatch import Array
 
+
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
     intended to store a general set of linear mappings {\Lambda_i}
@@ -18,17 +19,11 @@ class BaseOperatorCollection(ABC):
     combination of left-multiplication \Lambda_i(y,t) = A(t)y(t),
     right-multiplication \Lambda_i(y,t) = y(t)B(t), and both, with
     \Lambda_i(y,t) = A(t)y(t)B(t), but this implementation
-    will only engage with these at the level of \Lambda(y,t)"""
-
-    @abstractmethod
-    def operators(self):
-        """Get operators of the collection"""
-        pass
-
-    @abstractmethod
-    def num_operators(self):
-        """Get number of operators"""
-        pass
+    will only engage with these at the level of \Lambda(y,t)
+    
+    Drift is a property that represents some time-independent
+    component \Lambda_d of the decpmoosition, which will be 
+    used to facilitate frame transformations."""
 
     @abstractmethod
     def evaluate_without_state(self, signal_values: Array) -> Array:
@@ -37,18 +32,18 @@ class BaseOperatorCollection(ABC):
         in the case \dot{y} = G(t)y(t) being represented
         as G(t), returns this independent representation.
         If the model cannot be represented in such a
-        manner (c.f. Lindblad model), then errors. """
+        manner (c.f. Lindblad model), then errors."""
         pass
 
     @abstractmethod
-    def evaluate_with_state(self, signal_values: Union[List[Array],Array], y: Array) -> Array:
+    def evaluate_with_state(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
         """Evaluates the model for a given state
         y provided the values of each signal
         component s_j(t). Must be defined for all
-        models. """
+        models."""
         pass
 
-    def __call__(self, signal_values: Union[List[Array],Array], y: Optional[Array] = None):
+    def __call__(self, signal_values: Union[List[Array], Array], y: Optional[Array] = None):
         """Evaluates the model given the values of the signal
         terms s_j, suppressing the choice between
         evaluate_with_state and evaluate_without_state
@@ -65,35 +60,37 @@ class BaseOperatorCollection(ABC):
         """Return a copy of self."""
         return deepcopy(self)
 
+
 class DenseOperatorCollection(BaseOperatorCollection):
     r"""Meant to be a calculation object for models that
     only ever need left multiplication–those of the form
-    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j.
-    Is able to evaluate G(t) independently of y.
+    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j + G_d.
+    Can evaluate G(t) independently of y.
     """
 
-    def operators(self):
-        return self._operators
-
     def num_operators(self):
-        return self._num_operators
+        return self._operators.shape[0]
 
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""Evaluates the operator G at time t given
         the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j"""
-        return np.tensordot(signal_values,self._operators,axes=1)
+        if self._drift is None:
+            return np.tensordot(signal_values, self._operators, axes=1)
+        else:
+            return np.tensordot(signal_values, self._operators, axes=1) + self._drift
 
     def evaluate_with_state(self, signal_values: Array, y: Array) -> Array:
         """Evaluates the product G(t)y"""
-        return np.dot(self.evaluate_without_state(signal_values),y)
+        return np.dot(self.evaluate_without_state(signal_values), y)
 
-    def __init__(self, operators: Array):
+    def __init__(self, operators: Array, drift: Optional[Array]):
         """Initialize
         Args:
             operators: (k,n,n) Array specifying the terms G_j
+            drift: (n,n) Array specifying the extra drift G_d
         """
         self._operators = operators
-        self._num_operators = operators.shape[0]
+        self._drift = drift
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
@@ -102,19 +99,16 @@ class DenseLindbladCollection(BaseOperatorCollection):
         (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
     where [,] and {,} are the operator commutator and anticommutator, respectively.
     In the case that the Hamiltonian is also a function of time, varying as
-    H(t) = \sum_j s_j(t) H_j, this can be further decomposed. We will allow
-    for both our dissipator terms and our Hamiltonian terms to have different
-    signal decompositions."""
+    H(t) = H_d + \sum_j s_j(t) H_j, where H_d is the drift term, 
+    this can be further decomposed. We will allow for both our dissipator terms
+    and our Hamiltonian terms to have different signal decompositions. 
+    """
 
-    def operators(self):
-        return self._hamiltonian_operators,self._dissipator_operators
-
-    def num_operators(self):
-        return self._num_ham_terms,self._num_dis_terms
-
-    def __init__(self,
+    def __init__(
+        self,
         hamiltonian_operators: Array,
-        dissipator_operators: Optional[Array],
+        drift: Optional[Array],
+        dissipator_operators: Optional[Array]
     ):
         r"""Converts an array of Hamiltonian components and signals,
         as well as Lindbladians, into a way of calculating the RHS
@@ -126,19 +120,17 @@ class DenseLindbladCollection(BaseOperatorCollection):
             dissipator_operators: the terms L_j in Lindblad equation.
                 (m,n,n) array.
         """
-        self._hamiltonian_operators = hamiltonian_operators
-        self._num_ham_terms = hamiltonian_operators.shape[0]
-        if dissipator_operators is None:
-            self._num_dis_terms = 0
-            self._dissipator_operators = Array([[]])
-        else:
-            self._num_dis_terms = dissipator_operators.shape[0]
 
-            self._dissipator_operators = dissipator_operators
+        self._hamiltonian_operators = hamiltonian_operators
+        self._dissipator_operators = dissipator_operators
+        self._drift = drift
+
+
+        if dissipator_operators is not None:
             self._dissipator_operators_conj = np.conjugate(
-                np.transpose(dissipator_operators,[0,2,1])).copy()
-            self._dissipator_products = np.matmul(self._dissipator_operators_conj,
-                self._dissipator_operators)
+                np.transpose(dissipator_operators, [0, 2, 1])).copy()
+            self._dissipator_products = np.matmul(
+                self._dissipator_operators_conj, self._dissipator_operators)
 
     def evaluate_with_state(self, signal_values: List[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
@@ -158,12 +150,23 @@ class DenseLindbladCollection(BaseOperatorCollection):
             RHS of Lindblad equation -i[H,y] + \sum_j\gamma_j(t)
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
-        #A and B matrices, in order
-        dissipators_matrix = (-1/2)*np.tensordot(signal_values[1],self._dissipator_products,axes=1)
-        hamiltonian_matrix = -1j*np.tensordot(signal_values[0],self._hamiltonian_operators,axes=1)
+        hamiltonian_matrix = -1j * (np.tensordot( #B matrix
+            signal_values[0], self._hamiltonian_operators, axes=1) + self._drift)
+        
+        if self._dissipator_operators is not None:
 
-        left_mult_contribution = np.dot(hamiltonian_matrix+dissipators_matrix,y)
-        right_mult_contribution = np.dot(y,-hamiltonian_matrix+dissipators_matrix)
-        both_mult_contribution = np.tensordot(signal_values[1], np.matmul(np.matmul(
-            self._dissipator_operators,y),self._dissipator_operators_conj),axes=1) #C
-        return left_mult_contribution + right_mult_contribution + both_mult_contribution
+            dissipators_matrix = (-1 / 2) * np.tensordot( #A matrix
+                signal_values[1], self._dissipator_products, axes=1)
+
+            left_mult_contribution = np.dot(hamiltonian_matrix + dissipators_matrix, y)
+            right_mult_contribution = np.dot(y, -hamiltonian_matrix + dissipators_matrix)
+            both_mult_contribution = np.tensordot(
+                signal_values[1],
+                np.matmul(np.matmul(self._dissipator_operators, y), self._dissipator_operators_conj),
+                axes=1)  # C
+                
+            return left_mult_contribution + right_mult_contribution + both_mult_contribution
+
+        else: 
+            return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
+        
