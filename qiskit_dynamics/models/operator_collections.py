@@ -29,7 +29,7 @@ class BaseOperatorCollection(ABC):
         pass
 
     @abstractmethod
-    def evaluate_without_state(self, time: float, in_frame_basis: bool = False) -> Array:
+    def evaluate_without_state(self, signal_values: Array) -> Array:
         """If the model can be represented simply and
         without reference to the state involved, e.g. 
         in the case \dot{y} = G(t)y(t) being represented
@@ -40,23 +40,25 @@ class BaseOperatorCollection(ABC):
         pass
 
     @abstractmethod
-    def evaluate_with_state(self, time: float, y: Array, in_frame_basis: bool = False) -> Array:
+    def evaluate_with_state(self, signal_values: Union[List[Array],Array], y: Array) -> Array:
         """Evaluates the model for a given state 
-        y at the time t. Must be defined for all
+        y provided the values of each signal
+        component s_j(t). Must be defined for all
         models. """
         pass
 
-    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
-        """Evaluates the model, suppressing the choice
-        between evaluate_with_state and evaluate_without_state
+    def __call__(self, signal_values: Union[List[Array],Array], y: Optional[Array] = None):
+        """Evaluates the model given the values of the signal
+        terms s_j, suppressing the choice between
+        evaluate_with_state and evaluate_without_state
         from the user. May error if y is not provided and
         model cannot be expressed without choice of state.
         """
 
         if y is None:
-            return self.evaluate_without_state(t, in_frame_basis=in_frame_basis)
+            return self.evaluate_without_state(signal_values)
 
-        return self.evaluate_with_state(t, y, in_frame_basis=in_frame_basis)
+        return self.evaluate_with_state(signal_values, y)
 
     def copy(self):
         """Return a copy of self."""
