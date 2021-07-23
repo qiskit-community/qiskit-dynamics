@@ -241,17 +241,15 @@ class GeneratorModel(BaseGeneratorModel):
         Args:
             operators: A rank-3 Array of operator components.
             signals: Specifiable as either a SignalList, a list of
-                     Signal objects, or as the inputs to signal_mapping.
-                     GeneratorModel can be instantiated without specifying
-                     signals, but it can not perform any actions without them.
+                Signal objects, or as the inputs to signal_mapping.
+                GeneratorModel can be instantiated without specifying
+                signals, but it can not perform any actions without them.
             frame: Rotating frame operator. If specified with a 1d
-                            array, it is interpreted as the diagonal of a
-                            diagonal matrix.
+                array, it is interpreted as the diagonal of a
+                diagonal matrix.
             cutoff_freq: Frequency cutoff when evaluating the model.
         """
         self.operators = to_array(operators)
-
-        self._operator_collection = DenseOperatorCollection(self.operators)
 
         self._cutoff_freq = cutoff_freq
 
@@ -263,8 +261,8 @@ class GeneratorModel(BaseGeneratorModel):
         self.frame = frame
 
         # initialize internal operator representation in the frame basis
-        self.__ops_in_fb_w_cutoff = None
-        self.__ops_in_fb_w_conj_cutoff = None
+        self._fb_op_collection = None
+        self._fb_op_conj_collection = None
 
     @property
     def signals(self) -> SignalList:
@@ -287,7 +285,7 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != self._operator_collection.num_operators:
+            if len(signals) != len(self.operators):
                 raise QiskitError(
                     """Signals needs to have the same length as
                                     operators."""
@@ -386,54 +384,25 @@ class GeneratorModel(BaseGeneratorModel):
         """
         carrier_freqs = None
         if self._signals is None:
-            carrier_freqs = np.zeros(self._operator_collection.num_operators)
+            carrier_freqs = np.zeros(len(self.operators))
         else:
             carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
 
         (
-            self.__ops_in_fb_w_cutoff,
-            self.__ops_in_fb_w_conj_cutoff,
+            ops_in_fb_w_cutoff,
+            ops_in_fb_w_conj_cutoff,
         ) = self.frame.operators_into_frame_basis_with_cutoff(
             self.operators, self.cutoff_freq, carrier_freqs
         )
-
-        # self._operator_collection = DenseOperatorCollection()
+        self._fb_op_collection = DenseOperatorCollection(ops_in_fb_w_cutoff)
+        self._fb_op_conj_collection = DenseOperatorCollection(ops_in_fb_w_conj_cutoff)
 
     def _reset_internal_ops(self):
         """Helper function to be used by various setters whose value changes
         require reconstruction of the internal operators.
         """
-        self.__ops_in_fb_w_cutoff = None
-        self.__ops_in_fb_w_conj_cutoff = None
-        self._operator_collection = None
-
-    @property
-    def _ops_in_fb_w_cutoff(self):
-        r"""Internally stored operators in frame basis with cutoffs.
-        This corresponds to the :math:`A^+` matrices from
-        `Frame.operators_into_frame_basis_with_cutoff`.
-
-        Returns:
-            Array: operators in frame basis with cutoff
-        """
-        if self.__ops_in_fb_w_cutoff is None:
-            self._construct_ops_in_fb_w_cutoff()
-
-        return self.__ops_in_fb_w_cutoff
-
-    @property
-    def _ops_in_fb_w_conj_cutoff(self):
-        """Internally stored operators in frame basis with conjugate cutoffs.
-        This corresponds to the :math:`A^-` matrices from
-        `Frame.operators_into_frame_basis_with_cutoff`.
-
-        Returns:
-            Array: operators in frame basis with conjugate cutoff
-        """
-        if self.__ops_in_fb_w_conj_cutoff is None:
-            self._construct_ops_in_fb_w_cutoff()
-
-        return self.__ops_in_fb_w_conj_cutoff
+        self._fb_op_collection = None
+        self._fb_op_conj_collection = None
 
     def _evaluate_in_frame_basis_with_cutoffs(self, sig_vals: Array):
         """Evaluate the operator in the frame basis with frequency cutoffs.
@@ -446,8 +415,7 @@ class GeneratorModel(BaseGeneratorModel):
         Returns:
             Array: operator model evaluated for a given list of signal values
         """
-
-        return 0.5 * (
-            np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
-            + np.tensordot(sig_vals.conj(), self._ops_in_fb_w_conj_cutoff, axes=1)
-        )
+        if self._fb_op_collection is None or self._fb_op_conj_collection is None:
+            self._construct_ops_in_fb_w_cutoff()
+        
+        return 0.5 * (self._fb_op_collection(sig_vals)+self._fb_op_conj_collection(sig_vals.conj()))
