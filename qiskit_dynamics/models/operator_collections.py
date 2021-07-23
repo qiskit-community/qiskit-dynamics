@@ -3,317 +3,192 @@
 """Generic operator for general linear maps"""
 
 from abc import ABC, abstractmethod
-from typing import Union, List, Optional, Callable
+from typing import Union, List, Optional
 from copy import deepcopy
 import numpy as np
-from scipy.sparse import csr_matrix
+
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
+from qiskit_dynamics.type_utils import to_array 
+from qiskit_dynamics.signals import Signal,SignalList
 
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
     intended to store a general set of linear mappings {\Lambda_i}
-    in order to implement differential equations of the form
-    \dot{y} = \Lambda(y,t). Generically, \Lambda will be a sum of
+    in order to implement differential equations of the form 
+    \dot{y} = \Lambda(y,t). Generically, \Lambda will be a sum of 
     other linear maps \Lambda_i(y,t), which are in turn some
-    combination of left-multiplication \Lambda_i(y,t) = A(t)y(t),
-    right-multiplication \Lambda_i(y,t) = y(t)B(t), and both, with
+    combination of left-multiplication \Lambda_i(y,t) = A(t)y(t), 
+    right-multiplication \Lambda_i(y,t) = y(t)B(t), and both, with 
     \Lambda_i(y,t) = A(t)y(t)B(t), but this implementation
-    will only engage with these at the level of \Lambda(y,t)
-
-    Drift is a property that represents some time-independent
-    component \Lambda_d of the decpmoosition, which will be
-    used to facilitate frame transformations."""
-
-    @property
-    def drift(self) -> Array:
-        """Returns drift part of operator collection."""
-        return self._drift
-
-    @drift.setter
-    def drift(self, new_drift: Optional[Array] = None):
-        """Sets Drift operator, if used."""
-        self._drift = new_drift
+    will only engage with these at the level of \Lambda(y,t)"""
 
     @property
     @abstractmethod
-    def num_operators(self) -> int:
-        """Returns number of operators the collection
-        is storing."""
+    def num_operators(self):
+        """Get number of operators"""
         pass
 
     @abstractmethod
-    def evaluate_generator(self, signal_values: Array) -> Array:
-        r"""If the model can be represented simply and
-        without reference to the state involved, e.g.
+    def evaluate_without_state(self, time: float, in_frame_basis: bool = False) -> Array:
+        """If the model can be represented simply and
+        without reference to the state involved, e.g. 
         in the case \dot{y} = G(t)y(t) being represented
-        as G(t), returns this independent representation.
+        as G(t), returns this independent representation. 
         If the model cannot be represented in such a
-        manner (c.f. Lindblad model), then errors."""
+        manner (c.f. Lindblad model), then this should 
+        raise **some** sort of error. """
         pass
 
     @abstractmethod
-    def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
-        """Evaluates the model for a given state
-        y provided the values of each signal
-        component s_j(t). Must be defined for all
-        models."""
+    def evaluate_with_state(self, time: float, y: Array, in_frame_basis: bool = False) -> Array:
+        """Evaluates the model for a given state 
+        y at the time t. Must be defined for all
+        models. """
         pass
 
-    def __call__(
-        self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
-    ) -> Array:
-        """Evaluates the model given the values of the signal
-        terms s_j, suppressing the choice between
-        evaluate_rhs and evaluate_generator
+    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
+        """Evaluates the model, suppressing the choice
+        between evaluate_with_state and evaluate_without_state
         from the user. May error if y is not provided and
         model cannot be expressed without choice of state.
         """
 
         if y is None:
-            return self.evaluate_generator(signal_values)
+            return self.evaluate_without_state(t, in_frame_basis=in_frame_basis)
 
-        return self.evaluate_rhs(signal_values, y)
+        return self.evaluate_with_state(t, y, in_frame_basis=in_frame_basis)
 
     def copy(self):
         """Return a copy of self."""
         return deepcopy(self)
 
-
 class DenseOperatorCollection(BaseOperatorCollection):
-    r"""Meant to be a calculation object for models that
-    only ever need left multiplication–those of the form
-    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j + G_d.
-    Can evaluate G(t) independently of y.
+    """Most general form of dense-matrix stored operator collections. 
+    Generically for models of the form \dot{y} = \Lambda(y,t) where
+    \Lambda(y,t) = \sum_j s_j(t) \Lambda_j(y). We choose to support 
+    linear maps of the form \Lambda_j(y) = A_jyB_j where A_j,B_j 
+    are matrices. A special case is also carved out for when B_j = I
+    \forall j. In this case, we pass to a LMultDenseOperatorCollection,
+    which is intended for use with models of the form \dot{y} = G(t)y. 
     """
-
-    @property
-    def num_operators(self) -> int:
-        return self._operators.shape[-3]
-
-    def evaluate_generator(self, signal_values: Array) -> Array:
-        r"""Evaluates the operator G at time t given
-        the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j"""
-        if self._drift is None:
-            return np.tensordot(signal_values, self._operators, axes=1)
-        else:
-            return np.tensordot(signal_values, self._operators, axes=1) + self._drift
-
-    def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
-        """Evaluates the product G(t)y"""
-        return np.dot(self.evaluate_generator(signal_values), y)
-
-    def __init__(self, operators: Array, drift: Optional[Array] = None):
-        """Initialize
-        Args:
-            operators: (k,n,n) Array specifying the terms G_j
-            drift: (n,n) Array specifying the extra drift G_d
-        """
-        self._operators = to_array(operators)
-        self.drift = drift
-
-class SparseOperatorCollection(BaseOperatorCollection):
-    r"""Meant to be a calculation object for models that
-    only ever need left multiplication–those of the form
-    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j + G_d.
-    Can evaluate G(t) independently of y. G_j and G_d are
-    sparse matrices. 
-    """
-    def __init__(self,operators: Array, drift: Optional[Array] = None):
-        """Initialize
-        Args:
-            operators: (k,n,n) Array specifying the terms G_j
-            drift: (n,n) Array specifying the drift term G_d"""
-        num_operators = operators.shape[0]
-        
-
-
-class DenseLindbladCollection(BaseOperatorCollection):
-    r"""Intended to be the calculation object for the Lindblad equation
-    \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)
-        (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
-    where [,] and {,} are the operator commutator and anticommutator, respectively.
-    In the case that the Hamiltonian is also a function of time, varying as
-    H(t) = H_d + \sum_j s_j(t) H_j, where H_d is the drift term,
-    this can be further decomposed. We will allow for both our dissipator terms
-    and our Hamiltonian terms to have different signal decompositions.
-    """
-
-    @property
-    def dissipator_operators(self):
-        return self._dissipator_operators
-
-    @dissipator_operators.setter
-    def dissipator_operators(self, dissipator_operators: Array):
-        self._dissipator_operators = dissipator_operators
-        if dissipator_operators is not None:
-            self._dissipator_operators_conj = np.conjugate(
-                np.transpose(dissipator_operators, [0, 2, 1])
-            ).copy()
-            self._dissipator_products = np.matmul(
-                self._dissipator_operators_conj, self._dissipator_operators
-            )
 
     @property
     def num_operators(self):
-        return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
+        return self._num_operators    
+
+    def filter_signals(self,signals: SignalList):
+            """To be called by Model objects to sort
+            a SignalList of signals s_j into 
+            the signal values associated to
+            left-only, right-only, and left-and-right 
+            multiplication in our linear maps \Lambda_j"""
+
+            filtered_signals = [[],[],[]]
+            
+            actual_signal_array = np.array(signals.components()) #object array; temporary
+
+            left_signals = SignalList(actual_signal_array[self._left_operator_filter].tolist())
+            right_signals = SignalList(actual_signal_array[self._right_operator_filter].toarray())
+            both_signals = SignalList(actual_signal_array[self._both_operator_filter].toarray())
+
+            return left_signals,right_signals,both_signals
 
     def __init__(
         self,
-        hamiltonian_operators: Array,
-        drift: Array,
-        dissipator_operators: Optional[Array] = None,
+        operators: Array
     ):
-        r"""Converts an array of Hamiltonian components and signals,
-        as well as Lindbladians, into a way of calculating the RHS
-        of the Lindblad equation.
+        """Initialization for DenseOperatorCollection. 
 
-        Args:
-            hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
-            drift: If supplied, treated as a constant term to be added to the
-                Hamiltonian of the system.
-            dissipator_operators: the terms L_j in Lindblad equation.
-                (m,n,n) array.
+        Args: 
+            operators: 
+                Array of either shape (2,k,n,n) or (k,n,n). 
+                In the second case, the constructor will assume that
+                the operators are for left multiplication. In the first
+                case, the (0,:,:,:) entries represent the A_j matrices, 
+                and the (1,:,:,:) entries represent the B_j matrices. 
         """
 
-        self._hamiltonian_operators = hamiltonian_operators
-        self.dissipator_operators = dissipator_operators
-        self.drift = drift
+        if operators.shape[-1]!=operators.shape[-2]:
+                raise ValueError("Operators must be an array of square matrices")
+        
+        self._hilbert_space_dimension = operators.shape[-1]
+        self._num_operators = operators.shape[-3]
+        if len(operators.shape)==4:
+            #More general case. Requires y be a matrix
+            if operators.shape[0]!=2:
+                raise ValueError("For simultaneous left- and right-multiplication support, operators first dimension must have 2 entries.")
 
-    def evaluate_generator(self, signal_values: Array) -> Array:
-        raise ValueError("Dense Lindblad collections cannot be evaluated without a state.")
+            self._multiplication_mode = "general"
 
-    def evaluate_hamiltonian(self, signal_values: Array) -> Array:
-        """Gets the Hamiltonian matrix, as calculated by the model,
-        and used for the commutator -i[H,y]
-        Args:
-            signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
-        Returns:
-            Hamiltonian matrix."""
-        return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
+            # tracks whether operator (ij) where i = 0,1 and j associated to \Lambda_j is the identity map
+            # i.e. is_identity[0,j] = True if A_j = I; likewise for [1,j] and B_j = I.
+            is_identity = np.all(np.all(
+                np.isclose(operators,np.eye(self._hilbert_space_dimension)),axis=3),axis=2)
 
-    def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
-        r"""Evaluates Lindblad equation RHS given a pair of signal values
-        for the hamiltonian terms and the dissipator terms. Expresses
-        the RHS of the Lindblad equation as (A+B)y + y(A-B) + C, where
-            A = (-1/2)*\sum_j\gamma(t) L_j^\dagger L_j
-            B = -iH
-            C = \sum_j \gamma_j(t) L_j y L_j^\dagger
-        Args:
-            signal_values: length-2 list of Arrays. has the following components
-                signal_values[0]: hamiltonian signal values, s_j(t)
-                    Must have length self._num_ham_terms
-                signal_values[1]: dissipator signal values, \gamma_j(t)
-                    Must have length self._num_dis_terms
-            y: density matrix as (n,n) Array representing the state at time t
-        Returns:
-            RHS of Lindblad equation -i[H,y] + \sum_j\gamma_j(t)
-            (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
-        """
-
-        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
-
-        if self._dissipator_operators is not None:
-            dissipators_matrix = (-1 / 2) * np.tensordot(  # A matrix
-                signal_values[1], self._dissipator_products, axes=1
-            )
-
-            left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
-            right_mult_contribution = np.matmul(y, -hamiltonian_matrix + dissipators_matrix)
-
-            if len(y.shape) == 3:
-                # Must do array broadcasting and transposition to ensure vectorization works properly
-                y = np.broadcast_to(y, (1, y.shape[0], y.shape[1], y.shape[2])).transpose(
-                    [1, 0, 2, 3]
-                )
-
-            both_mult_contribution = np.tensordot(
-                signal_values[1],
-                np.matmul(
-                    self._dissipator_operators, np.matmul(y, self._dissipator_operators_conj)
-                ),
-                axes=(-1, -3),
-            )  # C
-
-            return left_mult_contribution + right_mult_contribution + both_mult_contribution
-
+        elif len(operators.shape)==3:
+            #Assume that all operators are left-multiplying
+            self._multiplication_mode = 'left-only'
+            # array below is equivalent to finding that all right-multiplying operators are identity
+            # row 1 is all True; row 2 is all False
+            is_identity = np.array([[j for k in range(operators.shape[0])] for j in range(2)]).astype(bool)
         else:
-            return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
+            raise ValueError("operators must be either rank-3 or rank-4 arrays")
+            
+        self._left_operator_filter = is_identity[1] #consider both the case A_j != I, B_j = I and A_j=B_j=I as left multiplication
+        self._right_operator_filter = np.logical_and(is_identity[0],np.logical_not(is_identity[1]))
+        self._both_operator_filter = np.logical_and(np.logical_not(is_identity[0]),np.logical_not(is_identity[1]))
 
+        self._operators = [[],[],[]]
+        self._operators[0] = Array(operators[0][self._left_operator_filter])
+        self._operators[1] = Array(operators[1][self._right_operator_filter])
+        self._operators[2] = Array(np.array([operators[0][self._both_operator_filter],operators[1][self._both_operator_filter]]))
 
-class DenseVectorizedLindbladCollection(DenseOperatorCollection):
-    """Intended as a calculation object for the Lindblad equation,
-    \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)
-            (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
-    where all left-, right-, and left-and-right multiplication is
-    handled by vectorization, a process by which \rho, an (n,n)
-    matrix, is embedded in a vector space of dimension n^2 using
-    the column stacking convention, in which the matrix [a,b;c,d]
-    is written as [a,c,b,d]."""
+    def evaluate_with_state(self, signal_values: List[Array], y: Array):
+        """Left, right, and left & right multiplication are handled differently 
+        for efficiency purposes, then added together. This requires that signals
+        be broken out into those which apply exclusively to left-multiplication,
+        right-multiplication, and left-and-right multiplication. Sorting can be
+        done at the DenseOperatorCollection level but *should* be done at the 
+        Model level to maximize speed. Not aware of frames at all. 
 
-    def __init__(
-        self,
-        hamiltonian_operators: Array,
-        drift: Array,
-        dissipator_operators: Optional[Array] = None,
-    ):
-        r"""Converts an array of Hamiltonian components and signals,
-        as well as Lindbladians, into a way of calculating the RHS
-        of the Lindblad equation using only left-multiplication.
-
-        Args:
-            hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
-            drift: Constant term to be added to the Hamiltonian of the system.
-            dissipator_operators: the terms L_j in Lindblad equation.
-                (m,n,n) array.
+        Args: 
+            signal_values: length-3 list of Arrays of the actual signal values
+                s_j(t) [will in general be complex]. 
+            y: Array, either vector or matrix. Represents state of system. 
         """
 
-        # Convert Hamiltonian to commutator formalism
-        self._hamiltonian_operators = hamiltonian_operators
-        self._drift_terms = drift
-        vec_drift = -1j * vec_commutator(drift)
-
-        vec_ham_ops = -1j * vec_commutator(to_array(hamiltonian_operators))
-        total_ops = None
-        if dissipator_operators is not None:
-            vec_diss_ops = vec_dissipator(to_array(dissipator_operators))
-            total_ops = np.append(vec_ham_ops, vec_diss_ops, axis=0)
+        left_sig_vals,right_sig_vals,both_sig_vals = signal_values
+        if self._multiplication_mode=="left-only":
+            res = np.dot(np.tensordot(left_sig_vals,self._operators[0],axes=1),y)
         else:
-            total_ops = vec_ham_ops
+            # allocate memory. Is there a better way to decide the dtype to allow for various
+            # levels of numerical precision? Is there a potential bug here where y is 
+            # initialized as a real matrix, but we will need it to accept complex values?
+            res = np.zeros(tuple([self._hilbert_space_dimension]*len(y.shape)),dtype=y.dtype)
+            
+            if len(left_sig_vals)>0:
+                res += np.dot(np.tensordot(left_sig_vals,self._operators[0],axes=1),y)
+            if len(right_sig_vals)>0:
+                res += np.dot(y,np.tensordot(right_sig_vals,self._operators[1],axes=1))
+            if len(both_sig_vals)>0:
+                res += np.tensordot(both_sig_vals,
+                    np.matmul(np.matmul(self._operators[2][0],y),
+                        self._operators[2][1]))
+        return res
+        
+    def evaluate_without_state(self, signal_values: Array): 
+        """Only compatible with left-multiplication systems. 
+        As a result, only accepts a single array of signal values. 
+        Args: 
+            signal_values: Values for s_j(t)
+        """
+        if self._multiplication_mode!="left-only":
+            raise NotImplementedError("Representing linear maps without state is not currently supported.")
+        # Note that OperatorCollection is not aware of frames
+        return np.tensordot(signal_values,self._operators[0],axes=1)
+        
+        
+        
 
-        super().__init__(total_ops, drift=vec_drift)
 
-    def evaluate_hamiltonian(self, signal_values: Array) -> Array:
-        """Gets the Hamiltonian matrix, as calculated by the model,
-        and used for the commutator -i[H,y]
-        Args:
-            signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
-        Returns:
-            Hamiltonian matrix."""
-        return (
-            np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self._drift_terms
-        ).flatten(order="F")
 
-    def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
-        """Evaluates the RHS of the Lindblad equation using
-        vectorized maps.
-        Args:
-            signal_values: either a list [ham_sig_values, dis_sig_values]
-                storing the signal values for the Hamiltonian component
-                and the dissipator component, or a single array containing
-                the total list of signal values.
-            y: Density matrix represented as a vector using column-stacking
-                convention.
-        Returns:
-            Vectorized RHS of Lindblad equation \dot{\rho} in column-stacking
-                convention."""
-        if isinstance(signal_values, list):
-            #use of is is intentional; do _not_ want comparison e.g. if signal_values[1] is an Array
-            if np.any(signal_values[1] != 0):
-                signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
-            else:
-                signal_values = signal_values[0]
-
-        return super().evaluate_rhs(signal_values, y)
