@@ -22,7 +22,11 @@ class BaseOperatorCollection(ABC):
     \Lambda_i(y,t) = A(t)y(t)B(t), but this implementation
     will only engage with these at the level of \Lambda(y,t)"""
 
-    @property
+    @abstractmethod
+    def operators(self):
+        """Get operators of the collection"""
+        pass
+
     @abstractmethod
     def num_operators(self):
         """Get number of operators"""
@@ -70,7 +74,10 @@ class DenseOperatorCollection(BaseOperatorCollection):
     \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j. 
     Is able to evaluate G(t) independently of y.
     """
-    @property
+
+    def operators(self):
+        return self._operators
+
     def num_operators(self):
         return self._num_operators
     
@@ -96,9 +103,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
     """Intended to be the calculation object for the Lindblad equation
     \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t) (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
     where [,] and {,} are the operator commutator and anticommutator, respectively. 
-    In the case that the Hamiltonian is also a function of time, varying as H(t) = \sum_j s_j(t) H_j, this
-    can be further decomposed. We will allow for both our dissipator terms and our Hamiltonian terms to 
-    have different signal decompositions."""
+    def operators(self):
+        return self._hamiltonian_operators,self._dissipator_operators
 
     def num_operators(self):
         return self._num_ham_terms,self._num_dis_terms
