@@ -527,4 +527,6 @@ def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union
         if self._fb_op_collection is None or self._fb_op_conj_collection is None:
             self._construct_ops_in_fb_w_cutoff()
 
-        return 0.5 * (self._fb_op_collection(sig_vals)+self._fb_op_conj_collection(sig_vals.conj()))
+        return 0.5 * (
+            self._fb_op_collection(sig_vals) + self._fb_op_conj_collection(sig_vals.conj())
+        )
