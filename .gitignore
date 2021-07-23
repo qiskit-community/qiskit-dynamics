@@ -135,7 +135,3 @@ dmypy.json
 
 #VS Code Settings Folder
 .vscode/
-
-#Local testing notebook that should not be uploaded. 
-tests.ipynb
-tmp.ipynb
