@@ -158,8 +158,9 @@ class DenseLindbladCollection(BaseOperatorCollection):
             RHS of Lindblad equation -i[H,y] + \sum_j\gamma_j(t)
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
-        dissipators_matrix = (-1/2)*np.tensordot(signal_values[1],self._dissipator_products,axes=1) #A
-        hamiltonian_matrix = -1j*np.tensordot(signal_values[0],self._hamiltonian_operators,axes=1) #B
+        #A and B matrices, in order
+        dissipators_matrix = (-1/2)*np.tensordot(signal_values[1],self._dissipator_products,axes=1)
+        hamiltonian_matrix = -1j*np.tensordot(signal_values[0],self._hamiltonian_operators,axes=1)
 
         left_mult_contribution = np.dot(hamiltonian_matrix+dissipators_matrix,y)
         right_mult_contribution = np.dot(y,-hamiltonian_matrix+dissipators_matrix)
