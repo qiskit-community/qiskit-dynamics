@@ -68,23 +68,6 @@ class BaseGeneratorModel(ABC):
         """Set the frame."""
         pass
 
-    @property
-    @abstractmethod
-    def cutoff_freq(self) -> float:
-        """Get cutoff frequency."""
-        pass
-
-    @cutoff_freq.setter
-    @abstractmethod
-    def cutoff_freq(self, cutoff_freq: float):
-        """Set cutoff frequency."""
-        pass
-
-    @property
-    @abstractmethod
-    def carrier_freqs(self) -> list[float]:
-        """Gets the list of signal frequencies"""
-
     @abstractmethod
     def evaluate_with_state(
         self, time: float, y: Array, in_frame_basis: Optional[bool] = True
@@ -164,17 +147,6 @@ class CallableGenerator(BaseGeneratorModel):
         self._frame = Frame(frame)
 
     @property
-    def cutoff_freq(self) -> float:
-        """Return the cutoff frequency."""
-        return None
-
-    @cutoff_freq.setter
-    def cutoff_freq(self, cutoff_freq: float):
-        """Cutoff frequency not supported for generic."""
-        if cutoff_freq is not None:
-            raise QiskitError("""Cutoff frequency is not supported for function-based generator.""")
-
-    @property
     def drift(self) -> Array:
         return self._drift
 
@@ -234,7 +206,6 @@ class GeneratorModel(BaseGeneratorModel):
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array, BaseFrame]] = None,
-        cutoff_freq: Optional[float] = None,
     ):
         """Initialize.
 
@@ -251,16 +222,12 @@ class GeneratorModel(BaseGeneratorModel):
         """
 
         # initialize internal operator representation in the frame basis
-        self._fb_op_collection = DenseOperatorCollection(operators, drift)
-        self._fb_op_conj_collection = DenseOperatorCollection(operators, drift)
-        self._band_aid_temporary_operator_collection = DenseOperatorCollection(operators, drift)
+        self._operator_collection = DenseOperatorCollection(operators,drift)
 
         # set cutoff frequency and frame. Must be done in this order.
         self._frame = None
-        self._cutoff_freq = None
 
         self.frame = frame
-        self.cutoff_freq = cutoff_freq
 
         # initialize signal-related attributes
         self._signals = None
@@ -287,21 +254,11 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != self._fb_op_collection.num_operators:
+            if len(signals) != self._operator_collection.num_operators:
                 raise QiskitError(
                     """Signals needs to have the same length as
                                     operators."""
                 )
-
-            if self._signals is not None:
-                # compare flattened carrier frequencies
-                old_carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
-                new_carrier_freqs = [sig.carrier_freq for sig in signals.flatten()]
-                if (
-                    not np.allclose(old_carrier_freqs, new_carrier_freqs)
-                    and self._cutoff_freq is not None
-                ):
-                    self.apply_cutoff_filtering()
 
             self._signals = signals
 
@@ -316,56 +273,13 @@ class GeneratorModel(BaseGeneratorModel):
         a valid argument for the constructor of :class:`Frame`, or `None`.
         """
         if self._frame is not None and self._frame.frame_diag is not None:
-            self._undo_frame_basis(Array(np.diag(self._frame.frame_diag)))
+            self._operator_collection.drift = self._operator_collection.drift + Array(np.diag(self._frame.frame_diag))
+            self._operator_collection.apply_function_to_operators(self.frame.operator_out_of_frame_basis)
 
         self._frame = Frame(frame)
         if self._frame.frame_diag is not None:
-            self._apply_frame_basis(Array(-np.diag(self._frame.frame_diag)))
-
-        if self.cutoff_freq is not None:
-            self.apply_cutoff_filtering()
-
-    def _undo_frame_basis(self, drift_term: Optional[Array]):
-        self._fb_op_collection.drift = self._fb_op_collection.drift + drift_term
-        self._fb_op_collection.apply_function_to_operators(self._frame.operator_out_of_frame_basis)
-
-        self._fb_op_conj_collection.drift = self._fb_op_conj_collection.drift + drift_term
-        self._fb_op_conj_collection.apply_function_to_operators(
-            self._frame.operator_out_of_frame_basis
-        )
-
-    def _apply_frame_basis(self, drift_term: Optional[Array]):
-        self._fb_op_collection.apply_function_to_operators(self._frame.operator_into_frame_basis)
-        self._fb_op_collection.drift = self._fb_op_collection.drift + drift_term
-
-        self._fb_op_conj_collection.apply_function_to_operators(
-            self._frame.operator_into_frame_basis
-        )
-        self._fb_op_conj_collection.drift = self._fb_op_conj_collection.drift + drift_term
-
-    @property
-    def cutoff_freq(self) -> float:
-        """Return the cutoff frequency."""
-        return self._cutoff_freq
-
-    @cutoff_freq.setter
-    def cutoff_freq(self, cutoff_freq: float):
-        """Set the cutoff frequency."""
-        if cutoff_freq != self._cutoff_freq:
-            self._cutoff_freq = cutoff_freq
-        if self._cutoff_freq is not None:
-            self.apply_cutoff_filtering()
-
-    def apply_cutoff_filtering(self):
-        """Filters the two stored operator collections
-        according to the stored cutoff frequency"""
-
-        cutoff_filter = self.frame.calculate_cutoff_filter(
-            self.carrier_freqs, self._cutoff_freq, self._fb_op_collection.hilbert_space_dimension
-        )
-
-        self._fb_op_collection.filter_arrays(cutoff_filter)
-        self._fb_op_conj_collection.filter_arrays(cutoff_filter.transpose([0, 2, 1]))
+            self._operator_collection.apply_function_to_operators(self.frame.operator_into_frame_basis)
+            self._operator_collection.drift = self._operator_collection.drift - Array(np.diag(self._frame.frame_diag))
 
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = True) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
@@ -385,17 +299,18 @@ class GeneratorModel(BaseGeneratorModel):
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        sig_vals = self._signals.complex_value(time)
+        sig_vals = np.real(self._signals.complex_value(time))
 
         # evaluate the linear combination in the frame basis with cutoffs,
         # then map into the frame
 
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
-        op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
+        op_combo = self._operator_collection(sig_vals)
 
-        return self.frame.generator_into_frame(
-            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
-        )
+        if in_frame_basis:
+            return op_combo
+        else:
+            return self.frame.operator_out_of_frame_basis(op_combo)
 
     def evaluate_with_state(
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = True
@@ -427,13 +342,13 @@ class GeneratorModel(BaseGeneratorModel):
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        sig_vals = self._signals.complex_value(time)
+        sig_vals = np.real(self._signals.complex_value(time))
 
         # evaluate the linear combination in the frame basis with cutoffs,
         # then map into the frame
 
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
-        op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
+        op_combo = self._operator_collection(sig_vals)
 
         if self.frame.frame_diag is None:
             return np.dot(op_combo, y)
@@ -450,35 +365,8 @@ class GeneratorModel(BaseGeneratorModel):
 
         return out
 
-    @property
-    def carrier_freqs(self) -> list[float]:
-        """Returns the list of frequencies used by the model's SignalList"""
-        carrier_freqs = None
-        if self._signals is None:
-            carrier_freqs = np.zeros(self._fb_op_collection.num_operators)
-        else:
-            carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
-        return carrier_freqs
-
     def _reset_internal_ops(self):
         """Helper function to be used by various setters whose value changes
         require reconstruction of the internal operators.
         """
         self.frame = self._frame
-        self.cutoff_freq = self._cutoff_freq
-
-    def _evaluate_in_frame_basis_with_cutoffs(self, sig_vals: Array):
-        """Evaluate the operator in the frame basis with frequency cutoffs.
-        The computation here corresponds to that prescribed in
-        `Frame.operators_into_frame_basis_with_cutoff`.
-
-        Args:
-            sig_vals: Signals evaluated at some time.
-
-        Returns:
-            Array: operator model evaluated for a given list of signal values
-        """
-
-        return 0.5 * (
-            self._fb_op_collection(sig_vals) + self._fb_op_conj_collection(sig_vals.conj())
-        )
