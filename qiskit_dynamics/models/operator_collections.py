@@ -75,7 +75,21 @@ class BaseOperatorCollection(ABC):
         models."""
         pass
 
-    def __call__(self, signal_values: Union[List[Array], Array], y: Optional[Array] = None):
+    @abstractmethod
+    def apply_function_to_operators(self, function_to_apply: Optional[Callable]) -> None:
+        """Apply some function to all operators.
+        Useful for e.g. basis transformations.
+        Note: resets all filters applied to
+        operators.
+        Args:
+            function_to_apply: Callable function
+            to be applied to each operator. Should
+            take in Array and return Array."""
+        pass
+
+    def __call__(
+        self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
+    ) -> Array:
         """Evaluates the model given the values of the signal
         terms s_j, suppressing the choice between
         evaluate_with_state and evaluate_without_state
