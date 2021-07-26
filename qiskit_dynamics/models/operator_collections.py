@@ -114,8 +114,36 @@ class DenseOperatorCollection(BaseOperatorCollection):
     Can evaluate G(t) independently of y.
     """
 
-    def num_operators(self):
-        return self._operators.shape[0]
+    @property
+    def operators(self) -> Array:
+        return self._operators
+
+    @property
+    def drift(self) -> Array:
+        return self._drift
+
+    @drift.setter
+    def drift(self, new_drift: Optional[Array] = None):
+        if new_drift is None:
+            self._drift = np.zeros((self.hilbert_space_dimension, self.hilbert_space_dimension))
+        else:
+            self._drift = new_drift
+
+    @property
+    def num_operators(self) -> int:
+        return self._operators.shape[-3]
+
+    @property
+    def hilbert_space_dimension(self) -> int:
+        return self._operators.shape[-2]
+
+    def apply_function_to_operators(self, function_to_apply: Optional[Callable]):
+        """Applies a function to all operators in the collection.
+        Args:
+            function_to_apply: the function to be applied to all operators"""
+        self._operators = function_to_apply(self._operators)
+        self._drift = function_to_apply(self._drift)
+        self.filter_arrays()
 
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""Evaluates the operator G at time t given
