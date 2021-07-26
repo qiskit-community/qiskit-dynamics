@@ -64,6 +64,10 @@ class LindbladModel(GeneratorModel):
             hamiltonian_signals: list of signals in the Hamiltonian
             noise_operators: list of noise operators
             noise_signals: list of noise signals
+            drift: Optional, constant term in Hamiltonian
+            frame: frame in which calcualtions are to be done. 
+                If provided, it is assumed that all operators were
+                already in the frame basis. 
 
         Raises:
             Exception: if signals incorrectly specified
