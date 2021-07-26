@@ -422,26 +422,15 @@ class GeneratorModel(BaseGeneratorModel):
 
         return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
 
-    def _construct_ops_in_fb_w_cutoff(self):
-        """Construct versions of operators in frame basis with cutoffs
-        and conjugate cutoffs. To be used in conjunction with
-        operators_into_frame_basis_with_cutoff to compute the operator in the
-        frame basis with frequency cutoffs applied.
-        """
+    @property
+    def carrier_freqs(self) -> list[float]:
+        """Returns the list of frequencies used by the model's SignalList"""
         carrier_freqs = None
         if self._signals is None:
-            carrier_freqs = np.zeros(len(self.operators))
+            carrier_freqs = np.zeros(self._fb_op_collection.num_operators)
         else:
             carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
-
-        (
-            ops_in_fb_w_cutoff,
-            ops_in_fb_w_conj_cutoff,
-        ) = self.frame.operators_into_frame_basis_with_cutoff(
-            self.operators, self.cutoff_freq, carrier_freqs
-        )
-        self._fb_op_collection = DenseOperatorCollection(ops_in_fb_w_cutoff)
-        self._fb_op_conj_collection = DenseOperatorCollection(ops_in_fb_w_conj_cutoff)
+        return carrier_freqs
 
     def _reset_internal_ops(self):
         """Helper function to be used by various setters whose value changes
