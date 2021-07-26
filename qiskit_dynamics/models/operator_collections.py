@@ -157,14 +157,29 @@ class DenseOperatorCollection(BaseOperatorCollection):
         """Evaluates the product G(t)y"""
         return np.dot(self.evaluate_without_state(signal_values), y)
 
-    def __init__(self, operators: Array, drift: Optional[Array]):
+    def filter_arrays(self, filters: Optional[Array] = None):
+        """Applies an elementwise filter to the operators stored
+        in the OperatorCollection in a non-destructive way.
+        Args:
+            filters: optional (k,n,n) Array with entries 0 or 1.
+            Entry (a,b,c) should be 0 if G_a's (b,c) entry should
+            be excluded from calculation; 1 if not. If not passed,
+            treated as though no elements should be filtered out.
+            The drift term is never affected."""
+        if filters is None:
+            self._calculation_operators = self._operators
+        else:
+            self._calculation_operators = filters * self._operators
+
+    def __init__(self, operators: Array, drift: Optional[Array] = None):
         """Initialize
         Args:
             operators: (k,n,n) Array specifying the terms G_j
             drift: (n,n) Array specifying the extra drift G_d
         """
-        self._operators = operators
-        self._drift = drift
+        self._operators = to_array(operators)
+        self.drift = to_array(drift)
+        self.filter_arrays()
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
