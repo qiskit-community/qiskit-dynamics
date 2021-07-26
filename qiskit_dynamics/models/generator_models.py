@@ -241,15 +241,13 @@ class GeneratorModel(BaseGeneratorModel):
             frame: Rotating frame operator. If specified with a 1d
                 array, it is interpreted as the diagonal of a
                 diagonal matrix.
-            cutoff_freq: Frequency cutoff when evaluating the model.
         """
 
         # initialize internal operator representation in the frame basis
         self._operator_collection = DenseOperatorCollection(operators,drift)
 
-        # set cutoff frequency and frame. Must be done in this order.
+        # set frame. 
         self._frame = None
-
         self.frame = frame
 
         # initialize signal-related attributes
@@ -324,9 +322,6 @@ class GeneratorModel(BaseGeneratorModel):
 
         sig_vals = np.real(self._signals.complex_value(time))
 
-        # evaluate the linear combination in the frame basis with cutoffs,
-        # then map into the frame
-
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
         op_combo = self._operator_collection(sig_vals)
 
@@ -366,9 +361,6 @@ class GeneratorModel(BaseGeneratorModel):
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
         sig_vals = np.real(self._signals.complex_value(time))
-
-        # evaluate the linear combination in the frame basis with cutoffs,
-        # then map into the frame
 
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
         op_combo = self._operator_collection(sig_vals)
