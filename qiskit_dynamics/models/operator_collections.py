@@ -33,17 +33,16 @@ class BaseOperatorCollection(ABC):
         pass
 
     @property
-    @abstractmethod
     def drift(self) -> Array:
-        """Returns the drift component of the collection,
-        if applicatble"""
-        pass
+        return self._drift
 
     @drift.setter
-    @abstractmethod
-    def drift(self, new_drift: Array):
-        """Sets drift"""
-        pass
+    def drift(self, new_drift: Optional[Array] = None):
+        """Sets Drift operator, if used."""
+        if new_drift is None:
+            self._drift = np.zeros((self.hilbert_space_dimension, self.hilbert_space_dimension))
+        else:
+            self._drift = new_drift
 
     @property
     @abstractmethod
@@ -119,17 +118,6 @@ class DenseOperatorCollection(BaseOperatorCollection):
         return self._operators
 
     @property
-    def drift(self) -> Array:
-        return self._drift
-
-    @drift.setter
-    def drift(self, new_drift: Optional[Array] = None):
-        if new_drift is None:
-            self._drift = np.zeros((self.hilbert_space_dimension, self.hilbert_space_dimension))
-        else:
-            self._drift = new_drift
-
-    @property
     def num_operators(self) -> int:
         return self._operators.shape[-3]
 
@@ -179,6 +167,28 @@ class DenseLindbladCollection(BaseOperatorCollection):
     and our Hamiltonian terms to have different signal decompositions.
     """
 
+    @property
+    def operators(self) -> Array:
+        return self._hamiltonian_operators,self._dissipator_operators
+
+    @property
+    def drift(self) -> Array:
+        return self._drift
+
+    @property
+    def num_operators(self):
+        return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
+
+    @property
+    def hilbert_space_dimension(self) -> int:
+        return self._hamiltonian_operators.shape[-1]
+
+    def apply_function_to_operators(self, function_to_apply: Optional[Callable]) -> None:
+        self._hamiltonian_operators = function_to_apply(self._hamiltonian_operators)
+        self._dissipator_operators = function_to_apply(self._dissipator_operators)
+        self._dissipator_operators_conj = function_to_apply(self._dissipator_operators_conj)
+        self._dissipator_products = function_to_apply(self._dissipator_products)
+
     def __init__(
         self,
         hamiltonian_operators: Array,
@@ -200,7 +210,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
         self._hamiltonian_operators = hamiltonian_operators
         self._dissipator_operators = dissipator_operators
-        self._drift = drift
+        self.drift = drift
 
         if dissipator_operators is not None:
             self._dissipator_operators_conj = np.conjugate(
@@ -210,7 +220,10 @@ class DenseLindbladCollection(BaseOperatorCollection):
                 self._dissipator_operators_conj, self._dissipator_operators
             )
 
-    def evaluate_with_state(self, signal_values: List[Array], y: Array) -> Array:
+    def evaluate_without_state(self, signal_values: Array) -> Array:
+        raise ValueError("Lindblad collections cannot be evaluated without a state.")
+
+    def evaluate_with_state(self, signal_values: list[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as (A+B)y + y(A-B) + C, where
@@ -230,8 +243,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         """
         hamiltonian_matrix = -1j * (
             np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)  # B matrix
-            + self._drift
-        )
+            + self._drift)
 
         if self._dissipator_operators is not None:
 
