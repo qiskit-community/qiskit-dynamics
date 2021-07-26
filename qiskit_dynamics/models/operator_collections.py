@@ -25,6 +25,38 @@ class BaseOperatorCollection(ABC):
     component \Lambda_d of the decpmoosition, which will be
     used to facilitate frame transformations."""
 
+    @property
+    @abstractmethod
+    def operators(self) -> Array:
+        """Returns operators that the collection stores"""
+        pass
+
+    @property
+    @abstractmethod
+    def drift(self) -> Array:
+        """Returns the drift component of the collection,
+        if applicatble"""
+        pass
+
+    @drift.setter
+    @abstractmethod
+    def drift(self, new_drift: Array):
+        """Sets drift"""
+        pass
+
+    @property
+    @abstractmethod
+    def num_operators(self) -> int:
+        """Returns number of operators the collection
+        is storing."""
+        pass
+
+    @property
+    @abstractmethod
+    def hilbert_space_dimension(self) -> int:
+        """Gets dimension of hilbert space of system"""
+        pass
+
     @abstractmethod
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""If the model can be represented simply and
