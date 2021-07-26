@@ -326,10 +326,33 @@ class GeneratorModel(BaseGeneratorModel):
         """Set the frame; either an already instantiated :class:`Frame` object
         a valid argument for the constructor of :class:`Frame`, or `None`.
         """
+        if self._frame is not None and self._frame.frame_diag is not None:
+            self._undo_frame_basis(Array(np.diag(self._frame.frame_diag)))
 
         self._frame = Frame(frame)
+        if self._frame.frame_diag is not None:
+            self._apply_frame_basis(Array(-np.diag(self._frame.frame_diag)))
 
-        self._reset_internal_ops()
+        if self.cutoff_freq is not None:
+            self.apply_cutoff_filtering()
+
+    def _undo_frame_basis(self, drift_term: Optional[Array]):
+        self._fb_op_collection.drift = self._fb_op_collection.drift + drift_term
+        self._fb_op_collection.apply_function_to_operators(self._frame.operator_out_of_frame_basis)
+
+        self._fb_op_conj_collection.drift = self._fb_op_conj_collection.drift + drift_term
+        self._fb_op_conj_collection.apply_function_to_operators(
+            self._frame.operator_out_of_frame_basis
+        )
+
+    def _apply_frame_basis(self, drift_term: Optional[Array]):
+        self._fb_op_collection.apply_function_to_operators(self._frame.operator_into_frame_basis)
+        self._fb_op_collection.drift = self._fb_op_collection.drift + drift_term
+
+        self._fb_op_conj_collection.apply_function_to_operators(
+            self._frame.operator_into_frame_basis
+        )
+        self._fb_op_conj_collection.drift = self._fb_op_conj_collection.drift + drift_term
 
     @property
     def cutoff_freq(self) -> float:
@@ -341,6 +364,9 @@ class GeneratorModel(BaseGeneratorModel):
         """Set the cutoff frequency."""
         if cutoff_freq != self._cutoff_freq:
             self._cutoff_freq = cutoff_freq
+        if self._cutoff_freq is not None:
+            self.apply_cutoff_filtering()
+
     def apply_cutoff_filtering(self):
         """Filters the two stored operator collections
         according to the stored cutoff frequency"""
