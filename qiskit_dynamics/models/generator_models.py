@@ -243,6 +243,7 @@ class GeneratorModel(BaseGeneratorModel):
     def __init__(
         self,
         operators: Array,
+        drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array, BaseFrame]] = None,
         cutoff_freq: Optional[float] = None,
