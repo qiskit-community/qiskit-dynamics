@@ -97,46 +97,45 @@ class BaseGeneratorModel(ABC):
         """Evaluate the constant part of the model."""
         pass
 
-        Args:
-            time: Time at which to create the generator.
-            y: operator or vector to apply the model to.
-            in_frame_basis: whether to evaluate in the frame basis
-
-        Returns:
-            Array: the product
-        """
-        return np.dot(self.evaluate(time, in_frame_basis), y)
-
-    def rmult(self, time: float, y: Array, in_frame_basis: bool = False) -> Array:
-        r"""Return the product y @ evaluate(t). Default implementation is to
-        call evaluate then multiply.
-
-        Args:
-            time: Time at which to create the generator.
-            y: operator or vector to apply the model to.
-            in_frame_basis: whether to evaluate in the frame basis
-
-        Returns:
-            Array: the product
-        """
-        return np.dot(y, self.evaluate(time, in_frame_basis))
-
-    @property
     @abstractmethod
-    def drift(self) -> Array:
-        """Evaluate the constant part of the model."""
+    def evaluate_with_state(
+        self, time: float, y: Array, in_frame_basis: Optional[bool] = True
+    ) -> Array:
+        r"""Given some representation y of the system's state,
+        evaluate the RHS of the model y'(t) = \Lambda(y,t)
+        at the time t.
+        Args:
+            time: Time
+            y: State in the same basis as the model is
+            being evaluated.
+            in_frame_basis: boolean flag; True if the
+                result should be in the frame basis
+                or in the lab basis."""
+        pass
+
+    @abstractmethod
+    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = True):
+        """If possible, expresses the model at time t
+        without reference to the state of the system.
+        Args:
+            time: Time
+            in_frame_basis: boolean flag; True if the
+                result should be in the frame basis
+                or in the lab basis."""
         pass
 
     def copy(self):
         """Return a copy of self."""
         return deepcopy(self)
 
-    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
+    def __call__(
+        self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = True
+    ):
         """Evaluate generator RHS functions. If ``y is None``,
         evaluates the model, and otherwise evaluates ``G(t) @ y``.
 
         Args:
-            t: Time.
+            time: Time.
             y: Optional state.
             in_frame_basis: Whether or not to evaluate in the frame basis.
 
@@ -145,9 +144,9 @@ class BaseGeneratorModel(ABC):
         """
 
         if y is None:
-            return self.evaluate(t, in_frame_basis=in_frame_basis)
+            return self.evaluate_without_state(time, in_frame_basis=in_frame_basis)
 
-        return self.lmult(t, y, in_frame_basis=in_frame_basis)
+        return self.evaluate_with_state(time, y, in_frame_basis=in_frame_basis)
 
 
 class CallableGenerator(BaseGeneratorModel):
