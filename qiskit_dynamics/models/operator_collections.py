@@ -3,11 +3,12 @@
 """Generic operator for general linear maps"""
 
 from abc import ABC, abstractmethod
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Callable
 from copy import deepcopy
 import numpy as np
 
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.type_utils import to_array
 
 
 class BaseOperatorCollection(ABC):
