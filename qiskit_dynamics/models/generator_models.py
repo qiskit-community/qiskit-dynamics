@@ -261,20 +261,22 @@ class GeneratorModel(BaseGeneratorModel):
                 diagonal matrix.
             cutoff_freq: Frequency cutoff when evaluating the model.
         """
-        self.operators = to_array(operators)
 
-        self._cutoff_freq = cutoff_freq
+        # initialize internal operator representation in the frame basis
+        self._fb_op_collection = DenseOperatorCollection(operators, drift)
+        self._fb_op_conj_collection = DenseOperatorCollection(operators, drift)
+        self._band_aid_temporary_operator_collection = DenseOperatorCollection(operators, drift)
+
+        # set cutoff frequency and frame. Must be done in this order.
+        self._frame = None
+        self._cutoff_freq = None
+
+        self.frame = frame
+        self.cutoff_freq = cutoff_freq
 
         # initialize signal-related attributes
         self._signals = None
         self.signals = signals
-
-        # set frame
-        self.frame = frame
-
-        # initialize internal operator representation in the frame basis
-        self._fb_op_collection = None
-        self._fb_op_conj_collection = None
 
     @property
     def signals(self) -> SignalList:
