@@ -86,17 +86,6 @@ class BaseGeneratorModel(ABC):
         """Gets the list of signal frequencies"""
 
     @abstractmethod
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
-        """Evaluate the model at a given time."""
-        pass
-
-    @property
-    @abstractmethod
-    def drift(self) -> Array:
-        """Evaluate the constant part of the model."""
-        pass
-
-    @abstractmethod
     def evaluate_with_state(
         self, time: float, y: Array, in_frame_basis: Optional[bool] = True
     ) -> Array:
