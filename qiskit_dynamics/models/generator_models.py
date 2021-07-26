@@ -247,8 +247,7 @@ class GeneratorModel(BaseGeneratorModel):
         self._operator_collection = DenseOperatorCollection(operators,drift)
 
         # set frame. 
-        self._frame = None
-        self.frame = frame
+        self._frame = Frame(frame)
 
         # initialize signal-related attributes
         self._signals = None
@@ -295,6 +294,7 @@ class GeneratorModel(BaseGeneratorModel):
             self._operator_collection.apply_function_to_operators(self.frame.operator_out_of_frame_basis)
 
         self._frame = Frame(frame)
+
         if self._frame.frame_diag is not None:
             self._operator_collection.apply_function_to_operators(self.frame.operator_into_frame_basis)
             self._operator_collection.drift = self._operator_collection.drift - Array(np.diag(self._frame.frame_diag))
@@ -368,9 +368,3 @@ class GeneratorModel(BaseGeneratorModel):
             out = self.frame.state_out_of_frame(time, out, y_in_frame_basis=True)
 
         return out
-
-    def _reset_internal_ops(self):
-        """Helper function to be used by various setters whose value changes
-        require reconstruction of the internal operators.
-        """
-        self.frame = self._frame
