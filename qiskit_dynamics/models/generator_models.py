@@ -81,14 +81,21 @@ class BaseGeneratorModel(ABC):
         """Set cutoff frequency."""
         pass
 
+    @property
+    @abstractmethod
+    def carrier_freqs(self) -> list[float]:
+        """Gets the list of signal frequencies"""
+
     @abstractmethod
     def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
         """Evaluate the model at a given time."""
         pass
 
-    def lmult(self, time: float, y: Array, in_frame_basis: bool = False) -> Array:
-        r"""Return the product evaluate(t) @ y. Default implementation is to
-        call evaluate then multiply.
+    @property
+    @abstractmethod
+    def drift(self) -> Array:
+        """Evaluate the constant part of the model."""
+        pass
 
         Args:
             time: Time at which to create the generator.
