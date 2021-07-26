@@ -149,9 +149,9 @@ class DenseOperatorCollection(BaseOperatorCollection):
         r"""Evaluates the operator G at time t given
         the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j"""
         if self._drift is None:
-            return np.tensordot(signal_values, self._operators, axes=1)
+            return np.tensordot(signal_values, self._calculation_operators, axes=1)
         else:
-            return np.tensordot(signal_values, self._operators, axes=1) + self._drift
+            return np.tensordot(signal_values, self._calculation_operators, axes=1) + self._drift
 
     def evaluate_with_state(self, signal_values: Array, y: Array) -> Array:
         """Evaluates the product G(t)y"""
