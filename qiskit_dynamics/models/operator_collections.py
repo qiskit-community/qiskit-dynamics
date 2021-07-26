@@ -131,7 +131,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
             function_to_apply: the function to be applied to all operators"""
         self._operators = function_to_apply(self._operators)
         if self._drift is not None:
-        self._drift = function_to_apply(self._drift)
+            self._drift = function_to_apply(self._drift)
 
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""Evaluates the operator G at time t given
@@ -169,7 +169,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     @property
     def operators(self) -> Array:
-        return self._hamiltonian_operators,self._dissipator_operators
+        return self._hamiltonian_operators, self._dissipator_operators
 
     @property
     def drift(self) -> Array:
@@ -202,8 +202,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
                 as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
-            drift: If supplied, treated as a constant term to be added to the 
-                Hamiltonian of the system. 
+            drift: If supplied, treated as a constant term to be added to the
+                Hamiltonian of the system.
             dissipator_operators: the terms L_j in Lindblad equation.
                 (m,n,n) array.
         """
@@ -243,7 +243,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
         """
         hamiltonian_matrix = -1j * (
             np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)  # B matrix
-            + self._drift)
+            + self._drift
+        )
 
         if self._dissipator_operators is not None:
 

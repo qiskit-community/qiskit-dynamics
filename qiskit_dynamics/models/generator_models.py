@@ -62,8 +62,8 @@ class BaseGeneratorModel(ABC):
     @abstractmethod
     def frame(self, frame: BaseFrame):
         """Set the frame; either an already instantiated :class:`Frame` object
-        a valid argument for the constructor of :class:`Frame`, or `None`. 
-        Takes care of putting all operators into the basis in which the frame 
+        a valid argument for the constructor of :class:`Frame`, or `None`.
+        Takes care of putting all operators into the basis in which the frame
         matrix F is diagonal.
         """
         pass
@@ -210,10 +210,10 @@ class GeneratorModel(BaseGeneratorModel):
         """Initialize.
 
         Args:
-            operators: A rank-3 Array of operator components. If 
+            operators: A rank-3 Array of operator components. If
                 a frame object is provided, each operator is assumed
-                to be in the basis in which the frame operator is 
-                diagonal. 
+                to be in the basis in which the frame operator is
+                diagonal.
             signals: Specifiable as either a SignalList, a list of
                 Signal objects, or as the inputs to signal_mapping.
                 GeneratorModel can be instantiated without specifying
@@ -224,9 +224,9 @@ class GeneratorModel(BaseGeneratorModel):
         """
 
         # initialize internal operator representation in the frame basis
-        self._operator_collection = DenseOperatorCollection(operators,drift)
+        self._operator_collection = DenseOperatorCollection(operators, drift)
 
-        # set frame. 
+        # set frame.
         self._frame = Frame(frame)
 
         # initialize signal-related attributes
@@ -270,14 +270,22 @@ class GeneratorModel(BaseGeneratorModel):
     @frame.setter
     def frame(self, frame: Union[Operator, Array, Frame]):
         if self._frame is not None and self._frame.frame_diag is not None:
-            self._operator_collection.drift = self._operator_collection.drift + Array(np.diag(self._frame.frame_diag))
-            self._operator_collection.apply_function_to_operators(self.frame.operator_out_of_frame_basis)
+            self._operator_collection.drift = self._operator_collection.drift + Array(
+                np.diag(self._frame.frame_diag)
+            )
+            self._operator_collection.apply_function_to_operators(
+                self.frame.operator_out_of_frame_basis
+            )
 
         self._frame = Frame(frame)
 
         if self._frame.frame_diag is not None:
-            self._operator_collection.apply_function_to_operators(self.frame.operator_into_frame_basis)
-            self._operator_collection.drift = self._operator_collection.drift - Array(np.diag(self._frame.frame_diag))
+            self._operator_collection.apply_function_to_operators(
+                self.frame.operator_into_frame_basis
+            )
+            self._operator_collection.drift = self._operator_collection.drift - Array(
+                np.diag(self._frame.frame_diag)
+            )
 
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = True) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
