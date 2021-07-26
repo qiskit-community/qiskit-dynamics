@@ -341,6 +341,16 @@ class GeneratorModel(BaseGeneratorModel):
                                     operators."""
                 )
 
+            if self._signals is not None:
+                # compare flattened carrier frequencies
+                old_carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
+                new_carrier_freqs = [sig.carrier_freq for sig in signals.flatten()]
+                if (
+                    not np.allclose(old_carrier_freqs, new_carrier_freqs)
+                    and self._cutoff_freq is not None
+                ):
+                    self.apply_cutoff_filtering()
+
             self._signals = signals
 
     @property
