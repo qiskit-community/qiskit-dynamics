@@ -461,8 +461,8 @@ class GeneratorModel(BaseGeneratorModel):
         """Helper function to be used by various setters whose value changes
         require reconstruction of the internal operators.
         """
-        self._fb_op_collection = None
-        self._fb_op_conj_collection = None
+        self.frame = self._frame
+        self.cutoff_freq = self._cutoff_freq
 
         if self.frame is not None:
             # First, compute e^{tF}y as a pre-rotation in the frame basis
