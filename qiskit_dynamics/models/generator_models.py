@@ -100,17 +100,27 @@ class BaseGeneratorModel(ABC):
 
     @property
     @abstractmethod
+    def carrier_freqs(self) -> list[float]:
+        """Gets the list of signal frequencies"""
+
+    @abstractmethod
     def frame(self) -> BaseFrame:
         """Get the frame."""
         pass
 
-    @frame.setter
+    @property
     @abstractmethod
-    def frame(self, frame: BaseFrame):
-        """Set the frame; either an already instantiated :class:`Frame` object
-        a valid argument for the constructor of :class:`Frame`, or `None`.
-        Takes care of putting all operators into the basis in which the frame
-        matrix F is diagonal.
+    def drift(self) -> Array:
+        """Evaluate the constant part of the model."""
+        pass
+
+        Args:
+            time: Time at which to create the generator.
+            y: operator or vector to apply the model to.
+            in_frame_basis: whether to evaluate in the frame basis
+
+        Returns:
+            Array: the product
         """
         pass
 
