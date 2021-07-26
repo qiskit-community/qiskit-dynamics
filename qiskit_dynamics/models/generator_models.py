@@ -50,10 +50,6 @@ class BaseGeneratorModel(ABC):
           with G'(t). Furthermore, all evaluation functions have the option
           to return the results in a basis in which :math:`F` is diagonalized,
           to save on the cost of computing :math:`e^{\pm tF}`.
-        - A `cutoff_freq`: a cutoff frequency for further modifying the
-          evaluation of :math:`G'(t)` to remove terms above a given frequency.
-          In this abstract class the exact meaning of this is left unspecified;
-          it is left to concrete implementations to define this.
     """
 
     @property
@@ -218,15 +214,13 @@ class GeneratorModel(BaseGeneratorModel):
             frame: Rotating frame operator. If specified with a 1d
                 array, it is interpreted as the diagonal of a
                 diagonal matrix.
-            cutoff_freq: Frequency cutoff when evaluating the model.
         """
 
         # initialize internal operator representation in the frame basis
         self._operator_collection = DenseOperatorCollection(operators,drift)
 
-        # set cutoff frequency and frame. Must be done in this order.
+        # set frame. 
         self._frame = None
-
         self.frame = frame
 
         # initialize signal-related attributes
@@ -301,9 +295,6 @@ class GeneratorModel(BaseGeneratorModel):
 
         sig_vals = np.real(self._signals.complex_value(time))
 
-        # evaluate the linear combination in the frame basis with cutoffs,
-        # then map into the frame
-
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
         op_combo = self._operator_collection(sig_vals)
 
@@ -343,9 +334,6 @@ class GeneratorModel(BaseGeneratorModel):
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
         sig_vals = np.real(self._signals.complex_value(time))
-
-        # evaluate the linear combination in the frame basis with cutoffs,
-        # then map into the frame
 
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
         op_combo = self._operator_collection(sig_vals)
