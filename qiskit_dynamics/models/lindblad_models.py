@@ -24,7 +24,7 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_models import GeneratorModel
 from .hamiltonian_models import HamiltonianModel
-from .operator_collections import DenseLindbladCollection, DenseVectorizedLindbladCollection
+from .operator_collections import DenseLindbladCollection
 from .frame import Frame
 
 
