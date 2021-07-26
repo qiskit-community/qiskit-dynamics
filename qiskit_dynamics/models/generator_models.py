@@ -190,7 +190,12 @@ class CallableGenerator(BaseGeneratorModel):
     def drift(self) -> Array:
         return self._drift
 
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
+    def evaluate_with_state(
+        self, time: float, y: Array, in_frame_basis: Optional[bool] = True
+    ) -> Array:
+        return self.evaluate_without_state(time, in_frame_basis) @ y
+
+    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = True) -> Array:
         """Evaluate the model in array format.
 
         Args:
