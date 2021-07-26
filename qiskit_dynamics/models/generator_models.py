@@ -215,7 +215,16 @@ class CallableGenerator(BaseGeneratorModel):
     def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
         return self.evaluate_generator(time, in_frame_basis=in_frame_basis) @ y
 
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    @property
+    def drift(self) -> Array:
+        return self._drift
+
+    def evaluate_with_state(
+        self, time: float, y: Array, in_frame_basis: Optional[bool] = True
+    ) -> Array:
+        return self.evaluate_without_state(time, in_frame_basis) @ y
+
+    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = True) -> Array:
         """Evaluate the model in array format.
 
         Args:
