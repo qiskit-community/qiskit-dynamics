@@ -114,18 +114,10 @@ class BaseGeneratorModel(ABC):
         """Evaluate the constant part of the model."""
         pass
 
-        Args:
-            time: Time at which to create the generator.
-            y: operator or vector to apply the model to.
-            in_frame_basis: whether to evaluate in the frame basis
-
-        Returns:
-            Array: the product
-        """
-        pass
-
     @abstractmethod
-    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate_with_state(
+        self, time: float, y: Array, in_frame_basis: Optional[bool] = True
+    ) -> Array:
         r"""Given some representation y of the system's state,
         evaluate the RHS of the model y'(t) = \Lambda(y,t)
         at the time t.
@@ -139,7 +131,7 @@ class BaseGeneratorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False):
+    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = True):
         """If possible, expresses the model at time t
         without reference to the state of the system.
         Args:
@@ -154,7 +146,7 @@ class BaseGeneratorModel(ABC):
         return deepcopy(self)
 
     def __call__(
-        self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False
+        self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = True
     ):
         """Evaluate generator RHS functions. If ``y is None``,
         evaluates the model, and otherwise evaluates ``G(t) @ y``.
@@ -169,9 +161,9 @@ class BaseGeneratorModel(ABC):
         """
 
         if y is None:
-            return self.evaluate_generator(time, in_frame_basis=in_frame_basis)
+            return self.evaluate_without_state(time, in_frame_basis=in_frame_basis)
 
-        return self.evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
+        return self.evaluate_with_state(time, y, in_frame_basis=in_frame_basis)
 
 
 class CallableGenerator(BaseGeneratorModel):
