@@ -492,8 +492,6 @@ class GeneratorModel(BaseGeneratorModel):
         Returns:
             Array: operator model evaluated for a given list of signal values
         """
-        if self._fb_op_collection is None or self._fb_op_conj_collection is None:
-            self._construct_ops_in_fb_w_cutoff()
 
         return 0.5 * (
             self._fb_op_collection(sig_vals) + self._fb_op_conj_collection(sig_vals.conj())
