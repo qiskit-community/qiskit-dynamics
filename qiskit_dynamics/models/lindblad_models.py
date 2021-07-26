@@ -56,6 +56,8 @@ class LindbladModel(GeneratorModel):
         hamiltonian_signals: Union[List[Signal], SignalList],
         noise_operators: Optional[List[Operator]] = None,
         noise_signals: Optional[Union[List[Signal], SignalList]] = None,
+        drift: Optional[Array] = None,
+        frame: Optional[Union[Operator, Array, Frame]] = None
     ):
         """Initialize.
 
@@ -73,17 +75,9 @@ class LindbladModel(GeneratorModel):
             Exception: if signals incorrectly specified
         """
 
-        # combine operators
-        vec_ham_ops = -1j * vec_commutator(to_array(hamiltonian_operators))
+        self._operator_collection = DenseLindbladCollection(hamiltonian_operators,
+            drift,noise_operators)
 
-        full_operators = None
-        if noise_operators is not None:
-            vec_diss_ops = vec_dissipator(to_array(noise_operators))
-            full_operators = np.append(vec_ham_ops, vec_diss_ops, axis=0)
-        else:
-            full_operators = vec_ham_ops
-
-        # combine signals
         if isinstance(hamiltonian_signals, list):
             hamiltonian_signals = SignalList(hamiltonian_signals)
         elif not isinstance(hamiltonian_signals, SignalList):
@@ -92,12 +86,8 @@ class LindbladModel(GeneratorModel):
                              Signals, or a SignalList."""
             )
 
-        full_signals = None
-        if noise_operators is None:
-            full_signals = hamiltonian_signals
-        else:
             if noise_signals is None:
-                noise_signals = SignalList([1.0 for _ in noise_operators])
+            noise_signals = SignalList([1.0 for k in noise_operators])
             elif isinstance(noise_signals, list):
                 noise_signals = SignalList(noise_signals)
             elif not isinstance(noise_signals, SignalList):
@@ -106,9 +96,9 @@ class LindbladModel(GeneratorModel):
                                  Signals, or a SignalList."""
                 )
 
-            full_signals = SignalList(hamiltonian_signals.components + noise_signals.components)
-
-        super().__init__(operators=full_operators, signals=full_signals)
+        self._noise_signals = noise_signals
+        self._hamiltonian_signals = hamiltonian_signals
+        self._frame = Frame(frame)
 
     @classmethod
     def from_hamiltonian(
@@ -133,4 +123,54 @@ class LindbladModel(GeneratorModel):
             hamiltonian_signals=hamiltonian.signals,
             noise_operators=noise_operators,
             noise_signals=noise_signals,
+            drift = hamiltonian.drift
         )
+
+    @property 
+    def frame(self):
+        return self._frame
+
+    @frame.setter
+    def frame(self, frame: Union[Operator, Array, Frame]):
+        if self._frame is not None and self._frame.frame_diag is not None:
+            self._operator_collection.drift = self._operator_collection.drift + Array(np.diag(self._frame.frame_diag))
+            self._operator_collection.apply_function_to_operators(self.frame.operator_out_of_frame_basis)
+
+        self._frame = Frame(frame)
+
+        if self._frame.frame_diag is not None:
+            self._operator_collection.apply_function_to_operators(self.frame.operator_into_frame_basis)
+            self._operator_collection.drift = self._operator_collection.drift - Array(np.diag(self._frame.frame_diag))
+
+    def evaluate_with_state(self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = True) -> Array:
+        """Evaluates the Lindblad model at a given time. 
+        time: time at which the model should be evaluated
+        y: Density matrix as an (n,n) Array
+        in_frame_basis: whether the density matrix is in the 
+            frame already, and if the final result
+            is returned in the frame or not."""
+
+        if not in_frame_basis:
+            y = self.frame.operator_into_frame(time,y,operator_in_frame_basis=False,return_in_frame_basis=True)
+
+        hamiltonian_sig_vals = np.real(self._hamiltonian_signals.complex_value(time))
+        noise_sig_vals = np.real(self._noise_signals.complex_value(time))
+
+        #Need to check that I have the differences chosen correctly
+        if self.frame.frame_diag is not None:
+            frame_eigvals = self.frame.frame_diag
+            pexp = np.exp((1j*time)*frame_eigvals)
+            nexp = np.exp((-1j*time)*frame_eigvals)
+            # Hopefully equivalent to rhs = e^{iFt} \rho e^{-iFt}
+            rhs = np.outer(pexp,nexp)*y
+            rhs = self._operator_collection.evaluate_with_state([hamiltonian_sig_vals,noise_sig_vals],rhs)
+            # Hopefully equivalent to rhs = e^{-iFt} rhs e^{iFt}
+            rhs = np.outer(nexp,pexp)*rhs
+        else:
+            rhs = self._operator_collection.evaluate_with_state([hamiltonian_sig_vals,noise_sig_vals],y)
+
+        if not in_frame_basis:
+            rhs = self.frame.operator_out_of_frame(time,rhs,operator_in_frame_basis=True,return_in_frame_basis=False)
+        return rhs
+
+
