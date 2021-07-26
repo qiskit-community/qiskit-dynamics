@@ -80,8 +80,7 @@ class BaseOperatorCollection(ABC):
     def apply_function_to_operators(self, function_to_apply: Optional[Callable]) -> None:
         """Apply some function to all operators.
         Useful for e.g. basis transformations.
-        Note: resets all filters applied to
-        operators.
+
         Args:
             function_to_apply: Callable function
             to be applied to each operator. Should
@@ -143,34 +142,20 @@ class DenseOperatorCollection(BaseOperatorCollection):
         Args:
             function_to_apply: the function to be applied to all operators"""
         self._operators = function_to_apply(self._operators)
+        if self._drift is not None:
         self._drift = function_to_apply(self._drift)
-        self.filter_arrays()
 
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""Evaluates the operator G at time t given
         the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j"""
         if self._drift is None:
-            return np.tensordot(signal_values, self._calculation_operators, axes=1)
+            return np.tensordot(signal_values, self._operators, axes=1)
         else:
-            return np.tensordot(signal_values, self._calculation_operators, axes=1) + self._drift
+            return np.tensordot(signal_values, self._operators, axes=1) + self._drift
 
     def evaluate_with_state(self, signal_values: Array, y: Array) -> Array:
         """Evaluates the product G(t)y"""
         return np.dot(self.evaluate_without_state(signal_values), y)
-
-    def filter_arrays(self, filters: Optional[Array] = None):
-        """Applies an elementwise filter to the operators stored
-        in the OperatorCollection in a non-destructive way.
-        Args:
-            filters: optional (k,n,n) Array with entries 0 or 1.
-            Entry (a,b,c) should be 0 if G_a's (b,c) entry should
-            be excluded from calculation; 1 if not. If not passed,
-            treated as though no elements should be filtered out.
-            The drift term is never affected."""
-        if filters is None:
-            self._calculation_operators = self._operators
-        else:
-            self._calculation_operators = filters * self._operators
 
     def __init__(self, operators: Array, drift: Optional[Array] = None):
         """Initialize
@@ -179,8 +164,8 @@ class DenseOperatorCollection(BaseOperatorCollection):
             drift: (n,n) Array specifying the extra drift G_d
         """
         self._operators = to_array(operators)
-        self.drift = to_array(drift)
-        self.filter_arrays()
+        self.drift = None
+        self.drift = drift
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
