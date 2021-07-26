@@ -378,8 +378,8 @@ class GeneratorModel(BaseGeneratorModel):
         self._fb_op_collection.filter_arrays(cutoff_filter)
         self._fb_op_conj_collection.filter_arrays(cutoff_filter.transpose([0, 2, 1]))
 
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
-        """Evaluate the model in array format.
+    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = True) -> Array:
+        """Evaluate the model in array format as a matrix, independent of state.
 
         Args:
             time: Time to evaluate the model
@@ -387,7 +387,7 @@ class GeneratorModel(BaseGeneratorModel):
                             operator is diagonal
 
         Returns:
-            Array: the evaluated model
+            Array: the evaluated model as a (n,n) matrix
 
         Raises:
             QiskitError: If model cannot be evaluated.
@@ -400,27 +400,66 @@ class GeneratorModel(BaseGeneratorModel):
 
         # evaluate the linear combination in the frame basis with cutoffs,
         # then map into the frame
+
+        # Evaluated in frame basis, but without rotations e^{\pm Ft}
         op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
+
         return self.frame.generator_into_frame(
             time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
         )
 
-    @property
-    def drift(self) -> Array:
-        """Return the part of the model with only Constant coefficients as a
-        numpy array.
+    def evaluate_with_state(
+        self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = True
+    ) -> Array:
+        """Evaluate the model in array format as a vector, given the current state.
+
+        Args:
+            time: Time to evaluate the model
+            y: (n) Array specifying system state, in basis choice specified by
+                in_frame_basis. If not in frame basis, assumed to not include
+                the rotating term e^{-Ft}. If in the frame basis, assumed to
+                include the rotating term e^{-Ft}.
+            in_frame_basis: Whether to evaluate in the basis in which the frame
+                operator is diagonal
+
+
+        Returns:
+            Array: the evaluated model as (n) vector
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
         """
 
-        # for now if the frame operator is not None raise an error
-        if self.frame.frame_operator is not None:
-            raise QiskitError(
-                """The drift is currently ill-defined if
-                               frame_operator is not None."""
+        if not in_frame_basis:
+            y = self.frame.state_into_frame(
+                time, y, y_in_frame_basis=False, return_in_frame_basis=True
             )
 
-        drift_sig_vals = self._signals.drift
+        if self._signals is None:
+            raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
+        sig_vals = self._signals.complex_value(time)
+
+        # evaluate the linear combination in the frame basis with cutoffs,
+        # then map into the frame
+
+        # Evaluated in frame basis, but without rotations e^{\pm Ft}
+        op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
+
+        if self.frame.frame_diag is None:
+            return np.dot(op_combo, y)
+        else:
+            # perform pre-rotation
+            out = np.exp(time * self.frame.frame_diag) * y
+            # apply operator
+            out = np.dot(op_combo, out)
+            # apply post-rotation
+            out = np.exp(-time * self.frame.frame_diag) * out
+
+        if not in_frame_basis:
+            out = self.frame.state_out_of_frame(time, out, y_in_frame_basis=True)
+
+        return out
 
     @property
     def carrier_freqs(self) -> list[float]:
