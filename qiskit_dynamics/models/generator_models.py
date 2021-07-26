@@ -305,8 +305,6 @@ class GeneratorModel(BaseGeneratorModel):
                                     operators."""
                 )
 
-            # internal ops need to be reset if there is a cutoff frequency
-            # and carrier_freqs has changed
             if self._signals is not None:
                 # compare flattened carrier frequencies
                 old_carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
@@ -315,7 +313,7 @@ class GeneratorModel(BaseGeneratorModel):
                     not np.allclose(old_carrier_freqs, new_carrier_freqs)
                     and self._cutoff_freq is not None
                 ):
-                    self._reset_internal_ops()
+                    self.apply_cutoff_filtering()
 
             self._signals = signals
 
