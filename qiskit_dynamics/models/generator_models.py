@@ -25,7 +25,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import DenseOperatorCollection
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.signals import Signal, SignalList,SignalSum
+from qiskit_dynamics.signals import Signal, SignalList
 from .frame import BaseFrame, Frame
 
 
