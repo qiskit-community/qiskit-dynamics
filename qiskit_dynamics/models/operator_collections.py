@@ -192,6 +192,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
                 as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
+            drift: If supplied, treated as a constant term to be added to the 
+                Hamiltonian of the system. 
             dissipator_operators: the terms L_j in Lindblad equation.
                 (m,n,n) array.
         """
@@ -221,7 +223,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
                     Must have length self._num_ham_terms
                 signal_values[1]: dissipator signal values, \gamma_j(t)
                     Must have length self._num_dis_terms
-            y: density matrix [(n,n) array] representing the state at time t
+            y: density matrix as (n,n) Array representing the state at time t
         Returns:
             RHS of Lindblad equation -i[H,y] + \sum_j\gamma_j(t)
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})

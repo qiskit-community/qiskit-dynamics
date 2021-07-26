@@ -60,8 +60,12 @@ class BaseGeneratorModel(ABC):
 
     @property
     @abstractmethod
-    def operators(self) -> Union[Array, List[Array]]:
-        """Get the originally passed operators by the user"""
+    def frame(self, frame: BaseFrame):
+        """Set the frame; either an already instantiated :class:`Frame` object
+        a valid argument for the constructor of :class:`Frame`, or `None`. 
+        Takes care of putting all operators into the basis in which the frame 
+        matrix F is diagonal.
+        """
         pass
 
     @abstractmethod
@@ -226,14 +230,10 @@ class GeneratorModel(BaseGeneratorModel):
         """Initialize.
 
         Args:
-            operators: A rank-3 Array of operator components. If
+            operators: A rank-3 Array of operator components. If 
                 a frame object is provided, each operator is assumed
-                to be in the basis in which the frame operator is
-                diagonal.
-            drift: Optional, constant terms to add to G. Useful for
-                frame transformations. If a frame, but not a drift,
-                is provided, will be set to -F. If both are provided,
-                the drift will be set to drift - F.
+                to be in the basis in which the frame operator is 
+                diagonal. 
             signals: Specifiable as either a SignalList, a list of
                 Signal objects, or as the inputs to signal_mapping.
                 GeneratorModel can be instantiated without specifying
@@ -290,9 +290,6 @@ class GeneratorModel(BaseGeneratorModel):
 
     @frame.setter
     def frame(self, frame: Union[Operator, Array, Frame]):
-        """Set the frame; either an already instantiated :class:`Frame` object
-        a valid argument for the constructor of :class:`Frame`, or `None`.
-        """
         if self._frame is not None and self._frame.frame_diag is not None:
             self._operator_collection.drift = self._operator_collection.drift + Array(np.diag(self._frame.frame_diag))
             self._operator_collection.apply_function_to_operators(self.frame.operator_out_of_frame_basis)
@@ -304,16 +301,12 @@ class GeneratorModel(BaseGeneratorModel):
 
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = True) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
-
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        """Evaluate the model in array format as a matrix, independent of state.
         Args:
             time: Time to evaluate the model
             in_frame_basis: Whether to evaluate in the basis in which the frame
                             operator is diagonal
         Returns:
             Array: the evaluated model as a (n,n) matrix
-
         Raises:
             QiskitError: If model cannot be evaluated."""
 
@@ -334,7 +327,6 @@ class GeneratorModel(BaseGeneratorModel):
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = True
     ) -> Array:
         """Evaluate the model in array format as a vector, given the current state.
-
         Args:
             time: Time to evaluate the model
             y: (n) Array specifying system state, in basis choice specified by
@@ -343,11 +335,8 @@ class GeneratorModel(BaseGeneratorModel):
                 include the rotating term e^{-Ft}.
             in_frame_basis: Whether to evaluate in the basis in which the frame
                 operator is diagonal
-
-
         Returns:
             Array: the evaluated model as (n) vector
-
         Raises:
             QiskitError: If model cannot be evaluated.
         """
