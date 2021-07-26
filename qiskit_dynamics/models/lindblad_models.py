@@ -96,11 +96,10 @@ class LindbladModel(GeneratorModel):
         self,
         hamiltonian_operators: Array,
         hamiltonian_signals: Union[List[Signal], SignalList],
-        dissipator_operators: Array = None,
-        dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
+        noise_operators: Optional[List[Operator]] = None,
+        noise_signals: Optional[Union[List[Signal], SignalList]] = None,
         drift: Optional[Array] = None,
-        frame: Optional[Union[Operator, Array, Frame]] = None,
-        evaluation_mode: Optional[str] = "dense_lindblad_collection",
+        frame: Optional[Union[Operator, Array, Frame]] = None
     ):
         """Initialize.
 
@@ -120,12 +119,8 @@ class LindbladModel(GeneratorModel):
         self._operator_collection = None
         self._evaluation_mode = None
 
-        if dissipator_operators is not None:
-            dissipator_operators = Array(dissipator_operators)
-
-        self._hamiltonian_operators = Array(np.array(hamiltonian_operators))
-        self.drift = drift
-        self._dissipator_operators = dissipator_operators
+        self._operator_collection = DenseLindbladCollection(hamiltonian_operators,
+            drift,noise_operators)
 
         if isinstance(hamiltonian_signals, list):
             hamiltonian_signals = SignalList(hamiltonian_signals)
@@ -135,26 +130,22 @@ class LindbladModel(GeneratorModel):
                              Signals, or a SignalList."""
             )
 
-        if dissipator_signals is None:
-            if dissipator_operators is not None:
-                dissipator_signals = SignalList([1.0 for k in dissipator_operators])
-            else:
-                dissipator_signals = None
-        elif isinstance(dissipator_signals, list):
-            dissipator_signals = SignalList(dissipator_signals)
-        elif not isinstance(dissipator_signals, SignalList):
-            raise Exception(
-                """dissipator_signals must either be a list of
+            if noise_signals is None:
+            noise_signals = SignalList([1.0 for k in noise_operators])
+            elif isinstance(noise_signals, list):
+                noise_signals = SignalList(noise_signals)
+            elif not isinstance(noise_signals, SignalList):
+                raise Exception(
+                    """noise_signals must either be a list of
                                  Signals, or a SignalList."""
             )
 
         self._hamiltonian_signals = hamiltonian_signals
         self._dissipator_signals = dissipator_signals
 
-        self._frame = None
-        self.frame = frame
-
-        self.evaluation_mode = evaluation_mode
+        self._noise_signals = noise_signals
+        self._hamiltonian_signals = hamiltonian_signals
+        self._frame = Frame(frame)
 
     @classmethod
     def from_hamiltonian(
@@ -178,94 +169,56 @@ class LindbladModel(GeneratorModel):
         return cls(
             hamiltonian_operators=hamiltonian.operators,
             hamiltonian_signals=hamiltonian.signals,
-            dissipator_operators=dissipator_operators,
-            dissipator_signals=dissipator_signals,
-            drift=hamiltonian.drift,
-            evaluation_mode=evaluation_mode,
+            noise_operators=noise_operators,
+            noise_signals=noise_signals,
+            drift = hamiltonian.drift
         )
 
-    @property
+    @property 
     def frame(self):
         return self._frame
 
     @frame.setter
     def frame(self, frame: Union[Operator, Array, Frame]):
         if self._frame is not None and self._frame.frame_diag is not None:
-            self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
-
-            self._hamiltonian_operators = self.frame.operator_out_of_frame_basis(
-                self._hamiltonian_operators
-            )
-            if self._dissipator_operators is not None:
-                self._dissipator_operators = self.frame.operator_out_of_frame_basis(
-                    self._dissipator_operators
-                )
-            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
+            self._operator_collection.drift = self._operator_collection.drift + Array(np.diag(self._frame.frame_diag))
+            self._operator_collection.apply_function_to_operators(self.frame.operator_out_of_frame_basis)
 
         self._frame = Frame(frame)
 
         if self._frame.frame_diag is not None:
-            self._hamiltonian_operators = self.frame.operator_into_frame_basis(
-                self._hamiltonian_operators
-            )
-            if self._dissipator_operators is not None:
-                self._dissipator_operators = self.frame.operator_into_frame_basis(
-                    self._dissipator_operators
-                )
-            self.drift = self.frame.operator_into_frame_basis(self.drift)
+            self._operator_collection.apply_function_to_operators(self.frame.operator_into_frame_basis)
+            self._operator_collection.drift = self._operator_collection.drift - Array(np.diag(self._frame.frame_diag))
 
-            self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
-
-        # Ensure these changes are passed on to the operator collection.
-        self.evaluation_mode = self.evaluation_mode
-
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        if self.evaluation_mode != "dense_vectorized_lindblad_collection":
-            raise NotImplementedError(
-                "Non-vectorized Lindblad models cannot be represented without a given state without vectorization."
-            )
-        else:
-            return self._operator_collection.evaluate_generator(
-                [self._hamiltonian_signals(time), self._dissipator_signals(time)]
-            )
-
-    def evaluate_rhs(
-        self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
-    ) -> Array:
-        """Evaluates the Lindblad model at a given time.
+    def evaluate_with_state(self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = True) -> Array:
+        """Evaluates the Lindblad model at a given time. 
         time: time at which the model should be evaluated
-        y: Density matrix as an (n,n) Array if not using a
-            vectorized evaluation_mode or an (n^2) Array if
-            using vectorized evaluation.
-        in_frame_basis: whether the density matrix is in the
+        y: Density matrix as an (n,n) Array
+        in_frame_basis: whether the density matrix is in the 
             frame already, and if the final result
             is returned in the frame or not."""
 
-        hamiltonian_sig_vals = self._hamiltonian_signals(time)
-        if self._dissipator_signals is not None:
-            dissipator_sig_vals = self._dissipator_signals(time)
-        else:
-            dissipator_sig_vals = 0
+        if not in_frame_basis:
+            y = self.frame.operator_into_frame(time,y,operator_in_frame_basis=False,return_in_frame_basis=True)
 
+        hamiltonian_sig_vals = np.real(self._hamiltonian_signals.complex_value(time))
+        noise_sig_vals = np.real(self._noise_signals.complex_value(time))
+
+        #Need to check that I have the differences chosen correctly
         if self.frame.frame_diag is not None:
-
-            # Take y out of the frame, but keep in the frame basis
-            rhs = self.frame.operator_out_of_frame(
-                time, y, operator_in_frame_basis=in_frame_basis, return_in_frame_basis=True
-            )
-
-            rhs = self._operator_collection.evaluate_rhs(
-                [hamiltonian_sig_vals, dissipator_sig_vals], rhs
-            )
-
-            # Put rhs back into the frame, potentially converting its basis.
-            rhs = self.frame.operator_into_frame(
-                time, rhs, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
-            )
-
+            frame_eigvals = self.frame.frame_diag
+            pexp = np.exp((1j*time)*frame_eigvals)
+            nexp = np.exp((-1j*time)*frame_eigvals)
+            # Hopefully equivalent to rhs = e^{iFt} \rho e^{-iFt}
+            rhs = np.outer(pexp,nexp)*y
+            rhs = self._operator_collection.evaluate_with_state([hamiltonian_sig_vals,noise_sig_vals],rhs)
+            # Hopefully equivalent to rhs = e^{-iFt} rhs e^{iFt}
+            rhs = np.outer(nexp,pexp)*rhs
         else:
-            rhs = self._operator_collection.evaluate_rhs(
-                [hamiltonian_sig_vals, dissipator_sig_vals], y
-            )
+            rhs = self._operator_collection.evaluate_with_state([hamiltonian_sig_vals,noise_sig_vals],y)
 
+        if not in_frame_basis:
+            rhs = self.frame.operator_out_of_frame(time,rhs,operator_in_frame_basis=True,return_in_frame_basis=False)
         return rhs
+
+
