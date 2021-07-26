@@ -341,7 +341,16 @@ class GeneratorModel(BaseGeneratorModel):
         """Set the cutoff frequency."""
         if cutoff_freq != self._cutoff_freq:
             self._cutoff_freq = cutoff_freq
-            self._reset_internal_ops()
+    def apply_cutoff_filtering(self):
+        """Filters the two stored operator collections
+        according to the stored cutoff frequency"""
+
+        cutoff_filter = self.frame.calculate_cutoff_filter(
+            self.carrier_freqs, self._cutoff_freq, self._fb_op_collection.hilbert_space_dimension
+        )
+
+        self._fb_op_collection.filter_arrays(cutoff_filter)
+        self._fb_op_conj_collection.filter_arrays(cutoff_filter.transpose([0, 2, 1]))
 
     def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
         """Evaluate the model in array format.
