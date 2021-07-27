@@ -244,12 +244,13 @@ class DenseLindbladCollection(BaseOperatorCollection):
         """
         if self.drift is None:
             hamiltonian_matrix = -1j * (
-                np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1))  # B matrix
+                np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)
+            )  # B matrix
         else:
-        hamiltonian_matrix = -1j * (
-            np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)  # B matrix
-            + self._drift
-        )
+            hamiltonian_matrix = -1j * (
+                np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)  # B matrix
+                + self._drift
+            )
 
         if self._dissipator_operators is not None:
 
