@@ -23,6 +23,7 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_array
 from .generator_models import GeneratorModel
+from .frame import Frame
 
 
 class HamiltonianModel(GeneratorModel):
@@ -52,12 +53,38 @@ class HamiltonianModel(GeneratorModel):
           evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
     """
 
+    @property
+    def frame(self) -> Frame:
+        return super().frame
+
+    @frame.setter
+    def frame(self, frame: Union[Operator, Array, Frame]) -> Array:
+        """Sets frame. Frame objects will always store antihermitian F = -iH.
+        The drift needs to be adjusted by -H in the new frame."""
+        if self._frame is not None and self._frame.frame_diag is not None:
+            self._operator_collection.drift = self._operator_collection.drift + Array(
+                np.diag(1j * self._frame.frame_diag)
+            )
+            self._operator_collection.apply_function_to_operators(
+                self.frame.operator_out_of_frame_basis
+            )
+
+        self._frame = Frame(frame)
+
+        if self._frame.frame_diag is not None:
+            self._operator_collection.apply_function_to_operators(
+                self.frame.operator_into_frame_basis
+            )
+            self._operator_collection.drift = self._operator_collection.drift - Array(
+                np.diag(1j * self._frame.frame_diag)
+            )
+
     def __init__(
         self,
         operators: List[Operator],
+        drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array]] = None,
-        cutoff_freq: Optional[float] = None,
         validate: bool = True,
     ):
         """Initialize, ensuring that the operators are Hermitian.
@@ -87,52 +114,18 @@ class HamiltonianModel(GeneratorModel):
 
         if validate:
             adj = np.transpose(np.conjugate(operators), (0, 2, 1))
-            if np.linalg.norm(adj - operators) > 1e-10:
+            if np.linalg.norm(adj - operators) > 1e-10 or (
+                drift is not None and np.linalg.norm(drift - np.transpose(drift)) > 1e-10
+            ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
-        super().__init__(operators=operators, signals=signals, frame=frame, cutoff_freq=cutoff_freq)
+        if frame is not None:
+            frame = Frame(frame)
+            if drift is None:
+                # Assume that frame diagonal is -iH
+                drift = -(1j * frame.frame_diag)
 
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
-        """Evaluate the Hamiltonian at a given time.
-
-        Note: This function from :class:`OperatorModel` needs to be overridden,
-        due to frames for Hamiltonians being relative to the Schrodinger
-        equation, rather than the Hamiltonian itself.
-        See the class doc string for details.
-
-        Args:
-            time: Time to evaluate the model
-            in_frame_basis: Whether to evaluate in the basis in which the frame
-                            operator is diagonal
-
-        Returns:
-            Array: the evaluated model
-
-        Raises:
-            Exception: if signals are not present
-        """
-
-        if self.signals is None:
-            raise Exception(
-                """OperatorModel cannot be evaluated without
-                               signals."""
-            )
-
-        sig_vals = self.signals.complex_value(time)
-
-        op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
-
-        op_to_add_in_fb = None
-        if self.frame.frame_operator is not None:
-            op_to_add_in_fb = -1j * np.diag(self.frame.frame_diag)
-
-        return self.frame._conjugate_and_add(
-            time,
-            op_combo,
-            op_to_add_in_fb=op_to_add_in_fb,
-            operator_in_frame_basis=True,
-            return_in_frame_basis=in_frame_basis,
-        )
+        super().__init__(operators=operators, signals=signals, frame=frame, drift=drift)
 
     def __call__(self, t: float, y: Optional[Array] = None, in_frame: Optional[bool] = False):
         """Evaluate generator RHS functions. Needs to be overriden from base class
