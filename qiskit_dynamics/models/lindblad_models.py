@@ -155,16 +155,16 @@ class LindbladModel(GeneratorModel):
             )
 
     def evaluate_with_state(
-        self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = True
+        self, time: Union[float, int], y: Array, in_frame: Optional[bool] = True
     ) -> Array:
         """Evaluates the Lindblad model at a given time.
         time: time at which the model should be evaluated
         y: Density matrix as an (n,n) Array
-        in_frame_basis: whether the density matrix is in the
+        in_frame: whether the density matrix is in the
             frame already, and if the final result
             is returned in the frame or not."""
 
-        if not in_frame_basis:
+        if not in_frame:
             y = self.frame.operator_into_frame(
                 time, y, operator_in_frame_basis=False, return_in_frame_basis=True
             )
@@ -189,7 +189,7 @@ class LindbladModel(GeneratorModel):
                 [hamiltonian_sig_vals, noise_sig_vals], y
             )
 
-        if not in_frame_basis:
+        if not in_frame:
             rhs = self.frame.operator_out_of_frame(
                 time, rhs, operator_in_frame_basis=True, return_in_frame_basis=False
             )
