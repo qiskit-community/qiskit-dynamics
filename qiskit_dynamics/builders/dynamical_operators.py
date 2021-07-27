@@ -124,7 +124,7 @@ class DynamicalOperator(ABC):
 		"""Unary plus operator prepending a DynamicalOperator."""
 		return self
 
-	def get_operator_matrix(self, s_type_unique, dim: int) -> np.ndarray:
+	def get_operator_matrix(self, s_type_unique, dim: int) -> Any:
 		"""Returns a matrix describing a realization of the operator specified in the parameters.
 
 		This function is not declared as static in order to allow subclasses to override the
@@ -136,10 +136,10 @@ class DynamicalOperator(ABC):
 		# TODO: Replace qubit creation with Qiskit Operator.from_label()
 		# TODO: Support the following operators at arbitrary dimensions:
 		# 		i x y z sp sm n p q a a_ n n^2 0 1 and initial states as in Qiskit
-		if dim == 2:
-			if s_type_unique == 'null':
-				return np.zeros(dim, complex)
-			elif s_type_unique == 'i':
+		if s_type_unique == 'null':
+			return np.zeros((dim, dim), complex)
+		elif dim == 2:
+			if s_type_unique == 'i':
 				return np.identity(dim, complex)
 			elif s_type_unique == 'x':
 				return np.asarray([[0, 1], [1, 0]], complex)
@@ -158,7 +158,7 @@ class DynamicalOperator(ABC):
 		raise Exception(
 			f"Operator type {s_type_unique} unknown or unsupported for matrix generation with dimension {dim}.")
 
-	def kron(self, left_matrix: Array, right_matrix: Array):
+	def get_kron_matrix(self, left_matrix: Any, right_matrix: Any):
 		"""Returns the matrix Kronecker product of the two arguments.
 
 		This function is not declared as static in order to allow subclasses to override the
@@ -170,9 +170,9 @@ class DynamicalOperator(ABC):
 		Returns:
 			The Kronecker product of the arguments.
 		"""
-		return np.kron(left_matrix, right_matrix)  # TODO
+		return np.kron(left_matrix, right_matrix)  # TODO verify whether ordering matters
 
-	def zeros(self, dim: int):
+	def get_zeros_matrix(self, dim: int):
 		return self.get_operator_matrix('null', dim)
 
 
@@ -198,7 +198,7 @@ class OperatorBuilder(ABC):
 		self._dyn_op = None
 
 	def build_dictionaries(self, operators: Union[DynamicalOperator, List[DynamicalOperator]])\
-			-> Union[dict, List[Dict]]:
+			-> Union[dict, List[dict]]:
 		"""Builds a list of flat descriptive dictionaries from a list of DynamicalOperator trees."""
 		results = []
 		b_flatten = False  # If operators is one instance return a dict, otherwise a list of dicts
@@ -299,8 +299,7 @@ class OperatorBuilder(ABC):
 			if dim > 0:
 				self._total_dim *= dim
 		if len(operators) == 0:
-			return self._dyn_op.zeros(self._total_dim)
-			# TODO the above assumes numpy arrays
+			return self._dyn_op.get_zeros_matrix(self._total_dim)
 		b_dictionaries = False
 		for op in operators:
 			# Verify operator types are known and identical
@@ -331,7 +330,7 @@ class OperatorBuilder(ABC):
 		return results
 
 	def _build_one_matrix(self, operator_dict: Dict) -> np.ndarray:
-		matrix = self._dyn_op.zeros(self._total_dim)
+		matrix = self._dyn_op.get_zeros_matrix(self._total_dim)
 		for key, val in operator_dict.items():
 			sub_matrices = {}
 			for key_element in key:
@@ -353,7 +352,7 @@ class OperatorBuilder(ABC):
 				if i == 0:
 					op_matrix = sub_matrix
 				else:
-					op_matrix = self._dyn_op.kron(op_matrix, sub_matrix)
+					op_matrix = self._dyn_op.get_kron_matrix(op_matrix, sub_matrix)
 			matrix += val * op_matrix  # TODO verify does not require the Identity?
 		return matrix
 
@@ -386,3 +385,4 @@ class Sm(DynamicalOperator):
 class Sid(DynamicalOperator):
 	def __init__(self, system_id = ''):
 		super().__init__(system_id, 'id')
+

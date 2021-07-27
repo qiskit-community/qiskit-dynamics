@@ -10,11 +10,13 @@ class SimulationDef:
 	"""A container for the defining elements of a dynamical simulation."""
 
 	def __init__(self,
-				 t_span: Array,
-				 t_eval: Array,
-				 initial_state: Union[Array, QuantumState, BaseOperator, DynamicalOperator],
-				 hamiltonian_operators: Union[List[Array], List[Operator], List[DynamicalOperator]],
-				 hamiltonian_signals: Union[List[Signal], SignalList],
+				 t_span: Optional[Array] = None,
+				 t_eval: Optional[Array] = None,
+				 t_obs: Optional[Array] = None,
+				 dt: Optional[float] = None,
+				 initial_state: Union[Array, QuantumState, BaseOperator, DynamicalOperator] = None,
+				 hamiltonian_operators: Union[List[Array], List[Operator], List[DynamicalOperator]] = None,
+				 hamiltonian_signals: Union[List[Signal], SignalList] = None,
 				 noise_operators: Optional[Union[List[Array], List[Operator], List[DynamicalOperator]]] = None,
 				 noise_signals: Optional[Union[List[Signal], SignalList]] = None,
 				 observable_operators: Optional[Union[List[Array], List[Operator], List[DynamicalOperator]]] = None,
@@ -29,6 +31,8 @@ class SimulationDef:
 		"""
 		self.t_span = t_span
 		self.t_eval = t_eval
+		self.t_obs = t_obs
+		self.dt = dt
 		self.initial_state = initial_state
 		self.hamiltonian_operators = hamiltonian_operators
 		self.hamiltonian_signals = hamiltonian_signals
@@ -210,9 +214,3 @@ class DenseSimulationBuilder(SimulationBuilderStaticModel):
 		else:
 			raise Exception(f"An unsupported type {op_type} passed as a Hamiltonian/noise operator.")
 		return op_matrices, op_labels
-
-
-class GeometricSimulationBuilder(DenseSimulationBuilder):
-
-	def __init__(self, sim_def: SimulationDef):
-		super().__init__(sim_def)

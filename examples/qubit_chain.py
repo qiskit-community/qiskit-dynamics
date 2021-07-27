@@ -39,6 +39,9 @@ sim_full.solve()
 
 tmp = 2
 
+# H = .5 * Sz(0) * (Sx(1) + 2 * Sz(0)) + + 2 * Sz(0) * Sz(0)
+# result = {('z', 0, 'x', 1): .5, (DynamicalOperatorKey('z', 0), DynamicalOperatorKey('z', 0)): 3.}
+
 # Exceptions below, WIP
 
 # sim_prune = DenseSimulationBuilder(sim_def)
