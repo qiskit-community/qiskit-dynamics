@@ -4,6 +4,8 @@ import numpy as np
 from copy import deepcopy
 from qiskit.quantum_info.operators.base_operator import BaseOperator
 
+from qiskit_dynamics.dispatch import Array
+
 
 class DynamicalOperator(ABC):
 	"""An class for operators used in defining dynamical simulations."""
@@ -123,7 +125,7 @@ class DynamicalOperator(ABC):
 		return self
 
 	def get_operator_matrix(self, s_type_unique, dim: int) -> np.ndarray:
-		"""Returns a matrix describing a concrete realization of the DynamicalOperator.
+		"""Returns a matrix describing a realization of the operator specified in the parameters.
 
 		This function is not declared as static in order to allow subclasses to override the
 		implementation. However, fields of the ``self`` object are not being used.
@@ -135,7 +137,9 @@ class DynamicalOperator(ABC):
 		# TODO: Support the following operators at arbitrary dimensions:
 		# 		i x y z sp sm n p q a a_ n n^2 0 1 and initial states as in Qiskit
 		if dim == 2:
-			if s_type_unique == 'i':
+			if s_type_unique == 'null':
+				return np.zeros(dim, complex)
+			elif s_type_unique == 'i':
 				return np.identity(dim, complex)
 			elif s_type_unique == 'x':
 				return np.asarray([[0, 1], [1, 0]], complex)
@@ -153,6 +157,23 @@ class DynamicalOperator(ABC):
 				return np.asarray([[0, 0], [0, 1]], complex)
 		raise Exception(
 			f"Operator type {s_type_unique} unknown or unsupported for matrix generation with dimension {dim}.")
+
+	def kron(self, left_matrix: Array, right_matrix: Array):
+		"""Returns the matrix Kronecker product of the two arguments.
+
+		This function is not declared as static in order to allow subclasses to override the
+		implementation. However, fields of the ``self`` object are not being used.
+		Args:
+			left_matrix: First matrix.
+			right_matrix: Second matrix.
+
+		Returns:
+			The Kronecker product of the arguments.
+		"""
+		return np.kron(left_matrix, right_matrix)  # TODO
+
+	def zeros(self, dim: int):
+		return self.get_operator_matrix('null', dim)
 
 
 class DynamicalOperatorKey:
@@ -270,12 +291,15 @@ class OperatorBuilder(ABC):
 			b_flatten = True
 			operators = [operators]
 		dims = subsystems.values()
+		self._dyn_op = dyn_op
+		if self._dyn_op is None:
+			self._dyn_op = DynamicalOperator()
 		self._total_dim = 1
 		for dim in dims:
 			if dim > 0:
 				self._total_dim *= dim
 		if len(operators) == 0:
-			return np.zeros(self._total_dim)
+			return self._dyn_op.zeros(self._total_dim)
 			# TODO the above assumes numpy arrays
 		b_dictionaries = False
 		for op in operators:
@@ -298,9 +322,6 @@ class OperatorBuilder(ABC):
 		else:
 			operators_dict = self.build_dictionaries(operators)
 		results = []
-		self._dyn_op = dyn_op
-		if self._dyn_op is None:
-			self._dyn_op = DynamicalOperator()
 		for dim in dims:
 			self._identity_matrices.append(self._dyn_op.get_operator_matrix('i', dim))
 		for op_dict in operators_dict:
@@ -310,8 +331,7 @@ class OperatorBuilder(ABC):
 		return results
 
 	def _build_one_matrix(self, operator_dict: Dict) -> np.ndarray:
-		matrix = np.zeros((self._total_dim, self._total_dim), complex)
-		# TODO assumes numpy
+		matrix = self._dyn_op.zeros(self._total_dim)
 		for key, val in operator_dict.items():
 			sub_matrices = {}
 			for key_element in key:
@@ -333,8 +353,7 @@ class OperatorBuilder(ABC):
 				if i == 0:
 					op_matrix = sub_matrix
 				else:
-					op_matrix = np.kron(op_matrix, sub_matrix)
-					# TODO this is valid for numpy arrays, but not for arbitrary type
+					op_matrix = self._dyn_op.kron(op_matrix, sub_matrix)
 			matrix += val * op_matrix  # TODO verify does not require the Identity?
 		return matrix
 
