@@ -131,8 +131,8 @@ class DenseOperatorCollection(BaseOperatorCollection):
         Args:
             function_to_apply: the function to be applied to all operators"""
         self._operators = function_to_apply(self._operators)
-        if self._drift is not None:
-            self._drift = function_to_apply(self._drift)
+        if self.drift is not None:
+            self.drift = function_to_apply(self.drift)
 
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""Evaluates the operator G at time t given
@@ -242,6 +242,10 @@ class DenseLindbladCollection(BaseOperatorCollection):
             RHS of Lindblad equation -i[H,y] + \sum_j\gamma_j(t)
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
+        if self.drift is None:
+            hamiltonian_matrix = -1j * (
+                np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1))  # B matrix
+        else:
         hamiltonian_matrix = -1j * (
             np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)  # B matrix
             + self._drift

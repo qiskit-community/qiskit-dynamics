@@ -228,12 +228,16 @@ class GeneratorModel(BaseGeneratorModel):
                 diagonal matrix. If provided, it is assumed that all
                 operators are in frame basis.
         """
+        if frame is not None:
+            frame = Frame(frame)
+            if drift is None:
+                drift = Array(np.diag(-1 * frame.frame_diag))
 
         # initialize internal operator representation in the frame basis
-        self._operator_collection = DenseOperatorCollection(operators, drift)
+        self._operator_collection = DenseOperatorCollection(operators, drift=drift)
 
         # set frame.
-        self._frame = Frame(frame)
+        self._frame = frame
 
         # initialize signal-related attributes
         self._signals = None
@@ -312,10 +316,16 @@ class GeneratorModel(BaseGeneratorModel):
         # Evaluated in frame basis, but without rotations
         op_combo = self._operator_collection(sig_vals)
 
-        if in_frame_basis:
-            return op_combo
+        # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
+        if self.frame is not None and in_frame:
+            pexp = np.exp(time * self.frame.frame_diag)
+            nexp = np.exp(-time * self.frame.frame_diag)
+            op_combo = np.outer(nexp,pexp) * op_combo
+
+        if not in_frame and self.frame is not None:
+            return self.frame.operator_out_of_frame_basis(op_combo) + self.frame.frame_operator
         else:
-            return self.frame.operator_out_of_frame_basis(op_combo)
+            return op_combo
 
     def evaluate_with_state(
         self, time: Union[float, int], y: Array, in_frame: Optional[bool] = True
@@ -335,11 +345,6 @@ class GeneratorModel(BaseGeneratorModel):
             QiskitError: If model cannot be evaluated.
         """
 
-        if not in_frame_basis:
-            y = self.frame.state_into_frame(
-                time, y, y_in_frame_basis=False, return_in_frame_basis=True
-            )
-
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
@@ -349,6 +354,12 @@ class GeneratorModel(BaseGeneratorModel):
         op_combo = self._operator_collection(sig_vals)
 
         if not in_frame and self.frame is not None:
+            np.fill_diagonal(op_combo,op_combo.diagonal() + self.frame.frame_diag)
+            y = self.frame.state_into_frame(
+                time, y, y_in_frame_basis=False, return_in_frame_basis=True
+            )
+
+        if self.frame is None:
             return np.dot(op_combo, y)
         else:
             # perform pre-rotation
