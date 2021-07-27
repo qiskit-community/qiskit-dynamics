@@ -64,14 +64,19 @@ class HamiltonianModel(GeneratorModel):
 
         Args:
             operators: list of Operator objects.
+            drift: optional, time-independent term in the Hamiltonian.
+                Note: If both frame and drift are provided, assumed that
+                drift term includes frame contribution. If
+                frame but not drift given, a frame drift will be constructed.
             signals: Specifiable as either a SignalList, a list of
                      Signal objects, or as the inputs to signal_mapping.
                      OperatorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
-            frame: Rotating frame operator. If specified with a 1d
-                            array, it is interpreted as the diagonal of a
-                            diagonal matrix.
-            cutoff_freq: Frequency cutoff when evaluating the model.
+            frame: Rotating frame operator. If specified with a 1d array, it
+                    is interpreted as the diagonal of a diagonal matrix. If
+                    provided as part of the constructor, it is assumed that
+                    all operators are in the frame basis. Assumed to store
+                    the antihermitian matrix F = -iH.
             validate: If True check input operators are Hermitian.
 
         Raises:

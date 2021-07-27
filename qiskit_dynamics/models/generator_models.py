@@ -148,6 +148,7 @@ class CallableGenerator(BaseGeneratorModel):
 
     @property
     def drift(self) -> Array:
+        """Gets the drift term"""
         return self._drift
 
     def evaluate_with_state(
@@ -214,13 +215,18 @@ class GeneratorModel(BaseGeneratorModel):
                 a frame object is provided, each operator is assumed
                 to be in the basis in which the frame operator is
                 diagonal.
+            drift: Optional, constant terms to add to G. Useful for
+                frame transformations. If a frame, but not a drift,
+                is provided, will be set to -F. If both are provided,
+                it will be assumed that the drift includes the frame term.
             signals: Specifiable as either a SignalList, a list of
                 Signal objects, or as the inputs to signal_mapping.
                 GeneratorModel can be instantiated without specifying
                 signals, but it can not perform any actions without them.
             frame: Rotating frame operator. If specified with a 1d
                 array, it is interpreted as the diagonal of a
-                diagonal matrix.
+                diagonal matrix. If provided, it is assumed that all
+                operators are in frame basis.
         """
 
         # initialize internal operator representation in the frame basis
@@ -303,7 +309,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         sig_vals = np.real(self._signals.complex_value(time))
 
-        # Evaluated in frame basis, but without rotations e^{\pm Ft}
+        # Evaluated in frame basis, but without rotations
         op_combo = self._operator_collection(sig_vals)
 
         if in_frame_basis:
