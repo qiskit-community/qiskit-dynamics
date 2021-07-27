@@ -34,6 +34,7 @@ class BaseOperatorCollection(ABC):
 
     @property
     def drift(self) -> Array:
+        """Returns drift part of operator collection."""
         return self._drift
 
     @drift.setter
