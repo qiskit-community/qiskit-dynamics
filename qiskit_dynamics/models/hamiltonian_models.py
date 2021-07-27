@@ -62,18 +62,22 @@ class HamiltonianModel(GeneratorModel):
         """Sets frame. Frame objects will always store antihermitian F = -iH.
         The drift needs to be adjusted by -H in the new frame."""
         if self._frame is not None and self._frame.frame_diag is not None:
-            self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
-            self._operators = self.frame.operator_out_of_frame_basis(self.operators)
-            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
+            self._operator_collection.drift = self._operator_collection.drift + Array(
+                np.diag(1j * self._frame.frame_diag)
+            )
+            self._operator_collection.apply_function_to_operators(
+                self.frame.operator_out_of_frame_basis
+            )
 
         self._frame = Frame(frame)
 
         if self._frame.frame_diag is not None:
-            self._operators = self.frame.operator_into_frame_basis(self.operators)
-            self.drift = self.frame.operator_into_frame_basis(self.drift)
-            self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
-
-        self.evaluation_mode = self.evaluation_mode
+            self._operator_collection.apply_function_to_operators(
+                self.frame.operator_into_frame_basis
+            )
+            self._operator_collection.drift = self._operator_collection.drift - Array(
+                np.diag(1j * self._frame.frame_diag)
+            )
 
     def __init__(
         self,
@@ -117,13 +121,13 @@ class HamiltonianModel(GeneratorModel):
             ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
-        super().__init__(
-            operators=operators,
-            signals=signals,
-            frame=frame,
-            drift=drift,
-            evaluation_mode=evaluation_mode,
-        )
+        if frame is not None:
+            frame = Frame(frame)
+            if drift is None:
+                # Assume that frame diagonal is -iH
+                drift = -(1j * frame.frame_diag)
+
+        super().__init__(operators=operators, signals=signals, frame=frame, drift=drift)
 
     def __call__(self, t: float, y: Optional[Array] = None, in_frame: Optional[bool] = False):
         """Evaluate generator RHS functions. Needs to be overriden from base class
