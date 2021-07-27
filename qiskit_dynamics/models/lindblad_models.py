@@ -21,7 +21,6 @@ import numpy as np
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import vec_commutator, vec_dissipator, to_array
 from .generator_models import GeneratorModel
 from .hamiltonian_models import HamiltonianModel
 from .operator_collections import DenseLindbladCollection
