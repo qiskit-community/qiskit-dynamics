@@ -4,7 +4,6 @@ from qiskit_dynamics.signals import Signal
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.pyplot as plt
 
-
 N = 4
 Jz = 1.
 g1 = 0.1
@@ -19,6 +18,7 @@ H = .5 * Sz(0)
 rho_0 = .5 *(Sid(0) + Sz(0))
 noise_signals = [Signal(g1)] * N
 noise_operators = []; obs_1q = []; obs_2q = []
+
 for i_qubit in r_qubits:
 	subsystems[i_qubit] = 2
 	obs_1q.append(Sz(i_qubit))
@@ -41,16 +41,16 @@ tmp = 2
 
 # Exceptions below, WIP
 
-sim_prune = DenseSimulationBuilder(sim_def)
-subsystems_pruned = subsystems.copy()
-subsystems_pruned[2] = 0
-subsystems_pruned[3] = 0
-sim_prune.build(subsystems_pruned)
-sim_prune.solve()
-
-sim_mpo = MPOSimulationBuilder(sim_def)
-sim_mpo.build(subsystems[0:2])
-sim_mpo.solve()
+# sim_prune = DenseSimulationBuilder(sim_def)
+# subsystems_pruned = subsystems.copy()
+# subsystems_pruned[2] = 0
+# subsystems_pruned[3] = 0
+# sim_prune.build(subsystems_pruned)
+# sim_prune.solve()
+#
+# sim_mpo = MPOSimulationBuilder(sim_def)
+# sim_mpo.build(subsystems[0:2])
+# sim_mpo.solve()
 
 # plot comparative graphs
 

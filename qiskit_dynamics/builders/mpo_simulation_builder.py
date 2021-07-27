@@ -1,7 +1,7 @@
 from .dynamical_simulation import *
 
 
-class MPOSimulationBuilder(SimulationBuilderStatic):
+class MPOSimulationBuilder(SimulationBuilderStaticModel):
 
 	def __init__(self, sim_def: SimulationDef):
 		super().__init__(sim_def)

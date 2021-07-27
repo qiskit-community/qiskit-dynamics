@@ -42,13 +42,14 @@ class DynamicalOperator(ABC):
 		self.compound_ops = None
 
 	def __deepcopy__(self, memo = None):
+		"""Constructs a deep copy of the operator, without duplicating the aliases field."""
 		cc = DynamicalOperator(self.system_id, self.s_type, self.aliases)
 		cc.compound_type = self.compound_type
 		cc.compound_ops = deepcopy(self.compound_ops, memo)
 		return cc
 
 	def new_operator(self):
-		"""A method that must be implemented by subclasses, to return the correct instance."""
+		"""A method that must be implemented by subclasses, to return the correct instance subclass."""
 		return DynamicalOperator(aliases = self.aliases)
 
 	@property
@@ -93,14 +94,17 @@ class DynamicalOperator(ABC):
 		"""Multiplication by a DynamicalOperator or a scalar."""
 		result = self.new_operator()
 		if isinstance(other, DynamicalOperator):
-			result.compound_type = '@'
+			result.compound_type = '@'  # Indicates operator * operator for OperatorBuilder
 			result.compound_ops = [self, other]
+			# For a product of two operators, their order must be preserved
 			return result
 		else:
 			other_type = type(other)
 			if other_type is complex or other_type is float or other_type is int:
-				result.compound_type = '*'
+				result.compound_type = '*'  # Indicates operator * scalar for OperatorBuilder
 				result.compound_ops = [self, other]
+				# For a product of an operator and a scalar, we can put the operator first always.
+				# This is used to simplify OperatorBuilder code below, and must not be changed.
 				return result
 		raise Exception("The second operand of a multiplication must be a DynamicalOperator class or a scalar.")
 
@@ -127,11 +131,12 @@ class DynamicalOperator(ABC):
 			s_type_unique: A unique operator type name to generate.
 			dim: The physical dimension of the matrix to generate.
 		"""
-		# TODO: replace qubit creation with Qiskit operator.from_label()
-		# TODO: support 'i x y z sp sm n p q a a_ n n^2 0 1 p_0_1'
+		# TODO: Replace qubit creation with Qiskit Operator.from_label()
+		# TODO: Support the following operators at arbitrary dimensions:
+		# 		i x y z sp sm n p q a a_ n n^2 0 1 and initial states as in Qiskit
 		if dim == 2:
 			if s_type_unique == 'i':
-				return np.identity(dim)
+				return np.identity(dim, complex)
 			elif s_type_unique == 'x':
 				return np.asarray([[0, 1], [1, 0]], complex)
 			elif s_type_unique == 'y':
@@ -146,7 +151,6 @@ class DynamicalOperator(ABC):
 				return np.asarray([[1, 0], [0, 0]], complex)
 			elif s_type_unique == '1':
 				return np.asarray([[0, 0], [0, 1]], complex)
-		# Just a partial implementation for now
 		raise Exception(
 			f"Operator type {s_type_unique} unknown or unsupported for matrix generation with dimension {dim}.")
 
@@ -163,17 +167,20 @@ class DynamicalOperatorKey:
 
 
 class OperatorBuilder(ABC):
+	"""A class for building trees of DynamicalOperators into matrices, or descriptive dictionaries."""
 
 	def __init__(self):
 		self._ids = None
 		self._identity_matrices = None
-		self._subsystem_dims = None
+		self._subsystems = None
 		self._total_dim = 0
 		self._dyn_op = None
 
-	def build_dictionaries(self, operators: Union[DynamicalOperator, List[DynamicalOperator]]) -> List[Dict]:
+	def build_dictionaries(self, operators: Union[DynamicalOperator, List[DynamicalOperator]])\
+			-> Union[dict, List[Dict]]:
+		"""Builds a list of flat descriptive dictionaries from a list of DynamicalOperator trees."""
 		results = []
-		b_flatten = False
+		b_flatten = False  # If operators is one instance return a dict, otherwise a list of dicts
 		if type(operators) != list:
 			b_flatten = True
 			operators = [operators]
@@ -183,16 +190,31 @@ class OperatorBuilder(ABC):
 			results = results[0]
 		return results
 
-	def _build_one_dict(self, operator: DynamicalOperator):
+	def _build_one_dict(self, operator: DynamicalOperator) -> dict:
+		"""Recursively build a flat dictionary out of a (sub-)tree of DynamicalOperators.
+
+		Args:
+			operator: A root of the (sub-)tree to be flattened into a dict.
+		Returns:
+			The structure of the returned flat dict is as follows: Each key identifies uniquely an
+			operator that is a product of opeartors, e.g. "X_0 * Z_0 * Y_2" is the unique operator
+			that is the ordered product of 3 operators, X on subsystem 0, Z on subsystem 0, and Y on
+			subsystem 2. The value is a multiplicative scalar coefficient for this operator.
+			The different entries of the dictionary are understood to be summed over.
+		Raises:
+			An exception if an unidentified operation was found in the tree.
+		"""
 		# TODO verify value semantics of dict (object) keys
-		if operator.compound_type == '+':
+		if operator.compound_type == '+':  # The sub-tree root is a sum of two operators
 			result = {}
 			for op in operator.compound_ops:
-				op_dict: dict = self._build_one_dict(op)
+				op_dict: dict = self._build_one_dict(op)  # Build a dict out of each summand
+				# We now iterate over all members in the flattened dict, and add them to the result
+				# dict - if the unique key already appears there, the scalars are added.
 				for key, val in op_dict.items():
 					val_sum = val + result.get(key, complex(0.))
 					result[key] = val_sum
-		elif operator.compound_type == '@':
+		elif operator.compound_type == '@':  # The sub-tree root is a product of two operators
 			new_key = []
 			new_val = complex(1.)
 			for op in operator.compound_ops:
@@ -200,9 +222,13 @@ class OperatorBuilder(ABC):
 				for key, val in op_dict.items():
 					for key_element in key:
 						new_key.append(key_element)
-					new_val *= val
+						# The key of the product operator will be a concatenation of unique keys,
+						# order preserved.
+					new_val *= val  # The scalar prefactor will be a product of the scalars.
 			result = {tuple(new_key): new_val}
-		elif operator.compound_type == '*':
+		elif operator.compound_type == '*':  # The sub-tree root is a product of operator * scalar
+			# Since this product is commutative, the operator is always first in order,
+			# as implemented in DynamicalOperator.__mul__ and  DynamicalOperator.__rmul__
 			op = operator.compound_ops[0]
 			scalar = operator.compound_ops[1]
 			op_dict = self._build_one_dict(op)
@@ -216,21 +242,44 @@ class OperatorBuilder(ABC):
 		return result
 
 	def build_matrices(self, operators: Union[DynamicalOperator, Dict, List[DynamicalOperator], List[Dict]],
-					   subsystem_dims: OrderedDict, dyn_op: DynamicalOperator = None):
-		if len(subsystem_dims) == 0:
+					   subsystems: OrderedDict, dyn_op: DynamicalOperator = None) -> Any:
+		"""Build a (possibly list) of matrices from DynamicalOperator or dictionaries thereof.
+
+		Args:
+			operators: A DynamicalOperator, a list of DynamicalOperators, a flattened dictionary
+				previously built using ``build_dictionaries``, or a list of such dictionaries.
+			subsystems: An ordered dictionary for each subsystem (identified using the system_id
+				field of the DynamicalOperator), indicating the matrix dimension to assign for
+				it, or 0 to discard it from the built results.
+			dyn_op: An instance of a subclass of DynamicalOperator. If None is passed (the default),
+				an instance of DynamicalOperator itself is assigned. It allows to use subclasses
+				in order to overload the function DynamicOperator.get_operator_matrix() invoked
+				for matrix creation.
+		Returns:
+			A matrix or a list of matrices, of the type as returned by
+			DynamicOperator.get_operator_matrix() or the subclass instance passed in argument
+			dyn_op.
+		Raises:
+			An exception if an unidentified operation was found in the tree.
+		"""
+		# TODO implement "pruning" (removal of subsystems)
+		if len(subsystems) == 0:
 			return None
 		b_flatten = False
 		if type(operators) != list:
 			b_flatten = True
 			operators = [operators]
-		dims = subsystem_dims.values()
+		dims = subsystems.values()
 		self._total_dim = 1
 		for dim in dims:
-			self._total_dim *= dim
+			if dim > 0:
+				self._total_dim *= dim
 		if len(operators) == 0:
 			return np.zeros(self._total_dim)
+			# TODO the above assumes numpy arrays
 		b_dictionaries = False
 		for op in operators:
+			# Verify operator types are known and identical
 			op_type = type(op)
 			if op_type is dict:
 				b_dictionaries = True
@@ -239,21 +288,21 @@ class OperatorBuilder(ABC):
 			elif b_dictionaries:
 				raise Exception("All operators must be of the same type (a dictionary or a DynamicalOperator).")
 
+		self._subsystems = subsystems
+		self._ids = []
+		for sys_id in subsystems.keys():
+			self._ids.append(sys_id)
+		self._identity_matrices = []
 		if b_dictionaries:
 			operators_dict: List[Dict] = operators
 		else:
 			operators_dict = self.build_dictionaries(operators)
-		self._subsystem_dims = subsystem_dims
-		self._ids = []
-		for s_id in subsystem_dims.keys():
-			self._ids.append(s_id)
-		self._identity_matrices = []
-		for dim in dims:
-			self._identity_matrices.append(np.identity(dim, complex))
 		results = []
 		self._dyn_op = dyn_op
 		if self._dyn_op is None:
 			self._dyn_op = DynamicalOperator()
+		for dim in dims:
+			self._identity_matrices.append(self._dyn_op.get_operator_matrix('i', dim))
 		for op_dict in operators_dict:
 			results.append(self._build_one_matrix(op_dict))
 		if b_flatten:
@@ -262,14 +311,16 @@ class OperatorBuilder(ABC):
 
 	def _build_one_matrix(self, operator_dict: Dict) -> np.ndarray:
 		matrix = np.zeros((self._total_dim, self._total_dim), complex)
+		# TODO assumes numpy
 		for key, val in operator_dict.items():
 			sub_matrices = {}
 			for key_element in key:
 				operator_key: DynamicalOperatorKey = key_element
-				dim = self._subsystem_dims.get(operator_key.system_id, None)
+				dim = self._subsystems.get(operator_key.system_id, None)
 				if dim is None:
 					raise Exception(
-						f"An operator was defined with id = {operator_key.system_id}, but this id does not appear in the subsystem_dims parameter.")
+						f"An operator was defined with id = {operator_key.system_id}, "
+						"but this id does not appear in the subsystems parameter.")
 				new_sub_matrix = self._dyn_op.get_operator_matrix(operator_key.s_type_unique, dim)
 				sub_matrix = sub_matrices.get(operator_key.system_id, None)
 				if sub_matrix is not None:
@@ -283,6 +334,7 @@ class OperatorBuilder(ABC):
 					op_matrix = sub_matrix
 				else:
 					op_matrix = np.kron(op_matrix, sub_matrix)
+					# TODO this is valid for numpy arrays, but not for arbitrary type
 			matrix += val * op_matrix  # TODO verify does not require the Identity?
 		return matrix
 
