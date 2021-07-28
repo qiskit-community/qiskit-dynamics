@@ -102,7 +102,9 @@ class LindbladModel(GeneratorModel):
 
         self._noise_signals = noise_signals
         self._hamiltonian_signals = hamiltonian_signals
-        self._frame = Frame(frame)
+        
+        self._frame = None
+        self.frame = Frame(frame)
 
     @classmethod
     def from_hamiltonian(
