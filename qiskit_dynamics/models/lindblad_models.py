@@ -17,6 +17,7 @@ Lindblad models module.
 
 from typing import Union, List, Optional
 import numpy as np
+from qiskit.exceptions import QiskitError
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
