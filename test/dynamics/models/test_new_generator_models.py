@@ -45,6 +45,217 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.r = r
         self.basic_model = GeneratorModel(operators=operators, signals=signals)
         
+    def test_frame_operator_errors(self):
+        """Check different modes of error raising for frame setting."""
+
+        # 1d array
+        try:
+            self.basic_model.frame = Array([1.0, 1.0])
+        except QiskitError as e:
+            self.assertTrue("anti-Hermitian" in str(e))
+
+        # 2d array
+        try:
+            self.basic_model.frame = Array([[1.0, 0.0], [0.0, 1.0]])
+        except QiskitError as e:
+            self.assertTrue("anti-Hermitian" in str(e))
+
+        # Operator
+        try:
+            self.basic_model.frame = self.Z
+        except QiskitError as e:
+            self.assertTrue("anti-Hermitian" in str(e))
+
+    def test_diag_frame_operator_basic_model(self):
+        """Test setting a diagonal frame operator for the internally
+        set up basic model.
+        """
+
+        self._basic_frame_evaluate_test(Array([1j, -1j]), 1.123)
+        self._basic_frame_evaluate_test(Array([1j, -1j]), np.pi)
+
+    def test_non_diag_frame_operator_basic_model(self):
+        """Test setting a non-diagonal frame operator for the internally
+        set up basic model.
+        """
+        self._basic_frame_evaluate_test(-1j * (self.Y + self.Z), 1.123)
+        self._basic_frame_evaluate_test(-1j * (self.Y - self.Z), np.pi)
+
+    def _basic_frame_evaluate_test(self, frame_operator, t):
+        """Routine for testing setting of valid frame operators using the
+        basic_model.
+        """
+
+        self.basic_model.frame = frame_operator
+
+        # convert to 2d array
+        if isinstance(frame_operator, Operator):
+            frame_operator = Array(frame_operator.data)
+        if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
+            frame_operator = np.diag(frame_operator)
+
+        value = self.basic_model(t)
+
+        i2pi = -1j * 2 * np.pi
+
+        U = expm(-np.array(frame_operator) * t)
+
+        # drive coefficient
+        d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
+
+        # manually evaluate frame
+        expected = (
+            i2pi * self.w * U @ self.Z.data @ U.conj().transpose() / 2
+            + d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2
+            - frame_operator
+        )
+
+        self.assertAllClose(value, expected)
+
+    def test_evaluate_no_frame_basic_model(self):
+        """Test evaluation without a frame in the basic model."""
+
+        t = 3.21412
+        value = self.basic_model(t)
+        i2pi = -1j * 2 * np.pi
+        d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
+        expected = i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2
+
+        self.assertAllClose(value, expected)
+
+    def test_evaluate_in_frame_basis_basic_model(self):
+        """Test evaluation in frame basis in the basic_model."""
+
+        frame_op = -1j * (self.X + 0.2 * self.Y + 0.1 * self.Z).data
+
+        # enter the frame given by the -1j * X
+        self.basic_model.frame = frame_op
+
+        # get the frame basis that is used in model
+        _, U = np.linalg.eigh(1j * frame_op)
+
+        t = 3.21412
+        value = self.basic_model(t, in_frame_basis=True)
+
+        # compose the frame basis transformation with the exponential
+        # frame rotation (this will be multiplied on the right)
+        U = expm(np.array(frame_op) * t) @ U
+        Uadj = U.conj().transpose()
+
+        i2pi = -1j * 2 * np.pi
+        d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
+        expected = (
+            Uadj
+            @ (i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2 - frame_op)
+            @ U
+        )
+
+        self.assertAllClose(value, expected)
+
+    def test_evaluate_pseudorandom(self):
+        """Test evaluate with pseudorandom inputs."""
+
+        rng = np.random.default_rng(30493)
+        num_terms = 3
+        dim = 5
+        b = 1.0  # bound on size of random terms
+        rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        frame_op = Array(rand_op - rand_op.conj().transpose())
+        randoperators = rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_terms, dim, dim)
+        )
+
+        rand_coeffs = Array(
+            rng.uniform(low=-b, high=b, size=(num_terms))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_terms))
+        )
+        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+
+        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
+
+        rng = np.random.default_rng(94818)
+        num_terms = 5
+        dim = 10
+        b = 1.0  # bound on size of random terms
+        rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        frame_op = Array(rand_op - rand_op.conj().transpose())
+        randoperators = Array(
+            rng.uniform(low=-b, high=b, size=(num_terms, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim))
+        )
+
+        rand_coeffs = Array(
+            rng.uniform(low=-b, high=b, size=(num_terms))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_terms))
+        )
+        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+
+        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
+
+    def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
+
+        sig_list = []
+        for coeff, freq, phase in zip(coefficients, carriers, phases):
+
+            def get_env_func(coeff=coeff):
+                # pylint: disable=unused-argument
+                def env(t):
+                    return coeff
+
+                return env
+
+            sig_list.append(Signal(get_env_func(), freq, phase))
+        model = GeneratorModel(operators, signals=sig_list)
+        model.frame = frame_op
+
+        value = model(1.0)
+        coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
+
+        self.assertAllClose(model.frame.operator_out_of_frame_basis(model._operator_collection.evaluate_without_state(coeffs)),np.tensordot(coeffs,operators,axes=1)-frame_op)
+
+        expected = (
+            expm(-np.array(frame_op))
+            @ np.tensordot(coeffs, operators, axes=1)
+            @ expm(np.array(frame_op))
+            - frame_op
+        )
+
+        self.assertAllClose(value, expected)
+
+    def test_signal_setting(self):
+        """Test updating the signals."""
+
+        signals = [Signal(lambda t: 2 * t, 1.0), Signal(lambda t: t ** 2, 2.0)]
+        self.basic_model.signals = signals
+
+        t = 0.1
+        value = self.basic_model(t)
+        i2pi = -1j * 2 * np.pi
+        Z_coeff = (2 * t) * np.cos(2 * np.pi * 1 * t)
+        X_coeff = self.r * (t ** 2) * np.cos(2 * np.pi * 2 * t)
+        expected = i2pi * Z_coeff * self.Z.data / 2 + i2pi * X_coeff * self.X.data / 2
+        self.assertAllClose(value, expected)
+
+    def test_signal_setting_None(self):
+        """Test setting signals to None"""
+
+        self.basic_model.signals = None
+        self.assertTrue(self.basic_model.signals is None)
+
+    def test_signal_setting_incorrect_length(self):
+        """Test error being raised if signals is the wrong length."""
+
+        try:
+            self.basic_model.signals = [1.0]
+        except QiskitError as e:
+            self.assertTrue("same length" in str(e))
+
     def test_known_values_basic_functionality(self):
         """Test for checking that with known operators that
         the Model returns the analyticlly known values."""
