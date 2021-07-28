@@ -228,17 +228,13 @@ class GeneratorModel(BaseGeneratorModel):
                 diagonal matrix. If provided, it is assumed that all
                 operators are in frame basis.
         """
-        if frame is not None:
-            frame = Frame(frame)
-            if drift is None:
-                drift = Array(np.diag(-1 * frame.frame_diag))
 
         # initialize internal operator representation in the frame basis
         self._operator_collection = DenseOperatorCollection(operators, drift=drift)
 
         # set frame.
-        self._frame = frame
-        self.frame = frame
+        self._frame = None
+        self.frame = Frame(frame)
 
         # initialize signal-related attributes
         self._signals = None
@@ -318,7 +314,7 @@ class GeneratorModel(BaseGeneratorModel):
         op_combo = self._operator_collection(sig_vals)
 
         # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
-        if self.frame is not None:
+        if self.frame.frame_diag is not None:
             pexp = np.exp(time * self.frame.frame_diag)
             nexp = np.exp(-time * self.frame.frame_diag)
             op_combo = np.outer(nexp, pexp) * op_combo
@@ -357,8 +353,7 @@ class GeneratorModel(BaseGeneratorModel):
         if not in_frame_basis and self.frame is not None:
             y = self.frame.state_into_frame_basis(y)
 
-        if self.frame is None:
-            return np.dot(op_combo, y.transpose()).transpose()
+        if self.frame.frame_diag is None:
         else:
             # perform pre-rotation
             out = np.exp(time * self.frame.frame_diag) * y
