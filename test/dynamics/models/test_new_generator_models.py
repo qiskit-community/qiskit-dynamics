@@ -371,10 +371,10 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.abs
         # Testing at the same time whether having Drift = None is an issue.
-        gm1 = GeneratorModel(paulis_in_frame_basis, signals=sarr, frame=Frame(farr))
-        gm2 = GeneratorModel(paulis_in_frame_basis, frame=farr)
+        gm1 = GeneratorModel(paulis, signals=sarr, frame=Frame(farr))
+        gm2 = GeneratorModel(paulis, frame=farr)
         gm2.signals = SignalList(sarr)
-        gm3 = GeneratorModel(paulis_in_frame_basis, frame=farr)
+        gm3 = GeneratorModel(paulis, frame=farr)
         gm3.signals = sarr
         # Does adding a frame after make a difference?
         # If so, does it make a difference if we add signals or the frame first?

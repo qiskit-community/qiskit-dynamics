@@ -218,7 +218,7 @@ class GeneratorModel(BaseGeneratorModel):
             drift: Optional, constant terms to add to G. Useful for
                 frame transformations. If a frame, but not a drift,
                 is provided, will be set to -F. If both are provided,
-                it will be assumed that the drift includes the frame term.
+                the drift will be set to drift - F.
             signals: Specifiable as either a SignalList, a list of
                 Signal objects, or as the inputs to signal_mapping.
                 GeneratorModel can be instantiated without specifying
@@ -238,6 +238,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         # set frame.
         self._frame = frame
+        self.frame = frame
 
         # initialize signal-related attributes
         self._signals = None
