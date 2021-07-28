@@ -171,9 +171,9 @@ class DenseLindbladCollection(BaseOperatorCollection):
     @property
     def dissipator_operators(self):
         return self._dissipator_operators
-    
+
     @dissipator_operators.setter
-    def dissipator_operators(self,dissipator_operators: Array):
+    def dissipator_operators(self, dissipator_operators: Array):
         self._dissipator_operators = dissipator_operators
         if dissipator_operators is not None:
             self._dissipator_operators_conj = np.conjugate(
@@ -196,8 +196,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
         return self._hamiltonian_operators.shape[-1]
 
     def apply_function_to_operators(self, function_to_apply: Optional[Callable]) -> None:
-        r"""Applies function to all operators (both Hamiltonian and Dissipator). 
-        Note that, unless function_to_apply is a unitary transformation, 
+        r"""Applies function to all operators (both Hamiltonian and Dissipator).
+        Note that, unless function_to_apply is a unitary transformation,
         f(L_i^\dagger L_i) \neq f(L_i^\dagger) f(L_i) in general. Designed
         for basis transformations."""
         self._hamiltonian_operators = function_to_apply(self._hamiltonian_operators)
@@ -248,6 +248,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             RHS of Lindblad equation -i[H,y] + \sum_j\gamma_j(t)
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
+
         if self.drift is None:
             hamiltonian_matrix = -1j * (
                 np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)
@@ -266,14 +267,18 @@ class DenseLindbladCollection(BaseOperatorCollection):
             left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
             right_mult_contribution = np.matmul(y, -hamiltonian_matrix + dissipators_matrix)
 
-            if len(y.shape)==3:
+            if len(y.shape) == 3:
                 # Must do array broadcasting and transposition to ensure vectorization works properly
-                y = np.broadcast_to(y,(1,y.shape[0],y.shape[1],y.shape[2])).transpose([1,0,2,3])
+                y = np.broadcast_to(y, (1, y.shape[0], y.shape[1], y.shape[2])).transpose(
+                    [1, 0, 2, 3]
+                )
 
             both_mult_contribution = np.tensordot(
                 signal_values[1],
-                np.matmul(self._dissipator_operators,np.matmul(y,self._dissipator_operators_conj)),
-                axes=(-1,-3),
+                np.matmul(
+                    self._dissipator_operators, np.matmul(y, self._dissipator_operators_conj)
+                ),
+                axes=(-1, -3),
             )  # C
 
             return left_mult_contribution + right_mult_contribution + both_mult_contribution

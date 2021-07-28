@@ -157,7 +157,9 @@ class LindbladModel(GeneratorModel):
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         raise QiskitError("Lindblad models cannot be represented without a given state")
 
-    def evaluate_with_state(self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate_with_state(
+        self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
+    ) -> Array:
         """Evaluates the Lindblad model at a given time.
         time: time at which the model should be evaluated
         y: Density matrix as an (n,n) Array
