@@ -206,6 +206,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         for basis transformations."""
         self._hamiltonian_operators = function_to_apply(self._hamiltonian_operators)
         self.dissipator_operators = function_to_apply(self._dissipator_operators)
+        self.drift = function_to_apply(self.drift)
 
     def __init__(
         self,
