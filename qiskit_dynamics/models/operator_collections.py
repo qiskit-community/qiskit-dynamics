@@ -169,6 +169,21 @@ class DenseLindbladCollection(BaseOperatorCollection):
     """
 
     @property
+    def dissipator_operators(self):
+        return self._dissipator_operators
+    
+    @dissipator_operators.setter
+    def dissipator_operators(self,dissipator_operators: Array):
+        self._dissipator_operators = dissipator_operators
+        if dissipator_operators is not None:
+            self._dissipator_operators_conj = np.conjugate(
+                np.transpose(dissipator_operators, [0, 2, 1])
+            ).copy()
+            self._dissipator_products = np.matmul(
+                self._dissipator_operators_conj, self._dissipator_operators
+            )
+
+    @property
     def operators(self) -> Array:
         return self._hamiltonian_operators, self._dissipator_operators
 
@@ -186,9 +201,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def apply_function_to_operators(self, function_to_apply: Optional[Callable]) -> None:
         self._hamiltonian_operators = function_to_apply(self._hamiltonian_operators)
-        self._dissipator_operators = function_to_apply(self._dissipator_operators)
-        self._dissipator_operators_conj = function_to_apply(self._dissipator_operators_conj)
-        self._dissipator_products = function_to_apply(self._dissipator_products)
+        self.dissipator_operators = function_to_apply(self._dissipator_operators)
 
     def __init__(
         self,
@@ -210,16 +223,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
         """
 
         self._hamiltonian_operators = hamiltonian_operators
-        self._dissipator_operators = dissipator_operators
+        self.dissipator_operators = dissipator_operators
         self.drift = drift
-
-        if dissipator_operators is not None:
-            self._dissipator_operators_conj = np.conjugate(
-                np.transpose(dissipator_operators, [0, 2, 1])
-            ).copy()
-            self._dissipator_products = np.matmul(
-                self._dissipator_operators_conj, self._dissipator_operators
-            )
 
     def evaluate_without_state(self, signal_values: Array) -> Array:
         raise ValueError("Lindblad collections cannot be evaluated without a state.")
