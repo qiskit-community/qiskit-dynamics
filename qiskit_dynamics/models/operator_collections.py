@@ -188,10 +188,6 @@ class DenseLindbladCollection(BaseOperatorCollection):
         return self._hamiltonian_operators, self._dissipator_operators
 
     @property
-    def drift(self) -> Array:
-        return self._drift
-
-    @property
     def num_operators(self):
         return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
 
