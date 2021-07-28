@@ -354,12 +354,12 @@ class GeneratorModel(BaseGeneratorModel):
             )
 
         if self.frame is None:
-            return np.dot(op_combo, y)
+            return np.dot(op_combo, y.transpose()).transpose()
         else:
             # perform pre-rotation
             out = np.exp(time * self.frame.frame_diag) * y
-            # apply operator
-            out = np.dot(op_combo, out)
+            # apply operator. transposes are taken to ensure vectorization of states works properly.
+            out = np.dot(op_combo, out.transpose()).transpose()
             # apply post-rotation
             out = np.exp(-time * self.frame.frame_diag) * out
 

@@ -553,13 +553,13 @@ class Frame(BaseFrame):
         if self._frame_operator is None:
             return to_array(y)
 
-        return self.frame_basis_adjoint @ y
+        return (self.frame_basis_adjoint @ y.transpose()).transpose()
 
     def state_out_of_frame_basis(self, y: Array) -> Array:
         if self._frame_operator is None:
             return to_array(y)
 
-        return self.frame_basis @ y
+        return (self.frame_basis @ y.transpose()).transpose()
 
     def operator_into_frame_basis(self, op: Union[Operator, List[Operator], Array]) -> Array:
         op = to_array(op)
