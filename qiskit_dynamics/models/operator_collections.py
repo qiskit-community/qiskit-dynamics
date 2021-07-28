@@ -253,19 +253,21 @@ class DenseLindbladCollection(BaseOperatorCollection):
             )
 
         if self._dissipator_operators is not None:
-
             dissipators_matrix = (-1 / 2) * np.tensordot(  # A matrix
                 signal_values[1], self._dissipator_products, axes=1
             )
 
-            left_mult_contribution = np.dot(hamiltonian_matrix + dissipators_matrix, y)
-            right_mult_contribution = np.dot(y, -hamiltonian_matrix + dissipators_matrix)
+            left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
+            right_mult_contribution = np.matmul(y, -hamiltonian_matrix + dissipators_matrix)
+
+            if len(y.shape)==3:
+                # Must do array broadcasting and transposition to ensure vectorization works properly
+                y = np.broadcast_to(y,(1,y.shape[0],y.shape[1],y.shape[2])).transpose([1,0,2,3])
+
             both_mult_contribution = np.tensordot(
                 signal_values[1],
-                np.matmul(
-                    np.matmul(self._dissipator_operators, y), self._dissipator_operators_conj
-                ),
-                axes=1,
+                np.matmul(self._dissipator_operators,np.matmul(y,self._dissipator_operators_conj)),
+                axes=(-1,-3),
             )  # C
 
             return left_mult_contribution + right_mult_contribution + both_mult_contribution
