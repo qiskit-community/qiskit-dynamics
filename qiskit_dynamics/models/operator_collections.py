@@ -200,6 +200,10 @@ class DenseLindbladCollection(BaseOperatorCollection):
         return self._hamiltonian_operators.shape[-1]
 
     def apply_function_to_operators(self, function_to_apply: Optional[Callable]) -> None:
+        r"""Applies function to all operators (both Hamiltonian and Dissipator). 
+        Note that, unless function_to_apply is a unitary transformation, 
+        f(L_i^\dagger L_i) \neq f(L_i^\dagger) f(L_i) in general. Designed
+        for basis transformations."""
         self._hamiltonian_operators = function_to_apply(self._hamiltonian_operators)
         self.dissipator_operators = function_to_apply(self._dissipator_operators)
 
