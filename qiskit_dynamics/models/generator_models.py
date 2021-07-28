@@ -69,7 +69,7 @@ class BaseGeneratorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate_with_state(self, time: float, y: Array, in_frame: Optional[bool] = True) -> Array:
+    def evaluate_with_state(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
         r"""Given some representation y of the system's state,
         evaluate the RHS of the model y'(t) = \Lambda(y,t)
         at the time t.
@@ -77,18 +77,18 @@ class BaseGeneratorModel(ABC):
             time: Time
             y: State in the same basis as the model is
             being evaluated.
-            in_frame: boolean flag; True if the
+            in_frame_basis: boolean flag; True if the
                 result should be in the frame basis
                 or in the lab basis."""
         pass
 
     @abstractmethod
-    def evaluate_without_state(self, time: float, in_frame: Optional[bool] = True):
+    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False):
         """If possible, expresses the model at time t
         without reference to the state of the system.
         Args:
             time: Time
-            in_frame: boolean flag; True if the
+            in_frame_basis: boolean flag; True if the
                 result should be in the frame basis
                 or in the lab basis."""
         pass
@@ -97,23 +97,23 @@ class BaseGeneratorModel(ABC):
         """Return a copy of self."""
         return deepcopy(self)
 
-    def __call__(self, time: float, y: Optional[Array] = None, in_frame: Optional[bool] = True):
+    def __call__(self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
         """Evaluate generator RHS functions. If ``y is None``,
         evaluates the model, and otherwise evaluates ``G(t) @ y``.
 
         Args:
             time: Time.
             y: Optional state.
-            in_frame: Whether or not to evaluate in the frame basis.
+            in_frame_basis: Whether or not to evaluate in the frame basis.
 
         Returns:
             Array: Either the evaluated model or the RHS for the given y
         """
 
         if y is None:
-            return self.evaluate_without_state(time, in_frame=in_frame)
+            return self.evaluate_without_state(time, in_frame_basis=in_frame_basis)
 
-        return self.evaluate_with_state(time, y, in_frame=in_frame)
+        return self.evaluate_with_state(time, y, in_frame_basis=in_frame_basis)
 
 
 class CallableGenerator(BaseGeneratorModel):
@@ -147,15 +147,15 @@ class CallableGenerator(BaseGeneratorModel):
         """Gets the drift term"""
         return self._drift
 
-    def evaluate_with_state(self, time: float, y: Array, in_frame: Optional[bool] = True) -> Array:
-        return self.evaluate_without_state(time, in_frame) @ y
+    def evaluate_with_state(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+        return self.evaluate_without_state(time, in_frame_basis=in_frame_basis) @ y
 
-    def evaluate_without_state(self, time: float, in_frame: Optional[bool] = True) -> Array:
+    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format.
 
         Args:
             time: Time to evaluate the model
-            in_frame: Whether to evaluate in the basis in which the frame
+            in_frame_basis: Whether to evaluate in the basis in which the frame
                             operator is diagonal
 
         Returns:
@@ -168,7 +168,7 @@ class CallableGenerator(BaseGeneratorModel):
         # evaluate generator and map it into the frame
         gen = self._generator(time)
         return self.frame.generator_into_frame(
-            time, gen, operator_in_frame=False, return_in_frame_basis=in_frame
+            time, gen, operator_in_frame=False, return_in_frame_basis=in_frame_basis
         )
 
 
@@ -291,11 +291,11 @@ class GeneratorModel(BaseGeneratorModel):
                 np.diag(self._frame.frame_diag)
             )
 
-    def evaluate_without_state(self, time: float, in_frame: Optional[bool] = True) -> Array:
+    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
         Args:
             time: Time to evaluate the model
-            in_frame: Whether to evaluate in the basis in which the frame
+            in_frame_basis: Whether to evaluate in the basis in which the frame
                             operator is diagonal
         Returns:
             Array: the evaluated model as a (n,n) matrix
@@ -311,27 +311,27 @@ class GeneratorModel(BaseGeneratorModel):
         op_combo = self._operator_collection(sig_vals)
 
         # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
-        if self.frame is not None and in_frame:
+        if self.frame is not None:
             pexp = np.exp(time * self.frame.frame_diag)
             nexp = np.exp(-time * self.frame.frame_diag)
             op_combo = np.outer(nexp, pexp) * op_combo
 
-        if not in_frame and self.frame is not None:
-            return self.frame.operator_out_of_frame_basis(op_combo) + self.frame.frame_operator
+        if not in_frame_basis and self.frame is not None:
+            return self.frame.operator_out_of_frame_basis(op_combo)
         else:
             return op_combo
 
     def evaluate_with_state(
-        self, time: Union[float, int], y: Array, in_frame: Optional[bool] = True
+        self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         """Evaluate the model in array format as a vector, given the current state.
         Args:
             time: Time to evaluate the model
             y: (n) Array specifying system state, in basis choice specified by
-                in_frame. If not in frame basis, assumed to not include
+                in_frame_basis. If not in frame basis, assumed to not include
                 the rotating term e^{-Ft}. If in the frame basis, assumed to
                 include the rotating term e^{-Ft}.
-            in_frame: Whether to evaluate in the basis in which the frame
+            in_frame_basis: Whether to evaluate in the basis in which the frame
                 operator is diagonal
         Returns:
             Array: the evaluated model as (n) vector
@@ -347,11 +347,8 @@ class GeneratorModel(BaseGeneratorModel):
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
         op_combo = self._operator_collection(sig_vals)
 
-        if not in_frame and self.frame is not None:
-            np.fill_diagonal(op_combo, op_combo.diagonal() + self.frame.frame_diag)
-            y = self.frame.state_into_frame(
-                time, y, y_in_frame_basis=False, return_in_frame_basis=True
-            )
+        if not in_frame_basis and self.frame is not None:
+            y = self.frame.state_into_frame_basis(y)
 
         if self.frame is None:
             return np.dot(op_combo, y.transpose()).transpose()
@@ -363,7 +360,7 @@ class GeneratorModel(BaseGeneratorModel):
             # apply post-rotation
             out = np.exp(-time * self.frame.frame_diag) * out
 
-        if not in_frame and self.frame is not None:
-            out = self.frame.state_out_of_frame(time, out, y_in_frame_basis=True)
+        if not in_frame_basis and self.frame is not None:
+            out = self.frame.state_out_of_frame_basis(out)
 
         return out

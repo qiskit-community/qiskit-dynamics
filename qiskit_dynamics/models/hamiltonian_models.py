@@ -127,7 +127,7 @@ class HamiltonianModel(GeneratorModel):
 
         super().__init__(operators=operators, signals=signals, frame=frame, drift=drift)
 
-    def __call__(self, t: float, y: Optional[Array] = None, in_frame: Optional[bool] = False):
+    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
         """Evaluate generator RHS functions. Needs to be overriden from base class
         to include :math:`-i`. I.e. if ``y is None``, returns :math:`-iH(t)`,
         and otherwise returns :math:`-iH(t)y`.
@@ -142,6 +142,6 @@ class HamiltonianModel(GeneratorModel):
         """
 
         if y is None:
-            return -1j * self.evaluate_without_state(t, in_frame=in_frame)
+            return -1j * self.evaluate_without_state(t, in_frame_basis=in_frame_basis)
 
-        return -1j * self.evaluate_with_state(t, y, in_frame=in_frame)
+        return -1j * self.evaluate_with_state(t, y, in_frame_basis=in_frame_basis)
