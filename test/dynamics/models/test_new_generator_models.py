@@ -424,17 +424,17 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         t = rand.rand()
         sig_list = SignalList([Signal(rand.rand(), rand.rand()) for j in range(k)])
         normal_states = rand.uniform(-1, 1, (n))
-        vectorized_states = rand.uniform(-1, 1, (m, n))
+        vectorized_states = rand.uniform(-1, 1, (n, m))
 
         operators = rand.uniform(-1, 1, (k, n, n))
 
         gm = GeneratorModel(operators, drift=None, signals=sig_list)
         self.assertTrue(gm.evaluate_with_state(t, normal_states).shape == (n,))
-        self.assertTrue(gm.evaluate_with_state(t, vectorized_states).shape == (m, n))
+        self.assertTrue(gm.evaluate_with_state(t, vectorized_states).shape == (n, m))
         for i in range(m):
             self.assertAllClose(
-                gm.evaluate_with_state(t, vectorized_states)[i],
-                gm.evaluate_with_state(t, vectorized_states[i]),
+                gm.evaluate_with_state(t, vectorized_states)[:,i],
+                gm.evaluate_with_state(t, vectorized_states[:,i]),
             )
 
         farr = rand.uniform(-1, 1, (n, n))
@@ -443,21 +443,21 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         gm.frame = farr
 
         self.assertTrue(gm.evaluate_with_state(t, normal_states).shape == (n,))
-        self.assertTrue(gm.evaluate_with_state(t, vectorized_states).shape == (m, n))
+        self.assertTrue(gm.evaluate_with_state(t, vectorized_states).shape == (n, m))
         for i in range(m):
             self.assertAllClose(
-                gm.evaluate_with_state(t, vectorized_states)[i],
-                gm.evaluate_with_state(t, vectorized_states[i]),
+                gm.evaluate_with_state(t, vectorized_states)[:,i],
+                gm.evaluate_with_state(t, vectorized_states[:,i]),
             )
 
         vectorized_result = gm.evaluate_with_state(t, vectorized_states, in_frame_basis=True)
 
         self.assertTrue(gm.evaluate_with_state(t, normal_states, in_frame_basis=True).shape == (n,))
-        self.assertTrue(vectorized_result.shape == (m, n))
+        self.assertTrue(vectorized_result.shape == (n, m))
         for i in range(m):
             self.assertAllClose(
-                vectorized_result[i],
-                gm.evaluate_with_state(t, vectorized_states[i], in_frame_basis=True),
+                vectorized_result[:,i],
+                gm.evaluate_with_state(t, vectorized_states[:,i], in_frame_basis=True),
             )
 
 
