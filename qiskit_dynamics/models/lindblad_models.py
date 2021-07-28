@@ -157,7 +157,7 @@ class LindbladModel(GeneratorModel):
             )
 
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        raise QiskitError("Lindblad models cannot be represented without a given state")
+        raise NotImplementedError("Lindblad models cannot be represented without a given state without vectorization.")
 
     def evaluate_with_state(
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
