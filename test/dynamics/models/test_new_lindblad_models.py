@@ -52,26 +52,43 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
 
     def test_frame_transformations(self):
-        rand.seed(2401923)
+        np.random.seed(1230983)
+        r = lambda *args: np.random.uniform(-1,1,np.squeeze(tuple(args)))
+        e = lambda arr: expm(np.array(arr))
+        rn = np.random.rand
         n = 16
-        m = 8
-        k = 4
-        hframe = rand.uniform(-1,1,(n,n))
-        eval,evect = np.linalg.eigh(hframe)
-        f = lambda x: np.conjugate(np.transpose(evect)) @ x @ evect
-        ham_ops = rand.uniform(-1,1,(m,n,n))
-        dis_ops = rand.uniform(-1,1,(k,n,n))
-        rho = rand.uniform(-1,1,(n,n))
-        ham_sig = SignalList([Signal(rand.rand(),rand.rand()) for j in range(m)])
-        dis_sig = SignalList([Signal(rand.rand(),rand.rand()) for j in range(k)])
-        # the hermitian H s.t. F = -iH and the frame transformation is \rho -> e^{iHt}\rho e^{-iHt}
+        k = 8
+        l = 4
+        hframe = r(n,n)
         hframe = hframe + hframe.conj().transpose()
-        t = 1
-        m1 = LindbladModel(ham_ops,hamiltonian_signals=ham_sig,dissipator_operators=dis_ops,dissipator_signals=dis_sig,drift = -hframe)
-        r1 = expm(t*np.array(1j*hframe)).dot(m1(t,rho)).dot(expm(-t*np.array(1j*hframe)))
-        m2 = LindbladModel(ham_ops,hamiltonian_signals=ham_sig,dissipator_signals=dis_sig,dissipator_operators=dis_ops,frame=hframe)
-        r2 = m2(t,f(expm(t*np.array(1j*hframe)).dot(rho).dot(expm(-t*np.array(1j*hframe)))),in_frame_basis=False)
-        self.assertAllClose(r1,r2)
+
+        eval,evect = np.linalg.eigh(hframe)
+        f = lambda x: evect.T.conj() @ x @ evect
+
+        ham_ops = r(k,n,n)
+        ham_sig = SignalList([Signal(rn(),rn()) for j in range(k)])
+        dis_ops = r(l,n,n)
+        dis_sig = SignalList([Signal(rn(),rn()) for j in range(l)])
+
+        rho = r(n,n)
+        t = rn()
+
+        m1 = LindbladModel(ham_ops,ham_sig,dis_ops,dis_sig,-hframe,None)
+        m2 = LindbladModel(ham_ops,ham_sig,dis_ops,dis_sig,None,hframe)
+
+        svals = [ham_sig.complex_value(t).real,dis_sig.complex_value(t).real]
+
+        rho_in_frame = e(1j*t*hframe).dot(rho).dot(e(-1j*t*hframe))
+
+        self.assertAllClose(f(m1._operator_collection.operators[0]),m2._operator_collection.operators[0])
+        self.assertAllClose(f(m1._operator_collection.operators[1]),m2._operator_collection.operators[1])
+        self.assertAllClose(f(m1._operator_collection.drift),m2._operator_collection.drift)
+        self.assertAllClose(f(m1._operator_collection(svals,rho)),m2._operator_collection(svals,f(rho)))
+        self.assertAllClose(np.outer(np.exp(1j * t * eval),np.exp(-1j*t*eval))*f(rho),f(rho_in_frame))
+        self.assertAllClose(f(m1._operator_collection(svals,rho_in_frame)),m2._operator_collection(svals,f(rho_in_frame)))
+
+        self.assertAllClose(e(-1j*t*hframe).dot(m1._operator_collection(svals,rho_in_frame)).dot(e(1j*t*hframe)),m2(t,rho,in_frame_basis=False))
+        self.assertAllClose(e(-1j*t*hframe).dot(m1(t,rho_in_frame)).dot(e(1j*t*hframe)),m2(t,rho,in_frame_basis=False))
 
     def test_basic_lindblad_lmult(self):
         """Test lmult method of Lindblad generator OperatorModel."""
@@ -137,11 +154,11 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         
 
-# class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
-#     """Jax version of TestLindbladModel tests.
+class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
+    """Jax version of TestLindbladModel tests.
 
-#     Note: This class has no body but contains tests due to inheritance.
-#     """
+    Note: This class has no body but contains tests due to inheritance.
+    """
 
 
 def get_const_func(const):
