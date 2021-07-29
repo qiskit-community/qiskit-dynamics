@@ -1,4 +1,4 @@
-# This code is part of Qiskit.
+ # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
 #
@@ -47,7 +47,7 @@ class LindbladModel(GeneratorModel):
     matrix commutator and anti-commutator, respectively. In the above:
 
         - :math:`H(t)` denotes the Hamiltonian,
-        - :math:`L_j` denotes the :math:`j^{th}` noise, or Lindblad,
+        - :math:`L_j` denotes the :math:`j^{th}` dissipator, or Lindblad,
           operator, and
         - :math:`\gamma_j(t)` denotes the signal corresponding to the
           :math:`j^{th}` Lindblad operator.
@@ -57,8 +57,8 @@ class LindbladModel(GeneratorModel):
         self,
         hamiltonian_operators: List[Operator],
         hamiltonian_signals: Union[List[Signal], SignalList],
-        noise_operators: Optional[List[Operator]] = None,
-        noise_signals: Optional[Union[List[Signal], SignalList]] = None,
+        dissipator_operators: Optional[List[Operator]] = None,
+        dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         drift: Optional[Array] = None,
         frame: Optional[Union[Operator, Array, Frame]] = None,
     ):
@@ -67,8 +67,8 @@ class LindbladModel(GeneratorModel):
         Args:
             hamiltonian_operators: list of operators in Hamiltonian
             hamiltonian_signals: list of signals in the Hamiltonian
-            noise_operators: list of noise operators
-            noise_signals: list of noise signals
+            dissipator_operators: list of dissipator operators
+            dissipator_signals: list of dissipator signals
             drift: Optional, constant term in Hamiltonian
             frame: frame in which calcualtions are to be done.
                 If provided, it is assumed that all operators were
@@ -77,9 +77,12 @@ class LindbladModel(GeneratorModel):
         Raises:
             Exception: if signals incorrectly specified
         """
-
+        if drift is not None:
+            drift = Array(drift)
+        if dissipator_operators is not None:
+            dissipator_operators = Array(dissipator_operators)
         self._operator_collection = DenseLindbladCollection(
-            hamiltonian_operators, drift, noise_operators
+            Array(hamiltonian_operators), drift=drift, dissipator_operators=dissipator_operators
         )
 
         if isinstance(hamiltonian_signals, list):
@@ -90,18 +93,18 @@ class LindbladModel(GeneratorModel):
                              Signals, or a SignalList."""
             )
 
-        if noise_signals is None:
-            noise_signals = SignalList([1.0 for k in noise_operators])
-        elif isinstance(noise_signals, list):
-            noise_signals = SignalList(noise_signals)
-        elif not isinstance(noise_signals, SignalList):
+        if dissipator_signals is None:
+            dissipator_signals = SignalList([1.0 for k in dissipator_operators])
+        elif isinstance(dissipator_signals, list):
+            dissipator_signals = SignalList(dissipator_signals)
+        elif not isinstance(dissipator_signals, SignalList):
             raise Exception(
-                """noise_signals must either be a list of
+                """dissipator_signals must either be a list of
                                  Signals, or a SignalList."""
             )
 
-        self._noise_signals = noise_signals
         self._hamiltonian_signals = hamiltonian_signals
+        self._dissipator_signals = dissipator_signals
         
         self._frame = None
         self.frame = frame
@@ -110,15 +113,15 @@ class LindbladModel(GeneratorModel):
     def from_hamiltonian(
         cls,
         hamiltonian: HamiltonianModel,
-        noise_operators: Optional[List[Operator]] = None,
-        noise_signals: Optional[Union[List[Signal], SignalList]] = None,
+        dissipator_operators: Optional[List[Operator]] = None,
+        dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
     ):
         """Construct from a :class:`HamiltonianModel`.
 
         Args:
             hamiltonian: the :class:`HamiltonianModel`.
-            noise_operators: list of noise operators.
-            noise_signals: list of noise signals.
+            dissipator_operators: list of dissipator operators.
+            dissipator_signals: list of dissipator signals.
 
         Returns:
             LindbladModel: Linblad model from parameters.
@@ -127,8 +130,8 @@ class LindbladModel(GeneratorModel):
         return cls(
             hamiltonian_operators=hamiltonian.operators,
             hamiltonian_signals=hamiltonian.signals,
-            noise_operators=noise_operators,
-            noise_signals=noise_signals,
+            dissipator_operators=dissipator_operators,
+            dissipator_signals=dissipator_signals,
             drift=hamiltonian.drift,
         )
 
@@ -173,7 +176,7 @@ class LindbladModel(GeneratorModel):
             y = self.frame.operator_into_frame_basis(y)
 
         hamiltonian_sig_vals = np.real(self._hamiltonian_signals.complex_value(time))
-        noise_sig_vals = np.real(self._noise_signals.complex_value(time))
+        dissipator_sig_vals = np.real(self._dissipator_signals.complex_value(time))
 
         # Need to check that I have the differences chosen correctly
         if self.frame.frame_diag is not None:
@@ -183,13 +186,13 @@ class LindbladModel(GeneratorModel):
             # Hopefully equivalent to rhs = e^{iFt} \rho e^{-iFt}
             rhs = np.outer(pexp, nexp) * y
             rhs = self._operator_collection.evaluate_with_state(
-                [hamiltonian_sig_vals, noise_sig_vals], rhs
+                [hamiltonian_sig_vals, dissipator_sig_vals], rhs
             )
             # Hopefully equivalent to rhs = e^{-iFt} rhs e^{iFt}
             rhs = np.outer(nexp, pexp) * rhs
         else:
             rhs = self._operator_collection.evaluate_with_state(
-                [hamiltonian_sig_vals, noise_sig_vals], y
+                [hamiltonian_sig_vals, dissipator_sig_vals], y
             )
 
         if not in_frame_basis:
