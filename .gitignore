@@ -137,4 +137,5 @@ dmypy.json
 .vscode/
 
 #Local testing notebook that should not be uploaded. 
-.github/tmp.ipynb
+tests.ipynb
+tmp.ipynb
