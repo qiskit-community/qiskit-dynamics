@@ -94,7 +94,10 @@ class LindbladModel(GeneratorModel):
             )
 
         if dissipator_signals is None:
-            dissipator_signals = SignalList([1.0 for k in dissipator_operators])
+            if dissipator_operators is not None:
+                dissipator_signals = SignalList([1.0 for k in dissipator_operators])
+            else:
+                dissipator_signals = None
         elif isinstance(dissipator_signals, list):
             dissipator_signals = SignalList(dissipator_signals)
         elif not isinstance(dissipator_signals, SignalList):
@@ -128,11 +131,11 @@ class LindbladModel(GeneratorModel):
         """
 
         return cls(
-            hamiltonian_operators=hamiltonian.operators,
+            hamiltonian_operators=hamiltonian._operator_collection.operators,
             hamiltonian_signals=hamiltonian.signals,
             dissipator_operators=dissipator_operators,
             dissipator_signals=dissipator_signals,
-            drift=hamiltonian.drift,
+            drift=hamiltonian._operator_collection.drift,
         )
 
     @property
@@ -142,7 +145,9 @@ class LindbladModel(GeneratorModel):
     @frame.setter
     def frame(self, frame: Union[Operator, Array, Frame]):
         if self._frame is not None and self._frame.frame_diag is not None:
-            self._operator_collection.drift = self._operator_collection.drift + self._frame.operator_into_frame_basis(frame)
+            self._operator_collection.drift = self._operator_collection.drift + Array(
+                np.diag(1j * self._frame.frame_diag)
+            )
             self._operator_collection.apply_function_to_operators(
                 self.frame.operator_out_of_frame_basis
             )
@@ -153,7 +158,9 @@ class LindbladModel(GeneratorModel):
             self._operator_collection.apply_function_to_operators(
                 self.frame.operator_into_frame_basis
             )
-            self._operator_collection.drift = self._operator_collection.drift - self._frame.operator_into_frame_basis(frame)
+            self._operator_collection.drift = self._operator_collection.drift - Array(
+                np.diag(1j * self._frame.frame_diag)
+            )
 
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         raise NotImplementedError("Lindblad models cannot be represented without a given state without vectorization.")
@@ -171,8 +178,11 @@ class LindbladModel(GeneratorModel):
         if not in_frame_basis:
             y = self.frame.operator_into_frame_basis(y)
 
-        hamiltonian_sig_vals = np.real(self._hamiltonian_signals.complex_value(time))
-        dissipator_sig_vals = np.real(self._dissipator_signals.complex_value(time))
+        hamiltonian_sig_vals = self._hamiltonian_signals(time)
+        if self._dissipator_signals is not None:
+            dissipator_sig_vals = self._dissipator_signals(time)
+        else:
+            dissipator_sig_vals = 0
 
         # Need to check that I have the differences chosen correctly
         if self.frame.frame_diag is not None:
@@ -180,14 +190,16 @@ class LindbladModel(GeneratorModel):
             pexp = np.exp(-time * frame_eigvals) # e^{iHt} = e^{-tF}
             nexp = np.exp(time * frame_eigvals) #e^{-iHt} = e^{tF}
             # Equivalent to rhs = e^{iHt} \rho e^{-iHt}
-            rhs = np.outer(pexp, nexp) * y
+            rhs = np.outer(nexp, pexp) * y
 
             rhs = self._operator_collection.evaluate_with_state(
                 [hamiltonian_sig_vals, dissipator_sig_vals], rhs
             )
 
+
             # Equivalent to rhs = e^{-iHt} rhs e^{iHt}
-            rhs = np.outer(nexp, pexp) * rhs
+            rhs = np.outer(pexp, nexp) * rhs
+
         else:
             rhs = self._operator_collection.evaluate_with_state(
                 [hamiltonian_sig_vals, dissipator_sig_vals], y

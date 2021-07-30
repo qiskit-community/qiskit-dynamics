@@ -201,6 +201,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         f(L_i^\dagger L_i) \neq f(L_i^\dagger) f(L_i) in general. Designed
         for basis transformations."""
         self._hamiltonian_operators = function_to_apply(self._hamiltonian_operators)
+        if self.dissipator_operators is not None:
         self.dissipator_operators = function_to_apply(self._dissipator_operators)
         self.drift = function_to_apply(self.drift)
 
