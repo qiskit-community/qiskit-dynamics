@@ -25,7 +25,6 @@ from qiskit_dynamics.models import GeneratorModel
 from qiskit_dynamics.models.operator_collections import (
     DenseOperatorCollection,
     DenseLindbladCollection,
-    DenseVectorizedLindbladCollection,
 )
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics.dispatch import Array
@@ -33,7 +32,7 @@ from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class TestDenseOperatorCollection(QiskitDynamicsTestCase):
-    """Tests for DenseOperatorCollection."""
+    """Tests for GeneratorModel."""
 
     def setUp(self):
         self.X = Array(Operator.from_label("X").data)
@@ -65,9 +64,16 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
                 total = total + vals[i, j] * arr[j]
             self.assertAllClose(res[i], total)
 
+    def test_apply_function(self):
+        res = self.simple_collection(self.sigvals)
+        self.simple_collection.apply_function_to_operators(lambda x: x / 2.1231)
+        newres = self.simple_collection(self.sigvals)
+        self.assertAllClose(newres * 2.1231, res)
+        self.simple_collection.apply_function_to_operators(lambda x: 2.1231 * x)
+
 
 class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
-    """Jax version of TestDenseOperatorCollection tests.
+    """Jax version of TestGeneratorModel tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
@@ -99,7 +105,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
         # Test first that having no drift or dissipator is OK
         ham_only_collection = DenseLindbladCollection(
-            hamiltonian_operators, drift=np.zeros((n, n)), dissipator_operators=None
+            hamiltonian_operators, drift=None, dissipator_operators=None
         )
         hamiltonian = np.tensordot(ham_sig_vals, hamiltonian_operators, axes=1)
         res = ham_only_collection([ham_sig_vals, None], rho)
@@ -150,71 +156,34 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
                 res[i], full_lindblad_collection([ham_sig_vals, dis_sig_vals], rhos[i])
             )
 
+    def test_apply_function(self):
+        """Tests that the Lindblad collection is applying functions correctly"""
+        rand.seed(824103)
+        n = 16
+        k = 8
+        m = 4
+        hamiltonian_operators = rand.uniform(-1, 1, (k, n, n))
+        dissipator_operators = rand.uniform(-1, 1, (m, n, n))
+        drift = rand.uniform(-1, 1, (n, n))
+        rho = rand.uniform(-1, 1, (n, n))
+        rho = rho + np.conjugate(rho.transpose())
+        eval, evect = np.linalg.eigh(rho)
+        ham_sig_vals = rand.uniform(-1, 1, (k))
+        dis_sig_vals = rand.uniform(-1, 1, (m))
+        collection = DenseLindbladCollection(
+            hamiltonian_operators, drift=drift, dissipator_operators=dissipator_operators
+        )
+        f = lambda x: np.conjugate(np.transpose(evect)) @ x @ evect
+        res = collection([ham_sig_vals, dis_sig_vals], rho)
+        collection.apply_function_to_operators(f)
+        newres = collection([ham_sig_vals, dis_sig_vals], f(rho))
+
+        self.assertAllClose(f(res), newres)
+        self.assertAllClose(f(res), newres)
+
 
 class TestDenseLindbladCollectionJax(TestDenseOperatorCollection, TestJaxBase):
-    """Jax version of TestDenseLindbladCollection tests.
-
-    Note: This class has no body but contains tests due to inheritance.
-    """
-
-
-class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
-    """Tests for DenseVectorizedLindbladCollection.
-    Assumes that DenseLindbladCollection is functioning
-    correctly, and–as such–only checks that the results
-    from DenseVectorizedLindbladCollection are consistent
-    with those from DenseLindbladCollection"""
-
-    def setUp(self) -> None:
-        pass
-
-    def test_consistency_pseudorandom(self):
-        rand.seed(123098341)
-        n = 16
-        k = 4
-        m = 2
-        r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
-
-        rand_ham = r(k, n, n)
-        rand_dis = r(m, n, n)
-        rand_dft = r(n, n)
-        rho = r(n, n)
-        t = r()
-        rand_ham_sigs = SignalList([Signal(r(), r(), r()) for j in range(k)])
-        rand_dis_sigs = SignalList([Signal(r(), r(), r()) for j in range(m)])
-
-        # Check consistency when hamiltonian, drift, and dissipator terms defined
-        stdLindblad = DenseLindbladCollection(
-            rand_ham, drift=rand_dft, dissipator_operators=rand_dis
-        )
-        vecLindblad = DenseVectorizedLindbladCollection(
-            rand_ham, drift=rand_dft, dissipator_operators=rand_dis
-        )
-
-        a = stdLindblad.evaluate_hamiltonian(rand_ham_sigs(t)).flatten(order="F")
-        b = vecLindblad.evaluate_hamiltonian(rand_ham_sigs(t))
-        self.assertAllClose(a, b)
-
-        a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), rand_dis_sigs(t)], rho).flatten(order="F")
-        b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), rand_dis_sigs(t)], rho.flatten(order="F"))
-        self.assertAllClose(a, b)
-
-        # Check consistency when only hamiltonian and drift terms defined
-        stdLindblad = DenseLindbladCollection(rand_ham, drift=rand_dft, dissipator_operators=None)
-        vecLindblad = DenseVectorizedLindbladCollection(
-            rand_ham, drift=rand_dft, dissipator_operators=None
-        )
-
-        a = stdLindblad.evaluate_hamiltonian(rand_ham_sigs(t)).flatten(order="F")
-        b = vecLindblad.evaluate_hamiltonian(rand_ham_sigs(t))
-        self.assertAllClose(a, b)
-
-        a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho).flatten(order="F")
-        b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho.flatten(order="F"))
-        self.assertAllClose(a, b)
-
-class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
-    """Jax version of TestDenseVectorizedLindbladCollection tests.
+    """Jax version of TestGeneratorModel tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
