@@ -1,4 +1,4 @@
- # This code is part of Qiskit.
+# This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
 #
@@ -108,7 +108,7 @@ class LindbladModel(GeneratorModel):
 
         self._hamiltonian_signals = hamiltonian_signals
         self._dissipator_signals = dissipator_signals
-        
+
         self._frame = None
         self.frame = frame
 
@@ -163,7 +163,9 @@ class LindbladModel(GeneratorModel):
             )
 
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        raise NotImplementedError("Lindblad models cannot be represented without a given state without vectorization.")
+        raise NotImplementedError(
+            "Lindblad models cannot be represented without a given state without vectorization."
+        )
 
     def evaluate_with_state(
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
@@ -187,15 +189,14 @@ class LindbladModel(GeneratorModel):
         # Need to check that I have the differences chosen correctly
         if self.frame.frame_diag is not None:
             frame_eigvals = self.frame.frame_diag
-            pexp = np.exp(-time * frame_eigvals) # e^{iHt} = e^{-tF}
-            nexp = np.exp(time * frame_eigvals) #e^{-iHt} = e^{tF}
+            pexp = np.exp(-time * frame_eigvals)  # e^{iHt} = e^{-tF}
+            nexp = np.exp(time * frame_eigvals)  # e^{-iHt} = e^{tF}
             # Equivalent to rhs = e^{iHt} \rho e^{-iHt}
             rhs = np.outer(nexp, pexp) * y
 
             rhs = self._operator_collection.evaluate_with_state(
                 [hamiltonian_sig_vals, dissipator_sig_vals], rhs
             )
-
 
             # Equivalent to rhs = e^{-iHt} rhs e^{iHt}
             rhs = np.outer(pexp, nexp) * rhs
