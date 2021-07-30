@@ -91,7 +91,6 @@ class Signal:
             envelope = Array(complex(envelope))
 
         if isinstance(envelope, Array):
-            envelope = np.real(envelope)
 
             # if envelope is constant and the carrier is zero, this is a constant signal
             if carrier_freq == 0.0:
