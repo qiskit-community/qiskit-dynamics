@@ -433,8 +433,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertTrue(gm.evaluate_with_state(t, vectorized_states).shape == (n, m))
         for i in range(m):
             self.assertAllClose(
-                gm.evaluate_with_state(t, vectorized_states)[:,i],
-                gm.evaluate_with_state(t, vectorized_states[:,i]),
+                gm.evaluate_with_state(t, vectorized_states)[:, i],
+                gm.evaluate_with_state(t, vectorized_states[:, i]),
             )
 
         farr = rand.uniform(-1, 1, (n, n))
@@ -446,8 +446,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertTrue(gm.evaluate_with_state(t, vectorized_states).shape == (n, m))
         for i in range(m):
             self.assertAllClose(
-                gm.evaluate_with_state(t, vectorized_states)[:,i],
-                gm.evaluate_with_state(t, vectorized_states[:,i]),
+                gm.evaluate_with_state(t, vectorized_states)[:, i],
+                gm.evaluate_with_state(t, vectorized_states[:, i]),
             )
 
         vectorized_result = gm.evaluate_with_state(t, vectorized_states, in_frame_basis=True)
@@ -456,8 +456,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertTrue(vectorized_result.shape == (n, m))
         for i in range(m):
             self.assertAllClose(
-                vectorized_result[:,i],
-                gm.evaluate_with_state(t, vectorized_states[:,i], in_frame_basis=True),
+                vectorized_result[:, i],
+                gm.evaluate_with_state(t, vectorized_states[:, i], in_frame_basis=True),
             )
 
 

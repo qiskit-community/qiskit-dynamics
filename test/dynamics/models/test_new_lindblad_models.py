@@ -63,7 +63,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         sm = Array([[0.0, 0.0], [1.0, 0.0]])
 
         expected = self._evaluate_lindblad_rhs(A, ham, [sm])
-        value = self.basic_lindblad(t,A)
+        value = self.basic_lindblad(t, A)
         self.assertAllClose(expected, value)
 
     # pylint: disable=no-self-use,too-many-arguments
@@ -113,6 +113,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         return ham_part + diss_part
 
         # pylint: disable=too-many-locals
+
     def test_lindblad_pseudorandom(self):
         """Test LindbladModel with structureless
         pseudorandom model parameters.
@@ -167,7 +168,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             low=-b, high=b, size=(dim, dim)
         )
         frame_op = Array(rand_op - rand_op.conj().transpose())
-        evect = -1j*np.linalg.eigh(1j*frame_op)[1]
+        evect = -1j * np.linalg.eigh(1j * frame_op)[1]
         f = lambda x: evect.T.conj() @ x @ evect
 
         lindblad_frame_op = frame_op
@@ -185,26 +186,34 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
 
         t = rng.uniform(low=-b, high=b)
-        value = lindblad_model(t, A,in_frame_basis=False)
+        value = lindblad_model(t, A, in_frame_basis=False)
 
-        ham_coeffs = np.real(rand_ham_coeffs.real * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases))
+        ham_coeffs = np.real(
+            rand_ham_coeffs.real
+            * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
+        )
         ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
 
         diss_coeffs = np.real(
             rand_diss_coeffs.real
             * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
-        ) 
+        )
 
-        expected = self._evaluate_lindblad_rhs(A, ham,dissipators=rand_diss,dissipator_coeffs=diss_coeffs,frame_op=frame_op,t=t)
+        expected = self._evaluate_lindblad_rhs(
+            A, ham, dissipators=rand_diss, dissipator_coeffs=diss_coeffs, frame_op=frame_op, t=t
+        )
 
-        self.assertAllClose(ham_coeffs,ham_sigs(t))
-        self.assertAllClose(diss_coeffs,diss_sigs(t))
-        self.assertAllClose(lindblad_model._operator_collection._hamiltonian_operators,f(rand_ham_ops))
-        self.assertAllClose(f(ham-1j*frame_op),lindblad_model._operator_collection.evaluate_hamiltonian(ham_sigs(t)))
-        self.assertAllClose(expected,value)
+        self.assertAllClose(ham_coeffs, ham_sigs(t))
+        self.assertAllClose(diss_coeffs, diss_sigs(t))
+        self.assertAllClose(
+            lindblad_model._operator_collection._hamiltonian_operators, f(rand_ham_ops)
+        )
+        self.assertAllClose(
+            f(ham - 1j * frame_op),
+            lindblad_model._operator_collection.evaluate_hamiltonian(ham_sigs(t)),
+        )
+        self.assertAllClose(expected, value)
 
-
-        
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
     """Jax version of TestLindbladModel tests.
