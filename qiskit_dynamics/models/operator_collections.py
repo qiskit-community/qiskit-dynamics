@@ -231,15 +231,15 @@ class DenseLindbladCollection(BaseOperatorCollection):
     def evaluate_without_state(self, signal_values: Array) -> Array:
         raise ValueError("Lindblad collections cannot be evaluated without a state.")
 
-    def evaluate_hamiltonian(self,signal_values: Array) -> Array:
-        """Gets the Hamiltonian matrix, as calculated by the model, 
+    def evaluate_hamiltonian(self, signal_values: Array) -> Array:
+        """Gets the Hamiltonian matrix, as calculated by the model,
         and used for the commutator -i[H,y]
-        Args: 
+        Args:
             signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
-        Returns: 
+        Returns:
             Hamiltonian matrix."""
         return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
-    
+
     def evaluate_with_state(self, signal_values: list[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
@@ -259,7 +259,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
 
-        hamiltonian_matrix = -1j*self.evaluate_hamiltonian(signal_values[0])  # B matrix
+        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
 
         if self._dissipator_operators is not None:
             dissipators_matrix = (-1 / 2) * np.tensordot(  # A matrix
