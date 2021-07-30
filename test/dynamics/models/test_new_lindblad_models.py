@@ -51,45 +51,6 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             dissipator_operators=dissipator_operators,
         )
 
-    def test_frame_transformations(self):
-        np.random.seed(1230983)
-        r = lambda *args: np.random.uniform(-1,1,np.squeeze(tuple(args)))
-        e = lambda arr: expm(np.array(arr))
-        rn = np.random.rand
-        n = 16
-        k = 8
-        l = 4
-        hframe = r(n,n)
-        hframe = hframe + hframe.conj().transpose()
-
-        eval,evect = np.linalg.eigh(hframe)
-        f = lambda x: evect.T.conj() @ x @ evect
-
-        ham_ops = r(k,n,n)
-        ham_sig = SignalList([Signal(rn(),rn()) for j in range(k)])
-        dis_ops = r(l,n,n)
-        dis_sig = SignalList([Signal(rn(),rn()) for j in range(l)])
-
-        rho = r(n,n)
-        t = rn()
-
-        m1 = LindbladModel(ham_ops,ham_sig,dis_ops,dis_sig,-hframe,None)
-        m2 = LindbladModel(ham_ops,ham_sig,dis_ops,dis_sig,None,hframe)
-
-        svals = [ham_sig.complex_value(t).real,dis_sig.complex_value(t).real]
-
-        rho_in_frame = e(1j*t*hframe).dot(rho).dot(e(-1j*t*hframe))
-
-        self.assertAllClose(f(m1._operator_collection.operators[0]),m2._operator_collection.operators[0])
-        self.assertAllClose(f(m1._operator_collection.operators[1]),m2._operator_collection.operators[1])
-        self.assertAllClose(f(m1._operator_collection.drift),m2._operator_collection.drift)
-        self.assertAllClose(f(m1._operator_collection(svals,rho)),m2._operator_collection(svals,f(rho)))
-        self.assertAllClose(np.outer(np.exp(1j * t * eval),np.exp(-1j*t*eval))*f(rho),f(rho_in_frame))
-        self.assertAllClose(f(m1._operator_collection(svals,rho_in_frame)),m2._operator_collection(svals,f(rho_in_frame)))
-
-        self.assertAllClose(e(-1j*t*hframe).dot(m1._operator_collection(svals,rho_in_frame)).dot(e(1j*t*hframe)),m2(t,rho,in_frame_basis=False))
-        self.assertAllClose(e(-1j*t*hframe).dot(m1(t,rho_in_frame)).dot(e(1j*t*hframe)),m2(t,rho,in_frame_basis=False))
-
     def test_basic_lindblad_lmult(self):
         """Test lmult method of Lindblad generator OperatorModel."""
         A = Array([[1.0, 2.0], [3.0, 4.0]])
@@ -150,6 +111,97 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             diss_part += c * (D @ A @ Dadj - 0.5 * (DadjD @ A + A @ DadjD))
 
         return ham_part + diss_part
+
+        # pylint: disable=too-many-locals
+    def test_lindblad_pseudorandom(self):
+        """Test LindbladModel with structureless
+        pseudorandom model parameters.
+        """
+        rng = np.random.default_rng(9848)
+        dim = 10
+        num_ham = 4
+        num_diss = 3
+
+        b = 1.0  # bound on size of random terms
+
+        # generate random hamiltonian
+        randoperators = rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_ham, dim, dim)
+        )
+        rand_ham_ops = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
+
+        # generate random hamiltonian coefficients
+        rand_ham_coeffs = rng.uniform(low=-b, high=b, size=(num_ham)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_ham)
+        )
+        rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
+        rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
+
+        ham_sigs = []
+        for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
+            ham_sigs.append(Signal(coeff, freq, phase))
+
+        ham_sigs = SignalList(ham_sigs)
+
+        # generate random dissipators
+        rand_diss = Array(
+            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        )
+
+        # random dissipator coefficients
+        rand_diss_coeffs = rng.uniform(low=-b, high=b, size=(num_diss)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_diss)
+        )
+        rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
+        rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
+
+        diss_sigs = []
+        for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
+            diss_sigs.append(Signal(coeff, freq, phase))
+
+        diss_sigs = SignalList(diss_sigs)
+
+        # random anti-hermitian frame operator
+        rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        frame_op = Array(rand_op - rand_op.conj().transpose())
+        evect = -1j*np.linalg.eigh(1j*frame_op)[1]
+        f = lambda x: evect.T.conj() @ x @ evect
+
+        lindblad_frame_op = frame_op
+
+        # construct model
+        hamiltonian = HamiltonianModel(operators=rand_ham_ops, signals=ham_sigs)
+        lindblad_model = LindbladModel.from_hamiltonian(
+            hamiltonian=hamiltonian, dissipator_operators=rand_diss, dissipator_signals=diss_sigs
+        )
+        lindblad_model.frame = lindblad_frame_op
+
+        A = Array(
+            rng.uniform(low=-b, high=b, size=(dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
+        )
+
+        t = rng.uniform(low=-b, high=b)
+        value = lindblad_model(t, A,in_frame_basis=False)
+
+        ham_coeffs = np.real(rand_ham_coeffs.real * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases))
+        ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
+
+        diss_coeffs = np.real(
+            rand_diss_coeffs.real
+            * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
+        ) 
+
+        expected = self._evaluate_lindblad_rhs(A, ham,dissipators=rand_diss,dissipator_coeffs=diss_coeffs,frame_op=frame_op,t=t)
+
+        self.assertAllClose(ham_coeffs,ham_sigs(t))
+        self.assertAllClose(diss_coeffs,diss_sigs(t))
+        self.assertAllClose(lindblad_model._operator_collection._hamiltonian_operators,f(rand_ham_ops))
+        self.assertAllClose(f(ham-1j*frame_op),lindblad_model._operator_collection.evaluate_hamiltonian(ham_sigs(t)))
+        self.assertAllClose(expected,value)
 
 
         
