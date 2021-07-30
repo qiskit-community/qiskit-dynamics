@@ -119,12 +119,6 @@ class HamiltonianModel(GeneratorModel):
             ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
-        if frame is not None:
-            frame = Frame(frame)
-            if drift is None:
-                # Assume that frame diagonal is -iH
-                drift = -(1j * frame.frame_diag)
-
         super().__init__(operators=operators, signals=signals, frame=frame, drift=drift)
 
     def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
