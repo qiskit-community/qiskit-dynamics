@@ -202,7 +202,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         for basis transformations."""
         self._hamiltonian_operators = function_to_apply(self._hamiltonian_operators)
         if self.dissipator_operators is not None:
-        self.dissipator_operators = function_to_apply(self._dissipator_operators)
+            self.dissipator_operators = function_to_apply(self._dissipator_operators)
         self.drift = function_to_apply(self.drift)
 
     def __init__(
@@ -231,6 +231,15 @@ class DenseLindbladCollection(BaseOperatorCollection):
     def evaluate_without_state(self, signal_values: Array) -> Array:
         raise ValueError("Lindblad collections cannot be evaluated without a state.")
 
+    def evaluate_hamiltonian(self,signal_values: Array) -> Array:
+        """Gets the Hamiltonian matrix, as calculated by the model, 
+        and used for the commutator -i[H,y]
+        Args: 
+            signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
+        Returns: 
+            Hamiltonian matrix."""
+        return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
+    
     def evaluate_with_state(self, signal_values: list[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
@@ -250,15 +259,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
 
-        if self.drift is None:
-            hamiltonian_matrix = -1j * (
-                np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)
-            )  # B matrix
-        else:
-            hamiltonian_matrix = -1j * (
-                np.tensordot(signal_values[0], self._hamiltonian_operators, axes=1)  # B matrix
-                + self._drift
-            )
+        hamiltonian_matrix = -1j*self.evaluate_hamiltonian(signal_values[0])  # B matrix
 
         if self._dissipator_operators is not None:
             dissipators_matrix = (-1 / 2) * np.tensordot(  # A matrix
