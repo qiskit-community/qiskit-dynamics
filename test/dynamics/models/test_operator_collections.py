@@ -167,7 +167,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         drift = rand.uniform(-1, 1, (n, n))
         rho = rand.uniform(-1, 1, (n, n))
         rho = rho + np.conjugate(rho.transpose())
-        eval, evect = np.linalg.eigh(rho)
+        evect = np.linalg.eigh(rho)[1]
         ham_sig_vals = rand.uniform(-1, 1, (k))
         dis_sig_vals = rand.uniform(-1, 1, (m))
         collection = DenseLindbladCollection(
