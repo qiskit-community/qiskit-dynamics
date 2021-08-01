@@ -134,6 +134,6 @@ class HamiltonianModel(GeneratorModel):
         """
 
         if y is None:
-            return -1j * self.evaluate_without_state(t, in_frame_basis=in_frame_basis)
+            return -1j * self.evaluate_generator(t, in_frame_basis=in_frame_basis)
 
-        return -1j * self.evaluate_with_state(t, y, in_frame_basis=in_frame_basis)
+        return -1j * self.evaluate_rhs(t, y, in_frame_basis=in_frame_basis)
