@@ -214,8 +214,8 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             @ expm(-1j * np.array(frame_op))
             - frame_op
         )
-        self.assertAllClose(model.signals(1),coeffs)
-        self.assertAllClose(model.frame.operator_out_of_frame_basis(model._operator_collection.operators),operators)
+        self.assertAllClose(model.signals.__call__(1),coeffs)
+        self.assertAllClose(model.frame.operator_out_of_frame_basis(model.operators),operators)
 
         self.assertAllClose(value, expected)
 
