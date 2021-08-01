@@ -387,7 +387,7 @@ class GeneratorModel(BaseGeneratorModel):
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        sig_vals = np.real(self._signals.complex_value(time))
+        sig_vals = self._signals.__call__(time)
 
         # Evaluated in frame basis, but without rotations
         op_combo = self._operator_collection(sig_vals)
@@ -416,7 +416,7 @@ class GeneratorModel(BaseGeneratorModel):
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        sig_vals = np.real(self._signals.complex_value(time))
+        sig_vals = self._signals.__call__(time)
 
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
         op_combo = self._operator_collection(sig_vals)

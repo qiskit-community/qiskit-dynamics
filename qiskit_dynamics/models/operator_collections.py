@@ -34,7 +34,7 @@ class BaseOperatorCollection(ABC):
     @drift.setter
     def drift(self, new_drift: Optional[Array] = None):
         """Sets Drift operator, if used."""
-            self._drift = new_drift
+        self._drift = new_drift
 
     @property
     @abstractmethod
@@ -169,7 +169,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         self.drift = drift
 
     def evaluate_without_state(self, signal_values: Array) -> Array:
-        raise ValueError("Lindblad collections cannot be evaluated without a state.")
+        raise ValueError("Dense Lindblad collections cannot be evaluated without a state.")
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
         """Gets the Hamiltonian matrix, as calculated by the model,
