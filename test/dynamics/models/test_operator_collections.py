@@ -105,7 +105,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
         # Test first that having no drift or dissipator is OK
         ham_only_collection = DenseLindbladCollection(
-            hamiltonian_operators, drift=None, dissipator_operators=None
+            hamiltonian_operators, drift=np.zeros((n,n)), dissipator_operators=None
         )
         hamiltonian = np.tensordot(ham_sig_vals, hamiltonian_operators, axes=1)
         res = ham_only_collection([ham_sig_vals, None], rho)

@@ -275,10 +275,10 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         res = simple_model.evaluate_without_state(2)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
-        simple_model._operator_collection.drift = np.eye(2)
+        simple_model.drift = np.eye(2)
         res = simple_model.evaluate_without_state(2)
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
-        simple_model._operator_collection.drift = None
+        simple_model.drift = None
 
     def test_frame_basis_transformation(self):
         """Test for checking that the frame basis transformations,
@@ -288,8 +288,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, frame=None)
-
-        simple_model._operator_collection.drift = np.eye(2)
+        simple_model.drift = np.eye(2)
         fop = Array([[0, 1j], [1j, 0]])
         simple_model.frame = fop
         res = simple_model(2, in_frame_basis=False)
@@ -311,7 +310,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertAllClose(res, expected)
 
-        simple_model._operator_collection.drift = None
+        simple_model.drift = None
 
     def test_order_of_application_cases(self):
         """Test to see if the (nontrivial) setter methods
