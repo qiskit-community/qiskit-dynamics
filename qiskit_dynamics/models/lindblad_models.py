@@ -190,12 +190,12 @@ class LindbladModel(GeneratorModel):
         #Ensure these changes are passed on to the operator collection.
         self.evaluation_mode = self.evaluation_mode
 
-    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         raise NotImplementedError(
             "Lindblad models cannot be represented without a given state without vectorization."
         )
 
-    def evaluate_with_state(
+    def evaluate_rhs(
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         """Evaluates the Lindblad model at a given time.
