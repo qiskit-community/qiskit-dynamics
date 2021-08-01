@@ -54,6 +54,52 @@ class BaseGeneratorModel(ABC):
 
     @property
     @abstractmethod
+    def hilbert_space_dimension(self) -> int:
+        """Gets Hilbert space dimension."""
+        pass
+
+    @property
+    @abstractmethod
+    def operators(self) -> Union[Array,list[Array]]:
+        """Get the originally passed operators by the user"""
+        pass
+
+    @property
+    def drift(self) -> Array:
+        """Gets the originally passed drift term"""
+        return self._drift
+
+    @drift.setter
+    def drift(self,new_drift: Array):
+        """Sets drift term."""
+        if new_drift is None:
+            new_drift = np.zeros((self.hilbert_space_dimension,self.hilbert_space_dimension))
+
+        new_drift = Array(np.array(new_drift))
+        self._drift = new_drift
+        # pylint: disable=no-member
+        if self._operator_collection is not None:
+            # pylint: disable=no-member
+            self._operator_collection.drift = new_drift
+
+    @property
+    @abstractmethod
+    def evaluation_mode(self) -> str:
+        """Returns the current implementation mode,
+        e.g. sparse/dense, vectorized/not"""
+        return self._evaluation_mode
+
+    @evaluation_mode.setter
+    @abstractmethod
+    def evaluation_mode(self,new_mode: str):
+        """Sets evaluation mode of model. 
+        Will replace _operator_collection with the
+        correct type of operator collection"""
+        self._evaluation_mode = new_mode
+        pass
+
+    @property
+    @abstractmethod
     def frame(self) -> BaseFrame:
         """Get the frame."""
         pass
@@ -133,6 +179,24 @@ class CallableGenerator(BaseGeneratorModel):
         self._generator = dispatch.wrap(generator)
         self.frame = frame
         self._drift = drift
+        self._evaluation_mode = "callable_generator"
+        self._operator_collection = None
+
+    @property
+    def hilbert_space_dimension(self) -> int:
+        return self._generator(0).shape[-1]
+
+    @property
+    def operators(self) -> Callable:
+        return self._generator
+
+    @property
+    def evaluation_mode(self) -> str:
+        return self._evaluation_mode
+    
+    @evaluation_mode.setter
+    def evaluation_mode(self,new_mode: str):
+        raise NotImplementedError("Setting implementation mode for CallableGenerator is not supported.")
 
     @property
     def frame(self) -> Frame:
@@ -145,11 +209,6 @@ class CallableGenerator(BaseGeneratorModel):
         a valid argument for the constructor of :class:`Frame`, or `None`.
         """
         self._frame = Frame(frame)
-
-    @property
-    def drift(self) -> Array:
-        """Gets the drift term"""
-        return self._drift
 
     def evaluate_with_state(
         self, time: float, y: Array, in_frame_basis: Optional[bool] = False
@@ -207,6 +266,7 @@ class GeneratorModel(BaseGeneratorModel):
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array, BaseFrame]] = None,
+        evaluation_mode: str = "dense_operator_collection"
     ):
         """Initialize.
 
@@ -229,16 +289,38 @@ class GeneratorModel(BaseGeneratorModel):
                 operators are in frame basis.
         """
 
-        # initialize internal operator representation in the frame basis
-        self._operator_collection = DenseOperatorCollection(operators, drift=drift)
+        # initialize internal operator representation
+        self._operator_collection = None
+        self._operators = Array(np.array(operators))
+        self._drift = None
+        self.drift = drift
+        self.evaluation_mode = evaluation_mode
 
-        # set frame.
+        # set frame and transform operators into frame basis.
         self._frame = None
         self.frame = Frame(frame)
 
         # initialize signal-related attributes
         self._signals = None
         self.signals = signals
+
+    @property
+    def operators(self) -> Array:
+        return self._operators
+
+    @property
+    def hilbert_space_dimension(self) -> int:
+        return self._operators.shape[-1]
+    
+    @property
+    def evaluation_mode(self) -> str:
+        return super().evaluation_mode
+
+    @evaluation_mode.setter
+    def evaluation_mode(self,new_mode: str):
+        if new_mode == "dense_operator_collection":
+            self._operator_collection = DenseOperatorCollection(self._operators,drift=self.drift)
+            self._evaluation_mode = new_mode
 
     @property
     def signals(self) -> SignalList:
@@ -277,22 +359,19 @@ class GeneratorModel(BaseGeneratorModel):
     @frame.setter
     def frame(self, frame: Union[Operator, Array, Frame]):
         if self._frame is not None and self._frame.frame_diag is not None:
-            self._operator_collection.drift = self._operator_collection.drift + Array(
-                np.diag(self._frame.frame_diag)
-            )
-            self._operator_collection.apply_function_to_operators(
-                self.frame.operator_out_of_frame_basis
-            )
+            self.drift = self.drift + Array(np.diag(self._frame.frame_diag))
+            self._operators = self.frame.operator_out_of_frame_basis(self._operators)
+            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
 
         self._frame = Frame(frame)
 
         if self._frame.frame_diag is not None:
-            self._operator_collection.apply_function_to_operators(
-                self.frame.operator_into_frame_basis
-            )
-            self._operator_collection.drift = self._operator_collection.drift - Array(
-                np.diag(self._frame.frame_diag)
-            )
+            self._operators = self.frame.operator_into_frame_basis(self._operators)
+            self.drift = self.frame.operator_into_frame_basis(self.drift)
+            self.drift = self.drift - Array(np.diag(self._frame.frame_diag))
+
+        # Reset internal operation collection
+        self.evaluation_mode = self.evaluation_mode
 
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
