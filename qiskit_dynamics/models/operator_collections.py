@@ -27,12 +27,6 @@ class BaseOperatorCollection(ABC):
     used to facilitate frame transformations."""
 
     @property
-    @abstractmethod
-    def operators(self) -> Array:
-        """Returns operators that the collection stores"""
-        pass
-
-    @property
     def drift(self) -> Array:
         """Returns drift part of operator collection."""
         return self._drift
@@ -40,9 +34,6 @@ class BaseOperatorCollection(ABC):
     @drift.setter
     def drift(self, new_drift: Optional[Array] = None):
         """Sets Drift operator, if used."""
-        if new_drift is None:
-            self._drift = np.zeros((self.hilbert_space_dimension, self.hilbert_space_dimension))
-        else:
             self._drift = new_drift
 
     @property
@@ -50,12 +41,6 @@ class BaseOperatorCollection(ABC):
     def num_operators(self) -> int:
         """Returns number of operators the collection
         is storing."""
-        pass
-
-    @property
-    @abstractmethod
-    def hilbert_space_dimension(self) -> int:
-        """Gets dimension of hilbert space of system"""
         pass
 
     @abstractmethod
@@ -74,17 +59,6 @@ class BaseOperatorCollection(ABC):
         y provided the values of each signal
         component s_j(t). Must be defined for all
         models."""
-        pass
-
-    @abstractmethod
-    def apply_function_to_operators(self, function_to_apply: Optional[Callable]) -> None:
-        """Apply some function to all operators.
-        Useful for e.g. basis transformations.
-
-        Args:
-            function_to_apply: Callable function
-            to be applied to each operator. Should
-            take in Array and return Array."""
         pass
 
     def __call__(
@@ -115,24 +89,8 @@ class DenseOperatorCollection(BaseOperatorCollection):
     """
 
     @property
-    def operators(self) -> Array:
-        return self._operators
-
-    @property
     def num_operators(self) -> int:
         return self._operators.shape[-3]
-
-    @property
-    def hilbert_space_dimension(self) -> int:
-        return self._operators.shape[-2]
-
-    def apply_function_to_operators(self, function_to_apply: Optional[Callable]):
-        """Applies a function to all operators in the collection.
-        Args:
-            function_to_apply: the function to be applied to all operators"""
-        self._operators = function_to_apply(self._operators)
-        if self.drift is not None:
-            self.drift = function_to_apply(self.drift)
 
     def evaluate_without_state(self, signal_values: Array) -> Array:
         r"""Evaluates the operator G at time t given
@@ -184,26 +142,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
             )
 
     @property
-    def operators(self) -> Array:
-        return self._hamiltonian_operators, self._dissipator_operators
-
-    @property
     def num_operators(self):
         return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
-
-    @property
-    def hilbert_space_dimension(self) -> int:
-        return self._hamiltonian_operators.shape[-1]
-
-    def apply_function_to_operators(self, function_to_apply: Optional[Callable]) -> None:
-        r"""Applies function to all operators (both Hamiltonian and Dissipator).
-        Note that, unless function_to_apply is a unitary transformation,
-        f(L_i^\dagger L_i) \neq f(L_i^\dagger) f(L_i) in general. Designed
-        for basis transformations."""
-        self._hamiltonian_operators = function_to_apply(self._hamiltonian_operators)
-        if self.dissipator_operators is not None:
-            self.dissipator_operators = function_to_apply(self._dissipator_operators)
-        self.drift = function_to_apply(self.drift)
 
     def __init__(
         self,
