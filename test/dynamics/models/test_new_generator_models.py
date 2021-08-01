@@ -465,19 +465,3 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
-
-
-# class TestDenseLindbladCollection(QiskitDynamicsTestCase):
-#     """Tests for GeneratorModel."""
-
-#     def setUp(self):
-#         self.X = Array(Operator.from_label("X").data)
-#         self.Y = Array(Operator.from_label("Y").data)
-#         self.Z = Array(Operator.from_label("Z").data)
-
-
-# class TestDenseLindbladCollectionJax(TestDenseOperatorCollection, TestJaxBase):
-#     """Jax version of TestGeneratorModel tests.
-
-#     Note: This class has no body but contains tests due to inheritance.
-#     """
