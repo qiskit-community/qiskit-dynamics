@@ -212,6 +212,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             f(ham - 1j * frame_op),
             lindblad_model._operator_collection.evaluate_hamiltonian(ham_sigs(t)),
         )
+        self.assertAllClose(f(rand_diss),lindblad_model._dissipator_operators)
+        self.assertAllClose(f(rand_diss),lindblad_model._operator_collection._dissipator_operators)
+        self.assertAllClose(f(rand_ham_ops),lindblad_model._hamiltonian_operators)
+        self.assertAllClose(f(rand_ham_ops),lindblad_model._operator_collection._hamiltonian_operators)
+        self.assertAllClose(f(-1j*frame_op),lindblad_model.drift)
+        self.assertAllClose(f(-1j*frame_op),lindblad_model._operator_collection.drift)
         self.assertAllClose(expected, value)
 
 
