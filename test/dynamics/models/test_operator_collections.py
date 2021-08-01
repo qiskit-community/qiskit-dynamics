@@ -64,13 +64,6 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
                 total = total + vals[i, j] * arr[j]
             self.assertAllClose(res[i], total)
 
-    def test_apply_function(self):
-        res = self.simple_collection(self.sigvals)
-        self.simple_collection.apply_function_to_operators(lambda x: x / 2.1231)
-        newres = self.simple_collection(self.sigvals)
-        self.assertAllClose(newres * 2.1231, res)
-        self.simple_collection.apply_function_to_operators(lambda x: 2.1231 * x)
-
 
 class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
     """Jax version of TestGeneratorModel tests.
@@ -155,31 +148,6 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
             self.assertAllClose(
                 res[i], full_lindblad_collection([ham_sig_vals, dis_sig_vals], rhos[i])
             )
-
-    def test_apply_function(self):
-        """Tests that the Lindblad collection is applying functions correctly"""
-        rand.seed(824103)
-        n = 16
-        k = 8
-        m = 4
-        hamiltonian_operators = rand.uniform(-1, 1, (k, n, n))
-        dissipator_operators = rand.uniform(-1, 1, (m, n, n))
-        drift = rand.uniform(-1, 1, (n, n))
-        rho = rand.uniform(-1, 1, (n, n))
-        rho = rho + np.conjugate(rho.transpose())
-        evect = np.linalg.eigh(rho)[1]
-        ham_sig_vals = rand.uniform(-1, 1, (k))
-        dis_sig_vals = rand.uniform(-1, 1, (m))
-        collection = DenseLindbladCollection(
-            hamiltonian_operators, drift=drift, dissipator_operators=dissipator_operators
-        )
-        f = lambda x: np.conjugate(np.transpose(evect)) @ x @ evect
-        res = collection([ham_sig_vals, dis_sig_vals], rho)
-        collection.apply_function_to_operators(f)
-        newres = collection([ham_sig_vals, dis_sig_vals], f(rho))
-
-        self.assertAllClose(f(res), newres)
-        self.assertAllClose(f(res), newres)
 
 
 class TestDenseLindbladCollectionJax(TestDenseOperatorCollection, TestJaxBase):
