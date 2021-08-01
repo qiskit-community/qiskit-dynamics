@@ -115,7 +115,7 @@ class BaseGeneratorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate_with_state(
+    def evaluate_rhs(
         self, time: float, y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         r"""Given some representation y of the system's state,
@@ -131,7 +131,7 @@ class BaseGeneratorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False):
+    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False):
         """If possible, expresses the model at time t
         without reference to the state of the system.
         Args:
@@ -161,9 +161,9 @@ class BaseGeneratorModel(ABC):
         """
 
         if y is None:
-            return self.evaluate_without_state(time, in_frame_basis=in_frame_basis)
+            return self.evaluate_generator(time, in_frame_basis=in_frame_basis)
 
-        return self.evaluate_with_state(time, y, in_frame_basis=in_frame_basis)
+        return self.evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
 
 
 class CallableGenerator(BaseGeneratorModel):
@@ -210,12 +210,12 @@ class CallableGenerator(BaseGeneratorModel):
         """
         self._frame = Frame(frame)
 
-    def evaluate_with_state(
+    def evaluate_rhs(
         self, time: float, y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
-        return self.evaluate_without_state(time, in_frame_basis=in_frame_basis) @ y
+        return self.evaluate_generator(time, in_frame_basis=in_frame_basis) @ y
 
-    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format.
 
         Args:
@@ -373,7 +373,7 @@ class GeneratorModel(BaseGeneratorModel):
         # Reset internal operation collection
         self.evaluation_mode = self.evaluation_mode
 
-    def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
         Args:
             time: Time to evaluate the model
@@ -395,7 +395,7 @@ class GeneratorModel(BaseGeneratorModel):
         # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
         return self.frame.operator_into_frame(time,op_combo,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis)
 
-    def evaluate_with_state(
+    def evaluate_rhs(
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         """Evaluate the model in array format as a vector, given the current state.
