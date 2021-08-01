@@ -205,9 +205,6 @@ class LindbladModel(GeneratorModel):
             frame already, and if the final result
             is returned in the frame or not."""
 
-        if not in_frame_basis:
-            y = self.frame.operator_into_frame_basis(y)
-
         hamiltonian_sig_vals = self._hamiltonian_signals(time)
         if self._dissipator_signals is not None:
             dissipator_sig_vals = self._dissipator_signals(time)
@@ -216,24 +213,20 @@ class LindbladModel(GeneratorModel):
 
         # Need to check that I have the differences chosen correctly
         if self.frame.frame_diag is not None:
-            frame_eigvals = self.frame.frame_diag
-            pexp = np.exp(-time * frame_eigvals)  # e^{iHt} = e^{-tF}
-            nexp = np.exp(time * frame_eigvals)  # e^{-iHt} = e^{tF}
-            # Equivalent to rhs = e^{iHt} \rho e^{-iHt}
-            rhs = np.outer(nexp, pexp) * y
+            
+            #Take y out of the frame, but keep in the frame basis
+            rhs = self.frame.operator_out_of_frame(time,y,operator_in_frame_basis=in_frame_basis,return_in_frame_basis=True)
 
             rhs = self._operator_collection.evaluate_with_state(
                 [hamiltonian_sig_vals, dissipator_sig_vals], rhs
             )
 
-            # Equivalent to rhs = e^{-iHt} rhs e^{iHt}
-            rhs = np.outer(pexp, nexp) * rhs
+            # Put rhs back into the frame, potentially converting its basis.
+            rhs = self.frame.operator_into_frame(time,rhs,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis)
 
         else:
             rhs = self._operator_collection.evaluate_with_state(
                 [hamiltonian_sig_vals, dissipator_sig_vals], y
             )
 
-        if not in_frame_basis:
-            rhs = self.frame.operator_out_of_frame_basis(rhs)
         return rhs
