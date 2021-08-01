@@ -53,6 +53,25 @@ class LindbladModel(GeneratorModel):
           :math:`j^{th}` Lindblad operator.
     """
 
+    @property
+    def operators(self) -> list[Array]:
+        return [self._hamiltonian_operators,self._dissipator_operators]
+
+    @property
+    def hilbert_space_dimension(self) -> int:
+        return self._hamiltonian_operators.shape[-1]
+
+    @property
+    def evaluation_mode(self) -> str:
+        return super().evaluation_mode
+
+    @evaluation_mode.setter
+    def evaluation_mode(self,new_mode: str):
+        if new_mode == "dense_lindblad_collection":
+            self._operator_collection = DenseLindbladCollection(self._hamiltonian_operators,drift=self.drift,dissipator_operators=self._dissipator_operators)
+            self._evaluation_mode = new_mode
+
+
     def __init__(
         self,
         hamiltonian_operators: Array,
@@ -61,6 +80,7 @@ class LindbladModel(GeneratorModel):
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         drift: Optional[Array] = None,
         frame: Optional[Union[Operator, Array, Frame]] = None,
+        evaluation_mode: Optional[str] = "dense_lindblad_collection",
     ):
         """Initialize.
 
@@ -77,13 +97,16 @@ class LindbladModel(GeneratorModel):
         Raises:
             Exception: if signals incorrectly specified
         """
-        if drift is not None:
-            drift = Array(drift)
+        self._operator_collection = None
+
         if dissipator_operators is not None:
             dissipator_operators = Array(dissipator_operators)
-        self._operator_collection = DenseLindbladCollection(
-            Array(hamiltonian_operators), drift=drift, dissipator_operators=dissipator_operators
-        )
+
+        self._hamiltonian_operators = Array(np.array(hamiltonian_operators))
+        self.drift = drift
+        self._dissipator_operators = dissipator_operators
+
+        self.evaluation_mode = evaluation_mode
 
         if isinstance(hamiltonian_signals, list):
             hamiltonian_signals = SignalList(hamiltonian_signals)
@@ -118,6 +141,7 @@ class LindbladModel(GeneratorModel):
         hamiltonian: HamiltonianModel,
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
+        evaluation_mode: Optional[str] = "dense_lindblad_collection",
     ):
         """Construct from a :class:`HamiltonianModel`.
 
@@ -131,11 +155,12 @@ class LindbladModel(GeneratorModel):
         """
 
         return cls(
-            hamiltonian_operators=hamiltonian._operator_collection.operators,
+            hamiltonian_operators=hamiltonian.operators,
             hamiltonian_signals=hamiltonian.signals,
             dissipator_operators=dissipator_operators,
             dissipator_signals=dissipator_signals,
-            drift=hamiltonian._operator_collection.drift,
+            drift=hamiltonian.drift,
+            evaluation_mode=evaluation_mode,
         )
 
     @property
@@ -145,22 +170,25 @@ class LindbladModel(GeneratorModel):
     @frame.setter
     def frame(self, frame: Union[Operator, Array, Frame]):
         if self._frame is not None and self._frame.frame_diag is not None:
-            self._operator_collection.drift = self._operator_collection.drift + Array(
-                np.diag(1j * self._frame.frame_diag)
-            )
-            self._operator_collection.apply_function_to_operators(
-                self.frame.operator_out_of_frame_basis
-            )
+            self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
+            
+            self._hamiltonian_operators = self.frame.operator_out_of_frame_basis(self._hamiltonian_operators)
+            if self._dissipator_operators is not None:
+                self._dissipator_operators = self.frame.operator_out_of_frame_basis(self._dissipator_operators)
+            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
 
         self._frame = Frame(frame)
 
         if self._frame.frame_diag is not None:
-            self._operator_collection.apply_function_to_operators(
-                self.frame.operator_into_frame_basis
-            )
-            self._operator_collection.drift = self._operator_collection.drift - Array(
-                np.diag(1j * self._frame.frame_diag)
-            )
+            self._hamiltonian_operators = self.frame.operator_into_frame_basis(self._hamiltonian_operators)
+            if self._dissipator_operators is not None:
+                self._dissipator_operators = self.frame.operator_into_frame_basis(self._dissipator_operators)
+            self.drift = self.frame.operator_into_frame_basis(self.drift)
+
+            self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
+
+        #Ensure these changes are passed on to the operator collection.
+        self.evaluation_mode = self.evaluation_mode
 
     def evaluate_without_state(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         raise NotImplementedError(

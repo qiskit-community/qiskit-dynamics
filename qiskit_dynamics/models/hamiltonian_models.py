@@ -62,22 +62,18 @@ class HamiltonianModel(GeneratorModel):
         """Sets frame. Frame objects will always store antihermitian F = -iH.
         The drift needs to be adjusted by -H in the new frame."""
         if self._frame is not None and self._frame.frame_diag is not None:
-            self._operator_collection.drift = self._operator_collection.drift + Array(
-                np.diag(1j * self._frame.frame_diag)
-            )
-            self._operator_collection.apply_function_to_operators(
-                self.frame.operator_out_of_frame_basis
-            )
+            self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
+            self._operators = self.frame.operator_out_of_frame_basis(self.operators)
+            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
 
         self._frame = Frame(frame)
 
         if self._frame.frame_diag is not None:
-            self._operator_collection.apply_function_to_operators(
-                self.frame.operator_into_frame_basis
-            )
-            self._operator_collection.drift = self._operator_collection.drift - Array(
-                np.diag(1j * self._frame.frame_diag)
-            )
+            self._operators = self.frame.operator_into_frame_basis(self.operators)
+            self.drift = self.frame.operator_into_frame_basis(self.drift)
+            self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
+
+        self.evaluation_mode = self.evaluation_mode
 
     def __init__(
         self,
@@ -86,6 +82,7 @@ class HamiltonianModel(GeneratorModel):
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array]] = None,
         validate: bool = True,
+        evaluation_mode: str = "dense_operator_collection",
     ):
         """Initialize, ensuring that the operators are Hermitian.
 
@@ -109,6 +106,7 @@ class HamiltonianModel(GeneratorModel):
         Raises:
             Exception: if operators are not Hermitian
         """
+        
         # verify operators are Hermitian, and if so instantiate
         operators = to_array(operators)
 
@@ -119,7 +117,7 @@ class HamiltonianModel(GeneratorModel):
             ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
-        super().__init__(operators=operators, signals=signals, frame=frame, drift=drift)
+        super().__init__(operators=operators, signals=signals, frame=frame, drift=drift,evaluation_mode=evaluation_mode)
 
     def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
         """Evaluate generator RHS functions. Needs to be overriden from base class
