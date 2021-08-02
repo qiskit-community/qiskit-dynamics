@@ -24,7 +24,7 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_models import GeneratorModel
 from .hamiltonian_models import HamiltonianModel
-from .operator_collections import DenseLindbladCollection
+from .operator_collections import DenseLindbladCollection, DenseVectorizedLindbladCollection
 from .frame import Frame
 
 
@@ -67,10 +67,17 @@ class LindbladModel(GeneratorModel):
 
     @evaluation_mode.setter
     def evaluation_mode(self,new_mode: str):
+        """Sets evaluation mode.
+        Args: 
+            new_mode: new mode for evaluation. Supported modes:
+                dense_lindblad_collection
+                dense_vectorized_lindblad_collection"""
         if new_mode == "dense_lindblad_collection":
             self._operator_collection = DenseLindbladCollection(self._hamiltonian_operators,drift=self.drift,dissipator_operators=self._dissipator_operators)
             self._evaluation_mode = new_mode
-
+        if new_mode == "dense_vectorized_lindblad_collection":
+            self._operator_collection = DenseVectorizedLindbladCollection(self._hamiltonian_operators,drift=self.drift,dissipator_operators=self._dissipator_operators)
+            self._evaluation_mode = new_mode
 
     def __init__(
         self,
@@ -191,16 +198,21 @@ class LindbladModel(GeneratorModel):
         self.evaluation_mode = self.evaluation_mode
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        if self.evaluation_mode != "dense_vectorized_lindblad_collection":
         raise NotImplementedError(
-            "Lindblad models cannot be represented without a given state without vectorization."
+                "Non-vectorized Lindblad models cannot be represented without a given state without vectorization."
         )
+        else:
+            return self._operator_collection.evaluate_generator([self._hamiltonian_signals(time),self._dissipator_signals(time)])
 
     def evaluate_rhs(
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         """Evaluates the Lindblad model at a given time.
         time: time at which the model should be evaluated
-        y: Density matrix as an (n,n) Array
+        y: Density matrix as an (n,n) Array if not using a 
+            vectorized evaluation_mode or an (n^2) Array if
+            using vectorized evaluation.
         in_frame_basis: whether the density matrix is in the
             frame already, and if the final result
             is returned in the frame or not."""
