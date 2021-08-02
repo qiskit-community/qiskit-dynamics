@@ -436,3 +436,95 @@ class GeneratorModel(BaseGeneratorModel):
             return np.dot(op_combo, y)
 
         return out
+
+def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union[float,int]) -> GeneratorModel:
+    r"""Performs RWA on a GeneratorModel so that all terms that 
+    rotate with complex frequency larger than cutoff_freq are 
+    discarded. In particular, let G(t) = \sum_j s_j(t) G_j + G_d,
+    and let us consider it in the rotating frame, so that the 
+    actual operator that is applied is given by e^{-tF}(G(t) - F)e^{tF} 
+    = \sum_js_j(t)e^{-tF}G_je^{tF} + e^{-tF}(G_d - F)e^{tF}
+    Args:
+        model: The GeneratorModel to which you 
+        wish to apply the RWA
+        cutoff_freq: the maximum (magnitude) of 
+        frequency you wish to allow.
+    Returns 
+        GeneratorModel with twice as many terms
+        and some signals with negative frequencies
+        
+    Formalism: When we consider e^{-tF}A e^{tF} in the basis in which F 
+    is diagonal, we may write conjugation by e^{\pm tF} as elementwise 
+    multiplication s.t. (e^{-tF} A e^{tF})_{jk} = e^{(-d_j+d_k)t}*A_{jk}.
+    When we write e^{-tF}(G(t)-F)e^{tF} = \sum_i e^{-tF} s_i(t)G_ie^{tF}
+    + e^{-tF}(G_d-F)e^{tF} in order to take the RWA in the rotating frame,
+    we must consider the effect of rotations caused by the frame, with 
+    frequency Im(-d_j-d_k)/(2*pi), as well as those due to the signal's
+    rotation itself, where we write s_i(t) = Re[a_i(t)e^{i(2*pi*nu_i*t+phi_i)}]
+    = a_i(t)e^{i(2*pi*nu_i*t-phi_i)}/2 + \bar{a_i(t)}e^{-i(2*pi*nu_i*t+phi_i)}/2. With this
+    in mind, consider a term of the form (e^{-tF}s_i(t)G_ie^{tF})_{jk} 
+    = e^{(-d_j+d_k)t}(G_i)_{jk}[a_i(t)e^{i(2*pi*nu_i*t+phi_i)}
+    +\bar{a_i(t)}e^{-i(2*pi*nu_i*t+phi_i)}]. The \pm i(...) term has 
+    effective frequency \pm nu_i + Im(-d_j+d_k)/(2*pi) = \pm nu_i + f_{jk}, 
+    (we neglect any oscillation/rotation in a_i for now) and we wish to neglect 
+    all terms with effective frequency greater in magnitude than some cutoff 
+    frequency nu_*. As such, let us write G_i = A_i + B_i + C_i + D_i, with 
+    A_i the matrix representing terms/elements which have 
+    1) abs(nu_i+f_{jk})<nu_* and 2) abs(-nu_i+f_{jk})<nu_*, B_i the matrix 
+    of terms where 1) but not 2), C_i the matrix of terms where 2) but not 1), 
+    and D_i the terms where neither 1) nor 2) hold. Thus, after the RWA, 
+    we may write our term as s_i(t) G_i -> a_i(t)e^{i(2*pi*nu_i*t+phi_i)}(A_i+B_i)/2
+    + \bar{a_i(t)}e^{-i(2*pi*nu_i*t+phi_i)}(A_i+C_i)/2 = s_i(t) A_i + 
+    [Re[a_i]cos(2*pi*nu_i*t+phi_i)-Im[a_i]sin(2*pi*nu_i*t+phi_i)]B_i/2 + 
+    [Im[a_i]cos(2*pi*nu_i*t+phi_i)+Re[a_i]sin(2*pi*nu_i*t+phi_i)]iB_i/2 + 
+    [Re[a_i]cos(2*pi*nu_i*t+phi_i)-Im[a_i]sin(2*pi*nu_i*t+phi_i)]C_i/2 + 
+    [Im[a_i]cos(2*pi*nu_i*t+phi_i)-Re[a_i]sin(2*pi*nu_i*t+phi_i)](-iC_i/2)
+    = s_i(t)A_i + Re[a_i(t)e^{i(2*pi*nu_i*t+phi_i)}](B_i+C_i)/2 + 
+    Re[a_i(t)e^{i(2*pi*nu_i*t+phi_i-pi/2)}](iB_i-iC_i)/2 = 
+    s_i(t)(A_i + B_i/2 + C_i/2) + s'_i(t)(iB_i-iC_i)/2 where s'_i
+    is a Signal with frequency nu_i, amplitude a_i, and phase phi_i - pi/2.
+
+    Next, note that the drift terms (G_d)_{jk} have effective frequency 
+    Im[-d_j+d_k]/(2*pi). Note that this vanishes on the diagonal, 
+    so the -F term may be ignored for any nonzero cutoff_freq.
+    
+    """
+
+    if model.frame is None or model.frame.frame_diag is None:
+        return model
+
+    n = model.hilbert_space_dimension
+    diag = model.frame.frame_diag
+    
+    diff_matrix = np.broadcast_to(diag,(n,n)) - np.broadcast_to(diag,(n,n)).T
+    frame_freqs = diff_matrix.imag/(2*np.pi)
+
+    new_drift = model.frame.operator_out_of_frame_basis(model.drift+np.diag(model.frame.frame_diag))
+    new_drift = new_drift*(abs(frame_freqs)<cutoff_freq).astype(int)
+
+    num_components = len(model.signals)
+    frame_freqs = np.broadcast_to(frame_freqs,(num_components,n,n))
+    
+    carrier_freqs = []
+    for sig in model.signals.components:
+        carrier_freqs.append(sig.carrier_freq)
+    carrier_freqs = np.array(carrier_freqs).reshape((num_components,1,1))
+    
+    pos_pass = np.abs(carrier_freqs + frame_freqs) < cutoff_freq
+    neg_pass = np.abs(-carrier_freqs+ frame_freqs) < cutoff_freq
+    A = model.operators*(pos_pass & neg_pass).astype(int)
+    B = model.operators*(pos_pass & np.logical_not(neg_pass)).astype(int)
+    C = model.operators*(np.logical_not(pos_pass) & neg_pass).astype(int)
+    normal_operators = A + B/2 + C/2
+    normal_signals = model.signals.components
+    abnormal_operators = 1j*B/2-1j*C/2
+    abnormal_signals = []
+    for sig in normal_signals:
+        abnormal_signals.append(Signal(sig.envelope,sig.carrier_freq,sig.phase-np.pi/2))
+    new_signals = SignalList(normal_signals + abnormal_signals)
+    new_operators = model.frame.operator_out_of_Frame_basis(np.append(normal_operators,abnormal_operators,axis=0))
+
+    new_model = GeneratorModel(new_operators,drift=new_drift,signals=new_signals,frame=model.frame.frame_operator)
+    return new_model
+
+
