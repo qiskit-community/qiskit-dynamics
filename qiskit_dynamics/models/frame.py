@@ -603,7 +603,7 @@ class Frame(BaseFrame):
             out = self.state_into_frame_basis(out)
 
         # go into the frame using fast diagonal matrix multiplication
-        out = (np.exp(-t * self.frame_diag) * out.transpose()).transpose()  # = e^{tF}out 
+        out = (np.exp(-t * self.frame_diag) * out.transpose()).transpose()  # = e^{tF}out
 
         # if output is requested to not be in the frame basis, convert it
         if not return_in_frame_basis:

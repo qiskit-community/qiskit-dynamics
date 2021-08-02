@@ -106,7 +106,7 @@ class HamiltonianModel(GeneratorModel):
         Raises:
             Exception: if operators are not Hermitian
         """
-        
+
         # verify operators are Hermitian, and if so instantiate
         operators = to_array(operators)
 
@@ -117,7 +117,13 @@ class HamiltonianModel(GeneratorModel):
             ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
-        super().__init__(operators=operators, signals=signals, frame=frame, drift=drift,evaluation_mode=evaluation_mode)
+        super().__init__(
+            operators=operators,
+            signals=signals,
+            frame=frame,
+            drift=drift,
+            evaluation_mode=evaluation_mode,
+        )
 
     def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
         """Evaluate generator RHS functions. Needs to be overriden from base class
