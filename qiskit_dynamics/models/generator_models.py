@@ -60,7 +60,7 @@ class BaseGeneratorModel(ABC):
 
     @property
     @abstractmethod
-    def operators(self) -> Union[Array,list[Array]]:
+    def operators(self) -> Union[Array, list[Array]]:
         """Get the originally passed operators by the user"""
         pass
 
@@ -70,10 +70,10 @@ class BaseGeneratorModel(ABC):
         return self._drift
 
     @drift.setter
-    def drift(self,new_drift: Array):
+    def drift(self, new_drift: Array):
         """Sets drift term."""
         if new_drift is None:
-            new_drift = np.zeros((self.hilbert_space_dimension,self.hilbert_space_dimension))
+            new_drift = np.zeros((self.hilbert_space_dimension, self.hilbert_space_dimension))
 
         new_drift = Array(np.array(new_drift))
         self._drift = new_drift
@@ -91,8 +91,8 @@ class BaseGeneratorModel(ABC):
 
     @evaluation_mode.setter
     @abstractmethod
-    def evaluation_mode(self,new_mode: str):
-        """Sets evaluation mode of model. 
+    def evaluation_mode(self, new_mode: str):
+        """Sets evaluation mode of model.
         Will replace _operator_collection with the
         correct type of operator collection"""
         self._evaluation_mode = new_mode
@@ -115,9 +115,7 @@ class BaseGeneratorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate_rhs(
-        self, time: float, y: Array, in_frame_basis: Optional[bool] = False
-    ) -> Array:
+    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
         r"""Given some representation y of the system's state,
         evaluate the RHS of the model y'(t) = \Lambda(y,t)
         at the time t.
@@ -193,10 +191,12 @@ class CallableGenerator(BaseGeneratorModel):
     @property
     def evaluation_mode(self) -> str:
         return self._evaluation_mode
-    
+
     @evaluation_mode.setter
-    def evaluation_mode(self,new_mode: str):
-        raise NotImplementedError("Setting implementation mode for CallableGenerator is not supported.")
+    def evaluation_mode(self, new_mode: str):
+        raise NotImplementedError(
+            "Setting implementation mode for CallableGenerator is not supported."
+        )
 
     @property
     def frame(self) -> Frame:
@@ -210,9 +210,7 @@ class CallableGenerator(BaseGeneratorModel):
         """
         self._frame = Frame(frame)
 
-    def evaluate_rhs(
-        self, time: float, y: Array, in_frame_basis: Optional[bool] = False
-    ) -> Array:
+    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
         return self.evaluate_generator(time, in_frame_basis=in_frame_basis) @ y
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
@@ -266,7 +264,7 @@ class GeneratorModel(BaseGeneratorModel):
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array, BaseFrame]] = None,
-        evaluation_mode: str = "dense_operator_collection"
+        evaluation_mode: str = "dense_operator_collection",
     ):
         """Initialize.
 
@@ -311,15 +309,15 @@ class GeneratorModel(BaseGeneratorModel):
     @property
     def hilbert_space_dimension(self) -> int:
         return self._operators.shape[-1]
-    
+
     @property
     def evaluation_mode(self) -> str:
         return super().evaluation_mode
 
     @evaluation_mode.setter
-    def evaluation_mode(self,new_mode: str):
+    def evaluation_mode(self, new_mode: str):
         if new_mode == "dense_operator_collection":
-            self._operator_collection = DenseOperatorCollection(self._operators,drift=self.drift)
+            self._operator_collection = DenseOperatorCollection(self._operators, drift=self.drift)
             self._evaluation_mode = new_mode
 
     @property
@@ -393,7 +391,9 @@ class GeneratorModel(BaseGeneratorModel):
         op_combo = self._operator_collection(sig_vals)
 
         # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
-        return self.frame.operator_into_frame(time,op_combo,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis)
+        return self.frame.operator_into_frame(
+            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+        )
 
     def evaluate_rhs(
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
@@ -422,12 +422,16 @@ class GeneratorModel(BaseGeneratorModel):
         op_combo = self._operator_collection(sig_vals)
 
         if self.frame is not None:
-            #First, compute e^{tF}y as a pre-rotation in the frame basis
-            out = self.frame.state_out_of_frame(time,y,y_in_frame_basis = in_frame_basis,return_in_frame_basis=True)
-            #Then, compute the product Ae^{tF}y
-            out = np.dot(op_combo,out)
-            #Finally, we have the full operator e^{-tF}Ae^{tF}y
-            out = self.frame.state_into_frame(time,out,y_in_frame_basis=True,return_in_frame_basis=in_frame_basis)
+            # First, compute e^{tF}y as a pre-rotation in the frame basis
+            out = self.frame.state_out_of_frame(
+                time, y, y_in_frame_basis=in_frame_basis, return_in_frame_basis=True
+            )
+            # Then, compute the product Ae^{tF}y
+            out = np.dot(op_combo, out)
+            # Finally, we have the full operator e^{-tF}Ae^{tF}y
+            out = self.frame.state_into_frame(
+                time, out, y_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+            )
         else:
             return np.dot(op_combo, y)
 

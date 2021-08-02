@@ -111,7 +111,6 @@ class DenseOperatorCollection(BaseOperatorCollection):
             drift: (n,n) Array specifying the extra drift G_d
         """
         self._operators = to_array(operators)
-        self.drift = None
         self.drift = drift
 
 
@@ -148,8 +147,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
     def __init__(
         self,
         hamiltonian_operators: Array,
-        drift: Optional[Array],
-        dissipator_operators: Optional[Array],
+        drift: Array,
+        dissipator_operators: Optional[Array] = None,
     ):
         r"""Converts an array of Hamiltonian components and signals,
         as well as Lindbladians, into a way of calculating the RHS
@@ -228,11 +227,12 @@ class DenseLindbladCollection(BaseOperatorCollection):
         else:
             return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
 
+
 class DenseVectorizedLindbladCollection(DenseOperatorCollection):
-    """Intended as a calculation object for the Lindblad equation, 
+    """Intended as a calculation object for the Lindblad equation,
     \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
-    where all left-, right-, and left-and-right multiplication is 
+    where all left-, right-, and left-and-right multiplication is
     handled by vectorization, a process by which \rho, an (n,n)
     matrix, is embedded in a vector space of dimension n^2 using
     the column stacking convention, in which the matrix [a,b;c,d]
@@ -256,20 +256,21 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
                 (m,n,n) array.
         """
 
-        #Convert Hamiltonian to commutator formalism
+        # Convert Hamiltonian to commutator formalism
         self._hamiltonian_operators = hamiltonian_operators
         self._drift_terms = drift
-        vec_drift = -1j*vec_commutator(drift)
-            
-        vec_ham_ops = -1j*vec_commutator(to_array(hamiltonian_operators))
+        vec_drift = -1j * vec_commutator(drift)
+
+        vec_ham_ops = -1j * vec_commutator(to_array(hamiltonian_operators))
         total_ops = None
         if dissipator_operators is not None:
             vec_diss_ops = vec_dissipator(to_array(dissipator_operators))
-            total_ops = np.append(vec_ham_ops,vec_diss_ops,axis=0)
+            total_ops = np.append(vec_ham_ops, vec_diss_ops, axis=0)
         else:
             total_ops = vec_ham_ops
 
-        super().__init__(total_ops,drift=vec_drift)
+        super().__init__(total_ops, drift=vec_drift)
+
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
         """Gets the Hamiltonian matrix, as calculated by the model,
         and used for the commutator -i[H,y]
@@ -277,25 +278,27 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
             signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
         Returns:
             Hamiltonian matrix."""
-        return (np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self._drift_terms).flatten(order="F")
+        return (
+            np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self._drift_terms
+        ).flatten(order="F")
 
-    def evaluate_rhs(self, signal_values: Union[list[Array],Array], y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: Union[list[Array], Array], y: Array) -> Array:
         """Evaluates the RHS of the Lindblad equation using
-        vectorized maps. 
-        Args: 
+        vectorized maps.
+        Args:
             signal_values: either a list [ham_sig_values, dis_sig_values]
                 storing the signal values for the Hamiltonian component
                 and the dissipator component, or a single array containing
-                the total list of signal values. 
+                the total list of signal values.
             y: Density matrix represented as a vector using column-stacking
                 convention.
-        Returns: 
+        Returns:
             Vectorized RHS of Lindblad equation \dot{\rho} in column-stacking
                 convention."""
-        if isinstance(signal_values,list):
+        if isinstance(signal_values, list):
             if signal_values[1] is not 0:
-                signal_values = np.append(signal_values[0],signal_values[1],axis=-1)
+                signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
             else:
                 signal_values = signal_values[0]
-        
+
         return super().evaluate_rhs(signal_values, y)
