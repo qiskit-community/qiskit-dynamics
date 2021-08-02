@@ -78,14 +78,19 @@ class LindbladModel(GeneratorModel):
                 drift=self.drift,
                 dissipator_operators=self._dissipator_operators,
             )
-            self._evaluation_mode = new_mode
-        if new_mode == "dense_vectorized_lindblad_collection":
+            self.frame.vectorized_operators=False
+        elif new_mode == "dense_vectorized_lindblad_collection":
             self._operator_collection = DenseVectorizedLindbladCollection(
                 self._hamiltonian_operators,
                 drift=self.drift,
                 dissipator_operators=self._dissipator_operators,
             )
-            self._evaluation_mode = new_mode
+            self.frame.vectorized_operators=True
+        elif new_mode is None:
+            pass
+        else:
+            raise NotImplementedError("Evaluation mode " + str(new_mode) + " is not supported.")
+        self._evaluation_mode = new_mode
 
     def __init__(
         self,
@@ -113,6 +118,7 @@ class LindbladModel(GeneratorModel):
             Exception: if signals incorrectly specified
         """
         self._operator_collection = None
+        self._evaluation_mode = None
 
         if dissipator_operators is not None:
             dissipator_operators = Array(dissipator_operators)
@@ -120,8 +126,6 @@ class LindbladModel(GeneratorModel):
         self._hamiltonian_operators = Array(np.array(hamiltonian_operators))
         self.drift = drift
         self._dissipator_operators = dissipator_operators
-
-        self.evaluation_mode = evaluation_mode
 
         if isinstance(hamiltonian_signals, list):
             hamiltonian_signals = SignalList(hamiltonian_signals)
@@ -149,6 +153,8 @@ class LindbladModel(GeneratorModel):
 
         self._frame = None
         self.frame = frame
+
+        self.evaluation_mode = evaluation_mode
 
     @classmethod
     def from_hamiltonian(
@@ -241,7 +247,6 @@ class LindbladModel(GeneratorModel):
         else:
             dissipator_sig_vals = 0
 
-        # Need to check that I have the differences chosen correctly
         if self.frame.frame_diag is not None:
 
             # Take y out of the frame, but keep in the frame basis
