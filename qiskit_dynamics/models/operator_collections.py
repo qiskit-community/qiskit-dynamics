@@ -10,7 +10,6 @@ import numpy as np
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
 
-
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
     intended to store a general set of linear mappings {\Lambda_i}
@@ -296,7 +295,8 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
             Vectorized RHS of Lindblad equation \dot{\rho} in column-stacking
                 convention."""
         if isinstance(signal_values, list):
-            if signal_values[1] is not 0:
+            #use of is is intentional; do _not_ want comparison e.g. if signal_values[1] is an Array
+            if np.any(signal_values[1] != 0):
                 signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
             else:
                 signal_values = signal_values[0]
