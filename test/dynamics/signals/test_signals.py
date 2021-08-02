@@ -318,46 +318,46 @@ class TestConstant(QiskitDynamicsTestCase):
         self.assertAllClose(self.constant1.envelope(0.0), 1.0)
         self.assertAllClose(self.constant1.envelope(1.23), 1.0)
 
-        self.assertAllClose(self.constant2.envelope(1.1), 3.0)
-        self.assertAllClose(self.constant2.envelope(1.23), 3.0)
+        self.assertAllClose(self.constant2.envelope(1.1), (3.0 + 2j))
+        self.assertAllClose(self.constant2.envelope(1.23), (3.0 + 2j))
 
     def test_envelope_vectorized(self):
         """Test vectorized evaluation of envelope."""
         t_vals = np.array([1.1, 1.23])
         self.assertAllClose(self.constant1.envelope(t_vals), np.array([1.0, 1.0]))
-        self.assertAllClose(self.constant2.envelope(t_vals), 3.0 * np.ones_like(t_vals))
+        self.assertAllClose(self.constant2.envelope(t_vals), (3.0 + 2j) * np.ones_like(t_vals))
 
         t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
         self.assertAllClose(self.constant1.envelope(t_vals), np.array([[1.0, 1.0], [1.0, 1.0]]))
-        self.assertAllClose(self.constant2.envelope(t_vals), 3.0 * np.ones_like(t_vals))
+        self.assertAllClose(self.constant2.envelope(t_vals), (3.0 + 2j) * np.ones_like(t_vals))
 
     def test_complex_value(self):
         """Test complex_value evaluation."""
         self.assertAllClose(self.constant1.complex_value(0.0), 1.0)
         self.assertAllClose(self.constant1.complex_value(1.23), 1.0)
 
-        self.assertAllClose(self.constant2.complex_value(1.1), 3.0)
-        self.assertAllClose(self.constant2.complex_value(1.23), 3.0)
+        self.assertAllClose(self.constant2.complex_value(1.1), (3.0 + 2j))
+        self.assertAllClose(self.constant2.complex_value(1.23), (3.0 + 2j))
 
     def test_complex_value_vectorized(self):
         """Test vectorized complex_value evaluation."""
         t_vals = np.array([1.1, 1.23])
         self.assertAllClose(self.constant1.complex_value(t_vals), np.array([1.0, 1.0]))
-        self.assertAllClose(self.constant2.complex_value(t_vals), 3.0 * np.ones_like(t_vals))
+        self.assertAllClose(self.constant2.complex_value(t_vals), (3.0 + 2j) * np.ones_like(t_vals))
 
         t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
         self.assertAllClose(
             self.constant1.complex_value(t_vals), np.array([[1.0, 1.0], [1.0, 1.0]])
         )
-        self.assertAllClose(self.constant2.complex_value(t_vals), 3.0 * np.ones_like(t_vals))
+        self.assertAllClose(self.constant2.complex_value(t_vals), (3.0 + 2j) * np.ones_like(t_vals))
 
     def test_call(self):
         """Test __call__."""
         self.assertAllClose(self.constant1(0.0), 1.0)
         self.assertAllClose(self.constant1(1.23), 1.0)
 
-        self.assertAllClose(self.constant2(1.1), 3.0)
-        self.assertAllClose(self.constant2(1.23), 3.0)
+        self.assertAllClose(self.constant2(1.1), (3.0))
+        self.assertAllClose(self.constant2(1.23), (3.0))
 
     def test_call_vectorized(self):
         """Test vectorized __call__."""
