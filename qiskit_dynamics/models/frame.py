@@ -642,8 +642,7 @@ class Frame(BaseFrame):
         out of the frame basis.
         """
         if self.vectorized_operators:
-            # faster than the flatten operation later.
-            operator = operator.reshape((self.dim,self.dim)+operator.shape[1:],order="F")
+            operator = operator.reshape((self.dim,self.dim),order="F")
 
         if self._frame_operator is None:
             if op_to_add_in_fb is None:
@@ -672,8 +671,7 @@ class Frame(BaseFrame):
             out = self.operator_out_of_frame_basis(out)
 
         if self.vectorized_operators:
-            # much slower than the reshape operation
-            out = out.reshape((self.dim*self.dim,)+out.shape[2:],order="F")
+            out = out.flatten(order="F")
 
         return out
 

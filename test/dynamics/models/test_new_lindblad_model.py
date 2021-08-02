@@ -17,7 +17,7 @@ of the actual calculation checking is handled at the level of a
 models.operator_collection.DenseLindbladOperatorCollection test."""
 
 import numpy as np
-from numpy import random as rand
+from numpy import random as rand, vectorize
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
@@ -221,6 +221,9 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertAllClose(f(-1j * frame_op), lindblad_model.drift)
         self.assertAllClose(f(-1j * frame_op), lindblad_model._operator_collection.drift)
         self.assertAllClose(expected, value)
+        lindblad_model.evaluation_mode = "dense_vectorized_lindblad_collection"
+        vectorized_value = lindblad_model.evaluate_rhs(t,A.flatten(order="F"),in_frame_basis=False).reshape((dim,dim),order="F")
+        self.assertAllClose(value,vectorized_value)
 
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
