@@ -222,7 +222,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertAllClose(
             model.frame.operator_out_of_frame_basis(
-                model._operator_collection.evaluate_without_state(coeffs)
+                model._operator_collection.evaluate_generator(coeffs)
             ),
             np.tensordot(coeffs, operators, axes=1) - frame_op,
         )
@@ -272,11 +272,11 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, frame=None)
 
-        res = simple_model.evaluate_without_state(2)
+        res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
         simple_model.drift = np.eye(2)
-        res = simple_model.evaluate_without_state(2)
+        res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
         simple_model.drift = None
 
@@ -344,12 +344,12 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         gm3.signals = SignalList(sarr)
 
         # All should be the same, because there are no frames involved
-        t11 = gm1.evaluate_without_state(t, False)
-        t12 = gm1.evaluate_without_state(t, True)
-        t21 = gm2.evaluate_without_state(t, False)
-        t22 = gm2.evaluate_without_state(t, True)
-        t31 = gm3.evaluate_without_state(t, False)
-        t32 = gm3.evaluate_without_state(t, True)
+        t11 = gm1.evaluate_generator(t, False)
+        t12 = gm1.evaluate_generator(t, True)
+        t21 = gm2.evaluate_generator(t, False)
+        t22 = gm2.evaluate_generator(t, True)
+        t31 = gm3.evaluate_generator(t, False)
+        t32 = gm3.evaluate_generator(t, True)
         t_analytical = Array([[0.5, 1.0 + 0.5j], [1.0 - 0.5j, 1.5]])
 
         self.assertAllClose(t11, t12)
@@ -360,8 +360,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(t11, t_analytical)
 
         # now work with a specific statevector
-        ts1 = gm1.evaluate_with_state(t, state, in_frame_basis=False)
-        ts2 = gm1.evaluate_with_state(t, state, in_frame_basis=True)
+        ts1 = gm1.evaluate_rhs(t, state, in_frame_basis=False)
+        ts2 = gm1.evaluate_rhs(t, state, in_frame_basis=True)
         ts_analytical = Array([0.6 + 0.25j, 0.95 - 0.1j])
 
         self.assertAllClose(ts1, ts2)
@@ -395,13 +395,13 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
             @ (np.tensordot(sigvals, paulis_in_frame_basis, axes=1) - diafarr)
             @ np.diag(np.exp(t * evals))
         )
-        tf1 = gm1.evaluate_without_state(t, in_frame_basis=True)
-        tf2 = gm2.evaluate_without_state(t, in_frame_basis=True)
-        tf3 = gm3.evaluate_without_state(t, in_frame_basis=True)
-        tf4 = gm4.evaluate_without_state(t, in_frame_basis=True)
-        tf5 = gm5.evaluate_without_state(t, in_frame_basis=True)
-        tf6 = gm6.evaluate_without_state(t, in_frame_basis=True)
-        tf7 = gm7.evaluate_without_state(t, in_frame_basis=True)
+        tf1 = gm1.evaluate_generator(t, in_frame_basis=True)
+        tf2 = gm2.evaluate_generator(t, in_frame_basis=True)
+        tf3 = gm3.evaluate_generator(t, in_frame_basis=True)
+        tf4 = gm4.evaluate_generator(t, in_frame_basis=True)
+        tf5 = gm5.evaluate_generator(t, in_frame_basis=True)
+        tf6 = gm6.evaluate_generator(t, in_frame_basis=True)
+        tf7 = gm7.evaluate_generator(t, in_frame_basis=True)
 
         self.assertAllClose(t_in_frame_actual, tf1)
         self.assertAllClose(tf1, tf2)
@@ -428,12 +428,12 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         operators = rand.uniform(-1, 1, (k, n, n))
 
         gm = GeneratorModel(operators, drift=None, signals=sig_list)
-        self.assertTrue(gm.evaluate_with_state(t, normal_states).shape == (n,))
-        self.assertTrue(gm.evaluate_with_state(t, vectorized_states).shape == (n, m))
+        self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
+        self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
         for i in range(m):
             self.assertAllClose(
-                gm.evaluate_with_state(t, vectorized_states)[:, i],
-                gm.evaluate_with_state(t, vectorized_states[:, i]),
+                gm.evaluate_rhs(t, vectorized_states)[:, i],
+                gm.evaluate_rhs(t, vectorized_states[:, i]),
             )
 
         farr = rand.uniform(-1, 1, (n, n))
@@ -441,22 +441,22 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         gm.frame = farr
 
-        self.assertTrue(gm.evaluate_with_state(t, normal_states).shape == (n,))
-        self.assertTrue(gm.evaluate_with_state(t, vectorized_states).shape == (n, m))
+        self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
+        self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
         for i in range(m):
             self.assertAllClose(
-                gm.evaluate_with_state(t, vectorized_states)[:, i],
-                gm.evaluate_with_state(t, vectorized_states[:, i]),
+                gm.evaluate_rhs(t, vectorized_states)[:, i],
+                gm.evaluate_rhs(t, vectorized_states[:, i]),
             )
 
-        vectorized_result = gm.evaluate_with_state(t, vectorized_states, in_frame_basis=True)
+        vectorized_result = gm.evaluate_rhs(t, vectorized_states, in_frame_basis=True)
 
-        self.assertTrue(gm.evaluate_with_state(t, normal_states, in_frame_basis=True).shape == (n,))
+        self.assertTrue(gm.evaluate_rhs(t, normal_states, in_frame_basis=True).shape == (n,))
         self.assertTrue(vectorized_result.shape == (n, m))
         for i in range(m):
             self.assertAllClose(
                 vectorized_result[:, i],
-                gm.evaluate_with_state(t, vectorized_states[:, i], in_frame_basis=True),
+                gm.evaluate_rhs(t, vectorized_states[:, i], in_frame_basis=True),
             )
 
 
