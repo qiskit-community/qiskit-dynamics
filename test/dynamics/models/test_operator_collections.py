@@ -33,7 +33,7 @@ from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class TestDenseOperatorCollection(QiskitDynamicsTestCase):
-    """Tests for GeneratorModel."""
+    """Tests for DenseOperatorCollection."""
 
     def setUp(self):
         self.X = Array(Operator.from_label("X").data)
@@ -67,7 +67,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
 
 class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
-    """Jax version of TestGeneratorModel tests.
+    """Jax version of TestDenseOperatorCollection tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
@@ -152,7 +152,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
 
 class TestDenseLindbladCollectionJax(TestDenseOperatorCollection, TestJaxBase):
-    """Jax version of TestGeneratorModel tests.
+    """Jax version of TestDenseLindbladCollection tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
@@ -212,3 +212,9 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho).flatten(order="F")
         b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho.flatten(order="F"))
         self.assertAllClose(a, b)
+
+class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
+    """Jax version of TestDenseVectorizedLindbladCollection tests.
+
+    Note: This class has no body but contains tests due to inheritance.
+    """
