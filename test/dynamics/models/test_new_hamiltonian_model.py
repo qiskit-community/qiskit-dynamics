@@ -62,7 +62,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
             frame_operator = np.diag(frame_operator)
 
-        value = self.basic_hamiltonian(t)/-1j
+        value = self.basic_hamiltonian(t) / -1j
 
         twopi = 2 * np.pi
 
@@ -100,7 +100,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         """Test evaluation without a frame in the basic model."""
 
         t = 3.21412
-        value = self.basic_hamiltonian(t)/-1j
+        value = self.basic_hamiltonian(t) / -1j
         twopi = 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
         expected = twopi * self.w * self.Z.data / 2 + twopi * d_coeff * self.X.data / 2
@@ -120,7 +120,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         _, U = np.linalg.eigh(frame_op)
 
         t = 3.21412
-        value = self.basic_hamiltonian(t, in_frame_basis=True)/-1j
+        value = self.basic_hamiltonian(t, in_frame_basis=True) / -1j
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
@@ -204,9 +204,9 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
             sig_list.append(Signal(get_env_func(), freq, phase))
         sig_list = SignalList(sig_list)
-        model = HamiltonianModel(operators, drift = None, signals = sig_list, frame=frame_op)
+        model = HamiltonianModel(operators, drift=None, signals=sig_list, frame=frame_op)
 
-        value = model(1.0,in_frame_basis=False)/-1j
+        value = model(1.0, in_frame_basis=False) / -1j
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
         expected = (
             expm(1j * np.array(frame_op))
@@ -214,21 +214,22 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             @ expm(-1j * np.array(frame_op))
             - frame_op
         )
-        self.assertAllClose(model.signals.__call__(1),coeffs)
-        self.assertAllClose(model.frame.operator_out_of_frame_basis(model.operators),operators)
+        self.assertAllClose(model.signals.__call__(1), coeffs)
+        self.assertAllClose(model.frame.operator_out_of_frame_basis(model.operators), operators)
 
         self.assertAllClose(value, expected)
 
-def disp(to_display,decimals=2):
+
+def disp(to_display, decimals=2):
     try:
         mat = to_display.copy()
         for s in mat.shape:
-            mat = mat[:min([3,s])]
-            mat = mat.transpose([j for j in range(1,len(mat.shape))]+[0])
-        print(np.round(mat,decimals))
-    except: 
+            mat = mat[: min([3, s])]
+            mat = mat.transpose([j for j in range(1, len(mat.shape))] + [0])
+        print(np.round(mat, decimals))
+    except:
         print(to_display)
-    
+
 
 # class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
 #     """Jax version of TestHamiltonianModel tests.
