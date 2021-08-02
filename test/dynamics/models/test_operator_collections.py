@@ -25,7 +25,7 @@ from qiskit_dynamics.models import GeneratorModel
 from qiskit_dynamics.models.operator_collections import (
     DenseOperatorCollection,
     DenseLindbladCollection,
-    DenseVectorizedLindbladCollection
+    DenseVectorizedLindbladCollection,
 )
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics.dispatch import Array
@@ -99,7 +99,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
         # Test first that having no drift or dissipator is OK
         ham_only_collection = DenseLindbladCollection(
-            hamiltonian_operators, drift=np.zeros((n,n)), dissipator_operators=None
+            hamiltonian_operators, drift=np.zeros((n, n)), dissipator_operators=None
         )
         hamiltonian = np.tensordot(ham_sig_vals, hamiltonian_operators, axes=1)
         res = ham_only_collection([ham_sig_vals, None], rho)
@@ -157,12 +157,14 @@ class TestDenseLindbladCollectionJax(TestDenseOperatorCollection, TestJaxBase):
     Note: This class has no body but contains tests due to inheritance.
     """
 
+
 class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
-    """Tests for DenseVectorizedLindbladCollection. 
+    """Tests for DenseVectorizedLindbladCollection.
     Assumes that DenseLindbladCollection is functioning
     correctly, and–as such–only checks that the results
     from DenseVectorizedLindbladCollection are consistent
     with those from DenseLindbladCollection"""
+
     def setUp(self) -> None:
         pass
 
@@ -171,38 +173,42 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         n = 16
         k = 4
         m = 2
-        r = lambda *args: rand.uniform(-1,1,[*args])+1j*rand.uniform(-1,1,[*args])
+        r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
 
-        rand_ham = r(k,n,n)
-        rand_dis = r(m,n,n)
-        rand_dft = r(n,n)
-        rho = r(n,n)
+        rand_ham = r(k, n, n)
+        rand_dis = r(m, n, n)
+        rand_dft = r(n, n)
+        rho = r(n, n)
         t = r()
-        rand_ham_sigs = SignalList([Signal(r(),r(),r()) for j in range(k)])
-        rand_dis_sigs = SignalList([Signal(r(),r(),r()) for j in range(m)])
-        
-        #Check consistency when hamiltonian, drift, and dissipator terms defined
-        stdLindblad = DenseLindbladCollection(rand_ham,drift=rand_dft,dissipator_operators=rand_dis)
-        vecLindblad = DenseVectorizedLindbladCollection(rand_ham,drift=rand_dft,dissipator_operators=rand_dis)
+        rand_ham_sigs = SignalList([Signal(r(), r(), r()) for j in range(k)])
+        rand_dis_sigs = SignalList([Signal(r(), r(), r()) for j in range(m)])
 
-        a=stdLindblad.evaluate_hamiltonian(rand_ham_sigs(t)).flatten(order="F")
-        b=vecLindblad.evaluate_hamiltonian(rand_ham_sigs(t))
-        self.assertAllClose(a,b)
+        # Check consistency when hamiltonian, drift, and dissipator terms defined
+        stdLindblad = DenseLindbladCollection(
+            rand_ham, drift=rand_dft, dissipator_operators=rand_dis
+        )
+        vecLindblad = DenseVectorizedLindbladCollection(
+            rand_ham, drift=rand_dft, dissipator_operators=rand_dis
+        )
 
-        a=stdLindblad.evaluate_rhs([rand_ham_sigs(t),rand_dis_sigs(t)],rho).flatten(order="F")
-        b=vecLindblad.evaluate_rhs([rand_ham_sigs(t),rand_dis_sigs(t)],rho.flatten(order="F"))
-        self.assertAllClose(a,b)
+        a = stdLindblad.evaluate_hamiltonian(rand_ham_sigs(t)).flatten(order="F")
+        b = vecLindblad.evaluate_hamiltonian(rand_ham_sigs(t))
+        self.assertAllClose(a, b)
 
-        #Check consistency when only hamiltonian and drift terms defined
-        stdLindblad = DenseLindbladCollection(rand_ham,drift=rand_dft,dissipator_operators=None)
-        vecLindblad = DenseVectorizedLindbladCollection(rand_ham,drift=rand_dft,dissipator_operators=None)
+        a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), rand_dis_sigs(t)], rho).flatten(order="F")
+        b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), rand_dis_sigs(t)], rho.flatten(order="F"))
+        self.assertAllClose(a, b)
 
-        a=stdLindblad.evaluate_hamiltonian(rand_ham_sigs(t)).flatten(order="F")
-        b=vecLindblad.evaluate_hamiltonian(rand_ham_sigs(t))
-        self.assertAllClose(a,b)
+        # Check consistency when only hamiltonian and drift terms defined
+        stdLindblad = DenseLindbladCollection(rand_ham, drift=rand_dft, dissipator_operators=None)
+        vecLindblad = DenseVectorizedLindbladCollection(
+            rand_ham, drift=rand_dft, dissipator_operators=None
+        )
 
-        a=stdLindblad.evaluate_rhs([rand_ham_sigs(t),0],rho).flatten(order="F")
-        b=vecLindblad.evaluate_rhs([rand_ham_sigs(t),0],rho.flatten(order="F"))
-        self.assertAllClose(a,b)
+        a = stdLindblad.evaluate_hamiltonian(rand_ham_sigs(t)).flatten(order="F")
+        b = vecLindblad.evaluate_hamiltonian(rand_ham_sigs(t))
+        self.assertAllClose(a, b)
 
-
+        a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho).flatten(order="F")
+        b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho.flatten(order="F"))
+        self.assertAllClose(a, b)

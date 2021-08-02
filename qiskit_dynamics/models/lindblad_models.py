@@ -55,7 +55,7 @@ class LindbladModel(GeneratorModel):
 
     @property
     def operators(self) -> list[Array]:
-        return [self._hamiltonian_operators,self._dissipator_operators]
+        return [self._hamiltonian_operators, self._dissipator_operators]
 
     @property
     def hilbert_space_dimension(self) -> int:
@@ -66,17 +66,25 @@ class LindbladModel(GeneratorModel):
         return super().evaluation_mode
 
     @evaluation_mode.setter
-    def evaluation_mode(self,new_mode: str):
+    def evaluation_mode(self, new_mode: str):
         """Sets evaluation mode.
-        Args: 
+        Args:
             new_mode: new mode for evaluation. Supported modes:
                 dense_lindblad_collection
                 dense_vectorized_lindblad_collection"""
         if new_mode == "dense_lindblad_collection":
-            self._operator_collection = DenseLindbladCollection(self._hamiltonian_operators,drift=self.drift,dissipator_operators=self._dissipator_operators)
+            self._operator_collection = DenseLindbladCollection(
+                self._hamiltonian_operators,
+                drift=self.drift,
+                dissipator_operators=self._dissipator_operators,
+            )
             self._evaluation_mode = new_mode
         if new_mode == "dense_vectorized_lindblad_collection":
-            self._operator_collection = DenseVectorizedLindbladCollection(self._hamiltonian_operators,drift=self.drift,dissipator_operators=self._dissipator_operators)
+            self._operator_collection = DenseVectorizedLindbladCollection(
+                self._hamiltonian_operators,
+                drift=self.drift,
+                dissipator_operators=self._dissipator_operators,
+            )
             self._evaluation_mode = new_mode
 
     def __init__(
@@ -178,39 +186,49 @@ class LindbladModel(GeneratorModel):
     def frame(self, frame: Union[Operator, Array, Frame]):
         if self._frame is not None and self._frame.frame_diag is not None:
             self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
-            
-            self._hamiltonian_operators = self.frame.operator_out_of_frame_basis(self._hamiltonian_operators)
+
+            self._hamiltonian_operators = self.frame.operator_out_of_frame_basis(
+                self._hamiltonian_operators
+            )
             if self._dissipator_operators is not None:
-                self._dissipator_operators = self.frame.operator_out_of_frame_basis(self._dissipator_operators)
+                self._dissipator_operators = self.frame.operator_out_of_frame_basis(
+                    self._dissipator_operators
+                )
             self.drift = self.frame.operator_out_of_frame_basis(self.drift)
 
         self._frame = Frame(frame)
 
         if self._frame.frame_diag is not None:
-            self._hamiltonian_operators = self.frame.operator_into_frame_basis(self._hamiltonian_operators)
+            self._hamiltonian_operators = self.frame.operator_into_frame_basis(
+                self._hamiltonian_operators
+            )
             if self._dissipator_operators is not None:
-                self._dissipator_operators = self.frame.operator_into_frame_basis(self._dissipator_operators)
+                self._dissipator_operators = self.frame.operator_into_frame_basis(
+                    self._dissipator_operators
+                )
             self.drift = self.frame.operator_into_frame_basis(self.drift)
 
             self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
 
-        #Ensure these changes are passed on to the operator collection.
+        # Ensure these changes are passed on to the operator collection.
         self.evaluation_mode = self.evaluation_mode
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         if self.evaluation_mode != "dense_vectorized_lindblad_collection":
-        raise NotImplementedError(
+            raise NotImplementedError(
                 "Non-vectorized Lindblad models cannot be represented without a given state without vectorization."
-        )
+            )
         else:
-            return self._operator_collection.evaluate_generator([self._hamiltonian_signals(time),self._dissipator_signals(time)])
+            return self._operator_collection.evaluate_generator(
+                [self._hamiltonian_signals(time), self._dissipator_signals(time)]
+            )
 
     def evaluate_rhs(
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         """Evaluates the Lindblad model at a given time.
         time: time at which the model should be evaluated
-        y: Density matrix as an (n,n) Array if not using a 
+        y: Density matrix as an (n,n) Array if not using a
             vectorized evaluation_mode or an (n^2) Array if
             using vectorized evaluation.
         in_frame_basis: whether the density matrix is in the
@@ -225,16 +243,20 @@ class LindbladModel(GeneratorModel):
 
         # Need to check that I have the differences chosen correctly
         if self.frame.frame_diag is not None:
-            
-            #Take y out of the frame, but keep in the frame basis
-            rhs = self.frame.operator_out_of_frame(time,y,operator_in_frame_basis=in_frame_basis,return_in_frame_basis=True)
+
+            # Take y out of the frame, but keep in the frame basis
+            rhs = self.frame.operator_out_of_frame(
+                time, y, operator_in_frame_basis=in_frame_basis, return_in_frame_basis=True
+            )
 
             rhs = self._operator_collection.evaluate_rhs(
                 [hamiltonian_sig_vals, dissipator_sig_vals], rhs
             )
 
             # Put rhs back into the frame, potentially converting its basis.
-            rhs = self.frame.operator_into_frame(time,rhs,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis)
+            rhs = self.frame.operator_into_frame(
+                time, rhs, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+            )
 
         else:
             rhs = self._operator_collection.evaluate_rhs(
