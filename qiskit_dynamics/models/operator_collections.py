@@ -44,7 +44,7 @@ class BaseOperatorCollection(ABC):
         pass
 
     @abstractmethod
-    def evaluate_without_state(self, signal_values: Array) -> Array:
+    def evaluate_generator(self, signal_values: Array) -> Array:
         r"""If the model can be represented simply and
         without reference to the state involved, e.g.
         in the case \dot{y} = G(t)y(t) being represented
@@ -54,7 +54,7 @@ class BaseOperatorCollection(ABC):
         pass
 
     @abstractmethod
-    def evaluate_with_state(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
         """Evaluates the model for a given state
         y provided the values of each signal
         component s_j(t). Must be defined for all
@@ -66,15 +66,15 @@ class BaseOperatorCollection(ABC):
     ) -> Array:
         """Evaluates the model given the values of the signal
         terms s_j, suppressing the choice between
-        evaluate_with_state and evaluate_without_state
+        evaluate_rhs and evaluate_generator
         from the user. May error if y is not provided and
         model cannot be expressed without choice of state.
         """
 
         if y is None:
-            return self.evaluate_without_state(signal_values)
+            return self.evaluate_generator(signal_values)
 
-        return self.evaluate_with_state(signal_values, y)
+        return self.evaluate_rhs(signal_values, y)
 
     def copy(self):
         """Return a copy of self."""
@@ -92,7 +92,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
     def num_operators(self) -> int:
         return self._operators.shape[-3]
 
-    def evaluate_without_state(self, signal_values: Array) -> Array:
+    def evaluate_generator(self, signal_values: Array) -> Array:
         r"""Evaluates the operator G at time t given
         the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j"""
         if self._drift is None:
@@ -100,9 +100,9 @@ class DenseOperatorCollection(BaseOperatorCollection):
         else:
             return np.tensordot(signal_values, self._operators, axes=1) + self._drift
 
-    def evaluate_with_state(self, signal_values: Array, y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
         """Evaluates the product G(t)y"""
-        return np.dot(self.evaluate_without_state(signal_values), y)
+        return np.dot(self.evaluate_generator(signal_values), y)
 
     def __init__(self, operators: Array, drift: Optional[Array] = None):
         """Initialize
@@ -168,7 +168,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         self.dissipator_operators = dissipator_operators
         self.drift = drift
 
-    def evaluate_without_state(self, signal_values: Array) -> Array:
+    def evaluate_generator(self, signal_values: Array) -> Array:
         raise ValueError("Dense Lindblad collections cannot be evaluated without a state.")
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
@@ -180,7 +180,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             Hamiltonian matrix."""
         return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
 
-    def evaluate_with_state(self, signal_values: list[Array], y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: list[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as (A+B)y + y(A-B) + C, where

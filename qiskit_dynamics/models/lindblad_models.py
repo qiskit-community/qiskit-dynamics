@@ -217,7 +217,7 @@ class LindbladModel(GeneratorModel):
             #Take y out of the frame, but keep in the frame basis
             rhs = self.frame.operator_out_of_frame(time,y,operator_in_frame_basis=in_frame_basis,return_in_frame_basis=True)
 
-            rhs = self._operator_collection.evaluate_with_state(
+            rhs = self._operator_collection.evaluate_rhs(
                 [hamiltonian_sig_vals, dissipator_sig_vals], rhs
             )
 
@@ -225,7 +225,7 @@ class LindbladModel(GeneratorModel):
             rhs = self.frame.operator_into_frame(time,rhs,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis)
 
         else:
-            rhs = self._operator_collection.evaluate_with_state(
+            rhs = self._operator_collection.evaluate_rhs(
                 [hamiltonian_sig_vals, dissipator_sig_vals], y
             )
 
