@@ -475,6 +475,7 @@ class Frame(BaseFrame):
         frame_operator: Union[BaseFrame, Operator, Array],
         atol: float = 1e-10,
         rtol: float = 1e-10,
+        vectorized_operators: Optional[bool] = False
     ):
         """Initialize with a frame operator.
 
@@ -485,8 +486,10 @@ class Frame(BaseFrame):
                   Hermitian or anti-Hermitian.
             rtol: relative tolerance when verifying that the frame_operator is
                   Hermitian or anti-Hermitian.
+            vectorized_operators: whether operators/generators passed to 
+                    this Frame will be assumed to be vectorized or not.
         """
-
+        self.vectorized_operators = vectorized_operators
         if issubclass(type(frame_operator), BaseFrame):
             frame_operator = frame_operator.frame_operator
 
@@ -524,6 +527,19 @@ class Frame(BaseFrame):
             self._frame_basis_adjoint = frame_basis.conj().transpose()
             self._dim = len(self._frame_diag)
 
+    @property
+    def vectorized_operators(self) -> bool:
+        """Whether operators for operators_into_frame
+        are assumed to be vectorized (as a dim^2 vector)
+        or as a (dim,dim) Array"""
+        return self._vectorized_operators
+
+    @vectorized_operators.setter
+    def vectorized_operators(self,vec_op):
+        """Sets whether operators for operators_into_frame
+        are assumed to be (dim^2) vectors or (dim,dim) Arrays"""
+        self._vectorized_operators = vec_op
+    
     @property
     def dim(self) -> int:
         """The dimension of the frame."""
@@ -625,6 +641,9 @@ class Frame(BaseFrame):
         Note: B is added in the frame basis before any potential final change
         out of the frame basis.
         """
+        if self.vectorized_operators:
+            operator = operator.reshape((self.dim,self.dim),order="F")
+
         if self._frame_operator is None:
             if op_to_add_in_fb is None:
                 return to_array(operator)
@@ -650,6 +669,9 @@ class Frame(BaseFrame):
         # if output is requested to not be in the frame basis, convert it
         if not return_in_frame_basis:
             out = self.operator_out_of_frame_basis(out)
+
+        if self.vectorized_operators:
+            out = out.flatten(order="F")
 
         return out
 
