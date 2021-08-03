@@ -673,7 +673,7 @@ class Frame(BaseFrame):
 
         if self.vectorized_operators:
             # much slower than the reshape operation
-            out = out.reshape((self.dim*self.dim,)+out.shape[2:])
+            out = out.reshape((self.dim*self.dim,)+out.shape[2:],order="F")
 
         return out
 
