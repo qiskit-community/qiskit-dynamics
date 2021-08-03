@@ -15,7 +15,7 @@ t_eval = np.arange(0., t_f, step)
 r_qubits = range(N)
 subsystems = OrderedDict()
 H = .5 * Sz(0)
-rho_0 = .5 *(Sid(0) + Sz(0))
+rho_0 = .5 *(Id(0) + Sz(0))
 noise_signals = [Signal(g1)] * N
 noise_operators = []; obs_1q = []; obs_2q = []
 
@@ -25,7 +25,7 @@ for i_qubit in r_qubits:
 	if i_qubit > 0:
 		H += .5 * Sz(i_qubit)
 		H += .5 * Jz * Sz(i_qubit - 1) * Sz(i_qubit)
-		rho_0 *= .5 *(Sid(i_qubit) - Sx(i_qubit))
+		rho_0 *= .5 *(Id(i_qubit) - Sx(i_qubit))
 		obs_2q.append(Sz(i_qubit - 1) * Sz(i_qubit))
 	noise_operators.append(Sp(i_qubit))
 
@@ -45,14 +45,14 @@ tmp = 2
 # Exceptions below, WIP
 
 # sim_prune = DenseSimulationBuilder(sim_def)
-# subsystems_pruned = subsystems.copy()
+# subsystems_pruned = subsystem_dims.copy()
 # subsystems_pruned[2] = 0
 # subsystems_pruned[3] = 0
 # sim_prune.build(subsystems_pruned)
 # sim_prune.solve()
 #
 # sim_mpo = MPOSimulationBuilder(sim_def)
-# sim_mpo.build(subsystems[0:2])
+# sim_mpo.build(subsystem_dims[0:2])
 # sim_mpo.solve()
 
 # plot comparative graphs

@@ -20,8 +20,7 @@ class SimulationDef:
 				 noise_operators: Optional[Union[List[Array], List[Operator], List[DynamicalOperator]]] = None,
 				 noise_signals: Optional[Union[List[Signal], SignalList]] = None,
 				 observable_operators: Optional[Union[List[Array], List[Operator], List[DynamicalOperator]]] = None,
-				 observable_labels: Optional[List] = None,
-				 dyn_op: Optional[DynamicalOperator] = None):
+				 observable_labels: Optional[List] = None):
 		"""Initialize the definition of a dynamical simulation.
 
 		Args:
@@ -40,9 +39,6 @@ class SimulationDef:
 		self.noise_signals = noise_signals
 		self.observable_operators = observable_operators
 		self.observable_labels = observable_labels
-		if dyn_op is None:
-			dyn_op = DynamicalOperator()
-		self.dyn_op = dyn_op
 
 
 class SimulationBuilder(ABC):
