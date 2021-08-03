@@ -178,7 +178,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             Hamiltonian matrix."""
         return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
 
-    def evaluate_rhs(self, signal_values: list[Array], y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as (A+B)y + y(A-B) + C, where
@@ -281,7 +281,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
             np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self._drift_terms
         ).flatten(order="F")
 
-    def evaluate_rhs(self, signal_values: Union[list[Array], Array], y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
         """Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
