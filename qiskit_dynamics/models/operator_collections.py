@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Union, List, Optional, Callable
 from copy import deepcopy
 import numpy as np
-
+from scipy.sparse import csr_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
 
@@ -111,6 +111,21 @@ class DenseOperatorCollection(BaseOperatorCollection):
         """
         self._operators = to_array(operators)
         self.drift = drift
+
+class SparseOperatorCollection(BaseOperatorCollection):
+    r"""Meant to be a calculation object for models that
+    only ever need left multiplication–those of the form
+    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j + G_d.
+    Can evaluate G(t) independently of y. G_j and G_d are
+    sparse matrices. 
+    """
+    def __init__(self,operators: Array, drift: Optional[Array] = None):
+        """Initialize
+        Args:
+            operators: (k,n,n) Array specifying the terms G_j
+            drift: (n,n) Array specifying the drift term G_d"""
+        num_operators = operators.shape[0]
+        
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
