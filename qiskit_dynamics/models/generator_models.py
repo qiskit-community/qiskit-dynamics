@@ -25,7 +25,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import DenseOperatorCollection
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.signals import Signal, SignalList
+from qiskit_dynamics.signals import Signal, SignalList,SignalSum
 from .frame import BaseFrame, Frame
 
 
@@ -500,7 +500,7 @@ def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union
     frame_freqs = diff_matrix.imag/(2*np.pi)
 
     new_drift = model.frame.operator_out_of_frame_basis(model.drift+np.diag(model.frame.frame_diag))
-    new_drift = new_drift*(abs(frame_freqs)<cutoff_freq).astype(int)
+    new_drift = deepcopy(new_drift*(abs(frame_freqs)<cutoff_freq).astype(int))
 
     num_components = len(model.signals)
     frame_freqs = np.broadcast_to(frame_freqs,(num_components,n,n))
@@ -516,15 +516,20 @@ def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union
     B = model.operators*(pos_pass & np.logical_not(neg_pass)).astype(int)
     C = model.operators*(np.logical_not(pos_pass) & neg_pass).astype(int)
     normal_operators = A + B/2 + C/2
-    normal_signals = model.signals.components
+    model_signal_sums = model.signals.components
     abnormal_operators = 1j*B/2-1j*C/2
+    normal_signals = []
     abnormal_signals = []
-    for sig in normal_signals:
-        abnormal_signals.append(Signal(sig.envelope,sig.carrier_freq,sig.phase-np.pi/2))
-    new_signals = SignalList(normal_signals + abnormal_signals)
-    new_operators = model.frame.operator_out_of_Frame_basis(np.append(normal_operators,abnormal_operators,axis=0))
+    for sig_sum in model_signal_sums:
+        if len(sig_sum.components)>1:
+            raise NotImplementedError("RWA where the coefficients s_j are not pure Signal objects is not currently supported.")
+        sig = sig_sum.components[0]
+        normal_signals.append(sig)
+        abnormal_signals.append(SignalSum(Signal(sig.envelope,sig.carrier_freq,sig.phase-np.pi/2)))
+    new_signals = deepcopy(SignalList(normal_signals + abnormal_signals))
+    new_operators = deepcopy(model.frame.operator_out_of_frame_basis(np.append(normal_operators,abnormal_operators,axis=0)))
 
-    new_model = GeneratorModel(new_operators,drift=new_drift,signals=new_signals,frame=model.frame.frame_operator)
+    new_model = GeneratorModel(new_operators,drift=new_drift,signals=new_signals,frame=deepcopy(model.frame.frame_operator))
     return new_model
 
 
