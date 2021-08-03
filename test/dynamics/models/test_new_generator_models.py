@@ -25,12 +25,13 @@ from qiskit_dynamics.models.operator_collections import (
     DenseOperatorCollection,
     DenseLindbladCollection,
 )
+from qiskit_dynamics.models.generator_models import perform_rotating_wave_approximation
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
-class TestDenseOperatorCollection(QiskitDynamicsTestCase):
+class TestGeneratorModel(QiskitDynamicsTestCase):
     """Tests for GeneratorModel."""
 
     def setUp(self):
@@ -459,8 +460,22 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
                 gm.evaluate_rhs(t, vectorized_states[:, i], in_frame_basis=True),
             )
 
+    def test_RWA(self):
+        frame_op = np.array([[4j,1j],[1j,2j]])
+        sigs = SignalList([Signal(1+1j*k,k/3,np.pi/2*k) for k in range(1,4)])
+        self.assertAllClose(sigs(0),np.array([-1,-1,3]))
+        ops=np.array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]])
 
-class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
+        GM=GeneratorModel(ops,drift=None,signals=sigs,frame=frame_op)
+        self.assertAllClose(GM(0),np.array([[3-4j,-1],[-1-2j,-3-2j]]))
+        self.assertAllClose(GM(1),[[-0.552558 - 4j, 3.18653 - 1.43887j], [3.18653 - 0.561126j, 0.552558 - 2j]],rtol=1e-5)
+        GM2=perform_rotating_wave_approximation(GM,1/2/np.pi)
+        self.assertAllClose(GM2.signals(0),[-1,-1,3,1,-2,-1])
+        self.assertAllClose(GM2(0),[[0.25 - 4.j, -0.25 - 0.646447j], [-0.25 - 1.35355j, -0.25 - 2.j]],rtol=1e-5)
+        self.assertAllClose(GM2(1),[[0.0181527 - 4.j, -0.0181527 - 0.500659j], [-0.0181527 - 1.49934j, -0.0181527 - 2.j]],rtol=1e-5)
+
+
+class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
     """Jax version of TestGeneratorModel tests.
 
     Note: This class has no body but contains tests due to inheritance.
