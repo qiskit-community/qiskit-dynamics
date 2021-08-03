@@ -60,7 +60,7 @@ class BaseGeneratorModel(ABC):
 
     @property
     @abstractmethod
-    def operators(self) -> Union[Array, list[Array]]:
+    def operators(self) -> Union[Array, List[Array]]:
         """Get the originally passed operators by the user"""
         pass
 
