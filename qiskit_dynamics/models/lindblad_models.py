@@ -53,6 +53,16 @@ class LindbladModel(GeneratorModel):
           :math:`j^{th}` Lindblad operator.
     """
 
+    ###Need to add signal setting functionality. Currently does not have it.
+
+    @property
+    def signals(self) -> List[Array]:
+        return [self._hamiltonian_signals,self._dissipator_signals]
+
+    @property
+    def signals(self,new_signals: List[Array]):
+        self._hamiltonian_signals,self._dissipator_signals = new_signals
+
     @property
     def operators(self) -> List[Array]:
         return [self._hamiltonian_operators, self._dissipator_operators]
