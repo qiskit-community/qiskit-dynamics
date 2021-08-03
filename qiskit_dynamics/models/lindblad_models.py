@@ -54,7 +54,7 @@ class LindbladModel(GeneratorModel):
     """
 
     @property
-    def operators(self) -> list[Array]:
+    def operators(self) -> List[Array]:
         return [self._hamiltonian_operators, self._dissipator_operators]
 
     @property
