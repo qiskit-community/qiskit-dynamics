@@ -16,6 +16,8 @@ Generator models module.
 """
 
 from abc import ABC, abstractmethod
+from qiskit_dynamics.models.lindblad_models import LindbladModel
+from qiskit_dynamics.models.hamiltonian_models import HamiltonianModel
 from typing import Callable, Union, List, Optional
 from copy import deepcopy
 import numpy as np
@@ -437,7 +439,40 @@ class GeneratorModel(BaseGeneratorModel):
 
         return out
 
-def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union[float,int]) -> GeneratorModel:
+def _get_new_operators(current_ops,current_sigs,frame,frame_freqs,cutoff_freq):
+    num_components = len(current_sigs)
+    n = current_ops.shape[-1]
+
+    frame_freqs = np.broadcast_to(frame_freqs,(num_components,n,n))
+
+    carrier_freqs = []
+    normal_signals = []
+    abnormal_signals = []
+    for sig_sum in current_sigs.components:
+        if len(sig_sum.components)>1:
+            raise NotImplementedError("RWA where the coefficients s_j are not pure Signal objects is not currently supported.")
+        sig = sig_sum.components[0]
+        carrier_freqs.append(sig.carrier_freq)
+        normal_signals.append(sig)
+        abnormal_signals.append(SignalSum(Signal(sig.envelope,sig.carrier_freq,sig.phase-np.pi/2)))
+    carrier_freqs = np.array(carrier_freqs).reshape((num_components,1,1))
+
+    pos_pass = np.abs(carrier_freqs + frame_freqs) < cutoff_freq
+    neg_pass = np.abs(-carrier_freqs+ frame_freqs) < cutoff_freq
+
+    A = current_ops*(pos_pass & neg_pass).astype(int)
+    B = current_ops*(pos_pass & np.logical_not(neg_pass)).astype(int)
+    C = current_ops*(np.logical_not(pos_pass) & neg_pass).astype(int)
+    
+    normal_operators = A + B/2 + C/2
+    abnormal_operators = 1j*B/2-1j*C/2
+
+    new_signals = (SignalList(normal_signals + abnormal_signals))
+    new_operators = frame.operator_out_of_frame_basis(np.append(normal_operators,abnormal_operators,axis=0))
+
+    return new_signals,new_operators
+
+def perform_rotating_wave_approximation(model: Union[GeneratorModel,HamiltonianModel],cutoff_freq: Union[float,int]) -> Union[GeneratorModel,HamiltonianModel]:
     r"""Performs RWA on a GeneratorModel so that all terms that 
     rotate with complex frequency larger than cutoff_freq are 
     discarded. In particular, let G(t) = \sum_j s_j(t) G_j + G_d,
@@ -490,6 +525,8 @@ def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union
     
     """
 
+    ##TODO Make function idempotent
+
     if model.frame is None or model.frame.frame_diag is None:
         return model
 
@@ -499,32 +536,27 @@ def perform_rotating_wave_approximation(model: GeneratorModel,cutoff_freq: Union
     diff_matrix = np.broadcast_to(diag,(n,n)) - np.broadcast_to(diag,(n,n)).T
     frame_freqs = diff_matrix.imag/(2*np.pi)
 
-    new_drift = model.frame.operator_out_of_frame_basis(model.drift+np.diag(model.frame.frame_diag))
-    new_drift = new_drift*(abs(frame_freqs)<cutoff_freq).astype(int)
+    curr_drift = model.frame.operator_out_of_frame_basis(model.drift+np.diag(model.frame.frame_diag))
+    new_drift = curr_drift*(abs(frame_freqs)<cutoff_freq).astype(int)
 
     num_components = len(model.signals)
     frame_freqs = np.broadcast_to(frame_freqs,(num_components,n,n))
-    
-    carrier_freqs = []
-    for sig in model.signals.components:
-        carrier_freqs.append(sig.carrier_freq)
-    carrier_freqs = np.array(carrier_freqs).reshape((num_components,1,1))
-    
-    pos_pass = np.abs(carrier_freqs + frame_freqs) < cutoff_freq
-    neg_pass = np.abs(-carrier_freqs+ frame_freqs) < cutoff_freq
-    A = model.operators*(pos_pass & neg_pass).astype(int)
-    B = model.operators*(pos_pass & np.logical_not(neg_pass)).astype(int)
-    C = model.operators*(np.logical_not(pos_pass) & neg_pass).astype(int)
-    normal_operators = A + B/2 + C/2
-    normal_signals = model.signals.components
-    abnormal_operators = 1j*B/2-1j*C/2
-    abnormal_signals = []
-    for sig in normal_signals:
-        abnormal_signals.append(Signal(sig.envelope,sig.carrier_freq,sig.phase-np.pi/2))
-    new_signals = SignalList(normal_signals + abnormal_signals)
-    new_operators = model.frame.operator_out_of_Frame_basis(np.append(normal_operators,abnormal_operators,axis=0))
 
-    new_model = GeneratorModel(new_operators,drift=new_drift,signals=new_signals,frame=model.frame.frame_operator)
+    if isinstance(model,GeneratorModel):
+        new_signals,new_operators=_get_new_operators(model.operators,model.signals,model.frame,frame_freqs,cutoff_freq)
+        if isinstance(model,HamiltonianModel):
+            new_model = HamiltonianModel(new_operators,drift=new_drift,signals=new_signals,frame=model.frame.frame_operator,evaluation_mode=model.evaluation_mode)
+        else:
+            new_model = GeneratorModel(new_operators,drift=new_drift,signals=new_signals,frame=(model.frame.frame_operator),evaluation_mode=model.evaluation_mode)
+    elif isinstance(model,LindbladModel):
+        cur_ham_ops,cur_dis_ops = model.operators
+        cur_ham_sig,cur_dis_sig = model.signals
+
+        new_ham_sig,new_ham_ops = _get_new_operators(cur_ham_ops,cur_ham_sig,model.frame,frame_freqs,cutoff_freq)
+        if cur_dis_ops is not None and cur_dis_sig is not None:
+            new_dis_sig,new_dis_ops = _get_new_operators(cur_dis_ops,cur_dis_sig,model.frame,frame_freqs,cutoff_freq)
+
+        new_model = LindbladModel(new_ham_ops,new_ham_sig,new_dis_ops,new_dis_sig,new_drift,model.frame,model.evaluation_mode)
     return new_model
 
 
