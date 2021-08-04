@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Union, List, Optional
 from copy import deepcopy
 import numpy as np
+from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
 
@@ -121,12 +122,51 @@ class SparseOperatorCollection(BaseOperatorCollection):
     sparse matrices.
     """
 
+    @property
+    def drift(self) -> Array:
+        return super().drift
+
+    @drift.setter
+    def drift(self,new_drift):
+        if isinstance(new_drift,csr_matrix):
+            self._drift = csr_matrix(new_drift)
+        else:
+            self._drift = csr_matrix(new_drift)
+
     def __init__(self, operators: Array, drift: Optional[Array] = None):
         """Initialize
         Args:
             operators: (k,n,n) Array specifying the terms G_j
             drift: (n,n) Array specifying the drift term G_d"""
-        num_operators = operators.shape[0]
+        self.drift = drift
+        self._operators = np.empty(shape=operators.shape[0],dtype="O")
+        for i in range(operators.shape[0]):
+            self._operators[i] = csr_matrix(operators[i])
+
+    def evaluate_generator(self, signal_values: Array) -> csr_matrix:
+        r"""Evaluates the operator G at time t given
+        the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j
+        Returns: 
+            Generator as sparse array"""
+        if self._drift is None:
+            return np.tensordot(signal_values, self._operators, axes=1)
+        else:
+            return np.tensordot(signal_values, self._operators, axes=1) + self._drift
+
+    def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
+        if len(y.shape)==2:
+            # For y a matrix with y[:,i] storing the i^{th} state, it is faster to
+            # first evaluate the generator in most cases
+            gen = np.tensordot(signal_values,self._operators,axes=1) + self.drift
+            return gen.dot(y)
+        elif len(y.shape)==1:
+            # for y a vector, it is typically faster to use the following, very
+            # strange-looking implementation
+            tmparr=np.empty(shape=(1),dtype="O")
+            tmparr[0]=y
+            return np.dot(signal_values,self._operators*tmparr) + self.drift.dot(y)
+
+    
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
