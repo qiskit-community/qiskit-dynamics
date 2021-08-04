@@ -11,13 +11,12 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name,redundant-keyword-arg
 
-"""Tests for qiskit_dynamics.models.lindblad_models.py, 
+"""Tests for qiskit_dynamics.models.lindblad_models.py,
 after migration to the OperatorCollection system. Most
 of the actual calculation checking is handled at the level of a
 models.operator_collection.DenseLindbladOperatorCollection test."""
 
 import numpy as np
-from numpy import random as rand, vectorize
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
@@ -189,8 +188,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         value = lindblad_model(t, A, in_frame_basis=False)
 
         ham_coeffs = np.real(
-            rand_ham_coeffs.real
-            * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
+            rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
         )
         ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
 
@@ -222,8 +220,10 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertAllClose(f(-1j * frame_op), lindblad_model._operator_collection.drift)
         self.assertAllClose(expected, value)
         lindblad_model.evaluation_mode = "dense_vectorized_lindblad_collection"
-        vectorized_value = lindblad_model.evaluate_rhs(t,A.flatten(order="F"),in_frame_basis=False).reshape((dim,dim),order="F")
-        self.assertAllClose(value,vectorized_value)
+        vectorized_value = lindblad_model.evaluate_rhs(
+            t, A.flatten(order="F"), in_frame_basis=False
+        ).reshape((dim, dim), order="F")
+        self.assertAllClose(value, vectorized_value)
 
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):

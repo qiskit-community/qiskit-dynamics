@@ -475,7 +475,7 @@ class Frame(BaseFrame):
         frame_operator: Union[BaseFrame, Operator, Array],
         atol: float = 1e-10,
         rtol: float = 1e-10,
-        vectorized_operators: Optional[bool] = False
+        vectorized_operators: Optional[bool] = False,
     ):
         """Initialize with a frame operator.
 
@@ -486,7 +486,7 @@ class Frame(BaseFrame):
                   Hermitian or anti-Hermitian.
             rtol: relative tolerance when verifying that the frame_operator is
                   Hermitian or anti-Hermitian.
-            vectorized_operators: whether operators/generators passed to 
+            vectorized_operators: whether operators/generators passed to
                     this Frame will be assumed to be vectorized or not.
         """
         self.vectorized_operators = vectorized_operators
@@ -535,11 +535,11 @@ class Frame(BaseFrame):
         return self._vectorized_operators
 
     @vectorized_operators.setter
-    def vectorized_operators(self,vec_op):
+    def vectorized_operators(self, vec_op):
         """Sets whether operators for operators_into_frame
         are assumed to be (dim^2) vectors or (dim,dim) Arrays"""
         self._vectorized_operators = vec_op
-    
+
     @property
     def dim(self) -> int:
         """The dimension of the frame."""
@@ -643,7 +643,7 @@ class Frame(BaseFrame):
         """
         if self.vectorized_operators:
             # faster than the flatten operation later.
-            operator = operator.reshape((self.dim,self.dim)+operator.shape[1:],order="F")
+            operator = operator.reshape((self.dim, self.dim) + operator.shape[1:], order="F")
 
         if self._frame_operator is None:
             if op_to_add_in_fb is None:
@@ -673,7 +673,7 @@ class Frame(BaseFrame):
 
         if self.vectorized_operators:
             # much slower than the reshape operation
-            out = out.reshape((self.dim*self.dim,)+out.shape[2:],order="F")
+            out = out.reshape((self.dim * self.dim,) + out.shape[2:], order="F")
 
         return out
 
