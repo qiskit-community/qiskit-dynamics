@@ -22,7 +22,7 @@ import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.models.operator_collections import DenseOperatorCollection
+from qiskit_dynamics.models.operator_collections import DenseOperatorCollection, SparseOperatorCollection
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
@@ -318,6 +318,9 @@ class GeneratorModel(BaseGeneratorModel):
     def evaluation_mode(self, new_mode: str):
         if new_mode == "dense_operator_collection":
             self._operator_collection = DenseOperatorCollection(self._operators, drift=self.drift)
+            self._evaluation_mode = new_mode
+        if new_mode == "sparse_operator_collection":
+            self._operator_collection = SparseOperatorCollection(self._operators,self._drift)
             self._evaluation_mode = new_mode
 
     @property
