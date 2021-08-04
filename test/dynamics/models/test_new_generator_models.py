@@ -20,7 +20,7 @@ from scipy.linalg import expm
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import GeneratorModel, Frame
-from qiskit_dynamics.models.generator_models import perform_rotating_wave_approximation
+from qiskit_dynamics.models.rotating_wave import perform_rotating_wave_approximation
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
