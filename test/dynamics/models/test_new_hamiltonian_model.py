@@ -220,19 +220,8 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         self.assertAllClose(value, expected)
 
 
-def disp(to_display, decimals=2):
-    try:
-        mat = to_display.copy()
-        for s in mat.shape:
-            mat = mat[: min([3, s])]
-            mat = mat.transpose([j for j in range(1, len(mat.shape))] + [0])
-        print(np.round(mat, decimals))
-    except:
-        print(to_display)
+class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
+    """Jax version of TestHamiltonianModel tests.
 
-
-# class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
-#     """Jax version of TestHamiltonianModel tests.
-
-#     Note: This class has no body but contains tests due to inheritance.
-#     """
+    Note: This class has no body but contains tests due to inheritance.
+    """

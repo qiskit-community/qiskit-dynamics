@@ -17,18 +17,17 @@ Lindblad models module.
 
 from typing import Union, List, Optional
 import numpy as np
-from qiskit.exceptions import QiskitError
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from .generator_models import GeneratorModel
+from .generator_models import BaseGeneratorModel
 from .hamiltonian_models import HamiltonianModel
 from .operator_collections import DenseLindbladCollection, DenseVectorizedLindbladCollection
 from .frame import Frame
 
 
-class LindbladModel(GeneratorModel):
+class LindbladModel(BaseGeneratorModel):
     r"""A model of a quantum system in terms of the Lindblad master equation.
 
     The Lindblad master equation models the evolution of a density matrix according to:
@@ -53,15 +52,17 @@ class LindbladModel(GeneratorModel):
           :math:`j^{th}` Lindblad operator.
     """
 
-    ###Need to add signal setting functionality. Currently does not have it.
-
     @property
     def signals(self) -> List[Array]:
-        return [self._hamiltonian_signals,self._dissipator_signals]
+        """Gets the Model's Signals.
+        Returns:
+            list[Array] with 0th entry storing the Hamiltonian signals
+                and the 1st entry storing the dissipator signals."""
+        return [self._hamiltonian_signals, self._dissipator_signals]
 
-    @property
-    def signals(self,new_signals: List[Array]):
-        self._hamiltonian_signals,self._dissipator_signals = new_signals
+    @signals.setter
+    def signals(self, new_signals: List[Array]):
+        self._hamiltonian_signals, self._dissipator_signals = new_signals
 
     @property
     def operators(self) -> List[Array]:
@@ -80,22 +81,25 @@ class LindbladModel(GeneratorModel):
         """Sets evaluation mode.
         Args:
             new_mode: new mode for evaluation. Supported modes:
-                dense_lindblad_collection
-                dense_vectorized_lindblad_collection"""
+                dense_lindblad_collection (default)
+                dense_vectorized_lindblad_collection
+        Raises:
+            NotImplementedError: if a mode other than one of the
+            above is specified."""
         if new_mode == "dense_lindblad_collection":
             self._operator_collection = DenseLindbladCollection(
                 self._hamiltonian_operators,
                 drift=self.drift,
                 dissipator_operators=self._dissipator_operators,
             )
-            self.frame.vectorized_operators=False
+            self.frame.vectorized_operators = False
         elif new_mode == "dense_vectorized_lindblad_collection":
             self._operator_collection = DenseVectorizedLindbladCollection(
                 self._hamiltonian_operators,
                 drift=self.drift,
                 dissipator_operators=self._dissipator_operators,
             )
-            self.frame.vectorized_operators=True
+            self.frame.vectorized_operators = True
         elif new_mode is None:
             pass
         else:
@@ -123,6 +127,10 @@ class LindbladModel(GeneratorModel):
             frame: frame in which calcualtions are to be done.
                 If provided, it is assumed that all operators were
                 already in the frame basis.
+            evalutation_mode: String specifying the type of evaluation
+                to be used. Currently supported modes are:
+                    dense_lindblad_collection (default)
+                    dense_vectorized_lindblad_collection
 
         Raises:
             Exception: if signals incorrectly specified
@@ -180,6 +188,10 @@ class LindbladModel(GeneratorModel):
             hamiltonian: the :class:`HamiltonianModel`.
             dissipator_operators: list of dissipator operators.
             dissipator_signals: list of dissipator signals.
+            evaluation_mode: evaluation mode. Currently supported
+                modes are:
+                    dense_lindblad_collection (default)
+                    dense_vectorized_lindblad_collection
 
         Returns:
             LindbladModel: Linblad model from parameters.
@@ -230,13 +242,13 @@ class LindbladModel(GeneratorModel):
         self.evaluation_mode = self.evaluation_mode
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        if self.evaluation_mode != "dense_vectorized_lindblad_collection":
-            raise NotImplementedError(
-                "Non-vectorized Lindblad models cannot be represented without a given state without vectorization."
-            )
-        else:
+        if self.evaluation_mode == "dense_vectorized_lindblad_collection":
             return self._operator_collection.evaluate_generator(
                 [self._hamiltonian_signals(time), self._dissipator_signals(time)]
+            )
+        else:
+            raise NotImplementedError(
+                "Non-vectorized Lindblad models cannot be represented without a given state."
             )
 
     def evaluate_rhs(

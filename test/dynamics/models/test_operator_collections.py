@@ -13,21 +13,15 @@
 
 """Tests for operator_collections.py"""
 
-from qiskit.circuit.library.standard_gates import z
-from qiskit_dynamics.models import operator_collections
-from qiskit_dynamics.signals.signals import SignalList
 import numpy as np
 import numpy.random as rand
-from scipy.linalg import expm
-from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.models import GeneratorModel
 from qiskit_dynamics.models.operator_collections import (
     DenseOperatorCollection,
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
 )
-from qiskit_dynamics.signals import Signal
+from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -48,6 +42,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.simple_collection = DenseOperatorCollection(self.test_operator_list, drift=None)
 
     def test_known_values_basic_functionality(self):
+        """Test DenseOperatorCollection evaluation against
+        analytically known values."""
         res = self.simple_collection(self.sigvals)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
@@ -55,6 +51,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
 
     def test_basic_functionality_pseudorandom(self):
+        """Test DenseOperatorCollection evaluation
+        is correct by using pseudorandom arrays"""
         rand.seed(0)
         vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
         arr = rand.uniform(-1, 1, (32, 128, 128))
@@ -118,9 +116,6 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(res, expected)
 
         # Now, test if the dissipator terms also work as intended
-        (dissipator_operators @ rho @ dissipator_operators).shape
-
-        # Now, test if the dissipator terms also work as intended
         full_lindblad_collection = DenseLindbladCollection(
             hamiltonian_operators, drift=drift, dissipator_operators=dissipator_operators
         )
@@ -169,6 +164,9 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         pass
 
     def test_consistency_pseudorandom(self):
+        """Tests that the results from a DenseVectorizedLindbladCollection
+        are consistent with those from a DenseLindbladCollection,
+        up to flattening the involved arrays."""
         rand.seed(123098341)
         n = 16
         k = 4
@@ -212,6 +210,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho).flatten(order="F")
         b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho.flatten(order="F"))
         self.assertAllClose(a, b)
+
 
 class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
     """Jax version of TestDenseVectorizedLindbladCollection tests.

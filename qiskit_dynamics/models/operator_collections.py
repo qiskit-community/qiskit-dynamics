@@ -3,12 +3,12 @@
 """Generic operator for general linear maps"""
 
 from abc import ABC, abstractmethod
-from typing import Union, List, Optional, Callable
+from typing import Union, List, Optional
 from copy import deepcopy
 import numpy as np
-from scipy.sparse import csr_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
+
 
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
@@ -112,20 +112,21 @@ class DenseOperatorCollection(BaseOperatorCollection):
         self._operators = to_array(operators)
         self.drift = drift
 
+
 class SparseOperatorCollection(BaseOperatorCollection):
     r"""Meant to be a calculation object for models that
     only ever need left multiplication–those of the form
     \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j + G_d.
     Can evaluate G(t) independently of y. G_j and G_d are
-    sparse matrices. 
+    sparse matrices.
     """
-    def __init__(self,operators: Array, drift: Optional[Array] = None):
+
+    def __init__(self, operators: Array, drift: Optional[Array] = None):
         """Initialize
         Args:
             operators: (k,n,n) Array specifying the terms G_j
             drift: (n,n) Array specifying the drift term G_d"""
         num_operators = operators.shape[0]
-        
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
@@ -141,6 +142,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     @property
     def dissipator_operators(self):
+        """Gets dissipator operators as a (k,n,n) Array"""
         return self._dissipator_operators
 
     @dissipator_operators.setter
@@ -185,7 +187,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         raise ValueError("Dense Lindblad collections cannot be evaluated without a state.")
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
-        """Gets the Hamiltonian matrix, as calculated by the model,
+        r"""Gets the Hamiltonian matrix, as calculated by the model,
         and used for the commutator -i[H,y]
         Args:
             signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
@@ -223,7 +225,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             right_mult_contribution = np.matmul(y, -hamiltonian_matrix + dissipators_matrix)
 
             if len(y.shape) == 3:
-                # Must do array broadcasting and transposition to ensure vectorization works properly
+                # Must do array broadcasting and transposition to ensure vectorization works
                 y = np.broadcast_to(y, (1, y.shape[0], y.shape[1], y.shape[2])).transpose(
                     [1, 0, 2, 3]
                 )
@@ -243,7 +245,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
 
 class DenseVectorizedLindbladCollection(DenseOperatorCollection):
-    """Intended as a calculation object for the Lindblad equation,
+    r"""Intended as a calculation object for the Lindblad equation,
     \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)
             (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
     where all left-, right-, and left-and-right multiplication is
@@ -286,7 +288,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         super().__init__(total_ops, drift=vec_drift)
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
-        """Gets the Hamiltonian matrix, as calculated by the model,
+        r"""Gets the Hamiltonian matrix, as calculated by the model,
         and used for the commutator -i[H,y]
         Args:
             signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
@@ -297,7 +299,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         ).flatten(order="F")
 
     def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
-        """Evaluates the RHS of the Lindblad equation using
+        r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
             signal_values: either a list [ham_sig_values, dis_sig_values]
@@ -310,7 +312,6 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
             Vectorized RHS of Lindblad equation \dot{\rho} in column-stacking
                 convention."""
         if isinstance(signal_values, list):
-            #use of is is intentional; do _not_ want comparison e.g. if signal_values[1] is an Array
             if np.any(signal_values[1] != 0):
                 signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
             else:
