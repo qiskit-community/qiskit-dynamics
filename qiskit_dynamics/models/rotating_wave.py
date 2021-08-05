@@ -34,7 +34,7 @@ def _get_new_operators(
             in the rotating frame.
         cutoff_freq: maximum frequency allowed under the RWA.
     Returns:
-        tuple[SignalList,Array] Tuple of Signal objects (post RWA)
+        Tuple[SignalList,Array] Tuple of Signal objects (post RWA)
         and (2k,n,n) Array of new operators post RWA.
     Raises:
         NotImplementedError: if components s_j(t) are not equivalent
@@ -73,6 +73,8 @@ def _get_new_operators(
     return new_signals, new_operators
 
 def _get_new_signals(old_signal_list: Union[List[Signal],SignalList]):
+    """Helper function that converts pre-RWA
+    signals to post-RWA signals"""
     normal_signals = []
     abnormal_signals = []
     if not isinstance(old_signal_list,SignalList):
