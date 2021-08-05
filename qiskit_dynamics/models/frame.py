@@ -212,6 +212,7 @@ class BaseFrame(ABC):
         op_to_add_in_fb: Optional[Array] = None,
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
+        vectorized_operators: Optional[bool] = False,
     ) -> Array:
         r"""Generalized helper function for taking operators and generators
         into/out of the frame.
@@ -227,6 +228,8 @@ class BaseFrame(ABC):
             operator_in_frame_basis: Whether G is specified in the frame basis.
             return_in_frame_basis: Whether the returned result should be in the
                                    frame basis.
+            vectorized_operators: whether operators/generators passed are
+                vectorized or not
 
         Returns:
             Array:
@@ -238,6 +241,7 @@ class BaseFrame(ABC):
         operator: Union[Operator, Array],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
+        vectorized_operators: Optional[bool] = False,
     ) -> Array:
         r"""Bring an operator into the frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF)``
@@ -259,6 +263,7 @@ class BaseFrame(ABC):
             operator,
             operator_in_frame_basis=operator_in_frame_basis,
             return_in_frame_basis=return_in_frame_basis,
+            vectorized_operators=vectorized_operators
         )
 
     def operator_out_of_frame(
@@ -267,6 +272,7 @@ class BaseFrame(ABC):
         operator: Union[Operator, Array],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
+        vectorized_operators: Optional[bool] = False,
     ):
         r"""Bring an operator into the frame, i.e. return
         ``exp(tF) @ operator @ exp(-tF)``.
@@ -289,6 +295,7 @@ class BaseFrame(ABC):
             operator,
             operator_in_frame_basis=operator_in_frame_basis,
             return_in_frame_basis=return_in_frame_basis,
+            vectorized_operators=vectorized_operators
         )
 
     def generator_into_frame(
@@ -297,6 +304,7 @@ class BaseFrame(ABC):
         operator: Union[Operator, Array],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
+        vectorized_operators: Optional[bool] = False,
     ):
         r"""Take an generator into the frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF) - F``.
@@ -324,6 +332,7 @@ class BaseFrame(ABC):
                 op_to_add_in_fb=-np.diag(self.frame_diag),
                 operator_in_frame_basis=operator_in_frame_basis,
                 return_in_frame_basis=return_in_frame_basis,
+                vectorized_operators=vectorized_operators
             )
 
     def generator_out_of_frame(
@@ -475,7 +484,6 @@ class Frame(BaseFrame):
         frame_operator: Union[BaseFrame, Operator, Array],
         atol: float = 1e-10,
         rtol: float = 1e-10,
-        vectorized_operators: Optional[bool] = False,
     ):
         """Initialize with a frame operator.
 
@@ -486,10 +494,7 @@ class Frame(BaseFrame):
                   Hermitian or anti-Hermitian.
             rtol: relative tolerance when verifying that the frame_operator is
                   Hermitian or anti-Hermitian.
-            vectorized_operators: whether operators/generators passed to
-                    this Frame will be assumed to be vectorized or not.
         """
-        self.vectorized_operators = vectorized_operators
         if issubclass(type(frame_operator), BaseFrame):
             frame_operator = frame_operator.frame_operator
 
@@ -526,19 +531,6 @@ class Frame(BaseFrame):
             self._frame_basis = Array(frame_basis)
             self._frame_basis_adjoint = frame_basis.conj().transpose()
             self._dim = len(self._frame_diag)
-
-    @property
-    def vectorized_operators(self) -> bool:
-        """Whether operators for operators_into_frame
-        are assumed to be vectorized (as a dim^2 vector)
-        or as a (dim,dim) Array"""
-        return self._vectorized_operators
-
-    @vectorized_operators.setter
-    def vectorized_operators(self, vec_op):
-        """Sets whether operators for operators_into_frame
-        are assumed to be (dim^2) vectors or (dim,dim) Arrays"""
-        self._vectorized_operators = vec_op
 
     @property
     def dim(self) -> int:
@@ -634,15 +626,17 @@ class Frame(BaseFrame):
         op_to_add_in_fb: Optional[Array] = None,
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
+        vectorized_operators: Optional[bool] = False,
     ):
         r"""Concrete implementation of general helper function for computing
             exp(-tF)Gexp(tF) + B
 
         Note: B is added in the frame basis before any potential final change
         out of the frame basis.
+
         """
-        if self.vectorized_operators:
-            # faster than the flatten operation later.
+        if vectorized_operators:
+            # If passing vectorized operator, undo vectorization temporarily
             operator = operator.reshape((self.dim, self.dim) + operator.shape[1:], order="F")
 
         if self._frame_operator is None:
@@ -671,8 +665,8 @@ class Frame(BaseFrame):
         if not return_in_frame_basis:
             out = self.operator_out_of_frame_basis(out)
 
-        if self.vectorized_operators:
-            # much slower than the reshape operation
+        if vectorized_operators:
+            # If a vectorized output is required, reshape correctly
             out = out.reshape((self.dim * self.dim,) + out.shape[2:], order="F")
 
         return out
