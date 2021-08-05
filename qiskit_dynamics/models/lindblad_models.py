@@ -92,14 +92,13 @@ class LindbladModel(BaseGeneratorModel):
                 drift=self.drift,
                 dissipator_operators=self._dissipator_operators,
             )
-            self.frame.vectorized_operators = False
-        elif new_mode == "dense_vectorized_lindblad_collection":
+            self.vectorized_operators = False
             self._operator_collection = DenseVectorizedLindbladCollection(
                 self._hamiltonian_operators,
                 drift=self.drift,
                 dissipator_operators=self._dissipator_operators,
             )
-            self.frame.vectorized_operators = True
+            self.vectorized_operators = True
         elif new_mode is None:
             pass
         else:
@@ -273,7 +272,7 @@ class LindbladModel(BaseGeneratorModel):
 
             # Take y out of the frame, but keep in the frame basis
             rhs = self.frame.operator_out_of_frame(
-                time, y, operator_in_frame_basis=in_frame_basis, return_in_frame_basis=True
+                time, y, operator_in_frame_basis=in_frame_basis, return_in_frame_basis=True,vectorized_operators=self.vectorized_operators
             )
 
             rhs = self._operator_collection.evaluate_rhs(
@@ -282,7 +281,7 @@ class LindbladModel(BaseGeneratorModel):
 
             # Put rhs back into the frame, potentially converting its basis.
             rhs = self.frame.operator_into_frame(
-                time, rhs, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+                time, rhs, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis,vectorized_operators=self.vectorized_operators
             )
 
         else:
