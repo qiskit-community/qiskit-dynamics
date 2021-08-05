@@ -69,7 +69,7 @@ class LindbladModel(BaseGeneratorModel):
         return [self._hamiltonian_operators, self._dissipator_operators]
 
     @property
-    def hilbert_space_dimension(self) -> int:
+    def dim(self) -> int:
         return self._hamiltonian_operators.shape[-1]
 
     @property
@@ -81,18 +81,19 @@ class LindbladModel(BaseGeneratorModel):
         """Sets evaluation mode.
         Args:
             new_mode: new mode for evaluation. Supported modes:
-                dense_lindblad_collection (default)
-                dense_vectorized_lindblad_collection
+                dense (default)
+                dense_vectorized
         Raises:
             NotImplementedError: if a mode other than one of the
             above is specified."""
-        if new_mode == "dense_lindblad_collection":
+        if new_mode == "dense":
             self._operator_collection = DenseLindbladCollection(
                 self._hamiltonian_operators,
                 drift=self.drift,
                 dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = False
+        elif new_mode == "dense_vectorized":
             self._operator_collection = DenseVectorizedLindbladCollection(
                 self._hamiltonian_operators,
                 drift=self.drift,
@@ -113,7 +114,7 @@ class LindbladModel(BaseGeneratorModel):
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         drift: Optional[Array] = None,
         frame: Optional[Union[Operator, Array, Frame]] = None,
-        evaluation_mode: Optional[str] = "dense_lindblad_collection",
+        evaluation_mode: Optional[str] = "dense",
     ):
         """Initialize.
 
@@ -128,8 +129,8 @@ class LindbladModel(BaseGeneratorModel):
                 already in the frame basis.
             evalutation_mode: String specifying the type of evaluation
                 to be used. Currently supported modes are:
-                    dense_lindblad_collection (default)
-                    dense_vectorized_lindblad_collection
+                    dense (default)
+                    dense_vectorized
 
         Raises:
             Exception: if signals incorrectly specified
@@ -179,7 +180,7 @@ class LindbladModel(BaseGeneratorModel):
         hamiltonian: HamiltonianModel,
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        evaluation_mode: Optional[str] = "dense_lindblad_collection",
+        evaluation_mode: Optional[str] = "dense",
     ):
         """Construct from a :class:`HamiltonianModel`.
 
@@ -189,8 +190,8 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_signals: list of dissipator signals.
             evaluation_mode: evaluation mode. Currently supported
                 modes are:
-                    dense_lindblad_collection (default)
-                    dense_vectorized_lindblad_collection
+                    dense (default)
+                    dense_vectorized
 
         Returns:
             LindbladModel: Linblad model from parameters.
@@ -241,7 +242,7 @@ class LindbladModel(BaseGeneratorModel):
         self.evaluation_mode = self.evaluation_mode
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        if self.evaluation_mode == "dense_vectorized_lindblad_collection":
+        if self.evaluation_mode == "dense_vectorized":
             return self._operator_collection.evaluate_generator(
                 [self._hamiltonian_signals(time), self._dissipator_signals(time)]
             )

@@ -142,7 +142,7 @@ def perform_rotating_wave_approximation(
     if model.frame is None or model.frame.frame_diag is None:
         return model
 
-    n = model.hilbert_space_dimension
+    n = model.dim
     diag = model.frame.frame_diag
 
     diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T

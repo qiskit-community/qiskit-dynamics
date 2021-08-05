@@ -219,7 +219,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertAllClose(f(-1j * frame_op), lindblad_model.drift)
         self.assertAllClose(f(-1j * frame_op), lindblad_model._operator_collection.drift)
         self.assertAllClose(expected, value)
-        lindblad_model.evaluation_mode = "dense_vectorized_lindblad_collection"
+        lindblad_model.evaluation_mode = "dense_vectorized"
         vectorized_value = lindblad_model.evaluate_rhs(
             t, A.flatten(order="F"), in_frame_basis=False
         ).reshape((dim, dim), order="F")

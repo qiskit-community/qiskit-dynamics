@@ -54,7 +54,7 @@ class BaseGeneratorModel(ABC):
 
     @property
     @abstractmethod
-    def hilbert_space_dimension(self) -> int:
+    def dim(self) -> int:
         """Gets Hilbert space dimension."""
         pass
 
@@ -73,7 +73,7 @@ class BaseGeneratorModel(ABC):
     def drift(self, new_drift: Array):
         """Sets drift term."""
         if new_drift is None:
-            new_drift = np.zeros((self.hilbert_space_dimension, self.hilbert_space_dimension))
+            new_drift = np.zeros((self.dim, self.dim))
 
         new_drift = Array(np.array(new_drift))
         self._drift = new_drift
@@ -181,7 +181,7 @@ class CallableGenerator(BaseGeneratorModel):
         self._operator_collection = None
 
     @property
-    def hilbert_space_dimension(self) -> int:
+    def dim(self) -> int:
         return self._generator(0).shape[-1]
 
     @property
@@ -264,7 +264,7 @@ class GeneratorModel(BaseGeneratorModel):
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array, BaseFrame]] = None,
-        evaluation_mode: str = "dense_operator_collection",
+        evaluation_mode: str = "dense",
     ):
         """Initialize.
 
@@ -285,6 +285,10 @@ class GeneratorModel(BaseGeneratorModel):
                 array, it is interpreted as the diagonal of a
                 diagonal matrix. If provided, it is assumed that all
                 operators are in frame basis.
+            evaluation_mode: Flag for what type of evaluation should
+                be used. Currently supported options are
+                    dense (DenseOperatorCollection)
+                    sparse (SparseOperatorCollection)
         """
 
         # initialize internal operator representation
@@ -307,7 +311,7 @@ class GeneratorModel(BaseGeneratorModel):
         return self._operators
 
     @property
-    def hilbert_space_dimension(self) -> int:
+    def dim(self) -> int:
         return self._operators.shape[-1]
 
     @property
@@ -316,12 +320,14 @@ class GeneratorModel(BaseGeneratorModel):
 
     @evaluation_mode.setter
     def evaluation_mode(self, new_mode: str):
-        if new_mode == "dense_operator_collection":
+        if new_mode == "dense":
             self._operator_collection = DenseOperatorCollection(self._operators, drift=self.drift)
             self._evaluation_mode = new_mode
-        if new_mode == "sparse_operator_collection":
+        elif new_mode == "sparse":
             self._operator_collection = SparseOperatorCollection(self._operators,self._drift)
             self._evaluation_mode = new_mode
+        else:
+            raise NotImplementedError("Evaluation Mode " + str(new_mode) + " is not supported.")
 
     @property
     def signals(self) -> SignalList:

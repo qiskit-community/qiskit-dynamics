@@ -82,7 +82,7 @@ class HamiltonianModel(GeneratorModel):
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         frame: Optional[Union[Operator, Array]] = None,
         validate: bool = True,
-        evaluation_mode: str = "dense_operator_collection",
+        evaluation_mode: str = "dense",
     ):
         """Initialize, ensuring that the operators are Hermitian.
 
@@ -102,6 +102,10 @@ class HamiltonianModel(GeneratorModel):
                     all operators are in the frame basis. Assumed to store
                     the antihermitian matrix F = -iH.
             validate: If True check input operators are Hermitian.
+            evaluation_mode: Flag for what type of evaluation should
+                be used. Currently supported options are
+                    dense (DenseOperatorCollection)
+                    sparse (SparseOperatorCollection)
 
         Raises:
             Exception: if operators are not Hermitian
