@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from .dynamical_operators import *
 from ..models.lindblad_models import *
 from ..dispatch import Array
@@ -10,10 +12,12 @@ class SimulationDef:
 	"""A container for the defining elements of a dynamical simulation."""
 
 	def __init__(self,
-				 t_span: Optional[Array] = None,
-				 t_eval: Optional[Array] = None,
-				 t_obs: Optional[Array] = None,
+				 t_0: float = 0.,
+				 t_f: Optional[float] = None,
 				 dt: Optional[float] = None,
+				 n_steps: Optional[int] = None,
+				 t_eval: Optional[Union[List[float], Tuple[float]]] = None,
+				 t_obs: Optional[Union[List[float], Tuple[float]]] = None,
 				 initial_state: Union[Array, QuantumState, BaseOperator, DynamicalOperator] = None,
 				 hamiltonian_operators: Union[List[Array], List[Operator], List[DynamicalOperator]] = None,
 				 hamiltonian_signals: Union[List[Signal], SignalList] = None,
@@ -24,14 +28,30 @@ class SimulationDef:
 		"""Initialize the definition of a dynamical simulation.
 
 		Args:
-			t_span: ``Tuple`` or `list` of initial and final time.
-			t_eval: Times at which to return the solution. Must lie within ``t_span``.
+			# t_span: ``Tuple`` or `list` of initial and final time.
+			t_0: Initial simulation time, defaults to 0.
+			t_f : Final simulation time. Must either be specified explicitly, or is calculated
+				implicitly as ``t_f`` = ``t_0`` + ``n_steps`` * ``dt``, in which case ``n_steps``
+				and ``dt`` must be defined.
+			n_steps: Number of discrete time steps (``dt``) for fixed-time-step solvers. If it is
+				None and ``t_f`` and ``dt`` are specified, it is automatically calculated from the
+				formula above.
+			dt: Discretization step for fixed-time-step solvers. If it is None and``t_f`` and ``dt``
+				are specified, it is automatically calculated from the formula above.
+			t_eval: Times at which to store the solution. Must lie within ``t_0`` and ``t_f``. If
+				``dt`` is not None (or calculated implicitly), times must be multiples of ``dt``.
+			t_obs: Times at which to calculate and store observables. Must lie within ``t_0`` and
+				``t_f``. If ``dt`` is not None (or calculated implicitly), times must be multiples
+				of ``dt``.
 			initial_state: State at initial time.
 		"""
-		self.t_span = t_span
-		self.t_eval = t_eval
-		self.t_obs = t_obs
-		self.dt = dt
+		self.t_0 = None
+		self.t_f = None
+		self.dt = None
+		self.n_steps = None
+		self.t_eval = None
+		self.t_obs = None
+		self.set_simulation_times(t_0, t_f, dt, n_steps, t_eval, t_obs)
 		self.initial_state = initial_state
 		self.hamiltonian_operators = hamiltonian_operators
 		self.hamiltonian_signals = hamiltonian_signals
@@ -39,6 +59,52 @@ class SimulationDef:
 		self.noise_signals = noise_signals
 		self.observable_operators = observable_operators
 		self.observable_labels = observable_labels
+
+	def set_simulation_times(self,
+							 t_0: float = 0.,
+							 t_f: Optional[float] = None,
+							 dt: Optional[float] = None,
+							 n_steps: Optional[int] = None,
+							 t_eval: Optional[Union[List[float], Tuple[float]]] = None,
+							 t_obs: Optional[Union[List[float], Tuple[float]]] = None):
+		"""Set the simulation time and output times, implicitly calculating some parameters."""
+
+		if dt is not None and not dt > 0.:
+			raise Exception("dt must be a positive floating point number, or left as None.")
+		if n_steps is not None and not n_steps > 0:
+			raise Exception("n_steps must be a positive integer number, or left as None.")
+		if t_f is None:
+			t_f = t_0 + n_steps * dt
+			if t_f is None:
+				raise Exception("t_f is not set explicitly, and cannot be deduced from dt and n_steps"
+								"since these were not given valid values either.")
+		else:
+			if n_steps is not None and dt is not None:
+				t_f_ = t_0 + n_steps * dt
+				if abs(t_f_ - t_f) > dt / 2.:
+					raise Exception("Parameter t_f was given a value inconsistent with n_steps and dt.")
+			if n_steps is not None and dt is None:
+				dt = (t_f - t_0) / n_steps
+			if n_steps is None and dt is not None:
+				n_steps = int((t_f - t_0) / dt)  # Rounding down
+		self._verify_fixed_time_step(t_eval, dt, 't_eval')
+		self._verify_fixed_time_step(t_obs, dt, 't_obs')
+
+		self.t_0 = t_0
+		self.t_f = t_f
+		self.dt = dt
+		self.n_steps = n_steps
+		self.t_eval = t_eval
+		self.t_obs = t_obs
+
+	@staticmethod
+	def _verify_fixed_time_step(t_array, dt, s_param_name):
+		if t_array is not None and dt is not None:
+			for t in t_array:
+				t_mod = t % dt
+				if t_mod / dt > 1e-6:  # TODO some relative precision here
+					raise Exception(f'Times specified in {s_param_name} parameter must be integer'
+									' multiples of the fixed time step parameter dt.')
 
 
 class SimulationBuilder(ABC):
@@ -50,7 +116,14 @@ class SimulationBuilder(ABC):
 		self._build_options = None
 
 	@abstractmethod
-	def set_times(self, t_span, t_eval):
+	def set_simulation_times(self,
+							 t_0: float = 0.,
+							 t_f: Optional[float] = None,
+							 dt: Optional[float] = None,
+							 n_steps: Optional[int] = None,
+							 t_eval: Optional[Union[List[float], Tuple[float]]] = None,
+							 t_obs: Optional[Union[List[float], Tuple[float]]] = None):
+		"""Set the simulation time and output times."""
 		pass
 
 	@abstractmethod
@@ -76,10 +149,15 @@ class SimulationBuilderStaticModel(SimulationBuilder, ABC):
 	def __init__(self, sim_def: SimulationDef):
 		super().__init__(sim_def)
 
-	def set_times(self, t_span, t_eval):
-		"""Set the simulation time and output times, no side effects."""
-		self.sim_def.t_span = t_span
-		self.sim_def.t_eval = t_eval
+	def set_simulation_times(self,
+							 t_0: float = 0.,
+							 t_f: Optional[float] = None,
+							 dt: Optional[float] = None,
+							 n_steps: Optional[int] = None,
+							 t_eval: Optional[Union[List[float], Tuple[float]]] = None,
+							 t_obs: Optional[Union[List[float], Tuple[float]]] = None):
+		"""Set the simulation time and output times, no other side effects."""
+		self.sim_def.set_simulation_times(t_0, t_f, dt, n_steps, t_eval, t_obs)
 
 	def set_initial_state(self, initial_state):
 		"""Set the initial state, and possibly rebuild its concrete representation."""
@@ -113,14 +191,14 @@ class DenseSimulationBuilder(SimulationBuilderStaticModel):
 		self.obs_data = None
 		self.obs_matrices = []
 
-	def build(self, subsystems: Union[OrderedDict, None], build_options = None):
+	def build(self, subsystems: Optional[OrderedDict] = None, build_options = None):
 		"""Build the matrix representations of the model, initial state and observable operators.
 
 		Args:
 			subsystems: If operators are defined as instances of ``DynamicalOperator``, this argument
 			 	must be set to an ordered dictionary for each subsystem (identified using the system_id
 				field of the DynamicalOperator), indicating the matrix dimension to assign for
-				it, or 0 to discard it from the built results. Otherwise, this should be None.
+				it, or 0 to discard it from the built results. Otherwise, it should be None.
 			build_options: An optional dictionary with options used for building the operators and
 				Hamiltonian/Lindbladian model. The supported options are 'frame', 'cutoff_freq',
 				and 'validate', which are passed to the constructor of ``HamiltonianModel``.
@@ -154,8 +232,8 @@ class DenseSimulationBuilder(SimulationBuilderStaticModel):
 		Args:
 			kwargs: keyword arguments passed directly to the solver.
 		"""
-		sol = solve_lmde(self.model, t_span = self.sim_def.t_span, y0 = self.y0,
-						 t_eval = self.sim_def.t_eval, **kwargs)
+		sol = solve_lmde(self.model, t_span = (self.sim_def.t_0, self.sim_def.t_f),
+						 y0 = self.y0, t_eval = self.sim_def.t_eval, **kwargs)
 		n_obs = len(self.obs_matrices)
 		if n_obs == 0:
 			self.obs_data = None
@@ -172,8 +250,7 @@ class DenseSimulationBuilder(SimulationBuilderStaticModel):
 		initial_state = self.sim_def.initial_state
 		op_type = type(initial_state)
 		if issubclass(op_type, DynamicalOperator):
-			builder = OperatorBuilder()
-			self.y0 = DensityMatrix(builder.build_matrices(initial_state, self._subsystems))
+			self.y0 = DensityMatrix(build_matrices(initial_state, self._subsystems))
 		elif issubclass(op_type, QuantumState):
 			self.y0 = initial_state  # ? TODO
 		elif issubclass(op_type, BaseOperator) or issubclass(op_type, Array):
@@ -197,8 +274,7 @@ class DenseSimulationBuilder(SimulationBuilderStaticModel):
 							"must be passed as a list.")
 		op_labels = []
 		if issubclass(op_type, DynamicalOperator):
-			builder = OperatorBuilder()
-			op_matrices = builder.build_matrices(ops, self._subsystems)
+			op_matrices = build_matrices(ops, self._subsystems)
 		elif issubclass(op_type, BaseOperator) or issubclass(op_type, Array):
 			for op in ops:
 				if type(op) != op_type:
