@@ -470,7 +470,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
             [[-0.552558 - 4j, 3.18653 - 1.43887j], [3.18653 - 0.561126j, 0.552558 - 2j]],
             rtol=1e-5,
         )
-        GM2 = perform_rotating_wave_approximation(GM, 1 / 2 / np.pi)
+        GM2,f = perform_rotating_wave_approximation(GM, 1 / 2 / np.pi)
         self.assertAllClose(GM2.signals(0), [-1, -1, 3, 1, -2, -1])
         self.assertAllClose(
             GM2(0), [[0.25 - 4.0j, -0.25 - 0.646447j], [-0.25 - 1.35355j, -0.25 - 2.0j]], rtol=1e-5
