@@ -123,13 +123,17 @@ class SparseOperatorCollection(BaseOperatorCollection):
     """
 
     @property
+    def num_operators(self) -> int:
+        return self._operators.shape[0]
+
+    @property
     def drift(self) -> Array:
         return super().drift
 
     @drift.setter
     def drift(self,new_drift):
         if isinstance(new_drift,csr_matrix):
-            self._drift = csr_matrix(new_drift)
+            self._drift = new_drift
         else:
             self._drift = csr_matrix(new_drift)
 
