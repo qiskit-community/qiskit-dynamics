@@ -152,10 +152,11 @@ class SparseOperatorCollection(BaseOperatorCollection):
         the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j
         Returns: 
             Generator as sparse array"""
+        signal_values = signal_values.reshape(1,signal_values.shape[-1])
         if self._drift is None:
-            return np.tensordot(signal_values, self._operators, axes=1)
+            return np.tensordot(signal_values, self._operators, axes=1)[0]
         else:
-            return np.tensordot(signal_values, self._operators, axes=1) + self._drift
+            return np.tensordot(signal_values, self._operators, axes=1)[0] + self._drift
 
     def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
         if len(y.shape)==2:
