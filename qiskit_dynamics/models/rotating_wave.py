@@ -4,7 +4,7 @@
 on Model classes."""
 
 
-from typing import Union
+from typing import List, Union
 import numpy as np
 from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel, Frame
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
@@ -46,8 +46,6 @@ def _get_new_operators(
     frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
 
     carrier_freqs = []
-    normal_signals = []
-    abnormal_signals = []
     for sig_sum in current_sigs.components:
         if len(sig_sum.components) > 1:
             raise NotImplementedError(
@@ -55,10 +53,6 @@ def _get_new_operators(
             )
         sig = sig_sum.components[0]
         carrier_freqs.append(sig.carrier_freq)
-        normal_signals.append(sig)
-        abnormal_signals.append(
-            SignalSum(Signal(sig.envelope, sig.carrier_freq, sig.phase - np.pi / 2))
-        )
     carrier_freqs = np.array(carrier_freqs).reshape((num_components, 1, 1))
 
     pos_pass = np.abs(carrier_freqs + frame_freqs) < cutoff_freq
@@ -71,13 +65,32 @@ def _get_new_operators(
     normal_operators = both_terms + pos_terms / 2 + neg_terms / 2
     abnormal_operators = 1j * pos_terms / 2 - 1j * neg_terms / 2
 
-    new_signals = SignalList(normal_signals + abnormal_signals)
+    new_signals = _get_new_signals(current_sigs)
     new_operators = frame.operator_out_of_frame_basis(
         np.append(normal_operators, abnormal_operators, axis=0)
     )
 
     return new_signals, new_operators
 
+def _get_new_signals(old_signal_list: Union[List[Signal],SignalList]):
+    normal_signals = []
+    abnormal_signals = []
+    if not isinstance(old_signal_list,SignalList):
+        old_signal_list = SignalList(old_signal_list)
+    for sig_sum in old_signal_list.components:
+        if len(sig_sum.components) > 1:
+            raise NotImplementedError(
+                "RWA with coefficients s_j are not pure Signal objects is not currently supported."
+            )
+        sig = sig_sum.components[0]
+        normal_signals.append(sig)
+        abnormal_signals.append(
+            SignalSum(Signal(sig.envelope, sig.carrier_freq, sig.phase - np.pi / 2))
+        )
+
+    new_signals = SignalList(normal_signals + abnormal_signals)
+    
+    return new_signals
 
 def perform_rotating_wave_approximation(
     model: Union[GeneratorModel, HamiltonianModel], cutoff_freq: Union[float, int]
@@ -95,7 +108,9 @@ def perform_rotating_wave_approximation(
         frequency you wish to allow.
     Returns:
         GeneratorModel with twice as many terms
-        and some signals with negative frequencies
+        and some signals with negative frequencies,
+        function that converts pre-RWA signals to post-
+        RWA signals for signal setting.
     Raises:
         NotImplementedError: if components s_j(t) are not equivalent
         to pure Signal objects.
@@ -197,4 +212,4 @@ def perform_rotating_wave_approximation(
             model.frame,
             model.evaluation_mode,
         )
-    return new_model
+    return new_model,_get_new_signals
