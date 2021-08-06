@@ -23,7 +23,7 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_models import BaseGeneratorModel
 from .hamiltonian_models import HamiltonianModel
-from .operator_collections import DenseLindbladCollection, DenseVectorizedLindbladCollection
+from .operator_collections import DenseLindbladCollection, DenseVectorizedLindbladCollection, SparseLindbladCollection
 from .rotating_frame import RotatingFrame
 
 
@@ -82,6 +82,7 @@ class LindbladModel(BaseGeneratorModel):
         Args:
             new_mode: new mode for evaluation. Supported modes:
                 dense (default)
+                sparse
                 dense_vectorized
         Raises:
             NotImplementedError: if a mode other than one of the
@@ -93,6 +94,12 @@ class LindbladModel(BaseGeneratorModel):
                 dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = False
+        elif new_mode == "sparse":
+            self._operator_collection = SparseLindbladCollection(
+                self._hamiltonian_operators,
+                drift = self.drift,
+                dissipator_operators=self._dissipator_operators
+            )
         elif new_mode == "dense_vectorized":
             self._operator_collection = DenseVectorizedLindbladCollection(
                 self._hamiltonian_operators,
