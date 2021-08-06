@@ -24,7 +24,7 @@ from qiskit_dynamics.signals import Signal, SignalList
 from .generator_models import BaseGeneratorModel
 from .hamiltonian_models import HamiltonianModel
 from .operator_collections import DenseLindbladCollection, DenseVectorizedLindbladCollection
-from .frame import Frame
+from .rotating_frame import RotatingFrame
 
 
 class LindbladModel(BaseGeneratorModel):
@@ -113,7 +113,7 @@ class LindbladModel(BaseGeneratorModel):
         dissipator_operators: Array = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         drift: Optional[Array] = None,
-        frame: Optional[Union[Operator, Array, Frame]] = None,
+        frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: Optional[str] = "dense",
     ):
         """Initialize.
@@ -124,7 +124,7 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_operators: list of dissipator operators
             dissipator_signals: list of dissipator signals
             drift: Optional, constant term in Hamiltonian
-            frame: frame in which calcualtions are to be done.
+            frame: rotating frame in which calcualtions are to be done.
                 If provided, it is assumed that all operators were
                 already in the frame basis.
             evalutation_mode: String specifying the type of evaluation
@@ -211,7 +211,7 @@ class LindbladModel(BaseGeneratorModel):
         return self._frame
 
     @frame.setter
-    def frame(self, frame: Union[Operator, Array, Frame]):
+    def frame(self, frame: Union[Operator, Array, RotatingFrame]):
         if self._frame is not None and self._frame.frame_diag is not None:
             self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
 
@@ -224,7 +224,7 @@ class LindbladModel(BaseGeneratorModel):
                 )
             self.drift = self.frame.operator_out_of_frame_basis(self.drift)
 
-        self._frame = Frame(frame)
+        self._frame = RotatingFrame(frame)
 
         if self._frame.frame_diag is not None:
             self._hamiltonian_operators = self.frame.operator_into_frame_basis(
@@ -261,7 +261,7 @@ class LindbladModel(BaseGeneratorModel):
             using vectorized evaluation.
         in_frame_basis: whether the density matrix is in the
             frame already, and if the final result
-            is returned in the frame or not."""
+            is returned in the rotating frame or not."""
 
         hamiltonian_sig_vals = self._hamiltonian_signals(time)
         if self._dissipator_signals is not None:

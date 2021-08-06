@@ -84,7 +84,7 @@ from .solvers.fixed_step_solvers import scipy_expm_solver, jax_expm_solver
 from .solvers.scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .solvers.jax_odeint import jax_odeint
 
-from .models.frame import Frame
+from .models.rotating_frame import RotatingFrame
 from .models.generator_models import BaseGeneratorModel, CallableGenerator
 from .models import HamiltonianModel
 
@@ -206,12 +206,12 @@ def solve_lmde(
         method: Solving method to use.
         t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
                 the solution will be returned at the points in ``t_span``.
-        input_frame: Frame that the initial state is specified in. If ``input_frame == 'auto'``,
+        input_frame: RotatingFrame that the initial state is specified in. If ``input_frame == 'auto'``,
                      defaults to using the frame the generator is specified in.
-        solver_frame: Frame to solve the system in. If ``solver_frame == 'auto'``, defaults to
+        solver_frame: RotatingFrame to solve the system in. If ``solver_frame == 'auto'``, defaults to
                       using the drift of the generator when specified as a
                       :class:`BaseGeneratorModel`.
-        output_frame: Frame to return the results in. If ``output_frame == 'auto'``,
+        output_frame: RotatingFrame to return the results in. If ``output_frame == 'auto'``,
                      defaults to using the frame the generator is specified in.
         solver_cutoff_freq: Cutoff frequency to use (if any) for doing the rotating
                             wave approximation.
@@ -298,19 +298,19 @@ def setup_lmde_frames_and_generator(
     solver_frame: Optional[Union[str, Array]] = "auto",
     output_frame: Optional[Union[str, Array]] = "auto",
     solver_cutoff_freq: Optional[float] = None,
-) -> Tuple[Frame, Frame, BaseGeneratorModel]:
+) -> Tuple[RotatingFrame, RotatingFrame, BaseGeneratorModel]:
     """Helper function for setting up internally used :class:`BaseGeneratorModel`
     for :meth:`solve_lmde`.
 
     Args:
         input_generator: User-supplied generator.
         input_frame: Input frame for the problem.
-        solver_frame: Frame to solve in.
+        solver_frame: RotatingFrame to solve in.
         output_frame: Output frame for the problem.
         solver_cutoff_freq: Cutoff frequency to use when solving.
 
     Returns:
-        Frame, Frame, BaseGeneratorModel: input frame, output frame, and BaseGeneratorModel
+        RotatingFrame, RotatingFrame, BaseGeneratorModel: input frame, output frame, and BaseGeneratorModel
     """
 
     generator = None
@@ -325,12 +325,12 @@ def setup_lmde_frames_and_generator(
     if isinstance(input_frame, str) and input_frame == "auto":
         input_frame = generator.frame
     else:
-        input_frame = Frame(input_frame)
+        input_frame = RotatingFrame(input_frame)
 
     if isinstance(output_frame, str) and output_frame == "auto":
         output_frame = generator.frame
     else:
-        output_frame = Frame(output_frame)
+        output_frame = RotatingFrame(output_frame)
 
     # set solver frame
     # this must be done after input/output frames as it modifies the generator itself
@@ -343,7 +343,7 @@ def setup_lmde_frames_and_generator(
         else:
             generator.frame = anti_herm_part(generator.drift)
     else:
-        generator.frame = Frame(solver_frame)
+        generator.frame = RotatingFrame(solver_frame)
 
     generator.cutoff_freq = solver_cutoff_freq
 
@@ -437,8 +437,8 @@ def final_state_converter(obj: Any, cls: Optional[Type] = None) -> Any:
 def _jax_lmde_output_state_converter(
     times: Array,
     ys: Array,
-    solver_frame: Frame,
-    output_frame: Frame,
+    solver_frame: RotatingFrame,
+    output_frame: RotatingFrame,
     return_shape: Tuple,
     y0_cls: object,
 ) -> Union[List, Array]:
@@ -447,9 +447,9 @@ def _jax_lmde_output_state_converter(
     Args:
         times: Array of times.
         ys: Array of output states.
-        solver_frame: Frame of the solver (that the ys are specified in). Assumed
+        solver_frame: RotatingFrame of the solver (that the ys are specified in). Assumed
                       to be implemented with Jax backend.
-        output_frame: Frame to be converted to.
+        output_frame: RotatingFrame to be converted to.
         return_shape: Shape for output states.
         y0_cls: Output state return class.
 

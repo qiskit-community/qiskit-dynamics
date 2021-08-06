@@ -115,7 +115,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         # enter the frame given by the -1j * X
         self.basic_hamiltonian.frame = frame_op
 
-        # get the frame basis used in model. Note that the Frame object
+        # get the frame basis used in model. Note that the RotatingFrame object
         # orders the basis according to the ordering of eigh
         _, U = np.linalg.eigh(frame_op)
 

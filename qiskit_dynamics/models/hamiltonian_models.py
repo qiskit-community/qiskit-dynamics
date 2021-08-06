@@ -23,7 +23,7 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_array
 from .generator_models import GeneratorModel
-from .frame import Frame
+from .rotating_frame import RotatingFrame,BaseRotatingFrame
 
 
 class HamiltonianModel(GeneratorModel):
@@ -54,19 +54,19 @@ class HamiltonianModel(GeneratorModel):
     """
 
     @property
-    def frame(self) -> Frame:
+    def frame(self) -> RotatingFrame:
         return super().frame
 
     @frame.setter
-    def frame(self, frame: Union[Operator, Array, Frame]) -> Array:
-        """Sets frame. Frame objects will always store antihermitian F = -iH.
+    def frame(self, frame: Union[Operator, Array, RotatingFrame]) -> Array:
+        """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
         The drift needs to be adjusted by -H in the new frame."""
         if self._frame is not None and self._frame.frame_diag is not None:
             self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
             self._operators = self.frame.operator_out_of_frame_basis(self.operators)
             self.drift = self.frame.operator_out_of_frame_basis(self.drift)
 
-        self._frame = Frame(frame)
+        self._frame = RotatingFrame(frame)
 
         if self._frame.frame_diag is not None:
             self._operators = self.frame.operator_into_frame_basis(self.operators)
@@ -80,7 +80,7 @@ class HamiltonianModel(GeneratorModel):
         operators: List[Operator],
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        frame: Optional[Union[Operator, Array]] = None,
+        frame: Optional[Union[Operator, Array,BaseRotatingFrame]] = None,
         validate: bool = True,
         evaluation_mode: str = "dense",
     ):
@@ -96,10 +96,9 @@ class HamiltonianModel(GeneratorModel):
                      Signal objects, or as the inputs to signal_mapping.
                      OperatorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
-            frame: Rotating frame operator. If specified with a 1d array, it
-                    is interpreted as the diagonal of a diagonal matrix. If
-                    provided as part of the constructor, it is assumed that
-                    all operators are in the frame basis. Assumed to store
+            frame: Rotating frame operator / rotating frame object. 
+                    If specified with a 1d array, it is interpreted as the 
+                    diagonal of a diagonal matrix. Assumed to store 
                     the antihermitian matrix F = -iH.
             validate: If True check input operators are Hermitian.
             evaluation_mode: Flag for what type of evaluation should

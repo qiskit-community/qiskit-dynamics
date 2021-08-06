@@ -40,12 +40,12 @@ Tools for constructing generators for LMDEs.
 .. autosummary::
    :toctree: ../stubs/
 
-   BaseFrame
-   Frame
+   BaseRotatingFrame
+   RotatingFrame
    GeneratorModel
 """
 
-from .frame import BaseFrame, Frame
+from .rotating_frame import RotatingFrame
 from .generator_models import GeneratorModel
 from .hamiltonian_models import HamiltonianModel
 from .lindblad_models import LindbladModel
