@@ -19,7 +19,7 @@ import numpy.random as rand
 from scipy.linalg import expm
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.models import GeneratorModel, Frame
+from qiskit_dynamics.models import GeneratorModel,RotatingFrame
 from qiskit_dynamics.models.rotating_wave import perform_rotating_wave_approximation
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
@@ -366,7 +366,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.abs
         # Testing at the same time whether having Drift = None is an issue.
-        gm1 = GeneratorModel(paulis, signals=sarr, frame=Frame(farr))
+        gm1 = GeneratorModel(paulis, signals=sarr, frame=RotatingFrame(farr))
         gm2 = GeneratorModel(paulis, frame=farr)
         gm2.signals = SignalList(sarr)
         gm3 = GeneratorModel(paulis, frame=farr)

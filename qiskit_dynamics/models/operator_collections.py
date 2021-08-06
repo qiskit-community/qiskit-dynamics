@@ -24,7 +24,7 @@ class BaseOperatorCollection(ABC):
 
     Drift is a property that represents some time-independent
     component \Lambda_d of the decpmoosition, which will be
-    used to facilitate frame transformations."""
+    used to facilitate rotating frame transformations."""
 
     @property
     def drift(self) -> Array:

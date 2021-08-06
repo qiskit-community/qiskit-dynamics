@@ -6,7 +6,7 @@ on Model classes."""
 
 from typing import List, Union
 import numpy as np
-from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel, Frame
+from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel, RotatingFrame
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 
@@ -14,7 +14,7 @@ from qiskit_dynamics.dispatch import Array
 def _get_new_operators(
     current_ops: Array,
     current_sigs: SignalList,
-    frame: Frame,
+    frame: RotatingFrame,
     frame_freqs: Array,
     cutoff_freq: Union[float, int],
 ):
@@ -28,7 +28,7 @@ def _get_new_operators(
     Args:
         current_ops: the current operator list, (k,n,n) Array
         current_sigs: (k) length SignalList
-        frame: current Frame object of the pre-RWA model
+        frame: current RotatingFrame object of the pre-RWA model
         frame_freqs: the effective frequencies of different
             matrix elements due to the conjugation by e^{\pm Ft}
             in the rotating frame.
@@ -122,7 +122,7 @@ def perform_rotating_wave_approximation(
     multiplication s.t. (e^{-tF} A e^{tF})_{jk} = e^{(-d_j+d_k)t}*A_{jk}.
     When we write e^{-tF}(G(t)-F)e^{tF} = \sum_i e^{-tF} s_i(t)G_ie^{tF}
     + e^{-tF}(G_d-F)e^{tF} in order to take the RWA in the rotating frame,
-    we must consider the effect of rotations caused by the frame, with
+    we must consider the effect of rotations caused by the rotating frame, with
     frequency Im(-d_j-d_k)/(2*pi), as well as those due to the signal's
     rotation itself, where we write s_i(t) = Re[a_i(t)e^{i(2*pi*nu_i*t+phi_i)}]
     = a_i(t)e^{i(2*pi*nu_i*t-phi_i)}/2 + \bar{a_i(t)}e^{-i(2*pi*nu_i*t+phi_i)}/2. With this

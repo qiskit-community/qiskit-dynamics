@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Module for frame handling classes.
+Module for rotating frame handling classes.
 """
 
 from abc import ABC, abstractmethod
@@ -26,10 +26,10 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
 
 
-class BaseFrame(ABC):
+class BaseRotatingFrame(ABC):
     r"""Abstract base class for core frame handling functionality.
 
-    A 'frame' is given by an anti-Hermitian matrix :math:`F`, specified
+    A 'rotating frame' is given by an anti-Hermitian matrix :math:`F`, specified
     either directly, or in terms of a Hermitian matrix :math:`H` with
     :math:`F = -iH`. Frames have relevance within the context of linear
     matrix differential equations (LMDEs), which are of the form:
@@ -38,7 +38,7 @@ class BaseFrame(ABC):
 
         \dot{y}(t) = G(t)y(t).
 
-    For the above DE, 'entering the frame' specified by :math:`F`
+    For the above DE, 'entering the rotating frame' specified by :math:`F`
     corresponds to a change of state variable
     :math:`y(t) \mapsto z(t) = e^{-tF}y(t)`.
     Using the definition, we may write down a differential equation for
@@ -166,7 +166,7 @@ class BaseFrame(ABC):
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Take a state into the frame, i.e. return ``exp(-tF) @ y``.
+        r"""Take a state into the rotating frame, i.e. return ``exp(-tF) @ y``.
 
         Args:
             t: time
@@ -187,7 +187,7 @@ class BaseFrame(ABC):
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Take a state out of the frame, i.e. ``return exp(tF) @ y``.
+        r"""Take a state out of the rotating frame, i.e. ``return exp(tF) @ y``.
 
         Default implementation is to call ``self.state_into_frame``.
 
@@ -215,7 +215,7 @@ class BaseFrame(ABC):
         vectorized_operators: Optional[bool] = False,
     ) -> Array:
         r"""Generalized helper function for taking operators and generators
-        into/out of the frame.
+        into/out of the rotating frame.
 
         Given operator :math:`G`, and ``op_to_add_in_fb`` :math:`B`, returns
         :math:`exp(-tF)Gexp(tF) + B`, where :math:`B` is assumed to be
@@ -274,7 +274,7 @@ class BaseFrame(ABC):
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
     ):
-        r"""Bring an operator into the frame, i.e. return
+        r"""Bring an operator into the rotating frame, i.e. return
         ``exp(tF) @ operator @ exp(-tF)``.
 
         Default implmentation is to use `self.operator_into_frame`.
@@ -306,7 +306,7 @@ class BaseFrame(ABC):
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
     ):
-        r"""Take an generator into the frame, i.e. return
+        r"""Take an generator into the rotating frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF) - F``.
 
         Default implementation is to use `self._conjugate_and_add`.
@@ -454,7 +454,7 @@ class BaseFrame(ABC):
         been diagonalized.
 
         To use the output of this function to evalute the original operator
-        :math:`A(t)` in the frame, compute the linear combination
+        :math:`A(t)` in the rotating frame, compute the linear combination
 
         .. math::
             \frac{1}{2} \sum_j f_j(t) e^{i 2 \pi \nu t} A_j^+
@@ -474,14 +474,14 @@ class BaseFrame(ABC):
         """
 
 
-class Frame(BaseFrame):
+class RotatingFrame(BaseRotatingFrame):
     """Concrete implementation of `BaseFrame` implemented
     using `Array`.
     """
 
     def __init__(
         self,
-        frame_operator: Union[BaseFrame, Operator, Array],
+        frame_operator: Union[BaseRotatingFrame, Operator, Array],
         atol: float = 1e-10,
         rtol: float = 1e-10,
     ):
@@ -495,7 +495,7 @@ class Frame(BaseFrame):
             rtol: relative tolerance when verifying that the frame_operator is
                   Hermitian or anti-Hermitian.
         """
-        if issubclass(type(frame_operator), BaseFrame):
+        if issubclass(type(frame_operator), BaseRotatingFrame):
             frame_operator = frame_operator.frame_operator
 
         self._frame_operator = frame_operator
@@ -588,7 +588,7 @@ class Frame(BaseFrame):
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ):
-        """Take a state into the frame, i.e. return exp(-tF) @ y.
+        """Take a state into the rotating frame, i.e. return exp(-tF) @ y.
 
         Args:
             t: time

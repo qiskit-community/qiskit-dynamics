@@ -26,7 +26,7 @@ from qiskit_dynamics.models.operator_collections import DenseOperatorCollection,
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from .frame import BaseFrame, Frame
+from .rotating_frame import BaseRotatingFrame, RotatingFrame
 
 
 class BaseGeneratorModel(ABC):
@@ -42,7 +42,7 @@ class BaseGeneratorModel(ABC):
     to facilitate the use of this object in solving differential equations:
         - A "drift", which is meant to return the "time-independent" part of
           :math:`G(t)`
-        - A "frame", here specified as a :class:`BaseFrame` object, which
+        - A "frame", here specified as a :class:`BaseRotatingFrame` object, which
           represents an anti-Hermitian operator :math:`F`, specifying
           the transformation :math:`G(t) \mapsto G'(t) = e^{-tF}G(t)e^{tF} - F`.
 
@@ -100,15 +100,15 @@ class BaseGeneratorModel(ABC):
 
     @property
     @abstractmethod
-    def frame(self) -> BaseFrame:
+    def frame(self) -> BaseRotatingFrame:
         """Get the frame."""
         pass
 
     @property
     @abstractmethod
-    def frame(self, frame: BaseFrame):
-        """Set the frame; either an already instantiated :class:`Frame` object
-        a valid argument for the constructor of :class:`Frame`, or `None`.
+    def frame(self, frame: BaseRotatingFrame):
+        """Set the frame; either an already instantiated :class:`RotatingFrame` object
+        a valid argument for the constructor of :class:`RotatingFrame`, or `None`.
         Takes care of putting all operators into the basis in which the frame
         matrix F is diagonal.
         """
@@ -170,7 +170,7 @@ class CallableGenerator(BaseGeneratorModel):
     def __init__(
         self,
         generator: Callable,
-        frame: Optional[Union[Operator, Array, BaseFrame]] = None,
+        frame: Optional[Union[Operator, Array, BaseRotatingFrame]] = None,
         drift: Optional[Union[Operator, Array]] = None,
     ):
 
@@ -199,16 +199,16 @@ class CallableGenerator(BaseGeneratorModel):
         )
 
     @property
-    def frame(self) -> Frame:
+    def frame(self) -> RotatingFrame:
         """Return the frame."""
         return self._frame
 
     @frame.setter
-    def frame(self, frame: Union[Operator, Array, Frame]):
-        """Set the frame; either an already instantiated :class:`Frame` object
-        a valid argument for the constructor of :class:`Frame`, or `None`.
+    def frame(self, frame: Union[Operator, Array, RotatingFrame]):
+        """Set the frame; either an already instantiated :class:`RotatingFrame` object
+        a valid argument for the constructor of :class:`RotatingFrame`, or `None`.
         """
-        self._frame = Frame(frame)
+        self._frame = RotatingFrame(frame)
 
     def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
         return self.evaluate_generator(time, in_frame_basis=in_frame_basis) @ y
@@ -252,7 +252,7 @@ class GeneratorModel(BaseGeneratorModel):
     list of :class:`Signal` objects or a :class:`SignalList`.
 
     For specifying a frame, this object works with the concrete
-    :class:`Frame`, a subclass of :class:`BaseFrame`.
+    :class:`RotatingFrame`, a subclass of :class:`BaseRotatingFrame`.
 
     To do:
         insert mathematical description of frame/cutoff_freq handling
@@ -263,7 +263,7 @@ class GeneratorModel(BaseGeneratorModel):
         operators: Array,
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        frame: Optional[Union[Operator, Array, BaseFrame]] = None,
+        frame: Optional[Union[Operator, Array, BaseRotatingFrame]] = None,
         evaluation_mode: str = "dense",
     ):
         """Initialize.
@@ -300,7 +300,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         # set frame and transform operators into frame basis.
         self._frame = None
-        self.frame = Frame(frame)
+        self.frame = RotatingFrame(frame)
 
         # initialize signal-related attributes
         self._signals = None
@@ -359,18 +359,18 @@ class GeneratorModel(BaseGeneratorModel):
             self._signals = signals
 
     @property
-    def frame(self) -> Frame:
+    def frame(self) -> RotatingFrame:
         """Return the frame."""
         return self._frame
 
     @frame.setter
-    def frame(self, frame: Union[Operator, Array, Frame]):
+    def frame(self, frame: Union[Operator, Array, RotatingFrame]):
         if self._frame is not None and self._frame.frame_diag is not None:
             self.drift = self.drift + Array(np.diag(self._frame.frame_diag))
             self._operators = self.frame.operator_out_of_frame_basis(self._operators)
             self.drift = self.frame.operator_out_of_frame_basis(self.drift)
 
-        self._frame = Frame(frame)
+        self._frame = RotatingFrame(frame)
 
         if self._frame.frame_diag is not None:
             self._operators = self.frame.operator_into_frame_basis(self._operators)
@@ -411,7 +411,7 @@ class GeneratorModel(BaseGeneratorModel):
         Args:
             time: Time to evaluate the model
             y: (n) Array specifying system state, in basis choice specified by
-                in_frame_basis. If not in frame basis, assumed to not include
+                in_frame_basis. If not in rotating frame basis, assumed to not include
                 the rotating term e^{-Ft}. If in the frame basis, assumed to
                 include the rotating term e^{-Ft}.
             in_frame_basis: Whether to evaluate in the basis in which the frame
