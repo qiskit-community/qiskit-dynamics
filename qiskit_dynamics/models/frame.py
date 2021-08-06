@@ -514,8 +514,8 @@ class Frame(BaseFrame):
             frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
 
             self._frame_diag = Array(frame_operator)
-            self._frame_basis = Array(np.eye(len(frame_operator)))
-            self._frame_basis_adjoint = self.frame_basis
+            self._frame_basis = None
+            self._frame_basis_adjoint = None
             self._dim = len(self._frame_diag)
         # if not, diagonalize it
         else:
@@ -558,26 +558,26 @@ class Frame(BaseFrame):
         return self._frame_basis_adjoint
 
     def state_into_frame_basis(self, y: Array) -> Array:
-        if self._frame_operator is None:
+        if self.frame_basis_adjoint is None:
             return to_array(y)
 
         return self.frame_basis_adjoint @ y
 
     def state_out_of_frame_basis(self, y: Array) -> Array:
-        if self._frame_operator is None:
+        if self.frame_basis is None:
             return to_array(y)
 
         return self.frame_basis @ y
 
     def operator_into_frame_basis(self, op: Union[Operator, List[Operator], Array]) -> Array:
         op = to_array(op)
-        if self._frame_operator is None:
+        if self.frame_basis is None:
             return op
         return self.frame_basis_adjoint @ op @ self.frame_basis
 
     def operator_out_of_frame_basis(self, op: Union[Operator, Array]) -> Array:
         op = to_array(op)
-        if self._frame_operator is None:
+        if self.frame_basis is None:
             return op
         return self.frame_basis @ op @ self.frame_basis_adjoint
 
