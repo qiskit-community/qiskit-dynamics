@@ -49,3 +49,9 @@ from .frame import BaseFrame, Frame
 from .generator_models import GeneratorModel
 from .hamiltonian_models import HamiltonianModel
 from .lindblad_models import LindbladModel
+from .operator_collections import (DenseOperatorCollection,
+SparseOperatorCollection,
+DenseLindbladCollection,
+DenseVectorizedLindbladCollection,
+SparseLindbladCollection)
+from .rotating_wave import perform_rotating_wave_approximation
