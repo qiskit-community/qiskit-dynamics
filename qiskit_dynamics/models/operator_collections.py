@@ -137,15 +137,18 @@ class SparseOperatorCollection(BaseOperatorCollection):
         else:
             self._drift = csr_matrix(new_drift)
 
-    def __init__(self, operators: Array, drift: Optional[Array] = None):
+    def __init__(self, operators: Array, drift: Optional[Array] = None, tol: Optional[int] = 10,):
         """Initialize
         Args:
             operators: (k,n,n) Array specifying the terms G_j
-            drift: (n,n) Array specifying the drift term G_d"""
-        self.drift = drift
+            drift: (n,n) Array specifying the drift term G_d
+            tol: Values will be rounded at tol places after decimal place.
+                Chosen to avoid storing excess sparse entries for entries
+                sufficiently close to zero."""
+        self.drift = np.round(drift,tol)
         self._operators = np.empty(shape=operators.shape[0],dtype="O")
         for i in range(operators.shape[0]):
-            self._operators[i] = csr_matrix(operators[i])
+            self._operators[i] = csr_matrix(np.round(operators[i],tol))
 
     def evaluate_generator(self, signal_values: Array) -> csr_matrix:
         r"""Evaluates the operator G at time t given
@@ -370,6 +373,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         hamiltonian_operators: Array,
         drift: Array,
         dissipator_operators: Optional[Array] = None,
+        tol: Optional[int] = 10,
     ):
         r"""Converts an array of Hamiltonian components and signals,
         as well as Lindbladians, into a way of calculating the RHS
@@ -382,17 +386,20 @@ class SparseLindbladCollection(DenseLindbladCollection):
                 Hamiltonian of the system.
             dissipator_operators: the terms L_j in Lindblad equation.
                 (m,n,n) array.
+            tol: operator values will be rounded to tol places after the
+                decimal place to avoid excess storage of near-zero values
+                in sparse format.
         """
         
         self._hamiltonian_operators = np.empty(shape=hamiltonian_operators.shape[0],dtype="O")
         for i in range(hamiltonian_operators.shape[0]):
-            self._hamiltonian_operators[i] = csr_matrix(hamiltonian_operators[i])
-        self.drift = csr_matrix(drift)
+            self._hamiltonian_operators[i] = csr_matrix(np.round(hamiltonian_operators[i],tol))
+        self.drift = csr_matrix(np.round(drift,tol))
         if dissipator_operators is not None:
             self._dissipator_operators = np.empty(shape=dissipator_operators.shape[0],dtype="O")
             self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
             for i in range(dissipator_operators.shape[0]):
-                self._dissipator_operators[i] = csr_matrix(dissipator_operators[i])
+                self._dissipator_operators[i] = csr_matrix(np.round(dissipator_operators[i],tol))
                 self._dissipator_operators_conj[i] = self._dissipator_operators.conjutate().transpose()
             self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
 
