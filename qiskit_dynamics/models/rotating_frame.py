@@ -18,6 +18,7 @@ Module for rotating frame handling classes.
 from abc import ABC, abstractmethod
 from typing import Union, List, Optional, Tuple
 import numpy as np
+from scipy.sparse import issparse
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
@@ -573,13 +574,15 @@ class RotatingFrame(BaseRotatingFrame):
         op = to_array(op)
         if self.frame_basis is None:
             return op
-        return self.frame_basis_adjoint @ op @ self.frame_basis
+        # parentheses are necessary for sparse op as of writing this comment
+        return self.frame_basis_adjoint @ (op @ self.frame_basis)
 
     def operator_out_of_frame_basis(self, op: Union[Operator, Array]) -> Array:
         op = to_array(op)
         if self.frame_basis is None:
             return op
-        return self.frame_basis @ op @ self.frame_basis_adjoint
+        # parentheses are necessary for sparse op as of writing this comment
+        return self.frame_basis @ (op @ self.frame_basis_adjoint)
 
     def state_into_frame(
         self,
@@ -656,7 +659,10 @@ class RotatingFrame(BaseRotatingFrame):
         # diagonal gives inversion
         exp_freq = np.exp(t * self.frame_diag)
         frame_mat = np.outer(exp_freq.conj(), exp_freq)
-        out = frame_mat * out
+        if issparse(out):
+            out = out.multiply(frame_mat)
+        else:
+            out = frame_mat * out
 
         if op_to_add_in_fb is not None:
             out = out + op_to_add_in_fb

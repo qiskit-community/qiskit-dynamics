@@ -63,13 +63,13 @@ class HamiltonianModel(GeneratorModel):
         The drift needs to be adjusted by -H in the new frame."""
         if self._frame is not None and self._frame.frame_diag is not None:
             self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
-            self._operators = self.frame.operator_out_of_frame_basis(self.operators)
+            self._operators = self.frame.operator_out_of_frame_basis(self._operators)
             self.drift = self.frame.operator_out_of_frame_basis(self.drift)
 
         self._frame = RotatingFrame(frame)
 
         if self._frame.frame_diag is not None:
-            self._operators = self.frame.operator_into_frame_basis(self.operators)
+            self._operators = self.frame.operator_into_frame_basis(self._operators)
             self.drift = self.frame.operator_into_frame_basis(self.drift)
             self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
 
