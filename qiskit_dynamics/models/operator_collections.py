@@ -229,7 +229,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         self.drift = drift
 
     def evaluate_generator(self, signal_values: Array) -> Array:
-        raise ValueError("Dense Lindblad collections cannot be evaluated without a state.")
+        raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
         r"""Gets the Hamiltonian matrix, as calculated by the model,
