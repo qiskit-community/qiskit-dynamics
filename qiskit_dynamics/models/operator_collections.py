@@ -363,3 +363,90 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
                 signal_values = signal_values[0]
 
         return super().evaluate_rhs(signal_values, y)
+
+class SparseLindbladCollection(DenseLindbladCollection):
+    def __init__(
+        self,
+        hamiltonian_operators: Array,
+        drift: Array,
+        dissipator_operators: Optional[Array] = None,
+    ):
+        r"""Converts an array of Hamiltonian components and signals,
+        as well as Lindbladians, into a way of calculating the RHS
+        of the Lindblad equation.
+
+        Args:
+            hamiltonian_operators: Specifies breakdown of Hamiltonian
+                as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
+            drift: If supplied, treated as a constant term to be added to the
+                Hamiltonian of the system.
+            dissipator_operators: the terms L_j in Lindblad equation.
+                (m,n,n) array.
+        """
+        
+        self._hamiltonian_operators = np.empty(shape=hamiltonian_operators.shape[0],dtype="O")
+        for i in range(hamiltonian_operators.shape[0]):
+            self._hamiltonian_operators[i] = csr_matrix(hamiltonian_operators[i])
+        self.drift = csr_matrix(drift)
+        if dissipator_operators is not None:
+            self._dissipator_operators = np.empty(shape=dissipator_operators.shape[0],dtype="O")
+            self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
+            for i in range(dissipator_operators.shape[0]):
+                self._dissipator_operators[i] = csr_matrix(dissipator_operators[i])
+                self._dissipator_operators_conj[i] = self._dissipator_operators.conjutate().transpose()
+            self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
+
+    def evaluate_hamiltonian(self, signal_values: Array) -> csr_matrix:
+        return np.sum(signal_values * self._hamiltonian_operators,axis=-1) + self.drift
+
+    def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
+
+        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
+
+        if self._dissipator_operators is not None:
+            dissipators_matrix = (-1 / 2) * np.sum(signal_values[1] * self._dissipator_products,axis=-1)
+
+            left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
+            right_mult_contribution = np.matmul(y, -hamiltonian_matrix + dissipators_matrix)
+
+            # For fast matrix multiplicaiton we need to package (n,n) Arrays
+            # as (1) Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays
+            # of dtype object
+            y = package_density_matrices(y)
+
+            # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
+            both_mult_contribution = (signal_values[1]*self._dissipator_operators) * y * self._dissipator_operators_conj
+            # sum on i
+            both_mult_contribution = np.sum(both_mult_contribution,axis=-1)
+            if len(y.shape)==3:
+                # Very slow step, so avoid if not necessary (or if a better implementation found). Would
+                # need to map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
+                both_mult_contribution = unpackage_density_matrices(both_mult_contribution.reshape(y.shape[0],1))
+
+            return left_mult_contribution + right_mult_contribution + both_mult_contribution
+
+        else:
+            return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
+
+
+def package_density_matrices(y: Array) -> Array:
+    """Sends a (k,n,n) Array y of density matrices to a 
+    (k,1) Array of dtype object, where entry [j,0] is 
+    y[j]. Formally avoids For loops through vectorization.
+    Args:
+        y: (k,n,n) Array
+    Returns: 
+        Array with dtype object"""
+    # As written here, only works for (n,n) Arrays
+    obj_arr = np.empty(shape=(1),dtype="O")
+    obj_arr[0] = y
+#Using vectorization with signature, works on (k,n,n) Arrays -> (k,1) Array
+package_density_matrices = np.vectorize(package_density_matrices,signature="(n,n)->(1)")
+
+def unpackage_density_matrices(y: Array) -> Array:
+    """Inverse function of package_density_matrices,
+    Much slower than packaging. Avoid using unless
+    absolutely needed (as in case of passing multiple
+    density matrices to SparseLindbladCollection.evaluate_rhs)"""
+    return y[0]
+unpackage_density_matrices = np.vectorize(unpackage_density_matrices,signature="(1)->(n,n)")
