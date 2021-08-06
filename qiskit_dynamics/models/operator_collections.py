@@ -409,9 +409,8 @@ class SparseLindbladCollection(DenseLindbladCollection):
             left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
             right_mult_contribution = np.matmul(y, -hamiltonian_matrix + dissipators_matrix)
 
-            # For fast matrix multiplicaiton we need to package (n,n) Arrays
-            # as (1) Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays
-            # of dtype object
+            # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
+            # Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays of dtype object
             y = package_density_matrices(y)
 
             # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
