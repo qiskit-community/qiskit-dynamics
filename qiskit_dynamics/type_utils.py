@@ -25,6 +25,8 @@ from qiskit.quantum_info.operators import Operator
 
 from qiskit_dynamics.dispatch import Array
 
+from scipy.sparse import issparse,spmatrix
+
 
 class StateTypeConverter:
     """Contains descriptions of two type specifications for DE solvers/methods,
@@ -291,7 +293,7 @@ def vec_dissipator(L: Array):
     )
 
 
-def to_array(op: Union[Operator, Array, List[Operator], List[Array]]):
+def to_array(op: Union[Operator, Array, List[Operator], List[Array],spmatrix]):
     """Convert an operator or list of operators to an Array.
 
     Args:
@@ -314,5 +316,8 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array]]):
 
     if isinstance(op, Operator):
         return Array(op.data)
+
+    if issparse(op):
+        return op
 
     return Array(op)
