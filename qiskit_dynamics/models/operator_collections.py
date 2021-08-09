@@ -364,8 +364,27 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
                 signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
             else:
                 signal_values = signal_values[0]
-
         return super().evaluate_rhs(signal_values, y)
+
+    def evaluate_generator(self, signal_values: Union[List[Array], Array]) -> Array:
+        r"""Evaluates the RHS of the Lindblad equation using
+        vectorized maps.
+        Args:
+            signal_values: either a list [ham_sig_values, dis_sig_values]
+                storing the signal values for the Hamiltonian component
+                and the dissipator component, or a single array containing
+                the total list of signal values.
+            y: Density matrix represented as a vector using column-stacking
+                convention.
+        Returns:
+            Vectorized RHS of Lindblad equation \dot{\rho} in column-stacking
+                convention."""
+        if isinstance(signal_values, list):
+            if np.any(signal_values[1] != 0):
+                signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
+            else:
+                signal_values = signal_values[0]
+        return super().evaluate_generator(signal_values)
 
 class SparseLindbladCollection(DenseLindbladCollection):
     def __init__(
