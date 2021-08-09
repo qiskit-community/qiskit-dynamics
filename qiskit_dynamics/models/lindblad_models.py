@@ -299,3 +299,11 @@ class LindbladModel(BaseGeneratorModel):
             )
 
         return rhs
+
+    def evaluate_hamiltonian(self,time, in_frame_basis: Optional[bool] = False):
+        hamiltonian_sig_vals = self._hamiltonian_signals(time)
+        ham = self._operator_collection.evaluate_hamiltonian(hamiltonian_sig_vals)
+        if self.frame.frame_diag is not None:
+            return self.frame.operator_into_frame(time,ham,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis,vectorized_operators=self.vectorized_operators)
+        else:
+            return ham
