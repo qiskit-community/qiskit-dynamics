@@ -100,6 +100,7 @@ class LindbladModel(BaseGeneratorModel):
                 drift = self.drift,
                 dissipator_operators=self._dissipator_operators
             )
+            self.vectorized_operators = False
         elif new_mode == "dense_vectorized":
             self._operator_collection = DenseVectorizedLindbladCollection(
                 self._hamiltonian_operators,
