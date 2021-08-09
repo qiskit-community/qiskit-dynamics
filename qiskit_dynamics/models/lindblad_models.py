@@ -250,9 +250,10 @@ class LindbladModel(BaseGeneratorModel):
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         if self.evaluation_mode == "dense_vectorized":
-            return self._operator_collection.evaluate_generator(
+            out = self._operator_collection.evaluate_generator(
                 [self._hamiltonian_signals(time), self._dissipator_signals(time)]
             )
+            return self.frame.bring_vectorized_operator_into_frame(time,out,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis)
         else:
             raise NotImplementedError(
                 "Non-vectorized Lindblad models cannot be represented without a given state."
