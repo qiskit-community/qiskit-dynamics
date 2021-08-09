@@ -40,8 +40,10 @@ def _get_new_operators(
         NotImplementedError: if components s_j(t) are not equivalent
         to pure Signal objects.
     """
+
     num_components = len(current_sigs)
     n = current_ops.shape[-1]
+    frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
 
     frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
 
@@ -169,9 +171,6 @@ def perform_rotating_wave_approximation(
         model.drift + np.diag(model.frame.frame_diag)
     )
     new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
-
-    num_components = len(model.signals)
-    frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
 
     if isinstance(model, GeneratorModel):
         new_signals, new_operators = _get_new_operators(
