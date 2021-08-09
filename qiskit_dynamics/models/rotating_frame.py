@@ -700,25 +700,7 @@ class RotatingFrame(BaseRotatingFrame):
 
         # create difference matrix for diagonal elements
         dim = len(ops_in_frame_basis[0])
-        cutoff_array = self.calculate_cutoff_filter(carrier_freqs, cutoff_freq, dim)
 
-        return (
-            cutoff_array * ops_in_frame_basis,
-            cutoff_array.transpose([0, 2, 1]) * ops_in_frame_basis,
-        )
-
-    def calculate_cutoff_filter(
-        self, carrier_freqs: Array, cutoff_freq: Union[float, int], dim: int
-    ) -> Array:
-        r"""Gets the filter array C whose (j,k,l) entry
-        is 0 if :math:`\pm\nu + \frac{Im[-d_j + d_k]}{2 \pi} \geq \nu_*`
-        and 1 otherwise.
-        Args:
-            carrier_freqs: (k) Array storing the frequencies of each component
-            cutoff_freq: real number storing \nu_*
-            dim: Hilbert space dimension
-        Returns:
-            Filter array C."""
         freq_diffs = None
         if self._frame_operator is None:
             freq_diffs = Array(np.zeros((1, dim, dim)))
@@ -731,6 +713,10 @@ class RotatingFrame(BaseRotatingFrame):
         freq_array = im_angular_freqs + freq_diffs
         cutoff_array = ((np.abs(freq_array.imag) / (2 * np.pi)) < cutoff_freq).astype(int)
 
+        return (
+            cutoff_array * ops_in_frame_basis,
+            cutoff_array.transpose([0, 2, 1]) * ops_in_frame_basis,
+        )
     def bring_vectorized_operator_into_frame(self,
         time: float,
         op: Array,
