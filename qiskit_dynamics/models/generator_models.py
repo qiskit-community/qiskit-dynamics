@@ -439,12 +439,12 @@ class GeneratorModel(BaseGeneratorModel):
                 time, y, y_in_frame_basis=in_frame_basis, return_in_frame_basis=True
             )
             # Then, compute the product Ae^{tF}y
-            out = op_combo.dot(out)
+            out = op_combo @ out
             # Finally, we have the full operator e^{-tF}Ae^{tF}y
             out = self.frame.state_into_frame(
                 time, out, y_in_frame_basis=True, return_in_frame_basis=in_frame_basis
             )
         else:
-            return np.dot(op_combo, y)
+            return op_combo @ y
 
         return out
