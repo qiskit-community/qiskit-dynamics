@@ -23,7 +23,11 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_models import BaseGeneratorModel
 from .hamiltonian_models import HamiltonianModel
-from .operator_collections import DenseLindbladCollection, DenseVectorizedLindbladCollection, SparseLindbladCollection
+from .operator_collections import (
+    DenseLindbladCollection,
+    DenseVectorizedLindbladCollection,
+    SparseLindbladCollection,
+)
 from .rotating_frame import RotatingFrame
 
 
@@ -97,8 +101,8 @@ class LindbladModel(BaseGeneratorModel):
         elif new_mode == "sparse":
             self._operator_collection = SparseLindbladCollection(
                 self._hamiltonian_operators,
-                drift = self.drift,
-                dissipator_operators=self._dissipator_operators
+                drift=self.drift,
+                dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = False
         elif new_mode == "dense_vectorized":
@@ -254,7 +258,9 @@ class LindbladModel(BaseGeneratorModel):
             out = self._operator_collection.evaluate_generator(
                 [self._hamiltonian_signals(time), self._dissipator_signals(time)]
             )
-            return self.frame.bring_vectorized_operator_into_frame(time,out,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis)
+            return self.frame.bring_vectorized_operator_into_frame(
+                time, out, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+            )
         else:
             raise NotImplementedError(
                 "Non-vectorized Lindblad models cannot be represented without a given state."
@@ -282,7 +288,11 @@ class LindbladModel(BaseGeneratorModel):
 
             # Take y out of the frame, but keep in the frame basis
             rhs = self.frame.operator_out_of_frame(
-                time, y, operator_in_frame_basis=in_frame_basis, return_in_frame_basis=True,vectorized_operators=self.vectorized_operators
+                time,
+                y,
+                operator_in_frame_basis=in_frame_basis,
+                return_in_frame_basis=True,
+                vectorized_operators=self.vectorized_operators,
             )
 
             rhs = self._operator_collection.evaluate_rhs(
@@ -291,7 +301,11 @@ class LindbladModel(BaseGeneratorModel):
 
             # Put rhs back into the frame, potentially converting its basis.
             rhs = self.frame.operator_into_frame(
-                time, rhs, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis,vectorized_operators=self.vectorized_operators
+                time,
+                rhs,
+                operator_in_frame_basis=True,
+                return_in_frame_basis=in_frame_basis,
+                vectorized_operators=self.vectorized_operators,
             )
 
         else:
@@ -301,10 +315,16 @@ class LindbladModel(BaseGeneratorModel):
 
         return rhs
 
-    def evaluate_hamiltonian(self,time, in_frame_basis: Optional[bool] = False):
+    def evaluate_hamiltonian(self, time, in_frame_basis: Optional[bool] = False):
         hamiltonian_sig_vals = self._hamiltonian_signals(time)
         ham = self._operator_collection.evaluate_hamiltonian(hamiltonian_sig_vals)
         if self.frame.frame_diag is not None:
-            return self.frame.operator_into_frame(time,ham,operator_in_frame_basis=True,return_in_frame_basis=in_frame_basis,vectorized_operators=self.vectorized_operators)
+            return self.frame.operator_into_frame(
+                time,
+                ham,
+                operator_in_frame_basis=True,
+                return_in_frame_basis=in_frame_basis,
+                vectorized_operators=self.vectorized_operators,
+            )
         else:
             return ham

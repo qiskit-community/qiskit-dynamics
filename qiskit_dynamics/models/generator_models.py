@@ -22,7 +22,10 @@ import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.models.operator_collections import DenseOperatorCollection, SparseOperatorCollection
+from qiskit_dynamics.models.operator_collections import (
+    DenseOperatorCollection,
+    SparseOperatorCollection,
+)
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
@@ -324,7 +327,7 @@ class GeneratorModel(BaseGeneratorModel):
             self._operator_collection = DenseOperatorCollection(self._operators, drift=self.drift)
             self._evaluation_mode = new_mode
         elif new_mode == "sparse":
-            self._operator_collection = SparseOperatorCollection(self._operators,self._drift)
+            self._operator_collection = SparseOperatorCollection(self._operators, self._drift)
             self._evaluation_mode = new_mode
         else:
             raise NotImplementedError("Evaluation Mode " + str(new_mode) + " is not supported.")

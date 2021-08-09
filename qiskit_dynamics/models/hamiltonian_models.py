@@ -23,7 +23,7 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_array
 from .generator_models import GeneratorModel
-from .rotating_frame import RotatingFrame,BaseRotatingFrame
+from .rotating_frame import RotatingFrame, BaseRotatingFrame
 
 
 class HamiltonianModel(GeneratorModel):
@@ -80,7 +80,7 @@ class HamiltonianModel(GeneratorModel):
         operators: List[Operator],
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        frame: Optional[Union[Operator, Array,BaseRotatingFrame]] = None,
+        frame: Optional[Union[Operator, Array, BaseRotatingFrame]] = None,
         validate: bool = True,
         evaluation_mode: str = "dense",
     ):
@@ -96,9 +96,9 @@ class HamiltonianModel(GeneratorModel):
                      Signal objects, or as the inputs to signal_mapping.
                      OperatorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
-            frame: Rotating frame operator / rotating frame object. 
-                    If specified with a 1d array, it is interpreted as the 
-                    diagonal of a diagonal matrix. Assumed to store 
+            frame: Rotating frame operator / rotating frame object.
+                    If specified with a 1d array, it is interpreted as the
+                    diagonal of a diagonal matrix. Assumed to store
                     the antihermitian matrix F = -iH.
             validate: If True check input operators are Hermitian.
             evaluation_mode: Flag for what type of evaluation should
