@@ -533,6 +533,10 @@ class RotatingFrame(BaseRotatingFrame):
             self._frame_basis_adjoint = frame_basis.conj().transpose()
             self._dim = len(self._frame_diag)
 
+        # these properties are memory-expensive to store. Will fill out with values only if necessary.
+        self._cached_c_bar_otimes_c = None
+        self._cached_c_trans_otimes_c_dagg = None
+
     @property
     def dim(self) -> int:
         """The dimension of the frame."""
@@ -727,7 +731,93 @@ class RotatingFrame(BaseRotatingFrame):
         freq_array = im_angular_freqs + freq_diffs
         cutoff_array = ((np.abs(freq_array.imag) / (2 * np.pi)) < cutoff_freq).astype(int)
 
-        return cutoff_array
+    def bring_vectorized_operator_into_frame(self,
+        time: float,
+        op: Array,
+        operator_in_frame_basis: Optional[bool] = False,
+        return_in_frame_basis: Optional[bool] = False,) -> Array:
+        r"""Sometimes-necessary function that will bring a vectorized operator
+        (as an (dim^2,dim^2) Array) into the rotating frame. Much slower than 
+        operators_into_frame_basis, as it is faster to conjugate the vectorized
+        state/density matrix as a (dim^2,) Array than to conjugate a (dim^2,dim^2) 
+        Array, but necessary in the case that the user requests the (dim^2,dim^2) 
+        generator matrix, which will then need to be put into the frame,
+        independently of the state of the system. 
+        
+        Args: 
+            time: the time t
+            op: The (dim^2,dim^2) Array
+            operator_in_frame_basis: whether the operator is in the frame basis
+            return_in_frame_basis: whether the operator should be returned in the
+                frame basis
+        Returns: 
+            op in the frame.
+
+        Formalism: Let the state of a system be described by a matrix \rho. Let
+        \dot{\rho} = \sum_j A_j \rho B_j for some (dim,dim) matrices A_j,B_j. Note
+        that the Lindbladian takes this form. If we vectorize this equation, we find
+        that vec{\dot{\rho}} = \dot{\vec{\rho}} = [\sum_j (B_j)^T\otimes A_j]vec{\rho}.
+        Now, when we go to the rotating frame, where \rho\to\zeta = e^{-tF}\rho e^{tF}, 
+        we find that \dot{\zeta} = e^{-tF}(-F\rho + \dot{\rho} + \rho F)e^{tF} = 
+        e^{-tF}(\sum_j A_j\rho B_j - F\rho I + I\rho F)e^{tF}. Note that the frame terms
+        -F\rho I + I\rho F may be incorporated as part of our sum \sum_j A_j\rho B_j, 
+        which we do in software by subtracting F from the drift terms. As a 
+        result, we will be treating op in this function as if it already incoroporates these 
+        \pm F terms. This means that we may sum by rolling the frame terms into it. This then 
+        yields \dot{\zeta} = \sum_j (e^{-tF}A_j e^{tF})\zeta (e^{-tF}B_j e^{tF}), or
+        vec\dot{\zeta}=[\sum_j(e^{-tF}B_je^{tF})^T\otimes (e^{-tF}A_je^{tF})]vec{\zeta}.
+        Because we work in the basis in which F is diagonal, we may write this sum as 
+        \sum_j (e^{tF}(B_j)^Te^{-tF})\otimes (e^{-tF}A_j e^{tF}). Define
+        \Delta:= (\Delta)_{ij} = e^{(-d_i + d_j)t} where d_i is the i^{th} eigenvalue
+        of F. We know from linear algebra that because F is diagonal, we may write 
+        e^{-tF}A_j e^{tF} = \Delta\circ A_j, where \circ is the Hadamard product.
+        Then, note that because F is antihermitian, the d_i are purely imaginary. 
+        Hence, e^{tF}(B_j)^Te^{-tF} = \bar{\Delta} \circ (B_j)^T. Then, we have
+            (e^{tF}(B_j)^Te^{-tF})\otimes (e^{-tF}A_je^{tF}) 
+            = (\bar{\Delta}\circ (B_j)^T)\otimes (Delta\circ A_j)
+            = (\bar{\Delta)\otimes \Delta)\circ ((B_j)^T\otimes A_j). 
+        This yields our full generator in the frame: 
+            G_{vec} = (\bar{\Delta}\otimes \Delta)\circ \sum_j (B_j)^T\otimes A_j
+        
+        All that is left is to consider the possibility of basis transformations. Let
+        C = self.frame_basis, so that putting an operator X into the frame basis
+        corresponds with X -> C^\dagger XC. Now, we consider the equation of motion when
+        our matrices A_j,B_j are not in the frame basis. In this case, we write
+        \dot{\rho} = \sum_j C^\dagger A_jC \rho C^\dagger B_j C so we have 
+        \dot{vec(\rho)} = (\sum_j (C^T(B_j)^T\bar{C})\otimes (C^\dagger A_jC))\vec{\rho}
+        so we must write our generator as the following
+            G_{vec} -> (C^T\otimes C^\dagger)G_{vec}(\bar{C}\otimes C)
+        though I should note that in most cases, the generator should be in the frame basis
+        from the start. If instead we wish to represent this generator in the lab basis,
+        we would write this as \dot{\zeta} = \sum_j (CA_jC^\dagger)\zeta(CB_jC^{\dagger}) or
+        \dot{vec{\zeta}}=\sum_j(\bar{C}(B_j)^TC^T)\otimes (CA_jC^\dagger) where the A_j,B_j
+        are the matrices after the conjugation. This new generator may be expanded as 
+            G_{vec} -> (\bar{C}\otimes C)G_{vec}(C^T\otimes C^\dagger). 
+        """
+        if self.frame_diag is not None:
+            # Put the vectorized operator into the frame basis
+            self._cached_c_bar_otimes_c = None
+            self._cached_c_trans_otimes_c_dagg = None
+            if not operator_in_frame_basis and self.frame_basis is not None:
+                if self._cached_c_bar_otimes_c is None:
+                    self._cached_c_bar_otimes_c = np.kron(self.frame_basis.conj(),self.frame_basis)
+                    self._cached_c_trans_otimes_c_dagg = np.kron(self.frame_basis.T,self.frame_basis_adjoint)
+                op = self._cached_c_trans_otimes_c_dagg @ op @ self._cached_c_bar_otimes_c
+
+            
+            
+            expvals = np.exp(self.frame_diag*time) # = e^{td_i} = e^{it*Im(d_i)}
+            temp_outer = np.outer(expvals.conj(),expvals).flatten() # = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster
+            delta_bar_otimes_delta = np.outer(temp_outer.conj(),temp_outer) # = kron(delta.conj(),delta) but >3x faster
+            op = delta_bar_otimes_delta * op # hadamard product
+
+            if not return_in_frame_basis and self.frame_basis is not None:
+                if self._cached_c_bar_otimes_c is None:
+                    self._cached_c_bar_otimes_c = np.kron(self.frame_basis.conj(),self.frame_basis)
+                    self._cached_c_trans_otimes_c_dagg = np.kron(self.frame_basis.T,self.frame_basis_adjoint)
+                op = self._cached_c_bar_otimes_c @ op @ self._cached_c_trans_otimes_c_dagg
+
+        return op
 
 
 def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10):
