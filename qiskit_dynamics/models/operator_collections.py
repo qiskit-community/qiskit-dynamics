@@ -419,7 +419,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
             self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
             for i in range(dissipator_operators.shape[0]):
                 self._dissipator_operators[i] = csr_matrix(np.round(dissipator_operators[i],tol))
-                self._dissipator_operators_conj[i] = self._dissipator_operators.conjutate().transpose()
+                self._dissipator_operators_conj[i] = self._dissipator_operators[i].conjugate().transpose()
             self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
 
     def evaluate_hamiltonian(self, signal_values: Array) -> csr_matrix:
@@ -469,6 +469,7 @@ def package_density_matrices(y: Array) -> Array:
     # As written here, only works for (n,n) Arrays
     obj_arr = np.empty(shape=(1),dtype="O")
     obj_arr[0] = y
+    return obj_arr
 #Using vectorization with signature, works on (k,n,n) Arrays -> (k,1) Array
 package_density_matrices = np.vectorize(package_density_matrices,signature="(n,n)->(1)")
 
