@@ -429,29 +429,33 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
         hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
 
+        # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
+        # Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays of dtype object
+        y = package_density_matrices(y)
+
         if self._dissipator_operators is not None:
             dissipators_matrix = (-1 / 2) * np.sum(signal_values[1] * self._dissipator_products,axis=-1)
 
-            left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
-            right_mult_contribution = np.matmul(y, -hamiltonian_matrix + dissipators_matrix)
 
-            # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
-            # Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays of dtype object
-            y = package_density_matrices(y)
+
+            left_mult_contribution = np.squeeze([hamiltonian_matrix + dissipators_matrix] * y)
+            right_mult_contribution = np.squeeze(y * [-hamiltonian_matrix + dissipators_matrix])
 
             # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
             both_mult_contribution = (signal_values[1]*self._dissipator_operators) * y * self._dissipator_operators_conj
             # sum on i
             both_mult_contribution = np.sum(both_mult_contribution,axis=-1)
-            if len(y.shape)==3:
-                # Very slow step, so avoid if not necessary (or if a better implementation found). Would
-                # need to map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
-                both_mult_contribution = unpackage_density_matrices(both_mult_contribution.reshape(y.shape[0],1))
 
-            return left_mult_contribution + right_mult_contribution + both_mult_contribution
+            out = left_mult_contribution + right_mult_contribution + both_mult_contribution
 
         else:
-            return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
+            out =([hamiltonian_matrix] * y) - (y * [hamiltonian_matrix])
+        if len(y.shape)==2:
+                # Very slow step, so avoid if not necessary (or if a better implementation found). Would
+                # need to map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
+                out = unpackage_density_matrices(out.reshape(y.shape[0],1))
+
+        return out
 
 
 def package_density_matrices(y: Array) -> Array:
