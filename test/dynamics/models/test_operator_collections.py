@@ -74,24 +74,25 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
 
 class TestSparseOperatorCollection(QiskitDynamicsTestCase):
     """Tests for SparseOperatorCopllection."""
+
     def setUp(self):
         pass
+
     def test_consistency_with_dense_pseudorandom(self):
         """Tests if the sparse collection agrees with
         the dense operator collection"""
-        r = lambda *args: np.random.uniform(-1,1,[*args]) + 1j*np.random.uniform(-1,1,[*args])
+        r = lambda *args: np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
         state = r(16)
-        mat = r(4,16,16)
+        mat = r(4, 16, 16)
         sigVals = r(4)
-        drift = r(16,16)
-        dense_collection = DenseOperatorCollection(mat,drift)
-        sparse_collection= SparseOperatorCollection(mat,drift)
+        drift = r(16, 16)
+        dense_collection = DenseOperatorCollection(mat, drift)
+        sparse_collection = SparseOperatorCollection(mat, drift)
         dense_val = dense_collection(sigVals)
-        sparse_val= sparse_collection(sigVals)
-        self.assertAllClose(dense_val,sparse_val.toarray())
-        sparse_val= sparse_collection(sigVals,state)
+        sparse_val = sparse_collection(sigVals)
+        self.assertAllClose(dense_val, sparse_val.toarray())
+        sparse_val = sparse_collection(sigVals, state)
         self.assertAllClose(dense_val @ state, sparse_val)
-
 
 
 class TestDenseLindbladCollection(QiskitDynamicsTestCase):

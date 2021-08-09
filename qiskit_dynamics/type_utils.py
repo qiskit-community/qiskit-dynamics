@@ -25,7 +25,7 @@ from qiskit.quantum_info.operators import Operator
 
 from qiskit_dynamics.dispatch import Array
 
-from scipy.sparse import issparse,spmatrix
+from scipy.sparse import issparse, spmatrix
 
 
 class StateTypeConverter:
@@ -293,7 +293,7 @@ def vec_dissipator(L: Array):
     )
 
 
-def to_array(op: Union[Operator, Array, List[Operator], List[Array],spmatrix]):
+def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     """Convert an operator or list of operators to an Array.
 
     Args:

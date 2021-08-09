@@ -74,12 +74,13 @@ def _get_new_operators(
 
     return new_signals, new_operators
 
-def _get_new_signals(old_signal_list: Union[List[Signal],SignalList]):
+
+def _get_new_signals(old_signal_list: Union[List[Signal], SignalList]):
     """Helper function that converts pre-RWA
     signals to post-RWA signals"""
     normal_signals = []
     abnormal_signals = []
-    if not isinstance(old_signal_list,SignalList):
+    if not isinstance(old_signal_list, SignalList):
         old_signal_list = SignalList(old_signal_list)
     for sig_sum in old_signal_list.components:
         if len(sig_sum.components) > 1:
@@ -93,11 +94,12 @@ def _get_new_signals(old_signal_list: Union[List[Signal],SignalList]):
         )
 
     new_signals = SignalList(normal_signals + abnormal_signals)
-    
+
     return new_signals
 
+
 def perform_rotating_wave_approximation(
-    model: Union[GeneratorModel, HamiltonianModel,LindbladModel], cutoff_freq: Union[float, int]
+    model: Union[GeneratorModel, HamiltonianModel, LindbladModel], cutoff_freq: Union[float, int]
 ) -> Union[GeneratorModel, HamiltonianModel]:
     r"""Performs RWA on a GeneratorModel so that all terms that
     rotate with complex frequency larger than cutoff_freq are
@@ -179,7 +181,7 @@ def perform_rotating_wave_approximation(
         if isinstance(model, HamiltonianModel):
             new_model = HamiltonianModel(
                 new_operators,
-                drift=1j*new_drift,
+                drift=1j * new_drift,
                 signals=new_signals,
                 frame=model.frame.frame_operator,
                 evaluation_mode=model.evaluation_mode,
@@ -209,8 +211,8 @@ def perform_rotating_wave_approximation(
             new_ham_sig,
             new_dis_ops,
             new_dis_sig,
-            1j*new_drift,
+            1j * new_drift,
             model.frame,
             model.evaluation_mode,
         )
-    return new_model,_get_new_signals
+    return new_model, _get_new_signals
