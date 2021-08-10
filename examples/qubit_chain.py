@@ -1,3 +1,17 @@
+# -*- coding: utf-8 -*-
+
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2021.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+# pylint: disable=invalid-name,no-member,attribute-defined-outside-init
 from qiskit_dynamics.builders.operators_library import *
 from qiskit_dynamics.builders.lindbladmpo_simulation_builder import *
 from qiskit_dynamics.signals import Signal
@@ -35,36 +49,42 @@ for i_qubit in r_qubits:
 		obs_2q.append(Sz(i_qubit - 1) * Sz(i_qubit))
 	noise_operators.append(Sp(i_qubit))
 
-sim_def = SimulationDef(t_f = t_f, t_eval = t_eval, initial_state = rho_0,
+sim_def = SimulationDef(initial_state = rho_0,
 						hamiltonian_operators = [H], hamiltonian_signals = [Signal(1.)],
 						noise_operators = noise_operators, noise_signals = noise_signals,
 						observable_operators = obs_1q + obs_2q)
-sim_full = DenseSimulationBuilder(sim_def)
-sim_full.build(subsystems)
-sim_full.solve()
+sim_times = SimulationTimes(t_f = t_f, t_eval = t_eval)
+
+full_builder = DenseSimulationBuilder(sim_def)
+full_builder.build(subsystems)
+full_sim = DenseSimulation(full_builder)
+full_sim.solve(sim_times)
 
 tmp = 2
+
+sim_times.dt = 0.01
+mpo_builder = LindbladMPOSimulationBuilder(sim_def)
+mpo_params = {'output_files_prefix': s_output_path + s_file_prefix,
+			  'cut_off_rho': 1e-16, 'max_dim_rho': 100}
+mpo_builder.build(subsystems)
+mpo_sim = LindbladMPOSimulation(mpo_builder)
+mpo_sim.solve(sim_times, mpo_params)
+
+tmp = 3
 
 # H = .5 * Sz(0) * (Sx(1) + 2 * Sz(0)) + + 2 * Sz(0) * Sz(0)
 # result = {('z', 0, 'x', 1): .5, (DynamicalOperatorKey('z', 0), DynamicalOperatorKey('z', 0)): 3.}
 
 # Exceptions below, WIP
 
-# sim_prune = DenseSimulationBuilder(sim_def)
-# subsystems_pruned = subsystem_dims.copy()
-# subsystems_pruned[2] = 0
-# subsystems_pruned[3] = 0
-# sim_prune.build(subsystems_pruned)
-# sim_prune.solve()
+# prune_builder = DenseSimulationBuilder(sim_def)
+# prune_subsystems = subsystems.copy()
+# prune_subsystems[2] = 0
+# prune_subsystems[3] = 0
+# prune_builder.build(prune_subsystems)
+# prune_builder.solve()
 #
-sim_def.dt = 0.01
-sim_mpo = LindbladMPOSimulationBuilder(sim_def)
-mpo_params = {'output_files_prefix': s_output_path + s_file_prefix,
-			  'cut_off_rho': 1e-16, 'max_dim_rho': 100}
-sim_mpo.build(subsystems, build_options = mpo_params)
-sim_mpo.solve()
 
-tmp = 3
 # plot comparative graphs
 
 

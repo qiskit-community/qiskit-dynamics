@@ -1,3 +1,17 @@
+# -*- coding: utf-8 -*-
+
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2021.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+# pylint: disable=invalid-name,no-member,attribute-defined-outside-init
 from typing import OrderedDict, Dict, List, Union, Any, Optional
 from abc import ABC, abstractmethod
 import numpy as np
@@ -293,8 +307,9 @@ def build_dictionaries(operators: Union[DynamicalOperator, List[DynamicalOperato
 
 
 def build_matrices(operators: Union[DynamicalOperator, Dict, List[DynamicalOperator], List[Dict]],
-				   subsystem_dims: OrderedDict, operators_repo: Optional[Dict] = None,
+				   subsystem_dims: OrderedDict,
 				   prune_subsystems: Optional[dict] = None,
+				   operators_repo: Optional[Dict] = None,
 				   null_matrix_op: Optional[DynamicalOperator] = None,
 				   id_matrix_op: Optional[DynamicalOperator] = None) -> Any:
 	"""Build a (possibly list) of matrices from DynamicalOperator or dictionaries thereof.
@@ -306,10 +321,10 @@ def build_matrices(operators: Union[DynamicalOperator, Dict, List[DynamicalOpera
 			field of the DynamicalOperator), indicating the matrix dimension to assign for
 			it. Subsystems which are to be removed from the matrix building, must be specified
 			in the ``prune_subsystems`` parameter, if relevant.
-		operators_repo: A dictionary referencing the DynamicalOperators used in the building.
-		prune_subsystems: An optional dict specifying subsystems to remove, as the keys of
+		prune_subsystems: An optional dict specifying subsystem_dims to remove, as the keys of
 			entries in the dict. The values are not used. This parameter can only be used if
 			the ``operators`` parameter corresponds to DynamicalOperators.
+		operators_repo: A dictionary referencing the DynamicalOperators used in the building.
 		null_matrix_op: An optional DynamicalOperator instance for building an null (zeros) matrix.
 			The default building implementation returns numpy matrices. The corresponding instance
 			is also being used to invoke ``kron_two_matrices()`` to implement a kronecker product
