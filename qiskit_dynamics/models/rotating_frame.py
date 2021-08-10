@@ -790,8 +790,6 @@ class RotatingFrame(BaseRotatingFrame):
         """
         if self.frame_diag is not None:
             # Put the vectorized operator into the frame basis
-            self._cached_c_bar_otimes_c = None
-            self._cached_c_trans_otimes_c_dagg = None
             if not operator_in_frame_basis and self.frame_basis is not None:
                 if self._cached_c_bar_otimes_c is None:
                     self._cached_c_bar_otimes_c = np.kron(self.frame_basis.conj(), self.frame_basis)
