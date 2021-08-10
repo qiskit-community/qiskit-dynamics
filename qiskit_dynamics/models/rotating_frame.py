@@ -667,7 +667,7 @@ class RotatingFrame(BaseRotatingFrame):
         # assumption that F is anti-Hermitian implies conjugation of
         # diagonal gives inversion
         exp_freq = np.exp(t * self.frame_diag)
-        frame_mat = np.outer(exp_freq.conj(), exp_freq)
+        frame_mat = exp_freq.conj().reshape(self.dim,1)*exp_freq
         if issparse(out):
             out = out.multiply(frame_mat)
         else:
@@ -799,9 +799,8 @@ class RotatingFrame(BaseRotatingFrame):
                 op = self._cached_c_trans_otimes_c_dagg @ op @ self._cached_c_bar_otimes_c
 
             expvals = np.exp(self.frame_diag * time)  # = e^{td_i} = e^{it*Im(d_i)}
-            temp_outer = np.outer(
-                expvals.conj(), expvals
-            ).flatten()  # = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster
+            # = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster
+            temp_outer = (expvals.conj().reshape(self.dim,1)* expvals).flatten()  
             delta_bar_otimes_delta = np.outer(
                 temp_outer.conj(), temp_outer
             )  # = kron(delta.conj(),delta) but >3x faster
