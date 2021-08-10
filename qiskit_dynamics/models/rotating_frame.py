@@ -644,6 +644,11 @@ class RotatingFrame(BaseRotatingFrame):
         """
         if vectorized_operators:
             # If passing vectorized operator, undo vectorization temporarily
+            if self._frame_operator is None:
+                if op_to_add_in_fb is None:
+                    return to_array(operator)
+                else:
+                    return to_array(operator + op_to_add_in_fb)
             operator = operator.reshape((self.dim, self.dim) + operator.shape[1:], order="F")
 
         if self._frame_operator is None:
