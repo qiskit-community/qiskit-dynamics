@@ -319,9 +319,10 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
 
     elif issparse(op):
         return op
-
+    else:
+        out = Array(op)
     # now, everything is an Array
     if out.backend=="numpy":
         return out.data
     else:
-        return Array(op)
+        return out
