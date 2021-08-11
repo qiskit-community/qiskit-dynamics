@@ -315,18 +315,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
 
         super().__init__(total_ops, drift=vec_drift)
 
-    def evaluate_hamiltonian(self, signal_values: Array) -> Array:
-        r"""Gets the Hamiltonian matrix, as calculated by the model,
-        and used for the commutator -i[H,y]
-        Args:
-            signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
-        Returns:
-            Hamiltonian matrix."""
-        return (
-            np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self._drift_terms
-        ).flatten(order="F")
-
-    def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
