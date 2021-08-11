@@ -141,20 +141,17 @@ class SparseOperatorCollection(BaseOperatorCollection):
         else:
             self._drift = csr_matrix(new_drift)
 
-    def __init__(
-        self,
-        operators: Array,
-        drift: Optional[Array] = None,
-        tol: Optional[int] = 10,
-    ):
+    def __init__(self, operators: Array, drift: Optional[Array] = None, decimals: Optional[int] = 10,):
         """Initialize
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`
             drift: (n,n) Array specifying the drift term :math:`G_d`
             decimals: Values will be rounded at ``decimals`` places after decimal place.
                 Avoids storing excess sparse entries for entries close to zero."""
+        self.drift = np.round(drift,decimals)
+        self._operators = np.empty(shape=operators.shape[0],dtype="O")
         for i in range(operators.shape[0]):
-            self._operators[i] = csr_matrix(np.round(operators[i], tol))
+            self._operators[i] = csr_matrix(np.round(operators[i],decimals))
 
     def evaluate_generator(self, signal_values: Array) -> csr_matrix:
         r"""Sparse version of ``DenseOperatorCollection.evaluate_generator``.
@@ -385,7 +382,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         hamiltonian_operators: Array,
         drift: Array,
         dissipator_operators: Optional[Array] = None,
-        tol: Optional[int] = 10,
+        decimals: Optional[int] = 10,
     ):
         r"""Initializes sparse version of DenseLindbladCollection
 
@@ -401,16 +398,12 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
         self._hamiltonian_operators = np.empty(shape=hamiltonian_operators.shape[0], dtype="O")
         for i in range(hamiltonian_operators.shape[0]):
-            self._hamiltonian_operators[i] = csr_matrix(np.round(hamiltonian_operators[i], tol))
-        self.drift = csr_matrix(np.round(drift, tol))
-        if dissipator_operators is not None:
-            self._dissipator_operators = np.empty(shape=dissipator_operators.shape[0], dtype="O")
+        self.drift = csr_matrix(np.round(drift,decimals))
+            self._dissipator_operators = np.empty(shape=dissipator_operators.shape[0],dtype="O")
             self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
             for i in range(dissipator_operators.shape[0]):
-                self._dissipator_operators[i] = csr_matrix(np.round(dissipator_operators[i], tol))
-                self._dissipator_operators_conj[i] = (
-                    self._dissipator_operators[i].conjugate().transpose()
-                )
+                self._dissipator_operators[i] = csr_matrix(np.round(dissipator_operators[i],decimals))
+                self._dissipator_operators_conj[i] = self._dissipator_operators[i].conjugate().transpose()
             self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
 
     def evaluate_hamiltonian(self, signal_values: Array) -> csr_matrix:
