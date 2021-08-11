@@ -398,7 +398,43 @@ class SparseLindbladCollection(DenseLindbladCollection):
         return np.sum(signal_values * self._hamiltonian_operators, axis=-1) + self.drift
 
     def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
+        r"""Evaluates the RHS of the LindbladModel for a given list of signal values. 
+        Args: 
+            signal_values: length-2 List of Array objects. signal_values[0] stores
+                Hamiltonian signal values :math:`s_j(t)`. signal_values[1] stores
+                dissipator signal values :math:`\gamma_j(t)`. Pass None to 
+                signal_values[1] if no dissipator operators involved. 
+            y: density matrix of system. (k,n,n) Array. 
+        Returns: 
+            RHS of Lindbladian
+        
+        Calculation details: 
+            * for csr_matrices is equivalent to matrix multiplicaiton.
+            We use numpy array broadcasting rules, combined with the above
+            fact, to achieve speeds that are substantially faster than a for loop.
+            First, in the case of a single (n,n) density matrix, we package the entire
+            array as a single-element array whose entry is the array. In the case of
+            multiple density matrices a (k,n,n) Array, we package everything as a 
+            (k,1) Array whose [j,0] entry is the [j,:,:] density matrix. 
             
+            In calculating the left- and right-mult contributions, we package 
+            H+L and H-L as (1) object arrays whose single entry stores the relevant 
+            sparse matrix. We can then multiply our packaged density matrix and 
+            [H\pm L]. Using numpy broadcasting rules, [H\pm L] will be broadcast
+            to a (k,1) Array for elementwise multiplication with our packaged density
+            matrices. After this, elementwise multiplication is applied. This in turn
+            references each object's __mul__ function, which–for our csr_matrix components
+            means matrix multiplication. 
+            
+            In calculating the left-right-multiplication part, we use our (m)-shape 
+            object arrays holding the dissipator operators to perform multiplication. 
+            We can take an elementwise product with our packaged density matrix, at which
+            point our dissipator operators are broadcast as (m) -> (1,m) -> (k,m) shaped, 
+            and our packaged density matrix as (k,1) -> (k,m). Elementwise multiplication
+            is then applied, which is interpreted as matrix multiplication. This yields
+            an array where entry [i,j] is an object storing the results of s_jL_j\rho_i L_j^\dagger. 
+            We can then sum over j and unpackage our object array to get our desired result. 
+            """
         hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
 
         # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
