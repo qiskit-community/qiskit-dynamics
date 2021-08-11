@@ -376,9 +376,11 @@ class SparseLindbladCollection(DenseLindbladCollection):
                 in sparse format.
         """
 
-        self._hamiltonian_operators = np.empty(shape=hamiltonian_operators.shape[0], dtype="O")
+        self._hamiltonian_operators = np.empty(shape=hamiltonian_operators.shape[0],dtype="O")
         for i in range(hamiltonian_operators.shape[0]):
+            self._hamiltonian_operators[i] = csr_matrix(np.round(hamiltonian_operators[i],decimals))
         self.drift = csr_matrix(np.round(drift,decimals))
+        if dissipator_operators is not None:
             self._dissipator_operators = np.empty(shape=dissipator_operators.shape[0],dtype="O")
             self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
             for i in range(dissipator_operators.shape[0]):
