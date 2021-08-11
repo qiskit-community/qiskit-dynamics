@@ -303,21 +303,25 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     Returns:
         Array: Array version of input
     """
-    if op is None or isinstance(op, Array):
+    if op is None:
         return op
 
-    if isinstance(op, list) and isinstance(op[0], Operator):
+    elif isinstance(op, list) and isinstance(op[0], Operator):
         shape = op[0].data.shape
         dtype = op[0].data.dtype
         arr = np.empty((len(op), *shape), dtype=dtype)
         for i, sub_op in enumerate(op):
             arr[i] = sub_op.data
-        return Array(arr)
+        out = Array(arr)
 
-    if isinstance(op, Operator):
-        return Array(op.data)
+    elif isinstance(op, Operator):
+        out = Array(op.data)
 
-    if issparse(op):
+    elif issparse(op):
         return op
 
-    return Array(op)
+    # now, everything is an Array
+    if out.backend=="numpy":
+        return out.data
+    else:
+        return Array(op)
