@@ -136,11 +136,11 @@ class SparseOperatorCollection(BaseOperatorCollection):
                 Avoids storing excess sparse entries for entries close to zero."""
         if isinstance(drift,Operator):
             drift = to_array(drift)
-        if isinstance(operators[0],Operator):
-            operators = to_array(drift)
         self.drift = np.round(drift,decimals)
-        self._operators = np.empty(shape=operators.shape[0],dtype="O")
-        for i in range(operators.shape[0]):
+        self._operators = np.empty(shape=len(operators),dtype="O")
+        for i in range(len(operators)):
+            if isinstance(operators[i],Operator):
+                operators[i] = to_array(operators[i])
             self._operators[i] = csr_matrix(np.round(operators[i],decimals))
 
     @property
@@ -376,8 +376,8 @@ class SparseLindbladCollection(DenseLindbladCollection):
                 in sparse format.
         """
 
-        self._hamiltonian_operators = np.empty(shape=hamiltonian_operators.shape[0],dtype="O")
-        for i in range(hamiltonian_operators.shape[0]):
+        self._hamiltonian_operators = np.empty(shape=len(hamiltonian_operators),dtype="O")
+        for i in range(len(hamiltonian_operators)):
             if isinstance(hamiltonian_operators[i],Operator):
                 hamiltonian_operators[i] = to_array(hamiltonian_operators[i])
             self._hamiltonian_operators[i] = csr_matrix(np.round(hamiltonian_operators[i],decimals))
@@ -385,9 +385,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
             drift = to_array(drift)
         self.drift = csr_matrix(np.round(drift,decimals))
         if dissipator_operators is not None:
-            self._dissipator_operators = np.empty(shape=dissipator_operators.shape[0],dtype="O")
+            self._dissipator_operators = np.empty(shape=len(dissipator_operators),dtype="O")
             self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
-            for i in range(dissipator_operators.shape[0]):
+            for i in range(len(dissipator_operators)):
                 if isinstance(dissipator_operators[i],Operator):
                     dissipator_operators[i] = to_array(dissipator_operators[i])
                 self._dissipator_operators[i] = csr_matrix(np.round(dissipator_operators[i],decimals))
