@@ -98,7 +98,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
     Can evaluate :math:`G(t)` independently of :math:`y`.
     """
 
-    def __init__(self, operators: Array, drift: Optional[Array] = None):
+    def __init__(self, operators: Union[Array,List[Operator]], drift: Optional[Union[Array,Operator]] = None):
         """Initialize
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`
@@ -127,7 +127,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
 class SparseOperatorCollection(BaseOperatorCollection):
     r"""Sparse version of DenseOperatorCollection."""
     
-    def __init__(self, operators: Array, drift: Optional[Array] = None, decimals: Optional[int] = 10,):
+    def __init__(self, operators: Union[Array,List[Operator]], drift: Optional[Union[Array,Operator]] = None, decimals: Optional[int] = 10,):
         """Initialize
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`
@@ -194,9 +194,9 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def __init__(
         self,
-        hamiltonian_operators: Array,
-        drift: Array,
-        dissipator_operators: Optional[Array] = None,
+        hamiltonian_operators: Union[Array,List[Operator]],
+        drift: Union[Array,Operator],
+        dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
     ):
         r"""Initialization
 
@@ -296,9 +296,9 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
 
     def __init__(
         self,
-        hamiltonian_operators: Array,
-        drift: Array,
-        dissipator_operators: Optional[Array] = None,
+        hamiltonian_operators: Union[Array,List[Operator]],
+        drift: Union[Array,Operator],
+        dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
     ):
         r"""Initialize
 
@@ -359,9 +359,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
     """Sparse version of DenseLindbladCollection"""
     def __init__(
         self,
-        hamiltonian_operators: Array,
-        drift: Array,
-        dissipator_operators: Optional[Array] = None,
+        hamiltonian_operators: Union[Array,List[Operator]],
+        drift: Union[Array,Operator],
+        dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
         decimals: Optional[int] = 10,
     ):
         r"""Initializes sparse version of DenseLindbladCollection
@@ -398,7 +398,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         return np.sum(signal_values * self._hamiltonian_operators, axis=-1) + self.drift
 
     def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
-
+            
         hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
 
         # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
