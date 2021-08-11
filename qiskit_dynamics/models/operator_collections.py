@@ -393,6 +393,8 @@ class SparseLindbladCollection(DenseLindbladCollection):
                 self._dissipator_operators[i] = csr_matrix(np.round(dissipator_operators[i],decimals))
                 self._dissipator_operators_conj[i] = self._dissipator_operators[i].conjugate().transpose()
             self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
+        else:
+            self._dissipator_operators = None
 
     def evaluate_hamiltonian(self, signal_values: Array) -> csr_matrix:
         return np.sum(signal_values * self._hamiltonian_operators, axis=-1) + self.drift
@@ -461,7 +463,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
             out = left_mult_contribution + right_mult_contribution + both_mult_contribution
 
         else:
-            out = ([hamiltonian_matrix] * y) - (y * [hamiltonian_matrix])
+            out = (([hamiltonian_matrix] * y) - (y * [hamiltonian_matrix]))[0]
         if len(y.shape) == 2:
             # Very slow step, so avoid if not necessary (or if a better implementation found). Would
             # need to map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
