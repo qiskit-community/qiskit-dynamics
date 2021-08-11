@@ -98,6 +98,15 @@ class DenseOperatorCollection(BaseOperatorCollection):
     Can evaluate :math:`G(t)` independently of :math:`y`.
     """
 
+    def __init__(self, operators: Array, drift: Optional[Array] = None):
+        """Initialize
+        Args:
+            operators: (k,n,n) Array specifying the terms :math:`G_j`
+            drift: (n,n) Array specifying the extra drift :math:`G_d`
+        """
+        self._operators = to_array(operators)
+        self.drift = to_array(drift)
+
     @property
     def num_operators(self) -> int:
         return self._operators.shape[0]
@@ -114,18 +123,25 @@ class DenseOperatorCollection(BaseOperatorCollection):
         """Evaluates the product G(t)y"""
         return np.dot(self.evaluate_generator(signal_values), y)
 
-    def __init__(self, operators: Array, drift: Optional[Array] = None):
-        """Initialize
-        Args:
-            operators: (k,n,n) Array specifying the terms :math:`G_j`
-            drift: (n,n) Array specifying the extra drift :math:`G_d`
-        """
-        self._operators = to_array(operators)
-        self.drift = to_array(drift)
-
 
 class SparseOperatorCollection(BaseOperatorCollection):
     r"""Sparse version of DenseOperatorCollection."""
+    
+    def __init__(self, operators: Array, drift: Optional[Array] = None, decimals: Optional[int] = 10,):
+        """Initialize
+        Args:
+            operators: (k,n,n) Array specifying the terms :math:`G_j`
+            drift: (n,n) Array specifying the drift term :math:`G_d`
+            decimals: Values will be rounded at ``decimals`` places after decimal place.
+                Avoids storing excess sparse entries for entries close to zero."""
+        if isinstance(drift,Operator):
+            drift = to_array(drift)
+        if isinstance(operators[0],Operator):
+            operators = to_array(drift)
+        self.drift = np.round(drift,decimals)
+        self._operators = np.empty(shape=operators.shape[0],dtype="O")
+        for i in range(operators.shape[0]):
+            self._operators[i] = csr_matrix(np.round(operators[i],decimals))
 
     @property
     def num_operators(self) -> int:
@@ -142,21 +158,6 @@ class SparseOperatorCollection(BaseOperatorCollection):
         else:
             self._drift = csr_matrix(new_drift)
 
-    def __init__(self, operators: Array, drift: Optional[Array] = None, decimals: Optional[int] = 10,):
-        """Initialize
-        Args:
-            operators: (k,n,n) Array specifying the terms :math:`G_j`
-            drift: (n,n) Array specifying the drift term :math:`G_d`
-            decimals: Values will be rounded at ``decimals`` places after decimal place.
-                Avoids storing excess sparse entries for entries close to zero."""
-        if isinstance(drift,Operator):
-            drift = to_array(drift)
-        if isinstance(operators[0],Operator):
-            operators = to_array(drift)
-        self.drift = np.round(drift,decimals)
-        self._operators = np.empty(shape=operators.shape[0],dtype="O")
-        for i in range(operators.shape[0]):
-            self._operators[i] = csr_matrix(np.round(operators[i],decimals))
 
     def evaluate_generator(self, signal_values: Array) -> csr_matrix:
         r"""Sparse version of ``DenseOperatorCollection.evaluate_generator``.
@@ -191,10 +192,6 @@ class DenseLindbladCollection(BaseOperatorCollection):
     where :math:`\[,\]` and :math:`\{,\}` are the operator commutator and anticommutator, respectively.
     """
 
-    @property
-    def num_operators(self):
-        return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
-
     def __init__(
         self,
         hamiltonian_operators: Array,
@@ -223,6 +220,10 @@ class DenseLindbladCollection(BaseOperatorCollection):
                 self._dissipator_operators_conj, self._dissipator_operators
             )
         self.drift = drift
+
+    @property
+    def num_operators(self):
+        return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
 
     def evaluate_generator(self, signal_values: Array) -> Array:
         raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
@@ -355,6 +356,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         return super().evaluate_generator(signal_values)
 
 class SparseLindbladCollection(DenseLindbladCollection):
+    """Sparse version of DenseLindbladCollection"""
     def __init__(
         self,
         hamiltonian_operators: Array,
