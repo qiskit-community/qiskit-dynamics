@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Generic operator for general linear maps"""
+"""Operator collections as math/calculation objects for Model classes"""
 
 from abc import ABC, abstractmethod
 from typing import Union, List, Optional
@@ -23,18 +23,17 @@ from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
 
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
-    intended to store a general set of linear mappings {\Lambda_i}
+    intended to store a general set of linear mappings :math:`\{\Lambda_i\}`
     in order to implement differential equations of the form
-    \dot{y} = \Lambda(y,t). Generically, \Lambda will be a sum of
-    other linear maps \Lambda_i(y,t), which are in turn some
-    combination of left-multiplication \Lambda_i(y,t) = A(t)y(t),
-    right-multiplication \Lambda_i(y,t) = y(t)B(t), and both, with
-    \Lambda_i(y,t) = A(t)y(t)B(t), but this implementation
-    will only engage with these at the level of \Lambda(y,t)
+    :math:`\dot{y} = \Lambda(y,t)`. Generically, :math:`\Lambda` will be a sum of
+    other linear maps :math:`\Lambda_i(y,t)`, which are in turn some
+    combination of left-multiplication, right-multiplication 
+    and both.
 
     Drift is a property that represents some time-independent
-    component \Lambda_d of the decpmoosition, which will be
-    used to facilitate rotating frame transformations."""
+    component :math:`\Lambda_d` of the decpmoosition, which will be
+    used to facilitate rotating frame transformations. Typically,
+    this means it only affects the Hamiltonian of the system."""
 
     @property
     def drift(self) -> Array:
@@ -43,7 +42,7 @@ class BaseOperatorCollection(ABC):
 
     @drift.setter
     def drift(self, new_drift: Optional[Array] = None):
-        """Sets Drift operator, if used."""
+        """Sets Drift term of Hamiltonian/Generator"""
         self._drift = new_drift
 
     @property
@@ -55,10 +54,10 @@ class BaseOperatorCollection(ABC):
 
     @abstractmethod
     def evaluate_generator(self, signal_values: Array) -> Array:
-        r"""If the model can be represented simply and
-        without reference to the state involved, e.g.
-        in the case \dot{y} = G(t)y(t) being represented
-        as G(t), returns this independent representation.
+        r"""If the model can be represented without
+        reference to the state involved, as in the
+        case :math:`\dot{y} = G(t)y(t)` being represented
+        as :math:`G(t)`, returns this independent representation.
         If the model cannot be represented in such a
         manner (c.f. Lindblad model), then errors."""
         pass
@@ -66,8 +65,8 @@ class BaseOperatorCollection(ABC):
     @abstractmethod
     def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
         """Evaluates the model for a given state
-        y provided the values of each signal
-        component s_j(t). Must be defined for all
+        :math:`y` provided the values of each signal
+        component :math:`s_j(t)`. Must be defined for all
         models."""
         pass
 
@@ -75,9 +74,9 @@ class BaseOperatorCollection(ABC):
         self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
     ) -> Array:
         """Evaluates the model given the values of the signal
-        terms s_j, suppressing the choice between
+        terms :math:`s_j(t)`, suppressing the choice between
         evaluate_rhs and evaluate_generator
-        from the user. May error if y is not provided and
+        from the user. May error if :math:`y` is not provided and
         model cannot be expressed without choice of state.
         """
 
@@ -92,10 +91,10 @@ class BaseOperatorCollection(ABC):
 
 
 class DenseOperatorCollection(BaseOperatorCollection):
-    r"""Meant to be a calculation object for models that
-    only ever need left multiplication–those of the form
-    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j + G_d.
-    Can evaluate G(t) independently of y.
+    r"""Calculation object for models that only 
+    need left multiplication–those of the form
+    :math:`\dot{y} = G(t)y(t)`, where :math:`G(t) = \sum_j s_j(t) G_j + G_d`.
+    Can evaluate :math:`G(t)` independently of :math:`y`.
     """
 
     @property
@@ -103,8 +102,8 @@ class DenseOperatorCollection(BaseOperatorCollection):
         return self._operators.shape[-3]
 
     def evaluate_generator(self, signal_values: Array) -> Array:
-        r"""Evaluates the operator G at time t given
-        the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j"""
+        r"""Evaluates the operator :math:`G(t)` given
+        the signal values :math:`s_j(t)` as :math:`G(t) = \sum_j s_j(t)G_j`"""
         if self._drift is None:
             return np.tensordot(signal_values, self._operators, axes=1)
         else:
@@ -117,20 +116,15 @@ class DenseOperatorCollection(BaseOperatorCollection):
     def __init__(self, operators: Array, drift: Optional[Array] = None):
         """Initialize
         Args:
-            operators: (k,n,n) Array specifying the terms G_j
-            drift: (n,n) Array specifying the extra drift G_d
+            operators: (k,n,n) Array specifying the terms :math:`G_j`
+            drift: (n,n) Array specifying the extra drift :math:`G_d`
         """
         self._operators = to_array(operators)
         self.drift = drift
 
 
 class SparseOperatorCollection(BaseOperatorCollection):
-    r"""Meant to be a calculation object for models that
-    only ever need left multiplication–those of the form
-    \dot{y} = G(t)y(t), where G(t) = \sum_j s_j(t) G_j + G_d.
-    Can evaluate G(t) independently of y. G_j and G_d are
-    sparse matrices.
-    """
+    r"""Sparse version of DenseOperatorCollection."""
 
     @property
     def num_operators(self) -> int:
@@ -155,21 +149,20 @@ class SparseOperatorCollection(BaseOperatorCollection):
     ):
         """Initialize
         Args:
-            operators: (k,n,n) Array specifying the terms G_j
-            drift: (n,n) Array specifying the drift term G_d
-            tol: Values will be rounded at tol places after decimal place.
-                Chosen to avoid storing excess sparse entries for entries
-                sufficiently close to zero."""
-        self.drift = np.round(drift, tol)
-        self._operators = np.empty(shape=operators.shape[0], dtype="O")
+            operators: (k,n,n) Array specifying the terms :math:`G_j`
+            drift: (n,n) Array specifying the drift term :math:`G_d`
+            decimals: Values will be rounded at ``decimals`` places after decimal place.
+                Avoids storing excess sparse entries for entries close to zero."""
         for i in range(operators.shape[0]):
             self._operators[i] = csr_matrix(np.round(operators[i], tol))
 
     def evaluate_generator(self, signal_values: Array) -> csr_matrix:
-        r"""Evaluates the operator G at time t given
-        the signal values s_j(t) as G(t) = \sum_j s_j(t)G_j
+        r"""Sparse version of ``DenseOperatorCollection.evaluate_generator``.
+        Args: 
+            signal_values: Array of values specifying each signal value :math:`s_j(t)`
         Returns:
             Generator as sparse array"""
+        signal_values = signal_values.reshape(1,signal_values.shape[-1])
         signal_values = signal_values.reshape(1, signal_values.shape[-1])
         if self._drift is None:
             return np.tensordot(signal_values, self._operators, axes=1)[0]
@@ -191,14 +184,10 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
-    r"""Intended to be the calculation object for the Lindblad equation
-    \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)
-        (L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
-    where [,] and {,} are the operator commutator and anticommutator, respectively.
-    In the case that the Hamiltonian is also a function of time, varying as
-    H(t) = H_d + \sum_j s_j(t) H_j, where H_d is the drift term,
-    this can be further decomposed. We will allow for both our dissipator terms
-    and our Hamiltonian terms to have different signal decompositions.
+    r"""Calculation object for the Lindblad equation
+    .. math::
+        \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)(L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
+    where :math:`\[,\]` and :math:`\{,\}` are the operator commutator and anticommutator, respectively.
     """
 
     @property
@@ -227,16 +216,15 @@ class DenseLindbladCollection(BaseOperatorCollection):
         drift: Array,
         dissipator_operators: Optional[Array] = None,
     ):
-        r"""Converts an array of Hamiltonian components and signals,
-        as well as Lindbladians, into a way of calculating the RHS
-        of the Lindblad equation.
+        r"""Initialization
 
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
-            drift: If supplied, treated as a constant term to be added to the
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying 
+                :math:`H_j`. (k,n,n) array.
+            drift: Treated as a constant term :math:`H_d` to be added to the
                 Hamiltonian of the system.
-            dissipator_operators: the terms L_j in Lindblad equation.
+            dissipator_operators: the terms :math:`L_j` in Lindblad equation.
                 (m,n,n) array.
         """
 
@@ -249,9 +237,9 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
         r"""Gets the Hamiltonian matrix, as calculated by the model,
-        and used for the commutator -i[H,y]
+        and used for the commutator :math:`-i[H,y]`
         Args:
-            signal_values: [Real] values of s_j in H = \sum_j s_j(t) H_j
+            signal_values: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`
         Returns:
             Hamiltonian matrix."""
         return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
@@ -259,20 +247,22 @@ class DenseLindbladCollection(BaseOperatorCollection):
     def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
-        the RHS of the Lindblad equation as (A+B)y + y(A-B) + C, where
+        the RHS of the Lindblad equation as :math:`(A+B)y + y(A-B) + C`, where
+            .. math::
             A = (-1/2)*\sum_j\gamma(t) L_j^\dagger L_j
+
             B = -iH
+
             C = \sum_j \gamma_j(t) L_j y L_j^\dagger
         Args:
             signal_values: length-2 list of Arrays. has the following components
-                signal_values[0]: hamiltonian signal values, s_j(t)
-                    Must have length self._num_ham_terms
-                signal_values[1]: dissipator signal values, \gamma_j(t)
-                    Must have length self._num_dis_terms
-            y: density matrix as (n,n) Array representing the state at time t
+                signal_values[0]: hamiltonian signal values, :math:`s_j(t)`
+                signal_values[1]: dissipator signal values, :math:`\gamma_j(t)`
+            y: density matrix as (n,n) Array representing the state at time :math:`t`
         Returns:
-            RHS of Lindblad equation -i[H,y] + \sum_j\gamma_j(t)
-            (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
+            RHS of Lindblad equation
+            .. math::
+                -i[H,y] + \sum_j\gamma_j(t)(L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
 
         hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
@@ -306,14 +296,10 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
 
 class DenseVectorizedLindbladCollection(DenseOperatorCollection):
-    r"""Intended as a calculation object for the Lindblad equation,
-    \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)
-            (L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
-    where all left-, right-, and left-and-right multiplication is
-    handled by vectorization, a process by which \rho, an (n,n)
-    matrix, is embedded in a vector space of dimension n^2 using
-    the column stacking convention, in which the matrix [a,b;c,d]
-    is written as [a,c,b,d]."""
+    r"""Vectorized version of DenseLindbladCollection, wherein
+    :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of 
+    dimension :math:`n^2` using the column stacking convention, in 
+    which the matrix :math:`[a,b;c,d]` is written as :math:`[a,c,b,d]`."""
 
     def __init__(
         self,
@@ -321,23 +307,16 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         drift: Array,
         dissipator_operators: Optional[Array] = None,
     ):
-        r"""Converts an array of Hamiltonian components and signals,
-        as well as Lindbladians, into a way of calculating the RHS
-        of the Lindblad equation using only left-multiplication.
+        r"""Initialize
 
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
-            drift: Constant term to be added to the Hamiltonian of the system.
-            dissipator_operators: the terms L_j in Lindblad equation.
-                (m,n,n) array.
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) Array.
+            drift: Constant term to be added to the Hamiltonian of the system. (n,n) Array
+            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) Array.
         """
 
         # Convert Hamiltonian to commutator formalism
-        self._hamiltonian_operators = hamiltonian_operators
-        self._drift_terms = drift
-        vec_drift = -1j * vec_commutator(drift)
-
         vec_ham_ops = -1j * vec_commutator(to_array(hamiltonian_operators))
         total_ops = None
         if dissipator_operators is not None:
@@ -363,14 +342,15 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
-            signal_values: either a list [ham_sig_values, dis_sig_values]
+            signal_values: list [ham_sig_values, dis_sig_values]
                 storing the signal values for the Hamiltonian component
                 and the dissipator component, or a single array containing
-                the total list of signal values.
+                the total list of signal values. If no dissipator terms are
+                involved, pass dis_sig_values = None. 
             y: Density matrix represented as a vector using column-stacking
                 convention.
         Returns:
-            Vectorized RHS of Lindblad equation \dot{\rho} in column-stacking
+            Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
         if isinstance(signal_values, list):
             if np.any(signal_values[1] != 0):
@@ -383,14 +363,13 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
-            signal_values: either a list [ham_sig_values, dis_sig_values]
+            signal_values: a list [ham_sig_values, dis_sig_values]
                 storing the signal values for the Hamiltonian component
-                and the dissipator component, or a single array containing
-                the total list of signal values.
+                and the dissipator component
             y: Density matrix represented as a vector using column-stacking
                 convention.
         Returns:
-            Vectorized RHS of Lindblad equation \dot{\rho} in column-stacking
+            Vectorized generator of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
         if isinstance(signal_values, list):
             if np.any(signal_values[1] != 0):
@@ -408,18 +387,14 @@ class SparseLindbladCollection(DenseLindbladCollection):
         dissipator_operators: Optional[Array] = None,
         tol: Optional[int] = 10,
     ):
-        r"""Converts an array of Hamiltonian components and signals,
-        as well as Lindbladians, into a way of calculating the RHS
-        of the Lindblad equation.
+        r"""Initializes sparse version of DenseLindbladCollection
 
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as H(t) = \sum_j s(t) H_j by specifying H_j. (k,n,n) array.
-            drift: If supplied, treated as a constant term to be added to the
-                Hamiltonian of the system.
-            dissipator_operators: the terms L_j in Lindblad equation.
-                (m,n,n) array.
-            tol: operator values will be rounded to tol places after the
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
+            drift: Constant term :math:`H_d` to be added to the Hamiltonian of the system.
+            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
+            decimals: operator values will be rounded to ``decimals`` places after the
                 decimal place to avoid excess storage of near-zero values
                 in sparse format.
         """
