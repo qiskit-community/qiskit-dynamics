@@ -254,9 +254,13 @@ class LindbladModel(BaseGeneratorModel):
         self.evaluation_mode = self.evaluation_mode
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        if self._dissipator_signals is not None:
+            dissipator_sig_vals = self._dissipator_signals(time)
+        else:
+            dissipator_sig_vals = None
         if self.evaluation_mode == "dense_vectorized":
             out = self._operator_collection.evaluate_generator(
-                [self._hamiltonian_signals(time), self._dissipator_signals(time)]
+                [self._hamiltonian_signals(time), dissipator_sig_vals]
             )
             return self.frame.bring_vectorized_operator_into_frame(
                 time, out, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
@@ -282,7 +286,7 @@ class LindbladModel(BaseGeneratorModel):
         if self._dissipator_signals is not None:
             dissipator_sig_vals = self._dissipator_signals(time)
         else:
-            dissipator_sig_vals = 0
+            dissipator_sig_vals = None
 
         if self.frame.frame_diag is not None:
 

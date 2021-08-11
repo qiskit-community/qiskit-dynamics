@@ -151,7 +151,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
                 Avoids storing excess sparse entries for entries close to zero."""
         if isinstance(drift,Operator):
             drift = to_array(drift)
-        if isinstance(operators,List[Operator]):
+        if isinstance(operators[0],Operator):
             operators = to_array(drift)
         self.drift = np.round(drift,decimals)
         self._operators = np.empty(shape=operators.shape[0],dtype="O")
@@ -334,14 +334,9 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         Returns:
             Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
-        if isinstance(signal_values, list):
-            if np.any(signal_values[1] != 0):
-                signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
-            else:
-                signal_values = signal_values[0]
-        return super().evaluate_rhs(signal_values, y)
+        return np.dot(self.evaluate_generator(signal_values),y)
 
-    def evaluate_generator(self, signal_values: Union[List[Array], Array]) -> Array:
+    def evaluate_generator(self, signal_values: List[Array]) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
@@ -353,13 +348,11 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         Returns:
             Vectorized generator of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
-        if isinstance(signal_values, list):
-            if np.any(signal_values[1] != 0):
+        if signal_values[1] is None:
+            signal_values = signal_values[0]
+        else:
                 signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
-            else:
-                signal_values = signal_values[0]
         return super().evaluate_generator(signal_values)
-
 
 class SparseLindbladCollection(DenseLindbladCollection):
     def __init__(
