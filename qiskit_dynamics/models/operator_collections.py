@@ -16,6 +16,7 @@ from abc import ABC, abstractmethod
 from typing import Union, List, Optional
 from copy import deepcopy
 import numpy as np
+from qiskit.quantum_info.operators.operator import Operator
 from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
@@ -120,7 +121,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
             drift: (n,n) Array specifying the extra drift :math:`G_d`
         """
         self._operators = to_array(operators)
-        self.drift = drift
+        self.drift = to_array(drift)
 
 
 class SparseOperatorCollection(BaseOperatorCollection):
@@ -148,6 +149,10 @@ class SparseOperatorCollection(BaseOperatorCollection):
             drift: (n,n) Array specifying the drift term :math:`G_d`
             decimals: Values will be rounded at ``decimals`` places after decimal place.
                 Avoids storing excess sparse entries for entries close to zero."""
+        if isinstance(drift,Operator):
+            drift = to_array(drift)
+        if isinstance(operators,List[Operator]):
+            operators = to_array(drift)
         self.drift = np.round(drift,decimals)
         self._operators = np.empty(shape=operators.shape[0],dtype="O")
         for i in range(operators.shape[0]):
@@ -208,11 +213,11 @@ class DenseLindbladCollection(BaseOperatorCollection):
                 (m,n,n) array.
         """
 
-        self._hamiltonian_operators = hamiltonian_operators
-        self._dissipator_operators = dissipator_operators
+        self._hamiltonian_operators = to_array(hamiltonian_operators)
+        self._dissipator_operators = to_array(dissipator_operators)
         if dissipator_operators is not None:
             self._dissipator_operators_conj = np.conjugate(
-                np.transpose(dissipator_operators, [0, 2, 1])
+                np.transpose(to_array(dissipator_operators), [0, 2, 1])
             ).copy()
             self._dissipator_products = np.matmul(
                 self._dissipator_operators_conj, self._dissipator_operators
@@ -305,6 +310,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
 
         # Convert Hamiltonian to commutator formalism
         vec_ham_ops = -1j * vec_commutator(to_array(hamiltonian_operators))
+        vec_drift = -1j * vec_commutator(to_array(drift))
         total_ops = None
         if dissipator_operators is not None:
             vec_diss_ops = vec_dissipator(to_array(dissipator_operators))
@@ -377,12 +383,18 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
         self._hamiltonian_operators = np.empty(shape=hamiltonian_operators.shape[0],dtype="O")
         for i in range(hamiltonian_operators.shape[0]):
+            if isinstance(hamiltonian_operators[i],Operator):
+                hamiltonian_operators[i] = to_array(hamiltonian_operators[i])
             self._hamiltonian_operators[i] = csr_matrix(np.round(hamiltonian_operators[i],decimals))
+        if isinstance(drift,Operator):
+            drift = to_array(drift)
         self.drift = csr_matrix(np.round(drift,decimals))
         if dissipator_operators is not None:
             self._dissipator_operators = np.empty(shape=dissipator_operators.shape[0],dtype="O")
             self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
             for i in range(dissipator_operators.shape[0]):
+                if isinstance(dissipator_operators[i],Operator):
+                    dissipator_operators[i] = to_array(dissipator_operators[i])
                 self._dissipator_operators[i] = csr_matrix(np.round(dissipator_operators[i],decimals))
                 self._dissipator_operators_conj[i] = self._dissipator_operators[i].conjugate().transpose()
             self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
