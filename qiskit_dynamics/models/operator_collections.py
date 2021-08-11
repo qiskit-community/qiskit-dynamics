@@ -99,7 +99,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
     @property
     def num_operators(self) -> int:
-        return self._operators.shape[-3]
+        return self._operators.shape[0]
 
     def evaluate_generator(self, signal_values: Array) -> Array:
         r"""Evaluates the operator :math:`G(t)` given
