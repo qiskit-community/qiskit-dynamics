@@ -160,7 +160,6 @@ class SparseOperatorCollection(BaseOperatorCollection):
         Returns:
             Generator as sparse array"""
         signal_values = signal_values.reshape(1,signal_values.shape[-1])
-        signal_values = signal_values.reshape(1, signal_values.shape[-1])
         if self._drift is None:
             return np.tensordot(signal_values, self._operators, axes=1)[0]
         else:
