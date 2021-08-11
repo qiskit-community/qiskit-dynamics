@@ -213,10 +213,6 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
             rand_ham, drift=rand_dft, dissipator_operators=rand_dis
         )
 
-        a = stdLindblad.evaluate_hamiltonian(rand_ham_sigs(t)).flatten(order="F")
-        b = vecLindblad.evaluate_hamiltonian(rand_ham_sigs(t))
-        self.assertAllClose(a, b)
-
         a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), rand_dis_sigs(t)], rho).flatten(order="F")
         b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), rand_dis_sigs(t)], rho.flatten(order="F"))
         self.assertAllClose(a, b)
@@ -227,12 +223,8 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
             rand_ham, drift=rand_dft, dissipator_operators=None
         )
 
-        a = stdLindblad.evaluate_hamiltonian(rand_ham_sigs(t)).flatten(order="F")
-        b = vecLindblad.evaluate_hamiltonian(rand_ham_sigs(t))
-        self.assertAllClose(a, b)
-
-        a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho).flatten(order="F")
-        b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), 0], rho.flatten(order="F"))
+        a = stdLindblad.evaluate_rhs([rand_ham_sigs(t), None], rho).flatten(order="F")
+        b = vecLindblad.evaluate_rhs([rand_ham_sigs(t), None], rho.flatten(order="F"))
         self.assertAllClose(a, b)
 
 
