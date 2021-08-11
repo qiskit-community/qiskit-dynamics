@@ -188,22 +188,6 @@ class DenseLindbladCollection(BaseOperatorCollection):
     """
 
     @property
-    def dissipator_operators(self):
-        """Gets dissipator operators as a (k,n,n) Array"""
-        return self._dissipator_operators
-
-    @dissipator_operators.setter
-    def dissipator_operators(self, dissipator_operators: Array):
-        self._dissipator_operators = dissipator_operators
-        if dissipator_operators is not None:
-            self._dissipator_operators_conj = np.conjugate(
-                np.transpose(dissipator_operators, [0, 2, 1])
-            ).copy()
-            self._dissipator_products = np.matmul(
-                self._dissipator_operators_conj, self._dissipator_operators
-            )
-
-    @property
     def num_operators(self):
         return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
 
@@ -226,7 +210,14 @@ class DenseLindbladCollection(BaseOperatorCollection):
         """
 
         self._hamiltonian_operators = hamiltonian_operators
-        self.dissipator_operators = dissipator_operators
+        self._dissipator_operators = dissipator_operators
+        if dissipator_operators is not None:
+            self._dissipator_operators_conj = np.conjugate(
+                np.transpose(dissipator_operators, [0, 2, 1])
+            ).copy()
+            self._dissipator_products = np.matmul(
+                self._dissipator_operators_conj, self._dissipator_operators
+            )
         self.drift = drift
 
     def evaluate_generator(self, signal_values: Array) -> Array:
