@@ -219,7 +219,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             self._dissipator_products = np.matmul(
                 self._dissipator_operators_conj, self._dissipator_operators
             )
-        self.drift = drift
+        self.drift = to_array(drift)
 
     @property
     def num_operators(self):
