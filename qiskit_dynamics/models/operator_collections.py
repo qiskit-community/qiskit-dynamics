@@ -225,7 +225,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
     def num_operators(self):
         return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
 
-    def evaluate_generator(self, signal_values: Array) -> Array:
+    def evaluate_generator(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
@@ -237,7 +237,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             Hamiltonian matrix."""
         return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
 
-    def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
+    def evaluate_rhs(self, ham_sig_vals: Array,dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as :math:`(A+B)y + y(A-B) + C`, where
@@ -248,9 +248,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
             C = \sum_j \gamma_j(t) L_j y L_j^\dagger
         Args:
-            signal_values: length-2 list of Arrays. has the following components
-                signal_values[0]: hamiltonian signal values, :math:`s_j(t)`
-                signal_values[1]: dissipator signal values, :math:`\gamma_j(t)`
+            ham_sig_vals: hamiltonian signal values, :math:`s_j(t)`
+            dis_sig_vals: dissipator signal values, :math:`\gamma_j(t)`
             y: density matrix as (n,n) Array representing the state at time :math:`t`
         Returns:
             RHS of Lindblad equation
@@ -258,11 +257,11 @@ class DenseLindbladCollection(BaseOperatorCollection):
                 -i[H,y] + \sum_j\gamma_j(t)(L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
         """
 
-        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
+        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
 
         if self._dissipator_operators is not None:
             dissipators_matrix = (-1 / 2) * np.tensordot(  # A matrix
-                signal_values[1], self._dissipator_products, axes=1
+                dis_sig_vals, self._dissipator_products, axes=1
             )
 
             left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
@@ -275,7 +274,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
                 )
 
             both_mult_contribution = np.tensordot(
-                signal_values[1],
+                dis_sig_vals,
                 np.matmul(
                     self._dissipator_operators, np.matmul(y, self._dissipator_operators_conj)
                 ),
@@ -286,6 +285,12 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
         else:
             return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
+
+    def __call__(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Optional[Array]) -> Array:
+        if y is None:
+            return self.evaluate_generator(ham_sig_vals,dis_sig_vals)
+
+        return self.evaluate_rhs(ham_sig_vals,dis_sig_vals, y)
 
 
 class DenseVectorizedLindbladCollection(DenseOperatorCollection):
@@ -321,38 +326,35 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
 
         super().__init__(total_ops, drift=vec_drift)
 
-    def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
+    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
-            signal_values: list [ham_sig_values, dis_sig_values]
-                storing the signal values for the Hamiltonian component
-                and the dissipator component, or a single array containing
-                the total list of signal values. If no dissipator terms are
-                involved, pass dis_sig_values = None. 
+            ham_sig_values: hamiltonian signal coefficients.
+            dis_sig_values: dissipator signal coefficients. 
+                If none involved, pass None.
             y: Density matrix represented as a vector using column-stacking
                 convention.
         Returns:
             Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
-        return np.dot(self.evaluate_generator(signal_values),y)
+        return np.dot(self.evaluate_generator(ham_sig_vals,dis_sig_vals),y)
 
-    def evaluate_generator(self, signal_values: List[Array]) -> Array:
+    def evaluate_generator(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
-            signal_values: a list [ham_sig_values, dis_sig_values]
-                storing the signal values for the Hamiltonian component
-                and the dissipator component
+            ham_sig_values: stores the Hamiltonian signal coefficients.
+            dis_sig_values: stores the dissipator signal coefficients.
             y: Density matrix represented as a vector using column-stacking
                 convention.
         Returns:
             Vectorized generator of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
-        if signal_values[1] is None:
-            signal_values = signal_values[0]
+        if dis_sig_vals is None:
+            signal_values = ham_sig_vals
         else:
-                signal_values = np.append(signal_values[0], signal_values[1], axis=-1)
+                signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
         return super().evaluate_generator(signal_values)
 
 class SparseLindbladCollection(DenseLindbladCollection):
@@ -399,13 +401,12 @@ class SparseLindbladCollection(DenseLindbladCollection):
     def evaluate_hamiltonian(self, signal_values: Array) -> csr_matrix:
         return np.sum(signal_values * self._hamiltonian_operators, axis=-1) + self.drift
 
-    def evaluate_rhs(self, signal_values: List[Array], y: Array) -> Array:
+    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates the RHS of the LindbladModel for a given list of signal values. 
         Args: 
-            signal_values: length-2 List of Array objects. signal_values[0] stores
-                Hamiltonian signal values :math:`s_j(t)`. signal_values[1] stores
-                dissipator signal values :math:`\gamma_j(t)`. Pass None to 
-                signal_values[1] if no dissipator operators involved. 
+            ham_sig_vals: stores Hamiltonian signal values :math:`s_j(t)`. 
+            dis_sig_vals: stores dissipator signal values :math:`\gamma_j(t)`. 
+                Pass None if no dissipator operators involved. 
             y: density matrix of system. (k,n,n) Array. 
         Returns: 
             RHS of Lindbladian
@@ -437,7 +438,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
             an array where entry [i,j] is an object storing the results of s_jL_j\rho_i L_j^\dagger. 
             We can then sum over j and unpackage our object array to get our desired result. 
             """
-        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(signal_values[0])  # B matrix
+        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
 
         # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
         # Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays of dtype object
@@ -445,7 +446,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
         if self._dissipator_operators is not None:
             dissipators_matrix = (-1 / 2) * np.sum(
-                signal_values[1] * self._dissipator_products, axis=-1
+                dis_sig_vals * self._dissipator_products, axis=-1
             )
 
             left_mult_contribution = np.squeeze([hamiltonian_matrix + dissipators_matrix] * y)
@@ -453,7 +454,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
             # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
             both_mult_contribution = (
-                (signal_values[1] * self._dissipator_operators)
+                (dis_sig_vals * self._dissipator_operators)
                 * y
                 * self._dissipator_operators_conj
             )

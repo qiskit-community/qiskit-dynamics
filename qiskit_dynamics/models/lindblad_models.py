@@ -260,7 +260,7 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_sig_vals = None
         if self.evaluation_mode == "dense_vectorized":
             out = self._operator_collection.evaluate_generator(
-                [self._hamiltonian_signals(time), dissipator_sig_vals]
+                self._hamiltonian_signals(time), dissipator_sig_vals
             )
             return self.frame.bring_vectorized_operator_into_frame(
                 time, out, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
@@ -300,7 +300,7 @@ class LindbladModel(BaseGeneratorModel):
             )
 
             rhs = self._operator_collection.evaluate_rhs(
-                [hamiltonian_sig_vals, dissipator_sig_vals], rhs
+                hamiltonian_sig_vals, dissipator_sig_vals, rhs
             )
 
             # Put rhs back into the frame, potentially converting its basis.
@@ -314,7 +314,7 @@ class LindbladModel(BaseGeneratorModel):
 
         else:
             rhs = self._operator_collection.evaluate_rhs(
-                [hamiltonian_sig_vals, dissipator_sig_vals], y
+                hamiltonian_sig_vals, dissipator_sig_vals, y
             )
 
         return rhs
