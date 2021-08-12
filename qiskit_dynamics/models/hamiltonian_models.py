@@ -53,28 +53,6 @@ class HamiltonianModel(GeneratorModel):
           evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
     """
 
-    @property
-    def frame(self) -> RotatingFrame:
-        return super().frame
-
-    @frame.setter
-    def frame(self, frame: Union[Operator, Array, RotatingFrame]) -> Array:
-        """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
-        The drift needs to be adjusted by -H in the new frame."""
-        if self._frame is not None and self._frame.frame_diag is not None:
-            self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
-            self._operators = self.frame.operator_out_of_frame_basis(self._operators)
-            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
-
-        self._frame = RotatingFrame(frame)
-
-        if self._frame.frame_diag is not None:
-            self._operators = self.frame.operator_into_frame_basis(self._operators)
-            self.drift = self.frame.operator_into_frame_basis(self.drift)
-            self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
-
-        self.evaluation_mode = self.evaluation_mode
-
     def __init__(
         self,
         operators: List[Operator],
@@ -127,6 +105,28 @@ class HamiltonianModel(GeneratorModel):
             drift=drift,
             evaluation_mode=evaluation_mode,
         )
+
+    @property
+    def frame(self) -> RotatingFrame:
+        return super().frame
+
+    @frame.setter
+    def frame(self, frame: Union[Operator, Array, RotatingFrame]) -> Array:
+        """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
+        The drift needs to be adjusted by -H in the new frame."""
+        if self._frame is not None and self._frame.frame_diag is not None:
+            self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
+            self._operators = self.frame.operator_out_of_frame_basis(self._operators)
+            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
+
+        self._frame = RotatingFrame(frame)
+
+        if self._frame.frame_diag is not None:
+            self._operators = self.frame.operator_into_frame_basis(self._operators)
+            self.drift = self.frame.operator_into_frame_basis(self.drift)
+            self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
+
+        self.evaluation_mode = self.evaluation_mode
 
     def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
         """Evaluate generator RHS functions. Needs to be overriden from base class
