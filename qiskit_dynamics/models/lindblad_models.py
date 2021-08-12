@@ -56,68 +56,6 @@ class LindbladModel(BaseGeneratorModel):
           :math:`j^{th}` Lindblad operator.
     """
 
-    @property
-    def signals(self) -> List[Array]:
-        """Gets the Model's Signals.
-        Returns:
-            list[Array] with 0th entry storing the Hamiltonian signals
-                and the 1st entry storing the dissipator signals."""
-        return [self._hamiltonian_signals, self._dissipator_signals]
-
-    @signals.setter
-    def signals(self, new_signals: List[Array]):
-        self._hamiltonian_signals, self._dissipator_signals = new_signals
-
-    @property
-    def operators(self) -> List[Array]:
-        return [self._hamiltonian_operators, self._dissipator_operators]
-
-    @property
-    def dim(self) -> int:
-        return self._hamiltonian_operators.shape[-1]
-
-    @property
-    def evaluation_mode(self) -> str:
-        return super().evaluation_mode
-
-    @evaluation_mode.setter
-    def evaluation_mode(self, new_mode: str):
-        """Sets evaluation mode.
-        Args:
-            new_mode: new mode for evaluation. Supported modes:
-                dense (default)
-                sparse
-                dense_vectorized
-        Raises:
-            NotImplementedError: if a mode other than one of the
-            above is specified."""
-        if new_mode == "dense":
-            self._operator_collection = DenseLindbladCollection(
-                self._hamiltonian_operators,
-                drift=self.drift,
-                dissipator_operators=self._dissipator_operators,
-            )
-            self.vectorized_operators = False
-        elif new_mode == "sparse":
-            self._operator_collection = SparseLindbladCollection(
-                self._hamiltonian_operators,
-                drift=self.drift,
-                dissipator_operators=self._dissipator_operators,
-            )
-            self.vectorized_operators = False
-        elif new_mode == "dense_vectorized":
-            self._operator_collection = DenseVectorizedLindbladCollection(
-                self._hamiltonian_operators,
-                drift=self.drift,
-                dissipator_operators=self._dissipator_operators,
-            )
-            self.vectorized_operators = True
-        elif new_mode is None:
-            pass
-        else:
-            raise NotImplementedError("Evaluation mode " + str(new_mode) + " is not supported.")
-        self._evaluation_mode = new_mode
-
     def __init__(
         self,
         hamiltonian_operators: Array,
@@ -185,6 +123,68 @@ class LindbladModel(BaseGeneratorModel):
         self.frame = frame
 
         self.evaluation_mode = evaluation_mode
+
+    @property
+    def signals(self) -> List[Array]:
+        """Gets the Model's Signals.
+        Returns:
+            list[Array] with 0th entry storing the Hamiltonian signals
+                and the 1st entry storing the dissipator signals."""
+        return [self._hamiltonian_signals, self._dissipator_signals]
+
+    @signals.setter
+    def signals(self, new_signals: List[Array]):
+        self._hamiltonian_signals, self._dissipator_signals = new_signals
+
+    @property
+    def operators(self) -> List[Array]:
+        return [self._hamiltonian_operators, self._dissipator_operators]
+
+    @property
+    def dim(self) -> int:
+        return self._hamiltonian_operators.shape[-1]
+
+    @property
+    def evaluation_mode(self) -> str:
+        return super().evaluation_mode
+
+    @evaluation_mode.setter
+    def evaluation_mode(self, new_mode: str):
+        """Sets evaluation mode.
+        Args:
+            new_mode: new mode for evaluation. Supported modes:
+                dense (default)
+                sparse
+                dense_vectorized
+        Raises:
+            NotImplementedError: if a mode other than one of the
+            above is specified."""
+        if new_mode == "dense":
+            self._operator_collection = DenseLindbladCollection(
+                self._hamiltonian_operators,
+                drift=self.drift,
+                dissipator_operators=self._dissipator_operators,
+            )
+            self.vectorized_operators = False
+        elif new_mode == "sparse":
+            self._operator_collection = SparseLindbladCollection(
+                self._hamiltonian_operators,
+                drift=self.drift,
+                dissipator_operators=self._dissipator_operators,
+            )
+            self.vectorized_operators = False
+        elif new_mode == "dense_vectorized":
+            self._operator_collection = DenseVectorizedLindbladCollection(
+                self._hamiltonian_operators,
+                drift=self.drift,
+                dissipator_operators=self._dissipator_operators,
+            )
+            self.vectorized_operators = True
+        elif new_mode is None:
+            pass
+        else:
+            raise NotImplementedError("Evaluation mode " + str(new_mode) + " is not supported.")
+        self._evaluation_mode = new_mode
 
     @classmethod
     def from_hamiltonian(
