@@ -7,6 +7,7 @@ Qiskit Dynamics documentation
   :hidden:
 
   API References <apidocs/index>
+  Tutorials <tutorials/index>
   Release Notes <release_notes>
 
 .. Hiding - Indices and tables
