@@ -51,7 +51,7 @@ class TestFrame(QiskitDynamicsTestCase):
         )
 
         frame_op = Array(rand_op - rand_op.conj().transpose())
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
         _, U = np.linalg.eigh(1j * frame_op)
 
@@ -60,11 +60,11 @@ class TestFrame(QiskitDynamicsTestCase):
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
 
-        val = frame.state_into_frame_basis(y0)
+        val = rotating_frame.state_into_frame_basis(y0)
         expected = U.conj().transpose() @ y0
         self.assertAllClose(val, expected)
 
-        val = frame.state_out_of_frame_basis(y0)
+        val = rotating_frame.state_out_of_frame_basis(y0)
         expected = U @ y0
         self.assertAllClose(val, expected)
 
@@ -77,7 +77,7 @@ class TestFrame(QiskitDynamicsTestCase):
         )
 
         frame_op = Array(rand_op - rand_op.conj().transpose())
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
         _, U = np.linalg.eigh(1j * frame_op)
         Uadj = U.conj().transpose()
@@ -87,31 +87,31 @@ class TestFrame(QiskitDynamicsTestCase):
             + 1j * rng.uniform(low=-10, high=10, size=(10, 10))
         )
 
-        val = frame.operator_into_frame_basis(y0)
+        val = rotating_frame.operator_into_frame_basis(y0)
         expected = U.conj().transpose() @ y0 @ U
         self.assertAllClose(val, expected)
 
-        val = frame.operator_out_of_frame_basis(y0)
+        val = rotating_frame.operator_out_of_frame_basis(y0)
         expected = U @ y0 @ Uadj
         self.assertAllClose(val, expected)
 
     def test_state_transformations_no_frame(self):
         """Test frame transformations with no frame."""
 
-        frame = RotatingFrame(Array(np.zeros(2)))
+        rotating_frame = RotatingFrame(Array(np.zeros(2)))
 
         t = 0.123
         y = Array([1.0, 1j])
-        out = frame.state_into_frame(t, y)
+        out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
-        out = frame.state_out_of_frame(t, y)
+        out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
 
         t = 100.12498
         y = Array(np.eye(2))
-        out = frame.state_into_frame(t, y)
+        out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
-        out = frame.state_out_of_frame(t, y)
+        out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
 
     def test_state_into_frame_2_level(self):
@@ -157,9 +157,9 @@ class TestFrame(QiskitDynamicsTestCase):
         evals, U = np.linalg.eigh(1j * frame_op)
         evals = -1j * evals
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
-        value = frame.state_into_frame(t, y, y_in_frame_basis, return_in_frame_basis)
+        value = rotating_frame.state_into_frame(t, y, y_in_frame_basis, return_in_frame_basis)
         expected = y
         if not y_in_frame_basis:
             expected = U.conj().transpose() @ expected
@@ -213,9 +213,9 @@ class TestFrame(QiskitDynamicsTestCase):
         evals, U = np.linalg.eigh(1j * frame_op)
         evals = -1j * Array(evals)
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
-        value = frame.state_out_of_frame(t, y, y_in_frame_basis, return_in_frame_basis)
+        value = rotating_frame.state_out_of_frame(t, y, y_in_frame_basis, return_in_frame_basis)
         expected = y
         if not y_in_frame_basis:
             expected = U.conj().transpose() @ expected
@@ -258,9 +258,9 @@ class TestFrame(QiskitDynamicsTestCase):
         evals = -1j * Array(evals)
         Uadj = U.conj().transpose()
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
-        value = frame.operator_into_frame(t, y, y_in_frame_basis, return_in_frame_basis)
+        value = rotating_frame.operator_into_frame(t, y, y_in_frame_basis, return_in_frame_basis)
         expected = y
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
@@ -304,9 +304,9 @@ class TestFrame(QiskitDynamicsTestCase):
         evals = -1j * Array(evals)
         Uadj = U.conj().transpose()
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
-        value = frame.operator_out_of_frame(t, y, y_in_frame_basis, return_in_frame_basis)
+        value = rotating_frame.operator_out_of_frame(t, y, y_in_frame_basis, return_in_frame_basis)
         expected = y
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
@@ -350,9 +350,9 @@ class TestFrame(QiskitDynamicsTestCase):
         evals = -1j * Array(evals)
         Uadj = U.conj().transpose()
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
-        value = frame.generator_into_frame(t, y, y_in_frame_basis, return_in_frame_basis)
+        value = rotating_frame.generator_into_frame(t, y, y_in_frame_basis, return_in_frame_basis)
         expected = y
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
@@ -396,9 +396,9 @@ class TestFrame(QiskitDynamicsTestCase):
         evals = -1j * Array(evals)
         Uadj = U.conj().transpose()
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
-        value = frame.generator_out_of_frame(t, y, y_in_frame_basis, return_in_frame_basis)
+        value = rotating_frame.generator_out_of_frame(t, y, y_in_frame_basis, return_in_frame_basis)
         expected = y
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
@@ -421,9 +421,9 @@ class TestFrame(QiskitDynamicsTestCase):
         operators = Array([self.X.data, self.Y.data, self.Z.data])
         carrier_freqs = Array([1.0, 2.0, 3.0])
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
-        ops_w_cutoff, ops_w_conj_cutoff = frame.operators_into_frame_basis_with_cutoff(
+        ops_w_cutoff, ops_w_conj_cutoff = rotating_frame.operators_into_frame_basis_with_cutoff(
             operators, carrier_freqs=carrier_freqs
         )
 
@@ -436,9 +436,9 @@ class TestFrame(QiskitDynamicsTestCase):
         frame_op = -1j * np.pi * Array([[1.0, 0], [0, -1.0]])
         carrier_freqs = Array([1.0, 2.0, 3.0])
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
-        ops_w_cutoff, ops_w_conj_cutoff = frame.operators_into_frame_basis_with_cutoff(
+        ops_w_cutoff, ops_w_conj_cutoff = rotating_frame.operators_into_frame_basis_with_cutoff(
             operators, carrier_freqs=carrier_freqs
         )
 
@@ -456,11 +456,11 @@ class TestFrame(QiskitDynamicsTestCase):
         carrier_freqs = Array([1.0, 2.0, 3.0])
         cutoff_freq = 3.0
 
-        frame = RotatingFrame(frame_op)
+        rotating_frame = RotatingFrame(frame_op)
 
         cutoff_mat = Array([[[1, 1], [1, 1]], [[1, 0], [1, 1]], [[0, 0], [1, 0]]])
 
-        ops_w_cutoff, ops_w_conj_cutoff = frame.operators_into_frame_basis_with_cutoff(
+        ops_w_cutoff, ops_w_conj_cutoff = rotating_frame.operators_into_frame_basis_with_cutoff(
             operators, cutoff_freq=cutoff_freq, carrier_freqs=carrier_freqs
         )
 
@@ -475,7 +475,7 @@ class TestFrame(QiskitDynamicsTestCase):
 
         cutoff_mat = Array([[[1, 0], [1, 1]], [[0, 0], [1, 0]], [[0, 0], [0, 0]]])
 
-        ops_w_cutoff, ops_w_conj_cutoff = frame.operators_into_frame_basis_with_cutoff(
+        ops_w_cutoff, ops_w_conj_cutoff = rotating_frame.operators_into_frame_basis_with_cutoff(
             operators, cutoff_freq=cutoff_freq, carrier_freqs=carrier_freqs
         )
 
@@ -500,11 +500,11 @@ class TestFrameJax(TestFrame, TestJaxBase):
         # pylint: disable=import-outside-toplevel
         import jax.numpy as jnp
 
-        frame = RotatingFrame(Array([1.0, 1j]))
-        self.assertTrue(jnp.isnan(frame.frame_diag[0]))
+        rotating_frame = RotatingFrame(Array([1.0, 1j]))
+        self.assertTrue(jnp.isnan(rotating_frame.frame_diag[0]))
 
-        frame = RotatingFrame(Array([[1.0, 0.0], [0.0, 1j]]))
-        self.assertTrue(jnp.isnan(frame.frame_diag[0]))
+        rotating_frame = RotatingFrame(Array([[1.0, 0.0], [0.0, 1j]]))
+        self.assertTrue(jnp.isnan(rotating_frame.frame_diag[0]))
 
-        frame = RotatingFrame(self.Z + 1j * self.X)
-        self.assertTrue(jnp.isnan(frame.frame_diag[0]))
+        rotating_frame = RotatingFrame(self.Z + 1j * self.X)
+        self.assertTrue(jnp.isnan(rotating_frame.frame_diag[0]))
