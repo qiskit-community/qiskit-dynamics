@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Tests for operator_collections.py"""
+"""Tests for operator_collections.py."""
 
 import numpy as np
 import numpy.random as rand
@@ -58,7 +58,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
     def test_basic_functionality_pseudorandom(self):
         """Test DenseOperatorCollection evaluation
-        is correct by using pseudorandom arrays"""
+        using pseudorandom arrays."""
         rand.seed(0)
         vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
         arr = rand.uniform(-1, 1, (32, 128, 128))
@@ -96,8 +96,8 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         pass
 
     def test_consistency_with_dense_pseudorandom(self):
-        """Tests if the sparse collection agrees with
-        the dense operator collection"""
+        """Tests if SparseOperatorCollection agrees with
+        the DenseOperatorCollection."""
         r = lambda *args: np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
         state = r(16)
         mat = r(4, 16, 16)
@@ -154,7 +154,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
     def test_no_drift_no_dissipator(self):
         """Tests whether collections function correctly with no drift
-        and no dissipators. """
+        and no dissipators."""
 
         ham_only_collection = DenseLindbladCollection(
             self.hamiltonian_operators, drift=0*self.drift, dissipator_operators=None
@@ -179,7 +179,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(res, expected)
     
     def test_drift_dissipator(self):
-        """Tests if providing both drift and dissipator is OK"""
+        """Tests if providing both drift and dissipator is OK."""
         full_lindblad_collection = DenseLindbladCollection(
             self.hamiltonian_operators, drift=self.drift, dissipator_operators=self.dissipator_operators
         )
@@ -235,10 +235,7 @@ class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
 
 class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
     """Tests for DenseVectorizedLindbladCollection.
-    Assumes that DenseLindbladCollection is functioning
-    correctly, and–as such–only checks that the results
-    from DenseVectorizedLindbladCollection are consistent
-    with those from DenseLindbladCollection"""
+    Mostly checks consistency with DenseLindbladCollection."""
 
     def setUp(self) -> None:
         rand.seed(123098341)
@@ -258,7 +255,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
 
     def test_consistency_drift_dissipator(self):
         """Check consistency with DenseLindbladCollection when hamiltonian, 
-        drift, and dissipator terms defined"""
+        drift, and dissipator terms defined."""
         stdLindblad = DenseLindbladCollection(
             self.rand_ham, drift=self.rand_dft, dissipator_operators=self.rand_dis
         )
@@ -271,7 +268,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(a, b)
 
     def test_consistency_drift_no_dissipator(self):
-        """Check consistency when only hamiltonian and drift terms defined"""
+        """Check consistency when only hamiltonian and drift terms defined."""
         stdLindblad = DenseLindbladCollection(self.rand_ham, drift=self.rand_dft, dissipator_operators=None)
         vecLindblad = DenseVectorizedLindbladCollection(
             self.rand_ham, drift=self.rand_dft, dissipator_operators=None
@@ -286,10 +283,14 @@ class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollec
     """Jax version of TestDenseVectorizedLindbladCollection tests.
 
     Note: This class has no body but contains tests due to inheritance.
+
+    Note: The evaluation processes for DenseVectorizedLindbladCollection
+    are not directly jitable or compilable. The compilation of these steps
+    is taken care of by the tests for LindbladModel.
     """
 
 class TestSparseLindbladCollection(QiskitDynamicsTestCase):
-    """Tests for SparseLindbladCollection"""
+    """Tests for SparseLindbladCollection."""
     def setUp(self):
         rand.seed(9098321)
         n = 16
@@ -320,7 +321,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(res, expected)
     
     def test_drift_no_dissipator(self):
-        """Tests if providing drift but no dissipator is OK"""
+        """Tests if providing drift but no dissipator is OK."""
         # Now, test adding a drift
         ham_drift_collection = SparseLindbladCollection(
             self.hamiltonian_operators, drift=self.drift, dissipator_operators=None
@@ -332,7 +333,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(res, expected)
     
     def test_drift_dissipator(self):
-        """Tests if providing both drift and dissipator is OK"""
+        """Tests if providing both drift and dissipator is OK."""
         full_lindblad_collection = SparseLindbladCollection(
             self.hamiltonian_operators, drift=self.drift, dissipator_operators=self.dissipator_operators
         )
@@ -368,7 +369,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
             )
     
     def test_operator_compatibility(self):
-        """Tests if SparseLindbladCollection can take Operator specificaiton of components"""
+        """Tests if SparseLindbladCollection can take Operator specificaiton of components."""
         ham_op_terms = []
         ham_ar_terms = []
         dis_op_terms = []
