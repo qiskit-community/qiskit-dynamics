@@ -234,7 +234,7 @@ class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
 
 
 class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
-    """Tests for DenseVectorizedLindbladCollection.
+    """Tests for DenseVectorizedLindbladCollection. 
     Mostly checks consistency with DenseLindbladCollection."""
 
     def setUp(self) -> None:
@@ -288,6 +288,17 @@ class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollec
     are not directly jitable or compilable. The compilation of these steps
     is taken care of by the tests for LindbladModel.
     """
+    # def test_functions_jitable(self):
+    #     """Tests that all class functions are jittable"""
+    #     dlc = DenseVectorizedLindbladCollection(Array(self.rand_ham),drift=Array(self.rand_dft),dissipator_operators=Array(self.rand_dis))
+    #     _wrap(jit,dlc.evaluate_rhs)(Array(self.r(4)),Array(self.r(2)),self.rho)
+    #     _wrap(jit,dlc.evaluate_generator)(Array(self.r(4)),Array(self.r(2)))
+
+    # def test_functions_gradable(self):
+    #     """Tests if all class functions are gradable"""
+    #     dlc = DenseVectorizedLindbladCollection(Array(self.rand_ham),drift=Array(self.rand_dft),dissipator_operators=Array(self.rand_dis))
+    #     _wrap(grad,dlc.evaluate_rhs)(Array(self.rand_ham_sigs(self.t)),Array(self.rand_dis_sigs(self.t)),self.rho)
+    #     _wrap(grad,dlc.evaluate_generator)(Array(self.rand_ham_sigs(self.t)),Array(self.rand_dis_sigs(self.t)))
 
 class TestSparseLindbladCollection(QiskitDynamicsTestCase):
     """Tests for SparseLindbladCollection."""
