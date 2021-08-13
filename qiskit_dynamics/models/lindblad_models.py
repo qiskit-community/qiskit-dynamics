@@ -69,21 +69,21 @@ class LindbladModel(BaseGeneratorModel):
         """Initialize.
 
         Args:
-            hamiltonian_operators: list of operators in Hamiltonian
-            hamiltonian_signals: list of signals in the Hamiltonian
-            dissipator_operators: list of dissipator operators
-            dissipator_signals: list of dissipator signals
-            drift: Optional, constant term in Hamiltonian
+            hamiltonian_operators: list of operators in Hamiltonian.
+            hamiltonian_signals: list of signals in the Hamiltonian.
+            dissipator_operators: list of dissipator operators.
+            dissipator_signals: list of dissipator signals.
+            drift: Optional, constant term in Hamiltonian.
             frame: rotating frame in which calcualtions are to be done.
                 If provided, it is assumed that all operators were
                 already in the frame basis.
             evalutation_mode: String specifying the type of evaluation
                 to be used. Currently supported modes are:
-                    dense (default)
-                    dense_vectorized
+                    dense (default),
+                    dense_vectorized.
 
         Raises:
-            Exception: if signals incorrectly specified
+            Exception: if signals incorrectly specified.
         """
         self._operator_collection = None
         self._evaluation_mode = None
@@ -153,9 +153,9 @@ class LindbladModel(BaseGeneratorModel):
         """Sets evaluation mode.
         Args:
             new_mode: new mode for evaluation. Supported modes:
-                dense (default)
-                sparse
-                dense_vectorized
+                dense (default),
+                sparse,
+                dense_vectorized.
         Raises:
             NotImplementedError: if a mode other than one of the
             above is specified."""
@@ -202,8 +202,8 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_signals: list of dissipator signals.
             evaluation_mode: evaluation mode. Currently supported
                 modes are:
-                    dense (default)
-                    dense_vectorized
+                    dense (default),
+                    dense_vectorized.
 
         Returns:
             LindbladModel: Linblad model from parameters.
@@ -274,7 +274,7 @@ class LindbladModel(BaseGeneratorModel):
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         """Evaluates the Lindblad model at a given time.
-        time: time at which the model should be evaluated
+        time: time at which the model should be evaluated.
         y: Density matrix as an (n,n) Array if not using a
             vectorized evaluation_mode or an (n^2) Array if
             using vectorized evaluation.
