@@ -23,7 +23,7 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_array
 from .generator_models import GeneratorModel
-from .rotating_frame import RotatingFrame, BaseRotatingFrame
+from .rotating_frame import RotatingFrame
 
 
 class HamiltonianModel(GeneratorModel):
@@ -58,7 +58,7 @@ class HamiltonianModel(GeneratorModel):
         operators: List[Operator],
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        rotating_frame: Optional[Union[Operator, Array, BaseRotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         validate: bool = True,
         evaluation_mode: str = "dense",
     ):

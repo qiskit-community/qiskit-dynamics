@@ -25,11 +25,9 @@ from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
-
-
-class BaseRotatingFrame(ABC):
-    r"""Abstract base class for core frame handling functionality.
-
+        
+class RotatingFrame:
+    """
     A 'rotating frame' is given by an anti-Hermitian matrix :math:`F`, specified
     either directly, or in terms of a Hermitian matrix :math:`H` with
     :math:`F = -iH`. Frames have relevance within the context of linear
@@ -83,39 +81,90 @@ class BaseRotatingFrame(ABC):
     frame basis. This is to facilitate use in solvers in which working
     completely in the frame basis is beneficial to minimize costs associated
     with evaluation of :math:`e^{tF}`.
-
-    Finally, this class offers support for evaluating linear combinations of
-    operators with coefficients with carrier frequencies, along with frequency
-    cutoffs for implementing the Rotating Wave Approximation (RWA). Frame
-    information and carrier frequency information are intrinsically tied
-    together in this context.
-
-    Note: all abstract doc strings are written in a `numpy` style
     """
 
-    @property
-    @abstractmethod
-    def frame_operator(self) -> Union[Operator, Array]:
-        """The original frame operator."""
+    def __init__(
+        self,
+        frame_operator: Union[Array, Operator],
+        atol: float = 1e-10,
+        rtol: float = 1e-10,
+    ):
+        """Initialize with a frame operator.
 
-    @property
-    @abstractmethod
-    def frame_diag(self) -> Array:
-        """Diagonal of the frame operator as a 1d array."""
-
-    @property
-    @abstractmethod
-    def frame_basis(self) -> Array:
-        r"""Array containing the unitary :math:`U` that diagonalizes the
-        frame operator, i.e. :math:`U` such that :math:`F = U D U^\dagger`.
+        Args:
+            frame_operator: the frame operator, must be either
+                            Hermitian or anti-Hermitian.
+            atol: absolute tolerance when verifying that the frame_operator is
+                  Hermitian or anti-Hermitian.
+            rtol: relative tolerance when verifying that the frame_operator is
+                  Hermitian or anti-Hermitian.
         """
+        if isinstance(frame_operator, RotatingFrame):
+            frame_operator = frame_operator.frame_operator
+
+        self._frame_operator = frame_operator
+        frame_operator = to_array(frame_operator)
+
+        if frame_operator is None:
+            self._dim = None
+            self._frame_diag = None
+            self._frame_basis = None
+            self._frame_basis_adjoint = None
+        # if frame_operator is a 1d array, assume already diagonalized
+        elif frame_operator.ndim == 1:
+
+            # verify Hermitian or anti-Hermitian
+            # if Hermitian convert to anti-Hermitian
+            frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
+
+            self._frame_diag = Array(frame_operator)
+            self._frame_basis = None
+            self._frame_basis_adjoint = None
+            self._dim = len(self._frame_diag)
+        # if not, diagonalize it
+        else:
+
+            # verify Hermitian or anti-Hermitian
+            # if Hermitian convert to anti-Hermitian
+            frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
+
+            # diagonalize with eigh, utilizing assumption of anti-hermiticity
+            frame_diag, frame_basis = np.linalg.eigh(1j * frame_operator)
+
+            self._frame_diag = Array(-1j * frame_diag)
+            self._frame_basis = Array(frame_basis)
+            self._frame_basis_adjoint = frame_basis.conj().transpose()
+            self._dim = len(self._frame_diag)
+
+        # these properties are memory-expensive to store. Will fill out with values only if necessary.
+        self._cached_c_bar_otimes_c = None
+        self._cached_c_trans_otimes_c_dagg = None
 
     @property
-    @abstractmethod
-    def frame_basis_adjoint(self) -> Array:
-        r"""Adjoint of ``self.frame_basis``."""
+    def dim(self) -> int:
+        """The dimension of the frame."""
+        return self._dim
 
-    @abstractmethod
+    @property
+    def frame_operator(self) -> Array:
+        """The original frame operator."""
+        return self._frame_operator
+
+    @property
+    def frame_diag(self) -> Array:
+        """Diagonal of the frame operator."""
+        return self._frame_diag
+
+    @property
+    def frame_basis(self) -> Array:
+        """Array containing diagonalizing unitary."""
+        return self._frame_basis
+
+    @property
+    def frame_basis_adjoint(self) -> Array:
+        """Adjoint of the diagonalizing unitary."""
+        return self._frame_basis_adjoint
+
     def state_into_frame_basis(self, y: Array) -> Array:
         r"""Take a state into the frame basis, i.e. return
         ``self.frame_basis_adjoint @ y``.
@@ -125,8 +174,11 @@ class BaseRotatingFrame(ABC):
         Returns:
             Array: the state in the frame basis
         """
+        if self.frame_basis_adjoint is None:
+            return to_array(y)
 
-    @abstractmethod
+        return self.frame_basis_adjoint @ y
+
     def state_out_of_frame_basis(self, y: Array) -> Array:
         r"""Take a state out of the frame basis, i.e.
         ``return self.frame_basis @ y``.
@@ -136,9 +188,12 @@ class BaseRotatingFrame(ABC):
         Returns:
             Array: the state in the frame basis
         """
+        if self.frame_basis is None:
+            return to_array(y)
 
-    @abstractmethod
-    def operator_into_frame_basis(self, op: Union[Operator, Array]) -> Array:
+        return self.frame_basis @ y
+
+    def operator_into_frame_basis(self, op: Union[Operator, List[Operator], Array]) -> Array:
         r"""Take an operator into the frame basis, i.e. return
         ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
@@ -147,8 +202,12 @@ class BaseRotatingFrame(ABC):
         Returns:
             Array: the operator in the frame basis
         """
+        op = to_array(op)
+        if self.frame_basis is None:
+            return op
+        # parentheses are necessary for sparse op as of writing this comment
+        return self.frame_basis_adjoint @ (op @ self.frame_basis)
 
-    @abstractmethod
     def operator_out_of_frame_basis(self, op: Union[Operator, Array]) -> Array:
         r"""Take an operator out of the frame basis, i.e. return
         ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
@@ -158,16 +217,20 @@ class BaseRotatingFrame(ABC):
         Returns:
             Array: the operator in the frame basis
         """
+        op = to_array(op)
+        if self.frame_basis is None:
+            return op
+        # parentheses are necessary for sparse op as of writing this comment
+        return self.frame_basis @ (op @ self.frame_basis_adjoint)
 
-    @abstractmethod
     def state_into_frame(
         self,
         t: float,
         y: Array,
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
-    ) -> Array:
-        r"""Take a state into the rotating frame, i.e. return ``exp(-tF) @ y``.
+    ):
+        """Take a state into the rotating frame, i.e. return exp(-tF) @ y.
 
         Args:
             t: time
@@ -180,6 +243,23 @@ class BaseRotatingFrame(ABC):
         Returns:
             Array: state in frame
         """
+        if self._frame_operator is None:
+            return to_array(y)
+
+        out = y
+
+        # if not in frame basis convert it
+        if not y_in_frame_basis:
+            out = self.state_into_frame_basis(out)
+
+        # go into the frame using fast diagonal matrix multiplication
+        out = (np.exp(-t * self.frame_diag) * out.transpose()).transpose()  # = e^{tF}out
+
+        # if output is requested to not be in the frame basis, convert it
+        if not return_in_frame_basis:
+            out = self.state_out_of_frame_basis(out)
+
+        return out
 
     def state_out_of_frame(
         self,
@@ -190,7 +270,7 @@ class BaseRotatingFrame(ABC):
     ) -> Array:
         r"""Take a state out of the rotating frame, i.e. ``return exp(tF) @ y``.
 
-        Default implementation is to call ``self.state_into_frame``.
+        Calls ``self.state_into_frame`` with time reversed.
 
         Args:
             t: time
@@ -205,7 +285,6 @@ class BaseRotatingFrame(ABC):
         """
         return self.state_into_frame(-t, y, y_in_frame_basis, return_in_frame_basis)
 
-    @abstractmethod
     def _conjugate_and_add(
         self,
         t: float,
@@ -214,27 +293,57 @@ class BaseRotatingFrame(ABC):
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
-    ) -> Array:
-        r"""Generalized helper function for taking operators and generators
-        into/out of the rotating frame.
+    ):
+        r"""Concrete implementation of general helper function for computing
+            exp(-tF)Gexp(tF) + B
 
-        Given operator :math:`G`, and ``op_to_add_in_fb`` :math:`B`, returns
-        :math:`exp(-tF)Gexp(tF) + B`, where :math:`B` is assumed to be
-        specified in the frame basis.
+        Note: B is added in the frame basis before any potential final change
+        out of the frame basis.
 
-        Args:
-            t: time.
-            operator: The operator G above.
-            op_to_add_in_fb: The operator B above.
-            operator_in_frame_basis: Whether G is specified in the frame basis.
-            return_in_frame_basis: Whether the returned result should be in the
-                                   frame basis.
-            vectorized_operators: whether operators/generators passed are
-                vectorized or not
-
-        Returns:
-            Array:
         """
+        if vectorized_operators:
+            # If passing vectorized operator, undo vectorization temporarily
+            if self._frame_operator is None:
+                if op_to_add_in_fb is None:
+                    return to_array(operator)
+                else:
+                    return to_array(operator + op_to_add_in_fb)
+            operator = operator.reshape((self.dim, self.dim) + operator.shape[1:], order="F")
+
+        if self._frame_operator is None:
+            if op_to_add_in_fb is None:
+                return to_array(operator)
+            else:
+                return to_array(operator + op_to_add_in_fb)
+
+        out = to_array(operator)
+
+        # if not in frame basis convert it
+        if not operator_in_frame_basis:
+            out = self.operator_into_frame_basis(out)
+
+        # get frame transformation matrix in diagonal basis
+        # assumption that F is anti-Hermitian implies conjugation of
+        # diagonal gives inversion
+        exp_freq = np.exp(t * self.frame_diag)
+        frame_mat = exp_freq.conj().reshape(self.dim,1)*exp_freq
+        if issparse(out):
+            out = out.multiply(frame_mat)
+        else:
+            out = frame_mat * out
+
+        if op_to_add_in_fb is not None:
+            out = out + op_to_add_in_fb
+
+        # if output is requested to not be in the frame basis, convert it
+        if not return_in_frame_basis:
+            out = self.operator_out_of_frame_basis(out)
+
+        if vectorized_operators:
+            # If a vectorized output is required, reshape correctly
+            out = out.reshape((self.dim * self.dim,) + out.shape[2:], order="F")
+
+        return out
 
     def operator_into_frame(
         self,
@@ -370,358 +479,6 @@ class BaseRotatingFrame(ABC):
                 operator_in_frame_basis=operator_in_frame_basis,
                 return_in_frame_basis=return_in_frame_basis,
             )
-
-    @abstractmethod
-    def operators_into_frame_basis_with_cutoff(
-        self,
-        operators: Union[Array, List[Operator]],
-        cutoff_freq: Optional[float] = None,
-        carrier_freqs: Optional[Array] = None,
-    ) -> Tuple[Array]:
-        r"""Transform operators into the frame basis, and return two lists of
-        operators: one with the 'frequency cutoff' and one with 'conjugate
-        frequency cutoff' (explained below). This serves as a helper function
-        for evaluating a time-dependent operator :math:`A(t)` specified as a
-        linear combination of terms with carrier frequencies, in the frame
-        :math:`F` with a cutoff frequency (in the frame basis).
-
-        In particular, this function assumes the operator :math:`A(t)` is
-        specified as:
-
-        .. math::
-            A(t) = \sum_j Re[f_j(t) e^{i 2 \pi \nu_j t}] A_j
-
-        For some functions :math:`f_j`, carrier frequencies :math:`nu_j`,
-        and operators :math:`A_j`.
-
-        Assume we are already in a basis in which :math:`F` is diagonal, and
-        let :math:`D=F`. As described elsewhere in the docstrings for this
-        class, evaluating :math:`A(t)` in this frame at a time :math:`t`
-        means computing :math:`\exp(-t D)A(t)\exp(tD)`. The benefit of working
-        in the basis in which the frame is diagonal is that this computation
-        simplifies to:
-
-        .. math::
-            [\exp( (-d_j + d_k) t)] \odot A(t),
-
-        where above :math:`[\exp( (-d_j + d_k) t)]` denotes the matrix whose
-        :math:`(j,k)` entry is :math:`\exp( (-d_j + d_k) t)`, and :math:`\odot`
-        denotes entrywise multiplication.
-
-        Evaluating the above with 'frequency cutoffs' requires expanding
-        :math:`A(t)` into its linear combination. A single term in the sum
-        (dropping the summation subscript) is:
-
-        .. math::
-            Re[f(t) e^{i 2 \pi \nu t}] [\exp( (-d_j + d_k) t)] \odot A.
-
-        Next, we expand this further using
-
-        .. math::
-            Re[f(t) e^{i 2 \pi \nu t}] =
-            \frac{1}{2}(f(t) e^{i 2 \pi \nu t} +
-            \overline{f(t)} e^{-i 2 \pi \nu t})
-
-        to get:
-
-        .. math::
-            \frac{1}{2}f(t) e^{i 2 \pi \nu t} [\exp( (-d_j + d_k) t)] \odot A +
-            \frac{1}{2}\overline{f(t)} e^{-i 2 \pi \nu t}
-            [\exp( (-d_j + d_k) t)] \odot A
-
-        Examining the first term in the sum, the 'frequency' associated with
-        matrix element :math:`(j,k)` is
-        :math:`\nu + \frac{Im[-d_j + d_k]}{2 \pi}`, and similarly for the
-        second term: :math:`-\nu + \frac{Im[-d_j + d_k]}{2 \pi}`.
-
-        Evaluating the above expression with a 'frequency cutoff' :math:`\nu_*`
-        means computing it, but setting all matrix elements in either term
-        with a frequency above :math:`\nu_*` to zero. This can be achieved
-        by defining two matrices :math:`A^\pm` to be equal to :math:`A`,
-        except the :math:`(j,k)` is set to zero if
-        :math:`\pm\nu + \frac{Im[-d_j + d_k]}{2 \pi} \geq \nu_*`.
-
-        Thus, the above expression is evaluated with frequency cutoff via
-
-        .. math::
-            \frac{1}{2}f(t) e^{i 2 \pi \nu t} [\exp( (-d_j + d_k) t)] \odot A^+
-            + \frac{1}{2}\overline{f(t)} e^{-i 2 \pi \nu t}
-            [\exp( (-d_j + d_k) t)] \odot A^-
-
-        Relative to the initial list of operators :math:`A_j`, this function
-        returns two lists of matrices as a 3d array: :math:`A_j^+` and
-        :math:`A_j^-`, corresponding to :math:`A_j` with frequency cutoffs and
-        'conjugate' frequency cutoffs, in the basis in which the frame has
-        been diagonalized.
-
-        To use the output of this function to evalute the original operator
-        :math:`A(t)` in the rotating frame, compute the linear combination
-
-        .. math::
-            \frac{1}{2} \sum_j f_j(t) e^{i 2 \pi \nu t} A_j^+
-            + \overline{f(t)} e^{-i 2 \pi \nu t} A_j^-
-
-        then use `self.operator_into_frame` or `self.generator_into_frame`
-        the frame transformation as required, using `operator_in_frame=True`.
-
-        Args:
-            operators: list of operators
-            cutoff_freq: cutoff frequency
-            carrier_freqs: list of carrier frequencies
-
-        Returns:
-            Tuple[Array, Array]: The operators with frequency cutoff
-            and conjugate frequency cutoff.
-        """
-
-
-class RotatingFrame(BaseRotatingFrame):
-    """Concrete implementation of `BaseFrame` implemented
-    using `Array`.
-    """
-
-    def __init__(
-        self,
-        frame_operator: Union[BaseRotatingFrame, Operator, Array],
-        atol: float = 1e-10,
-        rtol: float = 1e-10,
-    ):
-        """Initialize with a frame operator.
-
-        Args:
-            frame_operator: the frame operator, must be either
-                            Hermitian or anti-Hermitian.
-            atol: absolute tolerance when verifying that the frame_operator is
-                  Hermitian or anti-Hermitian.
-            rtol: relative tolerance when verifying that the frame_operator is
-                  Hermitian or anti-Hermitian.
-        """
-        if issubclass(type(frame_operator), BaseRotatingFrame):
-            frame_operator = frame_operator.frame_operator
-
-        self._frame_operator = frame_operator
-        frame_operator = to_array(frame_operator)
-
-        if frame_operator is None:
-            self._dim = None
-            self._frame_diag = None
-            self._frame_basis = None
-            self._frame_basis_adjoint = None
-        # if frame_operator is a 1d array, assume already diagonalized
-        elif frame_operator.ndim == 1:
-
-            # verify Hermitian or anti-Hermitian
-            # if Hermitian convert to anti-Hermitian
-            frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
-
-            self._frame_diag = Array(frame_operator)
-            self._frame_basis = None
-            self._frame_basis_adjoint = None
-            self._dim = len(self._frame_diag)
-        # if not, diagonalize it
-        else:
-
-            # verify Hermitian or anti-Hermitian
-            # if Hermitian convert to anti-Hermitian
-            frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
-
-            # diagonalize with eigh, utilizing assumption of anti-hermiticity
-            frame_diag, frame_basis = np.linalg.eigh(1j * frame_operator)
-
-            self._frame_diag = Array(-1j * frame_diag)
-            self._frame_basis = Array(frame_basis)
-            self._frame_basis_adjoint = frame_basis.conj().transpose()
-            self._dim = len(self._frame_diag)
-
-        # these properties are memory-expensive to store. Will fill out with values only if necessary.
-        self._cached_c_bar_otimes_c = None
-        self._cached_c_trans_otimes_c_dagg = None
-
-    @property
-    def dim(self) -> int:
-        """The dimension of the frame."""
-        return self._dim
-
-    @property
-    def frame_operator(self) -> Array:
-        """The original frame operator."""
-        return self._frame_operator
-
-    @property
-    def frame_diag(self) -> Array:
-        """Diagonal of the frame operator."""
-        return self._frame_diag
-
-    @property
-    def frame_basis(self) -> Array:
-        """Array containing diagonalizing unitary."""
-        return self._frame_basis
-
-    @property
-    def frame_basis_adjoint(self) -> Array:
-        """Adjoint of the diagonalizing unitary."""
-        return self._frame_basis_adjoint
-
-    def state_into_frame_basis(self, y: Array) -> Array:
-        if self.frame_basis_adjoint is None:
-            return to_array(y)
-
-        return self.frame_basis_adjoint @ y
-
-    def state_out_of_frame_basis(self, y: Array) -> Array:
-        if self.frame_basis is None:
-            return to_array(y)
-
-        return self.frame_basis @ y
-
-    def operator_into_frame_basis(self, op: Union[Operator, List[Operator], Array]) -> Array:
-        op = to_array(op)
-        if self.frame_basis is None:
-            return op
-        # parentheses are necessary for sparse op as of writing this comment
-        return self.frame_basis_adjoint @ (op @ self.frame_basis)
-
-    def operator_out_of_frame_basis(self, op: Union[Operator, Array]) -> Array:
-        op = to_array(op)
-        if self.frame_basis is None:
-            return op
-        # parentheses are necessary for sparse op as of writing this comment
-        return self.frame_basis @ (op @ self.frame_basis_adjoint)
-
-    def state_into_frame(
-        self,
-        t: float,
-        y: Array,
-        y_in_frame_basis: Optional[bool] = False,
-        return_in_frame_basis: Optional[bool] = False,
-    ):
-        """Take a state into the rotating frame, i.e. return exp(-tF) @ y.
-
-        Args:
-            t: time
-            y: state (array of appropriate size)
-            y_in_frame_basis: whether or not the array y is already in
-                              the basis in which the frame is diagonal
-            return_in_frame_basis: whether or not to return the result
-                                   in the frame basis
-
-        Returns:
-            Array: state in frame
-        """
-        if self._frame_operator is None:
-            return to_array(y)
-
-        out = y
-
-        # if not in frame basis convert it
-        if not y_in_frame_basis:
-            out = self.state_into_frame_basis(out)
-
-        # go into the frame using fast diagonal matrix multiplication
-        out = (np.exp(-t * self.frame_diag) * out.transpose()).transpose()  # = e^{tF}out
-
-        # if output is requested to not be in the frame basis, convert it
-        if not return_in_frame_basis:
-            out = self.state_out_of_frame_basis(out)
-
-        return out
-
-    def _conjugate_and_add(
-        self,
-        t: float,
-        operator: Array,
-        op_to_add_in_fb: Optional[Array] = None,
-        operator_in_frame_basis: Optional[bool] = False,
-        return_in_frame_basis: Optional[bool] = False,
-        vectorized_operators: Optional[bool] = False,
-    ):
-        r"""Concrete implementation of general helper function for computing
-            exp(-tF)Gexp(tF) + B
-
-        Note: B is added in the frame basis before any potential final change
-        out of the frame basis.
-
-        """
-        if vectorized_operators:
-            # If passing vectorized operator, undo vectorization temporarily
-            if self._frame_operator is None:
-                if op_to_add_in_fb is None:
-                    return to_array(operator)
-                else:
-                    return to_array(operator + op_to_add_in_fb)
-            operator = operator.reshape((self.dim, self.dim) + operator.shape[1:], order="F")
-
-        if self._frame_operator is None:
-            if op_to_add_in_fb is None:
-                return to_array(operator)
-            else:
-                return to_array(operator + op_to_add_in_fb)
-
-        out = to_array(operator)
-
-        # if not in frame basis convert it
-        if not operator_in_frame_basis:
-            out = self.operator_into_frame_basis(out)
-
-        # get frame transformation matrix in diagonal basis
-        # assumption that F is anti-Hermitian implies conjugation of
-        # diagonal gives inversion
-        exp_freq = np.exp(t * self.frame_diag)
-        frame_mat = exp_freq.conj().reshape(self.dim,1)*exp_freq
-        if issparse(out):
-            out = out.multiply(frame_mat)
-        else:
-            out = frame_mat * out
-
-        if op_to_add_in_fb is not None:
-            out = out + op_to_add_in_fb
-
-        # if output is requested to not be in the frame basis, convert it
-        if not return_in_frame_basis:
-            out = self.operator_out_of_frame_basis(out)
-
-        if vectorized_operators:
-            # If a vectorized output is required, reshape correctly
-            out = out.reshape((self.dim * self.dim,) + out.shape[2:], order="F")
-
-        return out
-
-    def operators_into_frame_basis_with_cutoff(
-        self,
-        operators: Union[Array, List[Operator]],
-        cutoff_freq: Optional[float] = None,
-        carrier_freqs: Optional[Array] = None,
-    ):
-        ops_in_frame_basis = self.operator_into_frame_basis(operators)
-
-        # if no cutoff freq is specified, the two arrays are the same
-        if cutoff_freq is None:
-            return ops_in_frame_basis, ops_in_frame_basis
-
-        # if no carrier frequencies set, set to 0
-        if carrier_freqs is None:
-            carrier_freqs = np.zeros(len(operators))
-        carrier_freqs = Array(carrier_freqs)
-
-        # create difference matrix for diagonal elements
-        dim = len(ops_in_frame_basis[0])
-
-        freq_diffs = None
-        if self._frame_operator is None:
-            freq_diffs = Array(np.zeros((1, dim, dim)))
-        else:
-            freq_diffs = Array(np.ones((1, dim, dim))) * self.frame_diag
-            freq_diffs = freq_diffs - np.transpose(freq_diffs, (0, 2, 1))
-
-        # set up matrix encoding frequencies
-        im_angular_freqs = 1j * 2 * np.pi * np.reshape(carrier_freqs, (len(carrier_freqs), 1, 1))
-        freq_array = im_angular_freqs + freq_diffs
-        cutoff_array = ((np.abs(freq_array.imag) / (2 * np.pi)) < cutoff_freq).astype(int)
-
-        return (
-            cutoff_array * ops_in_frame_basis,
-            cutoff_array.transpose([0, 2, 1]) * ops_in_frame_basis,
-        )
 
     def bring_vectorized_operator_into_frame(
         self,
