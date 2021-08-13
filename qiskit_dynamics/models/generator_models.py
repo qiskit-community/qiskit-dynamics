@@ -29,7 +29,7 @@ from qiskit_dynamics.models.operator_collections import (
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from .rotating_frame import BaseRotatingFrame, RotatingFrame
+from .rotating_frame import RotatingFrame
 
 
 class BaseGeneratorModel(ABC):
@@ -45,7 +45,7 @@ class BaseGeneratorModel(ABC):
     to facilitate the use of this object in solving differential equations:
         - A "drift", which is meant to return the "time-independent" part of
           :math:`G(t)`
-        - A "rotating frame", here specified as a :class:`BaseRotatingFrame` object, which
+        - A "rotating frame", here specified as a :class:`RotatingFrame` object, which
           represents an anti-Hermitian operator :math:`F`, specifying
           the transformation :math:`G(t) \mapsto G'(t) = e^{-tF}G(t)e^{tF} - F`.
 
@@ -103,13 +103,13 @@ class BaseGeneratorModel(ABC):
 
     @property
     @abstractmethod
-    def rotating_frame(self) -> BaseRotatingFrame:
+    def rotating_frame(self) -> RotatingFrame:
         """Get the rotating frame."""
         pass
 
     @rotating_frame.setter
     @abstractmethod
-    def rotating_frame(self, rotating_frame: BaseRotatingFrame):
+    def rotating_frame(self, rotating_frame: RotatingFrame):
         """Set the rotating frame; either an already instantiated :class:`RotatingFrame` object
         a valid argument for the constructor of :class:`RotatingFrame`, or `None`.
         Takes care of putting all operators into the basis in which the frame
@@ -173,7 +173,7 @@ class CallableGenerator(BaseGeneratorModel):
     def __init__(
         self,
         generator: Callable,
-        rotating_frame: Optional[Union[Operator, Array, BaseRotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         drift: Optional[Union[Operator, Array]] = None,
     ):
 
@@ -255,7 +255,7 @@ class GeneratorModel(BaseGeneratorModel):
     list of :class:`Signal` objects or a :class:`SignalList`.
 
     For specifying a rotating frame, this object works with the concrete
-    :class:`RotatingFrame`, a subclass of :class:`BaseRotatingFrame`.
+    :class:`RotatingFrame`.
 
     To do:
         insert mathematical description of frame/cutoff_freq handling
@@ -266,7 +266,7 @@ class GeneratorModel(BaseGeneratorModel):
         operators: Array,
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        rotating_frame: Optional[Union[Operator, Array, BaseRotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: str = "dense",
     ):
         """Initialize.
