@@ -43,7 +43,7 @@ class BaseOperatorCollection(ABC):
 
     @drift.setter
     def drift(self, new_drift: Optional[Array] = None):
-        """Sets Drift term of Hamiltonian/Generator"""
+        """Sets Drift term of Hamiltonian/Generator."""
         self._drift = new_drift
 
     @property
@@ -99,10 +99,10 @@ class DenseOperatorCollection(BaseOperatorCollection):
     """
 
     def __init__(self, operators: Union[Array,List[Operator]], drift: Optional[Union[Array,Operator]] = None):
-        """Initialize
+        """Initialize.
         Args:
-            operators: (k,n,n) Array specifying the terms :math:`G_j`
-            drift: (n,n) Array specifying the extra drift :math:`G_d`
+            operators: (k,n,n) Array specifying the terms :math:`G_j`.
+            drift: (n,n) Array specifying the extra drift :math:`G_d`.
         """
         self._operators = to_array(operators)
         self.drift = to_array(drift)
@@ -113,7 +113,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
     def evaluate_generator(self, signal_values: Array) -> Array:
         r"""Evaluates the operator :math:`G(t)` given
-        the signal values :math:`s_j(t)` as :math:`G(t) = \sum_j s_j(t)G_j`"""
+        the signal values :math:`s_j(t)` as :math:`G(t) = \sum_j s_j(t)G_j`."""
         if self._drift is None:
             return np.tensordot(signal_values, self._operators, axes=1)
         else:
@@ -128,10 +128,10 @@ class SparseOperatorCollection(BaseOperatorCollection):
     r"""Sparse version of DenseOperatorCollection."""
     
     def __init__(self, operators: Union[Array,List[Operator]], drift: Optional[Union[Array,Operator]] = None, decimals: Optional[int] = 10,):
-        """Initialize
+        """Initialize.
         Args:
-            operators: (k,n,n) Array specifying the terms :math:`G_j`
-            drift: (n,n) Array specifying the drift term :math:`G_d`
+            operators: (k,n,n) Array specifying the terms :math:`G_j`.
+            drift: (n,n) Array specifying the drift term :math:`G_d`.
             decimals: Values will be rounded at ``decimals`` places after decimal place.
                 Avoids storing excess sparse entries for entries close to zero."""
         if isinstance(drift,Operator):
@@ -162,9 +162,9 @@ class SparseOperatorCollection(BaseOperatorCollection):
     def evaluate_generator(self, signal_values: Array) -> csr_matrix:
         r"""Sparse version of ``DenseOperatorCollection.evaluate_generator``.
         Args: 
-            signal_values: Array of values specifying each signal value :math:`s_j(t)`
+            signal_values: Array of values specifying each signal value :math:`s_j(t)`.
         Returns:
-            Generator as sparse array"""
+            Generator as sparse array."""
         signal_values = signal_values.reshape(1,signal_values.shape[-1])
         if self._drift is None:
             return np.tensordot(signal_values, self._operators, axes=1)[0]
@@ -186,7 +186,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
-    r"""Calculation object for the Lindblad equation
+    r"""Calculation object for the Lindblad equation:
     .. math::
         \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)(L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
     where :math:`\[,\]` and :math:`\{,\}` are the operator commutator and anticommutator, respectively.
@@ -198,7 +198,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         drift: Union[Array,Operator],
         dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
     ):
-        r"""Initialization
+        r"""Initialization.
 
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
@@ -230,9 +230,9 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
         r"""Gets the Hamiltonian matrix, as calculated by the model,
-        and used for the commutator :math:`-i[H,y]`
+        and used for the commutator :math:`-i[H,y]`.
         Args:
-            signal_values: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`
+            signal_values: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
         Returns:
             Hamiltonian matrix."""
         return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
@@ -242,19 +242,19 @@ class DenseLindbladCollection(BaseOperatorCollection):
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as :math:`(A+B)y + y(A-B) + C`, where
             .. math::
-            A = (-1/2)*\sum_j\gamma(t) L_j^\dagger L_j
+            A = (-1/2)*\sum_j\gamma(t) L_j^\dagger L_j,
 
-            B = -iH
+            B = -iH,
 
-            C = \sum_j \gamma_j(t) L_j y L_j^\dagger
+            C = \sum_j \gamma_j(t) L_j y L_j^\dagger.
         Args:
-            ham_sig_vals: hamiltonian signal values, :math:`s_j(t)`
-            dis_sig_vals: dissipator signal values, :math:`\gamma_j(t)`
-            y: density matrix as (n,n) Array representing the state at time :math:`t`
+            ham_sig_vals: hamiltonian signal values, :math:`s_j(t)`.
+            dis_sig_vals: dissipator signal values, :math:`\gamma_j(t)`.
+            y: density matrix as (n,n) Array representing the state at time :math:`t`.
         Returns:
             RHS of Lindblad equation
             .. math::
-                -i[H,y] + \sum_j\gamma_j(t)(L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y})
+                -i[H,y] + \sum_j\gamma_j(t)(L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y}).
         """
 
         hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
@@ -296,8 +296,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
 class DenseVectorizedLindbladCollection(DenseOperatorCollection):
     r"""Vectorized version of DenseLindbladCollection, wherein
     :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of 
-    dimension :math:`n^2` using the column stacking convention, in 
-    which the matrix :math:`[a,b;c,d]` is written as :math:`[a,c,b,d]`."""
+    dimension :math:`n^2` using the column stacking convention."""
 
     def __init__(
         self,
@@ -305,12 +304,12 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         drift: Union[Array,Operator],
         dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
     ):
-        r"""Initialize
+        r"""Initialize.
 
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
                 as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) Array.
-            drift: Constant term to be added to the Hamiltonian of the system. (n,n) Array
+            drift: Constant term to be added to the Hamiltonian of the system. (n,n) Array.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) Array.
         """
 
@@ -358,7 +357,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         return super().evaluate_generator(signal_values)
 
 class SparseLindbladCollection(DenseLindbladCollection):
-    """Sparse version of DenseLindbladCollection"""
+    """Sparse version of DenseLindbladCollection."""
     def __init__(
         self,
         hamiltonian_operators: Union[Array,List[Operator]],
@@ -366,7 +365,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
         decimals: Optional[int] = 10,
     ):
-        r"""Initializes sparse version of DenseLindbladCollection
+        r"""Initializes sparse version of DenseLindbladCollection.
 
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
@@ -409,7 +408,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
                 Pass None if no dissipator operators involved. 
             y: density matrix of system. (k,n,n) Array. 
         Returns: 
-            RHS of Lindbladian
+            RHS of Lindbladian.
         
         Calculation details: 
             * for csr_matrices is equivalent to matrix multiplicaiton.
@@ -478,9 +477,9 @@ def package_density_matrices(y: Array) -> Array:
     (k,1) Array of dtype object, where entry [j,0] is
     y[j]. Formally avoids For loops through vectorization.
     Args:
-        y: (k,n,n) Array
+        y: (k,n,n) Array.
     Returns:
-        Array with dtype object"""
+        Array with dtype object."""
     # As written here, only works for (n,n) Arrays
     obj_arr = np.empty(shape=(1), dtype="O")
     obj_arr[0] = y
@@ -495,7 +494,7 @@ def unpackage_density_matrices(y: Array) -> Array:
     """Inverse function of package_density_matrices,
     Much slower than packaging. Avoid using unless
     absolutely needed (as in case of passing multiple
-    density matrices to SparseLindbladCollection.evaluate_rhs)"""
+    density matrices to SparseLindbladCollection.evaluate_rhs)."""
     return y[0]
 
 
