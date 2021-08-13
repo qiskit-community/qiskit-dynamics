@@ -15,6 +15,10 @@
 
 import numpy as np
 import numpy.random as rand
+try:
+    from jax import jit, grad
+except ImportError:
+    pass
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
     DenseOperatorCollection,
@@ -24,7 +28,7 @@ from qiskit_dynamics.models.operator_collections import (
     SparseOperatorCollection,
 )
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.dispatch import Array,wrap
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -71,6 +75,18 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+
+    def test_functions_jitable(self):
+        """Tests that all class functions are jittable."""
+        doc = DenseOperatorCollection(Array(self.test_operator_list),drift=Array(self.test_operator_list[0]))
+        _wrap(jit,doc.evaluate_generator)(Array(self.sigvals))
+        _wrap(jit,doc.evaluate_rhs)(Array(self.sigvals),self.X)
+
+    def test_functions_gradable(self):
+        """Tests that all class functions are gradable."""
+        doc = DenseOperatorCollection(Array(self.test_operator_list),drift=Array(self.test_operator_list[0]))
+        _wrap(grad,doc.evaluate_generator)(Array(self.sigvals))
+        _wrap(grad,doc.evaluate_rhs)(Array(self.sigvals),self.X)
 
 
 class TestSparseOperatorCollection(QiskitDynamicsTestCase):
@@ -203,6 +219,18 @@ class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+    def test_functions_jitable(self):
+        """Tests that all class functions are jittable"""
+        dlc = DenseLindbladCollection(Array(self.hamiltonian_operators),drift=Array(self.drift),dissipator_operators=Array(self.dissipator_operators))
+        _wrap(jit,dlc.evaluate_rhs)(Array(self.ham_sig_vals),Array(self.dis_sig_vals),self.rho)
+        _wrap(jit,dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
+
+    def test_functions_gradable(self):
+        """Tests if all class functions are gradable"""
+        dlc = DenseLindbladCollection(Array(self.hamiltonian_operators),drift=Array(self.drift),dissipator_operators=Array(self.dissipator_operators))
+        _wrap(grad,dlc.evaluate_rhs)(Array(self.ham_sig_vals),Array(self.dis_sig_vals),self.rho)
+        _wrap(grad,dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
+
 
 
 class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
@@ -219,6 +247,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         m = 2
         r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
 
+        self.r = r
         self.rand_ham = r(k, n, n)
         self.rand_dis = r(m, n, n)
         self.rand_dft = r(n, n)
@@ -361,3 +390,18 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         many_rho = self.r(16,3,3)
         self.assertAllClose(op_collection(sigVals,sigVals,rho),ar_collection(sigVals,sigVals,rho))
         self.assertAllClose(op_collection(sigVals,sigVals,many_rho),ar_collection(sigVals,sigVals,many_rho))
+            
+def _wrap(jax_func,func_to_test):
+    """Functions like DenseOperatorCollection.evaluate_generator
+    are not wrapped properly by dispatch.wrap, so we take this
+    extra step. Intended to wrap either jit or grad. Ensures output
+    is a scalar real value.
+    Args: 
+        jax_func: either jit or grad.
+        func_to_test: whichever function is to be wrapped.
+    returns:
+        wrapped function."""
+    wf = wrap(jax_func,decorator=True)
+    f = lambda *args: np.sum(func_to_test(*args)).real
+    return wf(f)
+
