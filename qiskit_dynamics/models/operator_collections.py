@@ -320,8 +320,10 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         if dissipator_operators is not None:
             vec_diss_ops = vec_dissipator(to_array(dissipator_operators))
             total_ops = np.append(vec_ham_ops, vec_diss_ops, axis=0)
+            self.empty_dissipators = False
         else:
             total_ops = vec_ham_ops
+            self.empty_dissipators = True
 
         super().__init__(total_ops, drift=vec_drift)
 
@@ -350,7 +352,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         Returns:
             Vectorized generator of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
-        if dis_sig_vals is None:
+        if self.empty_dissipators:
             signal_values = ham_sig_vals
         else:
                 signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
