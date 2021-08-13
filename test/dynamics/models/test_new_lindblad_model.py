@@ -177,7 +177,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         lindblad_model = LindbladModel.from_hamiltonian(
             hamiltonian=hamiltonian, dissipator_operators=rand_diss, dissipator_signals=diss_sigs
         )
-        lindblad_model.frame = lindblad_frame_op
+        lindblad_model.rotating_frame = lindblad_frame_op
 
         A = Array(
             rng.uniform(low=-b, high=b, size=(dim, dim))

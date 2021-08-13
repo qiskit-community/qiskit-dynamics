@@ -58,7 +58,7 @@ class HamiltonianModel(GeneratorModel):
         operators: List[Operator],
         drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        frame: Optional[Union[Operator, Array, BaseRotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, Array, BaseRotatingFrame]] = None,
         validate: bool = True,
         evaluation_mode: str = "dense",
     ):
@@ -74,7 +74,7 @@ class HamiltonianModel(GeneratorModel):
                      Signal objects, or as the inputs to signal_mapping.
                      OperatorModel can be instantiated without specifying
                      signals, but it can not perform any actions without them.
-            frame: Rotating frame operator / rotating frame object.
+            rotating_frame: Rotating frame operator / rotating frame object.
                     If specified with a 1d array, it is interpreted as the
                     diagonal of a diagonal matrix. Assumed to store
                     the antihermitian matrix F = -iH.
@@ -101,30 +101,30 @@ class HamiltonianModel(GeneratorModel):
         super().__init__(
             operators=operators,
             signals=signals,
-            frame=frame,
+            rotating_frame=rotating_frame,
             drift=drift,
             evaluation_mode=evaluation_mode,
         )
 
     @property
-    def frame(self) -> RotatingFrame:
-        return super().frame
+    def rotating_frame(self) -> RotatingFrame:
+        return super().rotating_frame
 
-    @frame.setter
-    def frame(self, frame: Union[Operator, Array, RotatingFrame]) -> Array:
+    @rotating_frame.setter
+    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]) -> Array:
         """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
         The drift needs to be adjusted by -H in the new frame."""
-        if self._frame is not None and self._frame.frame_diag is not None:
-            self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
-            self._operators = self.frame.operator_out_of_frame_basis(self._operators)
-            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
+        if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
+            self.drift = self.drift + Array(np.diag(1j * self._rotating_frame.frame_diag))
+            self._operators = self.rotating_frame.operator_out_of_frame_basis(self._operators)
+            self.drift = self.rotating_frame.operator_out_of_frame_basis(self.drift)
 
-        self._frame = RotatingFrame(frame)
+        self._rotating_frame = RotatingFrame(rotating_frame)
 
-        if self._frame.frame_diag is not None:
-            self._operators = self.frame.operator_into_frame_basis(self._operators)
-            self.drift = self.frame.operator_into_frame_basis(self.drift)
-            self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
+        if self._rotating_frame.frame_diag is not None:
+            self._operators = self.rotating_frame.operator_into_frame_basis(self._operators)
+            self.drift = self.rotating_frame.operator_into_frame_basis(self.drift)
+            self.drift = self.drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
         self.evaluation_mode = self.evaluation_mode
 

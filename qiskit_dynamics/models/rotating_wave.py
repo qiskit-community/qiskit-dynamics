@@ -14,7 +14,7 @@ from qiskit_dynamics.dispatch import Array
 def _get_new_operators(
     current_ops: Array,
     current_sigs: SignalList,
-    frame: RotatingFrame,
+    rotating_frame: RotatingFrame,
     frame_freqs: Array,
     cutoff_freq: Union[float, int],
 ):
@@ -68,7 +68,7 @@ def _get_new_operators(
     abnormal_operators = 1j * pos_terms / 2 - 1j * neg_terms / 2
 
     new_signals = _get_new_signals(current_sigs)
-    new_operators = frame.operator_out_of_frame_basis(
+    new_operators = rotating_frame.operator_out_of_frame_basis(
         np.append(normal_operators, abnormal_operators, axis=0)
     )
 
@@ -160,30 +160,30 @@ def perform_rotating_wave_approximation(
 
     ##TODO Make function idempotent
 
-    if model.frame is None or model.frame.frame_diag is None:
+    if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
         return model
 
     n = model.dim
-    diag = model.frame.frame_diag
+    diag = model.rotating_frame.frame_diag
 
     diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
     frame_freqs = diff_matrix.imag / (2 * np.pi)
 
-    curr_drift = model.frame.operator_out_of_frame_basis(
-        model.drift + np.diag(model.frame.frame_diag)
+    curr_drift = model.rotating_frame.operator_out_of_frame_basis(
+        model.drift + np.diag(model.rotating_frame.frame_diag)
     )
     new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
 
     if isinstance(model, GeneratorModel):
         new_signals, new_operators = _get_new_operators(
-            model.operators, model.signals, model.frame, frame_freqs, cutoff_freq
+            model.operators, model.signals, model.rotating_frame, frame_freqs, cutoff_freq
         )
         if isinstance(model, HamiltonianModel):
             new_model = HamiltonianModel(
                 new_operators,
                 drift=1j * new_drift,
                 signals=new_signals,
-                frame=model.frame.frame_operator,
+                rotating_frame=model.rotating_frame.frame_operator,
                 evaluation_mode=model.evaluation_mode,
             )
         else:
@@ -191,7 +191,7 @@ def perform_rotating_wave_approximation(
                 new_operators,
                 drift=new_drift,
                 signals=new_signals,
-                frame=(model.frame.frame_operator),
+                rotating_frame=(model.rotating_frame.frame_operator),
                 evaluation_mode=model.evaluation_mode,
             )
     elif isinstance(model, LindbladModel):
@@ -199,11 +199,11 @@ def perform_rotating_wave_approximation(
         cur_ham_sig, cur_dis_sig = model.signals
 
         new_ham_sig, new_ham_ops = _get_new_operators(
-            cur_ham_ops, cur_ham_sig, model.frame, frame_freqs, cutoff_freq
+            cur_ham_ops, cur_ham_sig, model.rotating_frame, frame_freqs, cutoff_freq
         )
         if cur_dis_ops is not None and cur_dis_sig is not None:
             new_dis_sig, new_dis_ops = _get_new_operators(
-                cur_dis_ops, cur_dis_sig, model.frame, frame_freqs, cutoff_freq
+                cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
             )
 
         new_model = LindbladModel(
@@ -212,7 +212,7 @@ def perform_rotating_wave_approximation(
             new_dis_ops,
             new_dis_sig,
             1j * new_drift,
-            model.frame,
+            model.rotating_frame,
             model.evaluation_mode,
         )
     return new_model, _get_new_signals

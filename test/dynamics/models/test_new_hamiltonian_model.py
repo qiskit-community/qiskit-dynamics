@@ -54,7 +54,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             t (float): time of frame transformation
         """
 
-        self.basic_hamiltonian.frame = frame_operator
+        self.basic_hamiltonian.rotating_frame = frame_operator
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
@@ -113,7 +113,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         frame_op = (self.X + 0.2 * self.Y + 0.1 * self.Z).data
 
         # enter the frame given by the -1j * X
-        self.basic_hamiltonian.frame = frame_op
+        self.basic_hamiltonian.rotating_frame = frame_op
 
         # get the frame basis used in model. Note that the Frame object
         # orders the basis according to the ordering of eigh
@@ -204,7 +204,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
             sig_list.append(Signal(get_env_func(), freq, phase))
         sig_list = SignalList(sig_list)
-        model = HamiltonianModel(operators, drift=None, signals=sig_list, frame=frame_op)
+        model = HamiltonianModel(operators, drift=None, signals=sig_list, rotating_frame=frame_op)
 
         value = model(1.0, in_frame_basis=False) / -1j
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
@@ -215,7 +215,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             - frame_op
         )
         self.assertAllClose(model.signals.__call__(1), coeffs)
-        self.assertAllClose(model.frame.operator_out_of_frame_basis(model.operators), operators)
+        self.assertAllClose(model.rotating_frame.operator_out_of_frame_basis(model.operators), operators)
 
         self.assertAllClose(value, expected)
 

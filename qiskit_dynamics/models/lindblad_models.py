@@ -63,7 +63,7 @@ class LindbladModel(BaseGeneratorModel):
         dissipator_operators: Array = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         drift: Optional[Array] = None,
-        frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: Optional[str] = "dense",
     ):
         """Initialize.
@@ -74,7 +74,7 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_operators: list of dissipator operators.
             dissipator_signals: list of dissipator signals.
             drift: Optional, constant term in Hamiltonian.
-            frame: rotating frame in which calcualtions are to be done.
+            rotating_frame: rotating frame in which calcualtions are to be done.
                 If provided, it is assumed that all operators were
                 already in the frame basis.
             evalutation_mode: String specifying the type of evaluation
@@ -119,8 +119,8 @@ class LindbladModel(BaseGeneratorModel):
         self._hamiltonian_signals = hamiltonian_signals
         self._dissipator_signals = dissipator_signals
 
-        self._frame = None
-        self.frame = frame
+        self._rotating_frame = None
+        self.rotating_frame = rotating_frame
 
         self.evaluation_mode = evaluation_mode
 
@@ -219,36 +219,36 @@ class LindbladModel(BaseGeneratorModel):
         )
 
     @property
-    def frame(self):
-        return self._frame
+    def rotating_frame(self):
+        return self._rotating_frame
 
-    @frame.setter
-    def frame(self, frame: Union[Operator, Array, RotatingFrame]):
-        if self._frame is not None and self._frame.frame_diag is not None:
-            self.drift = self.drift + Array(np.diag(1j * self._frame.frame_diag))
+    @rotating_frame.setter
+    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
+        if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
+            self.drift = self.drift + Array(np.diag(1j * self._rotating_frame.frame_diag))
 
-            self._hamiltonian_operators = self.frame.operator_out_of_frame_basis(
+            self._hamiltonian_operators = self.rotating_frame.operator_out_of_frame_basis(
                 self._hamiltonian_operators
             )
             if self._dissipator_operators is not None:
-                self._dissipator_operators = self.frame.operator_out_of_frame_basis(
+                self._dissipator_operators = self.rotating_frame.operator_out_of_frame_basis(
                     self._dissipator_operators
                 )
-            self.drift = self.frame.operator_out_of_frame_basis(self.drift)
+            self.drift = self.rotating_frame.operator_out_of_frame_basis(self.drift)
 
-        self._frame = RotatingFrame(frame)
+        self._rotating_frame = RotatingFrame(rotating_frame)
 
-        if self._frame.frame_diag is not None:
-            self._hamiltonian_operators = self.frame.operator_into_frame_basis(
+        if self._rotating_frame.frame_diag is not None:
+            self._hamiltonian_operators = self.rotating_frame.operator_into_frame_basis(
                 self._hamiltonian_operators
             )
             if self._dissipator_operators is not None:
-                self._dissipator_operators = self.frame.operator_into_frame_basis(
+                self._dissipator_operators = self.rotating_frame.operator_into_frame_basis(
                     self._dissipator_operators
                 )
-            self.drift = self.frame.operator_into_frame_basis(self.drift)
+            self.drift = self.rotating_frame.operator_into_frame_basis(self.drift)
 
-            self.drift = self.drift - Array(np.diag(1j * self._frame.frame_diag))
+            self.drift = self.drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
         # Ensure these changes are passed on to the operator collection.
         self.evaluation_mode = self.evaluation_mode
@@ -262,7 +262,7 @@ class LindbladModel(BaseGeneratorModel):
             out = self._operator_collection.evaluate_generator(
                 self._hamiltonian_signals(time), dissipator_sig_vals
             )
-            return self.frame.bring_vectorized_operator_into_frame(
+            return self.rotating_frame.bring_vectorized_operator_into_frame(
                 time, out, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
             )
         else:
@@ -288,10 +288,10 @@ class LindbladModel(BaseGeneratorModel):
         else:
             dissipator_sig_vals = None
 
-        if self.frame.frame_diag is not None:
+        if self.rotating_frame.frame_diag is not None:
 
             # Take y out of the frame, but keep in the frame basis
-            rhs = self.frame.operator_out_of_frame(
+            rhs = self.rotating_frame.operator_out_of_frame(
                 time,
                 y,
                 operator_in_frame_basis=in_frame_basis,
@@ -304,7 +304,7 @@ class LindbladModel(BaseGeneratorModel):
             )
 
             # Put rhs back into the frame, potentially converting its basis.
-            rhs = self.frame.operator_into_frame(
+            rhs = self.rotating_frame.operator_into_frame(
                 time,
                 rhs,
                 operator_in_frame_basis=True,
@@ -322,8 +322,8 @@ class LindbladModel(BaseGeneratorModel):
     def evaluate_hamiltonian(self, time, in_frame_basis: Optional[bool] = False):
         hamiltonian_sig_vals = self._hamiltonian_signals(time)
         ham = self._operator_collection.evaluate_hamiltonian(hamiltonian_sig_vals)
-        if self.frame.frame_diag is not None:
-            return self.frame.operator_into_frame(
+        if self.rotating_frame.frame_diag is not None:
+            return self.rotating_frame.operator_into_frame(
                 time,
                 ham,
                 operator_in_frame_basis=True,

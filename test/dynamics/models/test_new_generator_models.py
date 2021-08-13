@@ -49,19 +49,19 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         # 1d array
         try:
-            self.basic_model.frame = Array([1.0, 1.0])
+            self.basic_model.rotating_frame = Array([1.0, 1.0])
         except QiskitError as e:
             self.assertTrue("anti-Hermitian" in str(e))
 
         # 2d array
         try:
-            self.basic_model.frame = Array([[1.0, 0.0], [0.0, 1.0]])
+            self.basic_model.rotating_frame = Array([[1.0, 0.0], [0.0, 1.0]])
         except QiskitError as e:
             self.assertTrue("anti-Hermitian" in str(e))
 
         # Operator
         try:
-            self.basic_model.frame = self.Z
+            self.basic_model.rotating_frame = self.Z
         except QiskitError as e:
             self.assertTrue("anti-Hermitian" in str(e))
 
@@ -85,7 +85,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         basic_model.
         """
 
-        self.basic_model.frame = frame_operator
+        self.basic_model.rotating_frame = frame_operator
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
@@ -128,7 +128,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         frame_op = -1j * (self.X + 0.2 * self.Y + 0.1 * self.Z).data
 
         # enter the frame given by the -1j * X
-        self.basic_model.frame = frame_op
+        self.basic_model.rotating_frame = frame_op
 
         # get the frame basis that is used in model
         _, U = np.linalg.eigh(1j * frame_op)
@@ -211,13 +211,13 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
             sig_list.append(Signal(get_env_func(), freq, phase))
         model = GeneratorModel(operators, signals=sig_list)
-        model.frame = frame_op
+        model.rotating_frame = frame_op
 
         value = model(1.0)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
 
         self.assertAllClose(
-            model.frame.operator_out_of_frame_basis(
+            model.rotating_frame.operator_out_of_frame_basis(
                 model._operator_collection.evaluate_generator(coeffs)
             ),
             np.tensordot(coeffs, operators, axes=1) - frame_op,
@@ -266,7 +266,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
-        simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, frame=None)
+        simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, rotating_frame=None)
 
         res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
@@ -283,10 +283,10 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         answers."""
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
-        simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, frame=None)
+        simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, rotating_frame=None)
         simple_model.drift = np.eye(2)
         fop = Array([[0, 1j], [1j, 0]])
-        simple_model.frame = fop
+        simple_model.rotating_frame = fop
         res = simple_model(2, in_frame_basis=False)
         expected = (
             expm(np.array(-2 * fop))
@@ -332,7 +332,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
 
-        ## Run checks without frame for now
+        ## Run checks without rotating frame for now
         gm1 = GeneratorModel(paulis, extra, sarr)
         gm2 = GeneratorModel(paulis, extra)
         gm2.signals = sarr
@@ -366,25 +366,25 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.abs
         # Testing at the same time whether having Drift = None is an issue.
-        gm1 = GeneratorModel(paulis, signals=sarr, frame=RotatingFrame(farr))
-        gm2 = GeneratorModel(paulis, frame=farr)
+        gm1 = GeneratorModel(paulis, signals=sarr, rotating_frame=RotatingFrame(farr))
+        gm2 = GeneratorModel(paulis, rotating_frame=farr)
         gm2.signals = SignalList(sarr)
-        gm3 = GeneratorModel(paulis, frame=farr)
+        gm3 = GeneratorModel(paulis, rotating_frame=farr)
         gm3.signals = sarr
         # Does adding a frame after make a difference?
         # If so, does it make a difference if we add signals or the frame first?
         gm4 = GeneratorModel(paulis)
         gm4.signals = sarr
-        gm4.frame = farr
+        gm4.rotating_frame = farr
         gm5 = GeneratorModel(paulis)
-        gm5.frame = farr
+        gm5.rotating_frame = farr
         gm5.signals = sarr
         gm6 = GeneratorModel(paulis, signals=sarr)
-        gm6.frame = farr
+        gm6.rotating_frame = farr
         # If we go to one frame, then transform back, does this make a difference?
         gm7 = GeneratorModel(paulis, signals=sarr)
-        gm7.frame = farr2
-        gm7.frame = farr
+        gm7.rotating_frame = farr2
+        gm7.rotating_frame = farr
 
         t_in_frame_actual = Array(
             np.diag(np.exp(-t * evals))
@@ -435,7 +435,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         farr = rand.uniform(-1, 1, (n, n))
         farr = farr - np.conjugate(np.transpose(farr))
 
-        gm.frame = farr
+        gm.rotating_frame = farr
 
         self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
         self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
@@ -463,7 +463,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(sigs(0), np.array([-1, -1, 3]))
         ops = np.array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]])
 
-        GM = GeneratorModel(ops, drift=None, signals=sigs, frame=frame_op)
+        GM = GeneratorModel(ops, drift=None, signals=sigs, rotating_frame=frame_op)
         self.assertAllClose(GM(0), np.array([[3 - 4j, -1], [-1 - 2j, -3 - 2j]]))
         self.assertAllClose(
             GM(1),
