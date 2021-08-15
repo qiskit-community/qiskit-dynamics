@@ -16,11 +16,6 @@ from typing import OrderedDict, Dict, List, Union, Any, Optional
 from abc import ABC, abstractmethod
 import numpy as np
 from ..type_utils import is_scalar
-from copy import deepcopy
-from qiskit.quantum_info.operators.base_operator import BaseOperator
-from qiskit.quantum_info.states.quantum_state import QuantumState
-
-from qiskit_dynamics.dispatch import Array
 
 
 class DynamicalOperator(ABC):

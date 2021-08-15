@@ -60,11 +60,15 @@ class LindbladMPOSimulationBuilder(ABC):
 			J_aa[a] = np.zeros((n_qubits, n_qubits))
 		for j in g_j_op:
 			g_j[j] = np.zeros((n_qubits,))
-		for op_dict in H_ops:
-			for key_tuple, val in op_dict.items():
+		H_signals = self.sim_def.hamiltonian_signals
+		if H_signals is None:
+			H_signals = [None] * len(H_ops)
+		for i_op, op_dict in enumerate(H_ops):
+			sig_val = self._validate_signal_value(H_signals[i_op])
+			for key_tuple, op_val in op_dict.items():
+				val = .5 * sig_val * op_val
 				n_prod_ops = len(key_tuple)
 				missing_key = None
-				# b_unsupported = False
 				b_identity_bond = False
 				if n_prod_ops == 1:
 					key: DynamicalOperatorKey = key_tuple[0]
@@ -91,11 +95,18 @@ class LindbladMPOSimulationBuilder(ABC):
 
 		if sim_def.noise_operators is not None:
 			L_ops, _ = self._build_ops(sim_def.noise_operators, self._prune_subsystems)
-			for op in L_ops:
-				for key_tuple, val in op.items():
+			L_signals = self.sim_def.noise_signals
+			if L_signals is None:
+				L_signals = [None] * len(L_ops)
+			for i_op, op_dict in enumerate(L_ops):
+				if len(op_dict) != 1:
+					raise Exception("Noise (jump) operators cannot be defined as sums of basic "
+									"operators with the MPO solver.")
+				sig_val = self._validate_signal_value(L_signals[i_op])
+				for key_tuple, op_val in op_dict.items():
+					val = sig_val * op_val
 					n_prod_ops = len(key_tuple)
 					missing_key = None
-					# b_unsupported = False
 					b_identity_bond = False
 					if n_prod_ops == 1:
 						key: DynamicalOperatorKey = key_tuple[0]
@@ -165,6 +176,15 @@ class LindbladMPOSimulationBuilder(ABC):
 			if i_sys is None:
 				missing_key = key.system_id
 		return b_unsupported, missing_key, i_sys
+
+	@staticmethod
+	def _validate_signal_value(sig: Signal):
+		sig_val = 0.
+		if sig is not None:
+			if not sig.is_constant:
+				raise Exception("Only constant signals are supported with the MPO solver.")
+			sig_val = sig(.0)
+		return sig_val
 
 	@staticmethod
 	def _raise_validations(b_unsupported, b_identity_bond, missing_key, key_tuple, b_dissipator):

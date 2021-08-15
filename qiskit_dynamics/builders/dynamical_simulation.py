@@ -21,6 +21,7 @@ from qiskit.quantum_info.states.quantum_state import QuantumState
 from qiskit.quantum_info.states import Statevector, DensityMatrix
 from qiskit_dynamics import solve_lmde
 from scipy.integrate import OdeSolver
+from qiskit.quantum_info.operators.base_operator import BaseOperator
 
 
 class SimulationDef:
@@ -126,7 +127,7 @@ class SimulationTimes(ABC):
 									' multiples of the fixed time step parameter dt.')
 
 
-class DenseSimulationBuilder(ABC):
+class MatrixSimulationBuilder(ABC):
 	"""A class for building dense matrices for all model operators."""
 
 	def __init__(self, sim_def: SimulationDef):
@@ -229,10 +230,10 @@ class DenseSimulationBuilder(ABC):
 		return op_matrices, op_labels
 
 
-class DenseSimulation(ABC):
+class MatrixSimulation(ABC):
 	"""A class for solving and storing the results of a dynamical simulation using dense matrices."""
 
-	def __init__(self, sim_builder: DenseSimulationBuilder):
+	def __init__(self, sim_builder: MatrixSimulationBuilder):
 		super().__init__()
 		self.solution = None
 		self.obs_data = None

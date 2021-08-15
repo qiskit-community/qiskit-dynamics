@@ -55,9 +55,9 @@ sim_def = SimulationDef(initial_state = rho_0,
 						observable_operators = obs_1q + obs_2q)
 sim_times = SimulationTimes(t_f = t_f, t_eval = t_eval)
 
-full_builder = DenseSimulationBuilder(sim_def)
+full_builder = MatrixSimulationBuilder(sim_def)
 full_builder.build(subsystems)
-full_sim = DenseSimulation(full_builder)
+full_sim = MatrixSimulation(full_builder)
 full_sim.solve(sim_times)
 
 tmp = 2
@@ -77,7 +77,7 @@ tmp = 3
 
 # Exceptions below, WIP
 
-# prune_builder = DenseSimulationBuilder(sim_def)
+# prune_builder = MatrixSimulationBuilder(sim_def)
 # prune_subsystems = subsystems.copy()
 # prune_subsystems[2] = 0
 # prune_subsystems[3] = 0
