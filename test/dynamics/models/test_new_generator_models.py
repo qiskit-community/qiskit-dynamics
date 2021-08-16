@@ -399,8 +399,62 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(tf1, tf6)
         self.assertAllClose(tf1, tf7)
 
+    def test_evaluate_rhs_lmult_equivalent_analytic(self):
         """Tests whether evaluate_generator(t) @ state == evaluate_rhs(t,state)
         for analytically known values."""
+
+        paulis = Array([self.X,self.Y,self.Z])
+        extra = Array(np.eye(2))
+
+        t = 2
+
+        farr = Array(np.array([[3j, 2j], [2j, 0]]))
+        evals, evect = np.linalg.eig(farr)
+        diafarr = np.diag(evals)
+
+        paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
+        extra_in_basis = evect.T.conj() @ extra @ evect
+
+        sarr = [Signal(1, j / 3) for j in range(3)]
+        sigvals = SignalList(sarr)(t)
+
+        t_in_frame_actual = Array(
+            np.diag(np.exp(-t * evals))
+            @ (np.tensordot(sigvals, paulis_in_frame_basis, axes=1) + extra_in_basis - diafarr)
+            @ np.diag(np.exp(t * evals))
+        )
+
+        state = Array([0.3,0.1])
+        state_in_frame_basis = np.conjugate(np.transpose(evect)) @ state
+
+        gm1 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, drift = extra)
+        self.assertAllClose(gm1(t,in_frame_basis=True),t_in_frame_actual)
+        self.assertAllClose(gm1(t,state_in_frame_basis,in_frame_basis=True), t_in_frame_actual @ state_in_frame_basis)
+
+        t_not_in_frame_actual = Array(expm(np.array(-t*farr)) @ (np.tensordot(sigvals, paulis, axes=1) + extra - farr) @ expm(np.array(t*farr)))
+
+        gm2 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, drift = extra)
+        self.assertAllClose(gm2(t,in_frame_basis=False),t_not_in_frame_actual)
+        self.assertAllClose(gm1(t,state,in_frame_basis=False), t_not_in_frame_actual @ state)
+
+        # now, remove the frame
+        gm1.rotating_frame = None
+        gm2.rotating_frame = None
+
+        t_expected = np.tensordot(sigvals, paulis, axes = 1) + extra
+
+        state_in_frame_basis = state
+
+        self.assertAllClose(gm1.get_operators(True), gm1.get_operators(True))
+        self.assertAllClose(gm1.get_drift(True),gm1.get_drift(False))
+
+
+        self.assertAllClose(gm1(t,in_frame_basis=True),t_expected)
+        self.assertAllClose(gm1(t,state,in_frame_basis=True), t_expected @ state_in_frame_basis)
+        self.assertAllClose(gm2(t,in_frame_basis=False),t_expected)
+        self.assertAllClose(gm2(t,state,in_frame_basis=False), t_expected @ state_in_frame_basis)
+
+
         """Test for whether evaluating a model at m different
         states, each with an n-length statevector, by passing
         an (m,n) Array provides the same value as passing each
