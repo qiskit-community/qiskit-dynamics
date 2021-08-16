@@ -125,6 +125,9 @@ class LindbladModel(BaseGeneratorModel):
 
         self.set_evaluation_mode(evaluation_mode)
 
+    @property
+    def dim(self) -> int:
+        return self._hamiltonian_operators.shape[-1]
 
     @property
     def signals(self) -> List[Array]:
