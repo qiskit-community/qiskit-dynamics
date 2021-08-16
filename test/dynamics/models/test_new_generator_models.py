@@ -340,6 +340,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertAllClose(ts1, ts2)
         self.assertAllClose(ts1, ts_analytical)
+        self.assertAllClose(gm1(t,in_frame_basis=False) @ state, ts1)
+        self.assertAllClose(gm1(t,in_frame_basis=True) @ state, ts1)
 
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.abs
