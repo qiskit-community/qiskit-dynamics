@@ -87,12 +87,13 @@ class LindbladModel(BaseGeneratorModel):
         """
         self._operator_collection = None
         self._evaluation_mode = None
+        self._rotating_frame = None
 
         if dissipator_operators is not None:
             dissipator_operators = Array(dissipator_operators)
 
         self._hamiltonian_operators = Array(np.array(hamiltonian_operators))
-        self.drift = drift
+        self.set_drift(drift,operator_in_frame_basis=True,includes_frame_contribution=True)
         self._dissipator_operators = dissipator_operators
 
         if isinstance(hamiltonian_signals, list):
@@ -122,7 +123,8 @@ class LindbladModel(BaseGeneratorModel):
         self._rotating_frame = None
         self.rotating_frame = rotating_frame
 
-        self.evaluation_mode = evaluation_mode
+        self.set_evaluation_mode(evaluation_mode)
+
 
     @property
     def signals(self) -> List[Array]:
@@ -136,20 +138,21 @@ class LindbladModel(BaseGeneratorModel):
     def signals(self, new_signals: List[Array]):
         self._hamiltonian_signals, self._dissipator_signals = new_signals
 
+    def get_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
+        if not in_frame_basis and self.rotating_frame is not None:
+            return (self.rotating_frame.operator_out_of_frame_basis(self._hamiltonian_operators),
+                self.rotating_frame.operator_out_of_frame_basis(self._dissipator_operators))
+        else:
+            return (self._hamiltonian_operators,self._dissipator_operators)
+
+    def _get_frame_contribution(self):
+        return - Array(1j * np.diag(self.rotating_frame.frame_diag))
+
     @property
     def operators(self) -> List[Array]:
         return [self._hamiltonian_operators, self._dissipator_operators]
 
-    @property
-    def dim(self) -> int:
-        return self._hamiltonian_operators.shape[-1]
-
-    @property
-    def evaluation_mode(self) -> str:
-        return super().evaluation_mode
-
-    @evaluation_mode.setter
-    def evaluation_mode(self, new_mode: str):
+    def set_evaluation_mode(self, new_mode: str):
         """Sets evaluation mode.
         Args:
             new_mode: new mode for evaluation. Supported modes are:
@@ -171,21 +174,21 @@ class LindbladModel(BaseGeneratorModel):
         if new_mode == "dense":
             self._operator_collection = DenseLindbladCollection(
                 self._hamiltonian_operators,
-                drift=self.drift,
+                drift=self.get_drift(in_frame_basis=True),
                 dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = False
         elif new_mode == "sparse":
             self._operator_collection = SparseLindbladCollection(
                 self._hamiltonian_operators,
-                drift=self.drift,
+                drift=self.get_drift(in_frame_basis=True),
                 dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = False
         elif new_mode == "dense_vectorized":
             self._operator_collection = DenseVectorizedLindbladCollection(
                 self._hamiltonian_operators,
-                drift=self.drift,
+                drift=self.get_drift(in_frame_basis=True),
                 dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = True
@@ -219,13 +222,16 @@ class LindbladModel(BaseGeneratorModel):
         """
 
         return cls(
-            hamiltonian_operators=hamiltonian.operators,
+            hamiltonian_operators=hamiltonian.get_operators(False),
             hamiltonian_signals=hamiltonian.signals,
             dissipator_operators=dissipator_operators,
             dissipator_signals=dissipator_signals,
-            drift=hamiltonian.drift,
+            drift=hamiltonian.get_drift(False),
             evaluation_mode=evaluation_mode,
         )
+
+    def get_frame_contribution(self):
+        return Array(np.diag(-1j*self.rotating_frame.frame_diag))
 
     @property
     def rotating_frame(self):
@@ -234,7 +240,7 @@ class LindbladModel(BaseGeneratorModel):
     @rotating_frame.setter
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
         if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
-            self.drift = self.drift + Array(np.diag(1j * self._rotating_frame.frame_diag))
+            self._drift = self._drift + Array(np.diag(1j * self._rotating_frame.frame_diag))
 
             self._hamiltonian_operators = self.rotating_frame.operator_out_of_frame_basis(
                 self._hamiltonian_operators
@@ -243,7 +249,7 @@ class LindbladModel(BaseGeneratorModel):
                 self._dissipator_operators = self.rotating_frame.operator_out_of_frame_basis(
                     self._dissipator_operators
                 )
-            self.drift = self.rotating_frame.operator_out_of_frame_basis(self.drift)
+            self._drift = self.rotating_frame.operator_out_of_frame_basis(self._drift)
 
         self._rotating_frame = RotatingFrame(rotating_frame)
 
@@ -255,12 +261,12 @@ class LindbladModel(BaseGeneratorModel):
                 self._dissipator_operators = self.rotating_frame.operator_into_frame_basis(
                     self._dissipator_operators
                 )
-            self.drift = self.rotating_frame.operator_into_frame_basis(self.drift)
+            self._drift = self.rotating_frame.operator_into_frame_basis(self._drift)
 
-            self.drift = self.drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
+            self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
         # Ensure these changes are passed on to the operator collection.
-        self.evaluation_mode = self.evaluation_mode
+        self.set_evaluation_mode(self.evaluation_mode)
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         if self._dissipator_signals is not None:

@@ -175,8 +175,9 @@ def perform_rotating_wave_approximation(
     new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
 
     if isinstance(model, GeneratorModel):
+        # in the lab basis
         new_signals, new_operators = _get_new_operators(
-            model.operators, model.signals, model.rotating_frame, frame_freqs, cutoff_freq
+            model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
         )
         if isinstance(model, HamiltonianModel):
             new_model = HamiltonianModel(

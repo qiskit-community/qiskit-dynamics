@@ -63,40 +63,70 @@ class BaseGeneratorModel(ABC):
         """Gets Hilbert space dimension."""
         pass
 
-    @property
     @abstractmethod
-    def operators(self) -> Union[Array, List[Array]]:
-        """Get the originally passed operators by the user"""
+    def get_operators(self, in_frame_basis: Optional[bool] = False) -> Union[Array, Tuple[Array], Callable]:
+        """Get the operators used for calculating the model's value.
+        Args:
+            in_frame_basis: Flag for whether the returned operators should be
+            in the basis in which the rotating frame operator is diagonal.
+        Returns:
+            The operators in the basis specified by in_frame_basis"""
         pass
 
-    @property
-    def drift(self) -> Array:
-        """Gets the originally passed drift term"""
+    def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
+        """Gets the drift term. If a frame F has been specified, this
+        drift will include any contributions (typically -F) from the frame.
+        Args: 
+            in_frame_basis: Flag for whether the returned drift should be
+            in the basis in which the frame is diagonal.
+        Returns:
+            The drift term."""
+        if not in_frame_basis and self.rotating_frame is not None:
+            return self.rotating_frame.operator_out_of_frame_basis(self._drift)
+        else:
         return self._drift
 
-    @drift.setter
-    def drift(self, new_drift: Array):
-        """Sets drift term."""
+    def set_drift(self, new_drift: Array, operator_in_frame_basis: Optional[bool] = False, includes_frame_contribution: Optional[bool] = False):
+        """Sets drift term. The drift term will be transformed into the rotating
+        frame basis and have the frame contribution (typically -F) added.
+        
+        Args:
+            new_drift: The drift operator. 
+            operator_in_frame_basis: Whether new_drift is already in the rotating
+            frame basis.
+            includes_frame_contribution: Whether new_drift already includes the
+            contribution from the frame."""
         if new_drift is None:
             new_drift = np.zeros((self.dim, self.dim))
 
         new_drift = Array(np.array(new_drift))
+        
+        if not operator_in_frame_basis and self.rotating_frame is not None:
+            new_drift = self.rotating_frame.operator_into_frame_basis(new_drift)
+        if not includes_frame_contribution and self.rotating_frame.frame_diag is not None:
+            new_drift = new_drift + self.get_frame_contribution()
         self._drift = new_drift
         # pylint: disable=no-member
         if self._operator_collection is not None:
             # pylint: disable=no-member
             self._operator_collection.drift = new_drift
 
-    @property
     @abstractmethod
+    def get_frame_contribution(self):
+        """Gets frame contribution in frame basis. Typically -F
+        or -iF. Included so that set_drift can be more easily
+        modified across subclasses, because most implementations
+        will differ only by the frame transformation."""
+        pass
+
+    @property
     def evaluation_mode(self) -> str:
         """Returns the current implementation mode,
         e.g. sparse/dense, vectorized/not"""
         return self._evaluation_mode
 
-    @evaluation_mode.setter
     @abstractmethod
-    def evaluation_mode(self, new_mode: str):
+    def set_evaluation_mode(self, new_mode: str):
         """Sets evaluation mode of model.
         Will replace _operator_collection with the
         correct type of operator collection. 
@@ -107,10 +137,9 @@ class BaseGeneratorModel(ABC):
         pass
 
     @property
-    @abstractmethod
     def rotating_frame(self) -> RotatingFrame:
         """Get the rotating frame."""
-        pass
+        return self.rotating_frame
 
     @rotating_frame.setter
     @abstractmethod
@@ -196,14 +225,32 @@ class CallableGenerator(BaseGeneratorModel):
     def dim(self) -> int:
         return self._generator(0).shape[-1]
 
-    @property
-    def operators(self) -> Callable:
+    def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
+        if in_frame_basis and self.rotating_frame is not None:
+            return self.rotating_frame.operator_into_frame_basis(self._drift)
+        else:
+            return self._drift
+
+    def get_operators(self, in_frame_basis: Optional[bool] = False) -> Callable:
+        if in_frame_basis and self.rotating_frame is not None: 
+            # The callable generator is assumed to be in the lab basis. Need to transform into
+            # the frame basis. 
+            f = lambda t: self.rotating_frame.operator_into_frame_basis(self._generator(t))
+            return f
+        else:
         return self._generator
 
-    @property
-    def evaluation_mode(self) -> str:
-        return self._evaluation_mode
+    def set_drift(self, new_drift: Array, operator_in_frame_basis: Optional[bool] = False, includes_frame_contribution: Optional[bool] = False):
+        # Subtracting the frame operator from the generator is handled at evaluation time.
+        if operator_in_frame_basis and self.rotating_frame is not None:
+            self._drift = self.rotating_frame.operator_out_of_frame_basis(new_drift)
+        else:
+            self._drift = new_drift
 
+    def get_frame_contribution(self):
+        raise ValueError("Frame Contribution for CallableGenerator is not well-defined")
+
+    def set_evaluation_mode(self, new_mode: str):
         """Setting the evaluation mode for CallableGenerator
         is not supported."""
         raise NotImplementedError(
@@ -242,8 +289,10 @@ class CallableGenerator(BaseGeneratorModel):
 
         # evaluate generator and map it into the rotating frame
         gen = self._generator(time)
+        if self._drift is not None:
+            gen = gen + self._drift
         return self.rotating_frame.generator_into_frame(
-            time, gen, operator_in_frame=False, return_in_frame_basis=in_frame_basis
+            time, gen, operator_in_frame_basis=False, return_in_frame_basis=in_frame_basis
         )
 
 
@@ -303,8 +352,8 @@ class GeneratorModel(BaseGeneratorModel):
         self._operator_collection = None
         self._operators = Array(np.array(operators))
         self._drift = None
-        self.drift = drift
-        self.evaluation_mode = evaluation_mode
+        self._evaluation_mode = None
+        self.set_drift(drift,operator_in_frame_basis=True,includes_frame_contribution=True)
 
         # set frame and transform operators into frame basis.
         self._rotating_frame = None
@@ -314,14 +363,22 @@ class GeneratorModel(BaseGeneratorModel):
         self._signals = None
         self.signals = signals
 
-    @property
-    def operators(self) -> Array:
+        self.set_evaluation_mode(evaluation_mode)
+
+    def get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
+        if not in_frame_basis and self.rotating_frame is not None:
+            return self.rotating_frame.operator_out_of_frame_basis(self._operators)
+        else:
         return self._operators
+
+    def get_frame_contribution(self):
+        return Array(np.diag(-1*self.rotating_frame.frame_diag))
 
     @property
     def dim(self) -> int:
         return self._operators.shape[-1]
 
+    def set_evaluation_mode(self, new_mode: str):
         """Sets evaluation mode to new_mode. 
         Args: 
             new_mode: string specifying new mode, with options
@@ -338,13 +395,14 @@ class GeneratorModel(BaseGeneratorModel):
             NotImplementedError: if new_mode is not one of the above
             supported evaluation modes."""
         if new_mode == "dense":
-            self._operator_collection = DenseOperatorCollection(self._operators, drift=self.drift)
-            self._evaluation_mode = new_mode
+            self._operator_collection = DenseOperatorCollection(self.get_operators(True), drift=self.get_drift(True))
         elif new_mode == "sparse":
-            self._operator_collection = SparseOperatorCollection(self._operators, self._drift)
-            self._evaluation_mode = new_mode
+            self._operator_collection = SparseOperatorCollection(self.get_operators(True), self.get_drift(True))
+        elif new_mode is None:
+            self._operator_collection = None
         else:
             raise NotImplementedError("Evaluation Mode " + str(new_mode) + " is not supported.")
+        self._evaluation_mode = new_mode
 
     @property
     def signals(self) -> SignalList:
@@ -367,7 +425,7 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != self._operator_collection.num_operators:
+            if len(signals) != self.get_operators(True).shape[0]:
                 raise QiskitError(
                     """Signals needs to have the same length as
                                     operators."""
@@ -383,19 +441,19 @@ class GeneratorModel(BaseGeneratorModel):
     @rotating_frame.setter
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
         if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
-            self.drift = self.drift + Array(np.diag(self._rotating_frame.frame_diag))
+            self._drift = self._drift + Array(np.diag(self._rotating_frame.frame_diag))
             self._operators = self.rotating_frame.operator_out_of_frame_basis(self._operators)
-            self.drift = self.rotating_frame.operator_out_of_frame_basis(self.drift)
+            self._drift = self.rotating_frame.operator_out_of_frame_basis(self._drift)
 
         self._rotating_frame = RotatingFrame(rotating_frame)
 
         if self._rotating_frame.frame_diag is not None:
             self._operators = self.rotating_frame.operator_into_frame_basis(self._operators)
-            self.drift = self.rotating_frame.operator_into_frame_basis(self.drift)
-            self.drift = self.drift - Array(np.diag(self._rotating_frame.frame_diag))
+            self._drift = self.rotating_frame.operator_into_frame_basis(self._drift)
+            self._drift = self._drift - Array(np.diag(self._rotating_frame.frame_diag))
 
-        # Reset internal operation collection
-        self.evaluation_mode = self.evaluation_mode
+        # Reset internal operator collection
+        self.set_evaluation_mode(self.evaluation_mode)
 
     def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
