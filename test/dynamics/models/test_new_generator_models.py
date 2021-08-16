@@ -14,13 +14,14 @@
 """Tests for generator_models.py after
 beginning to use OperatorCollections. """
 
+from scipy.sparse import issparse
+from qiskit_dynamics.models.generator_models import CallableGenerator
 import numpy as np
 import numpy.random as rand
 from scipy.linalg import expm
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import GeneratorModel, RotatingFrame
-from qiskit_dynamics.models.rotating_wave import perform_rotating_wave_approximation
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -152,7 +153,9 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate_generator(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
+        self._test_evaluate_generator(
+            frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases
+        )
 
         rng = np.random.default_rng(94818)
         num_terms = 5
@@ -174,7 +177,9 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate_generator(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
+        self._test_evaluate_generator(
+            frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases
+        )
 
     def _test_evaluate_generator(self, frame_op, operators, coefficients, carriers, phases):
         sig_list = []
@@ -216,7 +221,6 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
                 value = value.toarray()
             self.assertAllClose(value, expected)
 
-
     def test_signal_setting(self):
         """Test updating the signals."""
 
@@ -249,12 +253,16 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
-        simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, rotating_frame=None)
+        simple_model = GeneratorModel(
+            test_operator_list, drift=None, signals=signals, rotating_frame=None
+        )
 
         res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
-        simple_model.set_drift(np.eye(2),operator_in_frame_basis=False, includes_frame_contribution=True)
+        simple_model.set_drift(
+            np.eye(2), operator_in_frame_basis=False, includes_frame_contribution=True
+        )
         res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
         simple_model.set_drift(None, operator_in_frame_basis=False)
@@ -263,8 +271,10 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         """Tests evaluation in rotating frame against analytic values."""
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
-        simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, rotating_frame=None)
-        simple_model.set_drift(np.eye(2),operator_in_frame_basis=False)
+        simple_model = GeneratorModel(
+            test_operator_list, drift=None, signals=signals, rotating_frame=None
+        )
+        simple_model.set_drift(np.eye(2), operator_in_frame_basis=False)
         fop = Array([[0, 1j], [1j, 0]])
         simple_model.rotating_frame = fop
         res = simple_model(2, in_frame_basis=False)
@@ -294,7 +304,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         and then assigning them in any order.
         """
 
-        paulis = Array([self.X,self.Y,self.Z])
+        paulis = Array([self.X, self.Y, self.Z])
         extra = Array(np.eye(2))
         state = Array([0.2, 0.5])
 
@@ -312,9 +322,9 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         ## Run checks without rotating frame for now
         gm1 = GeneratorModel(paulis, sarr, extra)
-        gm2 = GeneratorModel(paulis, drift = extra)
+        gm2 = GeneratorModel(paulis, drift=extra)
         gm2.signals = sarr
-        gm3 = GeneratorModel(paulis, drift = extra)
+        gm3 = GeneratorModel(paulis, drift=extra)
         gm3.signals = SignalList(sarr)
 
         # All should be the same, because there are no frames involved
@@ -340,8 +350,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertAllClose(ts1, ts2)
         self.assertAllClose(ts1, ts_analytical)
-        self.assertAllClose(gm1(t,in_frame_basis=False) @ state, ts1)
-        self.assertAllClose(gm1(t,in_frame_basis=True) @ state, ts1)
+        self.assertAllClose(gm1(t, in_frame_basis=False) @ state, ts1)
+        self.assertAllClose(gm1(t, in_frame_basis=True) @ state, ts1)
 
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.abs
@@ -391,7 +401,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         """Tests whether evaluate_generator(t) @ state == evaluate_rhs(t,state)
         for analytically known values."""
 
-        paulis = Array([self.X,self.Y,self.Z])
+        paulis = Array([self.X, self.Y, self.Z])
         extra = Array(np.eye(2))
 
         t = 2
@@ -412,36 +422,41 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
             @ np.diag(np.exp(t * evals))
         )
 
-        state = Array([0.3,0.1])
+        state = Array([0.3, 0.1])
         state_in_frame_basis = np.conjugate(np.transpose(evect)) @ state
 
-        gm1 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, drift = extra)
-        self.assertAllClose(gm1(t,in_frame_basis=True),t_in_frame_actual)
-        self.assertAllClose(gm1(t,state_in_frame_basis,in_frame_basis=True), t_in_frame_actual @ state_in_frame_basis)
+        gm1 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, drift=extra)
+        self.assertAllClose(gm1(t, in_frame_basis=True), t_in_frame_actual)
+        self.assertAllClose(
+            gm1(t, state_in_frame_basis, in_frame_basis=True),
+            t_in_frame_actual @ state_in_frame_basis,
+        )
 
-        t_not_in_frame_actual = Array(expm(np.array(-t*farr)) @ (np.tensordot(sigvals, paulis, axes=1) + extra - farr) @ expm(np.array(t*farr)))
+        t_not_in_frame_actual = Array(
+            expm(np.array(-t * farr))
+            @ (np.tensordot(sigvals, paulis, axes=1) + extra - farr)
+            @ expm(np.array(t * farr))
+        )
 
-        gm2 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, drift = extra)
-        self.assertAllClose(gm2(t,in_frame_basis=False),t_not_in_frame_actual)
-        self.assertAllClose(gm1(t,state,in_frame_basis=False), t_not_in_frame_actual @ state)
+        gm2 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, drift=extra)
+        self.assertAllClose(gm2(t, in_frame_basis=False), t_not_in_frame_actual)
+        self.assertAllClose(gm1(t, state, in_frame_basis=False), t_not_in_frame_actual @ state)
 
         # now, remove the frame
         gm1.rotating_frame = None
         gm2.rotating_frame = None
 
-        t_expected = np.tensordot(sigvals, paulis, axes = 1) + extra
+        t_expected = np.tensordot(sigvals, paulis, axes=1) + extra
 
         state_in_frame_basis = state
 
         self.assertAllClose(gm1.get_operators(True), gm1.get_operators(True))
-        self.assertAllClose(gm1.get_drift(True),gm1.get_drift(False))
+        self.assertAllClose(gm1.get_drift(True), gm1.get_drift(False))
 
-
-        self.assertAllClose(gm1(t,in_frame_basis=True),t_expected)
-        self.assertAllClose(gm1(t,state,in_frame_basis=True), t_expected @ state_in_frame_basis)
-        self.assertAllClose(gm2(t,in_frame_basis=False),t_expected)
-        self.assertAllClose(gm2(t,state,in_frame_basis=False), t_expected @ state_in_frame_basis)
-
+        self.assertAllClose(gm1(t, in_frame_basis=True), t_expected)
+        self.assertAllClose(gm1(t, state, in_frame_basis=True), t_expected @ state_in_frame_basis)
+        self.assertAllClose(gm2(t, in_frame_basis=False), t_expected)
+        self.assertAllClose(gm2(t, state, in_frame_basis=False), t_expected @ state_in_frame_basis)
 
     def test_evaluate_rhs_vectorized_pseudorandom(self):
         """Test for whether evaluating a model at m different
@@ -499,6 +514,7 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
     Note: This class has no body but contains tests due to inheritance.
     """
 
+
 class TestCallableGenerator(QiskitDynamicsTestCase):
     """Tests for CallableGenerator."""
 
@@ -518,7 +534,7 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
         self.w = 2
         self.r = r
         self.basic_model = CallableGenerator(generator)
-        self.state = Array([2,3])
+        self.state = Array([2, 3])
 
     def test_diag_frame_operator_basic_model(self):
         """Test setting a diagonal frame operator for the internally
@@ -549,7 +565,7 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
             frame_operator = np.diag(frame_operator)
 
         value_without_state = self.basic_model(t)
-        value_with_state = self.basic_model(t,self.state)
+        value_with_state = self.basic_model(t, self.state)
 
         i2pi = -1j * 2 * np.pi
 
@@ -562,11 +578,10 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
         expected = (
             i2pi * self.w * U @ self.Z.data @ U.conj().transpose() / 2
             + d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2
-            - frame_operator)
+            - frame_operator
+        )
         self.assertAllClose(value_without_state, expected)
         self.assertAllClose(value_with_state, expected @ self.state)
-
-        
 
 
 class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):

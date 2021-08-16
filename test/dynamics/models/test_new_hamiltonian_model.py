@@ -163,7 +163,9 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate_generator(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
+        self._test_evaluate_generator(
+            frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases
+        )
 
         rng = np.random.default_rng(94818)
         num_terms = 5
@@ -188,7 +190,9 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate_generator(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
+        self._test_evaluate_generator(
+            frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases
+        )
 
     def _test_evaluate_generator(self, frame_op, operators, coefficients, carriers, phases):
 

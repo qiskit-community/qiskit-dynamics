@@ -14,7 +14,7 @@
 """tests for qiskit_dynamics.models.rotating_wave"""
 
 import numpy as np
-from qiskit_dynamics.signals import Signal,SignalList
+from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.models import GeneratorModel, perform_rotating_wave_approximation
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -51,6 +51,7 @@ class TestRotatingWave(QiskitDynamicsTestCase):
             ],
             rtol=1e-5,
         )
+
 
 class TestRotatingWaveJax(TestRotatingWave, TestJaxBase):
     """Jax version of TestRotatingWave tests.

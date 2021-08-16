@@ -322,7 +322,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     else:
         out = Array(op)
     # now, everything is an Array
-    if out.backend=="numpy":
+    if out.backend == "numpy":
         return out.data
     else:
         return out
