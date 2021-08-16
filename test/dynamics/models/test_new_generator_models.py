@@ -240,10 +240,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
     def test_signal_setting_incorrect_length(self):
         """Test error being raised if signals is the wrong length."""
 
-        try:
+        with self.assertRaises(QiskitError):
             self.basic_model.signals = [1.0]
-        except QiskitError as e:
-            self.assertTrue("same length" in str(e))
 
     def test_known_values_basic_functionality(self):
         """Test for checking that with known operators that
