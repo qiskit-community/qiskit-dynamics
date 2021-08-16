@@ -106,6 +106,9 @@ class HamiltonianModel(GeneratorModel):
             evaluation_mode=evaluation_mode,
         )
 
+    def get_frame_contribution(self):
+        return Array(np.diag(-1j*self.rotating_frame.frame_diag))
+
     @property
     def rotating_frame(self) -> RotatingFrame:
         return super().rotating_frame
@@ -115,18 +118,18 @@ class HamiltonianModel(GeneratorModel):
         """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
         The drift needs to be adjusted by -H in the new frame."""
         if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
-            self.drift = self.drift + Array(np.diag(1j * self._rotating_frame.frame_diag))
+            self._drift = self._drift + Array(np.diag(1j * self._rotating_frame.frame_diag))
             self._operators = self.rotating_frame.operator_out_of_frame_basis(self._operators)
-            self.drift = self.rotating_frame.operator_out_of_frame_basis(self.drift)
+            self._drift = self.rotating_frame.operator_out_of_frame_basis(self._drift)
 
         self._rotating_frame = RotatingFrame(rotating_frame)
 
         if self._rotating_frame.frame_diag is not None:
             self._operators = self.rotating_frame.operator_into_frame_basis(self._operators)
-            self.drift = self.rotating_frame.operator_into_frame_basis(self.drift)
-            self.drift = self.drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
+            self._drift = self.rotating_frame.operator_into_frame_basis(self._drift)
+            self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
-        self.evaluation_mode = self.evaluation_mode
+        self.set_evaluation_mode(self.evaluation_mode)
 
     def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
         """Evaluate generator RHS functions. Needs to be overriden from base class

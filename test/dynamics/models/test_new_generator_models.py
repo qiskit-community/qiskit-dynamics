@@ -254,17 +254,17 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
-        simple_model.drift = np.eye(2)
+        simple_model.set_drift(np.eye(2),operator_in_frame_basis=False, includes_frame_contribution=True)
         res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
-        simple_model.drift = None
+        simple_model.set_drift(None, operator_in_frame_basis=False)
 
     def test_evaluate_generator_in_frame_basis_analytic(self):
         """Tests evaluation in rotating frame against analytic values."""
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, rotating_frame=None)
-        simple_model.drift = np.eye(2)
+        simple_model.set_drift(np.eye(2),operator_in_frame_basis=False)
         fop = Array([[0, 1j], [1j, 0]])
         simple_model.rotating_frame = fop
         res = simple_model(2, in_frame_basis=False)
@@ -286,7 +286,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertAllClose(res, expected)
 
-        simple_model.drift = None
+        simple_model.set_drift(None)
 
     def test_order_of_assigning_properties(self):
         """Tests whether setting the frame, drift, and signals
