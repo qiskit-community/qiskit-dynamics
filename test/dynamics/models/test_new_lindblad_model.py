@@ -203,21 +203,13 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(ham_coeffs, ham_sigs(t))
         self.assertAllClose(diss_coeffs, diss_sigs(t))
-        self.assertAllClose(
-            lindblad_model._operator_collection._hamiltonian_operators, f(rand_ham_ops)
-        )
-        self.assertAllClose(
-            f(ham - 1j * frame_op),
-            lindblad_model._operator_collection.evaluate_hamiltonian(ham_sigs(t)),
-        )
         self.assertAllClose(f(rand_diss), lindblad_model._dissipator_operators)
-        self.assertAllClose(f(rand_diss), lindblad_model._operator_collection._dissipator_operators)
         self.assertAllClose(f(rand_ham_ops), lindblad_model._hamiltonian_operators)
         self.assertAllClose(f(-1j * frame_op), lindblad_model.get_drift(in_frame_basis=True))
         self.assertAllClose(-1j * frame_op, lindblad_model.get_drift(in_frame_basis=False))
         self.assertAllClose(f(-1j * frame_op), lindblad_model._operator_collection.drift)
         self.assertAllClose(expected, value)
-        lindblad_model.evaluation_mode = "dense_vectorized"
+        
         vectorized_value = lindblad_model.evaluate_rhs(
             t, A.flatten(order="F"), in_frame_basis=False
         ).reshape((dim, dim), order="F")
