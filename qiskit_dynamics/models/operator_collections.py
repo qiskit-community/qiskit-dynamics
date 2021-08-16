@@ -137,7 +137,9 @@ class SparseOperatorCollection(BaseOperatorCollection):
         drift: Optional[Union[Array, Operator]] = None,
         decimals: Optional[int] = 10,
     ):
-        """Initialize.
+        """
+        Initialize.
+        
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`.
             drift: (n,n) Array specifying the drift term :math:`G_d`.
@@ -171,6 +173,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
         r"""Sparse version of ``DenseOperatorCollection.evaluate_generator``.
         Args:
             signal_values: Array of values specifying each signal value :math:`s_j(t)`.
+        
         Returns:
             Generator as sparse array."""
         signal_values = signal_values.reshape(1, signal_values.shape[-1])
@@ -195,10 +198,10 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
 class DenseLindbladCollection(BaseOperatorCollection):
     r"""Calculation object for the Lindblad equation:
-    .. math::
-        \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)(L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
-    where :math:`\[,\]` and :math:`\{,\}` are the operator commutator and anticommutator, respectively.
-    """
+            .. math::
+                \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)(L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
+
+        where :math:`\[,\]` and :math:`\{,\}` are the operator commutator and anticommutator, respectively."""
 
     def __init__(
         self,
@@ -207,15 +210,14 @@ class DenseLindbladCollection(BaseOperatorCollection):
         dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
     ):
         r"""Initialization.
-
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying
-                :math:`H_j`. (k,n,n) array.
+            as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying
+            :math:`H_j`. (k,n,n) array.
             drift: Treated as a constant term :math:`H_d` to be added to the
-                Hamiltonian of the system.
+            Hamiltonian of the system.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation.
-                (m,n,n) array.
+            (m,n,n) Array.
         """
 
         self._hamiltonian_operators = to_array(hamiltonian_operators)

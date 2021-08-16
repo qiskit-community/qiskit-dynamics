@@ -321,7 +321,6 @@ class GeneratorModel(BaseGeneratorModel):
     map :math:`\Lambda(y,t)` is explicitly constructed as:
 
     .. math::
-
         \Lambda(y,t) = G(t)y,
 
         G(t) = \sum_i s_i(t) G_i + G_d
@@ -349,23 +348,23 @@ class GeneratorModel(BaseGeneratorModel):
 
         Args:
             operators: A rank-3 Array of generator components :math:`G_i`. If
-                a rotating frame object is provided, these will be transformed
-                into the basis in which the frame operator is diagonal.
+            a rotating frame object is provided, these will be transformed
+            into the basis in which the frame operator is diagonal.
             drift: Optional, constant terms to add to G. Useful for
-                frame transformations. If a rotating frame is provided, the
-                drift term will be decreased by F.
+            frame transformations. If a rotating frame is provided, the
+            drift term will be decreased by F.
             signals: Stores the terms :math:`s_i(t)`. Specifiable as either a
-                SignalList, a list of Signal objects, or as the inputs to
-                signal_mapping. GeneratorModel can be instantiated without
-                specifying signals, but it can not perform any actions without them.
+            SignalList, a list of Signal objects, or as the inputs to
+            signal_mapping. GeneratorModel can be instantiated without
+            specifying signals, but it can not perform any actions without them.
             rotating_frame: Rotating frame operator. If specified with a 1d
-                array, it is interpreted as the diagonal of a
-                diagonal matrix.
+            array, it is interpreted as the diagonal of a
+            diagonal matrix.
             evaluation_mode: Flag for what type of evaluation should
-                be used. Currently supported options are
-                    dense (DenseOperatorCollection)
-                    sparse (SparseOperatorCollection)
-                See GeneratorModel.set_evaluation_mode for more details.
+            be used. Currently supported options are
+                dense (DenseOperatorCollection)
+                sparse (SparseOperatorCollection)
+            See GeneratorModel.set_evaluation_mode for more details.
         """
 
         # initialize internal operator representation
