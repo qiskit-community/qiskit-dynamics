@@ -194,7 +194,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
 
         diss_coeffs = np.real(
-            rand_diss_coeffs.real
+            rand_diss_coeffs
             * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
         )
 

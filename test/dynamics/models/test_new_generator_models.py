@@ -27,7 +27,7 @@ from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
-class TestDenseOperatorCollection(QiskitDynamicsTestCase):
+class TestGeneratorModel(QiskitDynamicsTestCase):
     """Tests for GeneratorModel."""
 
     def setUp(self):
