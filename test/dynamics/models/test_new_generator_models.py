@@ -209,6 +209,13 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(value, expected)
+        if value.backend != "jax":
+            model.set_evaluation_mode("sparse")
+            value = model(1.0)
+            if issparse(value):
+                value = value.toarray()
+            self.assertAllClose(value, expected)
+
 
     def test_signal_setting(self):
         """Test updating the signals."""
