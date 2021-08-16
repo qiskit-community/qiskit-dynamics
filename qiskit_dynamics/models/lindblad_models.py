@@ -152,13 +152,22 @@ class LindbladModel(BaseGeneratorModel):
     def evaluation_mode(self, new_mode: str):
         """Sets evaluation mode.
         Args:
-            new_mode: new mode for evaluation. Supported modes:
-                dense (default),
-                sparse,
-                dense_vectorized.
+            new_mode: new mode for evaluation. Supported modes are:
+                dense: Stores Hamiltonian and dissipator terms as dense
+                    Array types. 
+                dense_vectorized: Stores the Hamiltonian and dissipator
+                    terms as a (dim^2,dim^2) matrix that acts on a vectorized
+                    density matrix by left-multiplication. Can evaluate generator
+                    While the full evaluate_rhs and evaluate_generator functions
+                    are compilable, the operator collection's evaluation methods
+                    are not jax compilable/differentiable. 
+                sparse: Like dense, but stores Hamiltonian components with
+                    csr_matrix types. Useful if components are mathematically
+                    sparse. Outputs will be dense if a 2d frame operator is 
+                    used. Not compatible with jax.
         Raises:
-            NotImplementedError: if a mode other than one of the
-            above is specified."""
+            NotImplementedError: If a mode other than one of the above is specified.
+        """
         if new_mode == "dense":
             self._operator_collection = DenseLindbladCollection(
                 self._hamiltonian_operators,

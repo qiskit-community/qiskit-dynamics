@@ -122,8 +122,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected)
 
-    def test_evaluate_in_frame_basis_basic_model(self):
-        """Test evaluation in frame basis in the basic_model."""
+        """Test generator evaluation in frame basis in the basic_model."""
 
         frame_op = -1j * (self.X + 0.2 * self.Y + 0.1 * self.Z).data
 
@@ -276,11 +275,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
         simple_model.drift = None
 
-    def test_frame_basis_transformation(self):
-        """Test for checking that the frame basis transformations,
-        pre- and post-rotation routines, as well as taking operators
-        out of the frame basis are producing the analytically known
-        answers."""
+        """Tests evaluation in rotating frame against analytic values."""
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(test_operator_list, drift=None, signals=signals, rotating_frame=None)
@@ -308,13 +303,10 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         simple_model.drift = None
 
-    def test_order_of_application_cases(self):
-        """Test to see if the (nontrivial) setter methods
-        of GeneratorModel are (a) working with all possible
-        working types of input, (b) whether adding properties
-        as part of the constructor phase or afterwards makes
-        a difference, and (c) if added after the constructor
-        phase, if the order in which they're set matters."""
+        """Tests whether setting the frame, drift, and signals
+        in the constructor is the same as constructing without
+        and then assigning them in any order.
+        """
 
         paulis = Array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]])
         extra = Array(np.eye(2))
@@ -407,7 +399,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(tf1, tf6)
         self.assertAllClose(tf1, tf7)
 
-    def test_vectorization_pseudorandom(self):
+        """Tests whether evaluate_generator(t) @ state == evaluate_rhs(t,state)
+        for analytically known values."""
         """Test for whether evaluating a model at m different
         states, each with an n-length statevector, by passing
         an (m,n) Array provides the same value as passing each
