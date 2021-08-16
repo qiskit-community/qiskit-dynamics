@@ -15,7 +15,7 @@
 Lindblad models module.
 """
 
-from typing import Union, List, Optional
+from typing import Tuple, Union, List, Optional
 import numpy as np
 
 from qiskit.quantum_info.operators import Operator
@@ -93,7 +93,7 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_operators = Array(dissipator_operators)
 
         self._hamiltonian_operators = Array(np.array(hamiltonian_operators))
-        self.set_drift(drift,operator_in_frame_basis=True,includes_frame_contribution=True)
+        self.set_drift(drift, operator_in_frame_basis=True, includes_frame_contribution=True)
         self._dissipator_operators = dissipator_operators
 
         if isinstance(hamiltonian_signals, list):
@@ -143,13 +143,15 @@ class LindbladModel(BaseGeneratorModel):
 
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
         if not in_frame_basis and self.rotating_frame is not None:
-            return (self.rotating_frame.operator_out_of_frame_basis(self._hamiltonian_operators),
-                self.rotating_frame.operator_out_of_frame_basis(self._dissipator_operators))
+            return (
+                self.rotating_frame.operator_out_of_frame_basis(self._hamiltonian_operators),
+                self.rotating_frame.operator_out_of_frame_basis(self._dissipator_operators),
+            )
         else:
-            return (self._hamiltonian_operators,self._dissipator_operators)
+            return (self._hamiltonian_operators, self._dissipator_operators)
 
     def _get_frame_contribution(self):
-        return - Array(1j * np.diag(self.rotating_frame.frame_diag))
+        return -Array(1j * np.diag(self.rotating_frame.frame_diag))
 
     @property
     def operators(self) -> List[Array]:
@@ -160,16 +162,16 @@ class LindbladModel(BaseGeneratorModel):
         Args:
             new_mode: new mode for evaluation. Supported modes are:
                 dense: Stores Hamiltonian and dissipator terms as dense
-                    Array types. 
+                    Array types.
                 dense_vectorized: Stores the Hamiltonian and dissipator
                     terms as a (dim^2,dim^2) matrix that acts on a vectorized
                     density matrix by left-multiplication. Can evaluate generator
                     While the full evaluate_rhs and evaluate_generator functions
                     are compilable, the operator collection's evaluation methods
-                    are not jax compilable/differentiable. 
+                    are not jax compilable/differentiable.
                 sparse: Like dense, but stores Hamiltonian components with
                     csr_matrix types. Useful if components are mathematically
-                    sparse. Outputs will be dense if a 2d frame operator is 
+                    sparse. Outputs will be dense if a 2d frame operator is
                     used. Not compatible with jax.
         Raises:
             NotImplementedError: If a mode other than one of the above is specified.
@@ -234,7 +236,7 @@ class LindbladModel(BaseGeneratorModel):
         )
 
     def get_frame_contribution(self):
-        return Array(np.diag(-1j*self.rotating_frame.frame_diag))
+        return Array(np.diag(-1j * self.rotating_frame.frame_diag))
 
     @property
     def rotating_frame(self):

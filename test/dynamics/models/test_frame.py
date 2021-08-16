@@ -411,6 +411,7 @@ class TestFrame(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected, rtol=1e-10, atol=1e-10)
 
+
 class TestFrameJax(TestFrame, TestJaxBase):
     """Jax version of TestFrame tests.
 

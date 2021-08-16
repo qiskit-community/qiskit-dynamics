@@ -15,8 +15,7 @@
 Module for rotating frame handling classes.
 """
 
-from abc import ABC, abstractmethod
-from typing import Union, List, Optional, Tuple
+from typing import Union, List, Optional
 import numpy as np
 from scipy.sparse import issparse
 
@@ -25,7 +24,8 @@ from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
-        
+
+
 class RotatingFrame:
     """
     A 'rotating frame' is given by an anti-Hermitian matrix :math:`F`, specified
@@ -326,7 +326,7 @@ class RotatingFrame:
         # assumption that F is anti-Hermitian implies conjugation of
         # diagonal gives inversion
         exp_freq = np.exp(t * self.frame_diag)
-        frame_mat = exp_freq.conj().reshape(self.dim,1)*exp_freq
+        frame_mat = exp_freq.conj().reshape(self.dim, 1) * exp_freq
         if issparse(out):
             out = out.multiply(frame_mat)
         else:
@@ -557,7 +557,7 @@ class RotatingFrame:
 
             expvals = np.exp(self.frame_diag * time)  # = e^{td_i} = e^{it*Im(d_i)}
             # = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster
-            temp_outer = (expvals.conj().reshape(self.dim,1)* expvals).flatten()  
+            temp_outer = (expvals.conj().reshape(self.dim, 1) * expvals).flatten()
             delta_bar_otimes_delta = np.outer(
                 temp_outer.conj(), temp_outer
             )  # = kron(delta.conj(),delta) but >3x faster

@@ -16,6 +16,7 @@ after migration to the OperatorCollection system. Most
 of the actual calculation checking is handled at the level of a
 models.operator_collection.DenseLindbladOperatorCollection test."""
 
+from qiskit_dynamics.dispatch.dispatch import Dispatch
 import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
@@ -209,22 +210,22 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertAllClose(-1j * frame_op, lindblad_model.get_drift(in_frame_basis=False))
         self.assertAllClose(f(-1j * frame_op), lindblad_model._operator_collection.drift)
         self.assertAllClose(expected, value)
-        
+
         lindblad_model.set_evaluation_mode("dense_vectorized")
         vectorized_value = lindblad_model.evaluate_rhs(
             t, A.flatten(order="F"), in_frame_basis=False
         ).reshape((dim, dim), order="F")
         self.assertAllClose(value, vectorized_value)
 
-        vectorized_value_lmult = (lindblad_model.evaluate_generator(
-            t, in_frame_basis=False
-        ) @ A.flatten(order="F")).reshape((dim,dim),order="F")
+        vectorized_value_lmult = (
+            lindblad_model.evaluate_generator(t, in_frame_basis=False) @ A.flatten(order="F")
+        ).reshape((dim, dim), order="F")
         self.assertAllClose(value, vectorized_value_lmult)
 
         if Dispatch.DEFAULT_BACKEND != "jax":
             lindblad_model.set_evaluation_mode("sparse")
-            sparse_value = lindblad_model.evaluate_rhs(t,A,in_frame_basis=False)
-            self.assertAllClose(value,sparse_value)
+            sparse_value = lindblad_model.evaluate_rhs(t, A, in_frame_basis=False)
+            self.assertAllClose(value, sparse_value)
 
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):

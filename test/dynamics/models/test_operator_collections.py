@@ -15,6 +15,7 @@
 
 import numpy as np
 import numpy.random as rand
+
 try:
     from jax import jit, grad
 except ImportError:
@@ -28,7 +29,7 @@ from qiskit_dynamics.models.operator_collections import (
     SparseOperatorCollection,
 )
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.dispatch import Array,wrap
+from qiskit_dynamics.dispatch import Array, wrap
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -78,15 +79,19 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
 
     def test_functions_jitable(self):
         """Tests that all class functions are jittable."""
-        doc = DenseOperatorCollection(Array(self.test_operator_list),drift=Array(self.test_operator_list[0]))
-        _wrap(jit,doc.evaluate_generator)(Array(self.sigvals))
-        _wrap(jit,doc.evaluate_rhs)(Array(self.sigvals),self.X)
+        doc = DenseOperatorCollection(
+            Array(self.test_operator_list), drift=Array(self.test_operator_list[0])
+        )
+        _wrap(jit, doc.evaluate_generator)(Array(self.sigvals))
+        _wrap(jit, doc.evaluate_rhs)(Array(self.sigvals), self.X)
 
     def test_functions_gradable(self):
         """Tests that all class functions are gradable."""
-        doc = DenseOperatorCollection(Array(self.test_operator_list),drift=Array(self.test_operator_list[0]))
-        _wrap(grad,doc.evaluate_generator)(Array(self.sigvals))
-        _wrap(grad,doc.evaluate_rhs)(Array(self.sigvals),self.X)
+        doc = DenseOperatorCollection(
+            Array(self.test_operator_list), drift=Array(self.test_operator_list[0])
+        )
+        _wrap(grad, doc.evaluate_generator)(Array(self.sigvals))
+        _wrap(grad, doc.evaluate_rhs)(Array(self.sigvals), self.X)
 
 
 class TestSparseOperatorCollection(QiskitDynamicsTestCase):
@@ -118,19 +123,26 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         ham_ops_alt = []
         r = lambda *args: np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
         for i in range(4):
-            op = r(3,3)
+            op = r(3, 3)
             ham_ops.append(Operator(op))
             ham_ops_alt.append(Array(op))
         sigVals = r(4)
-        drift_numpy_array = r(3,3)
-        sparse_collection_operator_list = SparseOperatorCollection(ham_ops,drift=Operator(drift_numpy_array))
-        sparse_collection_array_list = SparseOperatorCollection(ham_ops_alt,drift=Array(drift_numpy_array))
-        sparse_collection_pure_array = SparseOperatorCollection(Array(ham_ops),drift=Array(drift_numpy_array))
+        drift_numpy_array = r(3, 3)
+        sparse_collection_operator_list = SparseOperatorCollection(
+            ham_ops, drift=Operator(drift_numpy_array)
+        )
+        sparse_collection_array_list = SparseOperatorCollection(
+            ham_ops_alt, drift=Array(drift_numpy_array)
+        )
+        sparse_collection_pure_array = SparseOperatorCollection(
+            Array(ham_ops), drift=Array(drift_numpy_array)
+        )
         a = sparse_collection_operator_list(sigVals)
         b = sparse_collection_array_list(sigVals)
         c = sparse_collection_pure_array(sigVals)
-        self.assertAllClose(c.toarray(),a.toarray())
-        self.assertAllClose(c.toarray(),b.toarray())
+        self.assertAllClose(c.toarray(), a.toarray())
+        self.assertAllClose(c.toarray(), b.toarray())
+
 
 class TestDenseLindbladCollection(QiskitDynamicsTestCase):
     """Tests for DenseLindbladCollection."""
@@ -148,7 +160,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         self.dissipator_operators = rand.uniform(-1, 1, (m, n, n))
         self.drift = rand.uniform(-1, 1, (n, n))
         self.rho = rand.uniform(-1, 1, (n, n))
-        self.multiple_rho = rand.uniform(-1,1,(l,n,n))
+        self.multiple_rho = rand.uniform(-1, 1, (l, n, n))
         self.ham_sig_vals = rand.uniform(-1, 1, (k))
         self.dis_sig_vals = rand.uniform(-1, 1, (m))
 
@@ -157,7 +169,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         and no dissipators."""
 
         ham_only_collection = DenseLindbladCollection(
-            self.hamiltonian_operators, drift=0*self.drift, dissipator_operators=None
+            self.hamiltonian_operators, drift=0 * self.drift, dissipator_operators=None
         )
         hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
         res = ham_only_collection(self.ham_sig_vals, None, self.rho)
@@ -165,30 +177,37 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         # In the case of no dissipator terms, expect the Von Neumann equation
         expected = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
         self.assertAllClose(res, expected)
-    
+
     def test_drift_no_dissipator(self):
         """Tests if providing drift but no dissipator is OK."""
         # Now, test adding a drift
         ham_drift_collection = DenseLindbladCollection(
             self.hamiltonian_operators, drift=self.drift, dissipator_operators=None
         )
-        hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1) + self.drift
+        hamiltonian = (
+            np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1) + self.drift
+        )
         res = ham_drift_collection(self.ham_sig_vals, None, self.rho)
         # In the case of no dissipator terms, expect the Von Neumann equation
         expected = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
         self.assertAllClose(res, expected)
-    
+
     def test_drift_dissipator(self):
         """Tests if providing both drift and dissipator is OK."""
         full_lindblad_collection = DenseLindbladCollection(
-            self.hamiltonian_operators, drift=self.drift, dissipator_operators=self.dissipator_operators
+            self.hamiltonian_operators,
+            drift=self.drift,
+            dissipator_operators=self.dissipator_operators,
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.rho)
-        hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1) + self.drift
+        hamiltonian = (
+            np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1) + self.drift
+        )
         ham_terms = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
         dis_anticommutator = (-1 / 2) * np.tensordot(
             self.dis_sig_vals,
-            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])) @ self.dissipator_operators,
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
             axes=1,
         )
         dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
@@ -206,35 +225,49 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
         # Now, test if vectorization works as intended
         full_lindblad_collection = DenseLindbladCollection(
-            self.hamiltonian_operators, drift=self.drift, dissipator_operators=self.dissipator_operators
+            self.hamiltonian_operators,
+            drift=self.drift,
+            dissipator_operators=self.dissipator_operators,
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho)
         for i in range(len(self.multiple_rho)):
             self.assertAllClose(
-                res[i], full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho[i])
+                res[i],
+                full_lindblad_collection(
+                    self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho[i]
+                ),
             )
+
 
 class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
     """Jax version of TestDenseLindbladCollection tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
+
     def test_functions_jitable(self):
         """Tests that all class functions are jittable"""
-        dlc = DenseLindbladCollection(Array(self.hamiltonian_operators),drift=Array(self.drift),dissipator_operators=Array(self.dissipator_operators))
-        _wrap(jit,dlc.evaluate_rhs)(Array(self.ham_sig_vals),Array(self.dis_sig_vals),self.rho)
-        _wrap(jit,dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
+        dlc = DenseLindbladCollection(
+            Array(self.hamiltonian_operators),
+            drift=Array(self.drift),
+            dissipator_operators=Array(self.dissipator_operators),
+        )
+        _wrap(jit, dlc.evaluate_rhs)(Array(self.ham_sig_vals), Array(self.dis_sig_vals), self.rho)
+        _wrap(jit, dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
 
     def test_functions_gradable(self):
         """Tests if all class functions are gradable"""
-        dlc = DenseLindbladCollection(Array(self.hamiltonian_operators),drift=Array(self.drift),dissipator_operators=Array(self.dissipator_operators))
-        _wrap(grad,dlc.evaluate_rhs)(Array(self.ham_sig_vals),Array(self.dis_sig_vals),self.rho)
-        _wrap(grad,dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
-
+        dlc = DenseLindbladCollection(
+            Array(self.hamiltonian_operators),
+            drift=Array(self.drift),
+            dissipator_operators=Array(self.dissipator_operators),
+        )
+        _wrap(grad, dlc.evaluate_rhs)(Array(self.ham_sig_vals), Array(self.dis_sig_vals), self.rho)
+        _wrap(grad, dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
 
 
 class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
-    """Tests for DenseVectorizedLindbladCollection. 
+    """Tests for DenseVectorizedLindbladCollection.
     Mostly checks consistency with DenseLindbladCollection."""
 
     def setUp(self) -> None:
@@ -254,7 +287,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         self.rand_dis_sigs = SignalList([Signal(r(), r(), r()) for j in range(m)])
 
     def test_consistency_drift_dissipator(self):
-        """Check consistency with DenseLindbladCollection when hamiltonian, 
+        """Check consistency with DenseLindbladCollection when hamiltonian,
         drift, and dissipator terms defined."""
         stdLindblad = DenseLindbladCollection(
             self.rand_ham, drift=self.rand_dft, dissipator_operators=self.rand_dis
@@ -263,13 +296,19 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
             self.rand_ham, drift=self.rand_dft, dissipator_operators=self.rand_dis
         )
 
-        a = stdLindblad.evaluate_rhs(self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho).flatten(order="F")
-        b = vecLindblad.evaluate_rhs(self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho.flatten(order="F"))
+        a = stdLindblad.evaluate_rhs(
+            self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho
+        ).flatten(order="F")
+        b = vecLindblad.evaluate_rhs(
+            self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho.flatten(order="F")
+        )
         self.assertAllClose(a, b)
 
     def test_consistency_drift_no_dissipator(self):
         """Check consistency when only hamiltonian and drift terms defined."""
-        stdLindblad = DenseLindbladCollection(self.rand_ham, drift=self.rand_dft, dissipator_operators=None)
+        stdLindblad = DenseLindbladCollection(
+            self.rand_ham, drift=self.rand_dft, dissipator_operators=None
+        )
         vecLindblad = DenseVectorizedLindbladCollection(
             self.rand_ham, drift=self.rand_dft, dissipator_operators=None
         )
@@ -288,6 +327,7 @@ class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollec
     are not directly jitable or compilable. The compilation of these steps
     is taken care of by the tests for LindbladModel.
     """
+
     # def test_functions_jitable(self):
     #     """Tests that all class functions are jittable"""
     #     dlc = DenseVectorizedLindbladCollection(Array(self.rand_ham),drift=Array(self.rand_dft),dissipator_operators=Array(self.rand_dis))
@@ -300,8 +340,10 @@ class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollec
     #     _wrap(grad,dlc.evaluate_rhs)(Array(self.rand_ham_sigs(self.t)),Array(self.rand_dis_sigs(self.t)),self.rho)
     #     _wrap(grad,dlc.evaluate_generator)(Array(self.rand_ham_sigs(self.t)),Array(self.rand_dis_sigs(self.t)))
 
+
 class TestSparseLindbladCollection(QiskitDynamicsTestCase):
     """Tests for SparseLindbladCollection."""
+
     def setUp(self):
         rand.seed(9098321)
         n = 16
@@ -312,17 +354,17 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         self.dissipator_operators = rand.uniform(-1, 1, (m, n, n))
         self.drift = rand.uniform(-1, 1, (n, n))
         self.rho = rand.uniform(-1, 1, (n, n))
-        self.multiple_rho = rand.uniform(-1,1,(l,n,n))
+        self.multiple_rho = rand.uniform(-1, 1, (l, n, n))
         self.ham_sig_vals = rand.uniform(-1, 1, (k))
         self.dis_sig_vals = rand.uniform(-1, 1, (m))
-        self.r = lambda *args: rand.uniform(-1,1,args) + 1j*rand.uniform(-1,1,args)
+        self.r = lambda *args: rand.uniform(-1, 1, args) + 1j * rand.uniform(-1, 1, args)
 
     def test_no_drift_no_dissipator(self):
         """Tests whether collections function correctly with no drift
-        and no dissipators. """
+        and no dissipators."""
 
         ham_only_collection = SparseLindbladCollection(
-            self.hamiltonian_operators, drift=0*self.drift, dissipator_operators=None
+            self.hamiltonian_operators, drift=0 * self.drift, dissipator_operators=None
         )
         hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
         res = ham_only_collection(self.ham_sig_vals, None, self.rho)
@@ -330,30 +372,37 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         # In the case of no dissipator terms, expect the Von Neumann equation
         expected = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
         self.assertAllClose(res, expected)
-    
+
     def test_drift_no_dissipator(self):
         """Tests if providing drift but no dissipator is OK."""
         # Now, test adding a drift
         ham_drift_collection = SparseLindbladCollection(
             self.hamiltonian_operators, drift=self.drift, dissipator_operators=None
         )
-        hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1) + self.drift
+        hamiltonian = (
+            np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1) + self.drift
+        )
         res = ham_drift_collection(self.ham_sig_vals, None, self.rho)
         # In the case of no dissipator terms, expect the Von Neumann equation
         expected = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
         self.assertAllClose(res, expected)
-    
+
     def test_drift_dissipator(self):
         """Tests if providing both drift and dissipator is OK."""
         full_lindblad_collection = SparseLindbladCollection(
-            self.hamiltonian_operators, drift=self.drift, dissipator_operators=self.dissipator_operators
+            self.hamiltonian_operators,
+            drift=self.drift,
+            dissipator_operators=self.dissipator_operators,
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.rho)
-        hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1) + self.drift
+        hamiltonian = (
+            np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1) + self.drift
+        )
         ham_terms = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
         dis_anticommutator = (-1 / 2) * np.tensordot(
             self.dis_sig_vals,
-            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])) @ self.dissipator_operators,
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
             axes=1,
         )
         dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
@@ -371,14 +420,19 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
 
         # Now, test if vectorization works as intended
         full_lindblad_collection = SparseLindbladCollection(
-            self.hamiltonian_operators, drift=self.drift, dissipator_operators=self.dissipator_operators
+            self.hamiltonian_operators,
+            drift=self.drift,
+            dissipator_operators=self.dissipator_operators,
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho)
         for i in range(len(self.multiple_rho)):
             self.assertAllClose(
-                res[i], full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho[i])
+                res[i],
+                full_lindblad_collection(
+                    self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho[i]
+                ),
             )
-    
+
     def test_operator_compatibility(self):
         """Tests if SparseLindbladCollection can take Operator specificaiton of components."""
         ham_op_terms = []
@@ -386,34 +440,42 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         dis_op_terms = []
         dis_ar_terms = []
         for i in range(4):
-            H_i = self.r(3,3)
-            L_i = self.r(3,3)
+            H_i = self.r(3, 3)
+            L_i = self.r(3, 3)
             ham_op_terms.append(Operator(H_i))
             ham_ar_terms.append(Array(H_i))
             dis_op_terms.append(Operator(L_i))
             dis_ar_terms.append(Array(L_i))
-        H_d = self.r(3,3)
+        H_d = self.r(3, 3)
         op_drift = Operator(H_d)
         ar_drift = Array(H_d)
-        op_collection = SparseLindbladCollection(ham_op_terms,op_drift,dissipator_operators=dis_op_terms)
-        ar_collection = SparseLindbladCollection(ham_ar_terms,ar_drift,dissipator_operators=dis_ar_terms)
+        op_collection = SparseLindbladCollection(
+            ham_op_terms, op_drift, dissipator_operators=dis_op_terms
+        )
+        ar_collection = SparseLindbladCollection(
+            ham_ar_terms, ar_drift, dissipator_operators=dis_ar_terms
+        )
         sigVals = self.r(4)
-        rho = self.r(3,3)
-        many_rho = self.r(16,3,3)
-        self.assertAllClose(op_collection(sigVals,sigVals,rho),ar_collection(sigVals,sigVals,rho))
-        self.assertAllClose(op_collection(sigVals,sigVals,many_rho),ar_collection(sigVals,sigVals,many_rho))
-            
-def _wrap(jax_func,func_to_test):
+        rho = self.r(3, 3)
+        many_rho = self.r(16, 3, 3)
+        self.assertAllClose(
+            op_collection(sigVals, sigVals, rho), ar_collection(sigVals, sigVals, rho)
+        )
+        self.assertAllClose(
+            op_collection(sigVals, sigVals, many_rho), ar_collection(sigVals, sigVals, many_rho)
+        )
+
+
+def _wrap(jax_func, func_to_test):
     """Functions like DenseOperatorCollection.evaluate_generator
     are not wrapped properly by dispatch.wrap, so we take this
     extra step. Intended to wrap either jit or grad. Ensures output
     is a scalar real value.
-    Args: 
+    Args:
         jax_func: either jit or grad.
         func_to_test: whichever function is to be wrapped.
     returns:
         wrapped function."""
-    wf = wrap(jax_func,decorator=True)
+    wf = wrap(jax_func, decorator=True)
     f = lambda *args: np.sum(func_to_test(*args)).real
     return wf(f)
-

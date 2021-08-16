@@ -28,7 +28,7 @@ class BaseOperatorCollection(ABC):
     in order to implement differential equations of the form
     :math:`\dot{y} = \Lambda(y,t)`. Generically, :math:`\Lambda` will be a sum of
     other linear maps :math:`\Lambda_i(y,t)`, which are in turn some
-    combination of left-multiplication, right-multiplication 
+    combination of left-multiplication, right-multiplication
     and both.
 
     Drift is a property that represents some time-independent
@@ -92,13 +92,17 @@ class BaseOperatorCollection(ABC):
 
 
 class DenseOperatorCollection(BaseOperatorCollection):
-    r"""Calculation object for models that only 
+    r"""Calculation object for models that only
     need left multiplication–those of the form
     :math:`\dot{y} = G(t)y(t)`, where :math:`G(t) = \sum_j s_j(t) G_j + G_d`.
     Can evaluate :math:`G(t)` independently of :math:`y`.
     """
 
-    def __init__(self, operators: Union[Array,List[Operator]], drift: Optional[Union[Array,Operator]] = None):
+    def __init__(
+        self,
+        operators: Union[Array, List[Operator]],
+        drift: Optional[Union[Array, Operator]] = None,
+    ):
         """Initialize.
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`.
@@ -126,22 +130,27 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
 class SparseOperatorCollection(BaseOperatorCollection):
     r"""Sparse version of DenseOperatorCollection."""
-    
-    def __init__(self, operators: Union[Array,List[Operator]], drift: Optional[Union[Array,Operator]] = None, decimals: Optional[int] = 10,):
+
+    def __init__(
+        self,
+        operators: Union[Array, List[Operator]],
+        drift: Optional[Union[Array, Operator]] = None,
+        decimals: Optional[int] = 10,
+    ):
         """Initialize.
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`.
             drift: (n,n) Array specifying the drift term :math:`G_d`.
             decimals: Values will be rounded at ``decimals`` places after decimal place.
                 Avoids storing excess sparse entries for entries close to zero."""
-        if isinstance(drift,Operator):
+        if isinstance(drift, Operator):
             drift = to_array(drift)
-        self.drift = np.round(drift,decimals)
-        self._operators = np.empty(shape=len(operators),dtype="O")
+        self.drift = np.round(drift, decimals)
+        self._operators = np.empty(shape=len(operators), dtype="O")
         for i in range(len(operators)):
-            if isinstance(operators[i],Operator):
+            if isinstance(operators[i], Operator):
                 operators[i] = to_array(operators[i])
-            self._operators[i] = csr_matrix(np.round(operators[i],decimals))
+            self._operators[i] = csr_matrix(np.round(operators[i], decimals))
 
     @property
     def num_operators(self) -> int:
@@ -158,14 +167,13 @@ class SparseOperatorCollection(BaseOperatorCollection):
         else:
             self._drift = csr_matrix(new_drift)
 
-
     def evaluate_generator(self, signal_values: Array) -> csr_matrix:
         r"""Sparse version of ``DenseOperatorCollection.evaluate_generator``.
-        Args: 
+        Args:
             signal_values: Array of values specifying each signal value :math:`s_j(t)`.
         Returns:
             Generator as sparse array."""
-        signal_values = signal_values.reshape(1,signal_values.shape[-1])
+        signal_values = signal_values.reshape(1, signal_values.shape[-1])
         if self._drift is None:
             return np.tensordot(signal_values, self._operators, axes=1)[0]
         else:
@@ -194,15 +202,15 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def __init__(
         self,
-        hamiltonian_operators: Union[Array,List[Operator]],
-        drift: Union[Array,Operator],
-        dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
+        hamiltonian_operators: Union[Array, List[Operator]],
+        drift: Union[Array, Operator],
+        dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
     ):
         r"""Initialization.
 
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying 
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying
                 :math:`H_j`. (k,n,n) array.
             drift: Treated as a constant term :math:`H_d` to be added to the
                 Hamiltonian of the system.
@@ -237,7 +245,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             Hamiltonian matrix."""
         return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
 
-    def evaluate_rhs(self, ham_sig_vals: Array,dis_sig_vals: Array, y: Array) -> Array:
+    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as :math:`(A+B)y + y(A-B) + C`, where
@@ -288,21 +296,21 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def __call__(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Optional[Array]) -> Array:
         if y is None:
-            return self.evaluate_generator(ham_sig_vals,dis_sig_vals)
+            return self.evaluate_generator(ham_sig_vals, dis_sig_vals)
 
-        return self.evaluate_rhs(ham_sig_vals,dis_sig_vals, y)
+        return self.evaluate_rhs(ham_sig_vals, dis_sig_vals, y)
 
 
 class DenseVectorizedLindbladCollection(DenseOperatorCollection):
     r"""Vectorized version of DenseLindbladCollection, wherein
-    :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of 
+    :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of
     dimension :math:`n^2` using the column stacking convention."""
 
     def __init__(
         self,
-        hamiltonian_operators: Union[Array,List[Operator]],
-        drift: Union[Array,Operator],
-        dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
+        hamiltonian_operators: Union[Array, List[Operator]],
+        drift: Union[Array, Operator],
+        dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
     ):
         r"""Initialize.
 
@@ -332,14 +340,14 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         vectorized maps.
         Args:
             ham_sig_values: hamiltonian signal coefficients.
-            dis_sig_values: dissipator signal coefficients. 
+            dis_sig_values: dissipator signal coefficients.
                 If none involved, pass None.
             y: Density matrix represented as a vector using column-stacking
                 convention.
         Returns:
             Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
-        return np.dot(self.evaluate_generator(ham_sig_vals,dis_sig_vals),y)
+        return np.dot(self.evaluate_generator(ham_sig_vals, dis_sig_vals), y)
 
     def evaluate_generator(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
@@ -355,16 +363,18 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         if self.empty_dissipators:
             signal_values = ham_sig_vals
         else:
-                signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
+            signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
         return super().evaluate_generator(signal_values)
+
 
 class SparseLindbladCollection(DenseLindbladCollection):
     """Sparse version of DenseLindbladCollection."""
+
     def __init__(
         self,
-        hamiltonian_operators: Union[Array,List[Operator]],
-        drift: Union[Array,Operator],
-        dissipator_operators: Optional[Union[Array,List[Operator]]] = None,
+        hamiltonian_operators: Union[Array, List[Operator]],
+        drift: Union[Array, Operator],
+        dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
         decimals: Optional[int] = 10,
     ):
         r"""Initializes sparse version of DenseLindbladCollection.
@@ -379,22 +389,28 @@ class SparseLindbladCollection(DenseLindbladCollection):
                 in sparse format.
         """
 
-        self._hamiltonian_operators = np.empty(shape=len(hamiltonian_operators),dtype="O")
+        self._hamiltonian_operators = np.empty(shape=len(hamiltonian_operators), dtype="O")
         for i in range(len(hamiltonian_operators)):
-            if isinstance(hamiltonian_operators[i],Operator):
+            if isinstance(hamiltonian_operators[i], Operator):
                 hamiltonian_operators[i] = to_array(hamiltonian_operators[i])
-            self._hamiltonian_operators[i] = csr_matrix(np.round(hamiltonian_operators[i],decimals))
-        if isinstance(drift,Operator):
+            self._hamiltonian_operators[i] = csr_matrix(
+                np.round(hamiltonian_operators[i], decimals)
+            )
+        if isinstance(drift, Operator):
             drift = to_array(drift)
-        self.drift = csr_matrix(np.round(drift,decimals))
+        self.drift = csr_matrix(np.round(drift, decimals))
         if dissipator_operators is not None:
-            self._dissipator_operators = np.empty(shape=len(dissipator_operators),dtype="O")
+            self._dissipator_operators = np.empty(shape=len(dissipator_operators), dtype="O")
             self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
             for i in range(len(dissipator_operators)):
-                if isinstance(dissipator_operators[i],Operator):
+                if isinstance(dissipator_operators[i], Operator):
                     dissipator_operators[i] = to_array(dissipator_operators[i])
-                self._dissipator_operators[i] = csr_matrix(np.round(dissipator_operators[i],decimals))
-                self._dissipator_operators_conj[i] = self._dissipator_operators[i].conjugate().transpose()
+                self._dissipator_operators[i] = csr_matrix(
+                    np.round(dissipator_operators[i], decimals)
+                )
+                self._dissipator_operators_conj[i] = (
+                    self._dissipator_operators[i].conjugate().transpose()
+                )
             self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
         else:
             self._dissipator_operators = None
@@ -403,42 +419,42 @@ class SparseLindbladCollection(DenseLindbladCollection):
         return np.sum(signal_values * self._hamiltonian_operators, axis=-1) + self.drift
 
     def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
-        r"""Evaluates the RHS of the LindbladModel for a given list of signal values. 
-        Args: 
-            ham_sig_vals: stores Hamiltonian signal values :math:`s_j(t)`. 
-            dis_sig_vals: stores dissipator signal values :math:`\gamma_j(t)`. 
-                Pass None if no dissipator operators involved. 
-            y: density matrix of system. (k,n,n) Array. 
-        Returns: 
+        r"""Evaluates the RHS of the LindbladModel for a given list of signal values.
+        Args:
+            ham_sig_vals: stores Hamiltonian signal values :math:`s_j(t)`.
+            dis_sig_vals: stores dissipator signal values :math:`\gamma_j(t)`.
+                Pass None if no dissipator operators involved.
+            y: density matrix of system. (k,n,n) Array.
+        Returns:
             RHS of Lindbladian.
-        
-        Calculation details: 
+
+        Calculation details:
             * for csr_matrices is equivalent to matrix multiplicaiton.
             We use numpy array broadcasting rules, combined with the above
             fact, to achieve speeds that are substantially faster than a for loop.
             First, in the case of a single (n,n) density matrix, we package the entire
             array as a single-element array whose entry is the array. In the case of
-            multiple density matrices a (k,n,n) Array, we package everything as a 
-            (k,1) Array whose [j,0] entry is the [j,:,:] density matrix. 
-            
-            In calculating the left- and right-mult contributions, we package 
-            H+L and H-L as (1) object arrays whose single entry stores the relevant 
-            sparse matrix. We can then multiply our packaged density matrix and 
+            multiple density matrices a (k,n,n) Array, we package everything as a
+            (k,1) Array whose [j,0] entry is the [j,:,:] density matrix.
+
+            In calculating the left- and right-mult contributions, we package
+            H+L and H-L as (1) object arrays whose single entry stores the relevant
+            sparse matrix. We can then multiply our packaged density matrix and
             [H\pm L]. Using numpy broadcasting rules, [H\pm L] will be broadcast
             to a (k,1) Array for elementwise multiplication with our packaged density
             matrices. After this, elementwise multiplication is applied. This in turn
             references each object's __mul__ function, which–for our csr_matrix components
-            means matrix multiplication. 
-            
-            In calculating the left-right-multiplication part, we use our (m)-shape 
-            object arrays holding the dissipator operators to perform multiplication. 
+            means matrix multiplication.
+
+            In calculating the left-right-multiplication part, we use our (m)-shape
+            object arrays holding the dissipator operators to perform multiplication.
             We can take an elementwise product with our packaged density matrix, at which
-            point our dissipator operators are broadcast as (m) -> (1,m) -> (k,m) shaped, 
+            point our dissipator operators are broadcast as (m) -> (1,m) -> (k,m) shaped,
             and our packaged density matrix as (k,1) -> (k,m). Elementwise multiplication
             is then applied, which is interpreted as matrix multiplication. This yields
-            an array where entry [i,j] is an object storing the results of s_jL_j\rho_i L_j^\dagger. 
-            We can then sum over j and unpackage our object array to get our desired result. 
-            """
+            an array where entry [i,j] is an object storing the results of s_jL_j\rho_i L_j^\dagger.
+            We can then sum over j and unpackage our object array to get our desired result.
+        """
         hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
 
         # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
@@ -455,9 +471,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
             # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
             both_mult_contribution = (
-                (dis_sig_vals * self._dissipator_operators)
-                * y
-                * self._dissipator_operators_conj
+                (dis_sig_vals * self._dissipator_operators) * y * self._dissipator_operators_conj
             )
             # sum on i
             both_mult_contribution = np.sum(both_mult_contribution, axis=-1)
