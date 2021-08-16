@@ -475,9 +475,10 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
         self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
+        vectorized_result = gm.evaluate_rhs(t, vectorized_states)
         for i in range(m):
             self.assertAllClose(
-                gm.evaluate_rhs(t, vectorized_states)[:, i],
+                vectorized_result[:, i],
                 gm.evaluate_rhs(t, vectorized_states[:, i]),
             )
 
