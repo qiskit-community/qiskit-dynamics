@@ -294,14 +294,14 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         and then assigning them in any order.
         """
 
-        paulis = Array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]])
+        paulis = Array([self.X,self.Y,self.Z])
         extra = Array(np.eye(2))
         state = Array([0.2, 0.5])
 
         t = 2
 
         sarr = [Signal(1, j / 3) for j in range(3)]
-        sigvals = np.real(SignalList(sarr).complex_value(t))
+        sigvals = SignalList(sarr)(t)
 
         farr = Array(np.array([[3j, 2j], [2j, 0]]))
         farr2 = Array(np.array([[1j, 2], [-2, 3j]]))
@@ -311,10 +311,10 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
 
         ## Run checks without rotating frame for now
-        gm1 = GeneratorModel(paulis, extra, sarr)
-        gm2 = GeneratorModel(paulis, extra)
+        gm1 = GeneratorModel(paulis, sarr, extra)
+        gm2 = GeneratorModel(paulis, drift = extra)
         gm2.signals = sarr
-        gm3 = GeneratorModel(paulis, extra)
+        gm3 = GeneratorModel(paulis, drift = extra)
         gm3.signals = SignalList(sarr)
 
         # All should be the same, because there are no frames involved
