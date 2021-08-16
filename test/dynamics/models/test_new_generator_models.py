@@ -49,17 +49,17 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         set up basic model.
         """
 
-        self._basic_frame_evaluate_test(Array([1j, -1j]), 1.123)
-        self._basic_frame_evaluate_test(Array([1j, -1j]), np.pi)
+        self._basic_frame_evaluate_generator_test(Array([1j, -1j]), 1.123)
+        self._basic_frame_evaluate_generator_test(Array([1j, -1j]), np.pi)
 
     def test_non_diag_frame_operator_basic_model(self):
         """Test setting a non-diagonal frame operator for the internally
         set up basic model.
         """
-        self._basic_frame_evaluate_test(-1j * (self.Y + self.Z), 1.123)
-        self._basic_frame_evaluate_test(-1j * (self.Y - self.Z), np.pi)
+        self._basic_frame_evaluate_generator_test(-1j * (self.Y + self.Z), 1.123)
+        self._basic_frame_evaluate_generator_test(-1j * (self.Y - self.Z), np.pi)
 
-    def _basic_frame_evaluate_test(self, frame_operator, t):
+    def _basic_frame_evaluate_generator_test(self, frame_operator, t):
         """Routine for testing setting of valid frame operators using the
         basic_model.
         """
@@ -101,6 +101,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected)
 
+    def test_evaluat_generator_in_frame_basis_basic_model(self):
         """Test generator evaluation in frame basis in the basic_model."""
 
         frame_op = -1j * (self.X + 0.2 * self.Y + 0.1 * self.Z).data
@@ -129,7 +130,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected)
 
-    def test_evaluate_pseudorandom(self):
+    def test_evaluate_generator_pseudorandom(self):
         """Test evaluate with pseudorandom inputs."""
 
         rng = np.random.default_rng(30493)
@@ -151,7 +152,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
+        self._test_evaluate_generator(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
         rng = np.random.default_rng(94818)
         num_terms = 5
@@ -173,10 +174,9 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
+        self._test_evaluate_generator(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
-    def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
-
+    def _test_evaluate_generator(self, frame_op, operators, coefficients, carriers, phases):
         sig_list = []
         for coeff, freq, phase in zip(coefficients, carriers, phases):
 
@@ -243,7 +243,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         with self.assertRaises(QiskitError):
             self.basic_model.signals = [1.0]
 
-    def test_known_values_basic_functionality(self):
+    def test_evaluate_generator_analytic(self):
         """Test for checking that with known operators that
         the Model returns the analyticlly known values."""
 
@@ -259,6 +259,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
         simple_model.drift = None
 
+    def test_evaluate_generator_in_frame_basis_analytic(self):
         """Tests evaluation in rotating frame against analytic values."""
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
@@ -287,6 +288,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 
         simple_model.drift = None
 
+    def test_order_of_assigning_properties(self):
         """Tests whether setting the frame, drift, and signals
         in the constructor is the same as constructing without
         and then assigning them in any order.
@@ -439,6 +441,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(gm2(t,state,in_frame_basis=False), t_expected @ state_in_frame_basis)
 
 
+    def test_evaluate_rhs_vectorized_pseudorandom(self):
         """Test for whether evaluating a model at m different
         states, each with an n-length statevector, by passing
         an (m,n) Array provides the same value as passing each
