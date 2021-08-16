@@ -213,6 +213,7 @@ class CallableGenerator(BaseGeneratorModel):
         generator: Callable,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         drift: Optional[Union[Operator, Array]] = None,
+        dim: Optional[int] = None,
     ):
 
         self._generator = dispatch.wrap(generator)
@@ -220,10 +221,14 @@ class CallableGenerator(BaseGeneratorModel):
         self._drift = drift
         self._evaluation_mode = "callable_generator"
         self._operator_collection = None
+        self._dim = dim
 
     @property
     def dim(self) -> int:
-        return self._generator(0).shape[-1]
+        if self._dim is not None:
+            return self._dim
+        else:
+            raise ValueError("Dimension of CallableGenerator object should be specified at initialization.")
 
     def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
         if in_frame_basis and self.rotating_frame is not None:
