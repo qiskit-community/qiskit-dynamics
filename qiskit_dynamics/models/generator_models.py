@@ -166,7 +166,7 @@ class BaseGeneratorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False):
+    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """If possible, expresses the model at time t
         without reference to the state of the system.
         Args:
@@ -182,7 +182,7 @@ class BaseGeneratorModel(ABC):
 
     def __call__(
         self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False
-    ):
+    ) -> Array:
         """Evaluate generator RHS functions. If ``y is None``,
         tries to evaluate :math:`\Lambda(t)` using the desired
         representation of the linear map. Otherwise, calculates
@@ -320,8 +320,8 @@ class GeneratorModel(BaseGeneratorModel):
     def __init__(
         self,
         operators: Array,
-        drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
+        drift: Optional[Array] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: str = "dense",
     ):
@@ -480,7 +480,7 @@ class GeneratorModel(BaseGeneratorModel):
         )
 
     def evaluate_rhs(
-        self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
+        self, time: float, y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         """Evaluate the model in array format using left multiplication, as 
         G(t) @ y, given the current state y.
