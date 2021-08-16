@@ -44,27 +44,6 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.r = r
         self.basic_model = GeneratorModel(operators=operators, signals=signals)
 
-    def test_frame_operator_errors(self):
-        """Check different modes of error raising for frame setting."""
-
-        # 1d array
-        try:
-            self.basic_model.rotating_frame = Array([1.0, 1.0])
-        except QiskitError as e:
-            self.assertTrue("anti-Hermitian" in str(e))
-
-        # 2d array
-        try:
-            self.basic_model.rotating_frame = Array([[1.0, 0.0], [0.0, 1.0]])
-        except QiskitError as e:
-            self.assertTrue("anti-Hermitian" in str(e))
-
-        # Operator
-        try:
-            self.basic_model.rotating_frame = self.Z
-        except QiskitError as e:
-            self.assertTrue("anti-Hermitian" in str(e))
-
     def test_diag_frame_operator_basic_model(self):
         """Test setting a diagonal frame operator for the internally
         set up basic model.
