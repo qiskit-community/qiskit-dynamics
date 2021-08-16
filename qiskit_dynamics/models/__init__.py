@@ -40,9 +40,22 @@ Tools for constructing generators for LMDEs.
 .. autosummary::
    :toctree: ../stubs/
 
-   BaseRotatingFrame
    RotatingFrame
    GeneratorModel
+
+Operator Collections
+====================
+Calculation objects used to implement multiple evaluation modes.
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   BaseOperatorCollection
+   DenseOperatorCollection
+   SparseOperatorCollection
+   DenseLindbladCollection
+   DenseVectorizedLindbladCollection
+   SparseLindbladCollection
 """
 
 from .rotating_frame import RotatingFrame
@@ -50,10 +63,11 @@ from .generator_models import GeneratorModel
 from .hamiltonian_models import HamiltonianModel
 from .lindblad_models import LindbladModel
 from .operator_collections import (
-    DenseOperatorCollection,
-    SparseOperatorCollection,
-    DenseLindbladCollection,
-    DenseVectorizedLindbladCollection,
-    SparseLindbladCollection,
+   BaseOperatorCollection,
+   DenseOperatorCollection,
+   SparseOperatorCollection,
+   DenseLindbladCollection,
+   DenseVectorizedLindbladCollection,
+   SparseLindbladCollection,
 )
 from .rotating_wave import perform_rotating_wave_approximation

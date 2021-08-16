@@ -79,8 +79,8 @@ class LindbladModel(BaseGeneratorModel):
                 already in the frame basis.
             evalutation_mode: String specifying the type of evaluation
                 to be used. Currently supported modes are:
-                    dense (default),
-                    dense_vectorized.
+                dense (default),
+                dense_vectorized.
 
         Raises:
             Exception: if signals incorrectly specified.
@@ -134,7 +134,7 @@ class LindbladModel(BaseGeneratorModel):
         """Gets the Model's Signals.
         Returns:
             list[Array] with 0th entry storing the Hamiltonian signals
-                and the 1st entry storing the dissipator signals."""
+            and the 1st entry storing the dissipator signals."""
         return [self._hamiltonian_signals, self._dissipator_signals]
 
     @signals.setter

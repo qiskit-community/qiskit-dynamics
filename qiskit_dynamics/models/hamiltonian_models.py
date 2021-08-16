@@ -32,7 +32,6 @@ class HamiltonianModel(GeneratorModel):
     This class represents a Hamiltonian as a time-dependent decomposition the form:
 
     .. math::
-
         H(t) = \sum_{i=0}^{k-1} s_i(t) H_i,
 
     where :math:`H_i` are Hermitian operators, and the :math:`s_i(t)` are
@@ -43,15 +42,15 @@ class HamiltonianModel(GeneratorModel):
     Currently the functionality of this class is as a subclass of
     :class:`GeneratorModel`, with the following modifications:
 
-        - The operators in the linear decomposition are verified to be
-          Hermitian.
-        - Frames are dealt with assuming the structure of the Schrodinger
-          equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
-          frame :math:`F = -iH`, evaluates the expression
-          :math:`e^{-tF}H(t)e^{tF} - H`. This is in contrast to
-          the base class :class:`OperatorModel`, which would ordinarily
-          evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
-    """
+    - The operators in the linear decomposition are verified to be
+        Hermitian.
+
+    - Frames are dealt with assuming the structure of the Schrodinger
+        equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
+        frame :math:`F = -iH`, evaluates the expression
+        :math:`e^{-tF}H(t)e^{tF} - H`. This is in contrast to
+        the base class :class:`OperatorModel`, which would ordinarily
+        evaluate :math:`e^{-tF}H(t)e^{tF} - F`."""
 
     def __init__(
         self,
@@ -67,22 +66,22 @@ class HamiltonianModel(GeneratorModel):
         Args:
             operators: list of Operator objects.
             drift: optional, time-independent term in the Hamiltonian.
-                Note: If both frame and drift are provided, assumed that
-                drift term includes frame contribution. If
-                frame but not drift given, a frame drift will be constructed.
+            Note: If both frame and drift are provided, assumed that
+            drift term includes frame contribution. If
+            frame but not drift given, a frame drift will be constructed.
             signals: Specifiable as either a SignalList, a list of
-                     Signal objects, or as the inputs to signal_mapping.
-                     OperatorModel can be instantiated without specifying
-                     signals, but it can not perform any actions without them.
+            Signal objects, or as the inputs to signal_mapping.
+            OperatorModel can be instantiated without specifying
+            signals, but it can not perform any actions without them.
             rotating_frame: Rotating frame operator / rotating frame object.
-                    If specified with a 1d array, it is interpreted as the
-                    diagonal of a diagonal matrix. Assumed to store
-                    the antihermitian matrix F = -iH.
+            If specified with a 1d array, it is interpreted as the
+            diagonal of a diagonal matrix. Assumed to store
+            the antihermitian matrix F = -iH.
             validate: If True check input operators are Hermitian.
             evaluation_mode: Flag for what type of evaluation should
-                be used. Currently supported options are
-                    dense (DenseOperatorCollection)
-                    sparse (SparseOperatorCollection)
+            be used. Currently supported options are
+            dense (DenseOperatorCollection)
+            sparse (SparseOperatorCollection)
 
         Raises:
             Exception: if operators are not Hermitian
