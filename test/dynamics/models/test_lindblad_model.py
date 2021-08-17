@@ -11,15 +11,20 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name,redundant-keyword-arg
 
-"""Tests for quantum_models.LindbladModel"""
+"""Tests for qiskit_dynamics.models.lindblad_models.py. Most
+of the actual calculation checking is handled at the level of a
+models.operator_collection.DenseLindbladOperatorCollection test."""
 
 import numpy as np
+from jax import jit, grad
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.dispatch.dispatch import Dispatch
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+from .test_operator_collections import _wrap
 
 
 class TestLindbladModel(QiskitDynamicsTestCase):
@@ -39,12 +44,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.w = w
         self.r = r
 
-        noise_operators = Array([[[0.0, 0.0], [1.0, 0.0]]])
+        dissipator_operators = Array([[[0.0, 0.0], [1.0, 0.0]]])
 
         self.basic_lindblad = LindbladModel(
             hamiltonian_operators=ham_operators,
             hamiltonian_signals=ham_signals,
-            noise_operators=noise_operators,
+            dissipator_operators=dissipator_operators,
         )
 
     def test_basic_lindblad_lmult(self):
@@ -59,96 +64,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         sm = Array([[0.0, 0.0], [1.0, 0.0]])
 
         expected = self._evaluate_lindblad_rhs(A, ham, [sm])
-        value = self.basic_lindblad.lmult(t, A.flatten(order="F"))
-        self.assertAllClose(expected, value.reshape(2, 2, order="F"))
-
-    # pylint: disable=too-many-locals
-    def test_lindblad_lmult_pseudorandom(self):
-        """Test lmult of Lindblad OperatorModel with structureless
-        pseudorandom model parameters.
-        """
-        rng = np.random.default_rng(9848)
-        dim = 10
-        num_ham = 4
-        num_diss = 3
-
-        b = 1.0  # bound on size of random terms
-
-        # generate random hamiltonian
-        randoperators = rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_ham, dim, dim)
-        )
-        rand_ham_ops = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
-
-        # generate random hamiltonian coefficients
-        rand_ham_coeffs = rng.uniform(low=-b, high=b, size=(num_ham)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_ham)
-        )
-        rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
-        rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
-
-        ham_sigs = []
-        for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
-            ham_sigs.append(Signal(get_const_func(coeff), freq, phase))
-
-        ham_sigs = SignalList(ham_sigs)
-
-        # generate random dissipators
-        rand_diss = Array(
-            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
-        )
-
-        # random dissipator coefficients
-        rand_diss_coeffs = rng.uniform(low=-b, high=b, size=(num_diss)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_diss)
-        )
-        rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
-        rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
-
-        diss_sigs = []
-        for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
-            diss_sigs.append(Signal(get_const_func(coeff), freq, phase))
-
-        diss_sigs = SignalList(diss_sigs)
-
-        # random anti-hermitian frame operator
-        rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
-            low=-b, high=b, size=(dim, dim)
-        )
-        frame_op = Array(rand_op - rand_op.conj().transpose())
-
-        lindblad_frame_op = np.kron(Array(np.eye(dim)), frame_op) - np.kron(
-            frame_op.transpose(), Array(np.eye(dim))
-        )
-
-        # construct model
-        hamiltonian = HamiltonianModel(operators=rand_ham_ops, signals=ham_sigs)
-        lindblad_model = LindbladModel.from_hamiltonian(
-            hamiltonian=hamiltonian, noise_operators=rand_diss, noise_signals=diss_sigs
-        )
-        lindblad_model.frame = lindblad_frame_op
-
-        A = Array(
-            rng.uniform(low=-b, high=b, size=(dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
-        )
-
-        t = rng.uniform(low=-b, high=b)
-        value = lindblad_model.lmult(t, A.flatten(order="F"))
-
-        ham_coeffs = np.real(
-            rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
-        )
-        ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
-        diss_coeffs = np.real(
-            rand_diss_coeffs
-            * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
-        )
-
-        expected = self._evaluate_lindblad_rhs(A, ham, rand_diss, diss_coeffs, frame_op, t)
-
-        self.assertAllClose(expected, value.reshape(dim, dim, order="F"))
+        value = self.basic_lindblad(t, A)
+        self.assertAllClose(expected, value)
 
     # pylint: disable=no-self-use,too-many-arguments
     def _evaluate_lindblad_rhs(
@@ -196,12 +113,175 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         return ham_part + diss_part
 
+        # pylint: disable=too-many-locals
+
+    def test_lindblad_pseudorandom(self):
+        """Test LindbladModel with structureless
+        pseudorandom model parameters.
+        """
+        rng = np.random.default_rng(9848)
+        dim = 10
+        num_ham = 4
+        num_diss = 3
+
+        b = 1.0  # bound on size of random terms
+
+        # generate random hamiltonian
+        randoperators = rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_ham, dim, dim)
+        )
+        rand_ham_ops = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
+
+        # generate random hamiltonian coefficients
+        rand_ham_coeffs = rng.uniform(low=-b, high=b, size=(num_ham)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_ham)
+        )
+        rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
+        rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
+
+        ham_sigs = []
+        for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
+            ham_sigs.append(Signal(coeff, freq, phase))
+
+        ham_sigs = SignalList(ham_sigs)
+
+        # generate random dissipators
+        rand_diss = Array(
+            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        )
+
+        # random dissipator coefficients
+        rand_diss_coeffs = rng.uniform(low=-b, high=b, size=(num_diss)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_diss)
+        )
+        rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
+        rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
+
+        diss_sigs = []
+        for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
+            diss_sigs.append(Signal(coeff, freq, phase))
+
+        diss_sigs = SignalList(diss_sigs)
+
+        # random anti-hermitian frame operator
+        rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        frame_op = Array(rand_op - rand_op.conj().transpose())
+        evect = -1j * np.linalg.eigh(1j * frame_op)[1]
+        f = lambda x: evect.T.conj() @ x @ evect
+
+        lindblad_frame_op = frame_op
+
+        # construct model
+        hamiltonian = HamiltonianModel(operators=rand_ham_ops, signals=ham_sigs)
+        lindblad_model = LindbladModel.from_hamiltonian(
+            hamiltonian=hamiltonian, dissipator_operators=rand_diss, dissipator_signals=diss_sigs
+        )
+        lindblad_model.rotating_frame = lindblad_frame_op
+
+        A = Array(
+            rng.uniform(low=-b, high=b, size=(dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
+        )
+
+        t = rng.uniform(low=-b, high=b)
+        value = lindblad_model(t, A, in_frame_basis=False)
+
+        ham_coeffs = np.real(
+            rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
+        )
+        ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
+
+        diss_coeffs = np.real(
+            rand_diss_coeffs
+            * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
+        )
+
+        expected = self._evaluate_lindblad_rhs(
+            A, ham, dissipators=rand_diss, dissipator_coeffs=diss_coeffs, frame_op=frame_op, t=t
+        )
+
+        self.assertAllClose(ham_coeffs, ham_sigs(t))
+        self.assertAllClose(diss_coeffs, diss_sigs(t))
+        self.assertAllClose(f(rand_diss), lindblad_model._dissipator_operators)
+        self.assertAllClose(f(rand_ham_ops), lindblad_model._hamiltonian_operators)
+        self.assertAllClose(f(-1j * frame_op), lindblad_model.get_drift(in_frame_basis=True))
+        self.assertAllClose(-1j * frame_op, lindblad_model.get_drift(in_frame_basis=False))
+        self.assertAllClose(f(-1j * frame_op), lindblad_model._operator_collection.drift)
+        self.assertAllClose(expected, value)
+
+        lindblad_model.set_evaluation_mode("dense_vectorized")
+        vectorized_value = lindblad_model.evaluate_rhs(
+            t, A.flatten(order="F"), in_frame_basis=False
+        ).reshape((dim, dim), order="F")
+        self.assertAllClose(value, vectorized_value)
+
+        vectorized_value_lmult = (
+            lindblad_model.evaluate_generator(t, in_frame_basis=False) @ A.flatten(order="F")
+        ).reshape((dim, dim), order="F")
+        self.assertAllClose(value, vectorized_value_lmult)
+
+        if Dispatch.DEFAULT_BACKEND != "jax":
+            lindblad_model.set_evaluation_mode("sparse")
+            sparse_value = lindblad_model.evaluate_rhs(t, A, in_frame_basis=False)
+            self.assertAllClose(value, sparse_value)
+
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
     """Jax version of TestLindbladModel tests.
 
     Note: This class has no body but contains tests due to inheritance.
     """
+
+    def test_jitable_funcs(self):
+        """Tests whether all functions are jitable.
+        Checks if having a frame makes a difference, as well as 
+        all jax-compatible evaluation_modes."""
+        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+
+        self.basic_lindblad.rotating_frame = None
+
+        self.basic_lindblad.set_evaluation_mode("dense_vectorized")
+
+        _wrap(jit,self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(jit,self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+
+        self.basic_lindblad.rotating_frame = None
+    
+    def test_gradable_funcs(self):
+        """Tests whether all functions are gradable.
+        Checks if having a frame makes a difference, as well as 
+        all jax-compatible evaluation_modes."""
+        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+
+        self.basic_lindblad.rotating_frame = None
+
+        self.basic_lindblad.set_evaluation_mode("dense_vectorized")
+
+        _wrap(grad,self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(grad,self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+
+        self.basic_lindblad.rotating_frame = None
 
 
 def get_const_func(const):
