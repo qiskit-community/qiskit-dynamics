@@ -93,16 +93,16 @@ def rotating_wave_approximation(
         new_drift = model.get_drift(True)
 
     else:
-    diag = model.rotating_frame.frame_diag
+        diag = model.rotating_frame.frame_diag
 
-    diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
-    frame_freqs = diff_matrix.imag / (2 * np.pi)
+        diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
+        frame_freqs = diff_matrix.imag / (2 * np.pi)
 
-    # work in frame basis
-    curr_drift = model.get_drift(True) + np.diag(model.rotating_frame.frame_diag)
-    new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
-    # transform back out of frame basis
-    new_drift = model.rotating_frame.operator_out_of_frame_basis(new_drift)
+        # work in frame basis
+        curr_drift = model.get_drift(True) + np.diag(model.rotating_frame.frame_diag)
+        new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
+        # transform back out of frame basis
+        new_drift = model.rotating_frame.operator_out_of_frame_basis(new_drift)
 
     if isinstance(model, GeneratorModel):
         # in the lab basis
