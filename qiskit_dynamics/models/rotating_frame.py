@@ -194,7 +194,9 @@ class RotatingFrame:
 
         return self.frame_basis @ y
 
-    def operator_into_frame_basis(self, op: Union[Operator, List[Operator], Array, csr_matrix]) -> Array:
+    def operator_into_frame_basis(
+        self, op: Union[Operator, List[Operator], Array, csr_matrix]
+    ) -> Array:
         r"""Take an operator into the frame basis, i.e. return
         ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
@@ -209,7 +211,9 @@ class RotatingFrame:
         # parentheses are necessary for sparse op evaluation
         return self.frame_basis_adjoint @ (op @ self.frame_basis)
 
-    def operator_out_of_frame_basis(self, op: Union[Operator, List[Operator], Array, csr_matrix]) -> Array:
+    def operator_out_of_frame_basis(
+        self, op: Union[Operator, List[Operator], Array, csr_matrix]
+    ) -> Array:
         r"""Take an operator out of the frame basis, i.e. return
         ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
 
@@ -300,12 +304,12 @@ class RotatingFrame:
         Note: B is added in the frame basis before any potential final change
         out of the frame basis.
 
-        Args: 
+        Args:
             t: Time.
             operator: The operator G.
             op_to_add_in_fb: The additional operator B.
             operator_in_fame_basis: Whether ``operator`` is already in the basis
-                in which the frame operator is diagonal. 
+                in which the frame operator is diagonal.
             vectorized_operators: Whether ``operator`` is passed as a vectorized,
                 ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
 
@@ -496,8 +500,8 @@ class RotatingFrame:
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Given a linear map involving left- and right-multiplication vectorized in 
-        the column stacking convention which includes the frame shift -F, computes 
+        r"""Given a linear map involving left- and right-multiplication vectorized in
+        the column stacking convention which includes the frame shift -F, computes
         the vectorized operator :math:`B^T\otimes A` in the rotating frame by computing
         .. math::
             (e^{-tF}Be^{tF})^T\otimes(e^{-tF}Ae^{tF}),
@@ -507,10 +511,10 @@ class RotatingFrame:
         where :math:`\Delta_{ij}=\exp((-d_i+d_j)t)` is the frame difference matrix.
 
         If necessary, also brings the operator into the basis in which the frame operator
-        is diagonal through conjugation by :math:`\bar{C}\otimes C`, where ``C = self.frame_basis``. 
+        is diagonal through conjugation by :math:`\bar{C}\otimes C`, where ``C = self.frame_basis``.
         This is much slower than alternatives like pre- and post-rotations, so it should be
         avoided unless putting a vectorized operator into the rotating frame is absolutely
-        necessary. 
+        necessary.
 
         Args:
             time: The time t.
@@ -525,7 +529,9 @@ class RotatingFrame:
             # Put the vectorized operator into the frame basis
             if not operator_in_frame_basis and self.frame_basis is not None:
                 if self._vectorized_frame_basis is None:
-                    self._vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
+                    self._vectorized_frame_basis = np.kron(
+                        self.frame_basis.conj(), self.frame_basis
+                    )
                     self._vectorized_frame_basis_adjoint = np.kron(
                         self.frame_basis.T, self.frame_basis_adjoint
                     )
@@ -541,7 +547,9 @@ class RotatingFrame:
 
             if not return_in_frame_basis and self.frame_basis is not None:
                 if self._vectorized_frame_basis is None:
-                    self._vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
+                    self._vectorized_frame_basis = np.kron(
+                        self.frame_basis.conj(), self.frame_basis
+                    )
                     self._vectorized_frame_basis_adjoint = np.kron(
                         self.frame_basis.T, self.frame_basis_adjoint
                     )

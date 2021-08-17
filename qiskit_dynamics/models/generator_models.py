@@ -129,7 +129,7 @@ class BaseGeneratorModel(ABC):
     ):
         """Sets drift term. The drift term will be transformed into the rotating
         frame basis. If in a rotating frame, note that this will NOT automatically
-        add the -F or -iF term due to the frame shift. 
+        add the -F or -iF term due to the frame shift.
 
         Args:
             new_drift: The drift operator.

@@ -265,7 +265,10 @@ def solve_lmde(
     # pylint: disable=too-many-boolean-expressions
     if (
         results.y.backend == "jax"
-        and (generator.rotating_frame.frame_diag is None or generator.rotating_frame.frame_diag.backend == "jax")
+        and (
+            generator.rotating_frame.frame_diag is None
+            or generator.rotating_frame.frame_diag.backend == "jax"
+        )
         and (output_frame.frame_diag is None or output_frame.frame_diag.backend == "jax")
         and y0_cls is None
     ):
