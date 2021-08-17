@@ -138,6 +138,8 @@ class RotatingFrame:
             self._dim = len(self._frame_diag)
 
         # lazily evaluate change-of-basis matrices for vectorized operators.
+        self._vectorized_frame_basis = None
+        self._vectorized_frame_basis_adjoint = None
 
     @property
     def dim(self) -> int:
@@ -522,12 +524,12 @@ class RotatingFrame:
         if self.frame_diag is not None:
             # Put the vectorized operator into the frame basis
             if not operator_in_frame_basis and self.frame_basis is not None:
-                if self._cached_c_bar_otimes_c is None:
-                    self._cached_c_bar_otimes_c = np.kron(self.frame_basis.conj(), self.frame_basis)
-                    self._cached_c_trans_otimes_c_dagg = np.kron(
+                if self._vectorized_frame_basis is None:
+                    self._vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
+                    self._vectorized_frame_basis_adjoint = np.kron(
                         self.frame_basis.T, self.frame_basis_adjoint
                     )
-                op = self._cached_c_trans_otimes_c_dagg @ op @ self._cached_c_bar_otimes_c
+                op = self._vectorized_frame_basis_adjoint @ op @ self._vectorized_frame_basis
 
             expvals = np.exp(self.frame_diag * time)  # = e^{td_i} = e^{it*Im(d_i)}
             # = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster
@@ -538,12 +540,12 @@ class RotatingFrame:
             op = delta_bar_otimes_delta * op  # hadamard product
 
             if not return_in_frame_basis and self.frame_basis is not None:
-                if self._cached_c_bar_otimes_c is None:
-                    self._cached_c_bar_otimes_c = np.kron(self.frame_basis.conj(), self.frame_basis)
-                    self._cached_c_trans_otimes_c_dagg = np.kron(
+                if self._vectorized_frame_basis is None:
+                    self._vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
+                    self._vectorized_frame_basis_adjoint = np.kron(
                         self.frame_basis.T, self.frame_basis_adjoint
                     )
-                op = self._cached_c_bar_otimes_c @ op @ self._cached_c_trans_otimes_c_dagg
+                op = self._vectorized_frame_basis @ op @ self._vectorized_frame_basis_adjoint
 
         return op
 
