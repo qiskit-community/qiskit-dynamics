@@ -260,9 +260,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
-        simple_model.set_drift(
-            np.eye(2), operator_in_frame_basis=False, includes_frame_contribution=True
-        )
+        simple_model.set_drift(np.eye(2), operator_in_frame_basis=False)
         res = simple_model.evaluate_generator(2)
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
         simple_model.set_drift(None, operator_in_frame_basis=False)
