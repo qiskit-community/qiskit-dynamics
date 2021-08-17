@@ -78,10 +78,11 @@ def rotating_wave_approximation(
 
     """
 
-    ##TODO Make function idempotent
+    if isinstance(model, CallableGenerator):
+        raise NotImplementedError("CallableGenerator models are not supported for RWA calculations.")
 
-    if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
-        return model
+    if model.signals is None:
+        raise ValueError("Model classes must have a well-defined signals object to perform the RWA.")
 
     n = model.dim
     diag = model.rotating_frame.frame_diag
@@ -101,6 +102,8 @@ def rotating_wave_approximation(
             model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
         )
         if isinstance(model, HamiltonianModel):
+            if len(new_signals)!=new_operators.shape[0]:
+                raise ValueError("Number of Hamiltonian signals must be the same as the number of Hamiltonian operators.")
             new_model = HamiltonianModel(
                 new_operators,
                 drift=1j * new_drift,
@@ -109,6 +112,8 @@ def rotating_wave_approximation(
                 evaluation_mode=model.evaluation_mode,
             )
         else:
+            if len(new_signals)!=new_operators.shape[0]:
+                raise ValueError("Number of generator signals must be the same as the number of operators.")
             new_model = GeneratorModel(
                 new_operators,
                 drift=new_drift,
@@ -123,10 +128,14 @@ def rotating_wave_approximation(
         new_ham_sig, new_ham_ops = _get_new_operators(
             cur_ham_ops, cur_ham_sig, model.rotating_frame, frame_freqs, cutoff_freq
         )
+        if len(new_ham_sig) != new_ham_ops.shape[0]:
+            raise ValueError("Number of Hamiltonian signals must be the same as the number of Hamiltonian operators.")
         if cur_dis_ops is not None and cur_dis_sig is not None:
             new_dis_sig, new_dis_ops = _get_new_operators(
                 cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
             )
+            if len(new_dis_sig) != new_dis_ops.shape[0]:
+                raise ValueError("Number of dissipator signals must be the same as the number of dissipator operators.")
 
         new_model = LindbladModel(
             new_ham_ops,
