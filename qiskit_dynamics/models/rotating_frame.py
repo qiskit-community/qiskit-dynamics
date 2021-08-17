@@ -22,6 +22,7 @@ from scipy.sparse import issparse
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
+from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
 
@@ -191,7 +192,7 @@ class RotatingFrame:
 
         return self.frame_basis @ y
 
-    def operator_into_frame_basis(self, op: Union[Operator, List[Operator], Array]) -> Array:
+    def operator_into_frame_basis(self, op: Union[Operator, List[Operator], Array, csr_matrix]) -> Array:
         r"""Take an operator into the frame basis, i.e. return
         ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
@@ -206,7 +207,7 @@ class RotatingFrame:
         # parentheses are necessary for sparse op evaluation
         return self.frame_basis_adjoint @ (op @ self.frame_basis)
 
-    def operator_out_of_frame_basis(self, op: Union[Operator, Array]) -> Array:
+    def operator_out_of_frame_basis(self, op: Union[Operator, List[Operator], Array, csr_matrix]) -> Array:
         r"""Take an operator out of the frame basis, i.e. return
         ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
 
@@ -354,7 +355,7 @@ class RotatingFrame:
     def operator_into_frame(
         self,
         t: float,
-        operator: Union[Operator, Array],
+        operator: Union[Operator, Array, csr_matrix],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
@@ -385,7 +386,7 @@ class RotatingFrame:
     def operator_out_of_frame(
         self,
         t: float,
-        operator: Union[Operator, Array],
+        operator: Union[Operator, Array, csr_matrix],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
@@ -417,7 +418,7 @@ class RotatingFrame:
     def generator_into_frame(
         self,
         t: float,
-        operator: Union[Operator, Array],
+        operator: Union[Operator, Array, csr_matrix],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
@@ -454,7 +455,7 @@ class RotatingFrame:
     def generator_out_of_frame(
         self,
         t: float,
-        operator: Union[Operator, Array],
+        operator: Union[Operator, Array, csr_matrix],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
