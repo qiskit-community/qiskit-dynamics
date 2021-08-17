@@ -60,7 +60,41 @@ class BaseGeneratorModel(ABC):
     @property
     @abstractmethod
     def dim(self) -> int:
-        """Gets Hilbert space dimension."""
+        """Gets matrix dimension."""
+        pass
+
+    @property
+    @abstractmethod
+    def rotating_frame(self) -> RotatingFrame:
+        """Get the rotating frame."""
+        pass
+
+    @rotating_frame.setter
+    @abstractmethod
+    def rotating_frame(self, rotating_frame: RotatingFrame):
+        """Set the rotating frame; either an already instantiated :class:`RotatingFrame` object
+        a valid argument for the constructor of :class:`RotatingFrame`, or `None`.
+        Takes care of putting all operators into the basis in which the frame
+        matrix F is diagonal.
+        """
+        pass
+
+    @property
+    def evaluation_mode(self) -> str:
+        """Returns the current implementation mode,
+        e.g. sparse/dense, vectorized/not."""
+        # pylint: disable=no-member
+        return self._evaluation_mode
+
+    @abstractmethod
+    def set_evaluation_mode(self, new_mode: str):
+        """Sets evaluation mode of model.
+        Will replace _operator_collection with the
+        correct type of operator collection.
+
+        Instances of this function should
+        include important details about each
+        evaluation mode."""
         pass
 
     @abstractmethod
@@ -114,37 +148,15 @@ class BaseGeneratorModel(ABC):
             # pylint: disable=no-member
             self._operator_collection.drift = new_drift
 
-    @property
-    def evaluation_mode(self) -> str:
-        """Returns the current implementation mode,
-        e.g. sparse/dense, vectorized/not"""
-        # pylint: disable=no-member
-        return self._evaluation_mode
-
     @abstractmethod
-    def set_evaluation_mode(self, new_mode: str):
-        """Sets evaluation mode of model.
-        Will replace _operator_collection with the
-        correct type of operator collection.
-
-        Instances of this function should
-        include important details about each
-        evaluation mode."""
-        pass
-
-    @property
-    def rotating_frame(self) -> RotatingFrame:
-        """Get the rotating frame."""
-        return self.rotating_frame
-
-    @rotating_frame.setter
-    @abstractmethod
-    def rotating_frame(self, rotating_frame: RotatingFrame):
-        """Set the rotating frame; either an already instantiated :class:`RotatingFrame` object
-        a valid argument for the constructor of :class:`RotatingFrame`, or `None`.
-        Takes care of putting all operators into the basis in which the frame
-        matrix F is diagonal.
-        """
+    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        """If possible, expresses the model at time t
+        without reference to the state of the system.
+        Args:
+            time: Time
+            in_frame_basis: boolean flag; True if the
+                result should be in the rotating frame basis
+                or in the lab basis."""
         pass
 
     @abstractmethod
@@ -156,17 +168,6 @@ class BaseGeneratorModel(ABC):
             time: Time
             y: State in the same basis as the model is
             being evaluated.
-            in_frame_basis: boolean flag; True if the
-                result should be in the rotating frame basis
-                or in the lab basis."""
-        pass
-
-    @abstractmethod
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        """If possible, expresses the model at time t
-        without reference to the state of the system.
-        Args:
-            time: Time
             in_frame_basis: boolean flag; True if the
                 result should be in the rotating frame basis
                 or in the lab basis."""
