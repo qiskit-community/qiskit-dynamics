@@ -105,7 +105,7 @@ def rotating_wave_approximation(
 
     if isinstance(model, GeneratorModel):
         # in the lab basis
-        new_signals, new_operators = _get_new_operators(
+        new_signals, new_operators = get_new_operators(
             model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
         )
         if isinstance(model, HamiltonianModel):
@@ -132,13 +132,13 @@ def rotating_wave_approximation(
         cur_ham_ops, cur_dis_ops = model.operators
         cur_ham_sig, cur_dis_sig = model.signals
 
-        new_ham_sig, new_ham_ops = _get_new_operators(
+        new_ham_sig, new_ham_ops = get_new_operators(
             cur_ham_ops, cur_ham_sig, model.rotating_frame, frame_freqs, cutoff_freq
         )
         if len(new_ham_sig) != new_ham_ops.shape[0]:
             raise ValueError("Number of Hamiltonian signals must be the same as the number of Hamiltonian operators.")
         if cur_dis_ops is not None and cur_dis_sig is not None:
-            new_dis_sig, new_dis_ops = _get_new_operators(
+            new_dis_sig, new_dis_ops = get_new_operators(
                 cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
             )
             if len(new_dis_sig) != new_dis_ops.shape[0]:
@@ -162,4 +162,95 @@ def rotating_wave_approximation(
             return new_model, get_new_signals
     else:
         return new_model
+
+def get_new_operators(
+    current_ops: Array,
+    current_sigs: SignalList,
+    rotating_frame: RotatingFrame,
+    frame_freqs: Array,
+    cutoff_freq: Union[float, int],
+):
+    r"""Given a set of operators as a (k,n,n) Array, a set of
+    frequencies (frame_freqs)_{jk} = Im[-d_j+d_k] where d_i
+    the i^{th} eigenlvalue of the frame operator F, the current
+    signals of a model, and a cutoff frequency, returns
+    the new operators and signals that should be passed to
+    create a new Model class after the RWA.
+
+    Args:
+        current_ops: the current operator list, (k,n,n) Array
+        current_sigs: (k) length SignalList
+        frame: current RotatingFrame object of the pre-RWA model
+        frame_freqs: the effective frequencies of different
+            matrix elements due to the conjugation by e^{\pm Ft}
+            in the rotating frame.
+        cutoff_freq: maximum frequency allowed under the RWA.
+    Returns:
+        Tuple[SignalList,Array] Tuple of Signal objects (post RWA)
+        and (2k,n,n) Array of new operators post RWA.
+    Raises:
+        NotImplementedError: if components s_j(t) are not equivalent
+        to pure Signal objects.
+    """
+
+    num_components = len(current_sigs)
+    n = current_ops.shape[-1]
+
+    frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
+
+    carrier_freqs = []
+    for sig_sum in current_sigs.components:
+        if len(sig_sum.components) > 1:
+            raise NotImplementedError(
+                "RWA with coefficients s_j are not pure Signal objects is not currently supported."
+            )
+        sig = sig_sum.components[0]
+        carrier_freqs.append(sig.carrier_freq)
+    carrier_freqs = np.array(carrier_freqs).reshape((num_components, 1, 1))
+
+    pos_pass = np.abs(carrier_freqs + frame_freqs) < cutoff_freq
+    neg_pass = np.abs(-carrier_freqs + frame_freqs) < cutoff_freq
+
+    both_terms = current_ops * (pos_pass & neg_pass).astype(int)
+    pos_terms = current_ops * (pos_pass & np.logical_not(neg_pass)).astype(int)
+    neg_terms = current_ops * (np.logical_not(pos_pass) & neg_pass).astype(int)
+
+    normal_operators = both_terms + pos_terms / 2 + neg_terms / 2
+    abnormal_operators = 1j * pos_terms / 2 - 1j * neg_terms / 2
+
+    new_signals = get_new_signals(current_sigs)
+    new_operators = rotating_frame.operator_out_of_frame_basis(
+        np.append(normal_operators, abnormal_operators, axis=0)
+    )
+
+    if np.allclose(frame_freqs,0):
+        return current_sigs, new_operators[:len(new_operators)//2]
+
+    return new_signals, new_operators
+
+
+def get_new_signals(old_signal_list: Union[List[Signal], SignalList]):
+    """Helper function that converts pre-RWA
+    signals to post-RWA signals"""
+    if old_signal_list is None:
+        return old_signal_list
+    normal_signals = []
+    abnormal_signals = []
+    if not isinstance(old_signal_list, SignalList):
+        old_signal_list = SignalList(old_signal_list)
+    for sig_sum in old_signal_list.components:
+        if len(sig_sum.components) > 1:
+            raise NotImplementedError(
+                "RWA with coefficients s_j are not pure Signal objects is not currently supported."
+            )
+        sig = sig_sum.components[0]
+        normal_signals.append(sig)
+        abnormal_signals.append(
+            SignalSum(Signal(sig.envelope, sig.carrier_freq, sig.phase - np.pi / 2))
+        )
+
+    new_signals = SignalList(normal_signals + abnormal_signals)
+
+    return new_signals
+
 
