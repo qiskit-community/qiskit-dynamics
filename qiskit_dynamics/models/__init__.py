@@ -59,7 +59,7 @@ Calculation objects used to implement multiple evaluation modes.
 """
 
 from .rotating_frame import RotatingFrame
-from .generator_models import GeneratorModel
+from .generator_models import GeneratorModel, CallableGenerator
 from .hamiltonian_models import HamiltonianModel
 from .lindblad_models import LindbladModel
 from .operator_collections import (
