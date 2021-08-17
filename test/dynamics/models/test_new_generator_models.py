@@ -216,10 +216,14 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self.assertAllClose(value, expected)
         if value.backend != "jax":
             model.set_evaluation_mode("sparse")
+            state = np.arange(operators.shape[-1]*4).reshape(operators.shape[-1],4)
             value = model(1.0)
             if issparse(value):
                 value = value.toarray()
             self.assertAllClose(value, expected)
+
+            val_with_state = model(1.0,state)
+            self.assertAllClose(val_with_state, value @ state)
 
     def test_signal_setting(self):
         """Test updating the signals."""
