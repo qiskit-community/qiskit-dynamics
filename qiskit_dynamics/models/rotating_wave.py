@@ -11,17 +11,20 @@ from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladMod
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 
+
 def rotating_wave_approximation(
-    model: BaseGeneratorModel, cutoff_freq: float, return_signal_translator: Optional[bool] = False,
+    model: BaseGeneratorModel,
+    cutoff_freq: float,
+    return_signal_translator: Optional[bool] = False,
 ) -> BaseGeneratorModel:
-    r"""Performs the RWA on Model classes and returns it as a new model. 
-    Checks every element :math:`(H_i)_{jk}` of each operator component 
-    :math:`H_i`, setting it to zero in the new model if the effective 
-    frequency of that element is above some ``cutoff_freq``. Effective 
-    frequencies are the sum of the signal frequency :math:`\nu_i` 
-    associated to a signal :math:`s_i(t)` as 
+    r"""Performs the RWA on Model classes and returns it as a new model.
+    Checks every element :math:`(H_i)_{jk}` of each operator component
+    :math:`H_i`, setting it to zero in the new model if the effective
+    frequency of that element is above some ``cutoff_freq``. Effective
+    frequencies are the sum of the signal frequency :math:`\nu_i`
+    associated to a signal :math:`s_i(t)` as
     :math:`s_i(t)=Re[a_i(t)e^{2\pi i\nu_i+\phi_i}]` and those due to the
-    rotating frame, of the form :math:`f_{jk}=Im[-d_j+d_k]/2\pi`. 
+    rotating frame, of the form :math:`f_{jk}=Im[-d_j+d_k]/2\pi`.
 
     Optionally returns a function ``f`` that translates SignalLists
     defined for the old Model to ones compatible with the new Model, as
@@ -32,15 +35,15 @@ def rotating_wave_approximation(
         wish to apply the RWA.
         cutoff_freq: The maximum (magnitude) of
         frequency you wish to allow.
-        return_signal_translator: Whether to also return a function f that 
+        return_signal_translator: Whether to also return a function f that
             converts pre-RWA SignalLists to post-RWA SignalLists.
     Returns:
         GeneratorModel with twice as many terms, and, if return_signal_translator,
-        also the function f. 
+        also the function f.
     Raises:
         NotImplementedError: If components :math:`s_j(t)` are not equivalent
-        to pure Signal objects or if a ``CallableGenerator`` is passed. 
-        ValueError: If there aren't the same number of signals as operators. 
+        to pure Signal objects or if a ``CallableGenerator`` is passed.
+        ValueError: If there aren't the same number of signals as operators.
 
     Formalism: When we consider e^{-tF}A e^{tF} in the basis in which F
     is diagonal, we may write conjugation by e^{\pm tF} as elementwise
@@ -80,16 +83,20 @@ def rotating_wave_approximation(
     """
 
     if isinstance(model, CallableGenerator):
-        raise NotImplementedError("CallableGenerator models are not supported for RWA calculations.")
+        raise NotImplementedError(
+            "CallableGenerator models are not supported for RWA calculations."
+        )
 
     if model.signals is None:
-        raise ValueError("Model classes must have a well-defined signals object to perform the RWA.")
+        raise ValueError(
+            "Model classes must have a well-defined signals object to perform the RWA."
+        )
 
     n = model.dim
 
     if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
         # We can now safely ignore the frame frequency components, so this is much simpler.
-        frame_freqs = np.zeros((n,n))
+        frame_freqs = np.zeros((n, n))
         new_drift = model.get_drift(True)
 
     else:
@@ -110,8 +117,10 @@ def rotating_wave_approximation(
             model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
         )
         if isinstance(model, HamiltonianModel):
-            if len(new_signals)!=new_operators.shape[0]:
-                raise ValueError("Number of Hamiltonian signals must be the same as the number of Hamiltonian operators.")
+            if len(new_signals) != new_operators.shape[0]:
+                raise ValueError(
+                    "Number of Hamiltonian signals must be the same as the number of Hamiltonian operators."
+                )
             new_model = HamiltonianModel(
                 new_operators,
                 drift=1j * new_drift,
@@ -120,8 +129,10 @@ def rotating_wave_approximation(
                 evaluation_mode=model.evaluation_mode,
             )
         else:
-            if len(new_signals)!=new_operators.shape[0]:
-                raise ValueError("Number of generator signals must be the same as the number of operators.")
+            if len(new_signals) != new_operators.shape[0]:
+                raise ValueError(
+                    "Number of generator signals must be the same as the number of operators."
+                )
             new_model = GeneratorModel(
                 new_operators,
                 drift=new_drift,
@@ -137,13 +148,17 @@ def rotating_wave_approximation(
             cur_ham_ops, cur_ham_sig, model.rotating_frame, frame_freqs, cutoff_freq
         )
         if len(new_ham_sig) != new_ham_ops.shape[0]:
-            raise ValueError("Number of Hamiltonian signals must be the same as the number of Hamiltonian operators.")
+            raise ValueError(
+                "Number of Hamiltonian signals must be the same as the number of Hamiltonian operators."
+            )
         if cur_dis_ops is not None and cur_dis_sig is not None:
             new_dis_sig, new_dis_ops = get_new_operators(
                 cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
             )
             if len(new_dis_sig) != new_dis_ops.shape[0]:
-                raise ValueError("Number of dissipator signals must be the same as the number of dissipator operators.")
+                raise ValueError(
+                    "Number of dissipator signals must be the same as the number of dissipator operators."
+                )
 
         new_model = LindbladModel(
             new_ham_ops,
@@ -163,6 +178,7 @@ def rotating_wave_approximation(
             return new_model, get_new_signals
     else:
         return new_model
+
 
 def get_new_operators(
     current_ops: Array,
@@ -224,8 +240,8 @@ def get_new_operators(
         np.append(normal_operators, abnormal_operators, axis=0)
     )
 
-    if np.allclose(frame_freqs,0):
-        return current_sigs, new_operators[:len(new_operators)//2]
+    if np.allclose(frame_freqs, 0):
+        return current_sigs, new_operators[: len(new_operators) // 2]
 
     return new_signals, new_operators
 
@@ -253,5 +269,3 @@ def get_new_signals(old_signal_list: Union[List[Signal], SignalList]):
     new_signals = SignalList(normal_signals + abnormal_signals)
 
     return new_signals
-
-

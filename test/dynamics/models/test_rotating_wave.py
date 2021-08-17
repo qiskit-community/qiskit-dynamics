@@ -55,14 +55,14 @@ class TestRotatingWave(QiskitDynamicsTestCase):
 
     def test_no_rotating_frame(self):
         """Tests whether RWA works in the absence of a rotating frame"""
-        ops = Array(np.ones((4,2,2)))
-        sigs = [Signal(1,0),Signal(1,-3,0),Signal(1,1), Signal(1,3,0)]
-        dft = Array(np.ones((2,2)))
-        GM = GeneratorModel(ops,signals=sigs,drift=dft,rotating_frame=None)
-        GMP = rotating_wave_approximation(GM,2)
-        self.assertAllClose(GMP.get_drift(True),Array(np.ones((2,2))))
-        post_rwa_ops = Array(np.array([1,0,1,0]).reshape(4,1,1)) * ops
-        self.assertAllClose(GMP.get_operators(True),post_rwa_ops)
+        ops = Array(np.ones((4, 2, 2)))
+        sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
+        dft = Array(np.ones((2, 2)))
+        GM = GeneratorModel(ops, signals=sigs, drift=dft, rotating_frame=None)
+        GMP = rotating_wave_approximation(GM, 2)
+        self.assertAllClose(GMP.get_drift(True), Array(np.ones((2, 2))))
+        post_rwa_ops = Array(np.array([1, 0, 1, 0]).reshape(4, 1, 1)) * ops
+        self.assertAllClose(GMP.get_operators(True), post_rwa_ops)
 
 
 class TestRotatingWaveJax(TestRotatingWave, TestJaxBase):

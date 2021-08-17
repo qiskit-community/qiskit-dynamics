@@ -237,49 +237,53 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable.
-        Checks if having a frame makes a difference, as well as 
+        Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+        _wrap(jit, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([[0.2, 0.4], [0.6, 0.8]])))
 
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+        _wrap(jit, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([[0.2, 0.4], [0.6, 0.8]])))
 
         self.basic_lindblad.rotating_frame = None
 
         self.basic_lindblad.set_evaluation_mode("dense_vectorized")
 
-        _wrap(jit,self.basic_lindblad.evaluate_generator)(1.0)
-        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+        _wrap(jit, self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(jit, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
 
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(jit,self.basic_lindblad.evaluate_generator)(1.0)
-        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+        _wrap(jit, self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(jit, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
 
         self.basic_lindblad.rotating_frame = None
-    
+
     def test_gradable_funcs(self):
         """Tests whether all functions are gradable.
-        Checks if having a frame makes a difference, as well as 
+        Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+        _wrap(grad, self.basic_lindblad.evaluate_rhs)(
+            1.0, Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
+        )
 
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+        _wrap(grad, self.basic_lindblad.evaluate_rhs)(
+            1.0, Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
+        )
 
         self.basic_lindblad.rotating_frame = None
 
         self.basic_lindblad.set_evaluation_mode("dense_vectorized")
 
-        _wrap(grad,self.basic_lindblad.evaluate_generator)(1.0)
-        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+        _wrap(grad, self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
 
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(grad,self.basic_lindblad.evaluate_generator)(1.0)
-        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+        _wrap(grad, self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
 
         self.basic_lindblad.rotating_frame = None
 
