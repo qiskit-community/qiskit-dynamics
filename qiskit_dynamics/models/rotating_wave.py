@@ -10,116 +10,36 @@ from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladMod
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 
+def rotating_wave_approximation(
+    model: BaseGeneratorModel, cutoff_freq: float, return_signal_translator: Optional[bool] = False,
+) -> BaseGeneratorModel:
+    r"""Performs the RWA on Model classes and returns it as a new model. 
+    Checks every element :math:`(H_i)_{jk}` of each operator component 
+    :math:`H_i`, setting it to zero in the new model if the effective 
+    frequency of that element is above some ``cutoff_freq``. Effective 
+    frequencies are the sum of the signal frequency :math:`\nu_i` 
+    associated to a signal :math:`s_i(t)` as 
+    :math:`s_i(t)=Re[a_i(t)e^{2\pi i\nu_i+\phi_i}]` and those due to the
+    rotating frame, of the form :math:`f_{jk}=Im[-d_j+d_k]/2\pi`. 
 
-def _get_new_operators(
-    current_ops: Array,
-    current_sigs: SignalList,
-    rotating_frame: RotatingFrame,
-    frame_freqs: Array,
-    cutoff_freq: Union[float, int],
-):
-    r"""Given a set of operators as a (k,n,n) Array, a set of
-    frequencies (frame_freqs)_{jk} = Im[-d_j+d_k] where d_i
-    the i^{th} eigenlvalue of the frame operator F, the current
-    signals of a model, and a cutoff frequency, returns
-    the new operators and signals that should be passed to
-    create a new Model class after the RWA.
+    Optionally returns a function ``f`` that translates SignalLists
+    defined for the old Model to ones compatible with the new Model, as
+    ``new_model.signals = f(old_model_signal_list)``.
 
-    Args:
-        current_ops: the current operator list, (k,n,n) Array
-        current_sigs: (k) length SignalList
-        frame: current RotatingFrame object of the pre-RWA model
-        frame_freqs: the effective frequencies of different
-            matrix elements due to the conjugation by e^{\pm Ft}
-            in the rotating frame.
-        cutoff_freq: maximum frequency allowed under the RWA.
-    Returns:
-        Tuple[SignalList,Array] Tuple of Signal objects (post RWA)
-        and (2k,n,n) Array of new operators post RWA.
-    Raises:
-        NotImplementedError: if components s_j(t) are not equivalent
-        to pure Signal objects.
-    """
-
-    num_components = len(current_sigs)
-    n = current_ops.shape[-1]
-    frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
-
-    frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
-
-    carrier_freqs = []
-    for sig_sum in current_sigs.components:
-        if len(sig_sum.components) > 1:
-            raise NotImplementedError(
-                "RWA with coefficients s_j are not pure Signal objects is not currently supported."
-            )
-        sig = sig_sum.components[0]
-        carrier_freqs.append(sig.carrier_freq)
-    carrier_freqs = np.array(carrier_freqs).reshape((num_components, 1, 1))
-
-    pos_pass = np.abs(carrier_freqs + frame_freqs) < cutoff_freq
-    neg_pass = np.abs(-carrier_freqs + frame_freqs) < cutoff_freq
-
-    both_terms = current_ops * (pos_pass & neg_pass).astype(int)
-    pos_terms = current_ops * (pos_pass & np.logical_not(neg_pass)).astype(int)
-    neg_terms = current_ops * (np.logical_not(pos_pass) & neg_pass).astype(int)
-
-    normal_operators = both_terms + pos_terms / 2 + neg_terms / 2
-    abnormal_operators = 1j * pos_terms / 2 - 1j * neg_terms / 2
-
-    new_signals = _get_new_signals(current_sigs)
-    new_operators = rotating_frame.operator_out_of_frame_basis(
-        np.append(normal_operators, abnormal_operators, axis=0)
-    )
-
-    return new_signals, new_operators
-
-
-def _get_new_signals(old_signal_list: Union[List[Signal], SignalList]):
-    """Helper function that converts pre-RWA
-    signals to post-RWA signals"""
-    normal_signals = []
-    abnormal_signals = []
-    if not isinstance(old_signal_list, SignalList):
-        old_signal_list = SignalList(old_signal_list)
-    for sig_sum in old_signal_list.components:
-        if len(sig_sum.components) > 1:
-            raise NotImplementedError(
-                "RWA with coefficients s_j are not pure Signal objects is not currently supported."
-            )
-        sig = sig_sum.components[0]
-        normal_signals.append(sig)
-        abnormal_signals.append(
-            SignalSum(Signal(sig.envelope, sig.carrier_freq, sig.phase - np.pi / 2))
-        )
-
-    new_signals = SignalList(normal_signals + abnormal_signals)
-
-    return new_signals
-
-
-def perform_rotating_wave_approximation(
-    model: Union[GeneratorModel, HamiltonianModel, LindbladModel], cutoff_freq: Union[float, int]
-) -> Union[GeneratorModel, HamiltonianModel]:
-    r"""Performs RWA on a GeneratorModel so that all terms that
-    rotate with complex frequency larger than cutoff_freq are
-    discarded. In particular, let G(t) = \sum_j s_j(t) G_j + G_d,
-    and let us consider it in the rotating frame, so that the
-    actual operator that is applied is given by e^{-tF}(G(t) - F)e^{tF}
-    = \sum_js_j(t)e^{-tF}G_je^{tF} + e^{-tF}(G_d - F)e^{tF}
     Args:
         model: The GeneratorModel to which you
-        wish to apply the RWA
-        cutoff_freq: the maximum (magnitude) of
+        wish to apply the RWA.
+        cutoff_freq: The maximum (magnitude) of
         frequency you wish to allow.
+        return_signal_translator: Whether to also return a function f that 
+            converts pre-RWA SignalLists to post-RWA SignalLists.
     Returns:
-        GeneratorModel with twice as many terms
-        and some signals with negative frequencies,
-        function that converts pre-RWA signals to post-
-        RWA signals for signal setting.
+        GeneratorModel with twice as many terms, and, if return_signal_translator,
+        also the function f. 
     Raises:
-        NotImplementedError: if components s_j(t) are not equivalent
-        to pure Signal objects.
+        NotImplementedError: If components :math:`s_j(t)` are not equivalent
+        to pure Signal objects or if a ``CallableGenerator`` is passed. 
+        ValueError: If there aren't the same number of signals as operators. 
 
     Formalism: When we consider e^{-tF}A e^{tF} in the basis in which F
     is diagonal, we may write conjugation by e^{\pm tF} as elementwise
