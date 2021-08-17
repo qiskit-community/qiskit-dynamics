@@ -106,7 +106,7 @@ class BaseGeneratorModel(ABC):
             in_frame_basis: Flag for whether the returned operators should be
             in the basis in which the rotating frame operator is diagonal.
         Returns:
-            The operators in the basis specified by in_frame_basis"""
+            The operators in the basis specified by in_frame_basis."""
         pass
 
     def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
