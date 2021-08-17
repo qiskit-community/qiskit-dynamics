@@ -4,7 +4,8 @@
 on Model classes."""
 
 
-from typing import List, Union
+from qiskit_dynamics.models.generator_models import BaseGeneratorModel, CallableGenerator
+from typing import List, Optional, Union
 import numpy as np
 from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel, RotatingFrame
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
