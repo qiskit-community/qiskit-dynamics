@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""tests for quantum_models.HamiltonianModel"""
+"""tests for qiskit_dynamics.models.HamiltonianModel"""
 
 import numpy as np
 from scipy.linalg import expm
@@ -108,7 +108,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         self.assertAllClose(value, expected)
 
     def test_evaluate_generator_in_frame_basis_basic_hamiltonian(self):
-        """Test generator evaluation in frame basis in the basic_model."""
+        """Test generator evaluation in frame basis in the basic_hamiltonian."""
 
         frame_op = (self.X + 0.2 * self.Y + 0.1 * self.Z).data
 
