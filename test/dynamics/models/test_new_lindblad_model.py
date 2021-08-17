@@ -11,12 +11,10 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name,redundant-keyword-arg
 
-"""Tests for qiskit_dynamics.models.lindblad_models.py,
-after migration to the OperatorCollection system. Most
+"""Tests for qiskit_dynamics.models.lindblad_models.py. Most
 of the actual calculation checking is handled at the level of a
 models.operator_collection.DenseLindbladOperatorCollection test."""
 
-from qiskit_dynamics.dispatch.dispatch import Dispatch
 import numpy as np
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator

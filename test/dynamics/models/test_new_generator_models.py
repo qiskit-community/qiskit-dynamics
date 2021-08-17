@@ -11,8 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Tests for generator_models.py after
-beginning to use OperatorCollections. """
+"""Tests for generator_models.py. """
 
 from scipy.sparse import issparse
 from qiskit_dynamics.models.generator_models import CallableGenerator
