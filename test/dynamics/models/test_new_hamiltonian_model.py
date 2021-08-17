@@ -14,12 +14,14 @@
 """tests for qiskit_dynamics.models.HamiltonianModel"""
 
 import numpy as np
+from jax import jit, grad
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+from .test_operator_collections import _wrap
 
 
 class TestHamiltonianModel(QiskitDynamicsTestCase):
@@ -229,3 +231,30 @@ class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+    def test_jitable_funcs(self):
+        """Tests whether all functions are jitable.
+        Checks if having a frame makes a difference, as well as 
+        all jax-compatible evaluation_modes."""
+        _wrap(jit,self.basic_hamiltonian.evaluate_generator)(1)
+        _wrap(jit,self.basic_hamiltonian.evaluate_rhs)(1,Array(np.array([0.2,0.4])))
+
+        self.basic_hamiltonian.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(jit,self.basic_hamiltonian.evaluate_generator)(1)
+        _wrap(jit,self.basic_hamiltonian.evaluate_rhs)(1,Array(np.array([0.2,0.4])))
+
+        self.basic_hamiltonian.rotating_frame = None
+
+    def test_gradable_funcs(self):
+        """Tests whether all functions are gradable.
+        Checks if having a frame makes a difference, as well as 
+        all jax-compatible evaluation_modes."""
+        _wrap(grad,self.basic_hamiltonian.evaluate_generator)(1.0)
+        _wrap(grad,self.basic_hamiltonian.evaluate_rhs)(1.0,Array(np.array([0.2,0.4])))
+        
+        self.basic_hamiltonian.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(grad,self.basic_hamiltonian.evaluate_generator)(1.0)
+        _wrap(grad,self.basic_hamiltonian.evaluate_rhs)(1.0,Array(np.array([0.2,0.4])))
+
+        self.basic_hamiltonian.rotating_frame = None

@@ -16,12 +16,15 @@ of the actual calculation checking is handled at the level of a
 models.operator_collection.DenseLindbladOperatorCollection test."""
 
 import numpy as np
+from jax import jit, grad
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.dispatch.dispatch import Dispatch
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+from .test_operator_collections import _wrap
 
 
 class TestLindbladModel(QiskitDynamicsTestCase):
@@ -231,6 +234,54 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+
+    def test_jitable_funcs(self):
+        """Tests whether all functions are jitable.
+        Checks if having a frame makes a difference, as well as 
+        all jax-compatible evaluation_modes."""
+        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+
+        self.basic_lindblad.rotating_frame = None
+
+        self.basic_lindblad.set_evaluation_mode("dense_vectorized")
+
+        _wrap(jit,self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(jit,self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(jit,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+
+        self.basic_lindblad.rotating_frame = None
+    
+    def test_gradable_funcs(self):
+        """Tests whether all functions are gradable.
+        Checks if having a frame makes a difference, as well as 
+        all jax-compatible evaluation_modes."""
+        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([[0.2,0.4],[0.6,0.8]])))
+
+        self.basic_lindblad.rotating_frame = None
+
+        self.basic_lindblad.set_evaluation_mode("dense_vectorized")
+
+        _wrap(grad,self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        _wrap(grad,self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(grad,self.basic_lindblad.evaluate_rhs)(1.0,Array(np.array([0.2,0.4,0.6,0.8])))
+
+        self.basic_lindblad.rotating_frame = None
 
 
 def get_const_func(const):
