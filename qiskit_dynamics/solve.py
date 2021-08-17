@@ -265,13 +265,13 @@ def solve_lmde(
     # pylint: disable=too-many-boolean-expressions
     if (
         results.y.backend == "jax"
-        and (generator.rotating_frame.frame_diag is None or generator.rotating_fram.frame_diag.backend == "jax")
+        and (generator.rotating_frame.frame_diag is None or generator.rotating_frame.frame_diag.backend == "jax")
         and (output_frame.frame_diag is None or output_frame.frame_diag.backend == "jax")
         and y0_cls is None
     ):
         # if all relevant objects are jax-compatible, run jax-customized version
         output_states = _jax_lmde_output_state_converter(
-            results.t, results.y, generator.rotating_fram, output_frame, return_shape, y0_cls
+            results.t, results.y, generator.rotating_frame, output_frame, return_shape, y0_cls
         )
     else:
         output_states = []
