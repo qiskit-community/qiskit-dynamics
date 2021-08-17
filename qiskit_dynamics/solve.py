@@ -344,7 +344,7 @@ def setup_lmde_frames_and_generator(
         if isinstance(generator, HamiltonianModel):
             generator.rotating_frame = -1j * generator.get_drift()
         else:
-            generator.rotating_frame = anti_herm_part(generator.get_drift)
+            generator.rotating_frame = anti_herm_part(generator.get_drift())
     else:
         generator.rotating_frame = RotatingFrame(solver_frame)
 
