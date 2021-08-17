@@ -92,17 +92,15 @@ class BaseGeneratorModel(ABC):
         self,
         new_drift: Array,
         operator_in_frame_basis: Optional[bool] = False,
-        includes_frame_contribution: Optional[bool] = False,
     ):
         """Sets drift term. The drift term will be transformed into the rotating
-        frame basis and have the frame contribution (typically -F) added.
+        frame basis. If in a rotating frame, note that this will NOT automatically
+        add the -F or -iF term due to the frame shift. 
 
         Args:
             new_drift: The drift operator.
             operator_in_frame_basis: Whether new_drift is already in the rotating
-            frame basis.
-            includes_frame_contribution: Whether new_drift already includes the
-            contribution from the frame."""
+            frame basis."""
         if new_drift is None:
             new_drift = np.zeros((self.dim, self.dim))
 
@@ -110,21 +108,11 @@ class BaseGeneratorModel(ABC):
 
         if not operator_in_frame_basis and self.rotating_frame is not None:
             new_drift = self.rotating_frame.operator_into_frame_basis(new_drift)
-        if not includes_frame_contribution and self.rotating_frame.frame_diag is not None:
-            new_drift = new_drift + self.get_frame_contribution()
         self._drift = new_drift
         # pylint: disable=no-member
         if self._operator_collection is not None:
             # pylint: disable=no-member
             self._operator_collection.drift = new_drift
-
-    @abstractmethod
-    def get_frame_contribution(self):
-        """Gets frame contribution in frame basis. Typically -F
-        or -iF. Included so that set_drift can be more easily
-        modified across subclasses, because most implementations
-        will differ only by the frame transformation."""
-        pass
 
     @property
     def evaluation_mode(self) -> str:
@@ -372,7 +360,7 @@ class GeneratorModel(BaseGeneratorModel):
         self._operators = Array(np.array(operators))
         self._drift = None
         self._evaluation_mode = None
-        self.set_drift(drift, operator_in_frame_basis=True, includes_frame_contribution=True)
+        self.set_drift(drift, operator_in_frame_basis=True)
 
         # set frame and transform operators into frame basis.
         self._rotating_frame = None

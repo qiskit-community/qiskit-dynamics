@@ -105,9 +105,6 @@ class HamiltonianModel(GeneratorModel):
             evaluation_mode=evaluation_mode,
         )
 
-    def get_frame_contribution(self):
-        return Array(np.diag(-1j * self.rotating_frame.frame_diag))
-
     @property
     def rotating_frame(self) -> RotatingFrame:
         return super().rotating_frame

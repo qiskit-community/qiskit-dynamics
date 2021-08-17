@@ -93,7 +93,7 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_operators = Array(dissipator_operators)
 
         self._hamiltonian_operators = Array(np.array(hamiltonian_operators))
-        self.set_drift(drift, operator_in_frame_basis=True, includes_frame_contribution=True)
+        self.set_drift(drift, operator_in_frame_basis=True)
         self._dissipator_operators = dissipator_operators
 
         if isinstance(hamiltonian_signals, list):
@@ -149,9 +149,6 @@ class LindbladModel(BaseGeneratorModel):
             )
         else:
             return (self._hamiltonian_operators, self._dissipator_operators)
-
-    def _get_frame_contribution(self):
-        return -Array(1j * np.diag(self.rotating_frame.frame_diag))
 
     @property
     def operators(self) -> List[Array]:
