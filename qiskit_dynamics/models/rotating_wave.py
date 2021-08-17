@@ -146,4 +146,13 @@ def rotating_wave_approximation(
             model.rotating_frame,
             model.evaluation_mode,
         )
-    return new_model, _get_new_signals
+    if return_signal_translator:
+        if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
+            # if there are no frame frequencies, we don't need signal translating.
+            return new_model, lambda sigs: sigs
+        else:
+            # if there are nontrivial frame frequencies, we need signal translation.
+            return new_model, get_new_signals
+    else:
+        return new_model
+
