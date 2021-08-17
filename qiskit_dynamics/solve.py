@@ -242,7 +242,7 @@ def solve_lmde(
 
     # map y0 from input frame into solver frame and basis
     y0 = input_frame.state_out_of_frame(t_span[0], y0)
-    y0 = generator.frame.state_into_frame(t_span[0], y0, return_in_frame_basis=True)
+    y0 = generator.rotating_frame.state_into_frame(t_span[0], y0, return_in_frame_basis=True)
 
     # define rhs functions in frame basis
     def solver_generator(t):
@@ -265,13 +265,13 @@ def solve_lmde(
     # pylint: disable=too-many-boolean-expressions
     if (
         results.y.backend == "jax"
-        and (generator.frame.frame_diag is None or generator.frame.frame_diag.backend == "jax")
+        and (generator.rotating_frame.frame_diag is None or generator.rotating_fram.frame_diag.backend == "jax")
         and (output_frame.frame_diag is None or output_frame.frame_diag.backend == "jax")
         and y0_cls is None
     ):
         # if all relevant objects are jax-compatible, run jax-customized version
         output_states = _jax_lmde_output_state_converter(
-            results.t, results.y, generator.frame, output_frame, return_shape, y0_cls
+            results.t, results.y, generator.rotating_fram, output_frame, return_shape, y0_cls
         )
     else:
         output_states = []
@@ -280,7 +280,7 @@ def solve_lmde(
             out_y = results.y[idx]
 
             # transform out of solver frame/basis into output frame
-            out_y = generator.frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
+            out_y = generator.rotating_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
             out_y = output_frame.state_into_frame(time, out_y)
 
             # reshape to match input shape if necessary
@@ -323,12 +323,12 @@ def setup_lmde_frames_and_generator(
 
     # set input and output frames
     if isinstance(input_frame, str) and input_frame == "auto":
-        input_frame = generator.frame
+        input_frame = generator.rotating_frame
     else:
         input_frame = RotatingFrame(input_frame)
 
     if isinstance(output_frame, str) and output_frame == "auto":
-        output_frame = generator.frame
+        output_frame = generator.rotating_frame
     else:
         output_frame = RotatingFrame(output_frame)
 
@@ -336,14 +336,14 @@ def setup_lmde_frames_and_generator(
     # this must be done after input/output frames as it modifies the generator itself
     if isinstance(solver_frame, str) and solver_frame == "auto":
         # if auto, set it to the anti-hermitian part of the drift
-        generator.frame = None
+        generator.rotating_frame = None
 
         if isinstance(generator, HamiltonianModel):
-            generator.frame = -1j * generator.drift
+            generator.rotating_frame = -1j * generator.get_drift()
         else:
-            generator.frame = anti_herm_part(generator.drift)
+            generator.rotating_frame = anti_herm_part(generator.get_drift)
     else:
-        generator.frame = RotatingFrame(solver_frame)
+        generator.rotating_frame = RotatingFrame(solver_frame)
 
     generator.cutoff_freq = solver_cutoff_freq
 
