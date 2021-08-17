@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""tests for frame.py"""
+"""tests for rotating_frame.py"""
 
 import numpy as np
 
