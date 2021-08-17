@@ -85,6 +85,13 @@ def rotating_wave_approximation(
         raise ValueError("Model classes must have a well-defined signals object to perform the RWA.")
 
     n = model.dim
+
+    if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
+        # We can now safely ignore the frame frequency components, so this is much simpler.
+        frame_freqs = np.zeros((n,n))
+        new_drift = model.get_drift(True)
+
+    else:
     diag = model.rotating_frame.frame_diag
 
     diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
