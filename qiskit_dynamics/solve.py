@@ -284,7 +284,7 @@ def solve_lmde(
             out_y = output_frame.state_into_frame(time, out_y)
 
             # reshape to match input shape if necessary
-            out_y = final_state_converter(out_y.reshape(return_shape, order="F").data, y0_cls)
+            out_y = final_state_converter(out_y.reshape(return_shape, order="F"), y0_cls)
             output_states.append(out_y)
 
     results.y = output_states
