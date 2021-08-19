@@ -13,6 +13,7 @@
 
 """Tests for operator_collections.py."""
 
+from typing import Callable
 import numpy as np
 import numpy.random as rand
 
@@ -122,6 +123,7 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         ham_ops = []
         ham_ops_alt = []
         r = lambda *args: np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
+        # pylint: disable=unused-variable
         for i in range(4):
             op = r(3, 3)
             ham_ops.append(Operator(op))
@@ -328,17 +330,10 @@ class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollec
     is taken care of by the tests for LindbladModel.
     """
 
-    # def test_functions_jitable(self):
-    #     """Tests that all class functions are jittable"""
-    #     dlc = DenseVectorizedLindbladCollection(Array(self.rand_ham),drift=Array(self.rand_dft),dissipator_operators=Array(self.rand_dis))
-    #     _wrap(jit,dlc.evaluate_rhs)(Array(self.r(4)),Array(self.r(2)),self.rho)
-    #     _wrap(jit,dlc.evaluate_generator)(Array(self.r(4)),Array(self.r(2)))
-
-    # def test_functions_gradable(self):
-    #     """Tests if all class functions are gradable"""
-    #     dlc = DenseVectorizedLindbladCollection(Array(self.rand_ham),drift=Array(self.rand_dft),dissipator_operators=Array(self.rand_dis))
-    #     _wrap(grad,dlc.evaluate_rhs)(Array(self.rand_ham_sigs(self.t)),Array(self.rand_dis_sigs(self.t)),self.rho)
-    #     _wrap(grad,dlc.evaluate_generator)(Array(self.rand_ham_sigs(self.t)),Array(self.rand_dis_sigs(self.t)))
+    # DenseVectorizedLindbladCollection has methods that cannot be jited
+    # or graded. Despite this, the more important methods of evaluate_generator
+    # and evaluate_rhs of LindbladModel with evaluation_mode = "dense_vectorized"
+    # are jitable and gradable.
 
 
 class TestSparseLindbladCollection(QiskitDynamicsTestCase):
@@ -439,6 +434,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         ham_ar_terms = []
         dis_op_terms = []
         dis_ar_terms = []
+        # pylint: disable=unused-variable
         for i in range(4):
             H_i = self.r(3, 3)
             L_i = self.r(3, 3)
@@ -466,16 +462,16 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         )
 
 
-def _wrap(jax_func, func_to_test):
+def _wrap(jax_func: Callable, func_to_test: Callable) -> Callable:
     """Functions like DenseOperatorCollection.evaluate_generator
     are not wrapped properly by dispatch.wrap, so we take this
     extra step. Intended to wrap either jit or grad. Ensures output
     is a scalar real value.
     Args:
-        jax_func: either jit or grad.
-        func_to_test: whichever function is to be wrapped.
-    returns:
-        wrapped function."""
+        jax_func: Either jit or grad.
+        func_to_test: Whichever function is to be wrapped.
+    Returns:
+        Callable: wrapped function."""
     wf = wrap(jax_func, decorator=True)
     f = lambda *args: np.sum(func_to_test(*args)).real
     return wf(f)

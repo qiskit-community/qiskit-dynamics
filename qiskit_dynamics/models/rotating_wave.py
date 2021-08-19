@@ -4,10 +4,16 @@
 on Model classes."""
 
 
-from qiskit_dynamics.models.generator_models import BaseGeneratorModel, CallableGenerator
 from typing import List, Optional, Union
 import numpy as np
-from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel, RotatingFrame
+from qiskit_dynamics.models import (
+    BaseGeneratorModel,
+    CallableGenerator,
+    GeneratorModel,
+    HamiltonianModel,
+    LindbladModel,
+    RotatingFrame,
+)
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 
@@ -119,7 +125,7 @@ def rotating_wave_approximation(
         if isinstance(model, HamiltonianModel):
             if len(new_signals) != new_operators.shape[0]:
                 raise ValueError(
-                    "Number of Hamiltonian signals must be the same as the number of Hamiltonian operators."
+                    "Number of signals must be the same as the number of Hamiltonian operators."
                 )
             new_model = HamiltonianModel(
                 new_operators,
@@ -149,7 +155,7 @@ def rotating_wave_approximation(
         )
         if len(new_ham_sig) != new_ham_ops.shape[0]:
             raise ValueError(
-                "Number of Hamiltonian signals must be the same as the number of Hamiltonian operators."
+                "Number of signals must be the same as the number of Hamiltonian operators."
             )
         if cur_dis_ops is not None and cur_dis_sig is not None:
             new_dis_sig, new_dis_ops = get_new_operators(
@@ -157,7 +163,7 @@ def rotating_wave_approximation(
             )
             if len(new_dis_sig) != new_dis_ops.shape[0]:
                 raise ValueError(
-                    "Number of dissipator signals must be the same as the number of dissipator operators."
+                    "Number of signals must be the same as the number of dissipator operators."
                 )
 
         new_model = LindbladModel(
@@ -197,13 +203,13 @@ def get_new_operators(
     Args:
         current_ops: the current operator list, (k,n,n) Array
         current_sigs: (k) length SignalList
-        frame: current RotatingFrame object of the pre-RWA model
+        rotating_frame: current RotatingFrame object of the pre-RWA model
         frame_freqs: the effective frequencies of different
             matrix elements due to the conjugation by e^{\pm Ft}
             in the rotating frame.
         cutoff_freq: maximum frequency allowed under the RWA.
     Returns:
-        Tuple[SignalList,Array] Tuple of Signal objects (post RWA)
+        Tuple[SignalList,Array]: Tuple of Signal objects (post RWA)
         and (2k,n,n) Array of new operators post RWA.
     Raises:
         NotImplementedError: if components s_j(t) are not equivalent
