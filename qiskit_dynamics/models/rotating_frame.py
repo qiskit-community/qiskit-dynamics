@@ -17,18 +17,17 @@ Module for rotating frame handling classes.
 
 from typing import Union, List, Optional
 import numpy as np
-from scipy.sparse import issparse
+from scipy.sparse import issparse, csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
-from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
 
 
 class RotatingFrame:
-    """
+    r"""
     A 'rotating frame' is given by an anti-Hermitian matrix :math:`F`, specified
     either directly, or in terms of a Hermitian matrix :math:`H` with
     :math:`F = -iH`. Frames have relevance within the context of linear
@@ -177,7 +176,8 @@ class RotatingFrame:
         """
         if self.frame_basis_adjoint is None:
             return to_array(y)
-
+        print(self.frame_basis_adjoint.shape)
+        print(y.shape)
         return self.frame_basis_adjoint @ y
 
     def state_out_of_frame_basis(self, y: Array) -> Array:
@@ -298,7 +298,7 @@ class RotatingFrame:
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
-    ):
+    ) -> Array:
         r"""General helper function for computing :math:`\exp(-tF)G\exp(tF) + B`.
 
         Note: B is added in the frame basis before any potential final change
@@ -313,6 +313,8 @@ class RotatingFrame:
             vectorized_operators: Whether ``operator`` is passed as a vectorized,
                 ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
 
+        Returns:
+            Array of newly conjugated operator.
         """
         if vectorized_operators:
             # If passing vectorized operator, undo vectorization temporarily
@@ -378,6 +380,9 @@ class RotatingFrame:
                               the basis in which the frame is diagonal.
             return_in_frame_basis: Whether or not to return the result
                                    in the frame basis.
+            vectorized_operators: Whether ``operator`` is passed as a vectorized,
+                ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
+
         Returns:
             Array: operator in frame.
         """
@@ -409,6 +414,8 @@ class RotatingFrame:
                               the basis in which the frame is diagonal.
             return_in_frame_basis: Whether or not to return the result
                                    in the frame basis.
+            vectorized_operators: Whether ``operator`` is passed as a vectorized,
+                ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
 
         Returns:
             Array: operator out of frame.
@@ -441,6 +448,8 @@ class RotatingFrame:
                               the basis in which the frame is diagonal.
             return_in_frame_basis: Whether or not to return the result
                                    in the frame basis.
+            vectorized_operators: Whether ``operator`` is passed as a vectorized,
+                ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
 
         Returns:
             Array: Generator in frame.

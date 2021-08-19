@@ -18,14 +18,11 @@ reshaping arrays, and handling qiskit types that wrap arrays.
 """
 
 from typing import Union, List
-
 import numpy as np
+from scipy.sparse import issparse, spmatrix
 
 from qiskit.quantum_info.operators import Operator
-
 from qiskit_dynamics.dispatch import Array
-
-from scipy.sparse import issparse, spmatrix
 
 
 class StateTypeConverter:

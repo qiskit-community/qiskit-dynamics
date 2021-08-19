@@ -206,11 +206,12 @@ def solve_lmde(
         method: Solving method to use.
         t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
                 the solution will be returned at the points in ``t_span``.
-        input_frame: RotatingFrame that the initial state is specified in. If ``input_frame == 'auto'``,
-                     defaults to using the frame the generator is specified in.
-        solver_frame: RotatingFrame to solve the system in. If ``solver_frame == 'auto'``, defaults to
-                      using the drift of the generator when specified as a
-                      :class:`BaseGeneratorModel`.
+        input_frame: RotatingFrame that the initial state is specified in.
+            If ``input_frame == 'auto'``, defaults to using the frame the
+            generator is specified in.
+        solver_frame: RotatingFrame to solve the system in. If
+            ``solver_frame == 'auto'``, defaults to using the drift
+            of the generator when specified as a :class:`BaseGeneratorModel`.
         output_frame: RotatingFrame to return the results in. If ``output_frame == 'auto'``,
                      defaults to using the frame the generator is specified in.
         solver_cutoff_freq: Cutoff frequency to use (if any) for doing the rotating
@@ -313,7 +314,8 @@ def setup_lmde_frames_and_generator(
         solver_cutoff_freq: Cutoff frequency to use when solving.
 
     Returns:
-        RotatingFrame, RotatingFrame, BaseGeneratorModel: input frame, output frame, and BaseGeneratorModel
+        RotatingFrame, RotatingFrame, BaseGeneratorModel:
+            input frame, output frame, and BaseGeneratorModel
     """
 
     generator = None

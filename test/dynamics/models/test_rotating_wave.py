@@ -13,14 +13,16 @@
 
 """tests for qiskit_dynamics.models.rotating_wave"""
 
-from qiskit_dynamics.dispatch.array import Array
 import numpy as np
+from qiskit_dynamics.dispatch.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.models import GeneratorModel, rotating_wave_approximation
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class TestRotatingWave(QiskitDynamicsTestCase):
+    """Tests the rotating_wave_approximation function."""
+
     def setUp(self):
         pass
 
@@ -61,7 +63,7 @@ class TestRotatingWave(QiskitDynamicsTestCase):
         GM = GeneratorModel(ops, signals=sigs, drift=dft, rotating_frame=None)
         GMP = rotating_wave_approximation(GM, 2)
         self.assertAllClose(GMP.get_drift(True), Array(np.ones((2, 2))))
-        post_rwa_ops = Array(np.array([1, 0, 1, 0]).reshape(4, 1, 1)) * ops
+        post_rwa_ops = Array(np.array([1, 0, 1, 0]).reshape((4, 1, 1))) * ops
         self.assertAllClose(GMP.get_operators(True), post_rwa_ops)
 
 

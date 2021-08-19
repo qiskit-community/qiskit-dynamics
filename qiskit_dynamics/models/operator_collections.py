@@ -143,7 +143,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`.
             drift: (n,n) Array specifying the drift term :math:`G_d`.
-            decimals: Values will be rounded at ``decimals`` places after decimal place.
+            decimals: Values will be rounded at ``decimals`` places after decimal.
                 Avoids storing excess sparse entries for entries close to zero."""
         if isinstance(drift, Operator):
             drift = to_array(drift)
@@ -187,21 +187,24 @@ class SparseOperatorCollection(BaseOperatorCollection):
             # For y a matrix with y[:,i] storing the i^{th} state, it is faster to
             # first evaluate the generator in most cases
             gen = np.tensordot(signal_values, self._operators, axes=1) + self.drift
-            return gen.dot(y)
+            out = gen.dot(y)
         elif len(y.shape) == 1:
             # for y a vector, it is typically faster to use the following, very
             # strange-looking implementation
             tmparr = np.empty(shape=(1), dtype="O")
             tmparr[0] = y
-            return np.dot(signal_values, self._operators * tmparr) + self.drift.dot(y)
+            out = np.dot(signal_values, self._operators * tmparr) + self.drift.dot(y)
+        return out
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
     r"""Calculation object for the Lindblad equation:
         .. math::
-            \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)(L_j\rho L_j^\dagger - (1/2) * {L_j^\daggerL_j,\rho})
+            \dot{\rho} = -i[H,\rho] + \sum_j\gamma_j(t)(L_j\rho L_j^\dagger
+                                        - (1/2) * {L_j^\daggerL_j,\rho})
 
-    where :math:`\[,\]` and :math:`\{,\}` are the operator commutator and anticommutator, respectively."""
+    where :math:`\[,\]` and :math:`\{,\}` are the operator
+    commutator and anticommutator, respectively."""
 
     def __init__(
         self,
@@ -341,8 +344,8 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
-            ham_sig_values: hamiltonian signal coefficients.
-            dis_sig_values: dissipator signal coefficients.
+            ham_sig_vals: hamiltonian signal coefficients.
+            dis_sig_vals: dissipator signal coefficients.
                 If none involved, pass None.
             y: Density matrix represented as a vector using column-stacking
                 convention.
@@ -355,10 +358,8 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
-            ham_sig_values: stores the Hamiltonian signal coefficients.
-            dis_sig_values: stores the dissipator signal coefficients.
-            y: Density matrix represented as a vector using column-stacking
-                convention.
+            ham_sig_vals: stores the Hamiltonian signal coefficients.
+            dis_sig_vals: stores the dissipator signal coefficients.
         Returns:
             Vectorized generator of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
@@ -483,8 +484,8 @@ class SparseLindbladCollection(DenseLindbladCollection):
         else:
             out = (([hamiltonian_matrix] * y) - (y * [hamiltonian_matrix]))[0]
         if len(y.shape) == 2:
-            # Very slow step, so avoid if not necessary (or if a better implementation found). Would
-            # need to map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
+            # Very slow; avoid if not necessary (or if better implementation found). Needs to
+            # map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
             out = unpackage_density_matrices(out.reshape(y.shape[0], 1))
 
         return out

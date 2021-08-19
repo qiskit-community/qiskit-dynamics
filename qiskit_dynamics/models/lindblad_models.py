@@ -150,10 +150,6 @@ class LindbladModel(BaseGeneratorModel):
         else:
             return (self._hamiltonian_operators, self._dissipator_operators)
 
-    @property
-    def operators(self) -> List[Array]:
-        return [self._hamiltonian_operators, self._dissipator_operators]
-
     def set_evaluation_mode(self, new_mode: str):
         """Sets evaluation mode.
         Args:
@@ -231,9 +227,6 @@ class LindbladModel(BaseGeneratorModel):
             drift=hamiltonian.get_drift(False),
             evaluation_mode=evaluation_mode,
         )
-
-    def get_frame_contribution(self):
-        return Array(np.diag(-1j * self.rotating_frame.frame_diag))
 
     @property
     def rotating_frame(self):
@@ -336,7 +329,15 @@ class LindbladModel(BaseGeneratorModel):
 
         return rhs
 
-    def evaluate_hamiltonian(self, time, in_frame_basis: Optional[bool] = False):
+    def evaluate_hamiltonian(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        """Evaluates Hamiltonian matrix at a given time.
+
+        Args:
+            time: The time at which to evaluate the hamiltonian.
+            in_frame_basis: Whether to evaluate in the basis in which
+                the frame operator is diagonal.
+        Returns:
+            Array: Hamiltonian matrix."""
         hamiltonian_sig_vals = self._hamiltonian_signals(time)
         ham = self._operator_collection.evaluate_hamiltonian(hamiltonian_sig_vals)
         if self.rotating_frame.frame_diag is not None:

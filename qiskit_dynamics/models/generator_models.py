@@ -180,7 +180,7 @@ class BaseGeneratorModel(ABC):
     def __call__(
         self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False
     ) -> Array:
-        """Evaluate generator RHS functions. If ``y is None``,
+        r"""Evaluate generator RHS functions. If ``y is None``,
         tries to evaluate :math:`\Lambda(t)` using the desired
         representation of the linear map. Otherwise, calculates
         :math:`\Lambda(y,t)`
@@ -248,16 +248,12 @@ class CallableGenerator(BaseGeneratorModel):
         self,
         new_drift: Array,
         operator_in_frame_basis: Optional[bool] = False,
-        includes_frame_contribution: Optional[bool] = False,
     ):
         # Subtracting the frame operator from the generator is handled at evaluation time.
         if operator_in_frame_basis and self.rotating_frame is not None:
             self._drift = self.rotating_frame.operator_out_of_frame_basis(new_drift)
         else:
             self._drift = new_drift
-
-    def get_frame_contribution(self):
-        raise ValueError("Frame Contribution for CallableGenerator is not well-defined")
 
     def set_evaluation_mode(self, new_mode: str):
         """Setting the evaluation mode for CallableGenerator
@@ -378,9 +374,6 @@ class GeneratorModel(BaseGeneratorModel):
             return self.rotating_frame.operator_out_of_frame_basis(self._operators)
         else:
             return self._operators
-
-    def get_frame_contribution(self):
-        return Array(np.diag(-1 * self.rotating_frame.frame_diag))
 
     @property
     def dim(self) -> int:

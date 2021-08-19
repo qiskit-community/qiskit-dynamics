@@ -15,14 +15,14 @@
 
 from jax import jit, grad
 from scipy.sparse import issparse
+from scipy.linalg import expm
 import numpy as np
 import numpy.random as rand
-from scipy.linalg import expm
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import CallableGenerator, GeneratorModel, RotatingFrame
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.dispatch import Array, wrap
+from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 from .test_operator_collections import _wrap
 
