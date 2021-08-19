@@ -55,8 +55,8 @@ class HamiltonianModel(GeneratorModel):
     def __init__(
         self,
         operators: List[Operator],
-        drift: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
+        drift: Optional[Array] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         validate: bool = True,
         evaluation_mode: str = "dense",
