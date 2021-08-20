@@ -70,4 +70,4 @@ from .operator_collections import (
     DenseVectorizedLindbladCollection,
     SparseLindbladCollection,
 )
-from .rotating_wave import rotating_wave_approximation
+from .rotating_wave_approximation import rotating_wave_approximation

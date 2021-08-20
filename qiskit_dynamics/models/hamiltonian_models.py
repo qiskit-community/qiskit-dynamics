@@ -93,7 +93,7 @@ class HamiltonianModel(GeneratorModel):
         if validate:
             adj = np.transpose(np.conjugate(operators), (0, 2, 1))
             if np.linalg.norm(adj - operators) > 1e-10 or (
-                drift is not None and np.linalg.norm(drift - np.transpose(drift)) > 1e-10
+                drift is not None and np.linalg.norm(drift - np.conjugate(np.transpose(drift))) > 1e-10
             ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
@@ -142,6 +142,6 @@ class HamiltonianModel(GeneratorModel):
         """
 
         if y is None:
-            return -1j * self.evaluate_generator(t, in_frame_basis=in_frame_basis)
+            return -1j * self.evaluate(t, in_frame_basis=in_frame_basis)
 
         return -1j * self.evaluate_rhs(t, y, in_frame_basis=in_frame_basis)

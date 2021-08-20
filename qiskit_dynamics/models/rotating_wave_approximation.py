@@ -1,4 +1,15 @@
-##COPYRIGHT STUFF
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2021.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """Functions for performing the Rotating Wave Approximation
 on Model classes."""
@@ -147,7 +158,7 @@ def rotating_wave_approximation(
                 evaluation_mode=model.evaluation_mode,
             )
     elif isinstance(model, LindbladModel):
-        cur_ham_ops, cur_dis_ops = model.operators
+        cur_ham_ops, cur_dis_ops = model.get_operators(in_frame_basis=True)
         cur_ham_sig, cur_dis_sig = model.signals
 
         new_ham_sig, new_ham_ops = get_new_operators(
