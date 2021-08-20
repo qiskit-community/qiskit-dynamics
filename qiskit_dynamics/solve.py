@@ -334,7 +334,6 @@ def setup_lmde_frames_and_generator(
         RotatingFrame, RotatingFrame, BaseGeneratorModel:
             input frame, output frame, and BaseGeneratorModel
     """
-
     generator = None
 
     # if not an instance of a subclass of BaseGeneratorModel assume Callable
