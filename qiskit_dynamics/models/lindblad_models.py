@@ -28,6 +28,7 @@ from .operator_collections import (
     DenseVectorizedLindbladCollection,
     SparseLindbladCollection,
 )
+from qiskit_dynamics.type_utils import to_array
 from .rotating_frame import RotatingFrame
 
 
@@ -90,9 +91,9 @@ class LindbladModel(BaseGeneratorModel):
         self._rotating_frame = None
 
         if dissipator_operators is not None:
-            dissipator_operators = Array(dissipator_operators)
+            dissipator_operators = to_array(dissipator_operators)
 
-        self._hamiltonian_operators = Array(np.array(hamiltonian_operators))
+        self._hamiltonian_operators = to_array(hamiltonian_operators)
         self.set_drift(drift, operator_in_frame_basis=True)
         self._dissipator_operators = dissipator_operators
 
@@ -159,7 +160,7 @@ class LindbladModel(BaseGeneratorModel):
                 dense_vectorized: Stores the Hamiltonian and dissipator
                     terms as a (dim^2,dim^2) matrix that acts on a vectorized
                     density matrix by left-multiplication. Can evaluate generator
-                    While the full evaluate_rhs and evaluate_generator functions
+                    While the full evaluate_rhs and evaluate functions
                     are compilable, the operator collection's evaluation methods
                     are not jax compilable/differentiable.
                 sparse: Like dense, but stores Hamiltonian components with
@@ -263,13 +264,13 @@ class LindbladModel(BaseGeneratorModel):
         # Ensure these changes are passed on to the operator collection.
         self.set_evaluation_mode(self.evaluation_mode)
 
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         if self._dissipator_signals is not None:
             dissipator_sig_vals = self._dissipator_signals(time)
         else:
             dissipator_sig_vals = None
         if self.evaluation_mode == "dense_vectorized":
-            out = self._operator_collection.evaluate_generator(
+            out = self._operator_collection.evaluate(
                 self._hamiltonian_signals(time), dissipator_sig_vals
             )
             return self.rotating_frame.vectorized_operator_into_frame(

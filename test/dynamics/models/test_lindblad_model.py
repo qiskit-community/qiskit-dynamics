@@ -219,7 +219,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertAllClose(value, vectorized_value)
 
         vectorized_value_lmult = (
-            lindblad_model.evaluate_generator(t, in_frame_basis=False) @ A.flatten(order="F")
+            lindblad_model.evaluate(t, in_frame_basis=False) @ A.flatten(order="F")
         ).reshape((dim, dim), order="F")
         self.assertAllClose(value, vectorized_value_lmult)
 
@@ -249,12 +249,12 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
 
         self.basic_lindblad.set_evaluation_mode("dense_vectorized")
 
-        _wrap(jit, self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(jit, self.basic_lindblad.evaluate)(1.0)
         _wrap(jit, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
 
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(jit, self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(jit, self.basic_lindblad.evaluate)(1.0)
         _wrap(jit, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
 
         self.basic_lindblad.rotating_frame = None
@@ -277,12 +277,12 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
 
         self.basic_lindblad.set_evaluation_mode("dense_vectorized")
 
-        _wrap(grad, self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_lindblad.evaluate)(1.0)
         _wrap(grad, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
 
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(grad, self.basic_lindblad.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_lindblad.evaluate)(1.0)
         _wrap(grad, self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
 
         self.basic_lindblad.rotating_frame = None

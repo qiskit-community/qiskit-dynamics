@@ -85,8 +85,9 @@ from .solvers.scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .solvers.jax_odeint import jax_odeint
 
 from .models.rotating_frame import RotatingFrame
+from .models.rotating_wave_approximation import rotating_wave_approximation
 from .models.generator_models import BaseGeneratorModel, CallableGenerator
-from .models import HamiltonianModel
+from .models import HamiltonianModel, LindbladModel
 
 try:
     from jax.lax import scan
@@ -225,6 +226,11 @@ def solve_lmde(
         QiskitError: If specified method does not exist, or if dimension of y0 is incompatible
                      with generator dimension.
     """
+
+    if isinstance(generator, LindbladModel) and generator.evaluation_mode == 'dense_vectorized':
+        raise QiskitError("""Special handling of dense_vectorized mode for LindbladModel not
+                            supported. Pass the LindbladModel.__call__ function to solve.""")
+
     t_span = Array(t_span)
     y0, y0_cls = initial_state_converter(y0, return_class=True)
 
@@ -239,11 +245,18 @@ def solve_lmde(
 
     # store shape of y0, and reshape y0 if necessary
     return_shape = y0.shape
-    y0 = lmde_y0_reshape(generator_dim=generator(t_span[0]).shape[0], y0=y0)
+    if isinstance(generator, CallableGenerator):
+        y0 = lmde_y0_reshape(generator_dim=generator(t_span[0]).shape[0], y0=y0)
+    else:
+        y0 = lmde_y0_reshape(generator_dim=generator.dim, y0=y0)
 
     # map y0 from input frame into solver frame and basis
-    y0 = input_frame.state_out_of_frame(t_span[0], y0)
-    y0 = generator.rotating_frame.state_into_frame(t_span[0], y0, return_in_frame_basis=True)
+    if isinstance(generator, LindbladModel):
+        y0 = input_frame.operator_out_of_frame(t_span[0], y0)
+        y0 = generator.rotating_frame.operator_into_frame(t_span[0], y0, return_in_frame_basis=True)
+    else:
+        y0 = input_frame.state_out_of_frame(t_span[0], y0)
+        y0 = generator.rotating_frame.state_into_frame(t_span[0], y0, return_in_frame_basis=True)
 
     # define rhs functions in frame basis
     def solver_generator(t):
@@ -275,7 +288,7 @@ def solve_lmde(
     ):
         # if all relevant objects are jax-compatible, run jax-customized version
         output_states = _jax_lmde_output_state_converter(
-            results.t, results.y, generator.rotating_frame, output_frame, return_shape, y0_cls
+            results.t, results.y, generator.rotating_frame, output_frame, return_shape, y0_cls, isinstance(generator, LindbladModel)
         )
     else:
         output_states = []
@@ -284,8 +297,12 @@ def solve_lmde(
             out_y = results.y[idx]
 
             # transform out of solver frame/basis into output frame
-            out_y = generator.rotating_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
-            out_y = output_frame.state_into_frame(time, out_y)
+            if isinstance(generator, LindbladModel):
+                out_y = generator.rotating_frame.operator_out_of_frame(time, out_y, y_in_frame_basis=True)
+                out_y = output_frame.operator_into_frame(time, out_y)
+            else:
+                out_y = generator.rotating_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
+                out_y = output_frame.state_into_frame(time, out_y)
 
             # reshape to match input shape if necessary
             out_y = final_state_converter(out_y.reshape(return_shape, order="F"), y0_cls)
@@ -350,7 +367,8 @@ def setup_lmde_frames_and_generator(
     else:
         generator.rotating_frame = RotatingFrame(solver_frame)
 
-    generator.cutoff_freq = solver_cutoff_freq
+    if solver_cutoff_freq is not None:
+        generator = rotating_wave_approximation(generator, solver_cutoff_freq)
 
     return input_frame, output_frame, generator
 
@@ -446,6 +464,7 @@ def _jax_lmde_output_state_converter(
     output_frame: RotatingFrame,
     return_shape: Tuple,
     y0_cls: object,
+    operator_mode: Optional[bool] = False
 ) -> Union[List, Array]:
     """Jax control-flow based output state converter for solve_lmde.
 
@@ -457,6 +476,7 @@ def _jax_lmde_output_state_converter(
         output_frame: RotatingFrame to be converted to.
         return_shape: Shape for output states.
         y0_cls: Output state return class.
+        operator_mode: Whether or not to use operator based-transformations.
 
     Returns:
         Union[List, Array]: output states
@@ -464,8 +484,14 @@ def _jax_lmde_output_state_converter(
 
     def scan_f(_, x):
         time, out_y = x
-        out_y = solver_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
-        out_y = output_frame.state_into_frame(time, out_y)
+        # transform out of solver frame/basis into output frame
+        if operator_mode:
+            out_y = solver_frame.operator_out_of_frame(time, out_y, y_in_frame_basis=True)
+            out_y = output_frame.operator_into_frame(time, out_y)
+        else:
+            out_y = solver_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
+            out_y = output_frame.state_into_frame(time, out_y)
+
         out_y = out_y.reshape(return_shape, order="F").data
         return None, out_y
 
