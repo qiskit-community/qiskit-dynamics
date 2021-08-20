@@ -22,7 +22,7 @@ from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
-class TestFrame(QiskitDynamicsTestCase):
+class TestRotatingFrame(QiskitDynamicsTestCase):
     """Tests for RotatingFrame."""
 
     def setUp(self):
@@ -412,10 +412,10 @@ class TestFrame(QiskitDynamicsTestCase):
         self.assertAllClose(value, expected, rtol=1e-10, atol=1e-10)
 
 
-class TestFrameJax(TestFrame, TestJaxBase):
-    """Jax version of TestFrame tests.
+class TestFrameJax(TestRotatingFrame, TestJaxBase):
+    """Jax version of TestRotatingFrame tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class has more tests due to inheritance.
     """
 
     def test_instantiation_errors(self):

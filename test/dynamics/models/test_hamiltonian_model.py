@@ -229,7 +229,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
     """Jax version of TestHamiltonianModel tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class has contains more tests due to inheritance.
     """
 
     def test_jitable_funcs(self):

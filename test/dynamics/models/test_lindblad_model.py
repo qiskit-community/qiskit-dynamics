@@ -232,7 +232,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
     """Jax version of TestLindbladModel tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class has contains more tests due to inheritance.
     """
 
     def test_jitable_funcs(self):

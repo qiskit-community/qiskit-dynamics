@@ -75,7 +75,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
 class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
     """Jax version of TestDenseOperatorCollection tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class has more tests due to inheritance.
     """
 
     def test_functions_jitable(self):
@@ -244,7 +244,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
     """Jax version of TestDenseLindbladCollection tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class has more tests due to inheritance.
     """
 
     def test_functions_jitable(self):
@@ -323,7 +323,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
 class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
     """Jax version of TestDenseVectorizedLindbladCollection tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class has more tests due to inheritance.
 
     Note: The evaluation processes for DenseVectorizedLindbladCollection
     are not directly jitable or compilable. The compilation of these steps

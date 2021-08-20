@@ -513,7 +513,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
     """Jax version of TestGeneratorModel tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class contains more tests due to inheritance.
     """
 
     def test_jitable_funcs(self):
@@ -617,7 +617,7 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
 class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):
     """Jax version of TestCallableGenerator tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class contains more tests due to inheritance.
     """
 
     def test_jitable_funcs(self):
