@@ -36,31 +36,26 @@ class TestLMDESetup(QiskitDynamicsTestCase):
         # define a basic model
         w = 2.0
         r = 0.5
-        operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * r * self.X / 2]
-        signals = [w, Signal(1.0, w)]
+        drift = -1j * 2 * w * np.pi * self.Z / 2
+        operators = [-1j * 2 * np.pi * r * self.X / 2]
+        signals = [Signal(1.0, w)]
 
         self.w = 2
         self.r = r
-        self.basic_model = GeneratorModel(operators=operators, signals=signals)
+        self.basic_model = GeneratorModel(operators=operators, signals=signals, drift=drift)
 
         self.y0 = Array([1.0, 0.0], dtype=complex)
 
     def test_auto_frame_handling(self):
         """Test automatic setting of frames."""
 
-        self.basic_model.frame = self.X
+        self.basic_model.rotating_frame = self.X
 
         input_frame, output_frame, generator = setup_lmde_frames_and_generator(self.basic_model)
 
-        self.assertTrue(
-            np.allclose(input_frame.frame_operator, Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex))
-        )
-        self.assertTrue(
-            np.allclose(output_frame.frame_operator, Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex))
-        )
-        self.assertTrue(
-            np.allclose(generator.frame.frame_operator, -1j * 2 * np.pi * self.w * self.Z / 2)
-        )
+        self.assertAllClose(input_frame.frame_operator, Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex))
+        self.assertAllClose(output_frame.frame_operator, Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex))
+        self.assertAllClose(generator.rotating_frame.frame_operator, -1j * 2 * np.pi * self.w * self.Z / 2)
 
     def test_y0_reshape(self):
         """Test automatic detection of vectorized LMDE."""
@@ -71,15 +66,6 @@ class TestLMDESetup(QiskitDynamicsTestCase):
         expected = y0.flatten(order="F")
 
         self.assertAllClose(output, expected)
-
-    def test_solver_cutoff_freq(self):
-        """Test correct setting of solver cutoff freq."""
-        _, _, generator = setup_lmde_frames_and_generator(
-            self.basic_model, solver_cutoff_freq=2 * self.w
-        )
-
-        self.assertTrue(generator.cutoff_freq == 2 * self.w)
-        self.assertTrue(self.basic_model.cutoff_freq is None)
 
     def test_generator(self):
         """Test correct evaluation of generator.
