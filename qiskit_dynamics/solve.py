@@ -298,7 +298,7 @@ def solve_lmde(
 
             # transform out of solver frame/basis into output frame
             if isinstance(generator, LindbladModel):
-                out_y = generator.rotating_frame.operator_out_of_frame(time, out_y, y_in_frame_basis=True)
+                out_y = generator.rotating_frame.operator_out_of_frame(time, out_y, operator_in_frame_basis=True)
                 out_y = output_frame.operator_into_frame(time, out_y)
             else:
                 out_y = generator.rotating_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
@@ -485,7 +485,7 @@ def _jax_lmde_output_state_converter(
         time, out_y = x
         # transform out of solver frame/basis into output frame
         if operator_mode:
-            out_y = solver_frame.operator_out_of_frame(time, out_y, y_in_frame_basis=True)
+            out_y = solver_frame.operator_out_of_frame(time, out_y, operator_in_frame_basis=True)
             out_y = output_frame.operator_into_frame(time, out_y)
         else:
             out_y = solver_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
