@@ -126,22 +126,9 @@ class HamiltonianModel(GeneratorModel):
             self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
         self.set_evaluation_mode(self.evaluation_mode)
+    
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        return -1j*super().evaluate(time, in_frame_basis=in_frame_basis)
 
-    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
-        """Evaluate generator RHS functions. Needs to be overriden from base class
-        to include :math:`-i`. I.e. if ``y is None``, returns :math:`-iH(t)`,
-        and otherwise returns :math:`-iH(t)y`.
-
-        Args:
-            t: Time.
-            y: Optional state.
-            in_frame_basis: Whether or not to evaluate in the frame basis.
-
-        Returns:
-            Array: Either the evaluated model or the RHS for the given y
-        """
-
-        if y is None:
-            return -1j * self.evaluate(t, in_frame_basis=in_frame_basis)
-
-        return -1j * self.evaluate_rhs(t, y, in_frame_basis=in_frame_basis)
+    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+        return -1j*super().evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
