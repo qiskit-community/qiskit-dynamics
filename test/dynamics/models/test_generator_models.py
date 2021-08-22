@@ -50,17 +50,17 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         set up basic model.
         """
 
-        self._basic_frame_evaluate_generator_test(Array([1j, -1j]), 1.123)
-        self._basic_frame_evaluate_generator_test(Array([1j, -1j]), np.pi)
+        self._basic_frame_evaluate_test(Array([1j, -1j]), 1.123)
+        self._basic_frame_evaluate_test(Array([1j, -1j]), np.pi)
 
     def test_non_diag_frame_operator_basic_model(self):
         """Test setting a non-diagonal frame operator for the internally
         set up basic model.
         """
-        self._basic_frame_evaluate_generator_test(-1j * (self.Y + self.Z), 1.123)
-        self._basic_frame_evaluate_generator_test(-1j * (self.Y - self.Z), np.pi)
+        self._basic_frame_evaluate_test(-1j * (self.Y + self.Z), 1.123)
+        self._basic_frame_evaluate_test(-1j * (self.Y - self.Z), np.pi)
 
-    def _basic_frame_evaluate_generator_test(self, frame_operator, t):
+    def _basic_frame_evaluate_test(self, frame_operator, t):
         """Routine for testing setting of valid frame operators using the
         basic_model.
         """
@@ -131,7 +131,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected)
 
-    def test_evaluate_generator_pseudorandom(self):
+    def test_evaluate_pseudorandom(self):
         """Test evaluate with pseudorandom inputs."""
 
         rng = np.random.default_rng(30493)
@@ -153,7 +153,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate_generator(
+        self._test_evaluate(
             frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases
         )
 
@@ -177,11 +177,11 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate_generator(
+        self._test_evaluate(
             frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases
         )
 
-    def _test_evaluate_generator(self, frame_op, operators, coefficients, carriers, phases):
+    def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
         sig_list = []
         for coeff, freq, phase in zip(coefficients, carriers, phases):
 
@@ -201,7 +201,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(
             model.rotating_frame.operator_out_of_frame_basis(
-                model._operator_collection.evaluate_generator(coeffs)
+                model._operator_collection.evaluate(coeffs)
             ),
             np.tensordot(coeffs, operators, axes=1) - frame_op,
         )
@@ -251,7 +251,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         with self.assertRaises(QiskitError):
             self.basic_model.signals = [1.0]
 
-    def test_evaluate_generator_analytic(self):
+    def test_evaluate_analytic(self):
         """Test for checking that with known operators that
         the Model returns the analyticlly known values."""
 
@@ -261,15 +261,15 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
             test_operator_list, drift=None, signals=signals, rotating_frame=None
         )
 
-        res = simple_model.evaluate_generator(2)
+        res = simple_model.evaluate(2)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
         simple_model.set_drift(np.eye(2), operator_in_frame_basis=False)
-        res = simple_model.evaluate_generator(2)
+        res = simple_model.evaluate(2)
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
         simple_model.set_drift(None, operator_in_frame_basis=False)
 
-    def test_evaluate_generator_in_frame_basis_analytic(self):
+    def test_evaluate_in_frame_basis_analytic(self):
         """Tests evaluation in rotating frame against analytic values."""
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
@@ -330,12 +330,12 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         gm3.signals = SignalList(sarr)
 
         # All should be the same, because there are no frames involved
-        t11 = gm1.evaluate_generator(t, False)
-        t12 = gm1.evaluate_generator(t, True)
-        t21 = gm2.evaluate_generator(t, False)
-        t22 = gm2.evaluate_generator(t, True)
-        t31 = gm3.evaluate_generator(t, False)
-        t32 = gm3.evaluate_generator(t, True)
+        t11 = gm1.evaluate(t, False)
+        t12 = gm1.evaluate(t, True)
+        t21 = gm2.evaluate(t, False)
+        t22 = gm2.evaluate(t, True)
+        t31 = gm3.evaluate(t, False)
+        t32 = gm3.evaluate(t, True)
         t_analytical = Array([[0.5, 1.0 + 0.5j], [1.0 - 0.5j, 1.5]])
 
         self.assertAllClose(t11, t12)
@@ -383,13 +383,13 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
             @ (np.tensordot(sigvals, paulis_in_frame_basis, axes=1) - diafarr)
             @ np.diag(np.exp(t * evals))
         )
-        tf1 = gm1.evaluate_generator(t, in_frame_basis=True)
-        tf2 = gm2.evaluate_generator(t, in_frame_basis=True)
-        tf3 = gm3.evaluate_generator(t, in_frame_basis=True)
-        tf4 = gm4.evaluate_generator(t, in_frame_basis=True)
-        tf5 = gm5.evaluate_generator(t, in_frame_basis=True)
-        tf6 = gm6.evaluate_generator(t, in_frame_basis=True)
-        tf7 = gm7.evaluate_generator(t, in_frame_basis=True)
+        tf1 = gm1.evaluate(t, in_frame_basis=True)
+        tf2 = gm2.evaluate(t, in_frame_basis=True)
+        tf3 = gm3.evaluate(t, in_frame_basis=True)
+        tf4 = gm4.evaluate(t, in_frame_basis=True)
+        tf5 = gm5.evaluate(t, in_frame_basis=True)
+        tf6 = gm6.evaluate(t, in_frame_basis=True)
+        tf7 = gm7.evaluate(t, in_frame_basis=True)
 
         self.assertAllClose(t_in_frame_actual, tf1)
         self.assertAllClose(tf1, tf2)
@@ -400,7 +400,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self.assertAllClose(tf1, tf7)
 
     def test_evaluate_rhs_lmult_equivalent_analytic(self):
-        """Tests whether evaluate_generator(t) @ state == evaluate_rhs(t,state)
+        """Tests whether evaluate(t) @ state == evaluate_rhs(t,state)
         for analytically known values."""
 
         paulis = Array([self.X, self.Y, self.Z])
@@ -520,12 +520,12 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(jit, self.basic_model.evaluate_generator)(1)
+        _wrap(jit, self.basic_model.evaluate)(1)
         _wrap(jit, self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(jit, self.basic_model.evaluate_generator)(1)
+        _wrap(jit, self.basic_model.evaluate)(1)
         _wrap(jit, self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
@@ -534,12 +534,12 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         """Tests whether all functions are gradable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(grad, self.basic_model.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_model.evaluate)(1.0)
         _wrap(grad, self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(grad, self.basic_model.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_model.evaluate)(1.0)
         _wrap(grad, self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
@@ -571,17 +571,17 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
         set up basic model.
         """
 
-        self._basic_frame_evaluate_generator_test(Array([1j, -1j]), 1.123)
-        self._basic_frame_evaluate_generator_test(Array([1j, -1j]), np.pi)
+        self._basic_frame_evaluate_test(Array([1j, -1j]), 1.123)
+        self._basic_frame_evaluate_test(Array([1j, -1j]), np.pi)
 
     def test_non_diag_frame_operator_basic_model(self):
         """Test setting a non-diagonal frame operator for the internally
         set up basic model.
         """
-        self._basic_frame_evaluate_generator_test(-1j * (self.Y + self.Z), 1.123)
-        self._basic_frame_evaluate_generator_test(-1j * (self.Y - self.Z), np.pi)
+        self._basic_frame_evaluate_test(-1j * (self.Y + self.Z), 1.123)
+        self._basic_frame_evaluate_test(-1j * (self.Y - self.Z), np.pi)
 
-    def _basic_frame_evaluate_generator_test(self, frame_operator, t):
+    def _basic_frame_evaluate_test(self, frame_operator, t):
         """Routine for testing setting of valid frame operators using the
         basic_model.
         """
@@ -624,12 +624,12 @@ class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(jit, self.basic_model.evaluate_generator)(1)
+        _wrap(jit, self.basic_model.evaluate)(1)
         _wrap(jit, self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(jit, self.basic_model.evaluate_generator)(1)
+        _wrap(jit, self.basic_model.evaluate)(1)
         _wrap(jit, self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
@@ -638,12 +638,12 @@ class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):
         """Tests whether all functions are gradable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(grad, self.basic_model.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_model.evaluate)(1.0)
         _wrap(grad, self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(grad, self.basic_model.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_model.evaluate)(1.0)
         _wrap(grad, self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None

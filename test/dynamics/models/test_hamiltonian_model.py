@@ -42,7 +42,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         self.r = r
         self.basic_hamiltonian = HamiltonianModel(operators=operators, signals=signals)
 
-    def _basic_frame_evaluate_generator_test(self, frame_operator, t):
+    def _basic_frame_evaluate_test(self, frame_operator, t):
         """Routine for testing setting of valid frame operators using
         basic_hamiltonian.
 
@@ -88,17 +88,17 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         set up basic hamiltonian.
         """
 
-        self._basic_frame_evaluate_generator_test(Array([1.0, -1.0]), 1.123)
-        self._basic_frame_evaluate_generator_test(Array([1.0, -1.0]), np.pi)
+        self._basic_frame_evaluate_test(Array([1.0, -1.0]), 1.123)
+        self._basic_frame_evaluate_test(Array([1.0, -1.0]), np.pi)
 
     def test_non_diag_frame_operator_basic_hamiltonian(self):
         """Test setting a non-diagonal frame operator for the internally
         set up basic model.
         """
-        self._basic_frame_evaluate_generator_test(self.Y + self.Z, 1.123)
-        self._basic_frame_evaluate_generator_test(self.Y - self.Z, np.pi)
+        self._basic_frame_evaluate_test(self.Y + self.Z, 1.123)
+        self._basic_frame_evaluate_test(self.Y - self.Z, np.pi)
 
-    def test_evaluate_generator_no_frame_basic_hamiltonian(self):
+    def test_evaluate_no_frame_basic_hamiltonian(self):
         """Test generator evaluation without a frame in the basic model."""
 
         t = 3.21412
@@ -109,7 +109,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected)
 
-    def test_evaluate_generator_in_frame_basis_basic_hamiltonian(self):
+    def test_evaluate_in_frame_basis_basic_hamiltonian(self):
         """Test generator evaluation in frame basis in the basic_hamiltonian."""
 
         frame_op = (self.X + 0.2 * self.Y + 0.1 * self.Z).data
@@ -139,7 +139,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected)
 
-    def test_evaluate_generator_pseudorandom(self):
+    def test_evaluate_pseudorandom(self):
         """Test evaluate with pseudorandom inputs."""
 
         rng = np.random.default_rng(30493)
@@ -165,7 +165,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate_generator(
+        self._test_evaluate(
             frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases
         )
 
@@ -192,11 +192,11 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
         rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
 
-        self._test_evaluate_generator(
+        self._test_evaluate(
             frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases
         )
 
-    def _test_evaluate_generator(self, frame_op, operators, coefficients, carriers, phases):
+    def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
 
         sig_list = []
         for coeff, freq, phase in zip(coefficients, carriers, phases):
@@ -236,12 +236,12 @@ class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(jit, self.basic_hamiltonian.evaluate_generator)(1)
+        _wrap(jit, self.basic_hamiltonian.evaluate)(1)
         _wrap(jit, self.basic_hamiltonian.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_hamiltonian.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(jit, self.basic_hamiltonian.evaluate_generator)(1)
+        _wrap(jit, self.basic_hamiltonian.evaluate)(1)
         _wrap(jit, self.basic_hamiltonian.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_hamiltonian.rotating_frame = None
@@ -250,12 +250,12 @@ class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
         """Tests whether all functions are gradable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(grad, self.basic_hamiltonian.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_hamiltonian.evaluate)(1.0)
         _wrap(grad, self.basic_hamiltonian.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_hamiltonian.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(grad, self.basic_hamiltonian.evaluate_generator)(1.0)
+        _wrap(grad, self.basic_hamiltonian.evaluate)(1.0)
         _wrap(grad, self.basic_hamiltonian.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_hamiltonian.rotating_frame = None

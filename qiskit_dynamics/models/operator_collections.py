@@ -54,7 +54,7 @@ class BaseOperatorCollection(ABC):
         pass
 
     @abstractmethod
-    def evaluate_generator(self, signal_values: Array) -> Array:
+    def evaluate(self, signal_values: Array) -> Array:
         r"""If the model can be represented without
         reference to the state involved, as in the
         case :math:`\dot{y} = G(t)y(t)` being represented
@@ -76,13 +76,13 @@ class BaseOperatorCollection(ABC):
     ) -> Array:
         """Evaluates the model given the values of the signal
         terms :math:`s_j(t)`, suppressing the choice between
-        evaluate_rhs and evaluate_generator
+        evaluate_rhs and evaluate
         from the user. May error if :math:`y` is not provided and
         model cannot be expressed without choice of state.
         """
 
         if y is None:
-            return self.evaluate_generator(signal_values)
+            return self.evaluate(signal_values)
 
         return self.evaluate_rhs(signal_values, y)
 
@@ -115,7 +115,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
     def num_operators(self) -> int:
         return self._operators.shape[0]
 
-    def evaluate_generator(self, signal_values: Array) -> Array:
+    def evaluate(self, signal_values: Array) -> Array:
         r"""Evaluates the operator :math:`G(t)` given
         the signal values :math:`s_j(t)` as :math:`G(t) = \sum_j s_j(t)G_j`."""
         if self._drift is None:
@@ -125,7 +125,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
     def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
         """Evaluates the product G(t)y"""
-        return np.dot(self.evaluate_generator(signal_values), y)
+        return np.dot(self.evaluate(signal_values), y)
 
 
 class SparseOperatorCollection(BaseOperatorCollection):
@@ -169,8 +169,8 @@ class SparseOperatorCollection(BaseOperatorCollection):
         else:
             self._drift = csr_matrix(new_drift)
 
-    def evaluate_generator(self, signal_values: Array) -> csr_matrix:
-        r"""Sparse version of ``DenseOperatorCollection.evaluate_generator``.
+    def evaluate(self, signal_values: Array) -> csr_matrix:
+        r"""Sparse version of ``DenseOperatorCollection.evaluate``.
         Args:
             signal_values: Array of values specifying each signal value :math:`s_j(t)`.
 
@@ -238,7 +238,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
     def num_operators(self):
         return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
 
-    def evaluate_generator(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
+    def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
@@ -301,7 +301,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def __call__(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Optional[Array]) -> Array:
         if y is None:
-            return self.evaluate_generator(ham_sig_vals, dis_sig_vals)
+            return self.evaluate(ham_sig_vals, dis_sig_vals)
 
         return self.evaluate_rhs(ham_sig_vals, dis_sig_vals, y)
 
@@ -352,9 +352,9 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         Returns:
             Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking
                 convention."""
-        return np.dot(self.evaluate_generator(ham_sig_vals, dis_sig_vals), y)
+        return np.dot(self.evaluate(ham_sig_vals, dis_sig_vals), y)
 
-    def evaluate_generator(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
+    def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
         Args:
@@ -367,7 +367,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
             signal_values = ham_sig_vals
         else:
             signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
-        return super().evaluate_generator(signal_values)
+        return super().evaluate(signal_values)
 
 
 class SparseLindbladCollection(DenseLindbladCollection):

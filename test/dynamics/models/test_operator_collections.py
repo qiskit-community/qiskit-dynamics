@@ -83,7 +83,7 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
         doc = DenseOperatorCollection(
             Array(self.test_operator_list), drift=Array(self.test_operator_list[0])
         )
-        _wrap(jit, doc.evaluate_generator)(Array(self.sigvals))
+        _wrap(jit, doc.evaluate)(Array(self.sigvals))
         _wrap(jit, doc.evaluate_rhs)(Array(self.sigvals), self.X)
 
     def test_functions_gradable(self):
@@ -91,7 +91,7 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
         doc = DenseOperatorCollection(
             Array(self.test_operator_list), drift=Array(self.test_operator_list[0])
         )
-        _wrap(grad, doc.evaluate_generator)(Array(self.sigvals))
+        _wrap(grad, doc.evaluate)(Array(self.sigvals))
         _wrap(grad, doc.evaluate_rhs)(Array(self.sigvals), self.X)
 
 
@@ -331,7 +331,7 @@ class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollec
     """
 
     # DenseVectorizedLindbladCollection has methods that cannot be jited
-    # or graded. Despite this, the more important methods of evaluate_generator
+    # or graded. Despite this, the more important methods of evaluate
     # and evaluate_rhs of LindbladModel with evaluation_mode = "dense_vectorized"
     # are jitable and gradable.
 
@@ -463,7 +463,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
 
 
 def _wrap(jax_func: Callable, func_to_test: Callable) -> Callable:
-    """Functions like DenseOperatorCollection.evaluate_generator
+    """Functions like DenseOperatorCollection.evaluate
     are not wrapped properly by dispatch.wrap, so we take this
     extra step. Intended to wrap either jit or grad. Ensures output
     is a scalar real value.

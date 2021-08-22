@@ -149,7 +149,7 @@ class BaseGeneratorModel(ABC):
             self._operator_collection.drift = new_drift
 
     @abstractmethod
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """If possible, expresses the model at time t
         without reference to the state of the system.
         Args:
@@ -195,7 +195,7 @@ class BaseGeneratorModel(ABC):
         """
 
         if y is None:
-            return self.evaluate_generator(time, in_frame_basis=in_frame_basis)
+            return self.evaluate(time, in_frame_basis=in_frame_basis)
 
         return self.evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
 
@@ -275,9 +275,9 @@ class CallableGenerator(BaseGeneratorModel):
         self._rotating_frame = RotatingFrame(rotating_frame)
 
     def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
-        return self.evaluate_generator(time, in_frame_basis=in_frame_basis) @ y
+        return self.evaluate(time, in_frame_basis=in_frame_basis) @ y
 
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format.
 
         Args:
@@ -460,7 +460,7 @@ class GeneratorModel(BaseGeneratorModel):
         # Reset internal operator collection
         self.set_evaluation_mode(self.evaluation_mode)
 
-    def evaluate_generator(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
         Args:
             time: Time to evaluate the model
