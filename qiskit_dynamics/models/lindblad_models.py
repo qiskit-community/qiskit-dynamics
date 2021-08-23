@@ -78,10 +78,11 @@ class LindbladModel(BaseGeneratorModel):
             rotating_frame: rotating frame in which calcualtions are to be done.
                 If provided, it is assumed that all operators were
                 already in the frame basis.
-            evalutation_mode: String specifying the type of evaluation
-                to be used. Currently supported modes are:
-                dense (default),
-                dense_vectorized.
+            evalutation_mode: Evaluation mode to use. Supported options are:
+                                - 'dense' (default)
+                                - 'sparse'
+                                - 'dense_vectorized'
+                              See :method:`LindbladModel.set_evaluation_mode` for more details.
 
         Raises:
             Exception: if signals incorrectly specified.
@@ -133,9 +134,11 @@ class LindbladModel(BaseGeneratorModel):
     @property
     def signals(self) -> List[Array]:
         """Gets the Model's Signals.
+
         Returns:
             list[Array] with 0th entry storing the Hamiltonian signals
-            and the 1st entry storing the dissipator signals."""
+            and the 1st entry storing the dissipator signals.
+        """
         return [self._hamiltonian_signals, self._dissipator_signals]
 
     @signals.setter
@@ -155,17 +158,13 @@ class LindbladModel(BaseGeneratorModel):
         """Sets evaluation mode.
         Args:
             new_mode: new mode for evaluation. Supported modes are:
-                dense: Stores Hamiltonian and dissipator terms as dense
-                    Array types.
-                dense_vectorized: Stores the Hamiltonian and dissipator
-                    terms as a (dim^2,dim^2) matrix that acts on a vectorized
-                    density matrix by left-multiplication. Can evaluate generator
-                    While the full evaluate_rhs and evaluate functions
-                    are compilable, the operator collection's evaluation methods
-                    are not jax compilable/differentiable.
-                sparse: Like dense, but stores Hamiltonian components with
-                    csr_matrix types. Useful if components are mathematically
-                    sparse. Outputs will be dense if a 2d frame operator is
+                'dense': Stores Hamiltonian and dissipator terms as dense
+                       Array types.
+                'dense_vectorized': Stores the Hamiltonian and dissipator
+                    terms as (dim^2,dim^2) matrices that acts on a vectorized
+                    density matrix by left-multiplication. Allows for direct evaluate generator.
+                'sparse': Like dense, but stores Hamiltonian components with
+                    `csr_matrix` types. Outputs will be dense if a 2d frame operator is
                     used. Not compatible with jax.
         Raises:
             NotImplementedError: If a mode other than one of the above is specified.
@@ -191,10 +190,9 @@ class LindbladModel(BaseGeneratorModel):
                 dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = True
-        elif new_mode is None:
-            pass
         else:
             raise NotImplementedError("Evaluation mode " + str(new_mode) + " is not supported.")
+
         self._evaluation_mode = new_mode
 
     @classmethod
@@ -261,8 +259,9 @@ class LindbladModel(BaseGeneratorModel):
 
             self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
-        # Ensure these changes are passed on to the operator collection.
-        self.set_evaluation_mode(self.evaluation_mode)
+        # Reset internal operator collection
+        if self.evaluation_mode is not None:
+            self.set_evaluation_mode(self.evaluation_mode)
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         if self._dissipator_signals is not None:
@@ -285,13 +284,19 @@ class LindbladModel(BaseGeneratorModel):
         self, time: Union[float, int], y: Array, in_frame_basis: Optional[bool] = False
     ) -> Array:
         """Evaluates the Lindblad model at a given time.
-        time: time at which the model should be evaluated.
-        y: Density matrix as an (n,n) Array if not using a
-            vectorized evaluation_mode or an (n^2) Array if
-            using vectorized evaluation.
-        in_frame_basis: whether the density matrix is in the
-            frame already, and if the final result
-            is returned in the rotating frame or not."""
+
+        Args:
+            time: time at which the model should be evaluated.
+            y: Density matrix as an (n,n) Array if not using a
+               vectorized evaluation_mode or an (n^2) Array if
+               using vectorized evaluation.
+            in_frame_basis: whether the density matrix is in the
+                            frame already, and if the final result
+                            is returned in the rotating frame or not.
+
+        Returns:
+            Array: Either the evaluated generator or the state.
+        """
 
         hamiltonian_sig_vals = self._hamiltonian_signals(time)
         if self._dissipator_signals is not None:

@@ -428,8 +428,8 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
                 ),
             )
 
-    def test_operator_compatibility(self):
-        """Tests if SparseLindbladCollection can take Operator specificaiton of components."""
+    def test_operator_type_construction(self):
+        """Tests if SparseLindbladCollection can take Operator specification of components."""
         ham_op_terms = []
         ham_ar_terms = []
         dis_op_terms = []

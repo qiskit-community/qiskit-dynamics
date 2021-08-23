@@ -33,28 +33,20 @@ from .rotating_frame import RotatingFrame
 
 
 class BaseGeneratorModel(ABC):
-    r"""BaseGeneratorModel is an abstract interface for a time-dependent
-    linear differential equation of the form :math:`\dot{y}(t) = \Lambda(y,t)`,
-    where :math:`\Lambda` is linear in :math:`y`.
+    r"""Defines an interface for a time-dependent
+    linear differential equation of the form :math:`\dot{y}(t) = \Lambda(t, y)`,
+    where :math:`\Lambda` is linear in :math:`y`. The core functionality is
+    evaluation of :math:`\Lambda(t, y)`, as well as,
+    if possible, evaluation of the map :math:`\Lambda(t, \cdot)`.
 
-    The core functionality is evaluation of :math:`\Lambda(y,t)`, as well as,
-    if possible, a representation :math:`\Lambda(t)` of the linear map :math:`\Lambda(y,t)`
-    independent of :math:`y(t)`.
-
-    Additionally, this abstract class requires implementation of 3
-    properties to facilitate the use of this object in solving differential equations:
-        - An "operator collection," stored as a subclass of :class:`BaseOperatorCollection`,
-        which will handle almost all of the numerical evaluation of :math:`\Lambda`,
-        except for frame transformations. Having multiple types of :class:`OperatorCollection`
-        supported by a single model can enable multiple evaluation modes, like
-        using sparse arrays.
-        - A "drift," which stores time-independent parts of :math:`\Lambda`,
-        typically terms added to the Hamiltonian of a system.
-        - A "rotating frame," here specified as a :class:`RotatingFrame` object, representing
-        an antihermitian operator :math:`F`, specifying a transformation law for states
-        and operators, typically through multiplication or conjugation by :math:`e^{tF}`.
-        If a frame F is specified, all internal calculations should be done in the basis
-        in which :math:`F` is diagonal, so as to more quickly calculate :math:`e^{\pm tF}`.
+    Additionally, the class defines interfaces for:
+        - Setting a "drift" term, representing the time-independent part of :math:`\Lambda`.
+        - Setting a "rotating frame", specified either directly as a :class:`RotatingFrame`
+        instance, or an operator from which a :class:`RotatingFrame` instance can be constructed.
+        The exact meaning of this transformation is determined by the structure of
+        :math:`\Lambda(t, y)`, and is therefore by handled by concrete subclasses.
+        - Setting an internal "evaluation mode", to set the specific numerical methods to use
+        when evaluating :math:`\Lambda(t, y)`.
     """
 
     @property
@@ -72,17 +64,16 @@ class BaseGeneratorModel(ABC):
     @rotating_frame.setter
     @abstractmethod
     def rotating_frame(self, rotating_frame: RotatingFrame):
-        """Set the rotating frame; either an already instantiated :class:`RotatingFrame` object
-        a valid argument for the constructor of :class:`RotatingFrame`, or `None`.
-        Takes care of putting all operators into the basis in which the frame
-        matrix F is diagonal.
+        """Set the rotating frame; either an already instantiated :class:`RotatingFrame` object,
+        or a valid argument for the constructor of :class:`RotatingFrame`.
         """
         pass
 
     @property
     def evaluation_mode(self) -> str:
         """Returns the current implementation mode,
-        e.g. sparse/dense, vectorized/not."""
+        e.g. sparse/dense, vectorized/not.
+        """
         # pylint: disable=no-member
         return self._evaluation_mode
 
@@ -94,29 +85,33 @@ class BaseGeneratorModel(ABC):
 
         Instances of this function should
         include important details about each
-        evaluation mode."""
+        evaluation mode.
+        """
         pass
 
     @abstractmethod
     def get_operators(
         self, in_frame_basis: Optional[bool] = False
     ) -> Union[Array, Tuple[Array], Callable]:
-        """Get the operators used for calculating the model's value.
+        """Get the operators used in the model construction.
+
         Args:
-            in_frame_basis: Flag for whether the returned operators should be
+            in_frame_basis: Flag indicating whether to return the operators
             in the basis in which the rotating frame operator is diagonal.
         Returns:
-            The operators in the basis specified by in_frame_basis."""
+            The operators in the basis specified by `in_frame_basis`.
+        """
         pass
 
     def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
-        """Gets the drift term. If a frame F has been specified, this
-        drift will include any contributions (typically -F) from the frame.
+        """Get the drift term.
+
         Args:
             in_frame_basis: Flag for whether the returned drift should be
             in the basis in which the frame is diagonal.
         Returns:
-            The drift term."""
+            The drift term.
+        """
         if not in_frame_basis and self.rotating_frame is not None:
             return self.rotating_frame.operator_out_of_frame_basis(self._drift)
         else:
@@ -127,14 +122,14 @@ class BaseGeneratorModel(ABC):
         new_drift: Array,
         operator_in_frame_basis: Optional[bool] = False,
     ):
-        """Sets drift term. The drift term will be transformed into the rotating
-        frame basis. If in a rotating frame, note that this will NOT automatically
-        add the -F or -iF term due to the frame shift.
+        """Sets drift term. Note that if the model has a rotating frame this will override
+        any contributions to the drift due to the frame transformation.
 
         Args:
             new_drift: The drift operator.
-            operator_in_frame_basis: Whether new_drift is already in the rotating
-            frame basis."""
+            operator_in_frame_basis: Whether `new_drift` is already in the rotating
+            frame basis.
+        """
         if new_drift is None:
             new_drift = np.zeros((self.dim, self.dim))
 
@@ -151,27 +146,24 @@ class BaseGeneratorModel(ABC):
 
     @abstractmethod
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        """If possible, expresses the model at time t
-        without reference to the state of the system.
+        """If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
+
         Args:
-            time: Time
-            in_frame_basis: boolean flag; True if the
-                result should be in the rotating frame basis
-                or in the lab basis."""
+            time: Time.
+            in_frame_basis: Whether to return the result in the rotating frame basis.
+        """
         pass
 
     @abstractmethod
     def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
-        r"""Given some representation y of the system's state,
-        evaluate the RHS of the model :math:`\dot{y}(t) = \Lambda(y,t)`
-        at the time t.
+        r"""Evaluate the right hand side :math:`\dot{y}(t) = \Lambda(t, y)`.
+
         Args:
-            time: Time
-            y: State in the same basis as the model is
-            being evaluated.
-            in_frame_basis: boolean flag; True if the
-                result should be in the rotating frame basis
-                or in the lab basis."""
+            time: Time.
+            y: State of the differential equation.
+            in_frame_basis: Whether `y` is in the rotating frame basis and the results should be
+                returned in the rotatign frame basis.
+        """
         pass
 
     def copy(self):
@@ -182,9 +174,8 @@ class BaseGeneratorModel(ABC):
         self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False
     ) -> Array:
         r"""Evaluate generator RHS functions. If ``y is None``,
-        tries to evaluate :math:`\Lambda(t)` using the desired
-        representation of the linear map. Otherwise, calculates
-        :math:`\Lambda(y,t)`
+        attemps to evaluate :math:`\Lambda(t, \cdot)`, otherwise, calculates
+        :math:`\Lambda(t, y)`
 
         Args:
             time: Time.
@@ -202,9 +193,9 @@ class BaseGeneratorModel(ABC):
 
 
 class CallableGenerator(BaseGeneratorModel):
-    r"""Specifies the model as a purely LMDE, with a callable generator.
-    That is to say, define :math:`\dot{y}=\Lambda(y,t)=G(t)y` for some
-    callable generator :math:`G(t)`."""
+    r"""Specifies a linear matrix differential equation of the form
+    :math:`\dot{y}=\Lambda(t, y)=G(t)y` with :math:`G(t)` passed as a callable function.
+    """
 
     def __init__(
         self,
@@ -213,8 +204,7 @@ class CallableGenerator(BaseGeneratorModel):
         drift: Optional[Union[Operator, Array]] = None,
         dim: Optional[int] = None,
     ):
-
-        self._generator = dispatch.wrap(generator)
+        self._generator = generator
         self.rotating_frame = rotating_frame
         self._drift = drift
         self._evaluation_mode = "callable_generator"
@@ -237,13 +227,9 @@ class CallableGenerator(BaseGeneratorModel):
             return self._drift
 
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Callable:
-        if in_frame_basis and self.rotating_frame is not None:
-            # The callable generator is assumed to be in the lab basis. Need to transform into
-            # the frame basis.
-            f = lambda t: self.rotating_frame.operator_into_frame_basis(self._generator(t))
-            return f
-        else:
-            return self._generator
+        """`CallableGenerator` does not have decomposition in terms of operators.
+        """
+        raise QiskitError("CallableGenerator does not have decomposition in terms of operators.")
 
     def set_drift(
         self,
@@ -287,10 +273,7 @@ class CallableGenerator(BaseGeneratorModel):
                             operator is diagonal
 
         Returns:
-            Array: the evaluated model
-
-        Raises:
-            QiskitError: If model cannot be evaluated.
+            Array: The evaluated model.
         """
 
         # evaluate generator and map it into the rotating frame
@@ -303,23 +286,18 @@ class CallableGenerator(BaseGeneratorModel):
 
 
 class GeneratorModel(BaseGeneratorModel):
-    r"""GeneratorModel is a concrete instance of BaseGeneratorModel, where the
-    map :math:`\Lambda(y,t)` is explicitly constructed as:
+    r""":class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the
+    map :math:`\Lambda(t, y)` is explicitly constructed as:
 
     .. math::
-        \Lambda(y,t) = G(t)y,
+        \Lambda(t, y) = G(t)y,
 
         G(t) = \sum_i s_i(t) G_i + G_d
 
     where the :math:`G_i` are matrices (represented by :class:`Operator`
     or :class:`Array` objects), the :math:`s_i(t)` are signals represented by
-    a :class:`SignalList` object, or a list of :class:`Signal` objects, and
-    :math:`G_d` is the drift term of the generator, and constant in time.
-
-    The signals in the model can be specified at instantiation, or afterwards
-    by setting the ``signals`` attribute, by giving a
-    list of :class:`Signal` objects or a :class:`SignalList`. Rotating frames
-    should be specified by providing a :class:`RotatingFrame` object.
+    a list of :class:`Signal` objects, and
+    :math:`G_d` is the constant-in-time drift term of the generator.
     """
 
     def __init__(
@@ -333,24 +311,14 @@ class GeneratorModel(BaseGeneratorModel):
         """Initialize.
 
         Args:
-            operators: A rank-3 Array of generator components :math:`G_i`. If
-            a rotating frame object is provided, these will be transformed
-            into the basis in which the frame operator is diagonal.
-            drift: Optional, constant terms to add to G. Useful for
-            frame transformations. If a rotating frame is provided, the
-            drift term will be decreased by F.
-            signals: Stores the terms :math:`s_i(t)`. Specifiable as either a
-            SignalList, a list of Signal objects, or as the inputs to
-            signal_mapping. GeneratorModel can be instantiated without
-            specifying signals, but it can not perform any actions without them.
-            rotating_frame: Rotating frame operator. If specified with a 1d
-            array, it is interpreted as the diagonal of a
-            diagonal matrix.
-            evaluation_mode: Flag for what type of evaluation should
-            be used. Currently supported options are
-                dense (DenseOperatorCollection)
-                sparse (SparseOperatorCollection)
-            See GeneratorModel.set_evaluation_mode for more details.
+            operators: A list of operators :math:`G_i`.
+            signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
+                     :class:`GeneratorModel` signals are not required at instantiation.
+            rotating_frame: Rotating frame operator.
+            evaluation_mode: Evaluation mode to use. Supported options are:
+                                - 'dense' (DenseOperatorCollection)
+                                - 'sparse' (SparseOperatorCollection)
+                             See :method:`GeneratorModel.set_evaluation_mode` for more details.
         """
 
         # initialize internal operator representation
@@ -381,33 +349,32 @@ class GeneratorModel(BaseGeneratorModel):
         return self._operators.shape[-1]
 
     def set_evaluation_mode(self, new_mode: str):
-        """Sets evaluation mode to new_mode.
+        """Set evaluation mode.
+
         Args:
-            new_mode: string specifying new mode, with options
-                dense: stores/evaluates operators using only
-                    dense Array objects.
-                sparse: stores/evaluates operators using scipy
-                    :class:`csr_matrix` types. Can be faster/less
-                    memory intensive than dense if Hamiltonian components
-                    are mathematically sparse. If evaluating the generator
-                    with a 2d frame operator (non-diagonal), all generators
-                    will be returned as dense matrices. Not compatible
-                    with jax.
+            new_mode: String specifying new mode. Available options:
+                        - 'dense': Stores/evaluates operators using dense Arrays.
+                        - 'sparse': stores/evaluates operators using scipy
+                                    :class:`csr_matrix` types. If evaluating the generator
+                                    with a 2d frame operator (non-diagonal), all generators
+                                    will be returned as dense matrices. Not compatible
+                                    with JAX.
         Raises:
             NotImplementedError: if new_mode is not one of the above
-            supported evaluation modes."""
+            supported evaluation modes.
+        """
+
         if new_mode == "dense":
             self._operator_collection = DenseOperatorCollection(
-                self.get_operators(True), drift=self.get_drift(True)
+                self.get_operators(in_frame_basis=True), drift=self.get_drift(in_frame_basis=True)
             )
         elif new_mode == "sparse":
             self._operator_collection = SparseOperatorCollection(
-                self.get_operators(True), self.get_drift(True)
+                self.get_operators(in_frame_basis=True), self.get_drift(in_frame_basis=True)
             )
-        elif new_mode is None:
-            self._operator_collection = None
         else:
             raise NotImplementedError("Evaluation Mode " + str(new_mode) + " is not supported.")
+
         self._evaluation_mode = new_mode
 
     @property
@@ -431,7 +398,7 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != self.get_operators(True).shape[0]:
+            if len(signals) != self.get_operators().shape[0]:
                 raise QiskitError(
                     """Signals needs to have the same length as
                                     operators."""
@@ -459,18 +426,21 @@ class GeneratorModel(BaseGeneratorModel):
             self._drift = self._drift - Array(np.diag(self._rotating_frame.frame_diag))
 
         # Reset internal operator collection
-        self.set_evaluation_mode(self.evaluation_mode)
+        if self.evaluation_mode is not None:
+            self.set_evaluation_mode(self.evaluation_mode)
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
+
         Args:
-            time: Time to evaluate the model
+            time: Time to evaluate the model.
             in_frame_basis: Whether to evaluate in the basis in which the rotating frame
-                            operator is diagonal
+                            operator is diagonal.
         Returns:
             Array: the evaluated model as a (n,n) matrix
         Raises:
-            QiskitError: If model cannot be evaluated."""
+            QiskitError: If model cannot be evaluated.
+        """
 
         if self._signals is None:
             raise QiskitError("GeneratorModel cannot be evaluated without signals.")
@@ -487,16 +457,16 @@ class GeneratorModel(BaseGeneratorModel):
         )
 
     def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
-        """Evaluate the model in array format using left multiplication, as
-        G(t) @ y, given the current state y.
+        r"""Evaluate `G(t) @ y`.
+
         Args:
-            time: Time to evaluate the model
+            time: Time to evaluate the model.
             y: Array specifying system state, in basis specified by
-                in_frame_basis.
+               in_frame_basis.
             in_frame_basis: Whether to evaluate in the basis in which the frame
-                operator is diagonal
+                            operator is diagonal.
         Returns:
-            Array defined by :math:`G(t)y`.
+            Array defined by :math:`G(t) \times y`.
         Raises:
             QiskitError: If model cannot be evaluated.
         """
