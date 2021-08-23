@@ -63,7 +63,9 @@ class TestRotatingWave(QiskitDynamicsTestCase):
         GM = GeneratorModel(ops, signals=sigs, drift=dft, rotating_frame=None)
         GMP = rotating_wave_approximation(GM, 2)
         self.assertAllClose(GMP.get_drift(True), Array(np.ones((2, 2))))
-        post_rwa_ops = Array(np.array([1, 0, 1, 0]).reshape((4, 1, 1))) * ops
+        post_rwa_ops = Array(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * Array(
+            np.ones((8, 2, 2))
+        )
         self.assertAllClose(GMP.get_operators(True), post_rwa_ops)
 
 
