@@ -13,10 +13,6 @@
 
 """Tests for generator_models.py. """
 
-try:
-    from jax import jit, grad
-except ImportError:
-    pass
 from scipy.sparse import issparse
 from scipy.linalg import expm
 import numpy as np
@@ -27,7 +23,6 @@ from qiskit_dynamics.models import CallableGenerator, GeneratorModel, RotatingFr
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
-from .test_operator_collections import _wrap
 
 
 class TestGeneratorModel(QiskitDynamicsTestCase):
@@ -519,13 +514,13 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(jit, self.basic_model.evaluate)(1)
-        _wrap(jit, self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+        self.jit_wrap(self.basic_model.evaluate)(1)
+        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(jit, self.basic_model.evaluate)(1)
-        _wrap(jit, self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+        self.jit_wrap(self.basic_model.evaluate)(1)
+        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
 
@@ -533,13 +528,13 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         """Tests whether all functions are gradable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(grad, self.basic_model.evaluate)(1.0)
-        _wrap(grad, self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(grad, self.basic_model.evaluate)(1.0)
-        _wrap(grad, self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
 
@@ -623,13 +618,13 @@ class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(jit, self.basic_model.evaluate)(1)
-        _wrap(jit, self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+        self.jit_wrap(self.basic_model.evaluate)(1)
+        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(jit, self.basic_model.evaluate)(1)
-        _wrap(jit, self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+        self.jit_wrap(self.basic_model.evaluate)(1)
+        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
 
@@ -637,12 +632,12 @@ class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):
         """Tests whether all functions are gradable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        _wrap(grad, self.basic_model.evaluate)(1.0)
-        _wrap(grad, self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
 
-        _wrap(grad, self.basic_model.evaluate)(1.0)
-        _wrap(grad, self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
