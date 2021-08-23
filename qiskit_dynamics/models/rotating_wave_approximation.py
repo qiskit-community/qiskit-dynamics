@@ -123,7 +123,6 @@ def rotating_wave_approximation(
         diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
         frame_freqs = diff_matrix.imag / (2 * np.pi)
 
-
     if isinstance(model, GeneratorModel):
         # in the lab basis
         new_signals, new_operators = get_new_operators(
@@ -131,7 +130,7 @@ def rotating_wave_approximation(
         )
         if isinstance(model, HamiltonianModel):
             if model.rotating_frame.frame_diag is not None:
-                curr_drift = curr_drift + np.diag(1j*model.rotating_frame.frame_diag)
+                curr_drift = curr_drift + np.diag(1j * model.rotating_frame.frame_diag)
             new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
             new_drift = model.rotating_frame.operator_out_of_frame_basis(new_drift)
 
@@ -165,7 +164,7 @@ def rotating_wave_approximation(
             )
     elif isinstance(model, LindbladModel):
         if model.rotating_frame.frame_diag is not None:
-            curr_drift = curr_drift + np.diag(1j*model.rotating_frame.frame_diag)
+            curr_drift = curr_drift + np.diag(1j * model.rotating_frame.frame_diag)
         new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
         new_drift = model.rotating_frame.operator_out_of_frame_basis(new_drift)
 

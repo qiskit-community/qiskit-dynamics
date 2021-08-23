@@ -227,9 +227,11 @@ def solve_lmde(
                      with generator dimension.
     """
 
-    if isinstance(generator, LindbladModel) and generator.evaluation_mode == 'dense_vectorized':
-        raise QiskitError("""Special handling of dense_vectorized mode for LindbladModel not
-                            supported. Pass the LindbladModel.__call__ function to solve.""")
+    if isinstance(generator, LindbladModel) and generator.evaluation_mode == "dense_vectorized":
+        raise QiskitError(
+            """Special handling of dense_vectorized mode for LindbladModel not
+                            supported. Pass the LindbladModel.__call__ function to solve."""
+        )
 
     t_span = Array(t_span)
     y0, y0_cls = initial_state_converter(y0, return_class=True)
@@ -288,7 +290,13 @@ def solve_lmde(
     ):
         # if all relevant objects are jax-compatible, run jax-customized version
         output_states = _jax_lmde_output_state_converter(
-            results.t, results.y, generator.rotating_frame, output_frame, return_shape, y0_cls, isinstance(generator, LindbladModel)
+            results.t,
+            results.y,
+            generator.rotating_frame,
+            output_frame,
+            return_shape,
+            y0_cls,
+            isinstance(generator, LindbladModel),
         )
     else:
         output_states = []
@@ -298,10 +306,14 @@ def solve_lmde(
 
             # transform out of solver frame/basis into output frame
             if isinstance(generator, LindbladModel):
-                out_y = generator.rotating_frame.operator_out_of_frame(time, out_y, operator_in_frame_basis=True)
+                out_y = generator.rotating_frame.operator_out_of_frame(
+                    time, out_y, operator_in_frame_basis=True
+                )
                 out_y = output_frame.operator_into_frame(time, out_y)
             else:
-                out_y = generator.rotating_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
+                out_y = generator.rotating_frame.state_out_of_frame(
+                    time, out_y, y_in_frame_basis=True
+                )
                 out_y = output_frame.state_into_frame(time, out_y)
 
             # reshape to match input shape if necessary
@@ -463,7 +475,7 @@ def _jax_lmde_output_state_converter(
     output_frame: RotatingFrame,
     return_shape: Tuple,
     y0_cls: object,
-    operator_mode: Optional[bool] = False
+    operator_mode: Optional[bool] = False,
 ) -> Union[List, Array]:
     """Jax control-flow based output state converter for solve_lmde.
 

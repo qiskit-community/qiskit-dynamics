@@ -177,7 +177,6 @@ class RotatingFrame:
         if self.frame_basis_adjoint is None:
             return to_array(y)
 
-
         return self.frame_basis_adjoint @ y
 
     def state_out_of_frame_basis(self, y: Array) -> Array:

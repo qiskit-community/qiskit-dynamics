@@ -20,6 +20,7 @@ import numpy as np
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.type_utils import to_array
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_models import BaseGeneratorModel
 from .hamiltonian_models import HamiltonianModel
@@ -28,7 +29,6 @@ from .operator_collections import (
     DenseVectorizedLindbladCollection,
     SparseLindbladCollection,
 )
-from qiskit_dynamics.type_utils import to_array
 from .rotating_frame import RotatingFrame
 
 

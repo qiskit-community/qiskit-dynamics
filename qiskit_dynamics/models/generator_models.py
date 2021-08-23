@@ -142,6 +142,7 @@ class BaseGeneratorModel(ABC):
 
         if not operator_in_frame_basis and self.rotating_frame is not None:
             new_drift = self.rotating_frame.operator_into_frame_basis(new_drift)
+        # pylint: disable = attribute-defined-outside-init
         self._drift = new_drift
         # pylint: disable=no-member
         if self._operator_collection is not None:

@@ -53,9 +53,15 @@ class TestLMDESetup(QiskitDynamicsTestCase):
 
         input_frame, output_frame, generator = setup_lmde_frames_and_generator(self.basic_model)
 
-        self.assertAllClose(input_frame.frame_operator, Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex))
-        self.assertAllClose(output_frame.frame_operator, Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex))
-        self.assertAllClose(generator.rotating_frame.frame_operator, -1j * 2 * np.pi * self.w * self.Z / 2)
+        self.assertAllClose(
+            input_frame.frame_operator, Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex)
+        )
+        self.assertAllClose(
+            output_frame.frame_operator, Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex)
+        )
+        self.assertAllClose(
+            generator.rotating_frame.frame_operator, -1j * 2 * np.pi * self.w * self.Z / 2
+        )
 
     def test_y0_reshape(self):
         """Test automatic detection of vectorized LMDE."""

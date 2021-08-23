@@ -9,6 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=arguments-differ,signature-differs
 
 """Operator collections as math/calculation objects for Model classes"""
 
@@ -149,6 +150,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
             drift = to_array(drift)
         self.drift = np.round(drift, decimals)
         self._operators = np.empty(shape=len(operators), dtype="O")
+        # pylint: disable=consider-using-enumerate
         for i in range(len(operators)):
             if isinstance(operators[i], Operator):
                 operators[i] = to_array(operators[i])
@@ -373,6 +375,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
 class SparseLindbladCollection(DenseLindbladCollection):
     """Sparse version of DenseLindbladCollection."""
 
+    # pylint: disable=super-init-not-called
     def __init__(
         self,
         hamiltonian_operators: Union[Array, List[Operator]],
@@ -393,6 +396,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         """
 
         self._hamiltonian_operators = np.empty(shape=len(hamiltonian_operators), dtype="O")
+        # pylint: disable=consider-using-enumerate
         for i in range(len(hamiltonian_operators)):
             if isinstance(hamiltonian_operators[i], Operator):
                 hamiltonian_operators[i] = to_array(hamiltonian_operators[i])
@@ -405,6 +409,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         if dissipator_operators is not None:
             self._dissipator_operators = np.empty(shape=len(dissipator_operators), dtype="O")
             self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
+            # pylint: disable=consider-using-enumerate
             for i in range(len(dissipator_operators)):
                 if isinstance(dissipator_operators[i], Operator):
                     dissipator_operators[i] = to_array(dissipator_operators[i])

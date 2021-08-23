@@ -93,7 +93,8 @@ class HamiltonianModel(GeneratorModel):
         if validate:
             adj = np.transpose(np.conjugate(operators), (0, 2, 1))
             if np.linalg.norm(adj - operators) > 1e-10 or (
-                drift is not None and np.linalg.norm(drift - np.conjugate(np.transpose(drift))) > 1e-10
+                drift is not None
+                and np.linalg.norm(drift - np.conjugate(np.transpose(drift))) > 1e-10
             ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
@@ -126,9 +127,9 @@ class HamiltonianModel(GeneratorModel):
             self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
         self.set_evaluation_mode(self.evaluation_mode)
-    
+
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        return -1j*super().evaluate(time, in_frame_basis=in_frame_basis)
+        return -1j * super().evaluate(time, in_frame_basis=in_frame_basis)
 
     def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
-        return -1j*super().evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
+        return -1j * super().evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
