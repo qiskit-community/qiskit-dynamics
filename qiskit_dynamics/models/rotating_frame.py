@@ -27,45 +27,12 @@ from qiskit_dynamics.type_utils import to_array
 
 
 class RotatingFrame:
-    r"""
-    A 'rotating frame' is given by an anti-Hermitian matrix :math:`F`, specified
+    r"""A 'rotating frame' is given by an anti-Hermitian matrix :math:`F`, specified
     either directly, or in terms of a Hermitian matrix :math:`H` with
     :math:`F = -iH`. Frames have relevance within the context of linear
     matrix differential equations (LMDEs), which are of the form:
 
-    .. math::
-
-        \dot{y}(t) = G(t)y(t).
-
-    For the above DE, 'entering the rotating frame' specified by :math:`F`
-    corresponds to a change of state variable
-    :math:`y(t) \mapsto z(t) = e^{-tF}y(t)`.
-    Using the definition, we may write down a differential equation for
-    :math:`z(t)`:
-
-    .. math::
-
-        \dot{z}(t) &= -F z(t) + e^{-tF}G(t)y(t) \\
-                   &= (e^{-tF}G(t)e^{tF} - F)z(t)
-
-    In some cases it is computationally easier to solve for :math:`z(t)`
-    than it is to solve for :math:`y(t)`.
-
-    While entering a frame is mathematically well-defined for arbitrary
-    matrices :math:`F`, this interface assumes that :math:`F` is
-    anti-Hermitian, ensuring beneficial properties:
-
-        - :math:`F` is unitarily diagonalizable.
-        - :math:`e^{\pm tF}` is easily inverted by taking the adjoint.
-        - The frame transformation is norm preserving.
-
-    That :math:`F` is diagonalizable is especially important, as :math:`e^{tF}`
-    will need repeated evaluation for different :math:`t` (e.g. at every RHS
-    sample point when solving a DE), so it is useful to work in a basis in
-    which :math:`F` is diagonal to minimize the cost of this.
-
-    Given an anti-Hermitian matrix :math:`F`, this class offers functions
-    for:
+    This class offers functions for:
 
         - Bringing a "state" into/out of the frame:
           :math:`t, y \mapsto e^{\mp tF}y`
@@ -78,9 +45,7 @@ class RotatingFrame:
     the basis in which :math:`F` is diagonalized, which we refer to as the
     "frame basis". All previously mentioned functions also include optional
     arguments specifying whether the input/output are meant to be in the
-    frame basis. This is to facilitate use in solvers in which working
-    completely in the frame basis is beneficial to minimize costs associated
-    with evaluation of :math:`e^{tF}`.
+    frame basis.
     """
 
     def __init__(
@@ -508,21 +473,15 @@ class RotatingFrame:
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Given a linear map involving left- and right-multiplication vectorized in
-        the column stacking convention which includes the frame shift -F, computes
-        the vectorized operator :math:`B^T\otimes A` in the rotating frame by computing
+        r"""Given an operator `op` of dimension `dim**2` assumed to represent vectorized linear map
+        in column stacking convention, returns:
+
         .. math::
-            (e^{-tF}Be^{tF})^T\otimes(e^{-tF}Ae^{tF}),
+            ((e^{tF})^T \otimes e^{-tF}) \times op \times ((e^{-tF})^T \otimes e^{tF}).
 
-        using elementwise multiplication as a faster alternative to actual conjugation.
-        This is done by computing :math:`A_{vec}\to \Delta\otimes\bar{\Delta}\circ A_{vec}`,
-        where :math:`\Delta_{ij}=\exp((-d_i+d_j)t)` is the frame difference matrix.
-
-        If necessary, also brings the operator into the basis in which the frame operator
-        is diagonal through conjugation by :math:`\bar{C}\otimes C`, where ``C = self.frame_basis``.
-        This is much slower than alternatives like pre- and post-rotations, so it should be
-        avoided unless putting a vectorized operator into the rotating frame is absolutely
-        necessary.
+        Utilizes element-wise multiplication :math:`op \to \Delta\otimes\bar{\Delta} \cdot op`,
+        where :math:`\Delta_{ij}=\exp((-d_i+d_j)t)` is the frame difference matrix, as well as
+        caches array :math:`\bar{C}\otimes C`, where ``C = self.frame_basis`` for future use.
 
         Args:
             time: The time t.

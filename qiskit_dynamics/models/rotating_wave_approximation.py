@@ -113,18 +113,15 @@ def rotating_wave_approximation(
 
     curr_drift = model.get_drift(True)
 
+    frame_freqs = None
     if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
-        # We can now safely ignore the frame frequency components, so this is much simpler.
         frame_freqs = np.zeros((n, n))
-
     else:
         diag = model.rotating_frame.frame_diag
-
         diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
         frame_freqs = diff_matrix.imag / (2 * np.pi)
 
     if isinstance(model, GeneratorModel):
-        # in the lab basis
         new_signals, new_operators = get_new_operators(
             model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
         )
@@ -159,7 +156,7 @@ def rotating_wave_approximation(
                 new_operators,
                 drift=new_drift,
                 signals=new_signals,
-                rotating_frame=(model.rotating_frame.frame_operator),
+                rotating_frame=model.rotating_frame.frame_operator,
                 evaluation_mode=model.evaluation_mode,
             )
     elif isinstance(model, LindbladModel):

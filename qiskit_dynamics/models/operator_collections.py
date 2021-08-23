@@ -26,9 +26,9 @@ from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
 class BaseOperatorCollection(ABC):
     r"""BaseOperatorCollection is an abstract class
     intended to store a general set of linear mappings :math:`\{\Lambda_i\}`
-    in order to implement differential equations of the form
-    :math:`\dot{y} = \Lambda(y,t)`. Generically, :math:`\Lambda` will be a sum of
-    other linear maps :math:`\Lambda_i(y,t)`, which are in turn some
+    to implement differential equations of the form
+    :math:`\dot{y} = \Lambda(t, y)`. Generically, :math:`\Lambda` will be a sum of
+    other linear maps :math:`\Lambda_i(t, y)`, which are in turn some
     combination of left-multiplication, right-multiplication
     and both.
 
@@ -95,7 +95,7 @@ class BaseOperatorCollection(ABC):
 class DenseOperatorCollection(BaseOperatorCollection):
     r"""Calculation object for models that only
     need left multiplication–those of the form
-    :math:`\dot{y} = G(t)y(t)`, where :math:`G(t) = \sum_j s_j(t) G_j + G_d`.
+    :math:`\dot{y} = G(t)y(t)`, where :math:`G(t) = G_d + \sum_j s_j(t) G_j`.
     Can evaluate :math:`G(t)` independently of :math:`y`.
     """
 
