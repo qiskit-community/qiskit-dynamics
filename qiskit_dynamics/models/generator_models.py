@@ -236,11 +236,15 @@ class CallableGenerator(BaseGeneratorModel):
         new_drift: Array,
         operator_in_frame_basis: Optional[bool] = False,
     ):
-        # Subtracting the frame operator from the generator is handled at evaluation time.
+        # subtracting the frame operator from the generator is handled at evaluation time.
         if operator_in_frame_basis and self.rotating_frame is not None:
             self._drift = self.rotating_frame.operator_out_of_frame_basis(new_drift)
         else:
             self._drift = new_drift
+
+        if self.rotating_frame.frame_diag is not None:
+            # add in the rotating frame contribution so that set_drift overrides the automatic action of setting a frame.
+            self._drift = self._drift + self.rotating_frame.operator_out_of_frame_basis(self.rotating_frame.frame_diag)
 
     def set_evaluation_mode(self, new_mode: str):
         """Setting the evaluation mode for CallableGenerator
