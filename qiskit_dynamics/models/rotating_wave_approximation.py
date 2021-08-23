@@ -77,18 +77,12 @@ def rotating_wave_approximation(
     """
 
     if isinstance(model, CallableGenerator):
-        raise NotImplementedError(
-            "CallableGenerator models are not supported for RWA calculations."
-        )
+        raise NotImplementedError("RWA for CallableGenerators is not supported.")
 
     if model.signals is None:
-        raise ValueError(
-            "Model classes must have a well-defined signals object to perform the RWA."
-        )
+        raise ValueError("Model must have nontrivial signals to perform the RWA.")
 
     n = model.dim
-
-    curr_drift = model.get_drift(True)
 
     frame_freqs = None
     if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
@@ -98,87 +92,72 @@ def rotating_wave_approximation(
         diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
         frame_freqs = diff_matrix.imag / (2 * np.pi)
 
+    if model.rotating_frame.frame_diag is not None:
+        frame_shift = np.diag(model.rotating_frame.frame_diag)
+        if isinstance(model, (HamiltonianModel, LindbladModel)):
+            frame_shift = 1j * frame_shift
+    else:
+        frame_shift = 0
+    cur_drift = model.get_drift(True) + frame_shift  # undo frame shifting for RWA
+    rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
+    rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
+
     if isinstance(model, GeneratorModel):
-        new_signals, new_operators = get_new_operators(
+        rwa_operators = get_rwa_operators(
             model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
         )
-        if isinstance(model, HamiltonianModel):
-            if model.rotating_frame.frame_diag is not None:
-                curr_drift = curr_drift + np.diag(1j * model.rotating_frame.frame_diag)
-            new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
-            new_drift = model.rotating_frame.operator_out_of_frame_basis(new_drift)
+        rwa_signals = get_rwa_signals(model.signals)
 
-            if len(new_signals) != new_operators.shape[0]:
-                raise ValueError(
-                    "Number of signals must be the same as the number of Hamiltonian operators."
-                )
-            new_model = HamiltonianModel(
-                new_operators,
-                drift=new_drift,
-                signals=new_signals,
-                rotating_frame=model.rotating_frame.frame_operator,
+        if len(rwa_signals) != rwa_operators.shape[0]:
+            raise ValueError("Number of signals and operators must be the same")
+
+        # works for both GeneratorModel and HamiltonianModel
+        rwa_model = model.__class__(
+            rwa_operators,
+            rwa_signals,
+            drift=rwa_drift,
+            rotating_frame=model.rotating_frame,
                 evaluation_mode=model.evaluation_mode,
             )
-        else:
-            if model.rotating_frame.frame_diag is not None:
-                curr_drift = curr_drift + np.diag(model.rotating_frame.frame_diag)
-            new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
-            new_drift = model.rotating_frame.operator_out_of_frame_basis(new_drift)
+        if return_signal_translator:
+            return rwa_model, get_rwa_signals
+        return rwa_model
 
-            if len(new_signals) != new_operators.shape[0]:
-                raise ValueError(
-                    "Number of generator signals must be the same as the number of operators."
-                )
-            new_model = GeneratorModel(
-                new_operators,
-                drift=new_drift,
-                signals=new_signals,
-                rotating_frame=model.rotating_frame.frame_operator,
-                evaluation_mode=model.evaluation_mode,
-            )
     elif isinstance(model, LindbladModel):
-        if model.rotating_frame.frame_diag is not None:
-            curr_drift = curr_drift + np.diag(1j * model.rotating_frame.frame_diag)
-        new_drift = curr_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
-        new_drift = model.rotating_frame.operator_out_of_frame_basis(new_drift)
 
         cur_ham_ops, cur_dis_ops = model.get_operators(in_frame_basis=True)
         cur_ham_sig, cur_dis_sig = model.signals
 
-        new_ham_sig, new_ham_ops = get_new_operators(
+        rwa_ham_ops = get_rwa_operators(
             cur_ham_ops, cur_ham_sig, model.rotating_frame, frame_freqs, cutoff_freq
         )
-        if len(new_ham_sig) != new_ham_ops.shape[0]:
-            raise ValueError(
-                "Number of signals must be the same as the number of Hamiltonian operators."
-            )
+        rwa_ham_sig = get_rwa_signals(cur_ham_sig)
+
+        if len(rwa_ham_sig) != rwa_ham_ops.shape[0]:
+            raise ValueError("Number of signals and hamiltonian terms must be the same.")
+
         if cur_dis_ops is not None and cur_dis_sig is not None:
-            new_dis_sig, new_dis_ops = get_new_operators(
+            rwa_dis_ops = get_rwa_operators(
                 cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
             )
-            if len(new_dis_sig) != new_dis_ops.shape[0]:
-                raise ValueError(
-                    "Number of signals must be the same as the number of dissipator operators."
-                )
+            rwa_dis_sig = get_rwa_signals(cur_dis_sig)
+            if len(rwa_dis_sig) != rwa_dis_ops.shape[0]:
+                raise ValueError("Number of signals and dissipator terms must be the same.")
 
-        new_model = LindbladModel(
-            new_ham_ops,
-            new_ham_sig,
-            new_dis_ops,
-            new_dis_sig,
-            new_drift,
-            model.rotating_frame,
-            model.evaluation_mode,
+        rwa_model = LindbladModel(
+            rwa_ham_ops,
+            hamiltonian_signals=rwa_ham_sig,
+            dissipator_operators=rwa_dis_ops,
+            dissipator_signals=rwa_dis_sig,
+            drift=rwa_drift,
+            rotating_frame=model.rotating_frame,
+            evaluation_mode=model.evaluation_mode,
         )
+
     if return_signal_translator:
-        if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
-            # if there are no frame frequencies, we don't need signal translating.
-            return new_model, lambda sigs: sigs
-        else:
-            # if there are nontrivial frame frequencies, we need signal translation.
-            return new_model, get_new_signals
-    else:
-        return new_model
+            signal_translator = lambda a, b: (get_rwa_signals(a), get_rwa_signals(b))
+            return rwa_model, signal_translator
+        return rwa_model
 
 
 def get_rwa_operators(
