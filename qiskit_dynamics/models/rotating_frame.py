@@ -479,7 +479,7 @@ class RotatingFrame:
         .. math::
             ((e^{tF})^T \otimes e^{-tF}) \times op \times ((e^{-tF})^T \otimes e^{tF}).
 
-        Utilizes element-wise multiplication :math:`op \to \Delta\otimes\bar{\Delta} \cdot op`,
+        Utilizes element-wise multiplication :math:`op \to \Delta\otimes\bar{\Delta} \odot op`,
         where :math:`\Delta_{ij}=\exp((-d_i+d_j)t)` is the frame difference matrix, as well as
         caches array :math:`\bar{C}\otimes C`, where ``C = self.frame_basis`` for future use.
 
