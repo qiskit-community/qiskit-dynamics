@@ -39,13 +39,13 @@ class HamiltonianModel(GeneratorModel):
 
     This class inherits most functionality from :class:`GeneratorModel`,
     with the following modifications:
-        - The operators :math:`H_d` and :math:`H_i` are assumed and verified to be Hermitian.
-        - Rotating frames are dealt with assuming the structure of the Schrodinger
-          equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
-          frame :math:`F = -iH`, evaluates the expression
-          :math:`e^{-tF}H(t)e^{tF} - H`. This is in contrast to
-          the base class :class:`OperatorModel`, which would ordinarily
-          evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
+    - The operators :math:`H_d` and :math:`H_i` are assumed and verified to be Hermitian.
+    - Rotating frames are dealt with assuming the structure of the Schrodinger
+    equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
+    frame :math:`F = -iH`, evaluates the expression
+    :math:`e^{-tF}H(t)e^{tF} - H`. This is in contrast to
+    the base class :class:`OperatorModel`, which would ordinarily
+    evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
     """
 
     def __init__(
@@ -72,7 +72,7 @@ class HamiltonianModel(GeneratorModel):
             evaluation_mode: Evaluation mode to use. Supported options are:
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
-                             See :method:`GeneratorModel.set_evaluation_mode` for more details.
+                                See ``GeneratorModel.set_evaluation_mode`` for more details.
 
         Raises:
             Exception: if operators are not Hermitian

@@ -26,7 +26,6 @@ from qiskit_dynamics.models.operator_collections import (
     DenseOperatorCollection,
     SparseOperatorCollection,
 )
-from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from .rotating_frame import RotatingFrame
@@ -146,7 +145,7 @@ class BaseGeneratorModel(ABC):
 
     @abstractmethod
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        """If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
+        r"""If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
 
         Args:
             time: Time.
@@ -227,8 +226,7 @@ class CallableGenerator(BaseGeneratorModel):
             return self._drift
 
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Callable:
-        """`CallableGenerator` does not have decomposition in terms of operators.
-        """
+        """`CallableGenerator` does not have decomposition in terms of operators."""
         raise QiskitError("CallableGenerator does not have decomposition in terms of operators.")
 
     def set_drift(
@@ -243,8 +241,9 @@ class CallableGenerator(BaseGeneratorModel):
             self._drift = new_drift
 
         if self.rotating_frame.frame_diag is not None:
-            # add in the rotating frame contribution so that set_drift overrides the automatic action of setting a frame.
-            self._drift = self._drift + self.rotating_frame.operator_out_of_frame_basis(self.rotating_frame.frame_diag)
+            self._drift = self._drift + self.rotating_frame.operator_out_of_frame_basis(
+                self.rotating_frame.frame_diag
+            )
 
     def set_evaluation_mode(self, new_mode: str):
         """Setting the evaluation mode for CallableGenerator
@@ -317,12 +316,13 @@ class GeneratorModel(BaseGeneratorModel):
         Args:
             operators: A list of operators :math:`G_i`.
             signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
-                     :class:`GeneratorModel` signals are not required at instantiation.
+                :class:`GeneratorModel` signals are not required at instantiation.
             rotating_frame: Rotating frame operator.
-            evaluation_mode: Evaluation mode to use. Supported options are:
+            evaluation_mode: Evaluation mode to use. See ``GeneratorModel.set_evaluation_mode``
+            for more details. Supported options are:
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
-                             See :method:`GeneratorModel.set_evaluation_mode` for more details.
+
         """
 
         # initialize internal operator representation
@@ -357,15 +357,17 @@ class GeneratorModel(BaseGeneratorModel):
 
         Args:
             new_mode: String specifying new mode. Available options:
-                        - 'dense': Stores/evaluates operators using dense Arrays.
-                        - 'sparse': stores/evaluates operators using scipy
-                                    :class:`csr_matrix` types. If evaluating the generator
-                                    with a 2d frame operator (non-diagonal), all generators
-                                    will be returned as dense matrices. Not compatible
-                                    with JAX.
+            - 'dense': Stores/evaluates operators using dense Arrays.
+            - 'sparse': stores/evaluates operators using scipy
+            :class:`csr_matrix` types. If evaluating the generator
+            with a 2d frame operator (non-diagonal), all generators
+            will be returned as dense matrices. Not compatible
+            with JAX.
+
         Raises:
             NotImplementedError: if new_mode is not one of the above
             supported evaluation modes.
+
         """
 
         if new_mode == "dense":
@@ -439,11 +441,14 @@ class GeneratorModel(BaseGeneratorModel):
         Args:
             time: Time to evaluate the model.
             in_frame_basis: Whether to evaluate in the basis in which the rotating frame
-                            operator is diagonal.
+            operator is diagonal.
+
         Returns:
             Array: the evaluated model as a (n,n) matrix
+
         Raises:
             QiskitError: If model cannot be evaluated.
+
         """
 
         if self._signals is None:
@@ -466,13 +471,16 @@ class GeneratorModel(BaseGeneratorModel):
         Args:
             time: Time to evaluate the model.
             y: Array specifying system state, in basis specified by
-               in_frame_basis.
+            in_frame_basis.
             in_frame_basis: Whether to evaluate in the basis in which the frame
-                            operator is diagonal.
+            operator is diagonal.
+
         Returns:
             Array defined by :math:`G(t) \times y`.
+
         Raises:
             QiskitError: If model cannot be evaluated.
+
         """
 
         if self._signals is None:

@@ -117,8 +117,8 @@ def rotating_wave_approximation(
             rwa_signals,
             drift=rwa_drift,
             rotating_frame=model.rotating_frame,
-                evaluation_mode=model.evaluation_mode,
-            )
+            evaluation_mode=model.evaluation_mode,
+        )
         if return_signal_translator:
             return rwa_model, get_rwa_signals
         return rwa_model
@@ -155,9 +155,9 @@ def rotating_wave_approximation(
         )
 
     if return_signal_translator:
-            signal_translator = lambda a, b: (get_rwa_signals(a), get_rwa_signals(b))
-            return rwa_model, signal_translator
-        return rwa_model
+        signal_translator = lambda a, b: (get_rwa_signals(a), get_rwa_signals(b))
+        return rwa_model, signal_translator
+    return rwa_model
 
 
 def get_rwa_operators(

@@ -82,7 +82,7 @@ class LindbladModel(BaseGeneratorModel):
                                 - 'dense' (default)
                                 - 'sparse'
                                 - 'dense_vectorized'
-                              See :method:`LindbladModel.set_evaluation_mode` for more details.
+                                See ``LindbladModel.set_evaluation_mode`` for more details.
 
         Raises:
             Exception: if signals incorrectly specified.
