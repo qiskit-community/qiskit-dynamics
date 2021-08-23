@@ -181,12 +181,12 @@ def rotating_wave_approximation(
         return new_model
 
 
-def get_new_operators(
+def get_rwa_operators(
     current_ops: Array,
     current_sigs: SignalList,
     rotating_frame: RotatingFrame,
     frame_freqs: Array,
-    cutoff_freq: Union[float, int],
+    cutoff_freq: float,
 ):
     r"""Given a set of operators as a (k,n,n) Array, a set of
     frequencies (frame_freqs)_{jk} = Im[-d_j+d_k] where d_i
@@ -206,63 +206,56 @@ def get_new_operators(
     Returns:
         SignaLList: (2k,n,n) Array of new operators post RWA.
     """
+    current_sigs = current_sigs.flatten()
+    carrier_freqs = np.zeros(current_ops.shape[0])
 
-    num_components = len(current_sigs)
+    for i, sig_sum in enumerate(current_sigs.components):
+        sig = sig_sum.components[0]
+        carrier_freqs[i] = sig.carrier_freq
+
+    num_components = len(carrier_freqs)
     n = current_ops.shape[-1]
 
     frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
-
-    carrier_freqs = []
-    for sig_sum in current_sigs.components:
-        if len(sig_sum.components) > 1:
-            raise NotImplementedError(
-                "RWA with coefficients s_j are not pure Signal objects is not currently supported."
-            )
-        sig = sig_sum.components[0]
-        carrier_freqs.append(sig.carrier_freq)
-    carrier_freqs = np.array(carrier_freqs).reshape((num_components, 1, 1))
+    carrier_freqs = carrier_freqs.reshape((num_components, 1, 1))
 
     pos_pass = np.abs(carrier_freqs + frame_freqs) < cutoff_freq
+    pos_terms = current_ops * pos_pass.astype(int)  # G_i^+
+
     neg_pass = np.abs(-carrier_freqs + frame_freqs) < cutoff_freq
+    neg_terms = current_ops * neg_pass.astype(int)  # G_i^-
 
-    both_terms = current_ops * (pos_pass & neg_pass).astype(int)
-    pos_terms = current_ops * (pos_pass & np.logical_not(neg_pass)).astype(int)
-    neg_terms = current_ops * (np.logical_not(pos_pass) & neg_pass).astype(int)
+    real_component = pos_terms / 2 + neg_terms / 2
+    imag_component = 1j * pos_terms / 2 - 1j * neg_terms / 2
 
-    normal_operators = both_terms + pos_terms / 2 + neg_terms / 2
-    abnormal_operators = 1j * pos_terms / 2 - 1j * neg_terms / 2
-
-    new_signals = get_new_signals(current_sigs)
-    new_operators = rotating_frame.operator_out_of_frame_basis(
-        np.append(normal_operators, abnormal_operators, axis=0)
+    rwa_operators = rotating_frame.operator_out_of_frame_basis(
+        np.append(real_component, imag_component, axis=0)
     )
 
-    if np.allclose(frame_freqs, 0):
-        return current_sigs, new_operators[: len(new_operators) // 2]
-
-    return new_signals, new_operators
+    return rwa_operators
 
 
-def get_new_signals(old_signal_list: Union[List[Signal], SignalList]):
+def get_rwa_signals(curr_signal_list: Union[List[Signal], SignalList]):
     """Helper function that converts pre-RWA
     signals to post-RWA signals"""
-    if old_signal_list is None:
-        return old_signal_list
-    normal_signals = []
-    abnormal_signals = []
-    if not isinstance(old_signal_list, SignalList):
-        old_signal_list = SignalList(old_signal_list)
-    for sig_sum in old_signal_list.components:
-        if len(sig_sum.components) > 1:
-            raise NotImplementedError(
-                "RWA with coefficients s_j are not pure Signal objects is not currently supported."
-            )
+    if curr_signal_list is None:
+        return curr_signal_list
+
+    real_signal_components = []
+    imag_signal_components = []
+
+    if not isinstance(curr_signal_list, SignalList):
+        curr_signal_list = SignalList(curr_signal_list)
+
+    curr_signal_list = curr_signal_list.flatten()
+
+    for sig_sum in curr_signal_list.components:
         sig = sig_sum.components[0]
-        normal_signals.append(sig)
-        abnormal_signals.append(
+        real_signal_components.append(sig)
+        imag_signal_components.append(
             SignalSum(Signal(sig.envelope, sig.carrier_freq, sig.phase - np.pi / 2))
         )
 
-    new_signals = SignalList(normal_signals + abnormal_signals)
+    rwa_signals = SignalList(real_signal_components + imag_signal_components)
 
-    return new_signals
+    return rwa_signals
