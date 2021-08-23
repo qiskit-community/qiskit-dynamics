@@ -14,7 +14,11 @@
 """tests for qiskit_dynamics.models.HamiltonianModel"""
 
 import numpy as np
-from jax import jit, grad
+
+try:
+    from jax import jit, grad
+except ImportError:
+    pass
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel

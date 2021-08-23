@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""tests for qiskit_dynamics.models.rotating_wave"""
+"""tests for qiskit_dynamics.models.rotating_wave_approximation"""
 
 import numpy as np
 from qiskit_dynamics.dispatch.array import Array

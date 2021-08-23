@@ -13,7 +13,10 @@
 
 """Tests for generator_models.py. """
 
-from jax import jit, grad
+try:
+    from jax import jit, grad
+except ImportError:
+    pass
 from scipy.sparse import issparse
 from scipy.linalg import expm
 import numpy as np

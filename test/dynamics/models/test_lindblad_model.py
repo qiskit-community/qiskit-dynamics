@@ -16,7 +16,11 @@ of the actual calculation checking is handled at the level of a
 models.operator_collection.DenseLindbladOperatorCollection test."""
 
 import numpy as np
-from jax import jit, grad
+
+try:
+    from jax import jit, grad
+except ImportError:
+    pass
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
