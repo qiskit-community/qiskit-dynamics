@@ -372,10 +372,9 @@ class GeneratorModel(BaseGeneratorModel):
             self._operator_collection = SparseOperatorCollection(
                 self.get_operators(in_frame_basis=True), self.get_drift(in_frame_basis=True)
             )
-        elif new_mode is None:
-            self._operator_collection = None
         else:
             raise NotImplementedError("Evaluation Mode " + str(new_mode) + " is not supported.")
+
         self._evaluation_mode = new_mode
 
     @property
@@ -427,7 +426,8 @@ class GeneratorModel(BaseGeneratorModel):
             self._drift = self._drift - Array(np.diag(self._rotating_frame.frame_diag))
 
         # Reset internal operator collection
-        self.set_evaluation_mode(self.evaluation_mode)
+        if self.evaluation_mode is not None:
+            self.set_evaluation_mode(self.evaluation_mode)
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.

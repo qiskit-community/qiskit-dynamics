@@ -117,7 +117,9 @@ class HamiltonianModel(GeneratorModel):
             self._drift = self.rotating_frame.operator_into_frame_basis(self._drift)
             self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
-        self.set_evaluation_mode(self.evaluation_mode)
+        # Reset internal operator collection
+        if self.evaluation_mode is not None:
+            self.set_evaluation_mode(self.evaluation_mode)
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         return -1j * super().evaluate(time, in_frame_basis=in_frame_basis)

@@ -190,10 +190,9 @@ class LindbladModel(BaseGeneratorModel):
                 dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = True
-        elif new_mode is None:
-            pass
         else:
             raise NotImplementedError("Evaluation mode " + str(new_mode) + " is not supported.")
+
         self._evaluation_mode = new_mode
 
     @classmethod
@@ -260,8 +259,9 @@ class LindbladModel(BaseGeneratorModel):
 
             self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
-        # Ensure these changes are passed on to the operator collection.
-        self.set_evaluation_mode(self.evaluation_mode)
+        # Reset internal operator collection
+        if self.evaluation_mode is not None:
+            self.set_evaluation_mode(self.evaluation_mode)
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         if self._dissipator_signals is not None:
