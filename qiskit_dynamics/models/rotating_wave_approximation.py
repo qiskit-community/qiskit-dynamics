@@ -32,7 +32,7 @@ from qiskit_dynamics.dispatch import Array
 def rotating_wave_approximation(
     model: BaseGeneratorModel,
     cutoff_freq: float,
-    return_signal_translator: Optional[bool] = False,
+    return_signal_map: Optional[bool] = False,
 ) -> BaseGeneratorModel:
     r"""Performs the RWA on Model classes and returns it as a new model.
     Performs elementwise RWA on each operator component with maximal
@@ -47,10 +47,10 @@ def rotating_wave_approximation(
         wish to apply the RWA.
         cutoff_freq: The maximum (magnitude) of
         frequency you wish to allow.
-        return_signal_translator: Whether to also return a function f that
+        return_signal_map: Whether to also return a function f that
             converts pre-RWA SignalLists to post-RWA SignalLists.
     Returns:
-        GeneratorModel with twice as many terms, and, if return_signal_translator,
+        GeneratorModel with twice as many terms, and, if return_signal_map,
         also the function f.
     Raises:
         NotImplementedError: If components :math:`s_j(t)` are not equivalent
@@ -116,7 +116,7 @@ def rotating_wave_approximation(
             rotating_frame=model.rotating_frame,
             evaluation_mode=model.evaluation_mode,
         )
-        if return_signal_translator:
+        if return_signal_map:
             return rwa_model, get_rwa_signals
         return rwa_model
 
@@ -146,7 +146,7 @@ def rotating_wave_approximation(
             evaluation_mode=model.evaluation_mode,
         )
 
-        if return_signal_translator:
+        if return_signal_map:
             signal_translator = lambda a, b: (get_rwa_signals(a), get_rwa_signals(b))
             return rwa_model, signal_translator
         return rwa_model
