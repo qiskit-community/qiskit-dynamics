@@ -153,3 +153,12 @@ class TestRotatingWaveJax(TestRotatingWave, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+    def test_jitable_rwa(self):
+        ops = Array(np.ones((4, 2, 2)))
+        self.jit_wrap(self.auxiliary_function_using_rwa)(ops, 2)
+
+    def auxiliary_function_using_rwa(self, ops,t):
+        sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
+        dft = Array(np.ones((2, 2)))
+        GM = GeneratorModel(ops, signals=sigs, drift=dft, rotating_frame=None)
+        rotating_wave_approximation(GM,2)(t)

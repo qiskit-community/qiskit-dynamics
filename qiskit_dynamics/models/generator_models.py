@@ -28,6 +28,7 @@ from qiskit_dynamics.models.operator_collections import (
 )
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
+from qiskit_dynamics.type_utils import to_array
 from .rotating_frame import RotatingFrame
 
 
@@ -132,7 +133,7 @@ class BaseGeneratorModel(ABC):
         if new_drift is None:
             new_drift = np.zeros((self.dim, self.dim))
 
-        new_drift = Array(np.array(new_drift))
+        new_drift = to_array(new_drift)
 
         if not operator_in_frame_basis and self.rotating_frame is not None:
             new_drift = self.rotating_frame.operator_into_frame_basis(new_drift)
@@ -327,7 +328,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         # initialize internal operator representation
         self._operator_collection = None
-        self._operators = Array(np.array(operators))
+        self._operators = to_array(operators)
         self._drift = None
         self._evaluation_mode = None
         self.set_drift(drift, operator_in_frame_basis=True)
