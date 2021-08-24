@@ -39,23 +39,21 @@ def rotating_wave_approximation(
     frequency ``cutoff_freq``.
 
     Optionally returns a function ``f`` that translates SignalLists
-    defined for the old Model to ones compatible with the new Model, as
-    ``model.signals = sig_list`` <-> ``rwa_model.signals = f(sig_list)``.
+    defined for the old Model to ones compatible with the new Model, such
+    that the following blocks of code lead to the same signals being stored
+    in the post-RWA model:
+    
+    ::
 
-    Args:
-        model: The GeneratorModel to which you
-        wish to apply the RWA.
-        cutoff_freq: The maximum (magnitude) of
-        frequency you wish to allow.
-        return_signal_map: Whether to also return a function f that
-            converts pre-RWA SignalLists to post-RWA SignalLists.
-    Returns:
-        GeneratorModel with twice as many terms, and, if return_signal_map,
-        also the function f.
-    Raises:
-        NotImplementedError: If components :math:`s_j(t)` are not equivalent
-        to pure Signal objects or if a ``CallableGenerator`` is passed.
-        ValueError: If there aren't the same number of signals as operators.
+        model.signals = sig_list
+        rwa_model = rotating_wave_approximation(model, cutoff_freq),
+
+    and
+
+    ::
+        
+        rwa_model = rotating_wave_approximation(model, cutoff_freq)
+        rwa_model.signals = f(sig_list).
 
     Formalism: When considering s_i(t) e^{-tF}G_ie^{tF}, in the frame in which
     F is diagonal, the (jk) element of the i^{th} matrix has effective frequency
@@ -74,6 +72,20 @@ def rotating_wave_approximation(
 
     where s_i'(t) is a Signal with the same frequency and amplitude as s_i, but with a phase
     shift of \phi_i - \pi/2. Note that the frame shifts -F are not affected by the RWA.
+
+    Args:
+        model: The GeneratorModel to which you
+        wish to apply the RWA.
+        cutoff_freq: The maximum (magnitude) of
+        frequency you wish to allow.
+        return_signal_map: Whether to also return a function f that
+            converts pre-RWA SignalLists to post-RWA SignalLists.
+    Returns:
+        GeneratorModel with twice as many terms, and, if return_signal_map,
+        also the function f.
+    Raises:
+        NotImplementedError: If a ``CallableGenerator`` is passed.
+        ValueError: If the model has no signals.
     """
 
     if isinstance(model, CallableGenerator):
