@@ -16,7 +16,8 @@
 import numpy as np
 from qiskit_dynamics.dispatch.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.models import GeneratorModel, rotating_wave_approximation
+from qiskit_dynamics.models import GeneratorModel, rotating_wave_approximation, LindbladModel, RotatingFrame
+from qiskit_dynamics.models.rotating_wave_approximation import get_rwa_operators
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -67,6 +68,70 @@ class TestRotatingWave(QiskitDynamicsTestCase):
             np.ones((8, 2, 2))
         )
         self.assertAllClose(GMP.get_operators(True), post_rwa_ops)
+
+    def test_signal_translator_generator_model(self):
+        """Tests signal translation from pre-RWA to post-RWA through
+        rotating_wave_approximation.get_rwa_signals when passed a 
+        GeneratorModel."""
+        ops = Array(np.ones((4, 2, 2)))
+        sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
+        dft = Array(np.ones((2, 2)))
+        GM = GeneratorModel(ops, signals=sigs, drift = dft, rotating_frame=None)
+        GMP, f = rotating_wave_approximation(GM, 100, return_signal_map=True)
+        vals = f(sigs).complex_value(3)
+        self.assertAllClose(vals[:4],GM.signals.complex_value(3))
+        s_prime = [Signal(1, 0, -np.pi/2), Signal(1, -3, -np.pi/2), Signal(1, 1, -np.pi/2), Signal(1, 3, -np.pi/2)]
+        self.assertAllClose(vals[4:],SignalList(s_prime).complex_value(3))
+        self.assertTrue(f(None) is None)
+
+    def test_signal_translator_lindblad_model(self):
+        """Like test_signal_translator_generator_model, but for LindbladModels."""
+        ops = Array(np.ones((4, 2, 2)))
+        sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
+        s_prime = [Signal(1, 0, -np.pi/2), Signal(1, -3, -np.pi/2), Signal(1, 1, -np.pi/2), Signal(1, 3, -np.pi/2)]
+        dft = Array(np.ones((2, 2)))
+        LM = LindbladModel(ops, sigs, ops, sigs, dft)
+        LMP, f = rotating_wave_approximation(LM, 100, return_signal_map=True)
+        rwa_ham_sig, rwa_dis_sig = f(sigs,sigs)
+        self.assertAllClose(rwa_ham_sig.complex_value(2)[:4], SignalList(sigs).complex_value(2))
+        self.assertAllClose(rwa_dis_sig.complex_value(2)[:4], SignalList(sigs).complex_value(2))
+        self.assertAllClose(rwa_ham_sig.complex_value(2)[4:], SignalList(s_prime).complex_value(2))
+        self.assertAllClose(rwa_dis_sig.complex_value(2)[4:], SignalList(s_prime).complex_value(2))
+
+        self.assertTrue(f(None,None)==(None, None))
+
+    def test_rwa_operators(self):
+        """Tests get_rwa_operators using pseudorandom numbers. """
+        np.random.seed(123098123)
+        r = lambda *args: Array(np.random.uniform(-1,1,args))
+        rj = lambda *args: r(*args) + 1j * r(*args)
+        ops = rj(4,3,3)
+        carrier_freqs = r(4)
+        cutoff_freq = 0.3
+        sigs = SignalList([Signal(r(), freq, r()) for freq in carrier_freqs])
+
+        frame_op = r(3,3)
+        frame_op = frame_op - frame_op.conj().T
+        rotating_frame = RotatingFrame(frame_op)
+
+        ops_in_fb = rotating_frame.operator_into_frame_basis(ops)
+        diag = rotating_frame.frame_diag
+        diff_matrix = np.broadcast_to(diag, (3,3)) - np.broadcast_to(diag, (3,3)).T
+        frame_freqs = (diff_matrix.imag / (2 * np.pi))
+        
+        rwa_ops = get_rwa_operators(ops_in_fb, sigs, rotating_frame, frame_freqs, cutoff_freq)
+
+        carrier_freqs = carrier_freqs.reshape(4,1,1)
+        frame_freqs = frame_freqs.reshape(1,3,3)
+        G_p = ops_in_fb * (np.abs(carrier_freqs + frame_freqs)<cutoff_freq).astype(int)
+        G_m = ops_in_fb * (np.abs(-carrier_freqs+ frame_freqs)<cutoff_freq).astype(int)
+        self.assertAllClose(rwa_ops[:4],rotating_frame.operator_out_of_frame_basis((G_p+G_m)/2))
+        self.assertAllClose(rwa_ops[4:],rotating_frame.operator_out_of_frame_basis(1j*(G_p-G_m)/2))
+
+
+
+        
+
 
 
 class TestRotatingWaveJax(TestRotatingWave, TestJaxBase):
