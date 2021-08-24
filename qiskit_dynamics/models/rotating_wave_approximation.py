@@ -108,9 +108,6 @@ def rotating_wave_approximation(
         )
         rwa_signals = get_rwa_signals(model.signals)
 
-        if len(rwa_signals) != rwa_operators.shape[0]:
-            raise ValueError("Number of signals and operators must be the same")
-
         # works for both GeneratorModel and HamiltonianModel
         rwa_model = model.__class__(
             rwa_operators,
@@ -133,16 +130,11 @@ def rotating_wave_approximation(
         )
         rwa_ham_sig = get_rwa_signals(cur_ham_sig)
 
-        if len(rwa_ham_sig) != rwa_ham_ops.shape[0]:
-            raise ValueError("Number of signals and hamiltonian terms must be the same.")
-
         if cur_dis_ops is not None and cur_dis_sig is not None:
             rwa_dis_ops = get_rwa_operators(
                 cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
             )
             rwa_dis_sig = get_rwa_signals(cur_dis_sig)
-            if len(rwa_dis_sig) != rwa_dis_ops.shape[0]:
-                raise ValueError("Number of signals and dissipator terms must be the same.")
 
         rwa_model = LindbladModel(
             rwa_ham_ops,
