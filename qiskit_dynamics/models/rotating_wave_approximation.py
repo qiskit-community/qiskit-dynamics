@@ -42,7 +42,7 @@ def rotating_wave_approximation(
     defined for the old Model to ones compatible with the new Model, such
     that the following blocks of code lead to the same signals being stored
     in the post-RWA model:
-    
+
     ::
 
         model.signals = sig_list
@@ -51,7 +51,7 @@ def rotating_wave_approximation(
     and
 
     ::
-        
+
         rwa_model = rotating_wave_approximation(model, cutoff_freq)
         rwa_model.signals = f(sig_list).
 
