@@ -154,28 +154,21 @@ class TestRotatingWaveJax(TestRotatingWave, TestJaxBase):
     Note: This class has no body but contains tests due to inheritance.
     """
 
-    def test_jitable_rwa(self):
-        """Tests whether a function involving the RWA is jitable."""
+    def test_jitable_gradable_rwa(self):
+        """Tests whether a function involving the RWA is jitable and gradable."""
 
-        def _simple_function_using_rwa(ops, w):
+        def _simple_function_using_rwa(w):
             """Simple function that involves taking the rotating wave approximation."""
-            sigs = [Signal(1, 0), Signal(lambda t: w, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
+            sigs = [Signal(1, 0), Signal(lambda t: w*t, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
+            ops = Array(np.ones((4, 2, 2)))
             dft = Array(np.ones((2, 2)))
             GM = GeneratorModel(ops, signals=sigs, drift=dft, rotating_frame=None)
-            rotating_wave_approximation(GM, 2)(2)
-
-        ops = Array(np.ones((4, 2, 2)))
-        self.jit_wrap(_simple_function_using_rwa)(ops, 1)
-        # Need to have as many things as possible focus on differentiating things wrt parametrization of function envelopes
+            return rotating_wave_approximation(GM, 2)(2)
+        
+        self.jit_wrap(_simple_function_using_rwa)(1.)
+        self.jit_grad_wrap(_simple_function_using_rwa)(1.)
         # Change demo nb to evaluation_mode_demo and move to tutorials
         # Within the demo, the following:
         # Would be nice if beginning was more direct. Want multiple evaluation modes. Just give a random HamiltonianModel
         # In general, really just trim it down a great deal
         # Get speed testing notebook from previous versions of git; send to Dan
-        # Add to docstring of _conjugate_and_add to explain the two vectorization conventions α
-
-    def test_temp(self):
-        def tmp(w):
-            s = Signal(1)
-            return s(0)
-        self.jit_wrap(tmp)(0)
