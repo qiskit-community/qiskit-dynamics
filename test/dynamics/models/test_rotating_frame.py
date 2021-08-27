@@ -411,6 +411,19 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected, rtol=1e-10, atol=1e-10)
 
+    def test_vectorized_conjugate_and_add_conventions(self):
+        """Test whether passing a vectorized (dim**2, k) operator to _conjugate_and_add
+        with vectorized_operators = True is the same as passing a (k,dim,dim) array of
+        operators."""
+        vectorized_rhos = np.array([[1., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 1., 0.]]).transpose()
+        
+        nonvectord_rhos = vectorized_rhos.reshape((2,2,3),order="F").transpose([2,0,1])
+        rotating_frame = RotatingFrame(np.array([1j,2j]))
+
+        vectorized_result = rotating_frame._conjugate_and_add(0.1,vectorized_rhos,vectorized_operators=True)
+        nonvectord_result = rotating_frame._conjugate_and_add(0.1,nonvectord_rhos).reshape(3,4,order="F").transpose()
+        self.assertAllClose(vectorized_result,nonvectord_result)
+
 
 class TestFrameJax(TestRotatingFrame, TestJaxBase):
     """Jax version of TestRotatingFrame tests.
