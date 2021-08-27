@@ -268,6 +268,13 @@ class RotatingFrame:
         Note: B is added in the frame basis before any potential final change
         out of the frame basis.
 
+        Note: There are two conventions for passing multiple operators at the same
+        time. For evaluation with vectorized_operators=False, these operators should
+        be passed as (k, dim, dim) Array objects, with the :math:`i^{th}` operator
+        being stored as the [i,:,:] entry. For vectorized_operators = True, these
+        (vectorized) operators should be passed as a (dim**2, k) Array, with the
+        :math:`i^{th}` vectorized operator stored as the [:,i] entry.
+
         Args:
             t: Time.
             operator: The operator G.
