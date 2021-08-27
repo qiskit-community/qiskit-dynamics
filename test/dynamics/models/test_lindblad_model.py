@@ -187,6 +187,9 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         t = rng.uniform(low=-b, high=b)
         value = lindblad_model(t, A, in_frame_basis=False)
+        value_in_frame_basis = lindblad_model(
+            t, lindblad_model.rotating_frame.operator_into_frame_basis(A), in_frame_basis=True
+        )
 
         ham_coeffs = np.real(
             rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
@@ -221,6 +224,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             lindblad_model.evaluate(t, in_frame_basis=False) @ A.flatten(order="F")
         ).reshape((dim, dim), order="F")
         self.assertAllClose(value, vectorized_value_lmult)
+
+        rho_in_frame_basis = lindblad_model.rotating_frame.operator_into_frame_basis(A)
+        vectorized_value_lmult_fb = (
+            lindblad_model.evaluate(t, in_frame_basis=True) @ rho_in_frame_basis.flatten(order="F")
+        ).reshape((dim, dim), order="F")
+        self.assertAllClose(vectorized_value_lmult_fb, value_in_frame_basis)
 
         if Dispatch.DEFAULT_BACKEND != "jax":
             lindblad_model.set_evaluation_mode("sparse")
