@@ -275,7 +275,7 @@ class LindbladModel(BaseGeneratorModel):
             out = self._operator_collection.evaluate(
                 self._hamiltonian_signals(time), dissipator_sig_vals
             )
-            return self.rotating_frame.vectorized_operator_into_frame(
+            return self.rotating_frame.vectorized_map_into_frame(
                 time, out, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
             )
         else:

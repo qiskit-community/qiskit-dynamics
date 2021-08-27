@@ -477,7 +477,7 @@ class RotatingFrame:
                 return_in_frame_basis=return_in_frame_basis,
             )
 
-    def vectorized_operator_into_frame(
+    def vectorized_map_into_frame(
         self,
         time: float,
         op: Array,
