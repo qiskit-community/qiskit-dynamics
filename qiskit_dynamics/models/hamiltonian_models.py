@@ -23,6 +23,7 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_array
 from .generator_models import GeneratorModel
+from .rotating_frame import RotatingFrame
 
 
 class HamiltonianModel(GeneratorModel):
@@ -31,119 +32,97 @@ class HamiltonianModel(GeneratorModel):
     This class represents a Hamiltonian as a time-dependent decomposition the form:
 
     .. math::
+        H(t) = H_d + \sum_{i=0}^{k-1} s_i(t) H_i,
 
-        H(t) = \sum_{i=0}^{k-1} s_i(t) H_i,
+    where :math:`H_i` are Hermitian operators, :math:`H_d` is the drift component,
+    and the :math:`s_i(t)` are time-dependent functions represented by :class:`Signal` objects.
 
-    where :math:`H_i` are Hermitian operators, and the :math:`s_i(t)` are
-    time-dependent functions represented by :class:`Signal` objects.
-
-    This class inherits
-
-    Currently the functionality of this class is as a subclass of
-    :class:`GeneratorModel`, with the following modifications:
-
-        - The operators in the linear decomposition are verified to be
-          Hermitian.
-        - Frames are dealt with assuming the structure of the Schrodinger
-          equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
-          frame :math:`F = -iH`, evaluates the expression
-          :math:`e^{-tF}H(t)e^{tF} - H`. This is in contrast to
-          the base class :class:`OperatorModel`, which would ordinarily
-          evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
+    This class inherits most functionality from :class:`GeneratorModel`,
+    with the following modifications:
+    - The operators :math:`H_d` and :math:`H_i` are assumed and verified to be Hermitian.
+    - Rotating frames are dealt with assuming the structure of the Schrodinger
+    equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
+    frame :math:`F = -iH`, evaluates the expression
+    :math:`e^{-tF}H(t)e^{tF} - H`. This is in contrast to
+    the base class :class:`OperatorModel`, which would ordinarily
+    evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
     """
 
     def __init__(
         self,
         operators: List[Operator],
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        frame: Optional[Union[Operator, Array]] = None,
-        cutoff_freq: Optional[float] = None,
+        drift: Optional[Array] = None,
+        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         validate: bool = True,
+        evaluation_mode: str = "dense",
     ):
         """Initialize, ensuring that the operators are Hermitian.
 
         Args:
             operators: list of Operator objects.
-            signals: Specifiable as either a SignalList, a list of
-                     Signal objects, or as the inputs to signal_mapping.
-                     OperatorModel can be instantiated without specifying
-                     signals, but it can not perform any actions without them.
-            frame: Rotating frame operator. If specified with a 1d
-                            array, it is interpreted as the diagonal of a
-                            diagonal matrix.
-            cutoff_freq: Frequency cutoff when evaluating the model.
+            drift: Optional, time-independent term in the Hamiltonian.
+            signals: List of coefficients :math:`s_i(t)`. Not required at instantiation, but
+                     necessary for evaluation of the model.
+            rotating_frame: Rotating frame operator.
+                            If specified with a 1d array, it is interpreted as the
+                            diagonal of a diagonal matrix. Assumed to store
+                            the antihermitian matrix F = -iH.
             validate: If True check input operators are Hermitian.
+            evaluation_mode: Evaluation mode to use. Supported options are:
+                                - 'dense' (DenseOperatorCollection)
+                                - 'sparse' (SparseOperatorCollection)
+                                See ``GeneratorModel.set_evaluation_mode`` for more details.
 
         Raises:
             Exception: if operators are not Hermitian
         """
+
         # verify operators are Hermitian, and if so instantiate
         operators = to_array(operators)
 
         if validate:
             adj = np.transpose(np.conjugate(operators), (0, 2, 1))
-            if np.linalg.norm(adj - operators) > 1e-10:
+            if np.linalg.norm(adj - operators) > 1e-10 or (
+                drift is not None
+                and np.linalg.norm(drift - np.conjugate(np.transpose(drift))) > 1e-10
+            ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
-        super().__init__(operators=operators, signals=signals, frame=frame, cutoff_freq=cutoff_freq)
-
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
-        """Evaluate the Hamiltonian at a given time.
-
-        Note: This function from :class:`OperatorModel` needs to be overridden,
-        due to frames for Hamiltonians being relative to the Schrodinger
-        equation, rather than the Hamiltonian itself.
-        See the class doc string for details.
-
-        Args:
-            time: Time to evaluate the model
-            in_frame_basis: Whether to evaluate in the basis in which the frame
-                            operator is diagonal
-
-        Returns:
-            Array: the evaluated model
-
-        Raises:
-            Exception: if signals are not present
-        """
-
-        if self.signals is None:
-            raise Exception(
-                """OperatorModel cannot be evaluated without
-                               signals."""
-            )
-
-        sig_vals = self.signals.complex_value(time)
-
-        op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
-
-        op_to_add_in_fb = None
-        if self.frame.frame_operator is not None:
-            op_to_add_in_fb = -1j * np.diag(self.frame.frame_diag)
-
-        return self.frame._conjugate_and_add(
-            time,
-            op_combo,
-            op_to_add_in_fb=op_to_add_in_fb,
-            operator_in_frame_basis=True,
-            return_in_frame_basis=in_frame_basis,
+        super().__init__(
+            operators=operators,
+            signals=signals,
+            rotating_frame=rotating_frame,
+            drift=drift,
+            evaluation_mode=evaluation_mode,
         )
 
-    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
-        """Evaluate generator RHS functions. Needs to be overriden from base class
-        to include :math:`-i`. I.e. if ``y is None``, returns :math:`-iH(t)`,
-        and otherwise returns :math:`-iH(t)y`.
+    @property
+    def rotating_frame(self) -> RotatingFrame:
+        return super().rotating_frame
 
-        Args:
-            t: Time.
-            y: Optional state.
-            in_frame_basis: Whether or not to evaluate in the frame basis.
+    @rotating_frame.setter
+    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]) -> Array:
+        """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
+        The drift needs to be adjusted by -H in the new frame."""
+        if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
+            self._drift = self._drift + Array(np.diag(1j * self._rotating_frame.frame_diag))
+            self._operators = self.rotating_frame.operator_out_of_frame_basis(self._operators)
+            self._drift = self.rotating_frame.operator_out_of_frame_basis(self._drift)
 
-        Returns:
-            Array: Either the evaluated model or the RHS for the given y
-        """
+        self._rotating_frame = RotatingFrame(rotating_frame)
 
-        if y is None:
-            return -1j * self.evaluate(t, in_frame_basis=in_frame_basis)
+        if self._rotating_frame.frame_diag is not None:
+            self._operators = self.rotating_frame.operator_into_frame_basis(self._operators)
+            self._drift = self.rotating_frame.operator_into_frame_basis(self._drift)
+            self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
 
-        return -1j * self.lmult(t, y, in_frame_basis=in_frame_basis)
+        # Reset internal operator collection
+        if self.evaluation_mode is not None:
+            self.set_evaluation_mode(self.evaluation_mode)
+
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        return -1j * super().evaluate(time, in_frame_basis=in_frame_basis)
+
+    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+        return -1j * super().evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
