@@ -220,9 +220,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         ).reshape((dim, dim), order="F")
         self.assertAllClose(value, vectorized_value)
 
-        vectorized_value_lmult = (
-            lindblad_model.evaluate(t, in_frame_basis=False) @ A.flatten(order="F")
-        ).reshape((dim, dim), order="F")
+        vec_gen = lindblad_model.evaluate(t, in_frame_basis=False)
+        vectorized_value_lmult = (vec_gen @ A.flatten(order="F")).reshape((dim, dim), order="F")
         self.assertAllClose(value, vectorized_value_lmult)
 
         rho_in_frame_basis = lindblad_model.rotating_frame.operator_into_frame_basis(A)
@@ -235,6 +234,18 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             lindblad_model.set_evaluation_mode("sparse")
             sparse_value = lindblad_model.evaluate_rhs(t, A, in_frame_basis=False)
             self.assertAllClose(value, sparse_value)
+
+            lindblad_model.set_evaluation_mode("sparse_vectorized")
+            sparse_vectorized_value = lindblad_model.evaluate_rhs(
+                t, A.flatten(order="F"), in_frame_basis=False
+            ).reshape((dim, dim), order="F")
+            self.assertAllClose(value, sparse_vectorized_value)
+
+            sparse_vec_gen = lindblad_model.evaluate(t, in_frame_basis=False)
+            sparse_vectorized_value_lmult = (sparse_vec_gen @ A.flatten(order="F")).reshape(
+                (dim, dim), order="F"
+            )
+            self.assertAllClose(sparse_vectorized_value_lmult, value)
 
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):

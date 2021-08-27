@@ -506,6 +506,7 @@ class RotatingFrame:
         if self.frame_diag is not None:
             # Put the vectorized operator into the frame basis
             if not operator_in_frame_basis and self.frame_basis is not None:
+                print("Should Not 1")
                 if self._vectorized_frame_basis is None:
                     self._vectorized_frame_basis = np.kron(
                         self.frame_basis.conj(), self.frame_basis
@@ -513,7 +514,7 @@ class RotatingFrame:
                     self._vectorized_frame_basis_adjoint = np.kron(
                         self.frame_basis.T, self.frame_basis_adjoint
                     )
-                op = self._vectorized_frame_basis_adjoint @ op @ self._vectorized_frame_basis
+                op = self._vectorized_frame_basis_adjoint @ (op @ self._vectorized_frame_basis)
 
             expvals = np.exp(self.frame_diag * time)  # = e^{td_i} = e^{it*Im(d_i)}
             # = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster
@@ -521,9 +522,13 @@ class RotatingFrame:
             delta_bar_otimes_delta = np.outer(
                 temp_outer.conj(), temp_outer
             )  # = kron(delta.conj(),delta) but >3x faster
-            op = delta_bar_otimes_delta * op  # hadamard product
+            if issparse(op):
+                op = op.multiply(delta_bar_otimes_delta)
+            else:
+                op = delta_bar_otimes_delta * op  # hadamard product
 
             if not return_in_frame_basis and self.frame_basis is not None:
+
                 if self._vectorized_frame_basis is None:
                     self._vectorized_frame_basis = np.kron(
                         self.frame_basis.conj(), self.frame_basis
@@ -531,7 +536,7 @@ class RotatingFrame:
                     self._vectorized_frame_basis_adjoint = np.kron(
                         self.frame_basis.T, self.frame_basis_adjoint
                     )
-                op = self._vectorized_frame_basis @ op @ self._vectorized_frame_basis_adjoint
+                op = self._vectorized_frame_basis @ (op @ self._vectorized_frame_basis_adjoint)
 
         return op
 

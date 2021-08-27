@@ -28,6 +28,7 @@ from .operator_collections import (
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
     SparseLindbladCollection,
+    SparseVectorizedLindbladCollection,
 )
 from .rotating_frame import RotatingFrame
 
@@ -78,11 +79,8 @@ class LindbladModel(BaseGeneratorModel):
             rotating_frame: rotating frame in which calcualtions are to be done.
                 If provided, it is assumed that all operators were
                 already in the frame basis.
-            evalutation_mode: Evaluation mode to use. Supported options are:
-                                - 'dense' (default)
-                                - 'sparse'
-                                - 'dense_vectorized'
-                                See ``LindbladModel.set_evaluation_mode`` for more details.
+            evaluation_mode: Evaluation mode to use. See ``LindbladModel.set_evaluation_mode``
+                for more details.
 
         Raises:
             Exception: if signals incorrectly specified.
@@ -156,8 +154,9 @@ class LindbladModel(BaseGeneratorModel):
 
     def set_evaluation_mode(self, new_mode: str):
         """Sets evaluation mode.
+
         Args:
-            new_mode: new mode for evaluation. Supported modes are:
+            new_mode: New mode for evaluation. Supported modes are:
                 'dense': Stores Hamiltonian and dissipator terms as dense
                        Array types.
                 'dense_vectorized': Stores the Hamiltonian and dissipator
@@ -166,6 +165,7 @@ class LindbladModel(BaseGeneratorModel):
                 'sparse': Like dense, but stores Hamiltonian components with
                     `csr_matrix` types. Outputs will be dense if a 2d frame operator is
                     used. Not compatible with jax.
+                `sparse_vectorized': Like dense_vectorized, but stores everything as csr_matrices.
         Raises:
             NotImplementedError: If a mode other than one of the above is specified.
         """
@@ -190,6 +190,13 @@ class LindbladModel(BaseGeneratorModel):
                 dissipator_operators=self._dissipator_operators,
             )
             self.vectorized_operators = True
+        elif new_mode == "sparse_vectorized":
+            self._operator_collection = SparseVectorizedLindbladCollection(
+                self._hamiltonian_operators,
+                drift=self.get_drift(in_frame_basis=True),
+                dissipator_operators=self._dissipator_operators,
+            )
+            self.vectorized_operators = True
         else:
             raise NotImplementedError("Evaluation mode " + str(new_mode) + " is not supported.")
 
@@ -206,13 +213,11 @@ class LindbladModel(BaseGeneratorModel):
         """Construct from a :class:`HamiltonianModel`.
 
         Args:
-            hamiltonian: the :class:`HamiltonianModel`.
-            dissipator_operators: list of dissipator operators.
-            dissipator_signals: list of dissipator signals.
-            evaluation_mode: evaluation mode. Currently supported
-                modes are:
-                    dense (default),
-                    dense_vectorized.
+            hamiltonian: The :class:`HamiltonianModel`.
+            dissipator_operators: List of dissipator operators.
+            dissipator_signals: List of dissipator signals.
+            evaluation_mode: Evaluation mode. See LindbladModel.set_evaluation_mode
+                for more information.
 
         Returns:
             LindbladModel: Linblad model from parameters.
@@ -271,7 +276,7 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_sig_vals = self._dissipator_signals(time)
         else:
             dissipator_sig_vals = None
-        if self.evaluation_mode == "dense_vectorized":
+        if self.vectorized_operators:
             out = self._operator_collection.evaluate(
                 self._hamiltonian_signals(time), dissipator_sig_vals
             )
