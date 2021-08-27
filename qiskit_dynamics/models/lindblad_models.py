@@ -201,7 +201,7 @@ class LindbladModel(BaseGeneratorModel):
         hamiltonian: HamiltonianModel,
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        evaluation_mode: Optional[str] = "dense",
+        evaluation_mode: Optional[str] = None,
     ):
         """Construct from a :class:`HamiltonianModel`.
 
@@ -217,6 +217,9 @@ class LindbladModel(BaseGeneratorModel):
         Returns:
             LindbladModel: Linblad model from parameters.
         """
+
+        if evaluation_mode is None:
+            evaluation_mode = hamiltonian.evaluation_mode
 
         return cls(
             hamiltonian_operators=hamiltonian.get_operators(False),
