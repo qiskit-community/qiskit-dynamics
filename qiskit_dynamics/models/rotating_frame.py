@@ -287,7 +287,9 @@ class RotatingFrame:
                     return to_array(operator)
                 else:
                     return to_array(operator + op_to_add_in_fb)
-            operator = operator.reshape((self.dim, self.dim) + operator.shape[1:], order="F")
+            if len(operator.shape)==2:
+                operator = operator.T
+            operator = operator.reshape(operator.shape[:-1]+(self.dim,self.dim),order="F")
 
         if self._frame_operator is None:
             if op_to_add_in_fb is None:
@@ -320,7 +322,9 @@ class RotatingFrame:
 
         if vectorized_operators:
             # If a vectorized output is required, reshape correctly
-            out = out.reshape((self.dim * self.dim,) + out.shape[2:], order="F")
+            out = out.reshape(out.shape[:-2]+(self.dim**2,),order="F")
+            if len(out.shape)==2:
+                out = out.T
 
         return out
 
