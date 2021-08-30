@@ -76,15 +76,15 @@ class Solver:
             hamiltonian_operators: Hamiltonian operators.
             hamiltonian_signals: Coefficients for the Hamiltonian operators.
             dissipator_operators: Optional dissipation operators.
-            dissipator_signals: Optional time-dependent coefficients for the dissipators. If `None`,
-                                coefficients are assumed to be the constant `1.`.
+            dissipator_signals: Optional time-dependent coefficients for the dissipators. If
+                                ``None``, coefficients are assumed to be the constant ``1.``.
             drift: Hamiltonian drift operator.
             rotating_frame: Rotating frame to transform the model into.
             evaluation_mode: Method for model evaluation. See documentation for
                              :meth:`HamiltonianModel.set_evaluation_mode` or
-                             :meth:`LindbladModel.set_evaluation_mode` (if dissipators in model)
-                             for valid modes.
-            rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If `None`, no
+                             :meth:`LindbladModel.set_evaluation_mode`
+                             (if dissipators in model) for valid modes.
+            rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
                              approximation is made.
         """
 
@@ -188,38 +188,43 @@ class Solver:
         Args:
             t_span: Time interval to integrate over.
             y0: Initial state.
-            kwargs: Keyword args passed to :meth:`solve_lmde`.
+            kwargs: Keyword args passed to :meth:`~qiskit_dynamics.solve.solve_lmde`.
 
-        returns:
+        Returns:
             OdeResult object with formatted output types.
+
+        Raises:
+            QiskitError: Initial state ``y0`` is of invalid shape.
         """
 
+        # convert types
         if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
             y0 = DensityMatrix(y0)
 
         y0, y0_cls = initial_state_converter(y0, return_class=True)
 
-        # validate y0 for unwrapped case initial states
-        if y0_cls is None:
-            if isinstance(self.model, HamiltonianModel):
-                if y0.shape[0] != self.model.dim or y0.ndim > 2:
-                    raise QiskitError("""Shape mismatch for array y0 and HamiltonianModel.""")
-            elif isinstance(self.model, LindbladModel):
-                if (('vectorized' not in self.model.evaluation_mode) and
-                    (y0.shape[-2:] != (self.model.dim, self.model.dim))
-                    ):
-                    raise QiskitError("""Shape mismatch for array y0 and LindbladModel.""")
-                elif (('vectorized' in self.model.evaluation_mode) and
-                      (y0.shape[0] != self.model.dim**2 or y0.ndim > 2)
-                      ):
-                    raise QiskitError("""Shape mismatch for array y0 and LindbladModel
-                                         in vectorized evaluation mode.""")
 
+        # validate types
         if ((y0_cls is SuperOp)
             and isinstance(self.model, LindbladModel)
             and 'vectorized' not in self.evaluation_mode):
             raise QiskitError("""Simulating SuperOp for a LinbladModel requires setting
                                  vectorized evaluation. Set evaluation_mode to a vectorized option.""")
+
+        # validate y0 shape
+        if isinstance(self.model, HamiltonianModel):
+            if y0.shape[0] != self.model.dim or y0.ndim > 2:
+                raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
+        elif isinstance(self.model, LindbladModel):
+            if (('vectorized' not in self.model.evaluation_mode) and
+                (y0.shape[-2:] != (self.model.dim, self.model.dim))
+                ):
+                raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
+            elif (('vectorized' in self.model.evaluation_mode) and
+                  (y0.shape[0] != self.model.dim**2 or y0.ndim > 2)
+                  ):
+                raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel
+                                     in vectorized evaluation mode.""")
 
         # modify initial state for some custom handling of certain scenarios
         y_input = y0
