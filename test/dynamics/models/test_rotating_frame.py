@@ -432,6 +432,37 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         )
         self.assertAllClose(vectorized_result, nonvectord_result)
 
+    def test_vectorized_frame_basis(self):
+        """Test correct lazy evaluation of vectorized_frame_basis."""
+
+        rng = np.random.default_rng(12983)
+        F = rng.uniform(low=-10, high=10, size=(6, 6)) + 1j * rng.uniform(
+            low=-10, high=10, size=(6, 6)
+        )
+        F = F - F.conj().transpose()
+
+        rotating_frame = RotatingFrame(F)
+
+        op = rng.uniform(low=-10, high=10, size=(6, 6)) + 1j * rng.uniform(
+            low=-10, high=10, size=(6, 6)
+        )
+
+        op1 = rotating_frame.operator_into_frame_basis(op)
+        op2 = rotating_frame.vectorized_frame_basis_adjoint @ op.flatten(order='F')
+
+        self.assertAllClose(op1, op2.reshape((6, 6), order='F'))
+
+        op = rng.uniform(low=-10, high=10, size=(6, 6)) + 1j * rng.uniform(
+            low=-10, high=10, size=(6, 6)
+        )
+
+        op1 = rotating_frame.operator_out_of_frame_basis(op)
+        op2 = rotating_frame.vectorized_frame_basis @ op.flatten(order='F')
+
+        self.assertAllClose(op1, op2.reshape((6, 6), order='F'))
+
+
+
 
 class TestFrameJax(TestRotatingFrame, TestJaxBase):
     """Jax version of TestRotatingFrame tests.

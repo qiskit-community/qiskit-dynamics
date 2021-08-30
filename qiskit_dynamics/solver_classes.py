@@ -192,7 +192,8 @@ class Solver:
             out = Array(results.y)
             results.y = np.einsum('nka,nlb->nklab', out.conj(), out).reshape(out.shape[0],
                                                                              out.shape[1]**2,
-                                                                             out.shape[1]**2) @ y_input
+                                                                             out.shape[1]**2,
+                                                                             order='F') @ y_input
         elif ((y0_cls is DensityMatrix)
               and isinstance(self.model, LindbladModel)
               and 'vectorized' in self.evaluation_mode):

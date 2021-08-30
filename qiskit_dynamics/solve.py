@@ -98,7 +98,7 @@ except ImportError:
 def solve_ode(
     rhs: Callable,
     t_span: Array,
-    y0: Union[Array, QuantumState, BaseOperator],
+    y0: Array,
     method: Optional[Union[str, OdeSolver]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
@@ -141,7 +141,7 @@ def solve_ode(
         QiskitError: If specified method does not exist.
     """
     t_span = Array(t_span)
-    y0 = initial_state_converter(y0)
+    y0 = Array(y0)
 
     rhs = dispatch.wrap(rhs)
 
@@ -160,7 +160,7 @@ def solve_ode(
 def solve_lmde(
     generator: Union[Callable, BaseGeneratorModel],
     t_span: Array,
-    y0: Union[Array, QuantumState, BaseOperator],
+    y0: Array,
     method: Optional[Union[str, OdeSolver]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
