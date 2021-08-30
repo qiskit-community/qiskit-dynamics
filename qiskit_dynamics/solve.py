@@ -86,7 +86,7 @@ from .solvers.jax_odeint import jax_odeint
 
 from .models.rotating_frame import RotatingFrame
 from .models.rotating_wave_approximation import rotating_wave_approximation
-from .models.generator_models import BaseGeneratorModel, CallableGenerator
+from .models.generator_models import BaseGeneratorModel, GeneratorModel
 from .models import HamiltonianModel, LindbladModel
 
 try:
@@ -141,7 +141,7 @@ def solve_ode(
         QiskitError: If specified method does not exist.
     """
     t_span = Array(t_span)
-    y0, y0_cls = initial_state_converter(y0, return_class=True)
+    y0 = initial_state_converter(y0)
 
     rhs = dispatch.wrap(rhs)
 
@@ -153,8 +153,7 @@ def solve_ode(
         results = jax_odeint(rhs, t_span, y0, t_eval, **kwargs)
     else:
         raise QiskitError("""Specified method is not a supported ODE method.""")
-    if y0_cls is not None:
-        results.y = [final_state_converter(i, y0_cls) for i in results.y]
+
     return results
 
 
@@ -164,10 +163,6 @@ def solve_lmde(
     y0: Union[Array, QuantumState, BaseOperator],
     method: Optional[Union[str, OdeSolver]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    input_frame: Optional[Union[str, Array]] = "auto",
-    solver_frame: Optional[Union[str, Array]] = "auto",
-    output_frame: Optional[Union[str, Array]] = "auto",
-    solver_cutoff_freq: Optional[float] = None,
     **kwargs,
 ):
     r"""General interface for solving Linear Matrix Differential Equations (LMDEs).
@@ -207,65 +202,57 @@ def solve_lmde(
         method: Solving method to use.
         t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
                 the solution will be returned at the points in ``t_span``.
-        input_frame: RotatingFrame that the initial state is specified in.
-            If ``input_frame == 'auto'``, defaults to using the frame the
-            generator is specified in.
-        solver_frame: RotatingFrame to solve the system in. If
-            ``solver_frame == 'auto'``, defaults to using the drift
-            of the generator when specified as a :class:`BaseGeneratorModel`.
-        output_frame: RotatingFrame to return the results in. If ``output_frame == 'auto'``,
-                     defaults to using the frame the generator is specified in.
-        solver_cutoff_freq: Cutoff frequency to use (if any) for doing the rotating
-                            wave approximation.
         kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult: Results object.
 
+
+####### update this
     Raises:
         QiskitError: If specified method does not exist, or if dimension of y0 is incompatible
                      with generator dimension.
     """
 
-    if isinstance(generator, LindbladModel) and generator.evaluation_mode == "dense_vectorized":
+    # raise error that lmde-specific methods can't be used with LindbladModel unless
+    # it is vectorized
+    if (isinstance(generator, LindbladModel)
+        and ('vectorized' not in generator.evaluation_mode)
+        and (method in ['scipy_expm', 'jax_expm'])):
         raise QiskitError(
-            """Special handling of dense_vectorized mode for LindbladModel not
-                            supported. Pass the LindbladModel.__call__ function to solve."""
+            """LMDE-specific methods with LindbladModel requires setting a
+               vectorized evaluation mode."""
         )
 
     t_span = Array(t_span)
-    y0, y0_cls = initial_state_converter(y0, return_class=True)
+    y0 = Array(y0)
 
-    # setup input frame, output frame, and the internal solver generator based on args
-    input_frame, output_frame, generator = setup_lmde_frames_and_generator(
-        input_generator=generator,
-        input_frame=input_frame,
-        solver_frame=solver_frame,
-        output_frame=output_frame,
-        solver_cutoff_freq=solver_cutoff_freq,
-    )
+    # setup generator and rhs functions
+    solver_generator = None
+    solver_rhs = None
 
-    # store shape of y0, and reshape y0 if necessary
-    return_shape = y0.shape
-    if isinstance(generator, CallableGenerator):
-        y0 = lmde_y0_reshape(generator_dim=generator(t_span[0]).shape[0], y0=y0)
+    if isinstance(generator, BaseGeneratorModel) and generator.rotating_frame.frame_operator is not None:
+        # for case of BaseGeneratorModels, setup to solve in frame basis
+        if isinstance(generator, LindbladModel) and 'vectorized' in generator.evaluation_mode:
+            if generator.rotating_frame.frame_basis is not None:
+                y0 = generator.rotating_frame.vectorized_frame_basis_adjoint @ y0
+        elif isinstance(generator, LindbladModel):
+            y0 = generator.rotating_frame.operator_into_frame_basis(y0)
+        elif isinstance(generator, GeneratorModel):
+            y0 = generator.rotating_frame.state_into_frame_basis(y0)
+
+        # define rhs functions in frame basis
+        def solver_generator(t):
+            return generator(t, in_frame_basis=True)
+
+        def solver_rhs(t, y):
+            return generator(t, y, in_frame_basis=True)
     else:
-        y0 = lmde_y0_reshape(generator_dim=generator.dim, y0=y0)
+        # if generator is not a BaseGeneratorModel, treat it purely as a function
+        solver_generator = generator
 
-    # map y0 from input frame into solver frame and basis
-    if isinstance(generator, LindbladModel):
-        y0 = input_frame.operator_out_of_frame(t_span[0], y0)
-        y0 = generator.rotating_frame.operator_into_frame(t_span[0], y0, return_in_frame_basis=True)
-    else:
-        y0 = input_frame.state_out_of_frame(t_span[0], y0)
-        y0 = generator.rotating_frame.state_into_frame(t_span[0], y0, return_in_frame_basis=True)
-
-    # define rhs functions in frame basis
-    def solver_generator(t):
-        return generator(t, in_frame_basis=True)
-
-    def solver_rhs(t, y):
-        return generator(t, y, in_frame_basis=True)
+        def solver_rhs(t, y):
+            return generator(t) @ y
 
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
@@ -275,146 +262,25 @@ def solve_lmde(
         # method is not LMDE-specific, so pass to solve_ode using rhs
         results = solve_ode(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
 
-    # convert any states in results to correct basis/frame
-    output_states = None
+    # convert results to correct basis if necessary
+    if isinstance(generator, BaseGeneratorModel) and generator.rotating_frame.frame_operator is not None:
+        # for left multiplication cases, if number of input dimensions is 1
+        # vectorized basis transformation requires transposing before and after
+        if y0.ndim == 1:
+            results.y = results.y.T
 
-    # pylint: disable=too-many-boolean-expressions
-    if (
-        results.y.backend == "jax"
-        and (
-            generator.rotating_frame.frame_diag is None
-            or generator.rotating_frame.frame_diag.backend == "jax"
-        )
-        and (output_frame.frame_diag is None or output_frame.frame_diag.backend == "jax")
-        and y0_cls is None
-    ):
-        # if all relevant objects are jax-compatible, run jax-customized version
-        output_states = _jax_lmde_output_state_converter(
-            results.t,
-            results.y,
-            generator.rotating_frame,
-            output_frame,
-            return_shape,
-            y0_cls,
-            isinstance(generator, LindbladModel),
-        )
-    else:
-        output_states = []
-        for idx in range(len(results.y)):
-            time = results.t[idx]
-            out_y = results.y[idx]
+        if isinstance(generator, LindbladModel) and 'vectorized' in generator.evaluation_mode:
+            if generator.rotating_frame.frame_basis is not None:
+                results.y = generator.rotating_frame.vectorized_frame_basis @ results.y
+        elif isinstance(generator, LindbladModel):
+            results.y = generator.rotating_frame.operator_out_of_frame_basis(results.y)
+        elif isinstance(generator, GeneratorModel):
+            results.y = generator.rotating_frame.state_out_of_frame_basis(results.y)
 
-            # transform out of solver frame/basis into output frame
-            if isinstance(generator, LindbladModel):
-                out_y = generator.rotating_frame.operator_out_of_frame(
-                    time, out_y, operator_in_frame_basis=True
-                )
-                out_y = output_frame.operator_into_frame(time, out_y)
-            else:
-                out_y = generator.rotating_frame.state_out_of_frame(
-                    time, out_y, y_in_frame_basis=True
-                )
-                out_y = output_frame.state_into_frame(time, out_y)
-
-            # reshape to match input shape if necessary
-            out_y = final_state_converter(out_y.reshape(return_shape, order="F"), y0_cls)
-            output_states.append(out_y)
-
-    results.y = output_states
+        if y0.ndim == 1:
+            results.y = results.y.T
 
     return results
-
-
-def setup_lmde_frames_and_generator(
-    input_generator: Union[Callable, BaseGeneratorModel],
-    input_frame: Optional[Union[str, Array]] = "auto",
-    solver_frame: Optional[Union[str, Array]] = "auto",
-    output_frame: Optional[Union[str, Array]] = "auto",
-    solver_cutoff_freq: Optional[float] = None,
-) -> Tuple[RotatingFrame, RotatingFrame, BaseGeneratorModel]:
-    """Helper function for setting up internally used :class:`BaseGeneratorModel`
-    for :meth:`solve_lmde`.
-
-    Args:
-        input_generator: User-supplied generator.
-        input_frame: Input frame for the problem.
-        solver_frame: RotatingFrame to solve in.
-        output_frame: Output frame for the problem.
-        solver_cutoff_freq: Cutoff frequency to use when solving.
-
-    Returns:
-        RotatingFrame, RotatingFrame, BaseGeneratorModel:
-            input frame, output frame, and BaseGeneratorModel
-    """
-    generator = None
-
-    # if not an instance of a subclass of BaseGeneratorModel assume Callable
-    if not isinstance(input_generator, BaseGeneratorModel):
-        generator = CallableGenerator(input_generator)
-    else:
-        generator = input_generator.copy()
-
-    # set input and output frames
-    if isinstance(input_frame, str) and input_frame == "auto":
-        input_frame = generator.rotating_frame
-    else:
-        input_frame = RotatingFrame(input_frame)
-
-    if isinstance(output_frame, str) and output_frame == "auto":
-        output_frame = generator.rotating_frame
-    else:
-        output_frame = RotatingFrame(output_frame)
-
-    # set solver frame
-    # this must be done after input/output frames as it modifies the generator itself
-    if isinstance(solver_frame, str) and solver_frame == "auto":
-        # if auto, set it to the anti-hermitian part of the drift
-        generator.rotating_frame = None
-
-        if isinstance(generator, HamiltonianModel):
-            generator.rotating_frame = -1j * generator.get_drift()
-        else:
-            generator.rotating_frame = anti_herm_part(generator.get_drift())
-    else:
-        generator.rotating_frame = RotatingFrame(solver_frame)
-
-    if solver_cutoff_freq is not None:
-        generator = rotating_wave_approximation(generator, solver_cutoff_freq)
-
-    return input_frame, output_frame, generator
-
-
-def lmde_y0_reshape(generator_dim: int, y0: Array) -> Array:
-    """Either: G(t)y0 is already well defined, or we assume that y0 is the input state of
-    the more general form of lmde f(t, y) with f linear in y, and we assume the generator
-    has been vectorized in column stacking convention.
-
-    Args:
-        generator_dim: dimension of the generator
-        y0: input state
-
-    Return:
-        y0: Appropriately reshaped input state.
-
-    Raises:
-        QiskitError: If shape of y0 does not conform to any interpretation of the generator dim.
-    """
-
-    if y0.shape[0] != generator_dim:
-        if y0.shape[0] * y0.shape[1] == generator_dim:
-            y0 = y0.flatten(order="F")
-        else:
-            raise QiskitError("y0.shape is incompatible with specified generator.")
-
-    return y0
-
-
-def anti_herm_part(mat: Array) -> Array:
-    """Get the anti-hermitian part of an operator."""
-    if mat is None:
-        return None
-
-    return 0.5 * (mat - mat.conj().transpose())
 
 
 def initial_state_converter(
@@ -465,56 +331,3 @@ def final_state_converter(obj: Any, cls: Optional[Type] = None) -> Any:
         return cls(obj.data)
 
     return cls(obj)
-
-
-@requires_backend("jax")
-def _jax_lmde_output_state_converter(
-    times: Array,
-    ys: Array,
-    solver_frame: RotatingFrame,
-    output_frame: RotatingFrame,
-    return_shape: Tuple,
-    y0_cls: object,
-    operator_mode: Optional[bool] = False,
-) -> Union[List, Array]:
-    """Jax control-flow based output state converter for solve_lmde.
-
-    Args:
-        times: Array of times.
-        ys: Array of output states.
-        solver_frame: RotatingFrame of the solver (that the ys are specified in). Assumed
-                      to be implemented with Jax backend.
-        output_frame: RotatingFrame to be converted to.
-        return_shape: Shape for output states.
-        y0_cls: Output state return class.
-        operator_mode: Whether or not to use operator based-transformations.
-
-    Returns:
-        Union[List, Array]: output states
-    """
-
-    def scan_f(_, x):
-        time, out_y = x
-        # transform out of solver frame/basis into output frame
-        if operator_mode:
-            out_y = solver_frame.operator_out_of_frame(time, out_y, operator_in_frame_basis=True)
-            out_y = output_frame.operator_into_frame(time, out_y)
-        else:
-            out_y = solver_frame.state_out_of_frame(time, out_y, y_in_frame_basis=True)
-            out_y = output_frame.state_into_frame(time, out_y)
-
-        out_y = out_y.reshape(return_shape, order="F").data
-        return None, out_y
-
-    # scan, ensuring that the times and ys are in fact an Array
-    final_states = scan(scan_f, init=None, xs=(Array(times).data, Array(ys).data))[1]
-
-    # final class setting needs to be python-looped, if necessary
-    if y0_cls is not None:
-        output_states = []
-        for state in final_states:
-            output_states.append(final_state_converter(state, y0_cls))
-
-        return output_states
-    else:
-        return Array(final_states)

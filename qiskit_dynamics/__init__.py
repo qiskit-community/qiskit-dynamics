@@ -24,6 +24,7 @@ qiskit extension module for solving ordinary differential equations.
 from .version import __version__
 
 from .solve import solve_ode, solve_lmde
+from .solver_classes import Solver
 
 from . import models
 from . import signals

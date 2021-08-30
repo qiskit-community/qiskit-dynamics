@@ -482,6 +482,34 @@ class RotatingFrame:
                 return_in_frame_basis=return_in_frame_basis,
             )
 
+    @property
+    def vectorized_frame_basis(self):
+        """Lazily evaluated operator for mapping vectorized operators into the frame basis."""
+
+        if self.frame_basis is None:
+            return None
+
+        if self._vectorized_frame_basis is None:
+            self._vectorized_frame_basis = np.kron(
+                self.frame_basis.conj(), self.frame_basis
+            )
+            self._vectorized_frame_basis_adjoint = self._vectorized_frame_basis.conj().transpose()
+
+        return self._vectorized_frame_basis
+
+    @property
+    def vectorized_frame_basis_adjoint(self):
+        """Lazily evaluated operator for mapping vectorized operators out of the frame basis."""
+
+        if self.frame_basis is None:
+            return None
+
+        if self._vectorized_frame_basis_adjoint is None:
+            # trigger lazy evaluation of vectorized_frame_basis
+            self.vectorized_frame_basis
+
+        return self._vectorized_frame_basis_adjoint
+
     def vectorized_map_into_frame(
         self,
         time: float,
@@ -511,14 +539,7 @@ class RotatingFrame:
         if self.frame_diag is not None:
             # Put the vectorized operator into the frame basis
             if not operator_in_frame_basis and self.frame_basis is not None:
-                if self._vectorized_frame_basis is None:
-                    self._vectorized_frame_basis = np.kron(
-                        self.frame_basis.conj(), self.frame_basis
-                    )
-                    self._vectorized_frame_basis_adjoint = np.kron(
-                        self.frame_basis.T, self.frame_basis_adjoint
-                    )
-                op = self._vectorized_frame_basis_adjoint @ (op @ self._vectorized_frame_basis)
+                op = self.vectorized_frame_basis_adjoint @ (op @ self.vectorized_frame_basis)
 
             expvals = np.exp(self.frame_diag * time)  # = e^{td_i} = e^{it*Im(d_i)}
             # = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster
@@ -532,15 +553,7 @@ class RotatingFrame:
                 op = delta_bar_otimes_delta * op  # hadamard product
 
             if not return_in_frame_basis and self.frame_basis is not None:
-
-                if self._vectorized_frame_basis is None:
-                    self._vectorized_frame_basis = np.kron(
-                        self.frame_basis.conj(), self.frame_basis
-                    )
-                    self._vectorized_frame_basis_adjoint = np.kron(
-                        self.frame_basis.T, self.frame_basis_adjoint
-                    )
-                op = self._vectorized_frame_basis @ (op @ self._vectorized_frame_basis_adjoint)
+                op = self.vectorized_frame_basis @ (op @ self.vectorized_frame_basis_adjoint)
 
         return op
 
