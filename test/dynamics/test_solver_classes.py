@@ -204,5 +204,34 @@ class TestSolverJax(TestSolver, TestJaxBase):
     """JAX version of TestSolver."""
 
     def setUp(self):
+        """Set method to 'jax_odeint' to speed up running of jax version of tests."""
         super().setUp()
         self.method = 'jax_odeint'
+
+    def test_jit_solve(self):
+        """Test jitting setting signals and solving."""
+
+        def func(a):
+            ham_solver = self.ham_solver.copy()
+            ham_solver.signals = [Signal(lambda t: a, 5.)]
+            yf = ham_solver.solve(np.array([0., 1.]),
+                                  y0=np.array([0., 1.]),
+                                  method=self.method).y[-1]
+            return yf
+
+        jit_func = self.jit_wrap(func)
+        self.assertAllClose(jit_func(2.), func(2.))
+
+    def test_jit_grad_solve(self):
+        """Test jitting setting signals and solving."""
+
+        def func(a):
+            lindblad_solver = self.lindblad_solver.copy()
+            lindblad_solver.signals = [[Signal(lambda t: a, 5.)], [1.]]
+            yf = lindblad_solver.solve([0., 1.],
+                                       y0=np.array([[0., 1.], [0., 1.]]),
+                                       method=self.method).y[-1]
+            return yf
+
+        jit_grad_func = self.jit_grad_wrap(func)
+        jit_grad_func(1.)

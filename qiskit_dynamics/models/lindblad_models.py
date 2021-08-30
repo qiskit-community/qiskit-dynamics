@@ -146,7 +146,7 @@ class LindbladModel(BaseGeneratorModel):
         return self._hamiltonian_operators.shape[-1]
 
     @property
-    def signals(self) -> List[Array]:
+    def signals(self) -> Tuple[SignalList]:
         """Gets the Model's Signals.
 
         Returns:
@@ -156,8 +156,9 @@ class LindbladModel(BaseGeneratorModel):
         return [self._hamiltonian_signals, self._dissipator_signals]
 
     @signals.setter
-    def signals(self, new_signals: List[Array]):
-        self._hamiltonian_signals, self._dissipator_signals = new_signals
+    def signals(self, new_signals: Tuple[List[Signal]]):
+        self._hamiltonian_signals = SignalList(new_signals[0])
+        self._dissipator_signals = SignalList(new_signals[1])
 
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
         if not in_frame_basis and self.rotating_frame is not None:
