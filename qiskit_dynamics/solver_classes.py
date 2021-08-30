@@ -23,15 +23,16 @@ from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
 
-from qiskit.quantum_info import Statevector, DensityMatrix, SuperOp
+from qiskit.circuit import Gate, QuantumCircuit
+from qiskit.quantum_info.operators.base_operator import BaseOperator
+from qiskit.quantum_info.operators.channel.quantum_channel import QuantumChannel
+from qiskit.quantum_info.states.quantum_state import QuantumState
+from qiskit.quantum_info import SuperOp, Operator, Statevector, DensityMatrix
 
 from qiskit_dynamics.models import (HamiltonianModel, LindbladModel,
                                     RotatingFrame, rotating_wave_approximation)
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics import solve_lmde
-
-# these will likely move
-from .solve import initial_state_converter, final_state_converter
 
 
 class Solver:
@@ -203,3 +204,53 @@ class Solver:
             results.y = [final_state_converter(yi, y0_cls) for yi in results.y]
 
         return results
+
+
+def initial_state_converter(
+    obj: Any, return_class: bool = False
+) -> Union[Array, Tuple[Array, Type]]:
+    """Convert initial state object to an Array.
+
+    Args:
+        obj: An initial state.
+        return_class: Optional. If True return the class to use
+                      for converting the output y Array.
+
+    Returns:
+        Array: the converted initial state if ``return_class=False``.
+        tuple: (Array, class) if ``return_class=True``.
+    """
+    # pylint: disable=invalid-name
+    y0_cls = None
+    if isinstance(obj, Array):
+        y0, y0_cls = obj, None
+    if isinstance(obj, QuantumState):
+        y0, y0_cls = Array(obj.data), obj.__class__
+    elif isinstance(obj, QuantumChannel):
+        y0, y0_cls = Array(SuperOp(obj).data), SuperOp
+    elif isinstance(obj, (BaseOperator, Gate, QuantumCircuit)):
+        y0, y0_cls = Array(Operator(obj.data)), Operator
+    else:
+        y0, y0_cls = Array(obj), None
+    if return_class:
+        return y0, y0_cls
+    return y0
+
+
+def final_state_converter(obj: Any, cls: Optional[Type] = None) -> Any:
+    """Convert final state Array to custom class.
+
+    Args:
+        obj: final state Array.
+        cls: Optional. The class to convert to.
+
+    Returns:
+        Any: the final state.
+    """
+    if cls is None:
+        return obj
+
+    if issubclass(cls, (BaseOperator, QuantumState)) and isinstance(obj, Array):
+        return cls(obj.data)
+
+    return cls(obj)

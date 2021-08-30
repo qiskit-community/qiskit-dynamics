@@ -31,10 +31,10 @@ class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
     def test_method_does_not_exist(self):
         """Test method does not exist exception."""
 
-        try:
+        with self.assertRaises(QiskitError) as qe:
             solve_ode(lambda t, y: y, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
-        except QiskitError as qe:
-            self.assertTrue("not a supported ODE method" in str(qe))
+
+        self.assertTrue("not a supported ODE method" in str(qe.exception))
 
 
 # pylint: disable=too-many-instance-attributes
