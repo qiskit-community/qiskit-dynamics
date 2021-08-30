@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 from typing import Optional, Union, Callable, Tuple, Any, Type, List
-import inspect
+from copy import deepcopy
 
 import numpy as np
 from scipy.integrate import OdeSolver
@@ -29,23 +29,48 @@ from qiskit.quantum_info.operators.channel.quantum_channel import QuantumChannel
 from qiskit.quantum_info.states.quantum_state import QuantumState
 from qiskit.quantum_info import SuperOp, Operator, Statevector, DensityMatrix
 
-from qiskit_dynamics.models import (HamiltonianModel, LindbladModel,
+from qiskit_dynamics.models import (BaseGeneratorModel, HamiltonianModel, LindbladModel,
                                     RotatingFrame, rotating_wave_approximation)
+from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics import solve_lmde
 
 
 class Solver:
+    """Solver object for simulating both Hamiltonian and Lindblad dynamics.
+    Given the components of a Hamiltonian and optional dissipators, this class will
+    internally construct either a :class:`HamiltonianModel` or :class:`LindbladModel`
+    instance. The evolution given by the model can be simulated by calling :meth:`solve`,
+    which automatically handles `qiskit.quantum_info` state and super operator types,
+    and calls `solve_lmde` to solve.
+    """
 
     def __init__(self,
-                 hamiltonian_operators=None,
-                 hamiltonian_signals=None,
-                 dissipator_operators=None,
-                 dissipator_signals=None,
-                 drift=None,
-                 rotating_frame=None,
-                 evaluation_mode='dense',
-                 rwa_cutoff_freq = None):
+                 hamiltonian_operators: Array,
+                 hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
+                 dissipator_operators: Optional[Array] = None,
+                 dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
+                 drift: Optional[Array] = None,
+                 rotating_frame: Optional[Union[Array, RotatingFrame]]=None,
+                 evaluation_mode: Optional[str] = 'dense',
+                 rwa_cutoff_freq: Optional[float] = None):
+        """Initialize.
+
+        Args:
+            hamiltonian_operators: Hamiltonian operators.
+            hamiltonian_signals: Coefficients for the Hamiltonian operators.
+            dissipator_operators: Optional dissipation operators.
+            dissipator_signals: Optional time-dependent coefficients for the dissipators. If `None`,
+                                coefficients are assumed to be the constant `1.`.
+            drift: Hamiltonian drift operator.
+            rotating_frame: Rotating frame to transform the model into.
+            evaluation_mode: Method for model evaluation. See documentation for
+                             :meth:`HamiltonianModel.set_evaluation_mode` or
+                             :meth:`LindbladModel.set_evaluation_mode` (if dissipators in model)
+                             for valid modes.
+            rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If `None`, no
+                             approximation is made.
+        """
 
         model = None
         if dissipator_operators is None:
@@ -75,56 +100,74 @@ class Solver:
         self._model = model
 
     @property
-    def rotating_frame(self):
+    def rotating_frame(self) -> RotatingFrame:
+        """Rotating frame of the model."""
         return self.model.rotating_frame
 
     @rotating_frame.setter
-    def rotating_frame(self, new_rotating_frame):
+    def rotating_frame(self, new_rotating_frame: Union[Array, RotatingFrame]):
+        """Set rotating frame for the model."""
         self.model.rotating_frame = new_rotating_frame
 
     @property
-    def model(self):
+    def model(self) -> BaseGeneratorModel:
+        """The model."""
         return self._model
 
     @property
-    def signals(self):
+    def signals(self) -> SignalList:
+        """Solver signals."""
         return self._signals
 
     @signals.setter
-    def signals(self, new_signals):
+    def signals(self, new_signals: Union[List[Signal], SignalList]):
+        """Set signals for the solver, and pass to the model."""
         self._signals = new_signals
         if self._rwa_signal_map is not None:
             new_signals = self._rwa_signal_map(new_signals)
         self.model.signals = new_signals
 
     @property
-    def evaluation_mode(self):
+    def evaluation_mode(self) -> str:
+        """Evaluation mode for the model."""
         return self.model.evaluation_mode
 
-    def set_evaluation_mode(self, new_mode):
-        """Set model evaluation mode. What to actually do here?
+    def set_evaluation_mode(self, new_mode: str):
+        """Set model evaluation mode. See documentation for
+        :class:`~qiskit_dynamics.models.HamiltonianModel`
+        or :class:`~qiskit_dynamics.models.LindbladModel`
+        (if dissipators present in model) for valid methods.
         """
         self.model.set_evaluation_mode(new_mode)
 
-    def solve(self,
-              t_span,
-              y0,
-              **kwargs) -> OdeResult:
-        """Solve the dynamical problem.
+    def copy(self) -> 'Solver':
+        """Return a copy of self."""
+        return deepcopy(self)
 
-        Logic:
-            - based on class of y0, want to make some decisions about what to do.
-                - input types can be:
-                    - array/Array/Operator
-                    - StateVector
-                    - DensityMatrix
-                    - SuperOp
-                - if given a SuperOp and/or a DensityMatrix, we can simulate the unitary only
-                and then return the results according to the standard formulas
-                - For lindblad dynamics, StateVector can be automatically converted to a density
-                matrix
-                - For array/Array/Operator inputs, do no conversions, it will be assumed to be of a shape
-                that can be handled by the given model and solve_lmde
+    def solve(self,
+              t_span: Array,
+              y0: Union[Array, QuantumState, BaseOperator],
+              **kwargs) -> OdeResult:
+        r"""Solve the dynamical problem using :func:`~qiskit_dynamics.solve_lmde`.
+
+        Special handling for various input types:
+            - If `y0` is an `Array`, it is passed directly to
+            :func:`~qiskit_dynamics.solve_lmde` as is. Acceptable array shapes are
+            determined by the model type and evaluation mode.
+            - If `y0` is a subclass of :class:`qiskit.quantum_info.QuantumState`:
+                - If `self.model` is a :class:`~qiskit_dynamics.models.LindbladModel`,
+                `y0` is converted to a :class:`DensityMatrix`. Further, if the model
+                evaluation mode is vectorized `y0` will be suitably reshaped for solving.
+                - If `self.model` is a :class:`~qiskit_dynamics.models.HamiltonianModel`,
+                and `y0` a :class:`DensityMatrix`, the full unitary will be simulated,
+                and the evolution of `y0` is attained via conjugation.
+            - If `y0` is a subclass of :class`qiskit.quantum_info.QuantumChannel`, the full
+            evolution map will be computed and composed with `y0`; either the unitary if
+            `self.model` is a :class:`~qiskit_dynamics.models.HamiltonianModel`, or the full
+            Lindbladian `SuperOp` if the model is a :class:`~qiskit_dynamics.models.LindbladModel`.
+
+        Returns an `OdeResult` object in the style of `scipy.integrate.solve_ivp`, with results
+        formatted to be the same types as the input.
 
         Args:
             t_span: Time interval to integrate over.
@@ -135,11 +178,9 @@ class Solver:
             OdeResult object with formatted output types.
         """
 
-        # initial conversions
-        if isinstance(y0, Statevector) and isinstance(self.model, LindbladModel):
+        if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
             y0 = DensityMatrix(y0)
 
-        # handle case for Hamiltonian simulation but with density/superop
         y0, y0_cls = initial_state_converter(y0, return_class=True)
 
         # validate y0 for unwrapped case initial states

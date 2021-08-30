@@ -207,8 +207,6 @@ def solve_lmde(
     Returns:
         OdeResult: Results object.
 
-
-####### update this
     Raises:
         QiskitError: If specified method does not exist, or if dimension of y0 is incompatible
                      with generator dimension.
