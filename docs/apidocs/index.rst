@@ -10,6 +10,7 @@ Qiskit Dynamics API Reference
    :maxdepth: 2
 
    solve
+   solver_classes
    models
    signals
    converters

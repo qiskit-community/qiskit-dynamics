@@ -12,6 +12,22 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+r"""
+=============================================================
+Solver classes (:mod:`qiskit_dynamics.solver_classes`)
+=============================================================
+
+This is temporary, getting docs to build.
+
+.. currentmodule:: qiskit_dynamics.solver_classes
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   Solver
+"""
+
+
 from typing import Optional, Union, Callable, Tuple, Any, Type, List
 from copy import deepcopy
 
@@ -41,8 +57,8 @@ class Solver:
     Given the components of a Hamiltonian and optional dissipators, this class will
     internally construct either a :class:`HamiltonianModel` or :class:`LindbladModel`
     instance. The evolution given by the model can be simulated by calling :meth:`solve`,
-    which automatically handles `qiskit.quantum_info` state and super operator types,
-    and calls `solve_lmde` to solve.
+    which automatically handles :mod:`qiskit.quantum_info` state and super operator types,
+    and calls :func:`~qiskit_dynamics.solve.solve_lmde` to solve.
     """
 
     def __init__(self,
