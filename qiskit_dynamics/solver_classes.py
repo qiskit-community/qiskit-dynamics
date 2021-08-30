@@ -203,7 +203,6 @@ class Solver:
 
         y0, y0_cls = initial_state_converter(y0, return_class=True)
 
-
         # validate types
         if ((y0_cls is SuperOp)
             and isinstance(self.model, LindbladModel)
@@ -211,7 +210,19 @@ class Solver:
             raise QiskitError("""Simulating SuperOp for a LinbladModel requires setting
                                  vectorized evaluation. Set evaluation_mode to a vectorized option.""")
 
-        # validate y0 shape
+        # modify initial state for some custom handling of certain scenarios
+        y_input = y0
+
+        # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
+        if y0_cls in [DensityMatrix, SuperOp] and isinstance(self.model, HamiltonianModel):
+            y0 = np.eye(self.model.dim, dtype=complex)
+        # if LindbladModel is vectorized and simulating a density matrix, flatten
+        elif ((y0_cls is DensityMatrix)
+              and isinstance(self.model, LindbladModel)
+              and 'vectorized' in self.evaluation_mode):
+            y0 = y0.flatten(order="F")
+
+        # validate y0 shape before passing to solve_lmde
         if isinstance(self.model, HamiltonianModel):
             if y0.shape[0] != self.model.dim or y0.ndim > 2:
                 raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
@@ -226,18 +237,6 @@ class Solver:
                 raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel
                                      in vectorized evaluation mode.""")
 
-        # modify initial state for some custom handling of certain scenarios
-        y_input = y0
-
-        # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
-        if y0_cls in [DensityMatrix, SuperOp] and isinstance(self.model, HamiltonianModel):
-            y0 = np.eye(self.model.dim, dtype=complex)
-        # if LindbladModel is vectorized and simulating a density matrix, flatten
-        elif ((y0_cls is DensityMatrix)
-              and isinstance(self.model, LindbladModel)
-              and 'vectorized' in self.evaluation_mode):
-            y0 = y0.flatten(order="F")
-
         results = solve_lmde(generator=self.model,
                              t_span=t_span,
                              y0=y0,
@@ -246,17 +245,14 @@ class Solver:
         # handle special cases
         if y0_cls is DensityMatrix and isinstance(self.model, HamiltonianModel):
             # conjugate by unitary
-            # this is a bit sketch, depends on output types of simplified solve_lmde
             out = Array(results.y)
             results.y = out @ y_input @ out.conj().transpose((0, 2, 1))
         elif y0_cls is SuperOp and isinstance(self.model, HamiltonianModel):
             # convert to SuperOp and compose
-            # need to test jax here, and also test if this is workign properly
             out = Array(results.y)
             results.y = np.einsum('nka,nlb->nklab', out.conj(), out).reshape(out.shape[0],
                                                                              out.shape[1]**2,
-                                                                             out.shape[1]**2,
-                                                                             order='F') @ y_input
+                                                                             out.shape[1]**2) @ y_input
         elif ((y0_cls is DensityMatrix)
               and isinstance(self.model, LindbladModel)
               and 'vectorized' in self.evaluation_mode):
