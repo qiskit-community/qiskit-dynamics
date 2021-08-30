@@ -62,7 +62,7 @@ or a subclass of :class:`~qiskit_dynamics.models.generator_models.BaseGeneratorM
    solve_lmde
 """
 
-from typing import Optional, Union, Callable, Tuple, Any, Type, List
+from typing import Optional, Union, Callable, Tuple, List
 import inspect
 
 from scipy.integrate import OdeSolver
@@ -214,9 +214,11 @@ def solve_lmde(
 
     # raise error that lmde-specific methods can't be used with LindbladModel unless
     # it is vectorized
-    if (isinstance(generator, LindbladModel)
-        and ('vectorized' not in generator.evaluation_mode)
-        and (method in ['scipy_expm', 'jax_expm'])):
+    if (
+        isinstance(generator, LindbladModel)
+        and ("vectorized" not in generator.evaluation_mode)
+        and (method in ["scipy_expm", "jax_expm"])
+    ):
         raise QiskitError(
             """LMDE-specific methods with LindbladModel requires setting a
                vectorized evaluation mode."""
@@ -226,12 +228,12 @@ def solve_lmde(
     y0 = Array(y0)
 
     # setup generator and rhs functions
-    solver_generator = None
-    solver_rhs = None
-
-    if isinstance(generator, BaseGeneratorModel) and generator.rotating_frame.frame_operator is not None:
+    if (
+        isinstance(generator, BaseGeneratorModel)
+        and generator.rotating_frame.frame_operator is not None
+    ):
         # for case of BaseGeneratorModels, setup to solve in frame basis
-        if isinstance(generator, LindbladModel) and 'vectorized' in generator.evaluation_mode:
+        if isinstance(generator, LindbladModel) and "vectorized" in generator.evaluation_mode:
             if generator.rotating_frame.frame_basis is not None:
                 y0 = generator.rotating_frame.vectorized_frame_basis_adjoint @ y0
         elif isinstance(generator, LindbladModel):
@@ -245,6 +247,7 @@ def solve_lmde(
 
         def solver_rhs(t, y):
             return generator(t, y, in_frame_basis=True)
+
     else:
         # if generator is not a BaseGeneratorModel, treat it purely as a function
         solver_generator = generator
@@ -261,13 +264,16 @@ def solve_lmde(
         results = solve_ode(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
 
     # convert results to correct basis if necessary
-    if isinstance(generator, BaseGeneratorModel) and generator.rotating_frame.frame_operator is not None:
+    if (
+        isinstance(generator, BaseGeneratorModel)
+        and generator.rotating_frame.frame_operator is not None
+    ):
         # for left multiplication cases, if number of input dimensions is 1
         # vectorized basis transformation requires transposing before and after
         if y0.ndim == 1:
             results.y = results.y.T
 
-        if isinstance(generator, LindbladModel) and 'vectorized' in generator.evaluation_mode:
+        if isinstance(generator, LindbladModel) and "vectorized" in generator.evaluation_mode:
             if generator.rotating_frame.frame_basis is not None:
                 results.y = generator.rotating_frame.vectorized_frame_basis @ results.y
         elif isinstance(generator, LindbladModel):

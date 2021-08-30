@@ -490,9 +490,7 @@ class RotatingFrame:
             return None
 
         if self._vectorized_frame_basis is None:
-            self._vectorized_frame_basis = np.kron(
-                self.frame_basis.conj(), self.frame_basis
-            )
+            self._vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
             self._vectorized_frame_basis_adjoint = self._vectorized_frame_basis.conj().transpose()
 
         return self._vectorized_frame_basis
@@ -506,6 +504,7 @@ class RotatingFrame:
 
         if self._vectorized_frame_basis_adjoint is None:
             # trigger lazy evaluation of vectorized_frame_basis
+            # pylint: disable=pointless-statement
             self.vectorized_frame_basis
 
         return self._vectorized_frame_basis_adjoint

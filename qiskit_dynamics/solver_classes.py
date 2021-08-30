@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 r"""
 =============================================================
@@ -28,11 +29,10 @@ This is temporary, getting docs to build.
 """
 
 
-from typing import Optional, Union, Callable, Tuple, Any, Type, List
+from typing import Optional, Union, Tuple, Any, Type, List
 from copy import deepcopy
 
 import numpy as np
-from scipy.integrate import OdeSolver
 
 # pylint: disable=unused-import
 from scipy.integrate._ivp.ivp import OdeResult
@@ -45,8 +45,13 @@ from qiskit.quantum_info.operators.channel.quantum_channel import QuantumChannel
 from qiskit.quantum_info.states.quantum_state import QuantumState
 from qiskit.quantum_info import SuperOp, Operator, Statevector, DensityMatrix
 
-from qiskit_dynamics.models import (BaseGeneratorModel, HamiltonianModel, LindbladModel,
-                                    RotatingFrame, rotating_wave_approximation)
+from qiskit_dynamics.models import (
+    BaseGeneratorModel,
+    HamiltonianModel,
+    LindbladModel,
+    RotatingFrame,
+    rotating_wave_approximation,
+)
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics import solve_lmde
@@ -61,15 +66,17 @@ class Solver:
     and calls :func:`~qiskit_dynamics.solve.solve_lmde` to solve.
     """
 
-    def __init__(self,
-                 hamiltonian_operators: Array,
-                 hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
-                 dissipator_operators: Optional[Array] = None,
-                 dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-                 drift: Optional[Array] = None,
-                 rotating_frame: Optional[Union[Array, RotatingFrame]]=None,
-                 evaluation_mode: Optional[str] = 'dense',
-                 rwa_cutoff_freq: Optional[float] = None):
+    def __init__(
+        self,
+        hamiltonian_operators: Array,
+        hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
+        dissipator_operators: Optional[Array] = None,
+        dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
+        drift: Optional[Array] = None,
+        rotating_frame: Optional[Union[Array, RotatingFrame]] = None,
+        evaluation_mode: Optional[str] = "dense",
+        rwa_cutoff_freq: Optional[float] = None,
+    ):
         """Initialize.
 
         Args:
@@ -90,27 +97,31 @@ class Solver:
 
         model = None
         if dissipator_operators is None:
-            model = HamiltonianModel(operators=hamiltonian_operators,
-                                     signals=hamiltonian_signals,
-                                     rotating_frame=rotating_frame,
-                                     drift=drift,
-                                     evaluation_mode=evaluation_mode)
+            model = HamiltonianModel(
+                operators=hamiltonian_operators,
+                signals=hamiltonian_signals,
+                rotating_frame=rotating_frame,
+                drift=drift,
+                evaluation_mode=evaluation_mode,
+            )
             self._signals = hamiltonian_signals
         else:
-            model = LindbladModel(hamiltonian_operators=hamiltonian_operators,
-                                  hamiltonian_signals=hamiltonian_signals,
-                                  dissipator_operators=dissipator_operators,
-                                  dissipator_signals=dissipator_signals,
-                                  rotating_frame=rotating_frame,
-                                  drift=drift,
-                                  evaluation_mode=evaluation_mode)
+            model = LindbladModel(
+                hamiltonian_operators=hamiltonian_operators,
+                hamiltonian_signals=hamiltonian_signals,
+                dissipator_operators=dissipator_operators,
+                dissipator_signals=dissipator_signals,
+                rotating_frame=rotating_frame,
+                drift=drift,
+                evaluation_mode=evaluation_mode,
+            )
             self._signals = (hamiltonian_signals, dissipator_signals)
 
         self._rwa_signal_map = None
         if rwa_cutoff_freq is not None:
-            model, rwa_signal_map = rotating_wave_approximation(model,
-                                                                rwa_cutoff_freq,
-                                                                return_signal_map=True)
+            model, rwa_signal_map = rotating_wave_approximation(
+                model, rwa_cutoff_freq, return_signal_map=True
+            )
             self._rwa_signal_map = rwa_signal_map
 
         self._model = model
@@ -156,14 +167,13 @@ class Solver:
         """
         self.model.set_evaluation_mode(new_mode)
 
-    def copy(self) -> 'Solver':
+    def copy(self) -> "Solver":
         """Return a copy of self."""
         return deepcopy(self)
 
-    def solve(self,
-              t_span: Array,
-              y0: Union[Array, QuantumState, BaseOperator],
-              **kwargs) -> OdeResult:
+    def solve(
+        self, t_span: Array, y0: Union[Array, QuantumState, BaseOperator], **kwargs
+    ) -> OdeResult:
         r"""Solve the dynamical problem using :func:`~qiskit_dynamics.solve_lmde`.
 
         Special handling for various input types:
@@ -204,11 +214,16 @@ class Solver:
         y0, y0_cls = initial_state_converter(y0, return_class=True)
 
         # validate types
-        if ((y0_cls is SuperOp)
+        if (
+            (y0_cls is SuperOp)
             and isinstance(self.model, LindbladModel)
-            and 'vectorized' not in self.evaluation_mode):
-            raise QiskitError("""Simulating SuperOp for a LinbladModel requires setting
-                                 vectorized evaluation. Set evaluation_mode to a vectorized option.""")
+            and "vectorized" not in self.evaluation_mode
+        ):
+            raise QiskitError(
+                """Simulating SuperOp for a LinbladModel requires setting
+                vectorized evaluation. Set evaluation_mode to a vectorized option.
+                """
+            )
 
         # modify initial state for some custom handling of certain scenarios
         y_input = y0
@@ -217,30 +232,31 @@ class Solver:
         if y0_cls in [DensityMatrix, SuperOp] and isinstance(self.model, HamiltonianModel):
             y0 = np.eye(self.model.dim, dtype=complex)
         # if LindbladModel is vectorized and simulating a density matrix, flatten
-        elif ((y0_cls is DensityMatrix)
-              and isinstance(self.model, LindbladModel)
-              and 'vectorized' in self.evaluation_mode):
+        elif (
+            (y0_cls is DensityMatrix)
+            and isinstance(self.model, LindbladModel)
+            and "vectorized" in self.evaluation_mode
+        ):
             y0 = y0.flatten(order="F")
 
         # validate y0 shape before passing to solve_lmde
         if isinstance(self.model, HamiltonianModel):
             if y0.shape[0] != self.model.dim or y0.ndim > 2:
                 raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
-        elif isinstance(self.model, LindbladModel):
-            if (('vectorized' not in self.model.evaluation_mode) and
-                (y0.shape[-2:] != (self.model.dim, self.model.dim))
-                ):
+        if isinstance(self.model, LindbladModel):
+            if ("vectorized" not in self.model.evaluation_mode) and (
+                y0.shape[-2:] != (self.model.dim, self.model.dim)
+            ):
                 raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
-            elif (('vectorized' in self.model.evaluation_mode) and
-                  (y0.shape[0] != self.model.dim**2 or y0.ndim > 2)
-                  ):
-                raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel
-                                     in vectorized evaluation mode.""")
+            if ("vectorized" in self.model.evaluation_mode) and (
+                y0.shape[0] != self.model.dim ** 2 or y0.ndim > 2
+            ):
+                raise QiskitError(
+                    """Shape mismatch for initial state y0 and LindbladModel
+                                     in vectorized evaluation mode."""
+                )
 
-        results = solve_lmde(generator=self.model,
-                             t_span=t_span,
-                             y0=y0,
-                             **kwargs)
+        results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
 
         # handle special cases
         if y0_cls is DensityMatrix and isinstance(self.model, HamiltonianModel):
@@ -250,13 +266,18 @@ class Solver:
         elif y0_cls is SuperOp and isinstance(self.model, HamiltonianModel):
             # convert to SuperOp and compose
             out = Array(results.y)
-            results.y = np.einsum('nka,nlb->nklab', out.conj(), out).reshape(out.shape[0],
-                                                                             out.shape[1]**2,
-                                                                             out.shape[1]**2) @ y_input
-        elif ((y0_cls is DensityMatrix)
-              and isinstance(self.model, LindbladModel)
-              and 'vectorized' in self.evaluation_mode):
-              results.y = Array(results.y).reshape((len(results.y),) + y_input.shape, order='F')
+            results.y = (
+                np.einsum("nka,nlb->nklab", out.conj(), out).reshape(
+                    out.shape[0], out.shape[1] ** 2, out.shape[1] ** 2
+                )
+                @ y_input
+            )
+        elif (
+            (y0_cls is DensityMatrix)
+            and isinstance(self.model, LindbladModel)
+            and "vectorized" in self.evaluation_mode
+        ):
+            results.y = Array(results.y).reshape((len(results.y),) + y_input.shape, order="F")
 
         if y0_cls is not None:
             results.y = [final_state_converter(yi, y0_cls) for yi in results.y]
