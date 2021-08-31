@@ -56,11 +56,14 @@ either as a Python ``Callable`` function or subclasses of
 
 Note that methods available via :meth:`~qiskit_dynamics.solve_ode` are also available through
 :meth:`~qiskit_dynamics.de.solve_lmde`:
-    - If the generator is supplied as a ``Callable``, the standard RHS function
-    :math:`f(t, y) = G(t)y` is automatically constructed.
-    - If the generator supplied is a subclass of
-    :class:`~qiskit_dynamics.models.generator_models.BaseGeneratorModel` which is not in standard
-    form, it is delegated to :meth:`~qiskit_dynamics.solve_ode`.
+
+    * If the generator is supplied as a ``Callable``, the standard RHS function
+      :math:`f(t, y) = G(t)y` is automatically constructed.
+    * If the generator supplied is a subclass of
+      :class:`~qiskit_dynamics.models.generator_models.BaseGeneratorModel` which is not in standard
+      form, it is delegated to :meth:`~qiskit_dynamics.solve_ode`.
+
+
 
 .. currentmodule:: qiskit_dynamics.solve
 
@@ -159,13 +162,13 @@ def solve_ode(
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
+    t_span = Array(t_span)
+    y0 = Array(y0)
+
     if isinstance(rhs, BaseGeneratorModel):
         _, solver_rhs, y0 = setup_generator_model_rhs_y0_in_frame_basis(rhs, y0)
     else:
         solver_rhs = rhs
-
-    t_span = Array(t_span)
-    y0 = Array(y0)
 
     # solve the problem using specified method
     if method in SOLVE_IVP_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
