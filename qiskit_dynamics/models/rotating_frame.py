@@ -506,7 +506,6 @@ class RotatingFrame:
         if self.frame_diag is not None:
             # Put the vectorized operator into the frame basis
             if not operator_in_frame_basis and self.frame_basis is not None:
-                print("Should Not 1")
                 if self._vectorized_frame_basis is None:
                     self._vectorized_frame_basis = np.kron(
                         self.frame_basis.conj(), self.frame_basis
