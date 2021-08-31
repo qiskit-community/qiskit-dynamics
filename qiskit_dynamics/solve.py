@@ -38,7 +38,7 @@ ODEs can be solved by calling the :meth:`~qiskit_dynamics.solve_ode` function.
 
 LMDEs are a specialized subclass of ODEs of importance in quantum theory. Most generally,
 an LMDE is an ODE for which the the RHS function :math:`f(t, y)` is *linear* in the second
-argument. In this package we work with a *standard form* of LMDEs, in which we assume:
+argument. Numerical methods for LMDEs typically assume a *standard form*, which assumes:
 
 .. math::
 
@@ -49,9 +49,18 @@ the state :math:`y(t)` must be an array of appropriate shape. Note that any LMDE
 general sense (not in *standard form*) can be restructured into one of standard form via suitable
 vectorization.
 
-The function :meth:`~qiskit_dynamics.de.solve_lmde` solves LMDEs in standard form, specified
-in terms of a representation of the generator :math:`G(t)`, either as a ``Callable`` function
-or a subclass of :class:`~qiskit_dynamics.models.generator_models.BaseGeneratorModel`.
+The function :meth:`~qiskit_dynamics.de.solve_lmde` provides access to solvers for LMDEs in
+standard form, specified in terms of a representation of the generator :math:`G(t)`,
+either as a Python ``Callable`` function or subclasses of
+:class:`~qiskit_dynamics.models.generator_models.BaseGeneratorModel`.
+
+Note that methods available via :meth:`~qiskit_dynamics.solve_ode` are also available through
+:meth:`~qiskit_dynamics.de.solve_lmde`:
+    - If the generator is supplied as a ``Callable``, the standard RHS function
+    :math:`f(t, y) = G(t)y` is automatically constructed.
+    - If the generator supplied is a subclass of
+    :class:`~qiskit_dynamics.models.generator_models.BaseGeneratorModel` which is not in standard
+    form, it is delegated to :meth:`~qiskit_dynamics.solve_ode`.
 
 .. currentmodule:: qiskit_dynamics.solve
 
@@ -157,6 +166,9 @@ def solve_ode(
     return results
 
 
+LMDE_METHODS = ["scipy_expm", "jax_expm"]
+
+
 def solve_lmde(
     generator: Union[Callable, BaseGeneratorModel],
     t_span: Array,
@@ -165,27 +177,33 @@ def solve_lmde(
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
-    r"""General interface for solving Linear Matrix Differential Equations (LMDEs).
-    Most generally, LMDEs are a special subclass of ODEs for which the RHS function
-    :math:`f(t, y)` is linear in :math:`y` for all :math:`t`, however here we
-    restrict the definition to a standard form:
+    r"""General interface for solving Linear Matrix Differential Equations (LMDEs)
+    in standard form:
 
     .. math::
 
-        \dot{y}(t) = G(t)y(t),
+        \dot{y}(t) = G(t)y(t)
 
     where :math:`G(t)` is a square matrix valued-function called the *generator*,
-    and :math:`y(t)` is an :class:`Array` of appropriate shape. Any LMDE in the more
-    general sense can be rewritten in the above form using a suitable vectorization,
-    and so no generality is lost.
-
-    The generator :math:`G(t)` may either be specified as a `Callable` function,
-    or as an instance of a :class:`BaseGeneratorModel` subclass, which defines an
-    interface for accessing standard transformations on LMDEs.
+    and :math:`y(t)` is an :class:`Array` of appropriate shape. The generator :math:`G(t)`
+    may either be specified as a Python ``Callable`` function,
+    or as an instance of a :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclass.
 
     The ``method`` argument exposes solvers specialized to both LMDEs, as
     well as general ODE solvers. If the method is not specific to LMDEs,
-    the problem will be passed to :meth:`solve_ode`.
+    the problem will be passed to :meth:`~qiskit_dynamics.solve_ode` by automatically setting
+    up the RHS function :math:`f(t, y) = G(t)y`.
+
+    We note that, while all :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses
+    represent LMDEs, they are not all by-default in standard form, and as such, accessing
+    LMDE-specific methods requires converting them into standard form. See, for example,
+    :meth:`~qiskit_dynamics.models.LindbladModel.set_evaluation_mode` for details. Regardless,
+    in general, for general ODE methods,
+    subclasses of :class:`~qiskit_dynamics.models.BaseGeneratorModel`
+    will be fed directly through to :meth:`~qiskit_dynamics.solve_ode`, allowing
+    :meth:`~qiskit_dynamics.solve_lmde` to serve as a general solver interface for
+    :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses.
+
     Optional arguments for any of the solver routines can be passed via ``kwargs``.
     Available LMDE-specific methods are:
 
@@ -196,7 +214,7 @@ def solve_lmde(
     Results are returned as a :class:`OdeResult` object.
 
     Args:
-        generator: Representaiton of generator function :math:`G(t)`.
+        generator: Representation of generator function :math:`G(t)`.
         t_span: ``Tuple`` or `list` of initial and final time.
         y0: State at initial time.
         method: Solving method to use.
@@ -208,8 +226,9 @@ def solve_lmde(
         OdeResult: Results object.
 
     Raises:
-        QiskitError: If specified method does not exist, or if dimension of y0 is incompatible
-                     with generator dimension.
+        QiskitError: If specified method does not exist,
+                     if dimension of ``y0`` is incompatible with generator dimension,
+                     or if an LMDE-specific method is passed with a LindbladModel.
     """
 
     # raise error that lmde-specific methods can't be used with LindbladModel unless
@@ -217,7 +236,7 @@ def solve_lmde(
     if (
         isinstance(generator, LindbladModel)
         and ("vectorized" not in generator.evaluation_mode)
-        and (method in ["scipy_expm", "jax_expm"])
+        and (method in LMDE_METHODS)
     ):
         raise QiskitError(
             """LMDE-specific methods with LindbladModel requires setting a
@@ -227,29 +246,11 @@ def solve_lmde(
     t_span = Array(t_span)
     y0 = Array(y0)
 
-    # setup generator and rhs functions
-    if (
-        isinstance(generator, BaseGeneratorModel)
-        and generator.rotating_frame.frame_operator is not None
-    ):
-        # for case of BaseGeneratorModels, setup to solve in frame basis
-        if isinstance(generator, LindbladModel) and "vectorized" in generator.evaluation_mode:
-            if generator.rotating_frame.frame_basis is not None:
-                y0 = generator.rotating_frame.vectorized_frame_basis_adjoint @ y0
-        elif isinstance(generator, LindbladModel):
-            y0 = generator.rotating_frame.operator_into_frame_basis(y0)
-        elif isinstance(generator, GeneratorModel):
-            y0 = generator.rotating_frame.state_into_frame_basis(y0)
-
-        # define rhs functions in frame basis
-        def solver_generator(t):
-            return generator(t, in_frame_basis=True)
-
-        def solver_rhs(t, y):
-            return generator(t, y, in_frame_basis=True)
+    # setup generator and rhs functions to pass to numerical methods
+    if isinstance(generator, BaseGeneratorModel):
+        solver_generator, solver_rhs, y0 = setup_generator_model_rhs_y0_in_frame_basis(generator, y0)
 
     else:
-        # if generator is not a BaseGeneratorModel, treat it purely as a function
         solver_generator = generator
 
         def solver_rhs(t, y):
@@ -264,24 +265,72 @@ def solve_lmde(
         results = solve_ode(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
 
     # convert results to correct basis if necessary
-    if (
-        isinstance(generator, BaseGeneratorModel)
-        and generator.rotating_frame.frame_operator is not None
-    ):
-        # for left multiplication cases, if number of input dimensions is 1
-        # vectorized basis transformation requires transposing before and after
-        if y0.ndim == 1:
-            results.y = results.y.T
-
-        if isinstance(generator, LindbladModel) and "vectorized" in generator.evaluation_mode:
-            if generator.rotating_frame.frame_basis is not None:
-                results.y = generator.rotating_frame.vectorized_frame_basis @ results.y
-        elif isinstance(generator, LindbladModel):
-            results.y = generator.rotating_frame.operator_out_of_frame_basis(results.y)
-        elif isinstance(generator, GeneratorModel):
-            results.y = generator.rotating_frame.state_out_of_frame_basis(results.y)
-
-        if y0.ndim == 1:
-            results.y = results.y.T
+    if isinstance(generator, BaseGeneratorModel):
+        results.y = results_y_out_of_frame_basis(generator, Array(results.y), y0.ndim)
 
     return results
+
+
+def setup_generator_model_rhs_y0_in_frame_basis(generator_model: BaseGeneratorModel, y0: Array) -> Tuple[Callable, Callable, Array]:
+    """Helper function for setting up a subclass of
+    :class:`~qiskit_dynamics.models.BaseGeneratorModel` to be solved in the frame basis.
+
+    Args:
+        generator_model: Subclass of :class:`~qiskit_dynamics.models.BaseGeneratorModel`.
+        y0: Initial state.
+
+    Returns:
+        Callable for generator in frame basis, Callable for RHS in frame basis, and y0
+        transformed to frame basis.
+    """
+
+    if isinstance(generator_model, LindbladModel) and "vectorized" in generator_model.evaluation_mode:
+        if generator_model.rotating_frame.frame_basis is not None:
+            y0 = generator_model.rotating_frame.vectorized_frame_basis_adjoint @ y0
+    elif isinstance(generator_model, LindbladModel):
+        y0 = generator_model.rotating_frame.operator_into_frame_basis(y0)
+    elif isinstance(generator_model, GeneratorModel):
+        y0 = generator_model.rotating_frame.state_into_frame_basis(y0)
+
+    # define rhs functions in frame basis
+    def generator(t):
+        return generator_model(t, in_frame_basis=True)
+
+    def rhs(t, y):
+        return generator_model(t, y, in_frame_basis=True)
+
+    return generator, rhs, y0
+
+def results_y_out_of_frame_basis(generator_model: BaseGeneratorModel,
+                                 results_y: Array,
+                                 y0_ndim: int) -> Array:
+    """Convert the results of a simulation for :class:`~qiskit_dynamics.models.BaseGeneratorModel`
+    out of the frame basis.
+
+    Args:
+        generator_model: Subclass of :class:`~qiskit_dynamics.models.BaseGeneratorModel`.
+        results_y: Array whose first index corresponds to the evaluation points of the state
+                   for the results of ``solve_lmde`` or ``solve_ode``.
+        y0_ndim: Number of dimensions of initial state.
+
+    Returns:
+        Callable for generator in frame basis, Callable for RHS in frame basis, and y0
+        transformed to frame basis.
+    """
+    # for left multiplication cases, if number of input dimensions is 1
+    # vectorized basis transformation requires transposing before and after
+    if y0_ndim == 1:
+        results_y = results_y.T
+
+    if isinstance(generator_model, LindbladModel) and "vectorized" in generator_model.evaluation_mode:
+        if generator_model.rotating_frame.frame_basis is not None:
+            results_y = generator_model.rotating_frame.vectorized_frame_basis @ results_y
+    elif isinstance(generator_model, LindbladModel):
+        results_y = generator_model.rotating_frame.operator_out_of_frame_basis(results_y)
+    elif isinstance(generator_model, GeneratorModel):
+        results_y = generator_model.rotating_frame.state_out_of_frame_basis(results_y)
+
+    if y0_ndim == 1:
+        results_y = results_y.T
+
+    return results_y
