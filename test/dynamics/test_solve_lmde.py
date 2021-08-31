@@ -22,24 +22,30 @@ from qiskit.quantum_info import Operator
 from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_lmde
-from qiskit_dynamics.solve import (setup_generator_model_rhs_y0_in_frame_basis,
-                                   results_y_out_of_frame_basis)
+from qiskit_dynamics.solve import (
+    setup_generator_model_rhs_y0_in_frame_basis,
+    results_y_out_of_frame_basis,
+)
 from qiskit_dynamics.dispatch import Array
 
 from .common import QiskitDynamicsTestCase, TestJaxBase
+
 
 class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
     """Test for solve_lmde error raising."""
 
     def setUp(self):
-        self.lindblad_model = LindbladModel(hamiltonian_operators=[np.diag([1., -1.])],
-                                            hamiltonian_signals=[1.])
+        self.lindblad_model = LindbladModel(
+            hamiltonian_operators=[np.diag([1.0, -1.0])], hamiltonian_signals=[1.0]
+        )
 
     def test_lmde_method_non_vectorized_lindblad(self):
         """Test error raising if LMDE method is specified for non-vectorized Lindblad."""
 
         with self.assertRaises(QiskitError) as qe:
-            results = solve_lmde(self.lindblad_model, t_span=[0., 1.], y0=np.diag([1., 0.]), method='scipy_expm')
+            solve_lmde(
+                self.lindblad_model, t_span=[0.0, 1.0], y0=np.diag([1.0, 0.0]), method="scipy_expm"
+            )
         self.assertTrue("vectorized evaluation" in str(qe.exception))
 
     def test_method_does_not_exist(self):
@@ -57,19 +63,23 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
     def setUp(self):
         """Define some models with different properties."""
 
-        self.ham_model = HamiltonianModel(operators=[Operator.from_label('X')],
-                                          signals=[Signal(1., 5.)],
-                                          drift=Operator.from_label('Z'))
+        self.ham_model = HamiltonianModel(
+            operators=[Operator.from_label("X")],
+            signals=[Signal(1.0, 5.0)],
+            drift=Operator.from_label("Z"),
+        )
 
-        self.lindblad_model = LindbladModel(hamiltonian_operators=[Operator.from_label('X')],
-                                            hamiltonian_signals=[Signal(1., 5.)],
-                                            drift=Operator.from_label('Z'),
-                                            dissipator_operators=[Operator.from_label('Y')])
+        self.lindblad_model = LindbladModel(
+            hamiltonian_operators=[Operator.from_label("X")],
+            hamiltonian_signals=[Signal(1.0, 5.0)],
+            drift=Operator.from_label("Z"),
+            dissipator_operators=[Operator.from_label("Y")],
+        )
 
         self.vec_lindblad_model = self.lindblad_model.copy()
-        self.vec_lindblad_model.set_evaluation_mode('dense_vectorized')
+        self.vec_lindblad_model.set_evaluation_mode("dense_vectorized")
 
-        self.frame_op = 1.2 * Operator.from_label('X') - 3.132 * Operator.from_label('Y')
+        self.frame_op = 1.2 * Operator.from_label("X") - 3.132 * Operator.from_label("Y")
         _, U = np.linalg.eigh(self.frame_op)
         self.U = U
         self.Uadj = self.U.conj().transpose()
@@ -104,8 +114,8 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
     def test_lindblad_setup_no_frame(self):
         """Test functions for LindbladModel with no frame."""
 
-        y0 = np.array([[3.43, 1.31], [3., 1.23]])
-        gen, rhs, new_y0 = setup_generator_model_rhs_y0_in_frame_basis(self.lindblad_model, y0)
+        y0 = np.array([[3.43, 1.31], [3.0, 1.23]])
+        _, rhs, new_y0 = setup_generator_model_rhs_y0_in_frame_basis(self.lindblad_model, y0)
 
         # expect nothing to happen
         self.assertAllClose(y0, new_y0)
@@ -118,8 +128,8 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         lindblad_model = self.lindblad_model.copy()
         lindblad_model.rotating_frame = self.frame_op
 
-        y0 = np.array([[3.43, 1.31], [3., 1.23]])
-        gen, rhs, new_y0 = setup_generator_model_rhs_y0_in_frame_basis(lindblad_model, y0)
+        y0 = np.array([[3.43, 1.31], [3.0, 1.23]])
+        _, rhs, new_y0 = setup_generator_model_rhs_y0_in_frame_basis(lindblad_model, y0)
 
         # expect nothing to happen
         self.assertAllClose(self.Uadj @ y0 @ self.U, new_y0)
@@ -129,7 +139,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
     def test_vectorized_lindblad_setup_no_frame(self):
         """Test functions for vectorized LindbladModel with no frame."""
 
-        y0 = np.array([[3.43, 1.31], [3., 1.23]]).flatten()
+        y0 = np.array([[3.43, 1.31], [3.0, 1.23]]).flatten()
         gen, rhs, new_y0 = setup_generator_model_rhs_y0_in_frame_basis(self.vec_lindblad_model, y0)
 
         # expect nothing to happen
@@ -144,7 +154,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         vec_lindblad_model = self.vec_lindblad_model.copy()
         vec_lindblad_model.rotating_frame = self.frame_op
 
-        y0 = np.array([[3.43, 1.31], [3., 1.23]]).flatten()
+        y0 = np.array([[3.43, 1.31], [3.0, 1.23]]).flatten()
         gen, rhs, new_y0 = setup_generator_model_rhs_y0_in_frame_basis(vec_lindblad_model, y0)
 
         # expect nothing to happen
@@ -157,12 +167,12 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         """Test hamiltonian results conversion with no frame."""
 
         # test 1d input
-        results_y = np.array([[1., 23.3], [2.32, 1.232]])
+        results_y = np.array([[1.0, 23.3], [2.32, 1.232]])
         output = results_y_out_of_frame_basis(self.ham_model, results_y, y0_ndim=1)
         self.assertAllClose(results_y, output)
 
         # test 2d input
-        results_y = np.array([[[1., 23.3], [23, 231j]], [[2.32, 1.232], [1j, 2. + 3j]]])
+        results_y = np.array([[[1.0, 23.3], [23, 231j]], [[2.32, 1.232], [1j, 2.0 + 3j]]])
         output = results_y_out_of_frame_basis(self.ham_model, results_y, y0_ndim=2)
         self.assertAllClose(results_y, output)
 
@@ -173,13 +183,13 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         ham_model.rotating_frame = self.frame_op
 
         # test 1d input
-        results_y = np.array([[1., 23.3], [2.32, 1.232]])
+        results_y = np.array([[1.0, 23.3], [2.32, 1.232]])
         output = results_y_out_of_frame_basis(ham_model, results_y, y0_ndim=1)
         expected = [self.U @ y for y in results_y]
         self.assertAllClose(expected, output)
 
         # test 2d input
-        results_y = np.array([[[1., 23.3], [23, 231j]], [[2.32, 1.232], [1j, 2. + 3j]]])
+        results_y = np.array([[[1.0, 23.3], [23, 231j]], [[2.32, 1.232], [1j, 2.0 + 3j]]])
         output = results_y_out_of_frame_basis(ham_model, results_y, y0_ndim=2)
         expected = [self.U @ y for y in results_y]
         self.assertAllClose(expected, output)
@@ -187,7 +197,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
     def test_lindblad_results_conversion_no_frame(self):
         """Test lindblad results conversion with no frame."""
 
-        results_y = np.array([[[1., 23.3], [23, 231j]], [[2.32, 1.232], [1j, 2. + 3j]]])
+        results_y = np.array([[[1.0, 23.3], [23, 231j]], [[2.32, 1.232], [1j, 2.0 + 3j]]])
         output = results_y_out_of_frame_basis(self.lindblad_model, results_y, y0_ndim=2)
         self.assertAllClose(results_y, output)
 
@@ -197,7 +207,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         lindblad_model = self.lindblad_model.copy()
         lindblad_model.rotating_frame = self.frame_op
 
-        results_y = np.array([[[1., 23.3], [23, 231j]], [[2.32, 1.232], [1j, 2. + 3j]]])
+        results_y = np.array([[[1.0, 23.3], [23, 231j]], [[2.32, 1.232], [1j, 2.0 + 3j]]])
         output = results_y_out_of_frame_basis(lindblad_model, results_y, y0_ndim=2)
         expected = [self.U @ y @ self.Uadj for y in results_y]
         self.assertAllClose(expected, output)
@@ -206,13 +216,17 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         """Test vectorized lindblad results conversion with no frame."""
 
         # test 1d input
-        results_y = np.array([[1., 23.3, 1.23, .123], [2.32, 1.232, 1j, 21.2]])
+        results_y = np.array([[1.0, 23.3, 1.23, 0.123], [2.32, 1.232, 1j, 21.2]])
         output = results_y_out_of_frame_basis(self.vec_lindblad_model, results_y, y0_ndim=1)
         self.assertAllClose(results_y, output)
 
         # test 2d input
-        results_y = np.array([[[1., 23.3], [23, 231j], [2.231, 32.32], [2.321, 2.231]],
-                              [[2.32, 1.232], [1j, 2. + 3j], [2.32, 2.12314], [334., 34.3]]])
+        results_y = np.array(
+            [
+                [[1.0, 23.3], [23, 231j], [2.231, 32.32], [2.321, 2.231]],
+                [[2.32, 1.232], [1j, 2.0 + 3j], [2.32, 2.12314], [334.0, 34.3]],
+            ]
+        )
         output = results_y_out_of_frame_basis(self.vec_lindblad_model, results_y, y0_ndim=2)
         self.assertAllClose(results_y, output)
 
@@ -223,19 +237,23 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         vec_lindblad_model.rotating_frame = self.frame_op
         P = np.kron(self.U.conj(), self.U)
 
-
         # test 1d input
-        results_y = np.array([[1., 23.3, 1.23, .123], [2.32, 1.232, 1j, 21.2]])
+        results_y = np.array([[1.0, 23.3, 1.23, 0.123], [2.32, 1.232, 1j, 21.2]])
         output = results_y_out_of_frame_basis(vec_lindblad_model, results_y, y0_ndim=1)
         expected = [P @ y for y in results_y]
         self.assertAllClose(expected, output)
 
         # test 2d input
-        results_y = np.array([[[1., 23.3], [23, 231j], [2.231, 32.32], [2.321, 2.231]],
-                              [[2.32, 1.232], [1j, 2. + 3j], [2.32, 2.12314], [334., 34.3]]])
+        results_y = np.array(
+            [
+                [[1.0, 23.3], [23, 231j], [2.231, 32.32], [2.321, 2.231]],
+                [[2.32, 1.232], [1j, 2.0 + 3j], [2.32, 2.12314], [334.0, 34.3]],
+            ]
+        )
         output = results_y_out_of_frame_basis(vec_lindblad_model, results_y, y0_ndim=2)
         expected = [P @ y for y in results_y]
         self.assertAllClose(expected, output)
+
 
 # pylint: disable=too-many-instance-attributes
 class Testsolve_lmde_Base(QiskitDynamicsTestCase):
@@ -279,15 +297,16 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
             low=-b, high=b, size=(dim, dim)
         )
         frame_op = frame_op.conj().transpose() - frame_op
-        y0 = rng.uniform(low=-b, high=b, size=(dim,)) + 1j * rng.uniform(low=-b, high=b, size=(dim,))
+        y0 = rng.uniform(low=-b, high=b, size=(dim,)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim,)
+        )
 
-        sig = DiscreteSignal(samples=rng.uniform(low=-b, high=b, size=(5,)),
-                             dt=0.1,
-                             carrier_freq=1.)
-        model = GeneratorModel(operators=operators,
-                               signals=[sig],
-                               drift=drift,
-                               rotating_frame=frame_op)
+        sig = DiscreteSignal(
+            samples=rng.uniform(low=-b, high=b, size=(5,)), dt=0.1, carrier_freq=1.0
+        )
+        model = GeneratorModel(
+            operators=operators, signals=[sig], drift=drift, rotating_frame=frame_op
+        )
 
         results = solve_lmde(model, t_span=[0, 0.5], y0=y0, method=method, max_dt=0.01)
         yf = model.rotating_frame.state_out_of_frame(0.5, results.y[-1])

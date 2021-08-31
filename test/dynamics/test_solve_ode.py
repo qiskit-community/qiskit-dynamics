@@ -118,15 +118,16 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
             low=-b, high=b, size=(dim, dim)
         )
         frame_op = frame_op.conj().transpose() - frame_op
-        y0 = rng.uniform(low=-b, high=b, size=(dim,)) + 1j * rng.uniform(low=-b, high=b, size=(dim,))
+        y0 = rng.uniform(low=-b, high=b, size=(dim,)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim,)
+        )
 
-        sig = DiscreteSignal(samples=rng.uniform(low=-b, high=b, size=(5,)),
-                             dt=0.1,
-                             carrier_freq=1.)
-        model = GeneratorModel(operators=operators,
-                               signals=[sig],
-                               drift=drift,
-                               rotating_frame=frame_op)
+        sig = DiscreteSignal(
+            samples=rng.uniform(low=-b, high=b, size=(5,)), dt=0.1, carrier_freq=1.0
+        )
+        model = GeneratorModel(
+            operators=operators, signals=[sig], drift=drift, rotating_frame=frame_op
+        )
 
         results = solve_ode(model, t_span=[0, 0.5], y0=y0, method=method, atol=1e-8, rtol=1e-8)
         yf = model.rotating_frame.state_out_of_frame(0.5, results.y[-1])

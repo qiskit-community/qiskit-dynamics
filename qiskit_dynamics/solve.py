@@ -104,7 +104,7 @@ except ImportError:
     pass
 
 
-ODE_METHODS = ['RK45', 'RK23', 'BDF', 'DOP853', 'Radau', 'LSODA'] + ['jax_odeint']
+ODE_METHODS = ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"] + ["jax_odeint"]
 LMDE_METHODS = ["scipy_expm", "jax_expm"]
 
 
@@ -154,8 +154,10 @@ def solve_ode(
         QiskitError: If specified method does not exist.
     """
 
-    if method not in ODE_METHODS and not (inspect.isclass(method) and issubclass(method, OdeSolver)):
-        raise QiskitError('Method ' + str(method) + ' not supported by solve_ode.')
+    if method not in ODE_METHODS and not (
+        inspect.isclass(method) and issubclass(method, OdeSolver)
+    ):
+        raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
     if isinstance(rhs, BaseGeneratorModel):
         _, solver_rhs, y0 = setup_generator_model_rhs_y0_in_frame_basis(rhs, y0)
@@ -263,7 +265,7 @@ def solve_lmde(
 
             return solve_ode(rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
         else:
-            raise QiskitError('Method ' + str(method) + ' not supported by solve_lmde.')
+            raise QiskitError("Method " + str(method) + " not supported by solve_lmde.")
 
     t_span = Array(t_span)
     y0 = Array(y0)
@@ -286,7 +288,9 @@ def solve_lmde(
     return results
 
 
-def setup_generator_model_rhs_y0_in_frame_basis(generator_model: BaseGeneratorModel, y0: Array) -> Tuple[Callable, Callable, Array]:
+def setup_generator_model_rhs_y0_in_frame_basis(
+    generator_model: BaseGeneratorModel, y0: Array
+) -> Tuple[Callable, Callable, Array]:
     """Helper function for setting up a subclass of
     :class:`~qiskit_dynamics.models.BaseGeneratorModel` to be solved in the frame basis.
 
@@ -299,7 +303,10 @@ def setup_generator_model_rhs_y0_in_frame_basis(generator_model: BaseGeneratorMo
         transformed to frame basis.
     """
 
-    if isinstance(generator_model, LindbladModel) and "vectorized" in generator_model.evaluation_mode:
+    if (
+        isinstance(generator_model, LindbladModel)
+        and "vectorized" in generator_model.evaluation_mode
+    ):
         if generator_model.rotating_frame.frame_basis is not None:
             y0 = generator_model.rotating_frame.vectorized_frame_basis_adjoint @ y0
     elif isinstance(generator_model, LindbladModel):
@@ -317,9 +324,9 @@ def setup_generator_model_rhs_y0_in_frame_basis(generator_model: BaseGeneratorMo
     return generator, rhs, y0
 
 
-def results_y_out_of_frame_basis(generator_model: BaseGeneratorModel,
-                                 results_y: Array,
-                                 y0_ndim: int) -> Array:
+def results_y_out_of_frame_basis(
+    generator_model: BaseGeneratorModel, results_y: Array, y0_ndim: int
+) -> Array:
     """Convert the results of a simulation for :class:`~qiskit_dynamics.models.BaseGeneratorModel`
     out of the frame basis.
 
@@ -338,7 +345,10 @@ def results_y_out_of_frame_basis(generator_model: BaseGeneratorModel,
     if y0_ndim == 1:
         results_y = results_y.T
 
-    if isinstance(generator_model, LindbladModel) and "vectorized" in generator_model.evaluation_mode:
+    if (
+        isinstance(generator_model, LindbladModel)
+        and "vectorized" in generator_model.evaluation_mode
+    ):
         if generator_model.rotating_frame.frame_basis is not None:
             results_y = generator_model.rotating_frame.vectorized_frame_basis @ results_y
     elif isinstance(generator_model, LindbladModel):
