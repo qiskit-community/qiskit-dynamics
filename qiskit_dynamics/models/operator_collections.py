@@ -371,6 +371,19 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
             signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
         return super().evaluate(signal_values)
 
+    def evaluate_hamiltonian(self, ham_sig_vals: Array) -> Array:
+        r"""Returns the commutator :math:`[H, \cdot]`, vectorized in column-stacking convention.
+        Args:
+            ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+        Returns:
+            Vectorized commutator :math:`[H,\cdot]`"""
+        if self.empty_dissipators:
+            signal_values = ham_sig_vals
+        else:
+            zero_padding = np.zeros(self.num_operators - len(ham_sig_vals))
+            signal_values = np.append(ham_sig_vals, zero_padding, axis=0)
+        return 1j * super().evaluate(signal_values)
+
 
 class SparseVectorizedLindbladCollection(SparseOperatorCollection):
     r"""Vectorized version of SparseLindbladCollection, wherein
@@ -393,8 +406,8 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
         """
 
         # Convert Hamiltonian to commutator formalism
-        vec_ham_ops = -1j * vec_commutator(to_array(hamiltonian_operators))
-        vec_drift = -1j * vec_commutator(to_array(drift))
+        vec_ham_ops = -1j * vec_commutator(hamiltonian_operators)
+        vec_drift = -1j * vec_commutator(drift)
         total_ops = None
         if dissipator_operators is not None:
             vec_diss_ops = vec_dissipator(to_array(dissipator_operators))
@@ -434,6 +447,19 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
         else:
             signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
         return super().evaluate(signal_values)
+
+    def evaluate_hamiltonian(self, ham_sig_vals: Array) -> Array:
+        r"""Returns the commutator :math:`[H, \cdot]`, vectorized in column-stacking convention.
+        Args:
+            ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+        Returns:
+            Vectorized commutator :math:`[H,\cdot]`"""
+        if self.empty_dissipators:
+            signal_values = ham_sig_vals
+        else:
+            zero_padding = np.zeros(self.num_operators - len(ham_sig_vals))
+            signal_values = np.append(ham_sig_vals, zero_padding, axis=0)
+        return 1j * super().evaluate(signal_values)
 
 
 class SparseLindbladCollection(DenseLindbladCollection):
