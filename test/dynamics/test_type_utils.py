@@ -15,14 +15,16 @@
 
 import numpy as np
 from scipy.sparse.csr import csr_matrix
-from qiskit_dynamics.dispatch import Array
 
+from qiskit.quantum_info.operators.operator import Operator
+from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import (
     convert_state,
     type_spec_from_instance,
     StateTypeConverter,
     vec_dissipator,
     vec_commutator,
+    to_array,
 )
 
 from .common import QiskitDynamicsTestCase, TestJaxBase
@@ -253,6 +255,19 @@ class TestTypeUtils(QiskitDynamicsTestCase):
                 ]
             )
         )
+
+    def test_to_array(self):
+        """Tests for to_array"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        normal_array = Array(np.array(list_of_ops))
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
+        sparse_matrices = [csr_matrix(op) for op in list_of_ops]
+        self.assertAllClose(to_array(list_of_ops), normal_array)
+        self.assertAllClose(to_array(list_of_arrays), normal_array)
+        self.assertAllClose(to_array(op_arr), list_of_arrays)
+        for i in range(3):
+            self.assertAllClose(sparse_matrices[i].toarray(), normal_array[i])
 
 
 class TestTypeUtilsJax(TestTypeUtils, TestJaxBase):
