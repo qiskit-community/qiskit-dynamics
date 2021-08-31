@@ -19,7 +19,7 @@ from scipy.linalg import expm
 from qiskit import QiskitError
 from qiskit_dynamics import solve_ode
 from qiskit_dynamics.models import GeneratorModel
-from qiskit_dynamics.signals import Signal
+from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics.dispatch import Array
 
 from .common import QiskitDynamicsTestCase, TestJaxBase
@@ -84,6 +84,7 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
     def _variable_step_method_standard_tests(self, method):
         """tests to run on a variable step solver."""
 
+        # simple case with basic_rhs
         results = solve_ode(
             self.basic_rhs, t_span=self.t_span, y0=self.y0, method=method, atol=1e-10, rtol=1e-10
         )
@@ -92,6 +93,7 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
 
         self.assertAllClose(results.y[-1], expected)
 
+        # non-LMDE example
         # pylint: disable=unused-argument
         def quad_rhs(t, y):
             return Array([t ** 2], dtype=float)
@@ -101,6 +103,41 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
         )
         expected = Array([1.0 / 3])
         self.assertAllClose(results.y[-1], expected)
+
+        # randomized LMDE example
+        dim = 7
+        b = 0.5
+        rng = np.random.default_rng(3093)
+        drift = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        operators = rng.uniform(low=-b, high=b, size=(1, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(1, dim, dim)
+        )
+        frame_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        frame_op = frame_op.conj().transpose() - frame_op
+        y0 = rng.uniform(low=-b, high=b, size=(dim,)) + 1j * rng.uniform(low=-b, high=b, size=(dim,))
+
+        sig = DiscreteSignal(samples=rng.uniform(low=-b, high=b, size=(5,)),
+                             dt=0.1,
+                             carrier_freq=1.)
+        model = GeneratorModel(operators=operators,
+                               signals=[sig],
+                               drift=drift,
+                               rotating_frame=frame_op)
+
+        results = solve_ode(model, t_span=[0, 0.5], y0=y0, method=method, atol=1e-8, rtol=1e-8)
+        yf = model.rotating_frame.state_out_of_frame(0.5, results.y[-1])
+
+        # simulate directly out of frame
+        def rhs(t, y):
+            return (drift + sig(t) * operators[0]) @ y
+
+        results2 = solve_ode(rhs, t_span=[0, 0.5], y0=y0, method=method, atol=1e-8, rtol=1e-8)
+        # check consistency - this is relatively low tolerance due to the solver tolerance
+        self.assertAllClose(yf, results2.y[-1], atol=1e-5, rtol=1e-5)
 
 
 class Testsolve_ode_numpy(Testsolve_ode_Base):

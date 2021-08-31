@@ -19,8 +19,8 @@ from scipy.linalg import expm
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
-from qiskit_dynamics.models import HamiltonianModel, LindbladModel
-from qiskit_dynamics.signals import Signal
+from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel
+from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_lmde
 from qiskit_dynamics.solve import (setup_generator_model_rhs_y0_in_frame_basis,
                                    results_y_out_of_frame_basis)
@@ -41,6 +41,14 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
         with self.assertRaises(QiskitError) as qe:
             results = solve_lmde(self.lindblad_model, t_span=[0., 1.], y0=np.diag([1., 0.]), method='scipy_expm')
         self.assertTrue("vectorized evaluation" in str(qe.exception))
+
+    def test_method_does_not_exist(self):
+        """Test method does not exist exception."""
+
+        with self.assertRaises(QiskitError) as qe:
+            solve_lmde(lambda t: t, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
+
+        self.assertTrue("not supported" in str(qe.exception))
 
 
 class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
@@ -256,6 +264,42 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
         expected = expm(-1j * np.pi * self.X.data)
 
         self.assertAllClose(results.y[-1], expected)
+
+        # randomized LMDE example
+        dim = 7
+        b = 0.5
+        rng = np.random.default_rng(3093)
+        drift = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        operators = rng.uniform(low=-b, high=b, size=(1, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(1, dim, dim)
+        )
+        frame_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        frame_op = frame_op.conj().transpose() - frame_op
+        y0 = rng.uniform(low=-b, high=b, size=(dim,)) + 1j * rng.uniform(low=-b, high=b, size=(dim,))
+
+        sig = DiscreteSignal(samples=rng.uniform(low=-b, high=b, size=(5,)),
+                             dt=0.1,
+                             carrier_freq=1.)
+        model = GeneratorModel(operators=operators,
+                               signals=[sig],
+                               drift=drift,
+                               rotating_frame=frame_op)
+
+        results = solve_lmde(model, t_span=[0, 0.5], y0=y0, method=method, max_dt=0.01)
+        yf = model.rotating_frame.state_out_of_frame(0.5, results.y[-1])
+
+        # simulate directly out of frame
+        def generator(t):
+            return drift + sig(t) * operators[0]
+
+        results2 = solve_lmde(generator, t_span=[0, 0.5], y0=y0, method=method, max_dt=0.01)
+
+        # check consistency - this is relatively low tolerance due to the solver tolerance
+        self.assertAllClose(yf, results2.y[-1], atol=1e-5, rtol=1e-5)
 
 
 class Testsolve_lmde_scipy_expm(Testsolve_lmde_Base):

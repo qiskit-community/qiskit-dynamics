@@ -165,10 +165,7 @@ def solve_ode(
     t_span = Array(t_span)
     y0 = Array(y0)
 
-    #solver_rhs = dispatch.wrap(solver_rhs)
-
     # solve the problem using specified method
-    results = None
     if method in SOLVE_IVP_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval, **kwargs)
     elif isinstance(method, str) and method == "jax_odeint":
@@ -257,7 +254,6 @@ def solve_lmde(
     # if method is an ODE method, delegate to solve ODE
     if method not in LMDE_METHODS:
         if method in ODE_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
-            # if generator is just a function, convert to RHS for solve_ode
             if isinstance(generator, BaseGeneratorModel):
                 rhs = generator
             else:
@@ -319,6 +315,7 @@ def setup_generator_model_rhs_y0_in_frame_basis(generator_model: BaseGeneratorMo
         return generator_model(t, y, in_frame_basis=True)
 
     return generator, rhs, y0
+
 
 def results_y_out_of_frame_basis(generator_model: BaseGeneratorModel,
                                  results_y: Array,
