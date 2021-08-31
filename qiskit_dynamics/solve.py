@@ -231,8 +231,7 @@ def solve_lmde(
                      or if an LMDE-specific method is passed with a LindbladModel.
     """
 
-    # raise error that lmde-specific methods can't be used with LindbladModel unless
-    # it is vectorized
+    # lmde-specific methods can't be used with LindbladModel unless vectorized
     if (
         isinstance(generator, LindbladModel)
         and ("vectorized" not in generator.evaluation_mode)
