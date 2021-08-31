@@ -34,7 +34,7 @@ class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
         with self.assertRaises(QiskitError) as qe:
             solve_ode(lambda t, y: y, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
 
-        self.assertTrue("not a supported ODE method" in str(qe.exception))
+        self.assertTrue("not supported" in str(qe.exception))
 
 
 # pylint: disable=too-many-instance-attributes

@@ -22,7 +22,8 @@ from qiskit.quantum_info import Operator
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics import solve_lmde
-from qiskit_dynamics.solve import setup_generator_model_rhs_y0_in_frame_basis, results_y_out_of_frame_basis
+from qiskit_dynamics.solve import (setup_generator_model_rhs_y0_in_frame_basis,
+                                   results_y_out_of_frame_basis)
 from qiskit_dynamics.dispatch import Array
 
 from .common import QiskitDynamicsTestCase, TestJaxBase

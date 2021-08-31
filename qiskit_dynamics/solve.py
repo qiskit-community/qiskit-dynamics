@@ -104,8 +104,12 @@ except ImportError:
     pass
 
 
+ODE_METHODS = ['RK45', 'RK23', 'BDF', 'DOP853', 'Radau', 'LSODA'] + ['jax_odeint']
+LMDE_METHODS = ["scipy_expm", "jax_expm"]
+
+
 def solve_ode(
-    rhs: Callable,
+    rhs: Union[Callable, BaseGeneratorModel],
     t_span: Array,
     y0: Array,
     method: Optional[Union[str, OdeSolver]] = "DOP853",
@@ -149,24 +153,32 @@ def solve_ode(
     Raises:
         QiskitError: If specified method does not exist.
     """
+
+    if method not in ODE_METHODS and not (inspect.isclass(method) and issubclass(method, OdeSolver)):
+        raise QiskitError('Method ' + str(method) + ' not supported by solve_ode.')
+
+    if isinstance(rhs, BaseGeneratorModel):
+        _, solver_rhs, y0 = setup_generator_model_rhs_y0_in_frame_basis(rhs, y0)
+    else:
+        solver_rhs = rhs
+
     t_span = Array(t_span)
     y0 = Array(y0)
 
-    rhs = dispatch.wrap(rhs)
+    #solver_rhs = dispatch.wrap(solver_rhs)
 
     # solve the problem using specified method
     results = None
     if method in SOLVE_IVP_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
-        results = scipy_solve_ivp(rhs, t_span, y0, method, t_eval, **kwargs)
+        results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval, **kwargs)
     elif isinstance(method, str) and method == "jax_odeint":
-        results = jax_odeint(rhs, t_span, y0, t_eval, **kwargs)
-    else:
-        raise QiskitError("""Specified method is not a supported ODE method.""")
+        results = jax_odeint(solver_rhs, t_span, y0, t_eval, **kwargs)
+
+    # convert results to correct basis if necessary
+    if isinstance(rhs, BaseGeneratorModel):
+        results.y = results_y_out_of_frame_basis(rhs, Array(results.y), y0.ndim)
 
     return results
-
-
-LMDE_METHODS = ["scipy_expm", "jax_expm"]
 
 
 def solve_lmde(
@@ -242,26 +254,34 @@ def solve_lmde(
                vectorized evaluation mode."""
         )
 
+    # if method is an ODE method, delegate to solve ODE
+    if method not in LMDE_METHODS:
+        if method in ODE_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
+            # if generator is just a function, convert to RHS for solve_ode
+            if isinstance(generator, BaseGeneratorModel):
+                rhs = generator
+            else:
+                # treat generator as a function
+                def rhs(t, y):
+                    return generator(t) @ y
+
+            return solve_ode(rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
+        else:
+            raise QiskitError('Method ' + str(method) + ' not supported by solve_lmde.')
+
     t_span = Array(t_span)
     y0 = Array(y0)
 
     # setup generator and rhs functions to pass to numerical methods
     if isinstance(generator, BaseGeneratorModel):
-        solver_generator, solver_rhs, y0 = setup_generator_model_rhs_y0_in_frame_basis(generator, y0)
-
+        solver_generator, _, y0 = setup_generator_model_rhs_y0_in_frame_basis(generator, y0)
     else:
         solver_generator = generator
-
-        def solver_rhs(t, y):
-            return generator(t) @ y
 
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
         results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
-    else:
-        # method is not LMDE-specific, so pass to solve_ode using rhs
-        results = solve_ode(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
 
     # convert results to correct basis if necessary
     if isinstance(generator, BaseGeneratorModel):
