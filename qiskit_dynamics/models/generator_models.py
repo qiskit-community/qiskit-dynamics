@@ -16,174 +16,259 @@ Generator models module.
 """
 
 from abc import ABC, abstractmethod
-from typing import Callable, Union, List, Optional
+from typing import Callable, Tuple, Union, List, Optional
 from copy import deepcopy
 import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics import dispatch
+from qiskit_dynamics.models.operator_collections import (
+    DenseOperatorCollection,
+    SparseOperatorCollection,
+)
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array
 from qiskit_dynamics.signals import Signal, SignalList
-from .frame import BaseFrame, Frame
+from qiskit_dynamics.type_utils import to_array
+from .rotating_frame import RotatingFrame
 
 
 class BaseGeneratorModel(ABC):
-    r"""BaseGeneratorModel is an abstract interface for a time-dependent operator
-    :math:`G(t)`, with functionality of relevance for differential
-    equations of the form :math:`\dot{y}(t) = G(t)y(t)`.
+    r"""Defines an interface for a time-dependent
+    linear differential equation of the form :math:`\dot{y}(t) = \Lambda(t, y)`,
+    where :math:`\Lambda` is linear in :math:`y`. The core functionality is
+    evaluation of :math:`\Lambda(t, y)`, as well as,
+    if possible, evaluation of the map :math:`\Lambda(t, \cdot)`.
 
-    The core functionality is evaluation of :math:`G(t)` and the products
-    :math:`AG(t)` and :math:`G(t)A`, for operators :math:`A` of suitable
-    shape.
-
-    Additionally, this abstract class requires implementation of 3 properties
-    to facilitate the use of this object in solving differential equations:
-        - A "drift", which is meant to return the "time-independent" part of
-          :math:`G(t)`
-        - A "frame", here specified as a :class:`BaseFrame` object, which
-          represents an anti-Hermitian operator :math:`F`, specifying
-          the transformation :math:`G(t) \mapsto G'(t) = e^{-tF}G(t)e^{tF} - F`.
-
-          If a frame is set, the evaluation functions are modified to work
-          with G'(t). Furthermore, all evaluation functions have the option
-          to return the results in a basis in which :math:`F` is diagonalized,
-          to save on the cost of computing :math:`e^{\pm tF}`.
-        - A `cutoff_freq`: a cutoff frequency for further modifying the
-          evaluation of :math:`G'(t)` to remove terms above a given frequency.
-          In this abstract class the exact meaning of this is left unspecified;
-          it is left to concrete implementations to define this.
+    Additionally, the class defines interfaces for:
+        - Setting a "drift" term, representing the time-independent part of :math:`\Lambda`.
+        - Setting a "rotating frame", specified either directly as a :class:`RotatingFrame`
+        instance, or an operator from which a :class:`RotatingFrame` instance can be constructed.
+        The exact meaning of this transformation is determined by the structure of
+        :math:`\Lambda(t, y)`, and is therefore by handled by concrete subclasses.
+        - Setting an internal "evaluation mode", to set the specific numerical methods to use
+        when evaluating :math:`\Lambda(t, y)`.
     """
 
     @property
     @abstractmethod
-    def frame(self) -> BaseFrame:
-        """Get the frame."""
-        pass
-
-    @frame.setter
-    @abstractmethod
-    def frame(self, frame: BaseFrame):
-        """Set the frame."""
+    def dim(self) -> int:
+        """Gets matrix dimension."""
         pass
 
     @property
     @abstractmethod
-    def cutoff_freq(self) -> float:
-        """Get cutoff frequency."""
+    def rotating_frame(self) -> RotatingFrame:
+        """Get the rotating frame."""
         pass
 
-    @cutoff_freq.setter
+    @rotating_frame.setter
     @abstractmethod
-    def cutoff_freq(self, cutoff_freq: float):
-        """Set cutoff frequency."""
-        pass
-
-    @abstractmethod
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
-        """Evaluate the model at a given time."""
-        pass
-
-    def lmult(self, time: float, y: Array, in_frame_basis: bool = False) -> Array:
-        r"""Return the product evaluate(t) @ y. Default implementation is to
-        call evaluate then multiply.
-
-        Args:
-            time: Time at which to create the generator.
-            y: operator or vector to apply the model to.
-            in_frame_basis: whether to evaluate in the frame basis
-
-        Returns:
-            Array: the product
+    def rotating_frame(self, rotating_frame: RotatingFrame):
+        """Set the rotating frame; either an already instantiated :class:`RotatingFrame` object,
+        or a valid argument for the constructor of :class:`RotatingFrame`.
         """
-        return np.dot(self.evaluate(time, in_frame_basis), y)
-
-    def rmult(self, time: float, y: Array, in_frame_basis: bool = False) -> Array:
-        r"""Return the product y @ evaluate(t). Default implementation is to
-        call evaluate then multiply.
-
-        Args:
-            time: Time at which to create the generator.
-            y: operator or vector to apply the model to.
-            in_frame_basis: whether to evaluate in the frame basis
-
-        Returns:
-            Array: the product
-        """
-        return np.dot(y, self.evaluate(time, in_frame_basis))
+        pass
 
     @property
+    def evaluation_mode(self) -> str:
+        """Returns the current implementation mode,
+        e.g. sparse/dense, vectorized/not.
+        """
+        # pylint: disable=no-member
+        return self._evaluation_mode
+
     @abstractmethod
-    def drift(self) -> Array:
-        """Evaluate the constant part of the model."""
+    def set_evaluation_mode(self, new_mode: str):
+        """Sets evaluation mode of model.
+        Will replace _operator_collection with the
+        correct type of operator collection.
+
+        Instances of this function should
+        include important details about each
+        evaluation mode.
+        """
+        pass
+
+    @abstractmethod
+    def get_operators(
+        self, in_frame_basis: Optional[bool] = False
+    ) -> Union[Array, Tuple[Array], Callable]:
+        """Get the operators used in the model construction.
+
+        Args:
+            in_frame_basis: Flag indicating whether to return the operators
+            in the basis in which the rotating frame operator is diagonal.
+        Returns:
+            The operators in the basis specified by `in_frame_basis`.
+        """
+        pass
+
+    def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
+        """Get the drift term.
+
+        Args:
+            in_frame_basis: Flag for whether the returned drift should be
+            in the basis in which the frame is diagonal.
+        Returns:
+            The drift term.
+        """
+        if not in_frame_basis and self.rotating_frame is not None:
+            return self.rotating_frame.operator_out_of_frame_basis(self._drift)
+        else:
+            return self._drift
+
+    def set_drift(
+        self,
+        new_drift: Array,
+        operator_in_frame_basis: Optional[bool] = False,
+    ):
+        """Sets drift term. Note that if the model has a rotating frame this will override
+        any contributions to the drift due to the frame transformation.
+
+        Args:
+            new_drift: The drift operator.
+            operator_in_frame_basis: Whether `new_drift` is already in the rotating
+            frame basis.
+        """
+        if new_drift is None:
+            new_drift = np.zeros((self.dim, self.dim))
+
+        new_drift = to_array(new_drift)
+
+        if not operator_in_frame_basis and self.rotating_frame is not None:
+            new_drift = self.rotating_frame.operator_into_frame_basis(new_drift)
+        # pylint: disable = attribute-defined-outside-init
+        self._drift = new_drift
+        # pylint: disable=no-member
+        if self._operator_collection is not None:
+            # pylint: disable=no-member
+            self._operator_collection.drift = new_drift
+
+    @abstractmethod
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        r"""If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
+
+        Args:
+            time: Time.
+            in_frame_basis: Whether to return the result in the rotating frame basis.
+        """
+        pass
+
+    @abstractmethod
+    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+        r"""Evaluate the right hand side :math:`\dot{y}(t) = \Lambda(t, y)`.
+
+        Args:
+            time: Time.
+            y: State of the differential equation.
+            in_frame_basis: Whether `y` is in the rotating frame basis and the results should be
+                returned in the rotatign frame basis.
+        """
         pass
 
     def copy(self):
         """Return a copy of self."""
         return deepcopy(self)
 
-    def __call__(self, t: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False):
-        """Evaluate generator RHS functions. If ``y is None``,
-        evaluates the model, and otherwise evaluates ``G(t) @ y``.
+    def __call__(
+        self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False
+    ) -> Array:
+        r"""Evaluate generator RHS functions. If ``y is None``,
+        attemps to evaluate :math:`\Lambda(t, \cdot)`, otherwise, calculates
+        :math:`\Lambda(t, y)`
 
         Args:
-            t: Time.
+            time: Time.
             y: Optional state.
-            in_frame_basis: Whether or not to evaluate in the frame basis.
+            in_frame_basis: Whether or not to evaluate in the rotating frame basis.
 
         Returns:
             Array: Either the evaluated model or the RHS for the given y
         """
 
         if y is None:
-            return self.evaluate(t, in_frame_basis=in_frame_basis)
+            return self.evaluate(time, in_frame_basis=in_frame_basis)
 
-        return self.lmult(t, y, in_frame_basis=in_frame_basis)
+        return self.evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
 
 
 class CallableGenerator(BaseGeneratorModel):
-    """Generator specified as a callable"""
+    r"""Specifies a linear matrix differential equation of the form
+    :math:`\dot{y}=\Lambda(t, y)=G(t)y` with :math:`G(t)` passed as a callable function.
+    """
 
     def __init__(
         self,
         generator: Callable,
-        frame: Optional[Union[Operator, Array, BaseFrame]] = None,
+        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         drift: Optional[Union[Operator, Array]] = None,
+        dim: Optional[int] = None,
     ):
-
-        self._generator = dispatch.wrap(generator)
-        self.frame = frame
+        self._generator = generator
+        self.rotating_frame = rotating_frame
         self._drift = drift
+        self._evaluation_mode = "callable_generator"
+        self._operator_collection = None
+        self._dim = dim
 
     @property
-    def frame(self) -> Frame:
+    def dim(self) -> int:
+        if self._dim is not None:
+            return self._dim
+        else:
+            raise ValueError(
+                "Dimension of CallableGenerator object should be specified at initialization."
+            )
+
+    def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
+        if in_frame_basis and self.rotating_frame is not None:
+            return self.rotating_frame.operator_into_frame_basis(self._drift)
+        else:
+            return self._drift
+
+    def get_operators(self, in_frame_basis: Optional[bool] = False) -> Callable:
+        """`CallableGenerator` does not have decomposition in terms of operators."""
+        raise QiskitError("CallableGenerator does not have decomposition in terms of operators.")
+
+    def set_drift(
+        self,
+        new_drift: Array,
+        operator_in_frame_basis: Optional[bool] = False,
+    ):
+        # subtracting the frame operator from the generator is handled at evaluation time.
+        if operator_in_frame_basis and self.rotating_frame is not None:
+            self._drift = self.rotating_frame.operator_out_of_frame_basis(new_drift)
+        else:
+            self._drift = new_drift
+
+        if self.rotating_frame.frame_diag is not None:
+            self._drift = self._drift + self.rotating_frame.operator_out_of_frame_basis(
+                self.rotating_frame.frame_diag
+            )
+
+    def set_evaluation_mode(self, new_mode: str):
+        """Setting the evaluation mode for CallableGenerator
+        is not supported."""
+        raise NotImplementedError(
+            "Setting implementation mode for CallableGenerator is not supported."
+        )
+
+    @property
+    def rotating_frame(self) -> RotatingFrame:
         """Return the frame."""
-        return self._frame
+        return self._rotating_frame
 
-    @frame.setter
-    def frame(self, frame: Union[Operator, Array, Frame]):
-        """Set the frame; either an already instantiated :class:`Frame` object
-        a valid argument for the constructor of :class:`Frame`, or `None`.
+    @rotating_frame.setter
+    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
+        """Set the frame; either an already instantiated :class:`RotatingFrame` object
+        a valid argument for the constructor of :class:`RotatingFrame`, or `None`.
         """
-        self._frame = Frame(frame)
+        self._rotating_frame = RotatingFrame(rotating_frame)
 
-    @property
-    def cutoff_freq(self) -> float:
-        """Return the cutoff frequency."""
-        return None
+    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+        return self.evaluate(time, in_frame_basis=in_frame_basis) @ y
 
-    @cutoff_freq.setter
-    def cutoff_freq(self, cutoff_freq: float):
-        """Cutoff frequency not supported for generic."""
-        if cutoff_freq is not None:
-            raise QiskitError("""Cutoff frequency is not supported for function-based generator.""")
-
-    @property
-    def drift(self) -> Array:
-        return self._drift
-
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format.
 
         Args:
@@ -192,76 +277,112 @@ class CallableGenerator(BaseGeneratorModel):
                             operator is diagonal
 
         Returns:
-            Array: the evaluated model
-
-        Raises:
-            QiskitError: If model cannot be evaluated.
+            Array: The evaluated model.
         """
 
-        # evaluate generator and map it into the frame
+        # evaluate generator and map it into the rotating frame
         gen = self._generator(time)
-        return self.frame.generator_into_frame(
+        if self._drift is not None:
+            gen = gen + self._drift
+        return self.rotating_frame.generator_into_frame(
             time, gen, operator_in_frame_basis=False, return_in_frame_basis=in_frame_basis
         )
 
 
 class GeneratorModel(BaseGeneratorModel):
-    r"""GeneratorModel is a concrete instance of BaseGeneratorModel, where the
-    operator :math:`G(t)` is explicitly constructed as:
+    r""":class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the
+    map :math:`\Lambda(t, y)` is explicitly constructed as:
 
     .. math::
+        \Lambda(t, y) = G(t)y,
 
-        G(t) = \sum_{i=0}^{k-1} s_i(t) G_i,
+        G(t) = \sum_i s_i(t) G_i + G_d
 
     where the :math:`G_i` are matrices (represented by :class:`Operator`
-    objects), and the :math:`s_i(t)` given by signals represented by a
-    :class:`SignalList` object, or a list of :class:`Signal` objects.
-
-    The signals in the model can be specified at instantiation, or afterwards
-    by setting the ``signals`` attribute, by giving a
-    list of :class:`Signal` objects or a :class:`SignalList`.
-
-    For specifying a frame, this object works with the concrete
-    :class:`Frame`, a subclass of :class:`BaseFrame`.
-
-    To do:
-        insert mathematical description of frame/cutoff_freq handling
+    or :class:`Array` objects), the :math:`s_i(t)` are signals represented by
+    a list of :class:`Signal` objects, and
+    :math:`G_d` is the constant-in-time drift term of the generator.
     """
 
     def __init__(
         self,
         operators: Array,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        frame: Optional[Union[Operator, Array, BaseFrame]] = None,
-        cutoff_freq: Optional[float] = None,
+        drift: Optional[Array] = None,
+        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        evaluation_mode: str = "dense",
     ):
         """Initialize.
 
         Args:
-            operators: A rank-3 Array of operator components.
-            signals: Specifiable as either a SignalList, a list of
-                     Signal objects, or as the inputs to signal_mapping.
-                     GeneratorModel can be instantiated without specifying
-                     signals, but it can not perform any actions without them.
-            frame: Rotating frame operator. If specified with a 1d
-                            array, it is interpreted as the diagonal of a
-                            diagonal matrix.
-            cutoff_freq: Frequency cutoff when evaluating the model.
-        """
-        self.operators = to_array(operators)
+            operators: A list of operators :math:`G_i`.
+            signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
+                :class:`GeneratorModel` signals are not required at instantiation.
+            rotating_frame: Rotating frame operator.
+            evaluation_mode: Evaluation mode to use. See ``GeneratorModel.set_evaluation_mode``
+            for more details. Supported options are:
+                                - 'dense' (DenseOperatorCollection)
+                                - 'sparse' (SparseOperatorCollection)
 
-        self._cutoff_freq = cutoff_freq
+        """
+
+        # initialize internal operator representation
+        self._operator_collection = None
+        self._operators = to_array(operators)
+        self._drift = None
+        self._evaluation_mode = None
+        self.set_drift(drift, operator_in_frame_basis=True)
+
+        # set frame and transform operators into frame basis.
+        self._rotating_frame = None
+        self.rotating_frame = RotatingFrame(rotating_frame)
 
         # initialize signal-related attributes
         self._signals = None
         self.signals = signals
 
-        # set frame
-        self.frame = frame
+        self.set_evaluation_mode(evaluation_mode)
 
-        # initialize internal operator representation in the frame basis
-        self.__ops_in_fb_w_cutoff = None
-        self.__ops_in_fb_w_conj_cutoff = None
+    def get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
+        if not in_frame_basis and self.rotating_frame is not None:
+            return self.rotating_frame.operator_out_of_frame_basis(self._operators)
+        else:
+            return self._operators
+
+    @property
+    def dim(self) -> int:
+        return self._operators.shape[-1]
+
+    def set_evaluation_mode(self, new_mode: str):
+        """Set evaluation mode.
+
+        Args:
+            new_mode: String specifying new mode. Available options:
+            - 'dense': Stores/evaluates operators using dense Arrays.
+            - 'sparse': stores/evaluates operators using scipy
+            :class:`csr_matrix` types. If evaluating the generator
+            with a 2d frame operator (non-diagonal), all generators
+            will be returned as dense matrices. Not compatible
+            with JAX.
+
+        Raises:
+            NotImplementedError: if new_mode is not one of the above
+            supported evaluation modes.
+
+        """
+
+        if new_mode == "dense":
+            self._operator_collection = DenseOperatorCollection(
+                self.get_operators(in_frame_basis=True), drift=self.get_drift(in_frame_basis=True)
+            )
+        elif new_mode == "sparse":
+            self._operator_collection = SparseOperatorCollection(
+                self.get_operators(in_frame_basis=True), self.get_drift(in_frame_basis=True)
+            )
+        else:
+            raise NotImplementedError("Evaluation Mode " + str(new_mode) + " is not supported.")
+
+        self._evaluation_mode = new_mode
 
     @property
     def signals(self) -> SignalList:
@@ -284,164 +405,105 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != len(self.operators):
+            if len(signals) != self.get_operators().shape[0]:
                 raise QiskitError(
                     """Signals needs to have the same length as
                                     operators."""
                 )
 
-            # internal ops need to be reset if there is a cutoff frequency
-            # and carrier_freqs has changed
-            if self._signals is not None:
-                # compare flattened carrier frequencies
-                old_carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
-                new_carrier_freqs = [sig.carrier_freq for sig in signals.flatten()]
-                if (
-                    not np.allclose(old_carrier_freqs, new_carrier_freqs)
-                    and self._cutoff_freq is not None
-                ):
-                    self._reset_internal_ops()
-
             self._signals = signals
 
     @property
-    def frame(self) -> Frame:
-        """Return the frame."""
-        return self._frame
+    def rotating_frame(self) -> RotatingFrame:
+        """Return the rotating frame."""
+        return self._rotating_frame
 
-    @frame.setter
-    def frame(self, frame: Union[Operator, Array, Frame]):
-        """Set the frame; either an already instantiated :class:`Frame` object
-        a valid argument for the constructor of :class:`Frame`, or `None`.
-        """
+    @rotating_frame.setter
+    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
+        if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
+            self._drift = self._drift + Array(np.diag(self._rotating_frame.frame_diag))
+            self._operators = self.rotating_frame.operator_out_of_frame_basis(self._operators)
+            self._drift = self.rotating_frame.operator_out_of_frame_basis(self._drift)
 
-        self._frame = Frame(frame)
+        self._rotating_frame = RotatingFrame(rotating_frame)
 
-        self._reset_internal_ops()
+        if self._rotating_frame.frame_diag is not None:
+            self._operators = self.rotating_frame.operator_into_frame_basis(self._operators)
+            self._drift = self.rotating_frame.operator_into_frame_basis(self._drift)
+            self._drift = self._drift - Array(np.diag(self._rotating_frame.frame_diag))
 
-    @property
-    def cutoff_freq(self) -> float:
-        """Return the cutoff frequency."""
-        return self._cutoff_freq
+        # Reset internal operator collection
+        if self.evaluation_mode is not None:
+            self.set_evaluation_mode(self.evaluation_mode)
 
-    @cutoff_freq.setter
-    def cutoff_freq(self, cutoff_freq: float):
-        """Set the cutoff frequency."""
-        if cutoff_freq != self._cutoff_freq:
-            self._cutoff_freq = cutoff_freq
-            self._reset_internal_ops()
-
-    def evaluate(self, time: float, in_frame_basis: bool = False) -> Array:
-        """Evaluate the model in array format.
+    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        """Evaluate the model in array format as a matrix, independent of state.
 
         Args:
-            time: Time to evaluate the model
-            in_frame_basis: Whether to evaluate in the basis in which the frame
-                            operator is diagonal
+            time: Time to evaluate the model.
+            in_frame_basis: Whether to evaluate in the basis in which the rotating frame
+            operator is diagonal.
 
         Returns:
-            Array: the evaluated model
+            Array: the evaluated model as a (n,n) matrix
 
         Raises:
             QiskitError: If model cannot be evaluated.
+
+        """
+
+        if self._signals is None:
+            raise QiskitError("GeneratorModel cannot be evaluated without signals.")
+
+        # pylint: disable=not-callable
+        sig_vals = self._signals(time)
+
+        # Evaluated in frame basis, but without rotations
+        op_combo = self._operator_collection(sig_vals)
+
+        # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
+        return self.rotating_frame.operator_into_frame(
+            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+        )
+
+    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+        r"""Evaluate `G(t) @ y`.
+
+        Args:
+            time: Time to evaluate the model.
+            y: Array specifying system state, in basis specified by
+            in_frame_basis.
+            in_frame_basis: Whether to evaluate in the basis in which the frame
+            operator is diagonal.
+
+        Returns:
+            Array defined by :math:`G(t) \times y`.
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
+
         """
 
         if self._signals is None:
             raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
 
-        sig_vals = self._signals.complex_value(time)
+        sig_vals = self._signals.__call__(time)
 
-        # evaluate the linear combination in the frame basis with cutoffs,
-        # then map into the frame
-        op_combo = self._evaluate_in_frame_basis_with_cutoffs(sig_vals)
-        return self.frame.generator_into_frame(
-            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
-        )
+        # Evaluated in frame basis, but without rotations e^{\pm Ft}
+        op_combo = self._operator_collection(sig_vals)
 
-    @property
-    def drift(self) -> Array:
-        """Return the part of the model with only Constant coefficients as a
-        numpy array.
-        """
-
-        # for now if the frame operator is not None raise an error
-        if self.frame.frame_operator is not None:
-            raise QiskitError(
-                """The drift is currently ill-defined if
-                               frame_operator is not None."""
+        if self.rotating_frame is not None:
+            # First, compute e^{tF}y as a pre-rotation in the frame basis
+            out = self.rotating_frame.state_out_of_frame(
+                time, y, y_in_frame_basis=in_frame_basis, return_in_frame_basis=True
             )
-
-        drift_sig_vals = self._signals.drift
-
-        return self._evaluate_in_frame_basis_with_cutoffs(drift_sig_vals)
-
-    def _construct_ops_in_fb_w_cutoff(self):
-        """Construct versions of operators in frame basis with cutoffs
-        and conjugate cutoffs. To be used in conjunction with
-        operators_into_frame_basis_with_cutoff to compute the operator in the
-        frame basis with frequency cutoffs applied.
-        """
-        carrier_freqs = None
-        if self._signals is None:
-            carrier_freqs = np.zeros(len(self.operators))
+            # Then, compute the product Ae^{tF}y
+            out = op_combo @ out
+            # Finally, we have the full operator e^{-tF}Ae^{tF}y
+            out = self.rotating_frame.state_into_frame(
+                time, out, y_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+            )
         else:
-            carrier_freqs = [sig.carrier_freq for sig in self._signals.flatten()]
+            return op_combo @ y
 
-        (
-            self.__ops_in_fb_w_cutoff,
-            self.__ops_in_fb_w_conj_cutoff,
-        ) = self.frame.operators_into_frame_basis_with_cutoff(
-            self.operators, self.cutoff_freq, carrier_freqs
-        )
-
-    def _reset_internal_ops(self):
-        """Helper function to be used by various setters whose value changes
-        require reconstruction of the internal operators.
-        """
-        self.__ops_in_fb_w_cutoff = None
-        self.__ops_in_fb_w_conj_cutoff = None
-
-    @property
-    def _ops_in_fb_w_cutoff(self):
-        r"""Internally stored operators in frame basis with cutoffs.
-        This corresponds to the :math:`A^+` matrices from
-        `Frame.operators_into_frame_basis_with_cutoff`.
-
-        Returns:
-            Array: operators in frame basis with cutoff
-        """
-        if self.__ops_in_fb_w_cutoff is None:
-            self._construct_ops_in_fb_w_cutoff()
-
-        return self.__ops_in_fb_w_cutoff
-
-    @property
-    def _ops_in_fb_w_conj_cutoff(self):
-        """Internally stored operators in frame basis with conjugate cutoffs.
-        This corresponds to the :math:`A^-` matrices from
-        `Frame.operators_into_frame_basis_with_cutoff`.
-
-        Returns:
-            Array: operators in frame basis with conjugate cutoff
-        """
-        if self.__ops_in_fb_w_conj_cutoff is None:
-            self._construct_ops_in_fb_w_cutoff()
-
-        return self.__ops_in_fb_w_conj_cutoff
-
-    def _evaluate_in_frame_basis_with_cutoffs(self, sig_vals: Array):
-        """Evaluate the operator in the frame basis with frequency cutoffs.
-        The computation here corresponds to that prescribed in
-        `Frame.operators_into_frame_basis_with_cutoff`.
-
-        Args:
-            sig_vals: Signals evaluated at some time.
-
-        Returns:
-            Array: operator model evaluated for a given list of signal values
-        """
-
-        return 0.5 * (
-            np.tensordot(sig_vals, self._ops_in_fb_w_cutoff, axes=1)
-            + np.tensordot(sig_vals.conj(), self._ops_in_fb_w_conj_cutoff, axes=1)
-        )
+        return out

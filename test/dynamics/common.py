@@ -16,8 +16,15 @@ Shared functionality and helpers for the unit tests.
 """
 
 import unittest
+from typing import Callable
 import numpy as np
+
+try:
+    from jax import jit, grad
+except ImportError:
+    pass
 from qiskit_dynamics import dispatch
+from qiskit_dynamics.dispatch import wrap
 
 
 class QiskitDynamicsTestCase(unittest.TestCase):
@@ -52,3 +59,25 @@ class TestJaxBase(unittest.TestCase):
     def tearDownClass(cls):
         """Set numpy back to the default backend."""
         dispatch.set_default_backend("numpy")
+
+    def jit_wrap(self, func_to_test: Callable) -> Callable:
+        """Wraps and jits func_to_test.
+        Args:
+            func_to_test: The function to be jited.
+        Returns:
+            Wrapped and jitted function."""
+        wf = wrap(jit, decorator=True)
+        # pylint: disable=unnecessary-lambda
+        return wf(lambda *args: func_to_test(*args))
+
+    def jit_grad_wrap(self, func_to_test: Callable) -> Callable:
+        """Tests whether a function can be graded. Converts
+        all functions to scalar, real functions if they are not
+        already.
+        Args:
+            func_to_test: The function whose gradient will be graded.
+        Returns:
+            JIT-compiled gradient of function."""
+        wf = wrap(lambda f: jit(grad(f)), decorator=True)
+        f = lambda *args: np.sum(func_to_test(*args)).real
+        return wf(f)

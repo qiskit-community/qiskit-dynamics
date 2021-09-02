@@ -11,15 +11,16 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Tests for operator_models.py"""
+"""Tests for generator_models.py. """
 
-import numpy as np
+from scipy.sparse import issparse
 from scipy.linalg import expm
+import numpy as np
+import numpy.random as rand
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.models import GeneratorModel
-from qiskit_dynamics.models.generator_models import CallableGenerator
-from qiskit_dynamics.signals import Signal
+from qiskit_dynamics.models import CallableGenerator, GeneratorModel, RotatingFrame
+from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -42,27 +43,6 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self.r = r
         self.basic_model = GeneratorModel(operators=operators, signals=signals)
 
-    def test_frame_operator_errors(self):
-        """Check different modes of error raising for frame setting."""
-
-        # 1d array
-        try:
-            self.basic_model.frame = Array([1.0, 1.0])
-        except QiskitError as e:
-            self.assertTrue("anti-Hermitian" in str(e))
-
-        # 2d array
-        try:
-            self.basic_model.frame = Array([[1.0, 0.0], [0.0, 1.0]])
-        except QiskitError as e:
-            self.assertTrue("anti-Hermitian" in str(e))
-
-        # Operator
-        try:
-            self.basic_model.frame = self.Z
-        except QiskitError as e:
-            self.assertTrue("anti-Hermitian" in str(e))
-
     def test_diag_frame_operator_basic_model(self):
         """Test setting a diagonal frame operator for the internally
         set up basic model.
@@ -83,7 +63,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         basic_model.
         """
 
-        self.basic_model.frame = frame_operator
+        self.basic_model.rotating_frame = frame_operator
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
@@ -91,7 +71,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
             frame_operator = np.diag(frame_operator)
 
-        value = self.basic_model.evaluate(t)
+        value = self.basic_model(t)
 
         i2pi = -1j * 2 * np.pi
 
@@ -113,26 +93,26 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         """Test evaluation without a frame in the basic model."""
 
         t = 3.21412
-        value = self.basic_model.evaluate(t)
+        value = self.basic_model(t)
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
         expected = i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2
 
         self.assertAllClose(value, expected)
 
-    def test_evaluate_in_frame_basis_basic_model(self):
-        """Test evaluation in frame basis in the basic_model."""
+    def test_evaluat_generator_in_frame_basis_basic_model(self):
+        """Test generator evaluation in frame basis in the basic_model."""
 
         frame_op = -1j * (self.X + 0.2 * self.Y + 0.1 * self.Z).data
 
         # enter the frame given by the -1j * X
-        self.basic_model.frame = frame_op
+        self.basic_model.rotating_frame = frame_op
 
         # get the frame basis that is used in model
         _, U = np.linalg.eigh(1j * frame_op)
 
         t = 3.21412
-        value = self.basic_model.evaluate(t, in_frame_basis=True)
+        value = self.basic_model(t, in_frame_basis=True)
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
@@ -196,7 +176,6 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
-
         sig_list = []
         for coeff, freq, phase in zip(coefficients, carriers, phases):
 
@@ -208,10 +187,19 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
                 return env
 
             sig_list.append(Signal(get_env_func(), freq, phase))
-        model = GeneratorModel(operators, sig_list, frame=frame_op)
+        model = GeneratorModel(operators, signals=sig_list)
+        model.rotating_frame = frame_op
 
-        value = model.evaluate(1.0)
+        value = model(1.0)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
+
+        self.assertAllClose(
+            model.rotating_frame.operator_out_of_frame_basis(
+                model._operator_collection.evaluate(coeffs)
+            ),
+            np.tensordot(coeffs, operators, axes=1) - frame_op,
+        )
+
         expected = (
             expm(-np.array(frame_op))
             @ np.tensordot(coeffs, operators, axes=1)
@@ -220,18 +208,16 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(value, expected)
+        if value.backend != "jax":
+            model.set_evaluation_mode("sparse")
+            state = np.arange(operators.shape[-1] * 4).reshape(operators.shape[-1], 4)
+            value = model(1.0)
+            if issparse(value):
+                value = value.toarray()
+            self.assertAllClose(value, expected)
 
-    def test_lmult_rmult_no_frame_basic_model(self):
-        """Test evaluation with no frame in the basic model."""
-
-        y0 = np.array([[1.0, 2.0], [0.0, 4.0]])
-        t = 3.21412
-        i2pi = -1j * 2 * np.pi
-        d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        model_expected = i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2
-
-        self.assertAllClose(self.basic_model.lmult(t, y0), model_expected @ y0)
-        self.assertAllClose(self.basic_model.rmult(t, y0), y0 @ model_expected)
+            val_with_state = model(1.0, state)
+            self.assertAllClose(val_with_state, value @ state)
 
     def test_signal_setting(self):
         """Test updating the signals."""
@@ -240,7 +226,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self.basic_model.signals = signals
 
         t = 0.1
-        value = self.basic_model.evaluate(t)
+        value = self.basic_model(t)
         i2pi = -1j * 2 * np.pi
         Z_coeff = (2 * t) * np.cos(2 * np.pi * 1 * t)
         X_coeff = self.r * (t ** 2) * np.cos(2 * np.pi * 2 * t)
@@ -256,65 +242,301 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
     def test_signal_setting_incorrect_length(self):
         """Test error being raised if signals is the wrong length."""
 
-        try:
+        with self.assertRaises(QiskitError):
             self.basic_model.signals = [1.0]
-        except QiskitError as e:
-            self.assertTrue("same length" in str(e))
 
-    def test_drift(self):
-        """Test drift evaluation."""
+    def test_evaluate_analytic(self):
+        """Test for checking that with known operators that
+        the Model returns the analyticlly known values."""
 
-        self.assertAllClose(self.basic_model.drift, -1j * 2 * np.pi * self.w * self.Z.data / 2)
-
-    def test_drift_error_in_frame(self):
-        """Test raising of error if drift is requested in a frame."""
-        self.basic_model.frame = self.basic_model.drift
-
-        try:
-            self.basic_model.drift
-        except QiskitError as e:
-            self.assertTrue("ill-defined" in str(e))
-
-    def test_cutoff_freq(self):
-        """Test evaluation with a cutoff frequency."""
-
-        # enter frame of drift
-        self.basic_model.frame = self.basic_model.drift
-
-        # set cutoff freq to 2 * drive freq (standard RWA)
-        self.basic_model.cutoff_freq = 2 * self.w
-
-        # result should just be the X term halved
-        eval_rwa = self.basic_model.evaluate(2.0)
-        expected = -1j * 2 * np.pi * (self.r / 2) * self.X.data / 2
-        self.assertAllClose(eval_rwa, expected)
-
-        def drive_func(t):
-            return t ** 2 + t ** 3 * 1j
-
-        self.basic_model.signals = [self.w, Signal(drive_func, self.w)]
-
-        # result should now contain both X and Y terms halved
-        t = 2.1231 * np.pi
-        dRe = np.real(drive_func(t))
-        dIm = np.imag(drive_func(t))
-        eval_rwa = self.basic_model.evaluate(t)
-        expected = (
-            -1j * 2 * np.pi * (self.r / 2) * dRe * self.X.data / 2
-            + -1j * 2 * np.pi * (self.r / 2) * dIm * self.Y.data / 2
+        test_operator_list = Array([self.X, self.Y, self.Z])
+        signals = SignalList([Signal(1, j / 3) for j in range(3)])
+        simple_model = GeneratorModel(
+            test_operator_list, drift=None, signals=signals, rotating_frame=None
         )
-        self.assertAllClose(eval_rwa, expected)
 
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
-        """Call np.allclose and assert true."""
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+        res = simple_model.evaluate(2)
+        self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
+
+        simple_model.set_drift(np.eye(2), operator_in_frame_basis=False)
+        res = simple_model.evaluate(2)
+        self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
+        simple_model.set_drift(None, operator_in_frame_basis=False)
+
+    def test_evaluate_in_frame_basis_analytic(self):
+        """Tests evaluation in rotating frame against analytic values."""
+        test_operator_list = Array([self.X, self.Y, self.Z])
+        signals = SignalList([Signal(1, j / 3) for j in range(3)])
+        simple_model = GeneratorModel(
+            test_operator_list, drift=None, signals=signals, rotating_frame=None
+        )
+        simple_model.set_drift(np.eye(2), operator_in_frame_basis=False)
+        fop = Array([[0, 1j], [1j, 0]])
+        simple_model.rotating_frame = fop
+        res = simple_model(2, in_frame_basis=False)
+        expected = (
+            expm(np.array(-2 * fop))
+            @ (Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]) - fop)
+            @ expm(np.array(2 * fop))
+        )
+        self.assertAllClose(res, expected)
+
+        res = simple_model(2, in_frame_basis=True)
+        expected = (
+            np.array([[1, 1], [1, -1]])
+            / np.sqrt(2)
+            @ expected
+            @ np.array([[1, 1], [1, -1]])
+            / np.sqrt(2)
+        )
+
+        self.assertAllClose(res, expected)
+
+        simple_model.set_drift(None)
+
+    def test_order_of_assigning_properties(self):
+        """Tests whether setting the frame, drift, and signals
+        in the constructor is the same as constructing without
+        and then assigning them in any order.
+        """
+
+        paulis = Array([self.X, self.Y, self.Z])
+        extra = Array(np.eye(2))
+        state = Array([0.2, 0.5])
+
+        t = 2
+
+        sarr = [Signal(1, j / 3) for j in range(3)]
+        sigvals = SignalList(sarr)(t)
+
+        farr = Array(np.array([[3j, 2j], [2j, 0]]))
+        farr2 = Array(np.array([[1j, 2], [-2, 3j]]))
+        evals, evect = np.linalg.eig(farr)
+        diafarr = np.diag(evals)
+
+        paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
+
+        ## Run checks without rotating frame for now
+        gm1 = GeneratorModel(paulis, sarr, extra)
+        gm2 = GeneratorModel(paulis, drift=extra)
+        gm2.signals = sarr
+        gm3 = GeneratorModel(paulis, drift=extra)
+        gm3.signals = SignalList(sarr)
+
+        # All should be the same, because there are no frames involved
+        t11 = gm1.evaluate(t, False)
+        t12 = gm1.evaluate(t, True)
+        t21 = gm2.evaluate(t, False)
+        t22 = gm2.evaluate(t, True)
+        t31 = gm3.evaluate(t, False)
+        t32 = gm3.evaluate(t, True)
+        t_analytical = Array([[0.5, 1.0 + 0.5j], [1.0 - 0.5j, 1.5]])
+
+        self.assertAllClose(t11, t12)
+        self.assertAllClose(t11, t21)
+        self.assertAllClose(t11, t22)
+        self.assertAllClose(t11, t31)
+        self.assertAllClose(t11, t32)
+        self.assertAllClose(t11, t_analytical)
+
+        # now work with a specific statevector
+        ts1 = gm1.evaluate_rhs(t, state, in_frame_basis=False)
+        ts2 = gm1.evaluate_rhs(t, state, in_frame_basis=True)
+        ts_analytical = Array([0.6 + 0.25j, 0.95 - 0.1j])
+
+        self.assertAllClose(ts1, ts2)
+        self.assertAllClose(ts1, ts_analytical)
+        self.assertAllClose(gm1(t, in_frame_basis=False) @ state, ts1)
+        self.assertAllClose(gm1(t, in_frame_basis=True) @ state, ts1)
+
+        ## Now, run checks with frame
+        # If passing a frame in the first place, operators must be in frame basis.abs
+        # Testing at the same time whether having Drift = None is an issue.
+        gm1 = GeneratorModel(paulis, signals=sarr, rotating_frame=RotatingFrame(farr))
+        gm2 = GeneratorModel(paulis, rotating_frame=farr)
+        gm2.signals = SignalList(sarr)
+        gm3 = GeneratorModel(paulis, rotating_frame=farr)
+        gm3.signals = sarr
+        # Does adding a frame after make a difference?
+        # If so, does it make a difference if we add signals or the frame first?
+        gm4 = GeneratorModel(paulis)
+        gm4.signals = sarr
+        gm4.rotating_frame = farr
+        gm5 = GeneratorModel(paulis)
+        gm5.rotating_frame = farr
+        gm5.signals = sarr
+        gm6 = GeneratorModel(paulis, signals=sarr)
+        gm6.rotating_frame = farr
+        # If we go to one frame, then transform back, does this make a difference?
+        gm7 = GeneratorModel(paulis, signals=sarr)
+        gm7.rotating_frame = farr2
+        gm7.rotating_frame = farr
+
+        t_in_frame_actual = Array(
+            np.diag(np.exp(-t * evals))
+            @ (np.tensordot(sigvals, paulis_in_frame_basis, axes=1) - diafarr)
+            @ np.diag(np.exp(t * evals))
+        )
+        tf1 = gm1.evaluate(t, in_frame_basis=True)
+        tf2 = gm2.evaluate(t, in_frame_basis=True)
+        tf3 = gm3.evaluate(t, in_frame_basis=True)
+        tf4 = gm4.evaluate(t, in_frame_basis=True)
+        tf5 = gm5.evaluate(t, in_frame_basis=True)
+        tf6 = gm6.evaluate(t, in_frame_basis=True)
+        tf7 = gm7.evaluate(t, in_frame_basis=True)
+
+        self.assertAllClose(t_in_frame_actual, tf1)
+        self.assertAllClose(tf1, tf2)
+        self.assertAllClose(tf1, tf3)
+        self.assertAllClose(tf1, tf4)
+        self.assertAllClose(tf1, tf5)
+        self.assertAllClose(tf1, tf6)
+        self.assertAllClose(tf1, tf7)
+
+    def test_evaluate_rhs_lmult_equivalent_analytic(self):
+        """Tests whether evaluate(t) @ state == evaluate_rhs(t,state)
+        for analytically known values."""
+
+        paulis = Array([self.X, self.Y, self.Z])
+        extra = Array(np.eye(2))
+
+        t = 2
+
+        farr = Array(np.array([[3j, 2j], [2j, 0]]))
+        evals, evect = np.linalg.eig(farr)
+        diafarr = np.diag(evals)
+
+        paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
+        extra_in_basis = evect.T.conj() @ extra @ evect
+
+        sarr = [Signal(1, j / 3) for j in range(3)]
+        sigvals = SignalList(sarr)(t)
+
+        t_in_frame_actual = Array(
+            np.diag(np.exp(-t * evals))
+            @ (np.tensordot(sigvals, paulis_in_frame_basis, axes=1) + extra_in_basis - diafarr)
+            @ np.diag(np.exp(t * evals))
+        )
+
+        state = Array([0.3, 0.1])
+        state_in_frame_basis = np.conjugate(np.transpose(evect)) @ state
+
+        gm1 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, drift=extra)
+        self.assertAllClose(gm1(t, in_frame_basis=True), t_in_frame_actual)
+        self.assertAllClose(
+            gm1(t, state_in_frame_basis, in_frame_basis=True),
+            t_in_frame_actual @ state_in_frame_basis,
+        )
+
+        t_not_in_frame_actual = Array(
+            expm(np.array(-t * farr))
+            @ (np.tensordot(sigvals, paulis, axes=1) + extra - farr)
+            @ expm(np.array(t * farr))
+        )
+
+        gm2 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, drift=extra)
+        self.assertAllClose(gm2(t, in_frame_basis=False), t_not_in_frame_actual)
+        self.assertAllClose(gm1(t, state, in_frame_basis=False), t_not_in_frame_actual @ state)
+
+        # now, remove the frame
+        gm1.rotating_frame = None
+        gm2.rotating_frame = None
+
+        t_expected = np.tensordot(sigvals, paulis, axes=1) + extra
+
+        state_in_frame_basis = state
+
+        self.assertAllClose(gm1.get_operators(True), gm1.get_operators(True))
+        self.assertAllClose(gm1.get_drift(True), gm1.get_drift(False))
+
+        self.assertAllClose(gm1(t, in_frame_basis=True), t_expected)
+        self.assertAllClose(gm1(t, state, in_frame_basis=True), t_expected @ state_in_frame_basis)
+        self.assertAllClose(gm2(t, in_frame_basis=False), t_expected)
+        self.assertAllClose(gm2(t, state, in_frame_basis=False), t_expected @ state_in_frame_basis)
+
+    def test_evaluate_rhs_vectorized_pseudorandom(self):
+        """Test for whether evaluating a model at m different
+        states, each with an n-length statevector, by passing
+        an (m,n) Array provides the same value as passing each
+        (n) Array individually."""
+        rand.seed(9231)
+        n = 8
+        k = 4
+        m = 2
+        t = rand.rand()
+        sig_list = SignalList([Signal(rand.rand(), rand.rand()) for j in range(k)])
+        normal_states = rand.uniform(-1, 1, (n))
+        vectorized_states = rand.uniform(-1, 1, (n, m))
+
+        operators = rand.uniform(-1, 1, (k, n, n))
+
+        gm = GeneratorModel(operators, drift=None, signals=sig_list)
+        self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
+        self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
+        for i in range(m):
+            self.assertAllClose(
+                gm.evaluate_rhs(t, vectorized_states)[:, i],
+                gm.evaluate_rhs(t, vectorized_states[:, i]),
+            )
+
+        farr = rand.uniform(-1, 1, (n, n))
+        farr = farr - np.conjugate(np.transpose(farr))
+
+        gm.rotating_frame = farr
+
+        self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
+        self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
+        vectorized_result = gm.evaluate_rhs(t, vectorized_states)
+        for i in range(m):
+            self.assertAllClose(
+                vectorized_result[:, i],
+                gm.evaluate_rhs(t, vectorized_states[:, i]),
+            )
+
+        vectorized_result = gm.evaluate_rhs(t, vectorized_states, in_frame_basis=True)
+
+        self.assertTrue(gm.evaluate_rhs(t, normal_states, in_frame_basis=True).shape == (n,))
+        self.assertTrue(vectorized_result.shape == (n, m))
+        for i in range(m):
+            self.assertAllClose(
+                vectorized_result[:, i],
+                gm.evaluate_rhs(t, vectorized_states[:, i], in_frame_basis=True),
+            )
 
 
 class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
     """Jax version of TestGeneratorModel tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class contains more tests due to inheritance.
     """
+
+    def test_jitable_funcs(self):
+        """Tests whether all functions are jitable.
+        Checks if having a frame makes a difference, as well as
+        all jax-compatible evaluation_modes."""
+        self.jit_wrap(self.basic_model.evaluate)(1)
+        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+
+        self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        self.jit_wrap(self.basic_model.evaluate)(1)
+        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+
+        self.basic_model.rotating_frame = None
+
+    def test_gradable_funcs(self):
+        """Tests whether all functions are gradable.
+        Checks if having a frame makes a difference, as well as
+        all jax-compatible evaluation_modes."""
+        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+
+        self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+
+        self.basic_model.rotating_frame = None
 
 
 class TestCallableGenerator(QiskitDynamicsTestCase):
@@ -336,6 +558,7 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
         self.w = 2
         self.r = r
         self.basic_model = CallableGenerator(generator)
+        self.state = Array([2, 3])
 
     def test_diag_frame_operator_basic_model(self):
         """Test setting a diagonal frame operator for the internally
@@ -357,7 +580,7 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
         basic_model.
         """
 
-        self.basic_model.frame = frame_operator
+        self.basic_model.rotating_frame = frame_operator
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
@@ -365,7 +588,8 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
         if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
             frame_operator = np.diag(frame_operator)
 
-        value = self.basic_model.evaluate(t)
+        value_without_state = self.basic_model(t)
+        value_with_state = self.basic_model(t, self.state)
 
         i2pi = -1j * 2 * np.pi
 
@@ -380,12 +604,40 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
             + d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2
             - frame_operator
         )
-
-        self.assertAllClose(value, expected)
+        self.assertAllClose(value_without_state, expected)
+        self.assertAllClose(value_with_state, expected @ self.state)
 
 
 class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):
     """Jax version of TestCallableGenerator tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class contains more tests due to inheritance.
     """
+
+    def test_jitable_funcs(self):
+        """Tests whether all functions are jitable.
+        Checks if having a frame makes a difference, as well as
+        all jax-compatible evaluation_modes."""
+        self.jit_wrap(self.basic_model.evaluate)(1)
+        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+
+        self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        self.jit_wrap(self.basic_model.evaluate)(1)
+        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+
+        self.basic_model.rotating_frame = None
+
+    def test_gradable_funcs(self):
+        """Tests whether all functions are gradable.
+        Checks if having a frame makes a difference, as well as
+        all jax-compatible evaluation_modes."""
+        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+
+        self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+
+        self.basic_model.rotating_frame = None

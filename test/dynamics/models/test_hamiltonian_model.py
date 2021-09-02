@@ -11,9 +11,10 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""tests for quantum_models.HamiltonianModel"""
+"""tests for qiskit_dynamics.models.HamiltonianModel"""
 
 import numpy as np
+
 from scipy.linalg import expm
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel
@@ -54,7 +55,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             t (float): time of frame transformation
         """
 
-        self.basic_hamiltonian.frame = frame_operator
+        self.basic_hamiltonian.rotating_frame = frame_operator
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
@@ -62,7 +63,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
             frame_operator = np.diag(frame_operator)
 
-        value = self.basic_hamiltonian.evaluate(t)
+        value = self.basic_hamiltonian(t) / -1j
 
         twopi = 2 * np.pi
 
@@ -97,10 +98,10 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         self._basic_frame_evaluate_test(self.Y - self.Z, np.pi)
 
     def test_evaluate_no_frame_basic_hamiltonian(self):
-        """Test evaluation without a frame in the basic model."""
+        """Test generator evaluation without a frame in the basic model."""
 
         t = 3.21412
-        value = self.basic_hamiltonian.evaluate(t)
+        value = self.basic_hamiltonian(t) / -1j
         twopi = 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
         expected = twopi * self.w * self.Z.data / 2 + twopi * d_coeff * self.X.data / 2
@@ -108,19 +109,19 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         self.assertAllClose(value, expected)
 
     def test_evaluate_in_frame_basis_basic_hamiltonian(self):
-        """Test evaluation in frame basis in the basic_model."""
+        """Test generator evaluation in frame basis in the basic_hamiltonian."""
 
         frame_op = (self.X + 0.2 * self.Y + 0.1 * self.Z).data
 
         # enter the frame given by the -1j * X
-        self.basic_hamiltonian.frame = frame_op
+        self.basic_hamiltonian.rotating_frame = frame_op
 
         # get the frame basis used in model. Note that the Frame object
         # orders the basis according to the ordering of eigh
         _, U = np.linalg.eigh(frame_op)
 
         t = 3.21412
-        value = self.basic_hamiltonian.evaluate(t, in_frame_basis=True)
+        value = self.basic_hamiltonian(t, in_frame_basis=True) / -1j
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
@@ -204,9 +205,9 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
             sig_list.append(Signal(get_env_func(), freq, phase))
         sig_list = SignalList(sig_list)
-        model = HamiltonianModel(operators, sig_list, frame=frame_op)
+        model = HamiltonianModel(operators, drift=None, signals=sig_list, rotating_frame=frame_op)
 
-        value = model.evaluate(1.0)
+        value = model(1.0, in_frame_basis=False) / -1j
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
         expected = (
             expm(1j * np.array(frame_op))
@@ -214,42 +215,42 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             @ expm(-1j * np.array(frame_op))
             - frame_op
         )
+        self.assertAllClose(model._signals(1), coeffs)
+        self.assertAllClose(model.get_operators(), operators)
 
         self.assertAllClose(value, expected)
-
-    def test_cutoff_freq(self):
-        """Test evaluation with a cutoff frequency."""
-
-        # enter frame of drift
-        self.basic_hamiltonian.frame = self.basic_hamiltonian.drift
-
-        # set cutoff freq to 2 * drive freq (standard RWA)
-        self.basic_hamiltonian.cutoff_freq = 2 * self.w
-
-        # result should just be the X term halved
-        eval_rwa = self.basic_hamiltonian.evaluate(2.0)
-        expected = 2 * np.pi * (self.r / 2) * self.X.data / 2
-        self.assertAllClose(eval_rwa, expected)
-
-        def drive_func(t):
-            return t ** 2 + t ** 3 * 1j
-
-        self.basic_hamiltonian.signals = [self.w, Signal(drive_func, self.w)]
-
-        # result should now contain both X and Y terms halved
-        t = 2.1231 * np.pi
-        dRe = np.real(drive_func(t))
-        dIm = np.imag(drive_func(t))
-        eval_rwa = self.basic_hamiltonian.evaluate(t)
-        expected = (
-            2 * np.pi * (self.r / 2) * dRe * self.X.data / 2
-            + 2 * np.pi * (self.r / 2) * dIm * self.Y.data / 2
-        )
-        self.assertAllClose(eval_rwa, expected)
 
 
 class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
     """Jax version of TestHamiltonianModel tests.
 
-    Note: This class has no body but contains tests due to inheritance.
+    Note: This class has contains more tests due to inheritance.
     """
+
+    def test_jitable_funcs(self):
+        """Tests whether all functions are jitable.
+        Checks if having a frame makes a difference, as well as
+        all jax-compatible evaluation_modes."""
+        self.jit_wrap(self.basic_hamiltonian.evaluate)(1)
+        self.jit_wrap(self.basic_hamiltonian.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+
+        self.basic_hamiltonian.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        self.jit_wrap(self.basic_hamiltonian.evaluate)(1)
+        self.jit_wrap(self.basic_hamiltonian.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+
+        self.basic_hamiltonian.rotating_frame = None
+
+    def test_gradable_funcs(self):
+        """Tests whether all functions are gradable.
+        Checks if having a frame makes a difference, as well as
+        all jax-compatible evaluation_modes."""
+        self.jit_grad_wrap(self.basic_hamiltonian.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_hamiltonian.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+
+        self.basic_hamiltonian.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+
+        self.jit_grad_wrap(self.basic_hamiltonian.evaluate)(1.0)
+        self.jit_grad_wrap(self.basic_hamiltonian.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+
+        self.basic_hamiltonian.rotating_frame = None
