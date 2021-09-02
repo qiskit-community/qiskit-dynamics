@@ -27,21 +27,18 @@ from qiskit_dynamics.type_utils import to_array
 
 
 class RotatingFrame:
-    r"""A 'rotating frame' is given by an anti-Hermitian matrix :math:`F`, specified
-    either directly, or in terms of a Hermitian matrix :math:`H` with
-    :math:`F = -iH`. Frames have relevance within the context of linear
-    matrix differential equations (LMDEs), which are of the form:
+    r"""Class offering functionality for transforming various objects into or out-of
+    a rotating frame specified by an anti-Hermitian operator :math:`F = -iH`.
+    For example:
 
-    This class offers functions for:
-
-        - Bringing a "state" into/out of the frame:
+        * Bringing a "state" into/out of the frame:
           :math:`t, y \mapsto e^{\mp tF}y`
-        - Bringing an "operator" into/out of the frame:
+        * Bringing an "operator" into/out of the frame:
           :math:`t, A \mapsto e^{\mp tF}Ae^{\pm tF}`
-        - Bringing a generator for a BMDE into/out of the frame:
+        * Bringing a generator for a BMDE into/out of the frame:
           :math:`t, G \mapsto e^{\mp tF}Ge^{\pm tF} - F`
 
-    It also contains functions for bringing states/operators into/out of
+    Also contains functions for bringing states/operators into/out of
     the basis in which :math:`F` is diagonalized, which we refer to as the
     "frame basis". All previously mentioned functions also include optional
     arguments specifying whether the input/output are meant to be in the
