@@ -13,16 +13,16 @@
 # that they have been altered from the originals.
 
 """
-==========================================
-RHS Models (:mod:`qiskit_dynamics.models`)
-==========================================
+======================================
+Models (:mod:`qiskit_dynamics.models`)
+======================================
 
 .. currentmodule:: qiskit_dynamics.models
 
-Tools for constructing differential equation models to pass to solving routines.
+Tools for constructing models of differential equations.
 
-Quantum Models
-==============
+Model classes
+=============
 
 Models for quantum systems.
 
@@ -31,17 +31,16 @@ Models for quantum systems.
 
    HamiltonianModel
    LindbladModel
+   GeneratorModel
 
-Generator Models
-================
-
-Tools for constructing generators for LMDEs.
+Model transformations
+=====================
 
 .. autosummary::
    :toctree: ../stubs/
 
    RotatingFrame
-   GeneratorModel
+   rotating_wave_approximation
 
 Operator Collections
 ====================

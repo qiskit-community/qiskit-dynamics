@@ -34,44 +34,49 @@ def rotating_wave_approximation(
     cutoff_freq: float,
     return_signal_map: Optional[bool] = False,
 ) -> BaseGeneratorModel:
-    r"""Performs the RWA on Model classes and returns it as a new model.
-    Performs elementwise RWA on each operator component with maximal
-    frequency ``cutoff_freq``.
+    r"""Performs elementwise rotating wave approximation (RWA) with
+    cutoff frequency ``cutoff_freq`` on each operator in a model, returning a new model.
+    The new model contains a modified list of signal coefficients,
+    and setting the optional argument ``return_signal_map=True`` results in
+    the additional return of the function ``f`` which maps the signals
+    of the input model to those of the output RWA model, such that the
+    code blocks:
 
-    Optionally returns a function ``f`` that translates SignalLists
-    defined for the old Model to ones compatible with the new Model, such
-    that the following blocks of code lead to the same signals being stored
-    in the post-RWA model:
+    .. code-block:: python
 
-    ::
-
-        model.signals = sig_list
-        rwa_model = rotating_wave_approximation(model, cutoff_freq),
+        model.signals = new_signals
+        rwa_model = rotating_wave_approximation(model, cutoff_freq)
 
     and
 
-    ::
+    .. code-block:: python
 
-        rwa_model = rotating_wave_approximation(model, cutoff_freq)
-        rwa_model.signals = f(sig_list).
+        rwa_model, f = rotating_wave_approximation(model, cutoff_freq, return_signal_map=True)
+        rwa_model.signals = f(new_signals)
 
-    Formalism: When considering s_i(t) e^{-tF}G_ie^{tF}, in the frame in which
-    F is diagonal, the (jk) element of the i^{th} matrix has effective frequency
-    \tilde\nu_{ijk}^\pm = \pm\nu_i + Im[-d_j+d_k]/2\pi, where the \pm\nu_i comes from
-    expressing s_i(t) = Re[a_i(t)e^{2\pi i\nu_i t}] = a_i(t)e^{i(2\pi\nu_i t+\phi_i)}/2 + c.c.
-    and the other term comes from the rotating frame. Define G_i^\pm the matrix whose
-    entries (G_i^\pm)_{jk} are the entries of G_i s.t. |\nu_{ijk}^\pm|<\nu_* for some
-    cutoff frequency \nu_*. Then, after the RWA, we may write
+    result in an ``rwa_model`` with the same updated signals.
+
+    Formalism: When considering :math:`s_i(t) e^{-tF}G_ie^{tF}`, in the basis in which
+    :math:`F` is diagonal, the :math:`(j, k)` element of :math:`G_i` has effective frequency
+    :math:`\tilde\nu_{ijk}^\pm = \pm\nu_i + Im[-d_j+d_k]/2\pi`, where the :math:`\pm\nu_i`
+    comes from expressing
+    :math:`s_i(t) = Re[a_i(t)e^{2\pi i\nu_i t}] = a_i(t)e^{i(2\pi\nu_i t+\phi_i)}/2 + c.c.`
+    and the other term comes from the rotating frame. Define :math:`G_i^\pm` the matrix whose
+    entries :math:`(G_i^\pm)_{jk}` are the entries of :math:`G_i` s.t.
+    :math:`|\nu_{ijk}^\pm|<\nu_*` for some
+    cutoff frequency :math:`\nu_*`. Then, after the RWA, we may write
+
     .. math::
         s_i(t)G_i \to G_i^+ a_ie^{i(2\pi \nu_i t+\phi_i)}/2
-                        + G_i^- \bar{a_i}e^{-i(2\pi \nu_i t+\phi_i)}/2.
+                        + G_i^- \overline{a_i}e^{-i(2\pi \nu_i t+\phi_i)}/2.
 
     When we regroup these to use only the real components of Signal objects, we find that
+
     .. math::
         s_i(t)G_i \to  s_i(t)(G_i^+ + G_i^-)/2 + s_i'(t)(iG_i^+-iG_i^-)
 
-    where s_i'(t) is a Signal with the same frequency and amplitude as s_i, but with a phase
-    shift of \phi_i - \pi/2. Note that the frame shifts -F are not affected by the RWA.
+    where :math:`s_i'(t)` is a Signal with the same frequency and amplitude as :math:`s_i`,
+    but with a phase shift of :math:`\phi_i - \pi/2`.
 
     Args:
         model: The GeneratorModel to which you
