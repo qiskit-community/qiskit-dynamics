@@ -142,9 +142,9 @@ See ``set_evaluation_mode`` for each model class for available modes.
 
 **Important**: When setting a rotating frame, models internally store their operators
 in the basis in which the frame operator is diagonal. In general, sparsity of an operator
-is not perserved by arbitrary basis transformations. Hence, preserving internal sparsity with
-rotating frames requires more restrictive choice of frames: e.g, frame operators that
-are diagonal exactly preserve sparsity.
+is not perserved by basis transformations. Hence, preserving internal sparsity with
+rotating frames requires more restrictive choice of frames. For example, diagonal frame
+operators exactly preserve sparsity.
 
 The different modes are organized via a series of objects called ``OperatorCollection`` s,
 which abstract the computational details of the particular equation out of
