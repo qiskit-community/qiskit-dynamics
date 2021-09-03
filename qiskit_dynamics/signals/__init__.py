@@ -185,15 +185,18 @@ sample the carrier.
 
     # discretize a signal with and without samplying the carrier
     signal = Signal(lambda t: t, carrier_freq=2.)
-    discrete_signal = DiscreteSignal.from_Signal(signal, dt=0.1, start_time=0., n_samples=10, sample_carrier=True)
+    discrete_signal = DiscreteSignal.from_Signal(signal, dt=0.1, start_time=0.,
+                                                 n_samples=10, sample_carrier=True)
     discrete_signal2 = DiscreteSignal.from_Signal(signal, dt=0.1, start_time=0., n_samples=10)
 
     # plot the signal against each discretization
     fig, axs = plt.subplots(1, 2, figsize=(14, 4))
     signal.draw(t0=0., tf=1., n=100, axis=axs[0])
-    discrete_signal.draw(t0=0., tf=1., n=100, axis=axs[0], title='Signal v.s. Sampled envelope and carrier')
+    discrete_signal.draw(t0=0., tf=1., n=100, axis=axs[0],
+                         title='Signal v.s. Sampled envelope and carrier')
     signal.draw(t0=0., tf=1., n=100, axis=axs[1])
-    discrete_signal2.draw(t0=0., tf=1., n=100, axis=axs[1], title='Signal v.s. Sampled envelope')
+    discrete_signal2.draw(t0=0., tf=1., n=100, axis=axs[1],
+                          title='Signal v.s. Sampled envelope')
 
 Analagous functionality is available in the
 :meth:`DiscreteSignalSum.from_SignalSum` method.

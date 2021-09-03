@@ -58,7 +58,7 @@ class BaseOperatorCollection(ABC):
 
     @abstractmethod
     def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
-        """Compute :math:`\Lambda(c, y)`."""
+        r"""Compute :math:`\Lambda(c, y)`."""
         pass
 
     def __call__(
@@ -184,7 +184,8 @@ class SparseOperatorCollection(BaseOperatorCollection):
 class DenseLindbladCollection(BaseOperatorCollection):
     r"""Object for evaluating:
         .. math::
-            \Lambda(c_1, c_2, \rho) = -i[H_d + \sum_j c_{1,j}H_j,\rho] + \sum_jc_{2,j}(L_j\rho L_j^\dagger
+            \Lambda(c_1, c_2, \rho) = -i[H_d + \sum_j c_{1,j}H_j,\rho]
+                                      + \sum_jc_{2,j}(L_j\rho L_j^\dagger
                                         - (1/2) * {L_j^\daggerL_j,\rho})
 
     where :math:`\[,\]` and :math:`\{,\}` are the operator
