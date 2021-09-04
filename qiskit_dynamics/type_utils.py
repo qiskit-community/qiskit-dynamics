@@ -18,6 +18,7 @@ reshaping arrays, and handling qiskit types that wrap arrays.
 """
 
 from typing import Union, List
+from collections.abc import Iterable
 import numpy as np
 from scipy.sparse import issparse, spmatrix
 from scipy.sparse import kron as sparse_kron
@@ -332,7 +333,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     if op is None:
         return op
 
-    elif isinstance(op, list) and isinstance(op[0], Operator):
+    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
         shape = op[0].data.shape
         dtype = op[0].data.dtype
         arr = np.empty((len(op), *shape), dtype=dtype)
@@ -344,9 +345,12 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
         out = Array(op.data)
 
     elif issparse(op):
-        return op
+        return Array(op.toarray())
+    elif isinstance(op, Iterable) and issparse(op[0]):
+        out = Array(np.array([sparr.toarray() for sparr in op]))
     else:
         out = Array(op)
+
     # now, everything is an Array
     if out.backend == "numpy":
         return out.data
