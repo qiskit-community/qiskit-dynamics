@@ -33,9 +33,9 @@ where :math:`H(t)` is the Hamiltonian, or Lindblad equation:
                 \sum_j g_j(t) \left(L_j\rho(t)L_j^\dagger -
                 \frac{1}{2}\{L_j^\dagger L_j, \rho(t)\}\right),
 
-where the sum term is called the *dissipation* term, and each :math:`L_j` is called a
+where the sum term is called the *dissipation* term, each :math:`L_j` is called a
 *dissipator*, and :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` are, respectively, the
-matrix commutator and anti-commutator. Model classes are primarily
+matrix commutator and anti-commutator. Model classes primarily
 serve a *computational* purpose, and expose functions for evaluating
 model expressions, such as :math:`t \mapsto H(t)` or :math:`t,y \mapsto -iH(t)y` in the
 case of a Hamiltonian.
@@ -81,7 +81,7 @@ Once constructed, model classes enable *evaluation* of certain functions, e.g. f
 :math:`H(t)`, and ``hamiltonian.evaluate_rhs(t, y)`` evaluates :math:`-iH(t)y`. Similar
 behaviour applies to :class:`~qiskit_dynamics.models.LindbladModel`, however the
 :meth:`~qiskit_dynamics.models.LindbladModel.evaluate` method will raise an error unless
-set to operator in a vectorized evaluation mode (see below).
+a vectorized evaluation mode is set (see below).
 
 Rotating Frames
 ^^^^^^^^^^^^^^^

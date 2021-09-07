@@ -2,7 +2,7 @@
 Dynamics How-to Guides
 ######################
 
-Currently empty.
+Guides for performing specific tasks.
 
 .. Hiding - Indices and tables
    :ref:`genindex`
