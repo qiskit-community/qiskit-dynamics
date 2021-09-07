@@ -371,6 +371,96 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
             signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
         return super().evaluate(signal_values)
 
+    def evaluate_hamiltonian(self, ham_sig_vals: Array) -> Array:
+        r"""Returns the commutator :math:`[H, \cdot]`, vectorized in column-stacking convention.
+        Args:
+            ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+        Returns:
+            Vectorized commutator :math:`[H,\cdot]`"""
+        if self.empty_dissipators:
+            signal_values = ham_sig_vals
+        else:
+            zero_padding = np.zeros(self.num_operators - len(ham_sig_vals))
+            signal_values = np.append(ham_sig_vals, zero_padding, axis=0)
+        return 1j * super().evaluate(signal_values)
+
+
+class SparseVectorizedLindbladCollection(SparseOperatorCollection):
+    r"""Vectorized version of SparseLindbladCollection, wherein
+    :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of
+    dimension :math:`n^2` using the column stacking convention."""
+
+    def __init__(
+        self,
+        hamiltonian_operators: Union[Array, List[Operator]],
+        drift: Union[Array, Operator],
+        dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
+    ):
+        r"""Initialize.
+
+        Args:
+            hamiltonian_operators: Specifies breakdown of Hamiltonian
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) Array.
+            drift: Constant term to be added to the Hamiltonian of the system. (n,n) Array.
+            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) Array.
+        """
+
+        # Convert Hamiltonian to commutator formalism
+        vec_ham_ops = -1j * vec_commutator(hamiltonian_operators)
+        vec_drift = -1j * vec_commutator(drift)
+        total_ops = None
+        if dissipator_operators is not None:
+            vec_diss_ops = vec_dissipator(to_array(dissipator_operators))
+            total_ops = np.append(vec_ham_ops, vec_diss_ops, axis=0)
+            self.empty_dissipators = False
+        else:
+            total_ops = vec_ham_ops
+            self.empty_dissipators = True
+
+        super().__init__(total_ops, drift=vec_drift)
+
+    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
+        r"""Evaluates the RHS of the Lindblad equation using
+        vectorized maps.
+        Args:
+            ham_sig_vals: hamiltonian signal coefficients.
+            dis_sig_vals: dissipator signal coefficients.
+                If none involved, pass None.
+            y: Density matrix represented as a vector using column-stacking
+                convention.
+        Returns:
+            Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking
+                convention."""
+        return self.evaluate(ham_sig_vals, dis_sig_vals) @ y
+
+    def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
+        r"""Evaluates the RHS of the Lindblad equation using
+        vectorized maps.
+        Args:
+            ham_sig_vals: stores the Hamiltonian signal coefficients.
+            dis_sig_vals: stores the dissipator signal coefficients.
+        Returns:
+            Vectorized generator of Lindblad equation :math:`\dot{\rho}` in column-stacking
+                convention."""
+        if self.empty_dissipators:
+            signal_values = ham_sig_vals
+        else:
+            signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
+        return super().evaluate(signal_values)
+
+    def evaluate_hamiltonian(self, ham_sig_vals: Array) -> Array:
+        r"""Returns the commutator :math:`[H, \cdot]`, vectorized in column-stacking convention.
+        Args:
+            ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+        Returns:
+            Vectorized commutator :math:`[H,\cdot]`"""
+        if self.empty_dissipators:
+            signal_values = ham_sig_vals
+        else:
+            zero_padding = np.zeros(self.num_operators - len(ham_sig_vals))
+            signal_values = np.append(ham_sig_vals, zero_padding, axis=0)
+        return 1j * super().evaluate(signal_values)
+
 
 class SparseLindbladCollection(DenseLindbladCollection):
     """Sparse version of DenseLindbladCollection."""

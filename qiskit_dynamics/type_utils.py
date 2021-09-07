@@ -18,8 +18,11 @@ reshaping arrays, and handling qiskit types that wrap arrays.
 """
 
 from typing import Union, List
+from collections.abc import Iterable
 import numpy as np
 from scipy.sparse import issparse, spmatrix
+from scipy.sparse import kron as sparse_kron
+from scipy.sparse import identity as sparse_identity
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
@@ -251,11 +254,26 @@ def vec_commutator(A: Array):
 
     Args:
         A: Either a 2d array representing the matrix A described above,
-           or a 3d array representing a list of matrices.
+           or a 3d array representing a list of matrices, or a 1d array
+           of dtype object containing 2d sparse matrices.
 
     Returns:
         Array: vectorized version of the map.
     """
+
+    if issparse(A):
+        # single, sparse matrix
+        sp_iden = sparse_identity(A.shape[-1], format="csr")
+        return sparse_kron(sp_iden, A) - sparse_kron(A.T, sp_iden)
+    if A.dtype == "object":
+        # taken to be 1d array of 2d sparse matrices
+        sp_iden = sparse_identity(A[0].shape[-1], format="csr")
+        out = np.empty_like(A)
+        for i, mat in enumerate(A):
+            out[i] = sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden)
+        return out
+
+    A = to_array(A)
     iden = Array(np.eye(A.shape[-1]))
     axes = list(range(A.ndim))
     axes[-1] = axes[-2]
@@ -276,9 +294,21 @@ def vec_dissipator(L: Array):
 
     Note: this function is also "vectorized" in the programming sense.
     """
+
+    if L.dtype == "object":
+        # taken to be 1d array of 2d sparse matrices
+        sp_iden = sparse_identity(L[0].shape[-1], format="csr")
+        out = np.empty_like(L)
+        for i, mat in enumerate(L):
+            out[i] = sparse_kron(mat.conj(), mat) - 0.5 * (
+                sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(mat.T * mat.conj(), sp_iden)
+            )
+        return out
+
     iden = Array(np.eye(L.shape[-1]))
     axes = list(range(L.ndim))
 
+    L = to_array(L)
     axes[-1] = axes[-2]
     axes[-2] += 1
     Lconj = L.conj()
@@ -303,7 +333,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     if op is None:
         return op
 
-    elif isinstance(op, list) and isinstance(op[0], Operator):
+    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
         shape = op[0].data.shape
         dtype = op[0].data.dtype
         arr = np.empty((len(op), *shape), dtype=dtype)
@@ -315,9 +345,12 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
         out = Array(op.data)
 
     elif issparse(op):
-        return op
+        return Array(op.toarray())
+    elif isinstance(op, Iterable) and issparse(op[0]):
+        out = Array(np.array([sparr.toarray() for sparr in op]))
     else:
         out = Array(op)
+
     # now, everything is an Array
     if out.backend == "numpy":
         return out.data

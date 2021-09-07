@@ -80,6 +80,7 @@ class HamiltonianModel(GeneratorModel):
 
         # verify operators are Hermitian, and if so instantiate
         operators = to_array(operators)
+        drift = to_array(drift)
 
         if validate:
             adj = np.transpose(np.conjugate(operators), (0, 2, 1))
