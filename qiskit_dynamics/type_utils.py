@@ -23,6 +23,7 @@ import numpy as np
 from scipy.sparse import issparse, spmatrix
 from scipy.sparse import kron as sparse_kron
 from scipy.sparse import identity as sparse_identity
+from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
@@ -356,3 +357,35 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
         return out.data
     else:
         return out
+
+def to_csr(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]) -> csr_matrix:
+    """Convert an operator or list of operators to a sparse matrix.
+
+    Args:
+        op: Either an Operator to be converted to an sparse matrix, a list of Operators
+            to be converted to a 3d sparse matrix, or a sparse matrix (which simply gets
+            returned)
+    Returns:
+        csr_matrix : Sparse matrix version of input
+    """
+    if op is None:
+        return op
+
+    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
+        shape = op[0].data.shape
+        dtype = op[0].data.dtype
+        arr = np.empty((len(op), *shape), dtype=dtype)
+        for i, sub_op in enumerate(op):
+            arr[i] = sub_op.data
+        out = csr_matrix(arr)
+
+    elif isinstance(op, Operator):
+        out = csr_matrix(op.data)
+
+    elif isinstance(op, Iterable) and issparse(op[0]):
+        out = csr_matrix(np.csr_matrix([sparr.data for sparr in op]))
+
+    else:
+        out = csr_matrix(op)
+
+    return out
