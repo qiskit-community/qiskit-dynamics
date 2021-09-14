@@ -377,7 +377,7 @@ class GeneratorModel(BaseGeneratorModel):
             )
         elif new_mode == "sparse":
             self._operator_collection = SparseOperatorCollection(
-                self.get_operators(in_frame_basis=True), self.get_drift(in_frame_basis=True)
+                self.get_operators(in_frame_basis=True), drift=self.get_drift(in_frame_basis=True)
             )
         else:
             raise NotImplementedError("Evaluation Mode " + str(new_mode) + " is not supported.")

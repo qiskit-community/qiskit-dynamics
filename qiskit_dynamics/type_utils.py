@@ -333,6 +333,9 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     """
     if op is None:
         return op
+    
+    if isinstance(op, np.ndarray) or isinstance(op, Array):
+        return op
 
     elif isinstance(op, Iterable) and isinstance(op[0], Operator):
         shape = op[0].data.shape
@@ -358,6 +361,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     else:
         return out
 
+
 def to_csr(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]) -> csr_matrix:
     """Convert an operator or list of operators to a sparse matrix.
 
@@ -366,26 +370,66 @@ def to_csr(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]) ->
             to be converted to a 3d sparse matrix, or a sparse matrix (which simply gets
             returned)
     Returns:
-        csr_matrix : Sparse matrix version of input
+        csr_matrix: Sparse matrix version of input
     """
     if op is None:
         return op
 
-    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
-        shape = op[0].data.shape
-        dtype = op[0].data.dtype
-        arr = np.empty((len(op), *shape), dtype=dtype)
-        for i, sub_op in enumerate(op):
-            arr[i] = sub_op.data
-        out = csr_matrix(arr)
-
-    elif isinstance(op, Operator):
-        out = csr_matrix(op.data)
 
     elif isinstance(op, Iterable) and issparse(op[0]):
-        out = csr_matrix(np.csr_matrix([sparr.data for sparr in op]))
+        return op
+
+    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
+        return [csr_matrix(item) for item in op]
+
+    elif isinstance(op, Iterable):
+        return [csr_matrix(item) for item in op]
+        # shape = op[0].data.shape
+        # dtype = op[0].data.dtype
+        # arr = np.empty((len(op), *shape), dtype=dtype)
+        # for i, sub_op in enumerate(op):
+        #     arr[i] = sub_op.data
+        # out = csr_matrix(arr)
+
+    elif isinstance(op, Operator):
+        return csr_matrix(op.data)
+
+
+        # return ([csr_matrix(sparr.data) for sparr in op]))
 
     else:
-        out = csr_matrix(op)
+        return csr_matrix(op)
 
-    return out
+def to_numeric_matrix_type(
+    op: Union[Operator, Array, spmatrix, List[Operator], List[Array], List[spmatrix]]
+):
+    """Given an operator, array, sparse matrix, or a list of operators, arrays, or sparse matrices,
+    attempts to leave them in their original form, only converting the operator to an array,
+    and converting lists as necessary.
+    Args:
+        op: An operator, array, sparse matrix, or list of operators, arrays or sparse matrices.
+    Returns:
+        Array: Array version of input
+        csr_matrix: Sparse matrix version of input
+    """
+
+    if op is None:
+        return op
+
+    elif isinstance(op, Array):
+        return op
+    elif isinstance(op, csr_matrix):
+        return op
+    elif isinstance(op, Operator):
+        return to_array(op)
+
+    elif isinstance(op, Iterable) and (isinstance(op[0], Array)):
+        return to_array(op)
+    elif isinstance(op, Iterable) and isinstance(op[0], csr_matrix):
+        return to_csr(op)
+
+    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
+        return [to_array(item) for item in op]
+
+    else:
+        return to_array(op)
