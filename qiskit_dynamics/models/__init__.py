@@ -63,7 +63,9 @@ requires specifying the above decomposition, e.g.:
 with ``operators`` being a specification of the :math:`H_j`, ``signals`` a specification of
 the :math:`s_j`, and ``drift`` a specification of :math:`H_d`.
 
-Similarly, the :class:`~qiskit_dynamics.models.LindbladModel` class represents
+Lindblad Models
+===============
+The :class:`~qiskit_dynamics.models.LindbladModel` class represents models that include both Hamiltonian and dissipator terms for solving the the Lindblad equation.
 the Lindblad equation as written above, with the Hamiltonian decomposed as in
 :class:`~qiskit_dynamics.models.HamiltonianModel`. It may be instantiated as
 
