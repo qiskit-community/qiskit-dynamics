@@ -38,7 +38,7 @@ ODEs can be solved by calling the :meth:`~qiskit_dynamics.solve_ode` function.
 
 LMDEs are a specialized subclass of ODEs of importance in quantum theory. Most generally,
 an LMDE is an ODE for which the the RHS function :math:`f(t, y)` is *linear* in the second
-argument. Numerical methods for LMDEs typically assume a *standard form*, which assumes:
+argument. Numerical methods for LMDEs typically assume a *standard form*
 
 .. math::
 
