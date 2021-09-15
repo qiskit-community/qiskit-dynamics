@@ -81,6 +81,9 @@ the Hamiltonian decomposition as in :class:`~qiskit_dynamics.models.HamiltonianM
 and the ``dissipator_operators`` correspond to the :math:`L_j`, and the ``dissipator_signals``
 the :math:`g_j(t)`, which default to the constant ``1.``.
 
+
+Model Evaluation
+================
 Once constructed, model classes enable *evaluation* of certain functions, e.g. for a
 :class:`~qiskit_dynamics.models.HamiltonianModel`, ``hamiltonian.evaluate(t)`` returns
 :math:`H(t)`, and ``hamiltonian.evaluate_rhs(t, y)`` evaluates :math:`-iH(t)y`. Similar
