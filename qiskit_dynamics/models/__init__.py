@@ -26,7 +26,7 @@ equation used to model a physical quantum system, in this case either the
 .. math::
     \dot{y}(t) = -i H(t)y(t),
 
-where :math:`H(t)` is the Hamiltonian, or Lindblad equation:
+where :math:`H(t)` is the Hamiltonian, or *Lindblad equation*:
 
 .. math::
     \dot{\rho}(t) = -i[H(t), \rho(t)] +
