@@ -43,7 +43,7 @@ serve a *computational* purpose, and expose functions for evaluating
 model expressions, such as :math:`t \mapsto H(t)` or :math:`t,y \mapsto -iH(t)y` in the
 case of a Hamiltonian.
 
-Hamiltonian Models
+Hamiltonian models
 ==================
 The Schrodinger equation is represented via the
 :class:`~qiskit_dynamics.models.HamiltonianModel` class, which represents
@@ -64,7 +64,7 @@ requires specifying the above decomposition, e.g.:
 with ``operators`` being a specification of the :math:`H_j`, ``signals`` a specification of
 the :math:`s_j`, and ``drift`` a specification of :math:`H_d`.
 
-Lindblad Models
+Lindblad models
 ===============
 The :class:`~qiskit_dynamics.models.LindbladModel` class represents models that include both
 Hamiltonian and dissipator terms for solving the the Lindblad equation.
@@ -84,7 +84,7 @@ and the ``dissipator_operators`` correspond to the :math:`L_j`, and the ``dissip
 the :math:`g_j(t)`, which default to the constant ``1.``.
 
 
-Model Evaluation
+Model evaluation
 ================
 Once constructed, model classes enable *evaluation* of certain functions, e.g. for a
 :class:`~qiskit_dynamics.models.HamiltonianModel`, ``hamiltonian.evaluate(t)`` returns
@@ -93,7 +93,7 @@ behaviour applies to :class:`~qiskit_dynamics.models.LindbladModel`, however the
 :meth:`~qiskit_dynamics.models.LindbladModel.evaluate` method will raise an error unless
 a vectorized evaluation mode is set (see below).
 
-Rotating Frames
+Rotating frames
 ^^^^^^^^^^^^^^^
 
 Frame transformations are a common technique for solving time-dependent quantum differential
@@ -102,11 +102,11 @@ and ideally simplify, the time-dependence of the equation to be solved.
 For example, for a Hamiltonian, this corresponds to the transformation
 
 .. math::
-    H(t) \mapsto e^{-tF}(H(t) - F)e^{tF}
+    H(t) \mapsto e^{iH_0t}(H(t) - H_0)e^{-iH_0t},
 
-for an anti-Hermitian operator :math:`F`, called the *frame operator*,
-commonly expressed as a Hermitian operator via the association
-:math:`F = -iH`.
+for a Hermitian operator :math:`H_0` called the *frame operator*.
+The *frame operator* is commonly equivalently expressed as the corresponding anti-Hermitian
+operator under the association :math:`F = -iH_0`.
 
 Any model class can be transformed into a rotating frame by setting the
 ``rotating_frame`` property:
@@ -115,17 +115,22 @@ Any model class can be transformed into a rotating frame by setting the
 
     model.rotating_frame = frame_operator
 
-where ``frame_operator`` is specification of :math:`F = -iH`
-(either giving :math:`F` or :math:`H`) of valid type. Setting this property modifies
-the behaviour of the evaluation functions, e.g.
+where ``frame_operator`` is either the Hermitian operator :math:`H_0` or the corresponding
+anti-Hermitian operator :math:`F = -iH_0`, specified either as an ``Operator``,
+a square 2d array, or a :class:`~qiskit_dynamics.models.RotatingFrame` instance (see below).
+Setting this property modifies the behaviour of the evaluation functions, e.g.
 for a :class:`~qiskit_dynamics.models.HamiltonianModel`, ``hamiltonian.evaluate(t)``
 will now evaluate to :math:`e^{-tF}(H(t) - F)e^{tF}`, and
 ``hamiltonian.evaluate_rhs(t, y)`` evaluates to :math:`e^{-tF}(H(t) - F)e^{tF}y`.
 :class:`~qiskit_dynamics.models.LindbladModel` has similar behaviour.
 
 Internally, the model classes make use of the :class:`~qiskit_dynamics.models.RotatingFrame`
-class, which is constructed only with the frame operator :math:`F=-iH`, and contains helper
-functions for transforming various objects into and out of the rotating frame.
+class, which is instantiated when the ``rotating_frame`` property is set. This class contains
+helper functions for transforming various objects into and out of the rotating frame. This class
+works with the anti-Hermitian form of the frame operator, however if instantiated
+with a Hermitian matrix, it will automatically convert it to the anti-Hermitian form.
+See the :class:`~qiskit_dynamics.models.RotatingFrame` documentation for accepted ``frame_operator``
+types and corresponding behaviours.
 
 Rotating wave approximation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
