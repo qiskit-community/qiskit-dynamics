@@ -40,7 +40,7 @@ class RotatingFrame:
         * Bringing a generator for a BMDE into/out of the frame:
           :math:`t, G \mapsto e^{\mp tF}Ge^{\pm tF} - F`
 
-    Also contains functions for bringing states/operators into/out of
+    This class also contains functions for bringing states/operators into/out of
     the basis in which :math:`F` is diagonalized, which we refer to as the
     "frame basis". All previously mentioned functions also include optional
     arguments specifying whether the input/output are meant to be in the
