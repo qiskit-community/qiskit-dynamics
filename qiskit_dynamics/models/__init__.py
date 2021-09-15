@@ -24,7 +24,7 @@ equation used to model a physical quantum system, in this case either the
 Schrodinger equation:
 
 .. math::
-    \dot{y}(t) = -iH(t)y(t),
+    \dot{y}(t) = -i H(t)y(t),
 
 where :math:`H(t)` is the Hamiltonian, or Lindblad equation:
 
