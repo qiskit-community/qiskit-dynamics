@@ -126,7 +126,7 @@ functions for transforming various objects into and out of the rotating frame.
 Rotating wave approximation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The rotating wave approximation (RWA) is a transformation in which "high-frequency"
+The rotating wave approximation (RWA) is a transformation in which rapidly oscillating time-dependent
 components, above a given cutoff frequency, are removed from a model.
 This transformation is implemented in
 :meth:`~qiskit_dynamics.models.rotating_wave_approximation`, see its documentation for
