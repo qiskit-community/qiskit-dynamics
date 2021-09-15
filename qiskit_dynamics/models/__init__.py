@@ -21,7 +21,7 @@ Models (:mod:`qiskit_dynamics.models`)
 
 This module contains classes for constructing the right-hand side of an ordinary differential equations. In this package, a "model of a quantum system" means a description of a differential
 equation used to model a physical quantum system, in this case either the
-Schrodinger equation:
+*Schrodinger equation*:
 
 .. math::
     \dot{y}(t) = -i H(t)y(t),
