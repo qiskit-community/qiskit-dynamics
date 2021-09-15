@@ -24,7 +24,9 @@ from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
 
 
 class BaseOperatorCollection(ABC):
-    r"""Abstract class representing a function :math:`c,y \mapsto \Lambda(c, y)`,
+    r"""Abstract class representing a two-variable matrix function.
+    
+    This class represents a function :math:`c,y \mapsto \Lambda(c, y)`,
     which is assumed to be decomposed as
     :math:`\Lambda(c, y) = \Lambda_d(y) + \sum_jc_j\Lambda_j(y)`
     for linear maps :math:`\Lambda_d` and :math:`\Lambda_j`, with
