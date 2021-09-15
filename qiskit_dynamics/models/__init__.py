@@ -33,7 +33,7 @@ where :math:`H(t)` is the Hamiltonian, or Lindblad equation:
                 \sum_j g_j(t) \left(L_j\rho(t)L_j^\dagger -
                 \frac{1}{2}\{L_j^\dagger L_j, \rho(t)\}\right),
 
-where the sum term is called the *dissipation* term, each :math:`L_j` is called a
+where the second term is called the *dissipator* term. Each :math:`L_j` is a dissipation operator
 *dissipator*, and :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` are, respectively, the
 matrix commutator and anti-commutator. Model classes primarily
 serve a *computational* purpose, and expose functions for evaluating
