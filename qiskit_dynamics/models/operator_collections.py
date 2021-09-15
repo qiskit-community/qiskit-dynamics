@@ -157,6 +157,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
     def evaluate(self, signal_values: Array) -> csr_matrix:
         r"""Sparse version of ``DenseOperatorCollection.evaluate``.
+
         Args:
             signal_values: Coefficients :math:`c_j`.
 
