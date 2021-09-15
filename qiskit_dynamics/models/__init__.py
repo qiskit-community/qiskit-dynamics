@@ -35,7 +35,9 @@ where :math:`H(t)` is the Hamiltonian, or Lindblad equation:
 
 where the second term is called the *dissipator* term. Each :math:`L_j` is a dissipation operator
 *dissipator*, and :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` are, respectively, the
-matrix commutator and anti-commutator. Model classes primarily
+matrix commutator and anti-commutator.
+
+Model classes primarily
 serve a *computational* purpose, and expose functions for evaluating
 model expressions, such as :math:`t \mapsto H(t)` or :math:`t,y \mapsto -iH(t)y` in the
 case of a Hamiltonian.
