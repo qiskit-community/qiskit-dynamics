@@ -78,7 +78,7 @@ Once instantiated, various functions associated with the siganl can be evaluated
     # evaluate the complex value
     signal.complex_value(t)
 
-We can also draw any of these functions over an interval:
+Signals can also be visualized over a time interval by using the :meth:`~Signal.draw` method.
 
 .. jupyter-execute::
 
