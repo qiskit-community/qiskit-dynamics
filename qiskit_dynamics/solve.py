@@ -268,7 +268,7 @@ def solve_lmde(
 
             return solve_ode(rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
         else:
-            raise QiskitError("Method " + str(method) + " not supported by solve_lmde.")
+            raise QiskitError(f"Method {method} not supported by solve_lmde.")
 
     t_span = Array(t_span)
     y0 = Array(y0)
