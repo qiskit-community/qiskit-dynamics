@@ -66,7 +66,7 @@ the :math:`s_j`, and ``drift`` a specification of :math:`H_d`.
 Lindblad Models
 ===============
 The :class:`~qiskit_dynamics.models.LindbladModel` class represents models that include both Hamiltonian and dissipator terms for solving the the Lindblad equation.
-:class:`~qiskit_dynamics.models.HamiltonianModel`. It may be instantiated as
+It may be instantiated as
 
 .. code-block:: python
 
