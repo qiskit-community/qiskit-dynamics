@@ -52,7 +52,9 @@ A :class:`~qiskit_dynamics.signals.Signal` is instantiated with an envelope.
     f = lambda t: t**2
     signal = Signal(envelope=f, carrier_freq=2.)
 
-**Important:** :class:`~qiskit_dynamics.signals.Signal` assumes the envelope ``f`` is
+.. note::
+
+    :class:`~qiskit_dynamics.signals.Signal` assumes the envelope ``f`` is
 *array vectorized* in the sense that ``f`` can operate on arrays of arbitrary shape
 and satisfy ``f(x)[idx] == f(x[idx])`` for a multidimensional index ``idx``. This
 can be ensured either by writing ``f`` to be vectorized, or by using the ``vectorize``
