@@ -19,7 +19,8 @@ Models (:mod:`qiskit_dynamics.models`)
 
 .. currentmodule:: qiskit_dynamics.models
 
-This module contains classes for constructing the right-hand side of an ordinary differential equations. In this package, a "model of a quantum system" means a description of a differential
+This module contains classes for constructing the right-hand side of an ordinary differential
+equations. In this package, a "model of a quantum system" means a description of a differential
 equation used to model a physical quantum system, in this case either the
 *Schrodinger equation*:
 
@@ -65,7 +66,8 @@ the :math:`s_j`, and ``drift`` a specification of :math:`H_d`.
 
 Lindblad Models
 ===============
-The :class:`~qiskit_dynamics.models.LindbladModel` class represents models that include both Hamiltonian and dissipator terms for solving the the Lindblad equation.
+The :class:`~qiskit_dynamics.models.LindbladModel` class represents models that include both
+Hamiltonian and dissipator terms for solving the the Lindblad equation.
 It may be instantiated as
 
 .. code-block:: python
@@ -94,7 +96,9 @@ a vectorized evaluation mode is set (see below).
 Rotating Frames
 ^^^^^^^^^^^^^^^
 
-Frame transformations are a common technique for solving time-dependent quantum differential equations. By "entering a rotation frame" we can transform the differential equation to modify, and ideally simplify, the time-dependence of the equation to be solved. This corresponds to the transformation
+Frame transformations are a common technique for solving time-dependent quantum differential
+equations. By "entering a rotation frame" we can transform the differential equation to modify,
+and ideally simplify, the time-dependence of the equation to be solved.
 For example, for a Hamiltonian, this corresponds to the transformation
 
 .. math::
@@ -126,8 +130,8 @@ functions for transforming various objects into and out of the rotating frame.
 Rotating wave approximation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The rotating wave approximation (RWA) is a transformation in which rapidly oscillating time-dependent
-components, above a given cutoff frequency, are removed from a model.
+The rotating wave approximation (RWA) is a transformation in which rapidly oscillating
+time-dependent components, above a given cutoff frequency, are removed from a model.
 This transformation is implemented in
 :meth:`~qiskit_dynamics.models.rotating_wave_approximation`, see its documentation for
 details.
@@ -149,11 +153,12 @@ The default is dense arrays, and a model can be set to use sparse arrays via:
 See ``set_evaluation_mode`` for each model class for available modes.
 
 .. note::
+
     When setting a rotating frame, models internally store their operators
-in the basis in which the frame operator is diagonal. In general, sparsity of an operator
-is not perserved by basis transformations. Hence, preserving internal sparsity with
-rotating frames requires more restrictive choice of frames. For example, diagonal frame
-operators exactly preserve sparsity.
+    in the basis in which the frame operator is diagonal. In general, sparsity of an operator
+    is not perserved by basis transformations. Hence, preserving internal sparsity with
+    rotating frames requires more restrictive choice of frames. For example, diagonal frame
+    operators exactly preserve sparsity.
 
 The different modes are organized via a series of objects called ``OperatorCollection`` s,
 which abstract the computational details of the particular equation out of

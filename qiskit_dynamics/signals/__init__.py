@@ -55,10 +55,10 @@ A :class:`~qiskit_dynamics.signals.Signal` is instantiated with an envelope.
 .. note::
 
     :class:`~qiskit_dynamics.signals.Signal` assumes the envelope ``f`` is
-*array vectorized* in the sense that ``f`` can operate on arrays of arbitrary shape
-and satisfy ``f(x)[idx] == f(x[idx])`` for a multidimensional index ``idx``. This
-can be ensured either by writing ``f`` to be vectorized, or by using the ``vectorize``
-function in ``numpy`` or ``jax.numpy``, e.g.:
+    *array vectorized* in the sense that ``f`` can operate on arrays of arbitrary shape
+    and satisfy ``f(x)[idx] == f(x[idx])`` for a multidimensional index ``idx``. This
+    can be ensured either by writing ``f`` to be vectorized, or by using the ``vectorize``
+    function in ``numpy`` or ``jax.numpy``, e.g.:
 
 .. code-block:: python
 

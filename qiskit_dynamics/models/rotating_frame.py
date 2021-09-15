@@ -28,7 +28,7 @@ from qiskit_dynamics.type_utils import to_array
 
 class RotatingFrame:
     r"""Class for representing a rotation frame transformation.
-    
+
     This class provides functionality for transforming various objects into or out-of
     a rotating frame specified by an anti-Hermitian operator :math:`F = -iH`.
     For example:
