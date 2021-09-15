@@ -107,7 +107,7 @@ boolean attribute ``const.is_constant``.
 DiscreteSignal
 ^^^^^^^^^^^^^^
 
-A :class:`~qiskit_dynamics.signals.DiscreteSignal`  is specified
+A :class:`~qiskit_dynamics.signals.DiscreteSignal`  is a signal specified
 as an array of samples with a sample width and an optional start point (defaults to ``0.``).
 :class:`~qiskit_dynamics.signals.DiscreteSignal` inherits the same API as
 :class:`~qiskit_dynamics.signals.Signal`, and once instantiated can be interacted with
