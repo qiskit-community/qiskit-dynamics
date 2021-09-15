@@ -55,18 +55,22 @@ class BaseOperatorCollection(ABC):
 
     @abstractmethod
     def evaluate(self, signal_values: Array) -> Array:
-        r"""If possible, compute a representation of :math:`\Lambda(c, \cdot)`"""
+        r"""If possible, compute a matrix representation of the functino where the second
+        argument is left unspecified.
+        """
         pass
 
     @abstractmethod
     def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
-        r"""Compute :math:`\Lambda(c, y)`."""
+        r"""Compute the function."""
         pass
 
     def __call__(
         self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
     ) -> Array:
-        """Call either self.evaluate or self.evaluate_rhs depending on number of arguments."""
+        """Call either ``self.evaluate`` or ``self.evaluate_rhs`` depending on number of
+        arguments.
+        """
 
         if y is None:
             return self.evaluate(signal_values)
@@ -79,9 +83,11 @@ class BaseOperatorCollection(ABC):
 
 
 class DenseOperatorCollection(BaseOperatorCollection):
-    r"""Concrete operator collection representing a function of the form
-    :math:`Lambda(c, y) = (G_d + \sum_j c_j G_j) y`, where the :math:`G_d` and :math:`G_j`
-    are dense arrays.
+    r"""Concrete operator collection representing a function computing left
+    multiplication by an affine combination of matrices.
+
+    This class represents a function of the form :math:`Lambda(c, y) = (G_d + \sum_j c_j G_j) y`,
+    where the :math:`G_d` and :math:`G_j` are dense arrays.
     """
 
     def __init__(
@@ -102,14 +108,14 @@ class DenseOperatorCollection(BaseOperatorCollection):
         return self._operators.shape[0]
 
     def evaluate(self, signal_values: Array) -> Array:
-        r"""Evaluate :math:`G = G_d + \sum_j c_jG_j`."""
+        r"""Evaluate the affine combination of matrices."""
         if self._drift is None:
             return np.tensordot(signal_values, self._operators, axes=1)
         else:
             return np.tensordot(signal_values, self._operators, axes=1) + self._drift
 
     def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
-        """Evaluates the product G(t)y"""
+        """Evaluates the function."""
         return np.dot(self.evaluate(signal_values), y)
 
 
@@ -185,7 +191,10 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
-    r"""Object for evaluating:
+    r"""Object for computing the right hand side of the Lindblad equation
+    with dense arrays.
+
+    In particular, this object represents the function:
         .. math::
             \Lambda(c_1, c_2, \rho) = -i[H_d + \sum_j c_{1,j}H_j,\rho]
                                       + \sum_jc_{2,j}(L_j\rho L_j^\dagger
@@ -201,6 +210,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
         dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
     ):
         r"""Initialization.
+
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
             as :math:`H(t) = H_d + \sum_j c_j H_j` by specifying
@@ -232,6 +242,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
         r"""Gets the Hamiltonian matrix, as calculated by the model,
         and used for the commutator :math:`-i[H,y]`.
+
         Args:
             signal_values: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
         Returns:
@@ -248,6 +259,7 @@ class DenseLindbladCollection(BaseOperatorCollection):
             B = -iH,
 
             C = \sum_j \gamma_j(t) L_j y L_j^\dagger.
+
         Args:
             ham_sig_vals: hamiltonian coefficient values, :math:`s_j(t)`.
             dis_sig_vals: dissipator signal values, :math:`\gamma_j(t)`.
@@ -295,8 +307,10 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
 
 class DenseVectorizedLindbladCollection(DenseOperatorCollection):
-    r"""Vectorized version of DenseLindbladCollection, wherein
-    :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of
+    r"""Vectorized version of DenseLindbladCollection.
+
+    This class evaluates the right hand side of the Lindblad equation in vectorized form, i.e.
+    in which the state :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of
     dimension :math:`n^2` using the column stacking convention."""
 
     def __init__(
@@ -331,6 +345,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
     def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
+
         Args:
             ham_sig_vals: hamiltonian signal coefficients.
             dis_sig_vals: dissipator signal coefficients.
@@ -345,6 +360,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
     def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
+
         Args:
             ham_sig_vals: stores the Hamiltonian signal coefficients.
             dis_sig_vals: stores the dissipator signal coefficients.
@@ -358,7 +374,9 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
         return super().evaluate(signal_values)
 
     def evaluate_hamiltonian(self, ham_sig_vals: Array) -> Array:
-        r"""Returns the commutator :math:`[H, \cdot]`, vectorized in column-stacking convention.
+        r"""Computes the Hamiltonian commutator part of the Lindblad equation,
+        vectorized in column-stacking convention.
+
         Args:
             ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
         Returns:
@@ -372,9 +390,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
 
 
 class SparseVectorizedLindbladCollection(SparseOperatorCollection):
-    r"""Vectorized version of SparseLindbladCollection, wherein
-    :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of
-    dimension :math:`n^2` using the column stacking convention."""
+    r"""Vectorized version of SparseLindbladCollection."""
 
     def __init__(
         self,
@@ -408,6 +424,7 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
     def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
+
         Args:
             ham_sig_vals: hamiltonian signal coefficients.
             dis_sig_vals: dissipator signal coefficients.
@@ -422,6 +439,7 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
     def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
         vectorized maps.
+
         Args:
             ham_sig_vals: stores the Hamiltonian signal coefficients.
             dis_sig_vals: stores the dissipator signal coefficients.
@@ -435,7 +453,9 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
         return super().evaluate(signal_values)
 
     def evaluate_hamiltonian(self, ham_sig_vals: Array) -> Array:
-        r"""Returns the commutator :math:`[H, \cdot]`, vectorized in column-stacking convention.
+        r"""Computes the Hamiltonian commutator part of the Lindblad equation,
+        vectorized in column-stacking convention.
+
         Args:
             ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
         Returns:
@@ -504,6 +524,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
     def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates the RHS of the LindbladModel for a given list of signal values.
+        
         Args:
             ham_sig_vals: stores Hamiltonian signal values :math:`s_j(t)`.
             dis_sig_vals: stores dissipator signal values :math:`\gamma_j(t)`.

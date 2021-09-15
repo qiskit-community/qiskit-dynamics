@@ -165,7 +165,7 @@ See ``set_evaluation_mode`` for each model class for available modes.
     rotating frames requires more restrictive choice of frames. For example, diagonal frame
     operators exactly preserve sparsity.
 
-The different modes are organized via a series of objects called ``OperatorCollection`` s,
+The different modes are organized via a series of objects called "operator collections",
 which abstract the computational details of the particular equation out of
 the model classes.
 
