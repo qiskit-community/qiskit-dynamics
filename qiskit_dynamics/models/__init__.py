@@ -111,7 +111,7 @@ Any model class can be transformed into a rotating frame by setting the
 
     model.rotating_frame = frame_operator
 
-where ``frame_operator`` is specification of :math:`F=-iH`
+where ``frame_operator`` is specification of :math:`F = -iH`
 (either giving :math:`F` or :math:`H`) of valid type. Setting this property modifies
 the behaviour of the evaluation functions, e.g.
 for a :class:`~qiskit_dynamics.models.HamiltonianModel`, ``hamiltonian.evaluate(t)``
