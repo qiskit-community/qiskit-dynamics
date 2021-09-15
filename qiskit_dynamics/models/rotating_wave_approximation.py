@@ -34,7 +34,10 @@ def rotating_wave_approximation(
     cutoff_freq: float,
     return_signal_map: Optional[bool] = False,
 ) -> BaseGeneratorModel:
-    r"""Performs elementwise rotating wave approximation (RWA) with
+    r"""Construct a new model by performing the rotating wave approximation with a
+    given cutoff frequency.
+
+    Performs elementwise rotating wave approximation (RWA) with
     cutoff frequency ``cutoff_freq`` on each operator in a model, returning a new model.
     The new model contains a modified list of signal coefficients,
     and setting the optional argument ``return_signal_map=True`` results in
