@@ -201,7 +201,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
                                         - (1/2) * {L_j^\daggerL_j,\rho})
 
     where :math:`\[,\]` and :math:`\{,\}` are the operator
-    commutator and anticommutator, respectively."""
+    commutator and anticommutator, respectively.
+    """
 
     def __init__(
         self,
@@ -213,12 +214,12 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
         Args:
             hamiltonian_operators: Specifies breakdown of Hamiltonian
-            as :math:`H(t) = H_d + \sum_j c_j H_j` by specifying
-            :math:`H_j`. (k,n,n) array.
+                                   as :math:`H(t) = H_d + \sum_j c_j H_j` by specifying
+                                   :math:`H_j`. (k,n,n) array.
             drift: Treated as a constant term :math:`H_d` to be added to the
-            Hamiltonian of the system.
+                   Hamiltonian of the system.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation.
-            (m,n,n) Array.
+                                  (m,n,n) Array.
         """
 
         self._hamiltonian_operators = to_array(hamiltonian_operators)
@@ -240,13 +241,13 @@ class DenseLindbladCollection(BaseOperatorCollection):
         raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
 
     def evaluate_hamiltonian(self, signal_values: Array) -> Array:
-        r"""Gets the Hamiltonian matrix, as calculated by the model,
-        and used for the commutator :math:`-i[H,y]`.
+        r"""Compute the Hamiltonian.
 
         Args:
             signal_values: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
         Returns:
-            Hamiltonian matrix."""
+            Hamiltonian matrix.
+        """
         return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self.drift
 
     def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
@@ -524,7 +525,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
     def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates the RHS of the LindbladModel for a given list of signal values.
-        
+
         Args:
             ham_sig_vals: stores Hamiltonian signal values :math:`s_j(t)`.
             dis_sig_vals: stores dissipator signal values :math:`\gamma_j(t)`.
