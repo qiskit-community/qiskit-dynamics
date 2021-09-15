@@ -148,7 +148,8 @@ The default is dense arrays, and a model can be set to use sparse arrays via:
 
 See ``set_evaluation_mode`` for each model class for available modes.
 
-**Important**: When setting a rotating frame, models internally store their operators
+.. note::
+    When setting a rotating frame, models internally store their operators
 in the basis in which the frame operator is diagonal. In general, sparsity of an operator
 is not perserved by basis transformations. Hence, preserving internal sparsity with
 rotating frames requires more restrictive choice of frames. For example, diagonal frame
