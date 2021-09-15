@@ -94,7 +94,7 @@ a vectorized evaluation mode is set (see below).
 Rotating Frames
 ^^^^^^^^^^^^^^^
 
-"Entering a rotating frame" is a common transformation on models of quantum systems.
+Frame transformations are a common technique for solving time-dependent quantum differential equations. By "entering a rotation frame" we can transform the differential equation to modify, and ideally simplify, the time-dependence of the equation to be solved. This corresponds to the transformation
 For example, for a Hamiltonian, this corresponds to the transformation
 
 .. math::
