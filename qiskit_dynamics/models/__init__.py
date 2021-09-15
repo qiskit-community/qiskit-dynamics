@@ -42,6 +42,8 @@ serve a *computational* purpose, and expose functions for evaluating
 model expressions, such as :math:`t \mapsto H(t)` or :math:`t,y \mapsto -iH(t)y` in the
 case of a Hamiltonian.
 
+Hamiltonian Models
+==================
 The Schrodinger equation is represented via the
 :class:`~qiskit_dynamics.models.HamiltonianModel` class, which represents
 the decomposition:
