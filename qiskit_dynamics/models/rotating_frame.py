@@ -23,7 +23,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array
+from qiskit_dynamics.type_utils import to_array, to_numeric_matrix_type
 
 
 class RotatingFrame:
@@ -140,7 +140,7 @@ class RotatingFrame:
             Array: The state in the frame basis.
         """
         if self.frame_basis_adjoint is None:
-            return to_array(y)
+            return to_numeric_matrix_type(y)
 
         return self.frame_basis_adjoint @ y
 
@@ -154,7 +154,7 @@ class RotatingFrame:
             Array: The state in the frame basis.
         """
         if self.frame_basis is None:
-            return to_array(y)
+            return to_numeric_matrix_type(y)
 
         return self.frame_basis @ y
 
@@ -169,7 +169,7 @@ class RotatingFrame:
         Returns:
             Array: The operator in the frame basis.
         """
-        op = to_array(op)
+        op = to_numeric_matrix_type(op)
         if self.frame_basis is None:
             return op
         # parentheses are necessary for sparse op evaluation
@@ -186,7 +186,7 @@ class RotatingFrame:
         Returns:
             Array: The operator in the frame basis.
         """
-        op = to_array(op)
+        op = to_numeric_matrix_type(op)
         if self.frame_basis is None:
             return op
         # parentheses are necessary for sparse op evaluation
@@ -213,7 +213,7 @@ class RotatingFrame:
             Array: State in frame.
         """
         if self._frame_operator is None:
-            return to_array(y)
+            return to_numeric_matrix_type(y)
 
         out = y
 
@@ -291,20 +291,20 @@ class RotatingFrame:
             # If passing vectorized operator, undo vectorization temporarily
             if self._frame_operator is None:
                 if op_to_add_in_fb is None:
-                    return to_array(operator)
+                    return to_numeric_matrix_type(operator)
                 else:
-                    return to_array(operator + op_to_add_in_fb)
+                    return to_numeric_matrix_type(operator + op_to_add_in_fb)
             if len(operator.shape) == 2:
                 operator = operator.T
             operator = operator.reshape(operator.shape[:-1] + (self.dim, self.dim), order="F")
 
         if self._frame_operator is None:
             if op_to_add_in_fb is None:
-                return to_array(operator)
+                return to_numeric_matrix_type(operator)
             else:
-                return to_array(operator + op_to_add_in_fb)
+                return to_numeric_matrix_type(operator + op_to_add_in_fb)
 
-        out = to_array(operator)
+        out = to_numeric_matrix_type(operator)
 
         # if not in frame basis convert it
         if not operator_in_frame_basis:
@@ -430,7 +430,7 @@ class RotatingFrame:
             Array: Generator in frame.
         """
         if self.frame_operator is None:
-            return to_array(operator)
+            return to_numeric_matrix_type(operator)
         else:
             # conjugate and subtract the frame diagonal
             return self._conjugate_and_add(
@@ -466,7 +466,7 @@ class RotatingFrame:
             Array: Generator out of frame.
         """
         if self.frame_operator is None:
-            return to_array(operator)
+            return to_numeric_matrix_type(operator)
         else:
             # conjugate and add the frame diagonal
             return self._conjugate_and_add(

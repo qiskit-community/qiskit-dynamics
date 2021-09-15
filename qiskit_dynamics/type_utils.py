@@ -429,7 +429,8 @@ def to_numeric_matrix_type(
         return to_csr(op)
 
     elif isinstance(op, Iterable) and isinstance(op[0], Operator):
-        return [to_array(item) for item in op]
+        return to_array(op)
+        # return [to_array(item) for item in op]
 
     else:
         return to_array(op)
