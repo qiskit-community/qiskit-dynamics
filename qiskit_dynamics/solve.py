@@ -349,7 +349,7 @@ def results_y_out_of_frame_basis(
             results_y = generator_model.rotating_frame.vectorized_frame_basis @ results_y
     elif isinstance(generator_model, LindbladModel):
         results_y = generator_model.rotating_frame.operator_out_of_frame_basis(results_y)
-    elif isinstance(generator_model, GeneratorModel):
+    else:
         results_y = generator_model.rotating_frame.state_out_of_frame_basis(results_y)
 
     if y0_ndim == 1:

@@ -59,6 +59,7 @@ from qiskit_dynamics import solve_lmde
 
 class Solver:
     """Solver object for simulating both Hamiltonian and Lindblad dynamics.
+
     Given the components of a Hamiltonian and optional dissipators, this class will
     internally construct either a :class:`HamiltonianModel` or :class:`LindbladModel`
     instance. The evolution given by the model can be simulated by calling :meth:`solve`,
@@ -77,7 +78,18 @@ class Solver:
         evaluation_mode: Optional[str] = "dense",
         rwa_cutoff_freq: Optional[float] = None,
     ):
-        """Initialize.
+        """Initialize solver with model information.
+
+        The Hamiltonian terms and dissipator terms are specified in the "lab frame".
+        Transformations on the model can be specified via the optional arguments:
+
+            * ``rotating_frame``: Transforms the model into a rotating frame. Note that
+                                  operator specifying the frame will be substracted from the drift.
+                                  See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
+            * ``rwa_cutoff_freq``: Performs a rotating wave approximation (RWA) on the model
+                                   with cutoff frequency ``rwa_cutoff_freq``. See
+                                   :meth:`~qiskit_dynamics.models.rotating_wave_approximation`
+                                   for details.
 
         Args:
             hamiltonian_operators: Hamiltonian operators.
@@ -85,7 +97,8 @@ class Solver:
             dissipator_operators: Optional dissipation operators.
             dissipator_signals: Optional time-dependent coefficients for the dissipators. If
                                 ``None``, coefficients are assumed to be the constant ``1.``.
-            drift: Hamiltonian drift operator.
+            drift: Hamiltonian drift operator. If a ``rotating_frame`` is specified, the
+                   ``frame_operator`` will be subtracted from the drift.
             rotating_frame: Rotating frame to transform the model into.
             evaluation_mode: Method for model evaluation. See documentation for
                              :meth:`HamiltonianModel.set_evaluation_mode` or
