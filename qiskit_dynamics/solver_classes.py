@@ -65,6 +65,24 @@ class Solver:
     instance. The evolution given by the model can be simulated by calling :meth:`solve`,
     which automatically handles :mod:`qiskit.quantum_info` state and super operator types,
     and calls :func:`~qiskit_dynamics.solve.solve_lmde` to solve.
+
+    Note that the Hamiltonian terms and dissipator terms are specified in the "lab frame".
+    Transformations on the model can be specified via the optional arguments:
+
+    * ``rotating_frame``: Transforms the model into a rotating frame. Note that
+      operator specifying the frame will be substracted from the drift.
+      See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
+    * ``rwa_cutoff_freq``: Performs a rotating wave approximation (RWA) on the model
+      with cutoff frequency ``rwa_cutoff_freq``. See
+      :meth:`~qiskit_dynamics.models.rotating_wave_approximation`
+      for details.
+
+    .. note::
+        Modifications to the underlying model after instantiation may be made
+        directly via the ``model`` property of this class. However,
+        the getting and setting of model signals should be done via the ``signals`` property
+        of this class, which manages signal transformations required in
+        the case that a rotating wave approximation is made.
     """
 
     def __init__(
@@ -79,17 +97,6 @@ class Solver:
         rwa_cutoff_freq: Optional[float] = None,
     ):
         """Initialize solver with model information.
-
-        The Hamiltonian terms and dissipator terms are specified in the "lab frame".
-        Transformations on the model can be specified via the optional arguments:
-
-            * ``rotating_frame``: Transforms the model into a rotating frame. Note that
-                                  operator specifying the frame will be substracted from the drift.
-                                  See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
-            * ``rwa_cutoff_freq``: Performs a rotating wave approximation (RWA) on the model
-                                   with cutoff frequency ``rwa_cutoff_freq``. See
-                                   :meth:`~qiskit_dynamics.models.rotating_wave_approximation`
-                                   for details.
 
         Args:
             hamiltonian_operators: Hamiltonian operators.
@@ -140,23 +147,17 @@ class Solver:
         self._model = model
 
     @property
-    def rotating_frame(self) -> RotatingFrame:
-        """Rotating frame of the model."""
-        return self.model.rotating_frame
-
-    @rotating_frame.setter
-    def rotating_frame(self, new_rotating_frame: Union[Array, RotatingFrame]):
-        """Set rotating frame for the model."""
-        self.model.rotating_frame = new_rotating_frame
-
-    @property
-    def model(self) -> BaseGeneratorModel:
-        """The model."""
+    def model(self) -> Union[HamiltonianModel, LindbladModel]:
+        """The model of the system, either a Hamiltonian or Lindblad model."""
         return self._model
 
     @property
     def signals(self) -> SignalList:
-        """Solver signals."""
+        """The signals used in the solver.
+
+        These will be different from the signals in the model if a rotating wave approximation
+        was made.
+        """
         return self._signals
 
     @signals.setter
@@ -166,19 +167,6 @@ class Solver:
         if self._rwa_signal_map is not None:
             new_signals = self._rwa_signal_map(new_signals)
         self.model.signals = new_signals
-
-    @property
-    def evaluation_mode(self) -> str:
-        """Evaluation mode for the model."""
-        return self.model.evaluation_mode
-
-    def set_evaluation_mode(self, new_mode: str):
-        """Set model evaluation mode. See documentation for
-        :class:`~qiskit_dynamics.models.HamiltonianModel`
-        or :class:`~qiskit_dynamics.models.LindbladModel`
-        (if dissipators present in model) for valid methods.
-        """
-        self.model.set_evaluation_mode(new_mode)
 
     def copy(self) -> "Solver":
         """Return a copy of self."""
@@ -230,11 +218,11 @@ class Solver:
         if (
             (y0_cls is SuperOp)
             and isinstance(self.model, LindbladModel)
-            and "vectorized" not in self.evaluation_mode
+            and "vectorized" not in self.model.evaluation_mode
         ):
             raise QiskitError(
                 """Simulating SuperOp for a LinbladModel requires setting
-                vectorized evaluation. Set evaluation_mode to a vectorized option.
+                vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
                 """
             )
 
@@ -248,7 +236,7 @@ class Solver:
         elif (
             (y0_cls is DensityMatrix)
             and isinstance(self.model, LindbladModel)
-            and "vectorized" in self.evaluation_mode
+            and "vectorized" in self.model.evaluation_mode
         ):
             y0 = y0.flatten(order="F")
 
@@ -288,7 +276,7 @@ class Solver:
         elif (
             (y0_cls is DensityMatrix)
             and isinstance(self.model, LindbladModel)
-            and "vectorized" in self.evaluation_mode
+            and "vectorized" in self.model.evaluation_mode
         ):
             results.y = Array(results.y).reshape((len(results.y),) + y_input.shape, order="F")
 
