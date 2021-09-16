@@ -333,7 +333,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     """
     if op is None:
         return op
-    
+
     if isinstance(op, np.ndarray) or isinstance(op, Array):
         return op
 
@@ -381,6 +381,7 @@ def to_csr(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]) ->
     else:
         return csr_matrix(op)
 
+
 def to_numeric_matrix_type(
     op: Union[Operator, Array, spmatrix, List[Operator], List[Array], List[spmatrix]]
 ):
@@ -412,7 +413,6 @@ def to_numeric_matrix_type(
         return to_array(op)
     elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
         return to_csr(op)
-
 
     else:
         return to_array(op)

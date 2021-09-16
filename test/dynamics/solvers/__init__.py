@@ -13,4 +13,3 @@
 """
 solvers tests
 """
-

@@ -45,10 +45,10 @@ class QiskitDynamicsTestCase(unittest.TestCase):
             B = B.toarray()
         elif isinstance(A, Iterable) and isinstance(A[0], spmatrix):
             A = [item.toarray() for item in A]
-            B = [item.toarray() for  item in B]
+            B = [item.toarray() for item in B]
 
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
- 
+
 
 class TestJaxBase(unittest.TestCase):
     """Base class with setUpClass and tearDownClass for setting jax as the
