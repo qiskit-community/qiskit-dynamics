@@ -375,27 +375,8 @@ def to_csr(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]) ->
     if op is None:
         return op
 
-
-    elif isinstance(op, Iterable) and issparse(op[0]):
-        return op
-
-    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
-        return [csr_matrix(item) for item in op]
-
     elif isinstance(op, Iterable):
         return [csr_matrix(item) for item in op]
-        # shape = op[0].data.shape
-        # dtype = op[0].data.dtype
-        # arr = np.empty((len(op), *shape), dtype=dtype)
-        # for i, sub_op in enumerate(op):
-        #     arr[i] = sub_op.data
-        # out = csr_matrix(arr)
-
-    elif isinstance(op, Operator):
-        return csr_matrix(op.data)
-
-
-        # return ([csr_matrix(sparr.data) for sparr in op]))
 
     else:
         return csr_matrix(op)
@@ -427,14 +408,11 @@ def to_numeric_matrix_type(
     elif isinstance(op, Operator):
         return to_array(op)
 
-    elif isinstance(op, Iterable) and isinstance(op[0], Array):
+    elif isinstance(op, Iterable) and (op[0].__class__ in (Array, Operator)):
         return to_array(op)
     elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
         return to_csr(op)
 
-    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
-        return to_array(op)
-        # return [to_array(item) for item in op]
 
     else:
         return to_array(op)

@@ -139,8 +139,9 @@ class RotatingFrame:
         Returns:
             Array: The state in the frame basis.
         """
+        y = to_numeric_matrix_type(y)
         if self.frame_basis_adjoint is None:
-            return to_numeric_matrix_type(y)
+            return y
 
         return self.frame_basis_adjoint @ y
 
@@ -153,8 +154,9 @@ class RotatingFrame:
         Returns:
             Array: The state in the frame basis.
         """
+        y = to_numeric_matrix_type(y)
         if self.frame_basis is None:
-            return to_numeric_matrix_type(y)
+            return y
 
         return self.frame_basis @ y
 
@@ -212,8 +214,9 @@ class RotatingFrame:
         Returns:
             Array: State in frame.
         """
+        y = to_numeric_matrix_type(y)
         if self._frame_operator is None:
-            return to_numeric_matrix_type(y)
+            return y
 
         out = y
 
@@ -287,24 +290,26 @@ class RotatingFrame:
         Returns:
             Array of newly conjugated operator.
         """
+        operator = to_numeric_matrix_type(operator)
+        op_to_add_in_fb = to_numeric_matrix_type(op_to_add_in_fb)
         if vectorized_operators:
             # If passing vectorized operator, undo vectorization temporarily
             if self._frame_operator is None:
                 if op_to_add_in_fb is None:
-                    return to_numeric_matrix_type(operator)
+                    return operator
                 else:
-                    return to_numeric_matrix_type(operator + op_to_add_in_fb)
+                    return operator + op_to_add_in_fb
             if len(operator.shape) == 2:
                 operator = operator.T
             operator = operator.reshape(operator.shape[:-1] + (self.dim, self.dim), order="F")
 
         if self._frame_operator is None:
             if op_to_add_in_fb is None:
-                return to_numeric_matrix_type(operator)
+                return operator
             else:
-                return to_numeric_matrix_type(operator + op_to_add_in_fb)
+                return operator + op_to_add_in_fb
 
-        out = to_numeric_matrix_type(operator)
+        out = operator
 
         # if not in frame basis convert it
         if not operator_in_frame_basis:

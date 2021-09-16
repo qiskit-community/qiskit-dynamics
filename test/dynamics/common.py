@@ -33,17 +33,22 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
+
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+
+    def assertAllCloseSparse(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true. Converts A and B to arrays and then calls np.allclose.
+        Assumes that A and B are either sparse matrices or lists of sparse matrices"""
+
         if isinstance(A, spmatrix):
             A = A.toarray()
             B = B.toarray()
-        elif isinstance(A, Array):
-            pass
         elif isinstance(A, Iterable) and isinstance(A[0], spmatrix):
-            # If A is sparse, B should be the same, so should get error here if not
             A = [item.toarray() for item in A]
-            B = [item.toarray() for item in B]
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+            B = [item.toarray() for  item in B]
 
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+ 
 
 class TestJaxBase(unittest.TestCase):
     """Base class with setUpClass and tearDownClass for setting jax as the

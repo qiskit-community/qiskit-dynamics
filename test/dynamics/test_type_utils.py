@@ -278,12 +278,11 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         list_of_arrays = [Array(op) for op in list_of_ops]
         op_arr = [Operator.from_label(s) for s in "XYZ"]
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
-        self.assertAllClose(to_csr(list_of_ops), sparse_matrices)
-        self.assertAllClose(to_csr(list_of_arrays), sparse_matrices)
-        # self.assertAllClose(to_csr(list_of_ops), sparse_matrices)
-        self.assertAllClose(to_csr(op_arr), sparse_matrices)
+        self.assertAllCloseSparse(to_csr(list_of_ops), sparse_matrices)
+        self.assertAllCloseSparse(to_csr(list_of_arrays), sparse_matrices)
+        self.assertAllCloseSparse(to_csr(op_arr), sparse_matrices)
         for i in range(3):
-            self.assertAllClose(sparse_matrices[i].toarray(), normal_array[i])
+            self.assertAllCloseSparse(sparse_matrices[i].toarray(), normal_array[i])
 
     def test_to_numeric_matrix_type(self):
         """Tests for to_numeric_matrix_type"""
@@ -295,7 +294,7 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         self.assertAllClose(to_numeric_matrix_type(list_of_ops), normal_array)
         self.assertAllClose(to_numeric_matrix_type(list_of_arrays), normal_array)
         self.assertAllClose(to_numeric_matrix_type(op_arr), list_of_arrays)
-        self.assertAllClose(to_numeric_matrix_type(sparse_matrices), sparse_matrices)
+        self.assertAllCloseSparse(to_numeric_matrix_type(sparse_matrices), sparse_matrices)
         for i in range(3):
             self.assertAllClose(sparse_matrices[i].toarray(), normal_array[i])
 
