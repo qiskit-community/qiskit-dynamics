@@ -25,7 +25,7 @@ try:
 except ImportError:
     pass
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import wrap, Array
+from qiskit_dynamics.dispatch import wrap
 
 
 class QiskitDynamicsTestCase(unittest.TestCase):

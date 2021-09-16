@@ -334,7 +334,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     if op is None:
         return op
 
-    if isinstance(op, np.ndarray) or isinstance(op, Array):
+    if isinstance(op, (np.ndarray, Array)):
         return op
 
     elif isinstance(op, Iterable) and isinstance(op[0], Operator):
@@ -409,8 +409,6 @@ def to_numeric_matrix_type(
     elif isinstance(op, Operator):
         return to_array(op)
 
-    elif isinstance(op, Iterable) and (op[0].__class__ in (Array, Operator)):
-        return to_array(op)
     elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
         return to_csr(op)
 

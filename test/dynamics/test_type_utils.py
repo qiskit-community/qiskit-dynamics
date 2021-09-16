@@ -296,7 +296,7 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         self.assertAllClose(to_numeric_matrix_type(op_arr), list_of_arrays)
         self.assertAllCloseSparse(to_numeric_matrix_type(sparse_matrices), sparse_matrices)
         for i in range(3):
-            self.assertAllClose(sparse_matrices[i].toarray(), normal_array[i])
+            self.assertAllCloseSparse(sparse_matrices[i].toarray(), normal_array[i])
 
 
 class TestTypeUtilsJax(TestTypeUtils, TestJaxBase):
