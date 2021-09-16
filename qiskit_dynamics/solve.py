@@ -54,8 +54,8 @@ standard form, specified in terms of a representation of the generator :math:`G(
 either as a Python ``Callable`` function or subclasses of
 :class:`~qiskit_dynamics.models.generator_models.BaseGeneratorModel`.
 
-Note that methods available via :meth:`~qiskit_dynamics.solve_ode` are also available through
-:meth:`~qiskit_dynamics.de.solve_lmde`:
+Note that the numerical methods available via :meth:`~qiskit_dynamics.solve_ode`
+are also available through :meth:`~qiskit_dynamics.de.solve_lmde`:
 
     * If the generator is supplied as a ``Callable``, the standard RHS function
       :math:`f(t, y) = G(t)y` is automatically constructed.
@@ -120,6 +120,7 @@ def solve_ode(
     **kwargs,
 ):
     r"""General interface for solving Ordinary Differential Equations (ODEs).
+
     ODEs are differential equations of the form
 
     .. math::
@@ -192,31 +193,21 @@ def solve_lmde(
     **kwargs,
 ):
     r"""General interface for solving Linear Matrix Differential Equations (LMDEs)
-    in standard form:
+    in standard form.
+
+    LMDEs in standard form are differential equations of the form:
 
     .. math::
 
-        \dot{y}(t) = G(t)y(t)
+        \dot{y}(t) = G(t)y(t).
 
     where :math:`G(t)` is a square matrix valued-function called the *generator*,
-    and :math:`y(t)` is an :class:`Array` of appropriate shape. The generator :math:`G(t)`
-    may either be specified as a Python ``Callable`` function,
-    or as an instance of a :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclass.
+    and :math:`y(t)` is an :class:`Array` of appropriate shape.
 
     The ``method`` argument exposes solvers specialized to both LMDEs, as
     well as general ODE solvers. If the method is not specific to LMDEs,
     the problem will be passed to :meth:`~qiskit_dynamics.solve_ode` by automatically setting
     up the RHS function :math:`f(t, y) = G(t)y`.
-
-    We note that, while all :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses
-    represent LMDEs, they are not all by-default in standard form, and as such, accessing
-    LMDE-specific methods requires converting them into standard form. See, for example,
-    :meth:`~qiskit_dynamics.models.LindbladModel.set_evaluation_mode` for details. Regardless,
-    in general, for general ODE methods,
-    subclasses of :class:`~qiskit_dynamics.models.BaseGeneratorModel`
-    will be fed directly through to :meth:`~qiskit_dynamics.solve_ode`, allowing
-    :meth:`~qiskit_dynamics.solve_lmde` to serve as a general solver interface for
-    :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses.
 
     Optional arguments for any of the solver routines can be passed via ``kwargs``.
     Available LMDE-specific methods are:
@@ -243,32 +234,34 @@ def solve_lmde(
         QiskitError: If specified method does not exist,
                      if dimension of ``y0`` is incompatible with generator dimension,
                      or if an LMDE-specific method is passed with a LindbladModel.
+    Additional Information:
+        While all :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses
+        represent LMDEs, they are not all in standard form by defualt. Using an
+        LMDE-specific models like :class:`~qiskit_dynamics.models.LindbladModel`
+        requires first setting a vectorized evaluation mode.
     """
 
+    # delegate to solve_ode if necessary
+    if method in ODE_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
+        if isinstance(generator, BaseGeneratorModel):
+            rhs = generator
+        else:
+            # treat generator as a function
+            def rhs(t, y):
+                return generator(t) @ y
+
+        return solve_ode(rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
+
+    # raise error if neither an ODE_METHOD or an LMDE_METHOD
+    if method not in LMDE_METHODS:
+        raise QiskitError(f"Method {method} not supported by solve_lmde.")
+
     # lmde-specific methods can't be used with LindbladModel unless vectorized
-    if (
-        isinstance(generator, LindbladModel)
-        and ("vectorized" not in generator.evaluation_mode)
-        and (method in LMDE_METHODS)
-    ):
+    if isinstance(generator, LindbladModel) and ("vectorized" not in generator.evaluation_mode):
         raise QiskitError(
             """LMDE-specific methods with LindbladModel requires setting a
                vectorized evaluation mode."""
         )
-
-    # if method is an ODE method, delegate to solve ODE
-    if method not in LMDE_METHODS:
-        if method in ODE_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
-            if isinstance(generator, BaseGeneratorModel):
-                rhs = generator
-            else:
-                # treat generator as a function
-                def rhs(t, y):
-                    return generator(t) @ y
-
-            return solve_ode(rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
-        else:
-            raise QiskitError(f"Method {method} not supported by solve_lmde.")
 
     t_span = Array(t_span)
     y0 = Array(y0)
