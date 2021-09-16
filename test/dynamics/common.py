@@ -25,7 +25,7 @@ try:
 except ImportError:
     pass
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import wrap
+from qiskit_dynamics.dispatch import wrap, Array
 
 
 class QiskitDynamicsTestCase(unittest.TestCase):
@@ -33,13 +33,15 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
-        if isinstance(A, Iterable) and isinstance(A[0], spmatrix):
+        if isinstance(A, spmatrix):
+            A = A.toarray()
+            B = B.toarray()
+        elif isinstance(A, Array):
+            pass
+        elif isinstance(A, Iterable) and isinstance(A[0], spmatrix):
             # If A is sparse, B should be the same, so should get error here if not
             A = [item.toarray() for item in A]
             B = [item.toarray() for item in B]
-        elif isinstance(A, spmatrix):
-            A = A.toarray()
-            B = B.toarray()
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 

@@ -418,14 +418,14 @@ def to_numeric_matrix_type(
 
     elif isinstance(op, Array):
         return op
-    elif isinstance(op, csr_matrix):
+    elif isinstance(op, spmatrix):
         return op
     elif isinstance(op, Operator):
         return to_array(op)
 
-    elif isinstance(op, Iterable) and (isinstance(op[0], Array)):
+    elif isinstance(op, Iterable) and isinstance(op[0], Array):
         return to_array(op)
-    elif isinstance(op, Iterable) and isinstance(op[0], csr_matrix):
+    elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
         return to_csr(op)
 
     elif isinstance(op, Iterable) and isinstance(op[0], Operator):
