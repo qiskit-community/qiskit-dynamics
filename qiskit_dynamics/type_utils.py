@@ -405,7 +405,11 @@ def to_numeric_matrix_type(
 ):
     """Given an operator, array, sparse matrix, or a list of operators, arrays, or sparse matrices,
     attempts to leave them in their original form, only converting the operator to an array,
-    and converting lists as necessary.
+    and converting lists as necessary. Summarized below:
+    - operator is converted to array
+    - spmatrix and Array are unchanged
+    - lists of Arrays and sparse matrices are passed to their respective to_ functions
+    - anything else is passed to to_array
     Args:
         op: An operator, array, sparse matrix, or list of operators, arrays or sparse matrices.
     Returns:
