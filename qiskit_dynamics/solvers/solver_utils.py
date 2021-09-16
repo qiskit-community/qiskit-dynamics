@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
 Utility functions for solvers.
@@ -21,6 +22,17 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.models import LindbladModel
+
+
+def is_lindblad_model_vectorized(obj: any) -> bool:
+    """Return True if obj is a vectorized LindbladModel."""
+    return isinstance(obj, LindbladModel) and ("vectorized" in obj.evaluation_mode)
+
+
+def is_lindblad_model_not_vectorized(obj: any) -> bool:
+    """Return True if obj is a non-vectorized LindbladModel."""
+    return isinstance(obj, LindbladModel) and ("vectorized" not in obj.evaluation_mode)
 
 
 def merge_t_args(

@@ -56,6 +56,8 @@ from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics import solve_lmde
 
+from .solvers.solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
+
 
 class Solver:
     """Solver object for simulating both Hamiltonian and Lindblad dynamics.
@@ -66,7 +68,6 @@ class Solver:
     which automatically handles :mod:`qiskit.quantum_info` state and super operator types,
     and calls :func:`~qiskit_dynamics.solve.solve_lmde` to solve.
 
-    Note that the Hamiltonian terms and dissipator terms are specified in the "lab frame".
     Transformations on the model can be specified via the optional arguments:
 
     * ``rotating_frame``: Transforms the model into a rotating frame. Note that
@@ -217,11 +218,7 @@ class Solver:
         y0, y0_cls = initial_state_converter(y0, return_class=True)
 
         # validate types
-        if (
-            (y0_cls is SuperOp)
-            and isinstance(self.model, LindbladModel)
-            and "vectorized" not in self.model.evaluation_mode
-        ):
+        if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
             raise QiskitError(
                 """Simulating SuperOp for a LinbladModel requires setting
                 vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
@@ -243,21 +240,22 @@ class Solver:
             y0 = y0.flatten(order="F")
 
         # validate y0 shape before passing to solve_lmde
-        if isinstance(self.model, HamiltonianModel):
-            if y0.shape[0] != self.model.dim or y0.ndim > 2:
-                raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
-        if isinstance(self.model, LindbladModel):
-            if ("vectorized" not in self.model.evaluation_mode) and (
-                y0.shape[-2:] != (self.model.dim, self.model.dim)
-            ):
-                raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
-            if ("vectorized" in self.model.evaluation_mode) and (
-                y0.shape[0] != self.model.dim ** 2 or y0.ndim > 2
-            ):
-                raise QiskitError(
-                    """Shape mismatch for initial state y0 and LindbladModel
-                                     in vectorized evaluation mode."""
-                )
+        if isinstance(self.model, HamiltonianModel) and (
+            y0.shape[0] != self.model.dim or y0.ndim > 2
+        ):
+            raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
+        if is_lindblad_model_vectorized(self.model) and (
+            y0.shape[0] != self.model.dim ** 2 or y0.ndim > 2
+        ):
+            raise QiskitError(
+                """Shape mismatch for initial state y0 and LindbladModel
+                                 in vectorized evaluation mode."""
+            )
+        if is_lindblad_model_not_vectorized(self.model) and y0.shape[-2:] != (
+            self.model.dim,
+            self.model.dim,
+        ):
+            raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
 
         results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
 
@@ -275,11 +273,7 @@ class Solver:
                 )
                 @ y_input
             )
-        elif (
-            (y0_cls is DensityMatrix)
-            and isinstance(self.model, LindbladModel)
-            and "vectorized" in self.model.evaluation_mode
-        ):
+        elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(self.model):
             results.y = Array(results.y).reshape((len(results.y),) + y_input.shape, order="F")
 
         if y0_cls is not None:

@@ -100,6 +100,7 @@ from .models.rotating_frame import RotatingFrame
 from .models.rotating_wave_approximation import rotating_wave_approximation
 from .models.generator_models import BaseGeneratorModel, GeneratorModel
 from .models import HamiltonianModel, LindbladModel
+from .solvers.solver_utils import is_lindblad_model_not_vectorized
 
 try:
     from jax.lax import scan
@@ -257,7 +258,7 @@ def solve_lmde(
         raise QiskitError(f"Method {method} not supported by solve_lmde.")
 
     # lmde-specific methods can't be used with LindbladModel unless vectorized
-    if isinstance(generator, LindbladModel) and ("vectorized" not in generator.evaluation_mode):
+    if is_lindblad_model_not_vectorized(generator):
         raise QiskitError(
             """LMDE-specific methods with LindbladModel requires setting a
                vectorized evaluation mode."""
