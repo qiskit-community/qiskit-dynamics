@@ -35,10 +35,10 @@ where
     * :math:`\phi \in \mathbb{R}` is the *phase*.
 
 
-Common Signal API and class summary
-===================================
+Signal API summary
+==================
 
-All signal classes share a common API for evaluating various functions:
+All signal classes share a common API:
 
     * The function directly as a callable: ``signal(t)``.
     * The envelope :math:`f(t)`: ``signal.envelope(t)``, and
@@ -195,6 +195,7 @@ option to just sample the envelope (and keep the carrier analog), or to also
 sample the carrier.
 
 .. jupyter-execute::
+    :hide-code:
 
     from qiskit_dynamics.signals import Signal, DiscreteSignal
     from matplotlib import pyplot as plt
