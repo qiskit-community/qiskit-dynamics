@@ -75,7 +75,6 @@ are also available through :meth:`~qiskit_dynamics.de.solve_lmde`:
 """
 
 from typing import Optional, Union, Callable, Tuple, List
-import inspect
 
 from scipy.integrate import OdeSolver
 
@@ -160,7 +159,7 @@ def solve_ode(
     """
 
     if method not in ODE_METHODS and not (
-        inspect.isclass(method) and issubclass(method, OdeSolver)
+        isinstance(method, type) and issubclass(method, OdeSolver)
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
@@ -173,7 +172,7 @@ def solve_ode(
         solver_rhs = rhs
 
     # solve the problem using specified method
-    if method in SOLVE_IVP_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
+    if method in SOLVE_IVP_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval, **kwargs)
     elif isinstance(method, str) and method == "jax_odeint":
         results = jax_odeint(solver_rhs, t_span, y0, t_eval, **kwargs)
@@ -243,7 +242,7 @@ def solve_lmde(
     """
 
     # delegate to solve_ode if necessary
-    if method in ODE_METHODS or (inspect.isclass(method) and issubclass(method, OdeSolver)):
+    if method in ODE_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
         if isinstance(generator, BaseGeneratorModel):
             rhs = generator
         else:
