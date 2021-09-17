@@ -30,7 +30,7 @@ This is temporary, getting docs to build.
 
 
 from typing import Optional, Union, Tuple, Any, Type, List
-from copy import deepcopy
+from copy import copy
 
 import numpy as np
 
@@ -171,7 +171,7 @@ class Solver:
 
     def copy(self) -> "Solver":
         """Return a copy of self."""
-        return deepcopy(self)
+        return copy(self)
 
     def solve(
         self, t_span: Array, y0: Union[Array, QuantumState, BaseOperator], **kwargs
