@@ -38,63 +38,17 @@ where the second term is called the *dissipator* term. Each :math:`L_j` is a dis
 *dissipator*, and :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` are, respectively, the
 matrix commutator and anti-commutator.
 
-Model classes primarily
+The classes for representing the Schrodinger and Lindblad equations are,
+respectively, :class:`~qiskit_dynamics.models.HamiltonianModel` and
+:class:`~qiskit_dynamics.models.LindbladModel`. Model classes primarily
 serve a *computational* purpose, and expose functions for evaluating
 model expressions, such as :math:`t \mapsto H(t)` or :math:`t,y \mapsto -iH(t)y` in the
-case of a Hamiltonian.
+case of a Hamiltonian, and with similar functionality for
+:class:`~qiskit_dynamics.models.LindbladModel`.
 
-Hamiltonian models
-==================
-The Schrodinger equation is represented via the
-:class:`~qiskit_dynamics.models.HamiltonianModel` class, which represents
-the decomposition:
-
-.. math::
-    H(t) = H_d + \sum_j s_j(t) H_j,
-
-where both :math:`H_j` and the *drift* :math:`H_d` are Hermitian operators, and
-:math:`s_j(t)` are either :class:`~qiskit_dynamics.signals.Signal` objects or
-are numerical constants. Constructing a :class:`~qiskit_dynamics.models.HamiltonianModel`
-requires specifying the above decomposition, e.g.:
-
-.. code-block:: python
-
-    hamiltonian = HamiltonianModel(operators, signals, drift)
-
-with ``operators`` being a specification of the :math:`H_j`, ``signals`` a specification of
-the :math:`s_j`, and ``drift`` a specification of :math:`H_d`.
-
-Lindblad models
-===============
-The :class:`~qiskit_dynamics.models.LindbladModel` class represents models that include both
-Hamiltonian and dissipator terms for solving the the Lindblad equation.
-It may be instantiated as
-
-.. code-block:: python
-
-    lindblad_model = LindbladModel(hamiltonian_operators,
-                                   hamiltonian_signals,
-                                   drift,
-                                   dissipator_operators,
-                                   dissipator_signals)
-
-where the arguments ``hamiltonian_operators``, ``hamiltonian_signals``, and ``drift`` are for
-the Hamiltonian decomposition as in :class:`~qiskit_dynamics.models.HamiltonianModel`,
-and the ``dissipator_operators`` correspond to the :math:`L_j`, and the ``dissipator_signals``
-the :math:`g_j(t)`, which default to the constant ``1.``.
-
-
-Model evaluation
-================
-Once constructed, model classes enable *evaluation* of certain functions, e.g. for a
-:class:`~qiskit_dynamics.models.HamiltonianModel`, ``hamiltonian.evaluate(t)`` returns
-:math:`-iH(t)`, and ``hamiltonian.evaluate_rhs(t, y)`` evaluates :math:`-iH(t)y`. Similar
-behaviour applies to :class:`~qiskit_dynamics.models.LindbladModel`, however the
-:meth:`~qiskit_dynamics.models.LindbladModel.evaluate` method will raise an error unless
-a vectorized evaluation mode is set (see below).
 
 Rotating frames
-^^^^^^^^^^^^^^^
+===============
 
 Frame transformations are a common technique for solving time-dependent quantum differential
 equations. For example, for a Hamiltonian, this corresponds to the transformation
@@ -116,11 +70,12 @@ Any model class can be transformed into a rotating frame by setting the
 
     model.rotating_frame = frame_operator
 
-where ``frame_operator`` is either the Hermitian operator :math:`H_0` or the corresponding
-anti-Hermitian operator :math:`F = -iH_0`, specified either as an ``Operator``,
-a square 2d array, or a :class:`~qiskit_dynamics.models.RotatingFrame` instance (see below).
-Setting this property modifies the behaviour of the evaluation functions, i.e. they will
-compute :math:`e^{-tF}(-iH - F)e^{tF}` in place of :math:`H(t)`.
+where ``frame_operator`` is a specification of either :math:`H_0` or :math:`F = -iH_0`
+(see the documentation for :class:`~qiskit_dynamics.models.RotatingFrame` for valid types
+and behaviours).
+Setting this property modifies the behaviour of the evaluation functions, e.g. a
+:class:`~qiskit_dynamics.models.HamiltonianModel` will
+compute :math:`e^{-tF}(-iH(t) - F)e^{tF}` in place of :math:`H(t)`.
 :class:`~qiskit_dynamics.models.LindbladModel` has similar behaviour.
 
 Internally, the model classes make use of the :class:`~qiskit_dynamics.models.RotatingFrame`
@@ -130,7 +85,7 @@ works directly with the anti-Hermitian form :math:`F = -iH_0`, however can be in
 with a Hermitian operator :math:`H_0` from which :math:`F` is automatically constructed.
 
 Rotating wave approximation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===========================
 
 The rotating wave approximation (RWA) is a transformation in which rapidly oscillating
 time-dependent components, above a given cutoff frequency, are removed from a model.
@@ -140,7 +95,7 @@ details.
 
 
 Numerical methods and evaluation modes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+======================================
 
 All model classes offer different underlying numerical implementations that a user can choose
 using the ``set_evaluation_mode`` method. For example,

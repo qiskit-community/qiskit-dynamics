@@ -45,6 +45,12 @@ class RotatingFrame:
     "frame basis". All previously mentioned functions also include optional
     arguments specifying whether the input/output are meant to be in the
     frame basis.
+
+    .. note::
+        :class:`~qiskit_dynamics.models.RotatingFrame` can be instantiated
+        with a 1d array, which is understood to correspond to the diagonal entries
+        of a diagonal :math:`H` or :math:`F = -i H`.
+
     """
 
     def __init__(
