@@ -35,7 +35,9 @@ from qiskit_dynamics.dispatch import Array
 
 
 class Signal:
-    r"""General signal class representing a function of the form:
+    r"""General signal class.
+
+    Represents a function of the form:
 
     .. math::
         Re[f(t)e^{i (2 \pi \nu t + \phi)}]
@@ -51,19 +53,22 @@ class Signal:
     (indicating a constant function), or as a complex-valued callable,
     and the frequency and phase must be real.
 
-    Notes:
 
-    - If the envelope is specified as a constant, the real part is automatically taken.
-    - If the envelope is passed as a callable, this class assumes that the function is
-      vectorized: i.e. if called with an array of time values, it will return an array of the
-      same shape via entry-wise application of the function. If it isn't, it can be vectorized
-      automatically by calling ``numpy.vectorize``\, or, if using JAX, by
-      calling ``jax.numpy.vectorize``\. E.g.:
+    .. note::
 
-    .. code-block:: python
+        :class:`~qiskit_dynamics.signals.Signal` assumes the envelope ``f`` is
+        *array vectorized* in the sense that ``f`` can operate on arrays of arbitrary shape
+        and satisfy ``f(x)[idx] == f(x[idx])`` for a multidimensional index ``idx``. This
+        can be ensured either by writing ``f`` to be vectorized, or by using the ``vectorize``
+        function in ``numpy`` or ``jax.numpy``.
 
-        vectorized_func = np.vectorize(non_vectorized_func)
-        signal = Signal(envelope=vectorized_func, carrier_freq=5.)
+        For example, for an unvectorized envelope function ``f``:
+
+        .. code-block:: python
+
+            import numpy as np
+            vectorized_f = np.vectorize(f)
+            signal = Signal(envelope=vectorized_f, carrier_freq=2.)
     """
 
     def __init__(
@@ -211,12 +216,14 @@ class Signal:
         axis: Optional[plt.axis] = None,
         title: Optional[str] = None,
     ):
-        """Plot the signal over an interval. The `function` arg specifies which function to
+        """Plot the signal over an interval.
+
+        The ``function`` arg specifies which function to
         plot:
 
-            - `function == 'signal'` plots the full signal.
-            - `function == 'envelope'` plots the complex envelope.
-            - `function == 'complex_value'` plots the `complex_value`.
+            - ``function == 'signal'`` plots the full signal.
+            - ``function == 'envelope'`` plots the complex envelope.
+            - ``function == 'complex_value'`` plots the ``complex_value``.
 
         Args:
             t0: Initial time.
@@ -263,11 +270,13 @@ class Signal:
 
 
 class DiscreteSignal(Signal):
-    r"""A piecewise constant signal implemented as an array of samples.
+    r"""Piecewise constant signal implemented as an array of samples.
 
-    Envelope evaluation determines which sample to return based on `dt` and `start_time`.
-    If ``t`` is before (resp. after) the start (resp. end) of the definition of
-    the ``DiscreteSignal``\, the envelope will return the start value (resp. end value).
+    The envelope is specified by an array of samples ``s = [s_0, ..., s_k]``, sample width ``dt``,
+    and a start time ``t_0``, with the envelope being evaluated as
+    :math:`f(t) =` ``s[floor((t - t0)/dt)]``.
+    By default a :class:`~qiskit_dynamics.signals.DiscreteSignal` is defined to start at
+    :math:`t=0` but a custom start time can be set via the ``start_time`` kwarg.
     """
 
     def __init__(
@@ -507,7 +516,9 @@ class SignalCollection:
 
 
 class SignalSum(SignalCollection, Signal):
-    r"""Represents a sum of ``Signal`` objects:
+    r"""Represents a sum of signals.
+
+    I.e. a sum of ``Signal`` objects:
 
     .. math::
         s_1(t) + \dots + s_k(t)
@@ -622,7 +633,7 @@ class SignalSum(SignalCollection, Signal):
 
 
 class DiscreteSignalSum(DiscreteSignal, SignalSum):
-    """Represents a sum of discretized signals, all with the same
+    """Represents a sum of piecewise constant signals, all with the same
     time parameters: dt, number of samples, and start time.
     """
 

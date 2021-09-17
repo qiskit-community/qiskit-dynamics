@@ -38,16 +38,34 @@ where
 Signal API summary
 ==================
 
-All signal classes share a common API:
+All signal classes share a common API for evaluation and visualization:
 
-    * The function directly as a callable: ``signal(t)``.
-    * The envelope :math:`f(t)`: ``signal.envelope(t)``, and
-    * The complex value :math:`f(t)e^{i(2 \pi \nu t + \phi)}`: ``signal.complex_value(t)``.
+    * The signal value at a given time ``t`` is evaluated by treating the ``signal`` as a
+      callable: ``signal(t)``.
+    * The envelope :math:`f(t)` is evaluated via: ``signal.envelope(t)``.
+    * The complex value :math:`f(t)e^{i(2 \pi \nu t + \phi)}` via: ``signal.complex_value(t)``.
+    * The ``signal.draw`` method provides a common visualization interface.
 
-Each signal class also implements the ``signal.draw`` method for visualization.
+In addition to the above, all signal types allow for algebraic operations, which should be
+understood in terms of algebraic operations on functions. E.g. two signals can be added
+together via
 
-The remainder of this document gives further detail about these classes, but the following table
-provides a list of the different signal classes, along with a high level description.
+.. code-block:: python
+
+    signal_sum = signal1 + signal2
+
+and satisfy
+
+.. code-block:: python
+
+    signal_sum(t) == signal1(t) + signal2(t)
+
+Signal multiplication is defined similarly, and signals can be added or multiplied with constants
+as well.
+
+The remainder of this document gives further detail about some special functionality of
+these classes, but the following table provides a list of the different signal classes,
+along with a high level description of their role.
 
 .. list-table:: Types of signal objects
    :widths: 10 50
@@ -62,60 +80,11 @@ provides a list of the different signal classes, along with a high level descrip
        performance.
    * - :class:`~qiskit_dynamics.signals.SignalSum`
      - A sum of :class:`~qiskit_dynamics.signals.Signal` or
-       :class:`~qiskit_dynamics.signals.DiscreteSignal` objects. Evaluation of envelopes returns
-       an array of envelopes in the sum.
+       :class:`~qiskit_dynamics.signals.DiscreteSignal` objects.
+       Evaluation of envelopes returns an array of envelopes in the sum.
    * - :class:`~qiskit_dynamics.signals.DiscreteSignalSum`
      - A sum of :class:`~qiskit_dynamics.signals.DiscreteSignal` objects with the same
        start time, number of samples, and sample duration. Implemented with array-based operations.
-
-
-Signal
-======
-
-A :class:`~qiskit_dynamics.signals.Signal` is instantiated with an arbitrary envelope.
-
-.. code-block:: python
-
-    f = lambda t: t**2
-    signal = Signal(envelope=f, carrier_freq=2.)
-
-.. note::
-
-    :class:`~qiskit_dynamics.signals.Signal` assumes the envelope ``f`` is
-    *array vectorized* in the sense that ``f`` can operate on arrays of arbitrary shape
-    and satisfy ``f(x)[idx] == f(x[idx])`` for a multidimensional index ``idx``. This
-    can be ensured either by writing ``f`` to be vectorized, or by using the ``vectorize``
-    function in ``numpy`` or ``jax.numpy``.
-
-For example, for an unvectorized envelope function ``f``:
-
-.. code-block:: python
-
-    import numpy as np
-    vectorized_f = np.vectorize(f)
-    signal = Signal(envelope=vectorized_f, carrier_freq=2.)
-
-Once instantiated, various functions associated with the signal can be evaluated:
-
-.. code-block:: python
-
-    t = 0.5
-    # evaluate the full expression
-    signal(t)
-    # evaluate the envelope
-    signal.envelope(t)
-    # evaluate the complex value
-    signal.complex_value(t)
-
-Signals can also be visualized over a time interval by using the :meth:`~Signal.draw` method.
-
-.. jupyter-execute::
-
-    from qiskit_dynamics.signals import Signal
-    signal = Signal(envelope=lambda t: t**2, carrier_freq=2.)
-
-    # draw with start point endpoint, and number of samples
-    signal.draw(t0=0., tf=2., n=100)
 
 
 Constant Signal
@@ -133,45 +102,13 @@ A :class:`~qiskit_dynamics.signals.Signal` operating in constant-mode can be che
 boolean attribute ``const.is_constant``.
 
 
-DiscreteSignal
-==============
+Algebraic operations
+====================
 
-A :class:`~qiskit_dynamics.signals.DiscreteSignal` is a signal whose envelope is
-specified by an array of samples ``s = [s_0, ..., s_k]``, sample width ``dt``,
-and a start time ``t_0``, with the envelope being evaluated as
-:math:`f(t) =` ``s[floor((t - t0)/dt)]``.
-By default a :class:`~qiskit_dynamics.signals.DiscreteSignal` is defined to start at
-:math:`t=0` but a custom start time can be set via the ``start_time`` kwarg.
-
-.. code-block:: python
-
-    discrete_signal = DiscreteSignal(dt=0.5, samples=[1., 2., 3.], carrier_freq=1.)
-
-
-Algebraic Operations and composite signals
-==========================================
-
-Signals support algebraic operations. Adding two signals results in a
-:class:`~qiskit_dynamics.signals.SignalSum` object:
-
-.. code-block:: python
-
-    signal_sum = signal1 + signal2
-
-The components of a sum are stored in the ``components`` attribute as a list, but may
-also be accessed via subscripting, e.g. ``signal_sum[0]`` will produce ``signal1`` in
-the codeblock above.
-
-Signals of any type can be added together in this way. However, in the special case that
-:class:`~qiskit_dynamics.signals.DiscreteSignal`\s with compatible sample structure
-(same number of samples, ``dt``, and start time) are added together,
-a :class:`~qiskit_dynamics.signals.DiscreteSignalSum` is produced.
-:class:`~qiskit_dynamics.signals.DiscreteSignalSum` stores a sum of compatible
-:class:`~qiskit_dynamics.signals.DiscreteSignal`\s by joining the underlying arrays,
-so that the sum can be evaluated using purely array-based operations.
-
-Signal multiplication is also supported via :class:`~qiskit_dynamics.signals.SignalSum`
-and :class:`~qiskit_dynamics.signals.DiscreteSignalSum` using the identity:
+Algebraic operations are supported by the :class:`~qiskit_dynamics.signals.SignalSum`
+object. Any two signal classes can be added together, producing a
+:class:`~qiskit_dynamics.signals.SignalSum`. Multiplication is also supported
+via :class:`~qiskit_dynamics.signals.SignalSum` using the identity:
 
 .. math::
 
@@ -179,20 +116,33 @@ and :class:`~qiskit_dynamics.signals.DiscreteSignalSum` using the identity:
          \\&= Re[\frac{1}{2} f(t)g(t)e^{i(2\pi (\omega + \nu)t + (\phi + \psi))} ]
           + Re[\frac{1}{2} f(t)\overline{g(t)}e^{i(2\pi (\omega - \nu)t + (\phi - \psi))} ].
 
-I.e. multiplication produces a :class:`~qiskit_dynamics.signals.SignalSum` (or a
-:class:`~qiskit_dynamics.signals.DiscreteSignalSum` for
-:class:`~qiskit_dynamics.signals.DiscreteSignal`\s with compatible structure)
+I.e. multiplication of two base signals produces a :class:`~qiskit_dynamics.signals.SignalSum`
 with two elements, whose envelopes, frequencies, and phases are as given by the above formula.
+Multiplication of sums is handled via distribution of this formula over the sum.
+
+In the special case that
+:class:`~qiskit_dynamics.signals.DiscreteSignal`\s with compatible sample structure
+(same number of samples, ``dt``, and start time) are added together,
+a :class:`~qiskit_dynamics.signals.DiscreteSignalSum` is produced.
+:class:`~qiskit_dynamics.signals.DiscreteSignalSum` stores a sum of compatible
+:class:`~qiskit_dynamics.signals.DiscreteSignal`\s by joining the underlying arrays,
+so that the sum can be evaluated using purely array-based operations. Multiplication
+of :class:`~qiskit_dynamics.signals.DiscreteSignal`\s with compatible sample structure
+is handled similarly.
 
 Sampling
 ========
 
 Both :class:`~qiskit_dynamics.signals.DiscreteSignal` and
-:class:`~qiskit_dynamics.signals.DiscreteSignalSum` have constructors which build an
-instance by sampling a :class:`~qiskit_dynamics.signals.Signal` or
+:class:`~qiskit_dynamics.signals.DiscreteSignalSum` feature constructors
+(:meth:`~qiskit_dynamics.signals.DiscreteSignal.from_Signal` and
+:meth:`~qiskit_dynamics.signals.DiscreteSignalSum.from_SignalSum` respectively)
+which build an instance by sampling a :class:`~qiskit_dynamics.signals.Signal` or
 :class:`~qiskit_dynamics.signals.SignalSum`. These constructors have the
 option to just sample the envelope (and keep the carrier analog), or to also
-sample the carrier.
+sample the carrier. Below is a visualization of a signal superimposed with
+sampled versions, both in the case of sampling the carrier, and in the case of
+sampling just the envelope (and keeping the carrier analog).
 
 .. jupyter-execute::
     :hide-code:
@@ -214,9 +164,6 @@ sample the carrier.
     signal.draw(t0=0., tf=1., n=100, axis=axs[1])
     discrete_signal2.draw(t0=0., tf=1., n=100, axis=axs[1],
                           title='Signal v.s. Sampled envelope')
-
-Analagous functionality is available in the
-:meth:`DiscreteSignalSum.from_SignalSum` method.
 
 
 Signal Classes
