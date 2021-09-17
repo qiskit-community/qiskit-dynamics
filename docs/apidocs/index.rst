@@ -9,8 +9,7 @@ Qiskit Dynamics API Reference
 .. toctree::
    :maxdepth: 2
 
-   solve
-   solver_classes
+   solvers
    models
    signals
    converters

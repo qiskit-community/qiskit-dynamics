@@ -14,18 +14,7 @@
 # pylint: disable=invalid-name
 
 r"""
-=============================================================
-Solver classes (:mod:`qiskit_dynamics.solver_classes`)
-=============================================================
-
-This is temporary, getting docs to build.
-
-.. currentmodule:: qiskit_dynamics.solver_classes
-
-.. autosummary::
-   :toctree: ../stubs/
-
-   Solver
+Solver classes.
 """
 
 
@@ -54,9 +43,9 @@ from qiskit_dynamics.models import (
 )
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics import solve_lmde
 
-from .solvers.solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
+from .solver_functions import solve_lmde
+from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
 
 
 class Solver:

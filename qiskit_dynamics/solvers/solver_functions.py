@@ -14,64 +14,7 @@
 # pylint: disable=invalid-name,no-member,attribute-defined-outside-init
 
 r"""
-=============================================================
-Differential equations solvers (:mod:`qiskit_dynamics.solve`)
-=============================================================
-
-This module provides high level functions for solving classes of
-Differential Equations (DEs), described below.
-
-1. Ordinary Differential Equations (ODEs)
-#########################################
-
-The most general class of DEs we consider are ODEs, which are of the form:
-
-.. math::
-
-    \dot{y}(t) = f(t, y(t)),
-
-Where :math:`f` is called the Right-Hand Side (RHS) function.
-ODEs can be solved by calling the :meth:`~qiskit_dynamics.solve_ode` function.
-
-2. Linear Matrix Differential Equations (LMDEs)
-###############################################
-
-LMDEs are a specialized subclass of ODEs of importance in quantum theory. Most generally,
-an LMDE is an ODE for which the the RHS function :math:`f(t, y)` is *linear* in the second
-argument. Numerical methods for LMDEs typically assume a *standard form*
-
-.. math::
-
-    f(t, y) = G(t)y,
-
-where :math:`G(t)` is a square matrix-valued function called the *generator*, and
-the state :math:`y(t)` must be an array of appropriate shape. Note that any LMDE in the more
-general sense (not in *standard form*) can be restructured into one of standard form via suitable
-vectorization.
-
-The function :meth:`~qiskit_dynamics.de.solve_lmde` provides access to solvers for LMDEs in
-standard form, specified in terms of a representation of the generator :math:`G(t)`,
-either as a Python ``Callable`` function or subclasses of
-:class:`~qiskit_dynamics.models.generator_models.BaseGeneratorModel`.
-
-Note that the numerical methods available via :meth:`~qiskit_dynamics.solve_ode`
-are also available through :meth:`~qiskit_dynamics.de.solve_lmde`:
-
-    * If the generator is supplied as a ``Callable``, the standard RHS function
-      :math:`f(t, y) = G(t)y` is automatically constructed.
-    * If the generator supplied is a subclass of
-      :class:`~qiskit_dynamics.models.generator_models.BaseGeneratorModel` which is not in standard
-      form, it is delegated to :meth:`~qiskit_dynamics.solve_ode`.
-
-
-
-.. currentmodule:: qiskit_dynamics.solve
-
-.. autosummary::
-   :toctree: ../stubs/
-
-   solve_ode
-   solve_lmde
+Solver functions.
 """
 
 from typing import Optional, Union, Callable, Tuple, List
@@ -91,15 +34,15 @@ from qiskit import QiskitError
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array, requires_backend
 
-from .solvers.fixed_step_solvers import scipy_expm_solver, jax_expm_solver
-from .solvers.scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
-from .solvers.jax_odeint import jax_odeint
+from qiskit_dynamics.models import (GeneratorModel, RotatingFrame, rotating_wave_approximation,
+                                    HamiltonianModel, LindbladModel)
 
-from .models.rotating_frame import RotatingFrame
-from .models.rotating_wave_approximation import rotating_wave_approximation
-from .models.generator_models import BaseGeneratorModel, GeneratorModel
-from .models import HamiltonianModel, LindbladModel
-from .solvers.solver_utils import is_lindblad_model_not_vectorized
+from ..models.generator_models import BaseGeneratorModel
+
+from .solver_utils import is_lindblad_model_not_vectorized
+from .fixed_step_solvers import scipy_expm_solver, jax_expm_solver
+from .scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
+from .jax_odeint import jax_odeint
 
 try:
     from jax.lax import scan

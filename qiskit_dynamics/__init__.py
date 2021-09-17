@@ -23,8 +23,8 @@ Qiskit extension module for simulating quantum dynamics.
 """
 from .version import __version__
 
-from .solve import solve_ode, solve_lmde
-from .solver_classes import Solver
+from .solvers.solver_functions import solve_ode, solve_lmde
+from .solvers.solver_classes import Solver
 
 from . import models
 from . import signals
