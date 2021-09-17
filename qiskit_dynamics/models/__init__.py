@@ -88,7 +88,7 @@ Model evaluation
 ================
 Once constructed, model classes enable *evaluation* of certain functions, e.g. for a
 :class:`~qiskit_dynamics.models.HamiltonianModel`, ``hamiltonian.evaluate(t)`` returns
-:math:`H(t)`, and ``hamiltonian.evaluate_rhs(t, y)`` evaluates :math:`-iH(t)y`. Similar
+:math:`-iH(t)`, and ``hamiltonian.evaluate_rhs(t, y)`` evaluates :math:`-iH(t)y`. Similar
 behaviour applies to :class:`~qiskit_dynamics.models.LindbladModel`, however the
 :meth:`~qiskit_dynamics.models.LindbladModel.evaluate` method will raise an error unless
 a vectorized evaluation mode is set (see below).
@@ -97,16 +97,17 @@ Rotating frames
 ^^^^^^^^^^^^^^^
 
 Frame transformations are a common technique for solving time-dependent quantum differential
-equations. By "entering a rotation frame" we can transform the differential equation to modify,
-and ideally simplify, the time-dependence of the equation to be solved.
-For example, for a Hamiltonian, this corresponds to the transformation
+equations. For example, for a Hamiltonian, this corresponds to the transformation
 
 .. math::
     H(t) \mapsto e^{iH_0t}(H(t) - H_0)e^{-iH_0t},
 
 for a Hermitian operator :math:`H_0` called the *frame operator*.
-The *frame operator* is commonly equivalently expressed as the corresponding anti-Hermitian
-operator under the association :math:`F = -iH_0`.
+
+.. note::
+    The *frame operator* is commonly equivalently expressed as the corresponding anti-Hermitian
+    operator under the association :math:`F = -iH_0`. This package refers to either :math:`F`
+    or :math:`H_0` as the *frame operator*, with this association being understood.
 
 Any model class can be transformed into a rotating frame by setting the
 ``rotating_frame`` property:
@@ -118,19 +119,15 @@ Any model class can be transformed into a rotating frame by setting the
 where ``frame_operator`` is either the Hermitian operator :math:`H_0` or the corresponding
 anti-Hermitian operator :math:`F = -iH_0`, specified either as an ``Operator``,
 a square 2d array, or a :class:`~qiskit_dynamics.models.RotatingFrame` instance (see below).
-Setting this property modifies the behaviour of the evaluation functions, e.g.
-for a :class:`~qiskit_dynamics.models.HamiltonianModel`, ``hamiltonian.evaluate(t)``
-will now evaluate to :math:`e^{-tF}(H(t) - F)e^{tF}`, and
-``hamiltonian.evaluate_rhs(t, y)`` evaluates to :math:`e^{-tF}(H(t) - F)e^{tF}y`.
+Setting this property modifies the behaviour of the evaluation functions, i.e. they will
+compute :math:`e^{-tF}(-iH - F)e^{tF}` in place of :math:`H(t)`.
 :class:`~qiskit_dynamics.models.LindbladModel` has similar behaviour.
 
 Internally, the model classes make use of the :class:`~qiskit_dynamics.models.RotatingFrame`
 class, which is instantiated when the ``rotating_frame`` property is set. This class contains
 helper functions for transforming various objects into and out of the rotating frame. This class
-works with the anti-Hermitian form of the frame operator, however if instantiated
-with a Hermitian matrix, it will automatically convert it to the anti-Hermitian form.
-See the :class:`~qiskit_dynamics.models.RotatingFrame` documentation for accepted ``frame_operator``
-types and corresponding behaviours.
+works directly with the anti-Hermitian form :math:`F = -iH_0`, however can be instantiated
+with a Hermitian operator :math:`H_0` from which :math:`F` is automatically constructed.
 
 Rotating wave approximation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -165,10 +162,6 @@ See ``set_evaluation_mode`` for each model class for available modes.
     rotating frames requires more restrictive choice of frames. For example, diagonal frame
     operators exactly preserve sparsity.
 
-The different modes are organized via a series of objects called "operator collections",
-which abstract the computational details of the particular equation out of
-the model classes.
-
 
 Model classes
 =============
@@ -188,31 +181,10 @@ Model transformations
 
    RotatingFrame
    rotating_wave_approximation
-
-Operator Collections
-====================
-
-.. autosummary::
-   :toctree: ../stubs/
-
-   BaseOperatorCollection
-   DenseOperatorCollection
-   SparseOperatorCollection
-   DenseLindbladCollection
-   DenseVectorizedLindbladCollection
-   SparseLindbladCollection
 """
 
 from .rotating_frame import RotatingFrame
 from .generator_models import BaseGeneratorModel, GeneratorModel, CallableGenerator
 from .hamiltonian_models import HamiltonianModel
 from .lindblad_models import LindbladModel
-from .operator_collections import (
-    BaseOperatorCollection,
-    DenseOperatorCollection,
-    SparseOperatorCollection,
-    DenseLindbladCollection,
-    DenseVectorizedLindbladCollection,
-    SparseLindbladCollection,
-)
 from .rotating_wave_approximation import rotating_wave_approximation

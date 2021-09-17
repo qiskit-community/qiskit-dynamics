@@ -800,7 +800,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
 
 class SignalList(SignalCollection):
-    r"""A list of ``Signal``\s, with functionality for simultaneous evaluation.
+    r"""A list of signals with functionality for simultaneous evaluation.
 
     The passed list is stored in the ``components`` attribute.
     """

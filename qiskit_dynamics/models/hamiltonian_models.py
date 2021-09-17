@@ -27,7 +27,7 @@ from .rotating_frame import RotatingFrame
 
 
 class HamiltonianModel(GeneratorModel):
-    r"""A model of a Hamiltonian.
+    r"""A model of a Hamiltonian for the Schrodinger equation.
 
     This class represents a Hamiltonian as a time-dependent decomposition the form:
 

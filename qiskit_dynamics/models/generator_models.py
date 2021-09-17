@@ -290,7 +290,9 @@ class CallableGenerator(BaseGeneratorModel):
 
 
 class GeneratorModel(BaseGeneratorModel):
-    r""":class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the
+    r"""A model for a a linear matrix differential equation in standard form.
+
+    :class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the
     map :math:`\Lambda(t, y)` is explicitly constructed as:
 
     .. math::
