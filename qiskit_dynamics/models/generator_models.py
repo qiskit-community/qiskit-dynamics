@@ -17,7 +17,7 @@ Generator models module.
 
 from abc import ABC, abstractmethod
 from typing import Callable, Tuple, Union, List, Optional
-from copy import deepcopy
+from copy import copy
 import numpy as np
 
 from qiskit import QiskitError
@@ -168,7 +168,7 @@ class BaseGeneratorModel(ABC):
 
     def copy(self):
         """Return a copy of self."""
-        return deepcopy(self)
+        return copy(self)
 
     def __call__(
         self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False
