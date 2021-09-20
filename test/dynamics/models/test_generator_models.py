@@ -209,7 +209,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(value, expected)
         if value.backend != "jax":
-            model.set_evaluation_mode("sparse")
+            model.evaluation_mode = "sparse"
             state = np.arange(operators.shape[-1] * 4).reshape(operators.shape[-1], 4)
             value = model(1.0)
             if issparse(value):

@@ -93,10 +93,10 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_signals: list of dissipator signals.
             drift: Optional, constant term in Hamiltonian.
             rotating_frame: rotating frame in which calcualtions are to be done.
-                If provided, it is assumed that all operators were
-                already in the frame basis.
-            evaluation_mode: Evaluation mode to use. See ``LindbladModel.set_evaluation_mode``
-                for more details.
+                            If provided, it is assumed that all operators were
+                            already in the frame basis.
+            evaluation_mode: Evaluation mode to use. See ``LindbladModel.evaluation_mode``
+                             for more details.
 
         Raises:
             Exception: if signals incorrectly specified.
@@ -139,14 +139,14 @@ class LindbladModel(BaseGeneratorModel):
         self._rotating_frame = None
         self.rotating_frame = rotating_frame
 
-        self.set_evaluation_mode(evaluation_mode)
+        self.evaluation_mode = evaluation_mode
 
     @property
     def dim(self) -> int:
         return self._hamiltonian_operators.shape[-1]
 
     @property
-    def signals(self) -> List[Array]:
+    def signals(self) -> Tuple[SignalList]:
         """Gets the Model's Signals.
 
         Returns:
@@ -156,8 +156,9 @@ class LindbladModel(BaseGeneratorModel):
         return [self._hamiltonian_signals, self._dissipator_signals]
 
     @signals.setter
-    def signals(self, new_signals: List[Array]):
-        self._hamiltonian_signals, self._dissipator_signals = new_signals
+    def signals(self, new_signals: Tuple[List[Signal]]):
+        self._hamiltonian_signals = SignalList(new_signals[0])
+        self._dissipator_signals = SignalList(new_signals[1])
 
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
         if not in_frame_basis and self.rotating_frame is not None:
@@ -168,22 +169,36 @@ class LindbladModel(BaseGeneratorModel):
         else:
             return (self._hamiltonian_operators, self._dissipator_operators)
 
-    def set_evaluation_mode(self, new_mode: str):
+    @property
+    def evaluation_mode(self) -> str:
+        """Numerical evaluation mode of the model.
+
+        Available options:
+
+            - 'dense': Stores Hamiltonian and dissipator terms as dense
+               Array types.
+            - 'dense_vectorized': Stores the Hamiltonian and dissipator
+              terms as (dim^2,dim^2) matrices that acts on a vectorized
+              density matrix by left-multiplication. Allows for direct evaluate generator.
+            - 'sparse': Like dense, but stores Hamiltonian components with
+              `csr_matrix` types. Outputs will be dense if a 2d frame operator is
+              used. Not compatible with jax.
+            - `sparse_vectorized': Like dense_vectorized, but stores everything as csr_matrices.
+        """
+        return super().evaluation_mode
+
+    @evaluation_mode.setter
+    def evaluation_mode(self, new_mode: str):
         """Sets evaluation mode.
 
         Args:
-            new_mode: New mode for evaluation. Supported modes are:
-                'dense': Stores Hamiltonian and dissipator terms as dense
-                       Array types.
-                'dense_vectorized': Stores the Hamiltonian and dissipator
-                    terms as (dim^2,dim^2) matrices that acts on a vectorized
-                    density matrix by left-multiplication. Allows for direct evaluate generator.
-                'sparse': Like dense, but stores Hamiltonian components with
-                    `csr_matrix` types. Outputs will be dense if a 2d frame operator is
-                    used. Not compatible with jax.
-                `sparse_vectorized': Like dense_vectorized, but stores everything as csr_matrices.
+            new_mode: String specifying new mode. Available options
+                      are 'dense', 'sparse', 'dense_vectorized', and 'sparse_vectorized'.
+                      See property doc string for details.
+
         Raises:
-            NotImplementedError: If a mode other than one of the above is specified.
+            NotImplementedError: if new_mode is not one of the above
+            supported evaluation modes.
         """
         if new_mode == "dense":
             self._operator_collection = DenseLindbladCollection(
@@ -214,7 +229,9 @@ class LindbladModel(BaseGeneratorModel):
             )
             self.vectorized_operators = True
         else:
-            raise NotImplementedError("Evaluation mode " + str(new_mode) + " is not supported.")
+            # raise error with standard message
+            # this is equivalent to calling the setter of the base class
+            super(__class__, self.__class__).evaluation_mode.fset(self, new_mode)
 
         self._evaluation_mode = new_mode
 
@@ -232,7 +249,7 @@ class LindbladModel(BaseGeneratorModel):
             hamiltonian: The :class:`HamiltonianModel`.
             dissipator_operators: List of dissipator operators.
             dissipator_signals: List of dissipator signals.
-            evaluation_mode: Evaluation mode. See LindbladModel.set_evaluation_mode
+            evaluation_mode: Evaluation mode. See LindbladModel.evaluation_mode
                 for more information.
 
         Returns:
@@ -285,7 +302,7 @@ class LindbladModel(BaseGeneratorModel):
 
         # Reset internal operator collection
         if self.evaluation_mode is not None:
-            self.set_evaluation_mode(self.evaluation_mode)
+            self.evaluation_mode = self.evaluation_mode
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         if self._dissipator_signals is not None:
