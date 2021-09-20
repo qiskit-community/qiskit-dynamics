@@ -71,23 +71,19 @@ class BaseGeneratorModel(ABC):
 
     @property
     def evaluation_mode(self) -> str:
-        """Returns the current implementation mode,
-        e.g. sparse/dense, vectorized/not.
+        """Numerical evaluation mode of the model.
         """
         # pylint: disable=no-member
         return self._evaluation_mode
 
-    @abstractmethod
-    def set_evaluation_mode(self, new_mode: str):
-        """Sets evaluation mode of model.
-        Will replace _operator_collection with the
-        correct type of operator collection.
+    @evaluation_mode.setter
+    def evaluation_mode(self, new_mode: str):
+        """Sets evaluation mode of model."""
 
-        Instances of this function should
-        include important details about each
-        evaluation mode.
-        """
-        pass
+        # default error message to be used by all subclasses.
+        raise NotImplementedError("Evaluation mode '" + str(new_mode) + "' is not supported. " +
+                                  "Call help(" + str(self.__class__.__name__) + ".evaluation_mode) " +
+                                  "for available options.")
 
     @abstractmethod
     def get_operators(
@@ -246,7 +242,13 @@ class CallableGenerator(BaseGeneratorModel):
                 self.rotating_frame.frame_diag
             )
 
-    def set_evaluation_mode(self, new_mode: str):
+    @property
+    def evaluation_mode(self) -> str:
+        """CallableGenerator does not support evaluation_mode."""
+        pass
+
+    @evaluation_mode.setter
+    def evaluation_mode(self, new_mode: str):
         """Setting the evaluation mode for CallableGenerator
         is not supported."""
         raise NotImplementedError(
@@ -319,10 +321,10 @@ class GeneratorModel(BaseGeneratorModel):
         Args:
             operators: A list of operators :math:`G_i`.
             signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
-                :class:`GeneratorModel` signals are not required at instantiation.
+                     :class:`GeneratorModel` signals are not required at instantiation.
             rotating_frame: Rotating frame operator.
-            evaluation_mode: Evaluation mode to use. See ``GeneratorModel.set_evaluation_mode``
-            for more details. Supported options are:
+            evaluation_mode: Evaluation mode to use. See ``GeneratorModel.evaluation_mode``
+                             for more details. Supported options are:
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
 
@@ -343,7 +345,7 @@ class GeneratorModel(BaseGeneratorModel):
         self._signals = None
         self.signals = signals
 
-        self.set_evaluation_mode(evaluation_mode)
+        self.evaluation_mode = evaluation_mode
 
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
         if not in_frame_basis and self.rotating_frame is not None:
@@ -355,22 +357,29 @@ class GeneratorModel(BaseGeneratorModel):
     def dim(self) -> int:
         return self._operators.shape[-1]
 
-    def set_evaluation_mode(self, new_mode: str):
+    @property
+    def evaluation_mode(self) -> str:
+        """Numerical evaluation mode of the model.
+
+        Available options:
+
+            - 'dense': Stores/evaluates operators using dense Arrays.
+            - 'sparse': stores/evaluates operators using scipy
+            :class:`csr_matrix` types. Not compatible with JAX.
+        """
+        return super().evaluation_mode
+
+    @evaluation_mode.setter
+    def evaluation_mode(self, new_mode: str):
         """Set evaluation mode.
 
         Args:
-            new_mode: String specifying new mode. Available options:
-            - 'dense': Stores/evaluates operators using dense Arrays.
-            - 'sparse': stores/evaluates operators using scipy
-            :class:`csr_matrix` types. If evaluating the generator
-            with a 2d frame operator (non-diagonal), all generators
-            will be returned as dense matrices. Not compatible
-            with JAX.
+            new_mode: String specifying new mode. Available options
+                      are 'dense' and 'sparse'. See property doc string for details.
 
         Raises:
             NotImplementedError: if new_mode is not one of the above
             supported evaluation modes.
-
         """
 
         if new_mode == "dense":
@@ -382,7 +391,9 @@ class GeneratorModel(BaseGeneratorModel):
                 self.get_operators(in_frame_basis=True), self.get_drift(in_frame_basis=True)
             )
         else:
-            raise NotImplementedError("Evaluation Mode " + str(new_mode) + " is not supported.")
+            # raise error with standard message
+            # this is equivalent to calling the setter of the base class
+            super(__class__, self.__class__).evaluation_mode.fset(self, new_mode)
 
         self._evaluation_mode = new_mode
 
@@ -436,7 +447,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         # Reset internal operator collection
         if self.evaluation_mode is not None:
-            self.set_evaluation_mode(self.evaluation_mode)
+            self.evaluation_mode = self.evaluation_mode
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.

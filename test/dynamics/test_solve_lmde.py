@@ -77,7 +77,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         )
 
         self.vec_lindblad_model = self.lindblad_model.copy()
-        self.vec_lindblad_model.set_evaluation_mode("dense_vectorized")
+        self.vec_lindblad_model.evaluation_mode = "dense_vectorized"
 
         self.frame_op = 1.2 * Operator.from_label("X") - 3.132 * Operator.from_label("Y")
         _, U = np.linalg.eigh(self.frame_op)

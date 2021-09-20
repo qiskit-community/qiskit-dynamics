@@ -77,7 +77,7 @@ class HamiltonianModel(GeneratorModel):
             evaluation_mode: Evaluation mode to use. Supported options are:
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
-                                See ``GeneratorModel.set_evaluation_mode`` for more details.
+                                See ``GeneratorModel.evaluation_mode`` for more details.
 
         Raises:
             Exception: if operators are not Hermitian
@@ -125,7 +125,7 @@ class HamiltonianModel(GeneratorModel):
 
         # Reset internal operator collection
         if self.evaluation_mode is not None:
-            self.set_evaluation_mode(self.evaluation_mode)
+            self.evaluation_mode = self.evaluation_mode
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         return -1j * super().evaluate(time, in_frame_basis=in_frame_basis)
