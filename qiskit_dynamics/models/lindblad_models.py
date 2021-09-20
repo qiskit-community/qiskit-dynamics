@@ -56,6 +56,22 @@ class LindbladModel(BaseGeneratorModel):
           operator, and
         - :math:`\gamma_j(t)` denotes the signal corresponding to the
           :math:`j^{th}` Lindblad operator.
+
+    Instantiating an instance of :class:`~qiskit_dynamics.models.LindbladModel`
+    requires specifying the above decomposition:
+
+    .. code-block:: python
+
+        lindblad_model = LindbladModel(hamiltonian_operators,
+                                       hamiltonian_signals,
+                                       drift,
+                                       dissipator_operators,
+                                       dissipator_signals)
+
+    where the arguments ``hamiltonian_operators``, ``hamiltonian_signals``, and ``drift`` are for
+    the Hamiltonian decomposition as in :class:`~qiskit_dynamics.models.HamiltonianModel`,
+    and the ``dissipator_operators`` correspond to the :math:`L_j`, and the ``dissipator_signals``
+    the :math:`g_j(t)`, which default to the constant ``1.``.
     """
 
     def __init__(
