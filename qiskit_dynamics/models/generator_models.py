@@ -40,6 +40,7 @@ class BaseGeneratorModel(ABC):
     if possible, evaluation of the map :math:`\Lambda(t, \cdot)`.
 
     Additionally, the class defines interfaces for:
+
         - Setting a "drift" term, representing the time-independent part of :math:`\Lambda`.
         - Setting a "rotating frame", specified either directly as a :class:`RotatingFrame`
         instance, or an operator from which a :class:`RotatingFrame` instance can be constructed.
@@ -71,8 +72,7 @@ class BaseGeneratorModel(ABC):
 
     @property
     def evaluation_mode(self) -> str:
-        """Numerical evaluation mode of the model.
-        """
+        """Numerical evaluation mode of the model."""
         # pylint: disable=no-member
         return self._evaluation_mode
 
@@ -81,9 +81,15 @@ class BaseGeneratorModel(ABC):
         """Sets evaluation mode of model."""
 
         # default error message to be used by all subclasses.
-        raise NotImplementedError("Evaluation mode '" + str(new_mode) + "' is not supported. " +
-                                  "Call help(" + str(self.__class__.__name__) + ".evaluation_mode) " +
-                                  "for available options.")
+        raise NotImplementedError(
+            "Evaluation mode '"
+            + str(new_mode)
+            + "' is not supported. "
+            + "Call help("
+            + str(self.__class__.__name__)
+            + ".evaluation_mode) "
+            + "for available options."
+        )
 
     @abstractmethod
     def get_operators(
@@ -325,6 +331,7 @@ class GeneratorModel(BaseGeneratorModel):
             rotating_frame: Rotating frame operator.
             evaluation_mode: Evaluation mode to use. See ``GeneratorModel.evaluation_mode``
                              for more details. Supported options are:
+
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
 
@@ -487,7 +494,7 @@ class GeneratorModel(BaseGeneratorModel):
             y: Array specifying system state, in basis specified by
             in_frame_basis.
             in_frame_basis: Whether to evaluate in the basis in which the frame
-            operator is diagonal.
+                            operator is diagonal.
 
         Returns:
             Array defined by :math:`G(t) \times y`.

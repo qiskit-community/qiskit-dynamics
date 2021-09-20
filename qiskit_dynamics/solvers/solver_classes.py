@@ -102,8 +102,8 @@ class Solver:
                    ``frame_operator`` will be subtracted from the drift.
             rotating_frame: Rotating frame to transform the model into.
             evaluation_mode: Method for model evaluation. See documentation for
-                             :meth:`HamiltonianModel.evaluation_mode` or
-                             :meth:`LindbladModel.evaluation_mode`
+                             ``HamiltonianModel.evaluation_mode`` or
+                             ``LindbladModel.evaluation_mode``.
                              (if dissipators in model) for valid modes.
             rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
                              approximation is made.
