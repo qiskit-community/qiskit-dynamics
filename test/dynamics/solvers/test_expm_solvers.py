@@ -20,7 +20,7 @@ import numpy as np
 from scipy.linalg import expm
 
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.solvers import scipy_expm_solver, jax_expm_solver
+from qiskit_dynamics.solvers.fixed_step_solvers import scipy_expm_solver, jax_expm_solver
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 

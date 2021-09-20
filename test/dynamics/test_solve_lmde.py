@@ -22,7 +22,7 @@ from qiskit.quantum_info import Operator
 from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_lmde
-from qiskit_dynamics.solve import (
+from qiskit_dynamics.solvers.solver_functions import (
     setup_generator_model_rhs_y0_in_frame_basis,
     results_y_out_of_frame_basis,
 )
