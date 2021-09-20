@@ -17,7 +17,7 @@ Direct tests of jax_odeint
 
 import numpy as np
 
-from qiskit_dynamics.solvers import jax_odeint
+from qiskit_dynamics.solvers.jax_odeint import jax_odeint
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
