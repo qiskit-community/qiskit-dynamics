@@ -375,6 +375,10 @@ def to_csr(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]) ->
     if op is None:
         return op
 
+    if (isinstance(op, Array) or isinstance(op, np.ndarray)) and op.ndim < 3:
+        return csr_matrix(op)
+    elif isinstance(op, Operator):
+        return csr_matrix(op)
     elif isinstance(op, Iterable):
         return [csr_matrix(item) for item in op]
 

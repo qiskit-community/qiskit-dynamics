@@ -14,6 +14,7 @@
 """Tests for type_utils.py."""
 
 import numpy as np
+from collections.abc import Iterable
 from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators.operator import Operator
@@ -270,6 +271,40 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         self.assertAllClose(to_array(op_arr), list_of_arrays)
         for i in range(3):
             self.assertAllClose(sparse_matrices[i].toarray(), normal_array[i])
+    
+    def test_to_array_types(self):
+        """Type conversion tests for to_array"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        numpy_ops = np.array(list_of_ops)
+        normal_array = Array(np.array(list_of_ops))
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
+        single_op = op_arr[0]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        assert(isinstance(to_array(numpy_ops), np.ndarray))
+        assert(isinstance(to_array(normal_array), Array))
+        assert(isinstance(to_array(op_arr), np.ndarray))
+        assert(isinstance(to_array(single_op), np.ndarray))
+        assert(isinstance(to_array(list_of_arrays), np.ndarray))
+
+    def test_to_csr_types(self):
+        """Type conversion tests for to_array"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        numpy_ops = np.array(list_of_ops)
+        normal_array = Array(np.array(list_of_ops))
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
+        single_op = op_arr[0]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        single_array = list_of_arrays[0]
+        sparse_matrices = [csr_matrix(op) for op in list_of_ops]
+        assert(isinstance(to_csr(normal_array)[0], csr_matrix))
+        assert(isinstance(to_csr(numpy_ops)[0], csr_matrix))
+        assert(isinstance(to_csr(op_arr)[0], csr_matrix))
+        assert(isinstance(to_csr(single_op), csr_matrix))
+        assert(isinstance(to_csr(single_array), csr_matrix))
+        assert(isinstance(to_csr(list_of_arrays[0]), csr_matrix))
+        assert(isinstance(to_csr(sparse_matrices), Iterable))
+        assert(isinstance(to_csr(sparse_matrices)[0], csr_matrix))
+
 
     def test_to_csr(self):
         """Tests for to_csr"""
@@ -304,3 +339,17 @@ class TestTypeUtilsJax(TestTypeUtils, TestJaxBase):
 
     Note: This class has no body but contains tests due to inheritance.
     """
+
+    def test_to_array_types(self):
+        """Type conversion tests for to_array"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        numpy_ops = np.array(list_of_ops)
+        normal_array = Array(np.array(list_of_ops))
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
+        single_op = op_arr[0]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        assert(isinstance(to_array(numpy_ops), np.ndarray))
+        assert(isinstance(to_array(normal_array), Array))
+        assert(isinstance(to_array(op_arr), Array))
+        assert(isinstance(to_array(single_op), Array))
+        assert(isinstance(to_array(list_of_arrays), Array))
