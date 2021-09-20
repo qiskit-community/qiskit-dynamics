@@ -147,6 +147,16 @@ def solve_lmde(
     where :math:`G(t)` is a square matrix valued-function called the *generator*,
     and :math:`y(t)` is an :class:`Array` of appropriate shape.
 
+    Thus function accepts :math:`G(t)` as a ``qiskit_dynamics`` model class,
+    or as an arbitrary callable.
+
+    .. note::
+
+        Not all model classes are by-default in standard form. E.g.
+        :class:`~qiskit_dynamics.models.LindbladModel` represents an LMDE which is not
+        typically written in standard form. As such, using LMDE-specific methods with this generator
+        requires setting a vectorized evaluation mode.
+
     The ``method`` argument exposes solvers specialized to both LMDEs, as
     well as general ODE solvers. If the method is not specific to LMDEs,
     the problem will be passed to :meth:`~qiskit_dynamics.solve_ode` by automatically setting
@@ -156,8 +166,13 @@ def solve_lmde(
     Available LMDE-specific methods are:
 
     - ``'scipy_expm'``: A matrix-exponential solver using ``scipy.linalg.expm``.
-                        Requires additional kwarg ``max_dt``.
-    - ``'jax_expm'``: A ``jax``-based exponential solver. Requires additional kwarg ``max_dt``.
+      Requires additional kwarg ``max_dt``, indicating the maximum step
+      size to take. This solver will break integration periods into even
+      sub-intervals no larger than ``max_dt``, and solve over each sub-intervals via
+      matrix exponentiation of the generator sampled at the midpoint.
+    - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
+      logic.
+
 
     Results are returned as a :class:`OdeResult` object.
 

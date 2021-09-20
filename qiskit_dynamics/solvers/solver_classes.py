@@ -49,7 +49,8 @@ from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_ve
 
 
 class Solver:
-    """Solver object for simulating both Hamiltonian and Lindblad dynamics.
+    """Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
+    level type-handling of input states.
 
     Given the components of a Hamiltonian and optional dissipators, this class will
     internally construct either a :class:`HamiltonianModel` or :class:`LindbladModel`
@@ -167,7 +168,7 @@ class Solver:
     ) -> OdeResult:
         r"""Solve the dynamical problem.
 
-        Calls :func:`~qiskit_dynamics.solve_lmde`, and returns an `OdeResult`
+        Calls :func:`~qiskit_dynamics.solvers.solve_lmde`, and returns an `OdeResult`
         object in the style of `scipy.integrate.solve_ivp`, with results
         formatted to be the same types as the input. See Additional Information
         for special handling of various input types.
@@ -175,7 +176,7 @@ class Solver:
         Args:
             t_span: Time interval to integrate over.
             y0: Initial state.
-            kwargs: Keyword args passed to :meth:`~qiskit_dynamics.solve.solve_lmde`.
+            kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
         Returns:
             OdeResult object with formatted output types.
         Raises:
