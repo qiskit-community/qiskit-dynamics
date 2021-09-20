@@ -22,7 +22,7 @@ from qiskit_dynamics.models import GeneratorModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics.dispatch import Array
 
-from .common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class Testsolve_ode_exceptions(QiskitDynamicsTestCase):

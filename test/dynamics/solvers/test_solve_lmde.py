@@ -28,7 +28,7 @@ from qiskit_dynamics.solvers.solver_functions import (
 )
 from qiskit_dynamics.dispatch import Array
 
-from .common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
