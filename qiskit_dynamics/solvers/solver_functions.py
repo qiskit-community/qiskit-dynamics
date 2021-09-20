@@ -34,8 +34,13 @@ from qiskit import QiskitError
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array, requires_backend
 
-from qiskit_dynamics.models import (GeneratorModel, RotatingFrame, rotating_wave_approximation,
-                                    HamiltonianModel, LindbladModel)
+from qiskit_dynamics.models import (
+    GeneratorModel,
+    RotatingFrame,
+    rotating_wave_approximation,
+    HamiltonianModel,
+    LindbladModel,
+)
 
 from ..models.generator_models import BaseGeneratorModel
 
