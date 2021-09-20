@@ -54,9 +54,7 @@ class Solver:
 
     Given the components of a Hamiltonian and optional dissipators, this class will
     internally construct either a :class:`HamiltonianModel` or :class:`LindbladModel`
-    instance. The evolution given by the model can be simulated by calling :meth:`solve`,
-    which automatically handles :mod:`qiskit.quantum_info` state and super operator types,
-    and calls :func:`~qiskit_dynamics.solve.solve_lmde` to solve.
+    instance.
 
     Transformations on the model can be specified via the optional arguments:
 
@@ -74,6 +72,11 @@ class Solver:
         the getting and setting of model signals should be done via the ``signals`` property
         of this class, which manages signal transformations required in
         the case that a rotating wave approximation is made.
+
+    The evolution given by the model can be simulated by calling
+    :meth:`~qiskit_dynamics.solvers.Solver.solve`, which calls
+    calls :func:`~qiskit_dynamics.solve.solve_lmde`, and does various automatic
+    type handling operations for :mod:`qiskit.quantum_info` state and super operator types.
     """
 
     def __init__(
