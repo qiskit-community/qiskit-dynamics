@@ -23,7 +23,9 @@ import numpy as np
 from scipy.sparse import issparse, spmatrix
 from scipy.sparse import kron as sparse_kron
 from scipy.sparse import identity as sparse_identity
+from scipy.sparse import csr
 from scipy.sparse.csr import csr_matrix
+from qiskit_dynamics import dispatch
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
@@ -321,6 +323,16 @@ def vec_dissipator(L: Array):
     )
 
 
+def isinstance_qutip_qobj(obj):
+    if (
+        type(obj).__name__ == "Qobj"
+        and hasattr(obj, "_data")
+        and type(obj._data).__name__ == "fast_csr_matrix"
+    ):
+        return True
+    return False
+
+
 def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     """Convert an operator or list of operators to an Array.
 
@@ -334,8 +346,17 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     if op is None:
         return op
 
-    if isinstance(op, (np.ndarray, Array)):
+    if isinstance(op, np.ndarray):
+        if dispatch.default_backend() in [None, "numpy"]:
+            return op
+        else:
+            return Array(op)
+
+    if isinstance(op, Array):
         return op
+
+    elif isinstance_qutip_qobj(op):
+        return Array(op.data)
 
     elif isinstance(op, Iterable) and isinstance(op[0], Operator):
         shape = op[0].data.shape
@@ -375,6 +396,9 @@ def to_csr(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]) ->
     if op is None:
         return op
 
+    elif isinstance_qutip_qobj(op):
+        return to_csr(op.data)
+
     if (isinstance(op, Array) or isinstance(op, np.ndarray)) and op.ndim < 3:
         return csr_matrix(op)
     elif isinstance(op, Operator):
@@ -406,6 +430,9 @@ def to_numeric_matrix_type(
     if op is None:
         return op
 
+    elif isinstance_qutip_qobj(op):
+        return to_csr(op.data)
+
     elif isinstance(op, Array):
         return op
     elif isinstance(op, spmatrix):
@@ -414,6 +441,9 @@ def to_numeric_matrix_type(
         return to_array(op)
 
     elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
+        return to_csr(op)
+
+    elif isinstance(op, Iterable) and isinstance_qutip_qobj(op[0]):
         return to_csr(op)
 
     else:

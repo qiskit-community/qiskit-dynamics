@@ -24,6 +24,12 @@ try:
     from jax import jit, grad
 except ImportError:
     pass
+
+try:
+    import qutip
+except ImportError:
+    pass
+
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import wrap
 
@@ -96,3 +102,20 @@ class TestJaxBase(unittest.TestCase):
         wf = wrap(lambda f: jit(grad(f)), decorator=True)
         f = lambda *args: np.sum(func_to_test(*args)).real
         return wf(f)
+
+
+class TestQutipBase(unittest.TestCase):
+    """Base class with setUpClass and tearDownClass for setting jax as the
+    default backend.
+
+    Test cases that inherit from this class will automatically work with jax
+    backend.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            # pylint: disable=import-outside-toplevel
+            import qutip
+        except Exception as err:
+            raise unittest.SkipTest("Skipping qutip tests.") from err
