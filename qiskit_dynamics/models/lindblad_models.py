@@ -78,7 +78,7 @@ class LindbladModel(BaseGeneratorModel):
     def __init__(
         self,
         hamiltonian_operators: Array,
-        hamiltonian_signals: Union[List[Signal], SignalList],
+        hamiltonian_signals: Union[List[Signal], SignalList] = None,
         dissipator_operators: Array = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         static_hamiltonian: Optional[Array] = None,
@@ -113,29 +113,7 @@ class LindbladModel(BaseGeneratorModel):
         self.set_static_hamiltonian(static_hamiltonian, operator_in_frame_basis=True)
         self._dissipator_operators = dissipator_operators
 
-        if isinstance(hamiltonian_signals, list):
-            hamiltonian_signals = SignalList(hamiltonian_signals)
-        elif not isinstance(hamiltonian_signals, SignalList):
-            raise Exception(
-                """hamiltonian_signals must either be a list of
-                             Signals, or a SignalList."""
-            )
-
-        if dissipator_signals is None:
-            if dissipator_operators is not None:
-                dissipator_signals = SignalList([1.0 for k in dissipator_operators])
-            else:
-                dissipator_signals = None
-        elif isinstance(dissipator_signals, list):
-            dissipator_signals = SignalList(dissipator_signals)
-        elif not isinstance(dissipator_signals, SignalList):
-            raise Exception(
-                """dissipator_signals must either be a list of
-                                 Signals, or a SignalList."""
-            )
-
-        self._hamiltonian_signals = hamiltonian_signals
-        self._dissipator_signals = dissipator_signals
+        self.signals = (hamiltonian_signals, dissipator_signals)
 
         self._rotating_frame = None
         self.rotating_frame = rotating_frame
@@ -151,15 +129,53 @@ class LindbladModel(BaseGeneratorModel):
         """Gets the Model's Signals.
 
         Returns:
-            list[Array] with 0th entry storing the Hamiltonian signals
+            Tuple[] with 0th entry storing the Hamiltonian signals
             and the 1st entry storing the dissipator signals.
         """
-        return [self._hamiltonian_signals, self._dissipator_signals]
+        return (self._hamiltonian_signals, self._dissipator_signals)
 
     @signals.setter
     def signals(self, new_signals: Tuple[List[Signal]]):
-        self._hamiltonian_signals = SignalList(new_signals[0])
-        self._dissipator_signals = SignalList(new_signals[1])
+        hamiltonian_signals, dissipator_signals = new_signals
+        ham_ops, diss_ops = self.get_operators()
+
+        if isinstance(hamiltonian_signals, list):
+            hamiltonian_signals = SignalList(hamiltonian_signals)
+
+        if hamiltonian_signals is not None:
+            if not isinstance(hamiltonian_signals, SignalList):
+                raise QiskitError(
+                    """hamiltonian_signals must either be a list of
+                                 Signals, or a SignalList."""
+                )
+            if ham_ops is not None and len(hamiltonian_signals) != len(ham_ops):
+                raise QiskitError(
+                    """hamiltonian_signals must have the same length as the
+                       hamiltonian_operators."""
+                )
+
+        if dissipator_signals is None:
+            if diss_ops is not None:
+                dissipator_signals = SignalList([1.0] * len(diss_ops))
+            else:
+                dissipator_signals = None
+        elif isinstance(dissipator_signals, list):
+            dissipator_signals = SignalList(dissipator_signals)
+
+        if dissipator_signals is not None:
+            if not isinstance(dissipator_signals, SignalList):
+                raise QiskitError(
+                    """dissipator_signals must either be a list of
+                                     Signals, or a SignalList."""
+                )
+            if diss_ops is not None and len(dissipator_signals) != len(diss_ops):
+                raise QiskitError(
+                    """dissipator_signals must have the same length as the
+                       dissipator_operators."""
+                )
+
+        self._hamiltonian_signals = hamiltonian_signals
+        self._dissipator_signals = dissipator_signals
 
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
         if not in_frame_basis and self.rotating_frame is not None:
