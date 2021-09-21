@@ -41,7 +41,7 @@ class BaseGeneratorModel(ABC):
 
     Additionally, the class defines interfaces for:
 
-        - Setting a "drift" term, representing the time-independent part of :math:`\Lambda`.
+        - Setting a "static_operator" term, representing the time-independent part of :math:`\Lambda`.
         - Setting a "rotating frame", specified either directly as a :class:`RotatingFrame`
         instance, or an operator from which a :class:`RotatingFrame` instance can be constructed.
         The exact meaning of this transformation is determined by the structure of
@@ -105,46 +105,46 @@ class BaseGeneratorModel(ABC):
         """
         pass
 
-    def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
-        """Get the drift term.
+    def get_static_operator(self, in_frame_basis: Optional[bool] = False) -> Array:
+        """Get the constant term.
 
         Args:
-            in_frame_basis: Flag for whether the returned drift should be
+            in_frame_basis: Flag for whether the returned static_operator should be
             in the basis in which the frame is diagonal.
         Returns:
-            The drift term.
+            The static operator term.
         """
         if not in_frame_basis and self.rotating_frame is not None:
-            return self.rotating_frame.operator_out_of_frame_basis(self._drift)
+            return self.rotating_frame.operator_out_of_frame_basis(self._static_operator)
         else:
-            return self._drift
+            return self._static_operator
 
-    def set_drift(
+    def set_static_operator(
         self,
-        new_drift: Array,
+        new_static_operator: Array,
         operator_in_frame_basis: Optional[bool] = False,
     ):
-        """Sets drift term. Note that if the model has a rotating frame this will override
-        any contributions to the drift due to the frame transformation.
+        """Sets static term. Note that if the model has a rotating frame this will override
+        any contributions to the static term due to the frame transformation.
 
         Args:
-            new_drift: The drift operator.
-            operator_in_frame_basis: Whether `new_drift` is already in the rotating
+            new_static_operator: The static operator operator.
+            operator_in_frame_basis: Whether `new_static_operator` is already in the rotating
             frame basis.
         """
-        if new_drift is None:
-            new_drift = np.zeros((self.dim, self.dim))
+        if new_static_operator is None:
+            new_static_operator = np.zeros((self.dim, self.dim))
 
-        new_drift = to_array(new_drift)
+        new_static_operator = to_array(new_static_operator)
 
         if not operator_in_frame_basis and self.rotating_frame is not None:
-            new_drift = self.rotating_frame.operator_into_frame_basis(new_drift)
+            new_static_operator = self.rotating_frame.operator_into_frame_basis(new_static_operator)
         # pylint: disable = attribute-defined-outside-init
-        self._drift = new_drift
+        self._static_operator = new_static_operator
         # pylint: disable=no-member
         if self._operator_collection is not None:
             # pylint: disable=no-member
-            self._operator_collection.drift = new_drift
+            self._operator_collection.static_operator = new_static_operator
 
     @abstractmethod
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
@@ -203,12 +203,12 @@ class CallableGenerator(BaseGeneratorModel):
         self,
         generator: Callable,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
-        drift: Optional[Union[Operator, Array]] = None,
+        static_operator: Optional[Union[Operator, Array]] = None,
         dim: Optional[int] = None,
     ):
         self._generator = generator
         self.rotating_frame = rotating_frame
-        self._drift = drift
+        self._static_operator = static_operator
         self._evaluation_mode = "callable_generator"
         self._operator_collection = None
         self._dim = dim
@@ -222,30 +222,33 @@ class CallableGenerator(BaseGeneratorModel):
                 "Dimension of CallableGenerator object should be specified at initialization."
             )
 
-    def get_drift(self, in_frame_basis: Optional[bool] = False) -> Array:
+    def get_static_operator(self, in_frame_basis: Optional[bool] = False) -> Array:
         if in_frame_basis and self.rotating_frame is not None:
-            return self.rotating_frame.operator_into_frame_basis(self._drift)
+            return self.rotating_frame.operator_into_frame_basis(self._static_operator)
         else:
-            return self._drift
+            return self._static_operator
 
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Callable:
         """`CallableGenerator` does not have decomposition in terms of operators."""
         raise QiskitError("CallableGenerator does not have decomposition in terms of operators.")
 
-    def set_drift(
+    def set_static_operator(
         self,
-        new_drift: Array,
+        new_static_operator: Array,
         operator_in_frame_basis: Optional[bool] = False,
     ):
         # subtracting the frame operator from the generator is handled at evaluation time.
         if operator_in_frame_basis and self.rotating_frame is not None:
-            self._drift = self.rotating_frame.operator_out_of_frame_basis(new_drift)
+            self._static_operator = self.rotating_frame.operator_out_of_frame_basis(
+                new_static_operator
+            )
         else:
-            self._drift = new_drift
+            self._static_operator = new_static_operator
 
         if self.rotating_frame.frame_diag is not None:
-            self._drift = self._drift + self.rotating_frame.operator_out_of_frame_basis(
-                self.rotating_frame.frame_diag
+            self._static_operator = (
+                self._static_operator
+                + self.rotating_frame.operator_out_of_frame_basis(self.rotating_frame.frame_diag)
             )
 
     @property
@@ -290,8 +293,8 @@ class CallableGenerator(BaseGeneratorModel):
 
         # evaluate generator and map it into the rotating frame
         gen = self._generator(time)
-        if self._drift is not None:
-            gen = gen + self._drift
+        if self._static_operator is not None:
+            gen = gen + self._static_operator
         return self.rotating_frame.generator_into_frame(
             time, gen, operator_in_frame_basis=False, return_in_frame_basis=in_frame_basis
         )
@@ -311,14 +314,14 @@ class GeneratorModel(BaseGeneratorModel):
     where the :math:`G_i` are matrices (represented by :class:`Operator`
     or :class:`Array` objects), the :math:`s_i(t)` are signals represented by
     a list of :class:`Signal` objects, and
-    :math:`G_d` is the constant-in-time drift term of the generator.
+    :math:`G_d` is the constant-in-time static term of the generator.
     """
 
     def __init__(
         self,
         operators: Array,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        drift: Optional[Array] = None,
+        static_operator: Optional[Array] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: str = "dense",
     ):
@@ -328,6 +331,7 @@ class GeneratorModel(BaseGeneratorModel):
             operators: A list of operators :math:`G_i`.
             signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
                      :class:`GeneratorModel` signals are not required at instantiation.
+            static_operator: Constant part of the generator.
             rotating_frame: Rotating frame operator.
             evaluation_mode: Evaluation mode to use. See ``GeneratorModel.evaluation_mode``
                              for more details. Supported options are:
@@ -340,9 +344,9 @@ class GeneratorModel(BaseGeneratorModel):
         # initialize internal operator representation
         self._operator_collection = None
         self._operators = to_array(operators)
-        self._drift = None
+        self._static_operator = None
         self._evaluation_mode = None
-        self.set_drift(drift, operator_in_frame_basis=True)
+        self.set_static_operator(static_operator, operator_in_frame_basis=True)
 
         # set frame and transform operators into frame basis.
         self._rotating_frame = None
@@ -391,11 +395,13 @@ class GeneratorModel(BaseGeneratorModel):
 
         if new_mode == "dense":
             self._operator_collection = DenseOperatorCollection(
-                self.get_operators(in_frame_basis=True), drift=self.get_drift(in_frame_basis=True)
+                self.get_operators(in_frame_basis=True),
+                static_operator=self.get_static_operator(in_frame_basis=True),
             )
         elif new_mode == "sparse":
             self._operator_collection = SparseOperatorCollection(
-                self.get_operators(in_frame_basis=True), self.get_drift(in_frame_basis=True)
+                self.get_operators(in_frame_basis=True),
+                self.get_static_operator(in_frame_basis=True),
             )
         else:
             # raise error with standard message
@@ -441,16 +447,24 @@ class GeneratorModel(BaseGeneratorModel):
     @rotating_frame.setter
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
         if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
-            self._drift = self._drift + Array(np.diag(self._rotating_frame.frame_diag))
+            self._static_operator = self._static_operator + Array(
+                np.diag(self._rotating_frame.frame_diag)
+            )
             self._operators = self.rotating_frame.operator_out_of_frame_basis(self._operators)
-            self._drift = self.rotating_frame.operator_out_of_frame_basis(self._drift)
+            self._static_operator = self.rotating_frame.operator_out_of_frame_basis(
+                self._static_operator
+            )
 
         self._rotating_frame = RotatingFrame(rotating_frame)
 
         if self._rotating_frame.frame_diag is not None:
             self._operators = self.rotating_frame.operator_into_frame_basis(self._operators)
-            self._drift = self.rotating_frame.operator_into_frame_basis(self._drift)
-            self._drift = self._drift - Array(np.diag(self._rotating_frame.frame_diag))
+            self._static_operator = self.rotating_frame.operator_into_frame_basis(
+                self._static_operator
+            )
+            self._static_operator = self._static_operator - Array(
+                np.diag(self._rotating_frame.frame_diag)
+            )
 
         # Reset internal operator collection
         if self.evaluation_mode is not None:

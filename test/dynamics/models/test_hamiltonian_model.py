@@ -205,7 +205,9 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
             sig_list.append(Signal(get_env_func(), freq, phase))
         sig_list = SignalList(sig_list)
-        model = HamiltonianModel(operators, drift=None, signals=sig_list, rotating_frame=frame_op)
+        model = HamiltonianModel(
+            operators, static_operator=None, signals=sig_list, rotating_frame=frame_op
+        )
 
         value = model(1.0, in_frame_basis=False) / -1j
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))

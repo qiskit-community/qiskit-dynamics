@@ -34,14 +34,14 @@ class HamiltonianModel(GeneratorModel):
     .. math::
         H(t) = H_d + \sum_j s_j(t) H_j,
 
-    where :math:`H_j` are Hermitian operators, :math:`H_d` is the drift component,
+    where :math:`H_j` are Hermitian operators, :math:`H_d` is the static component,
     and the :math:`s_j(t)` are either :class:`~qiskit_dynamics.signals.Signal` objects or
     are numerical constants. Constructing a :class:`~qiskit_dynamics.models.HamiltonianModel`
     requires specifying the above decomposition, e.g.:
 
     .. code-block:: python
 
-        hamiltonian = HamiltonianModel(operators, signals, drift)
+        hamiltonian = HamiltonianModel(operators, signals, static_operator)
 
     This class inherits most functionality from :class:`GeneratorModel`,
     with the following modifications:
@@ -57,7 +57,7 @@ class HamiltonianModel(GeneratorModel):
         self,
         operators: List[Operator],
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        drift: Optional[Array] = None,
+        static_operator: Optional[Array] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         validate: bool = True,
         evaluation_mode: str = "dense",
@@ -66,9 +66,9 @@ class HamiltonianModel(GeneratorModel):
 
         Args:
             operators: list of Operator objects.
-            drift: Optional, time-independent term in the Hamiltonian.
             signals: List of coefficients :math:`s_i(t)`. Not required at instantiation, but
                      necessary for evaluation of the model.
+            static_operator: Optional, time-independent term in the Hamiltonian.
             rotating_frame: Rotating frame operator.
                             If specified with a 1d array, it is interpreted as the
                             diagonal of a diagonal matrix. Assumed to store
@@ -85,21 +85,22 @@ class HamiltonianModel(GeneratorModel):
 
         # verify operators are Hermitian, and if so instantiate
         operators = to_array(operators)
-        drift = to_array(drift)
+        static_operator = to_array(static_operator)
 
         if validate:
             adj = np.transpose(np.conjugate(operators), (0, 2, 1))
             if np.linalg.norm(adj - operators) > 1e-10 or (
-                drift is not None
-                and np.linalg.norm(drift - np.conjugate(np.transpose(drift))) > 1e-10
+                static_operator is not None
+                and np.linalg.norm(static_operator - np.conjugate(np.transpose(static_operator)))
+                > 1e-10
             ):
                 raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
 
         super().__init__(
             operators=operators,
             signals=signals,
+            static_operator=static_operator,
             rotating_frame=rotating_frame,
-            drift=drift,
             evaluation_mode=evaluation_mode,
         )
 
@@ -110,18 +111,26 @@ class HamiltonianModel(GeneratorModel):
     @rotating_frame.setter
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]) -> Array:
         """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
-        The drift needs to be adjusted by -H in the new frame."""
+        The static_operator needs to be adjusted by -H in the new frame."""
         if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
-            self._drift = self._drift + Array(np.diag(1j * self._rotating_frame.frame_diag))
+            self._static_operator = self._static_operator + Array(
+                np.diag(1j * self._rotating_frame.frame_diag)
+            )
             self._operators = self.rotating_frame.operator_out_of_frame_basis(self._operators)
-            self._drift = self.rotating_frame.operator_out_of_frame_basis(self._drift)
+            self._static_operator = self.rotating_frame.operator_out_of_frame_basis(
+                self._static_operator
+            )
 
         self._rotating_frame = RotatingFrame(rotating_frame)
 
         if self._rotating_frame.frame_diag is not None:
             self._operators = self.rotating_frame.operator_into_frame_basis(self._operators)
-            self._drift = self.rotating_frame.operator_into_frame_basis(self._drift)
-            self._drift = self._drift - Array(np.diag(1j * self.rotating_frame.frame_diag))
+            self._static_operator = self.rotating_frame.operator_into_frame_basis(
+                self._static_operator
+            )
+            self._static_operator = self._static_operator - Array(
+                np.diag(1j * self.rotating_frame.frame_diag)
+            )
 
         # Reset internal operator collection
         if self.evaluation_mode is not None:
