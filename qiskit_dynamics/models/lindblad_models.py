@@ -18,12 +18,13 @@ Lindblad models module.
 from typing import Tuple, Union, List, Optional
 import numpy as np
 
+from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_models import BaseGeneratorModel
-from .hamiltonian_models import HamiltonianModel
+from .hamiltonian_models import HamiltonianModel, is_hermitian
 from .operator_collections import (
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
@@ -84,6 +85,7 @@ class LindbladModel(BaseGeneratorModel):
         static_hamiltonian: Optional[Array] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: Optional[str] = "dense",
+        validate: bool = True,
     ):
         """Initialize.
 
@@ -98,18 +100,27 @@ class LindbladModel(BaseGeneratorModel):
                             already in the frame basis.
             evaluation_mode: Evaluation mode to use. See ``LindbladModel.evaluation_mode``
                              for more details.
+            validate: If True check input hamiltonian_operators and static_hamiltonian are
+                      Hermitian.
 
         Raises:
             Exception: if signals incorrectly specified.
         """
+        hamiltonian_operators = to_array(hamiltonian_operators)
+        static_hamiltonian = to_array(static_hamiltonian)
+        dissipator_operators = to_array(dissipator_operators)
+
         self._operator_collection = None
         self._evaluation_mode = None
         self._rotating_frame = None
 
-        if dissipator_operators is not None:
-            dissipator_operators = to_array(dissipator_operators)
+        if validate:
+            if (hamiltonian_operators is not None) and (not is_hermitian(hamiltonian_operators)):
+                raise QiskitError("""LinbladModel hamiltonian_operators must be Hermitian.""")
+            if (static_hamiltonian is not None) and (not is_hermitian(static_hamiltonian)):
+                raise QiskitError("""LinbladModel static_hamiltonian must be Hermitian.""")
 
-        self._hamiltonian_operators = to_array(hamiltonian_operators)
+        self._hamiltonian_operators = hamiltonian_operators
         self.set_static_hamiltonian(static_hamiltonian, operator_in_frame_basis=True)
         self._dissipator_operators = dissipator_operators
 

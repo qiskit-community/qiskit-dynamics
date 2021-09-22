@@ -18,6 +18,7 @@ Hamiltonian models module.
 from typing import Union, List, Optional
 import numpy as np
 
+from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
@@ -59,8 +60,8 @@ class HamiltonianModel(GeneratorModel):
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         static_operator: Optional[Array] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
-        validate: bool = True,
         evaluation_mode: str = "dense",
+        validate: bool = True,
     ):
         """Initialize, ensuring that the operators are Hermitian.
 
@@ -73,14 +74,14 @@ class HamiltonianModel(GeneratorModel):
                             If specified with a 1d array, it is interpreted as the
                             diagonal of a diagonal matrix. Assumed to store
                             the antihermitian matrix F = -iH.
-            validate: If True check input operators are Hermitian.
             evaluation_mode: Evaluation mode to use. Supported options are:
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
                                 See ``GeneratorModel.evaluation_mode`` for more details.
+            validate: If True check input operators are Hermitian.
 
         Raises:
-            Exception: if operators are not Hermitian
+            QiskitError: if operators are not Hermitian
         """
 
         # verify operators are Hermitian, and if so instantiate
@@ -88,13 +89,10 @@ class HamiltonianModel(GeneratorModel):
         static_operator = to_array(static_operator)
 
         if validate:
-            adj = np.transpose(np.conjugate(operators), (0, 2, 1))
-            if np.linalg.norm(adj - operators) > 1e-10 or (
-                static_operator is not None
-                and np.linalg.norm(static_operator - np.conjugate(np.transpose(static_operator)))
-                > 1e-10
-            ):
-                raise Exception("""HamiltonianModel only accepts Hermitian operators.""")
+            if (operators is not None) and (not is_hermitian(operators)):
+                raise QiskitError("""HamiltonianModel operators must be Hermitian.""")
+            if (static_operator is not None) and (not is_hermitian(static_operator)):
+                raise QiskitError("""HamiltonianModel static_operator must be Hermitian.""")
 
         super().__init__(
             operators=operators,
@@ -141,3 +139,23 @@ class HamiltonianModel(GeneratorModel):
 
     def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
         return -1j * super().evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
+
+
+def is_hermitian(operators: Array, tol: Optional[float] = 1e-10) -> bool:
+    """Validate that operators are Hermitian.
+
+    Args:
+        operators: Either a 2d array representing a single operator, or a 3d array
+                   representing a list of operators.
+
+    Returns:
+        bool: Whether or not the operators are Hermitian to within tolerance.
+    """
+
+    adj = None
+    if operators.ndim == 2:
+        adj = np.transpose(np.conjugate(operators))
+    elif operators.ndim == 3:
+        adj = np.transpose(np.conjugate(operators), (0, 2, 1))
+
+    return np.linalg.norm(adj - operators) < 1e-10

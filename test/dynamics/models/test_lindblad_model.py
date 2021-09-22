@@ -18,12 +18,50 @@ models.operator_collection.DenseLindbladOperatorCollection test."""
 import numpy as np
 
 from scipy.linalg import expm
+
+from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+
+
+class TestLindbladModelValidation(QiskitDynamicsTestCase):
+    """Test validation handling of LindbladModel."""
+
+    def test_operators_not_hermitian(self):
+        """Test raising error if hamiltonian_operators are not Hermitian."""
+
+        hamiltonian_operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel(hamiltonian_operators=hamiltonian_operators)
+        self.assertTrue("hamiltonian_operators must be Hermitian." in str(qe.exception))
+
+    def test_static_operator_not_hermitian(self):
+        """Test raising error if static_hamiltonian is not Hermitian."""
+
+        static_hamiltonian = np.array([[0.0, 1.0], [0.0, 0.0]])
+        hamiltonian_operators = [np.array([[0.0, 1.0], [1.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel(
+                hamiltonian_operators=hamiltonian_operators, static_hamiltonian=static_hamiltonian
+            )
+        self.assertTrue("static_hamiltonian must be Hermitian." in str(qe.exception))
+
+    def test_validate_false(self):
+        """Verify setting validate=False avoids error raising."""
+
+        lindblad_model = LindbladModel(
+            hamiltonian_operators=[np.array([[0.0, 1.0], [0.0, 0.0]])],
+            hamiltonian_signals=[1.0],
+            validate=False,
+        )
+
+        self.assertAllClose(lindblad_model(1.0, np.eye(2)), np.zeros(2))
 
 
 class TestLindbladModel(QiskitDynamicsTestCase):
