@@ -27,25 +27,30 @@ from .rotating_frame import RotatingFrame
 
 
 class HamiltonianModel(GeneratorModel):
-    r"""A model of a Hamiltonian.
+    r"""A model of a Hamiltonian for the Schrodinger equation.
 
     This class represents a Hamiltonian as a time-dependent decomposition the form:
 
     .. math::
-        H(t) = H_d + \sum_{i=0}^{k-1} s_i(t) H_i,
+        H(t) = H_d + \sum_j s_j(t) H_j,
 
-    where :math:`H_i` are Hermitian operators, :math:`H_d` is the drift component,
-    and the :math:`s_i(t)` are time-dependent functions represented by :class:`Signal` objects.
+    where :math:`H_j` are Hermitian operators, :math:`H_d` is the drift component,
+    and the :math:`s_j(t)` are either :class:`~qiskit_dynamics.signals.Signal` objects or
+    are numerical constants. Constructing a :class:`~qiskit_dynamics.models.HamiltonianModel`
+    requires specifying the above decomposition, e.g.:
+
+    .. code-block:: python
+
+        hamiltonian = HamiltonianModel(operators, signals, drift)
 
     This class inherits most functionality from :class:`GeneratorModel`,
     with the following modifications:
-    - The operators :math:`H_d` and :math:`H_i` are assumed and verified to be Hermitian.
-    - Rotating frames are dealt with assuming the structure of the Schrodinger
-    equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
-    frame :math:`F = -iH`, evaluates the expression
-    :math:`e^{-tF}H(t)e^{tF} - H`. This is in contrast to
-    the base class :class:`OperatorModel`, which would ordinarily
-    evaluate :math:`e^{-tF}H(t)e^{tF} - F`.
+
+        * The operators :math:`H_d` and :math:`H_j` are assumed and verified to be Hermitian.
+        * Rotating frames are dealt with assuming the structure of the Schrodinger
+          equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
+          frame :math:`F = -iH_0`, evaluates the expression
+          :math:`e^{-tF}H(t)e^{tF} - H_0`.
     """
 
     def __init__(
@@ -72,7 +77,7 @@ class HamiltonianModel(GeneratorModel):
             evaluation_mode: Evaluation mode to use. Supported options are:
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
-                                See ``GeneratorModel.set_evaluation_mode`` for more details.
+                                See ``GeneratorModel.evaluation_mode`` for more details.
 
         Raises:
             Exception: if operators are not Hermitian
@@ -120,7 +125,7 @@ class HamiltonianModel(GeneratorModel):
 
         # Reset internal operator collection
         if self.evaluation_mode is not None:
-            self.set_evaluation_mode(self.evaluation_mode)
+            self.evaluation_mode = self.evaluation_mode
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         return -1j * super().evaluate(time, in_frame_basis=in_frame_basis)

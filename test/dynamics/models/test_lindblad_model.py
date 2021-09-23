@@ -214,7 +214,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertAllClose(f(-1j * frame_op), lindblad_model._operator_collection.drift)
         self.assertAllClose(expected, value)
 
-        lindblad_model.set_evaluation_mode("dense_vectorized")
+        lindblad_model.evaluation_mode = "dense_vectorized"
         vectorized_value = lindblad_model.evaluate_rhs(
             t, A.flatten(order="F"), in_frame_basis=False
         ).reshape((dim, dim), order="F")
@@ -231,11 +231,11 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertAllClose(vectorized_value_lmult_fb, value_in_frame_basis)
 
         if Dispatch.DEFAULT_BACKEND != "jax":
-            lindblad_model.set_evaluation_mode("sparse")
+            lindblad_model.evaluation_mode = "sparse"
             sparse_value = lindblad_model.evaluate_rhs(t, A, in_frame_basis=False)
             self.assertAllClose(value, sparse_value)
 
-            lindblad_model.set_evaluation_mode("sparse_vectorized")
+            lindblad_model.evaluation_mode = "sparse_vectorized"
             sparse_vectorized_value = lindblad_model.evaluate_rhs(
                 t, A.flatten(order="F"), in_frame_basis=False
             ).reshape((dim, dim), order="F")
@@ -270,7 +270,7 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
 
         self.basic_lindblad.rotating_frame = None
 
-        self.basic_lindblad.set_evaluation_mode("dense_vectorized")
+        self.basic_lindblad.evaluation_mode = "dense_vectorized"
 
         self.jit_wrap(self.basic_lindblad.evaluate)(1.0)
         self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
@@ -298,7 +298,7 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
 
         self.basic_lindblad.rotating_frame = None
 
-        self.basic_lindblad.set_evaluation_mode("dense_vectorized")
+        self.basic_lindblad.evaluation_mode = "dense_vectorized"
 
         self.jit_grad_wrap(self.basic_lindblad.evaluate)(1.0)
         self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(

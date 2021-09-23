@@ -19,11 +19,12 @@ Qiskit Dynamics (:mod:`qiskit_dynamics`)
 
 .. currentmodule:: qiskit_dynamics
 
-qiskit extension module for solving ordinary differential equations.
+Qiskit extension module for simulating quantum dynamics.
 """
 from .version import __version__
 
-from .solve import solve_ode, solve_lmde
+from .solvers.solver_functions import solve_ode, solve_lmde
+from .solvers.solver_classes import Solver
 
 from . import models
 from . import signals

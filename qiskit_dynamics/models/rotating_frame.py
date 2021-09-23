@@ -27,25 +27,30 @@ from qiskit_dynamics.type_utils import to_array
 
 
 class RotatingFrame:
-    r"""A 'rotating frame' is given by an anti-Hermitian matrix :math:`F`, specified
-    either directly, or in terms of a Hermitian matrix :math:`H` with
-    :math:`F = -iH`. Frames have relevance within the context of linear
-    matrix differential equations (LMDEs), which are of the form:
+    r"""Class for representing a rotation frame transformation.
 
-    This class offers functions for:
+    This class provides functionality for transforming various objects into or out-of
+    a rotating frame specified by an anti-Hermitian operator :math:`F = -iH`.
+    For example:
 
-        - Bringing a "state" into/out of the frame:
+        * Bringing a "state" into/out of the frame:
           :math:`t, y \mapsto e^{\mp tF}y`
-        - Bringing an "operator" into/out of the frame:
+        * Bringing an "operator" into/out of the frame:
           :math:`t, A \mapsto e^{\mp tF}Ae^{\pm tF}`
-        - Bringing a generator for a BMDE into/out of the frame:
+        * Bringing a generator for a BMDE into/out of the frame:
           :math:`t, G \mapsto e^{\mp tF}Ge^{\pm tF} - F`
 
-    It also contains functions for bringing states/operators into/out of
+    This class also contains functions for bringing states/operators into/out of
     the basis in which :math:`F` is diagonalized, which we refer to as the
     "frame basis". All previously mentioned functions also include optional
     arguments specifying whether the input/output are meant to be in the
     frame basis.
+
+    .. note::
+        :class:`~qiskit_dynamics.models.RotatingFrame` can be instantiated
+        with a 1d array, which is understood to correspond to the diagonal entries
+        of a diagonal :math:`H` or :math:`F = -i H`.
+
     """
 
     def __init__(
@@ -477,6 +482,33 @@ class RotatingFrame:
                 return_in_frame_basis=return_in_frame_basis,
             )
 
+    @property
+    def vectorized_frame_basis(self):
+        """Lazily evaluated operator for mapping vectorized operators into the frame basis."""
+
+        if self.frame_basis is None:
+            return None
+
+        if self._vectorized_frame_basis is None:
+            self._vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
+            self._vectorized_frame_basis_adjoint = self._vectorized_frame_basis.conj().transpose()
+
+        return self._vectorized_frame_basis
+
+    @property
+    def vectorized_frame_basis_adjoint(self):
+        """Lazily evaluated operator for mapping vectorized operators out of the frame basis."""
+
+        if self.frame_basis is None:
+            return None
+
+        if self._vectorized_frame_basis_adjoint is None:
+            # trigger lazy evaluation of vectorized_frame_basis
+            # pylint: disable=pointless-statement
+            self.vectorized_frame_basis
+
+        return self._vectorized_frame_basis_adjoint
+
     def vectorized_map_into_frame(
         self,
         time: float,
@@ -506,14 +538,7 @@ class RotatingFrame:
         if self.frame_diag is not None:
             # Put the vectorized operator into the frame basis
             if not operator_in_frame_basis and self.frame_basis is not None:
-                if self._vectorized_frame_basis is None:
-                    self._vectorized_frame_basis = np.kron(
-                        self.frame_basis.conj(), self.frame_basis
-                    )
-                    self._vectorized_frame_basis_adjoint = np.kron(
-                        self.frame_basis.T, self.frame_basis_adjoint
-                    )
-                op = self._vectorized_frame_basis_adjoint @ (op @ self._vectorized_frame_basis)
+                op = self.vectorized_frame_basis_adjoint @ (op @ self.vectorized_frame_basis)
 
             expvals = np.exp(self.frame_diag * time)  # = e^{td_i} = e^{it*Im(d_i)}
             # = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster
@@ -527,15 +552,7 @@ class RotatingFrame:
                 op = delta_bar_otimes_delta * op  # hadamard product
 
             if not return_in_frame_basis and self.frame_basis is not None:
-
-                if self._vectorized_frame_basis is None:
-                    self._vectorized_frame_basis = np.kron(
-                        self.frame_basis.conj(), self.frame_basis
-                    )
-                    self._vectorized_frame_basis_adjoint = np.kron(
-                        self.frame_basis.T, self.frame_basis_adjoint
-                    )
-                op = self._vectorized_frame_basis @ (op @ self._vectorized_frame_basis_adjoint)
+                op = self.vectorized_frame_basis @ (op @ self.vectorized_frame_basis_adjoint)
 
         return op
 

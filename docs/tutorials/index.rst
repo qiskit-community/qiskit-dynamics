@@ -13,4 +13,3 @@ Dynamics Tutorials
    :ref:`genindex`
    :ref:`modindex`
    :ref:`search`
-
