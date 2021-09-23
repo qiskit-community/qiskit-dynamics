@@ -257,7 +257,7 @@ class LindbladModel(BaseGeneratorModel):
               used. Not compatible with jax.
             - `sparse_vectorized': Like dense_vectorized, but stores everything as csr_matrices.
         """
-        return super().evaluation_mode
+        return self._evaluation_mode
 
     @evaluation_mode.setter
     def evaluation_mode(self, new_mode: str):

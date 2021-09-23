@@ -23,6 +23,7 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
+    BaseOperatorCollection,
     DenseOperatorCollection,
     SparseOperatorCollection,
 )
@@ -70,10 +71,10 @@ class BaseGeneratorModel(ABC):
         pass
 
     @property
+    @abstractmethod
     def evaluation_mode(self) -> str:
         """Numerical evaluation mode of the model."""
-        # pylint: disable=no-member
-        return self._evaluation_mode
+        pass
 
     @evaluation_mode.setter
     @abstractmethod
@@ -186,6 +187,92 @@ class GeneratorModel(BaseGeneratorModel):
         # initialize signal-related attributes
         self.signals = signals
 
+    @property
+    def dim(self) -> int:
+        if self._operator_collection.static_operator is not None:
+            return self._operator_collection.static_operator.shape[-1]
+        else:
+            return self._operator_collection.operators.shape[-1]
+
+    @property
+    def evaluation_mode(self) -> str:
+        """Numerical evaluation mode of the model.
+
+        Available options:
+
+            - 'dense': Stores/evaluates operators using dense Arrays.
+            - 'sparse': stores/evaluates operators using scipy
+            :class:`csr_matrix` types. Not compatible with JAX.
+        """
+        return self._evaluation_mode
+
+    @evaluation_mode.setter
+    def evaluation_mode(self, new_mode: str):
+        """Set evaluation mode.
+
+        Args:
+            new_mode: String specifying new mode. Available options
+                      are 'dense' and 'sparse'. See property doc string for details.
+
+        Raises:
+            NotImplementedError: if new_mode is not one of the above
+            supported evaluation modes.
+        """
+
+        if new_mode != self.evaluation_mode:
+            self._operator_collection = construct_operator_collection(new_mode,
+                                                                      self._operator_collection.static_operator,
+                                                                      self._operator_collection.operators)
+            self._evaluation_mode = new_mode
+
+    @property
+    def rotating_frame(self) -> RotatingFrame:
+        """Return the rotating frame."""
+        return self._rotating_frame
+
+    @rotating_frame.setter
+    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
+        new_frame = RotatingFrame(rotating_frame)
+        new_static_operator, new_operators = setup_operators_in_frame(
+            self.get_static_operator(in_frame_basis=True),
+            self.get_operators(in_frame_basis=True),
+            new_frame=new_frame,
+            old_frame=self.rotating_frame,
+        )
+
+        self._rotating_frame = new_frame
+
+        self._operator_collection = construct_operator_collection(
+            self.evaluation_mode, new_static_operator, new_operators
+        )
+
+    @property
+    def signals(self) -> SignalList:
+        """Return the signals in the model."""
+        return self._signals
+
+    @signals.setter
+    def signals(self, signals: Union[SignalList, List[Signal]]):
+        """Set the signals."""
+
+        if signals is None:
+            self._signals = None
+        else:
+            # if signals is a list, instantiate a SignalList
+            if isinstance(signals, list):
+                signals = SignalList(signals)
+
+            # if it isn't a SignalList by now, raise an error
+            if not isinstance(signals, SignalList):
+                raise QiskitError("Signals specified in unaccepted format.")
+
+            # verify signal length is same as operators
+            if len(signals) != self.get_operators().shape[0]:
+                raise QiskitError("Signals needs to have the same length as operators.")
+
+            self._signals = signals
+
+
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
         """Get the operators used in the model construction.
 
@@ -236,91 +323,6 @@ class GeneratorModel(BaseGeneratorModel):
                 new_static_operator = self.rotating_frame.operator_into_frame_basis(new_static_operator)
 
             self._operator_collection.static_operator = new_static_operator
-
-    @property
-    def dim(self) -> int:
-        if self._operator_collection.static_operator is not None:
-            return self._operator_collection.static_operator.shape[-1]
-        else:
-            return self._operator_collection.operators.shape[-1]
-
-    @property
-    def evaluation_mode(self) -> str:
-        """Numerical evaluation mode of the model.
-
-        Available options:
-
-            - 'dense': Stores/evaluates operators using dense Arrays.
-            - 'sparse': stores/evaluates operators using scipy
-            :class:`csr_matrix` types. Not compatible with JAX.
-        """
-        return super().evaluation_mode
-
-    @evaluation_mode.setter
-    def evaluation_mode(self, new_mode: str):
-        """Set evaluation mode.
-
-        Args:
-            new_mode: String specifying new mode. Available options
-                      are 'dense' and 'sparse'. See property doc string for details.
-
-        Raises:
-            NotImplementedError: if new_mode is not one of the above
-            supported evaluation modes.
-        """
-
-        if new_mode != self.evaluation_mode:
-            self._operator_collection = construct_operator_collection(new_mode,
-                                                                      self._operator_collection.static_operator,
-                                                                      self._operator_collection.operators)
-            self._evaluation_mode = new_mode
-
-    @property
-    def signals(self) -> SignalList:
-        """Return the signals in the model."""
-        return self._signals
-
-    @signals.setter
-    def signals(self, signals: Union[SignalList, List[Signal]]):
-        """Set the signals."""
-
-        if signals is None:
-            self._signals = None
-        else:
-            # if signals is a list, instantiate a SignalList
-            if isinstance(signals, list):
-                signals = SignalList(signals)
-
-            # if it isn't a SignalList by now, raise an error
-            if not isinstance(signals, SignalList):
-                raise QiskitError("Signals specified in unaccepted format.")
-
-            # verify signal length is same as operators
-            if len(signals) != self.get_operators().shape[0]:
-                raise QiskitError("Signals needs to have the same length as operators.")
-
-            self._signals = signals
-
-    @property
-    def rotating_frame(self) -> RotatingFrame:
-        """Return the rotating frame."""
-        return self._rotating_frame
-
-    @rotating_frame.setter
-    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
-        new_frame = RotatingFrame(rotating_frame)
-        new_static_operator, new_operators = setup_operators_in_frame(
-            self.get_static_operator(in_frame_basis=True),
-            self.get_operators(in_frame_basis=True),
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
-        )
-
-        self._rotating_frame = new_frame
-
-        self._operator_collection = construct_operator_collection(
-            self.evaluation_mode, new_static_operator, new_operators
-        )
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
@@ -393,59 +395,88 @@ class GeneratorModel(BaseGeneratorModel):
 
         return out
 
-"""
-    Make these static class methods?********************************************************************
-"""
+    @classmethod
+    def transfer_operators_between_frames(cls,
+                                          static_operator: Union[None, Array, csr_matrix],
+                                          operators: Union[None, Array, List[csr_matrix]],
+                                          new_frame: Optional[Union[Array, RotatingFrame]] = None,
+                                          old_frame: Optional[Union[Array, RotatingFrame]] = None) -> Tuple[Union[None, Array]]:
+        """Transform operator data for a GeneratorModel from one frame basis into another.
 
+        This transformation converts ``operators`` from the frame basis of the old frame
+        into the frame basis of the new frame, and ``static_operator`` is additionally
+        transformed as a generator: the old frame operator is added, and the new one is
+        subtracted.
 
-def setup_operators_in_frame(static_operator, operators, new_frame=None, old_frame=None):
-    """Helper function for transfering the operators in a GeneratorModel
-    from one frame basis to another, including handling of frame operators
-    in static_operator.
-    """
-    old_frame = RotatingFrame(old_frame)
-    new_frame = RotatingFrame(new_frame)
+        Args:
+            static_operator: Static operator of the model. None is treated as 0.
+            operators: Operators of the model. If None, remains as None.
+            new_frame: New rotating frame.
+            old_frame: Old rotating frame.
 
-    if static_operator is not None:
-        static_operator = old_frame.generator_out_of_frame(
-            t=0.0, operator=static_operator, operator_in_frame_basis=True, return_in_frame_basis=False
+        Returns:
+            static_operator, operators: Transformed as described above.
+        """
+        old_frame = RotatingFrame(old_frame)
+        new_frame = RotatingFrame(new_frame)
+
+        if static_operator is not None:
+            static_operator = old_frame.generator_out_of_frame(
+                t=0.0, operator=static_operator, operator_in_frame_basis=True, return_in_frame_basis=False
+            )
+        else:
+            # "add" the frame operator to 0
+            if old_frame.frame_operator is not None:
+                if old_frame.frame_operator.ndim == 1:
+                    static_operator = np.diag(old_frame.frame_operator)
+                else:
+                    static_operator = old_frame.frame_operator
+
+        if operators is not None:
+            operators = old_frame.operator_out_of_frame_basis(operators)
+
+        if static_operator is not None:
+            static_operator = new_frame.generator_into_frame(
+                t=0.0, operator=static_operator, operator_in_frame_basis=False, return_in_frame_basis=True
+            )
+        else:
+            # "subtract" the frame operator from 0
+            if new_frame.frame_operator is not None:
+                static_operator = np.diag(-new_frame.frame_diag)
+
+        if operators is not None:
+            operators = new_frame.operator_into_frame_basis(operators)
+
+        return static_operator, operators
+
+    @classmethod
+    def construct_operator_collection(cls,
+                                      evaluation_mode: str,
+                                      static_operator: Union[None, Array, csr_matrix],
+                                      operators: Union[None, Array, List[csr_matrix]]) -> BaseOperatorCollection:
+        """Construct operator collection for GeneratorModel.
+
+        Args:
+            evaluation_mode: Evaluation mode.
+            static_operator: Static operator of the model.
+            operators: Operators for the model.
+
+        Returns:
+            BaseOperatorCollection: The relevant operator collection.
+
+        Raises:
+            NotImplementedError: If the evaluation_mode is invalid.
+        """
+
+        if evaluation_mode == "dense":
+            return DenseOperatorCollection(operators=operators, static_operator=static_operator)
+        if evaluation_mode == "sparse":
+            return SparseOperatorCollection(operators=operators, static_operator=static_operator)
+
+        raise NotImplementedError(
+            "Evaluation mode '"
+            + str(evaluation_mode)
+            + "' is not supported. Call help("
+            + str(self.__class__.__name__)
+            + ".evaluation_mode) for available options."
         )
-    else:
-        # "add" the frame operator to 0
-        if old_frame.frame_operator is not None:
-            if old_frame.frame_operator.ndim == 1:
-                static_operator = np.diag(old_frame.frame_operator)
-            else:
-                static_operator = old_frame.frame_operator
-
-    operators = old_frame.operator_out_of_frame_basis(operators)
-
-    if static_operator is not None:
-        static_operator = new_frame.generator_into_frame(
-            t=0.0, operator=static_operator, operator_in_frame_basis=False, return_in_frame_basis=True
-        )
-    else:
-        # "subtract" the frame operator from 0
-        if new_frame.frame_operator is not None:
-            static_operator = np.diag(-new_frame.frame_diag)
-
-    operators = new_frame.operator_into_frame_basis(operators)
-
-    return static_operator, operators
-
-
-def construct_operator_collection(evaluation_mode, static_operator, operators):
-    """Helper function to construct operator collection for GeneratorModel."""
-
-    if evaluation_mode == "dense":
-        return DenseOperatorCollection(operators=operators, static_operator=static_operator)
-    if evaluation_mode == "sparse":
-        return SparseOperatorCollection(operators=operators, static_operator=static_operator)
-
-    raise NotImplementedError(
-        "Evaluation mode '"
-        + str(evaluation_mode)
-        + "' is not supported. Call help("
-        + str(self.__class__.__name__)
-        + ".evaluation_mode) for available options."
-    )
