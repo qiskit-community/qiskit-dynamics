@@ -197,10 +197,6 @@ class LindbladModel(BaseGeneratorModel):
         else:
             return (self._hamiltonian_operators, self._dissipator_operators)
 
-    def get_static_operator(self):
-        """What to do with this?**************************************************************************"""
-        pass
-
     def get_static_hamiltonian(self, in_frame_basis: Optional[bool] = False) -> Array:
         """Get the constant hamiltonian term.
 
@@ -305,9 +301,13 @@ class LindbladModel(BaseGeneratorModel):
             )
             self.vectorized_operators = True
         else:
-            # raise error with standard message
-            # this is equivalent to calling the setter of the base class
-            super(__class__, self.__class__).evaluation_mode.fset(self, new_mode)
+            raise NotImplementedError(
+                "Evaluation mode '"
+                + str(new_mode)
+                + "' is not supported. Call help("
+                + str(self.__class__.__name__)
+                + ".evaluation_mode) for available options."
+            )
 
         self._evaluation_mode = new_mode
 

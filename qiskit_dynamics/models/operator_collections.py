@@ -47,6 +47,11 @@ class BaseOperatorCollection(ABC):
         self._static_operator = new_static_operator
 
     @property
+    def operators(self) -> Array:
+        """Return operators."""
+        return self._operators
+
+    @property
     @abstractmethod
     def num_operators(self) -> int:
         """Returns number of operators the collection

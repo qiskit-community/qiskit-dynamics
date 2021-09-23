@@ -23,7 +23,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_array
-from .generator_models import GeneratorModel
+from .generator_models import GeneratorModel, construct_operator_collection, setup_operators_in_frame
 from .rotating_frame import RotatingFrame
 
 
@@ -110,29 +110,34 @@ class HamiltonianModel(GeneratorModel):
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]) -> Array:
         """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
         The static_operator needs to be adjusted by -H in the new frame."""
-        if self._rotating_frame is not None and self._rotating_frame.frame_diag is not None:
-            self._static_operator = self._static_operator + Array(
-                np.diag(1j * self._rotating_frame.frame_diag)
-            )
-            self._operators = self.rotating_frame.operator_out_of_frame_basis(self._operators)
-            self._static_operator = self.rotating_frame.operator_out_of_frame_basis(
-                self._static_operator
-            )
+        new_frame = RotatingFrame(rotating_frame)
 
-        self._rotating_frame = RotatingFrame(rotating_frame)
+        static_op = self.get_static_operator(in_frame_basis=True)
+        if static_op is not None:
+            static_op = -1j * static_op
 
-        if self._rotating_frame.frame_diag is not None:
-            self._operators = self.rotating_frame.operator_into_frame_basis(self._operators)
-            self._static_operator = self.rotating_frame.operator_into_frame_basis(
-                self._static_operator
-            )
-            self._static_operator = self._static_operator - Array(
-                np.diag(1j * self.rotating_frame.frame_diag)
-            )
+        ops = self.get_operators(in_frame_basis=True)
+        if ops is not None:
+            ops = -1j * ops
 
-        # Reset internal operator collection
-        if self.evaluation_mode is not None:
-            self.evaluation_mode = self.evaluation_mode
+        new_static_operator, new_operators = setup_operators_in_frame(
+            static_op,
+            ops,
+            new_frame=new_frame,
+            old_frame=self.rotating_frame,
+        )
+
+        self._rotating_frame = new_frame
+
+        if new_static_operator is not None:
+            new_static_operator = 1j * new_static_operator
+
+        if new_operators is not None:
+            new_operators = 1j * new_operators
+
+        self._operator_collection = construct_operator_collection(
+            self.evaluation_mode, new_static_operator, new_operators
+        )
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
         return -1j * super().evaluate(time, in_frame_basis=in_frame_basis)
