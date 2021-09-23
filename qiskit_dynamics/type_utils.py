@@ -324,6 +324,10 @@ def vec_dissipator(L: Array):
 
 
 def isinstance_qutip_qobj(obj):
+    """Check if the object is a qutip Qobj.
+
+    Bool: True if obj is qutip Qobj
+    """
     if (
         type(obj).__name__ == "Qobj"
         and hasattr(obj, "_data")
@@ -333,13 +337,15 @@ def isinstance_qutip_qobj(obj):
     return False
 
 
-def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
+def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False):
     """Convert an operator or list of operators to an Array.
-
     Args:
         op: Either an Operator to be converted to an array, a list of Operators
             to be converted to a 3d array, or an array (which simply gets
             returned)
+        no_iter: Boolean determining whether to look inside iterables to make multiple Arrays.
+            If recurring, this should be True to avoid making each element of the input array a separate
+            Array.
     Returns:
         Array: Array version of input
     """
@@ -355,57 +361,46 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
     if isinstance(op, Array):
         return op
 
-    elif isinstance_qutip_qobj(op):
-        return Array(op.data)
-
-    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
-        shape = op[0].data.shape
-        dtype = op[0].data.dtype
-        arr = np.empty((len(op), *shape), dtype=dtype)
-        for i, sub_op in enumerate(op):
-            arr[i] = sub_op.data
-        out = Array(arr)
-
-    elif isinstance(op, Operator):
-        out = Array(op.data)
-
-    elif issparse(op):
+    if issparse(op):
         return Array(op.toarray())
-    elif isinstance(op, Iterable) and issparse(op[0]):
-        out = Array(np.array([sparr.toarray() for sparr in op]))
+
+    if isinstance(op, Iterable) and not no_iter:
+        op = Array([to_array(sub_op, no_iter=True) for sub_op in op])
     else:
-        out = Array(op)
+        op = Array(op)
 
-    # now, everything is an Array
-    if out.backend == "numpy":
-        return out.data
+    if op.backend == "numpy":
+        return op.data
     else:
-        return out
+        return op
 
 
-def to_csr(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]) -> csr_matrix:
+def to_csr(
+    op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False
+) -> csr_matrix:
     """Convert an operator or list of operators to a sparse matrix.
-
     Args:
         op: Either an Operator to be converted to an sparse matrix, a list of Operators
             to be converted to a 3d sparse matrix, or a sparse matrix (which simply gets
             returned)
+        no_iter: Boolean determining whether to look inside iterables to make multiple csr_matrices.
+            If recurring, this should be True to avoid making each element of the input array a separate
+            sparse matrix
     Returns:
         csr_matrix: Sparse matrix version of input
     """
     if op is None:
         return op
 
-    elif isinstance_qutip_qobj(op):
-        return to_csr(op.data)
-
+    if isinstance(op, csr_matrix):
+        return op
+    if isinstance_qutip_qobj(op):
+        return op.data
     if (isinstance(op, Array) or isinstance(op, np.ndarray)) and op.ndim < 3:
         return csr_matrix(op)
-    elif isinstance(op, Operator):
-        return csr_matrix(op)
-    elif isinstance(op, Iterable):
-        return [csr_matrix(item) for item in op]
 
+    if isinstance(op, Iterable) and not no_iter:
+        return [to_csr(item, no_iter=True) for item in op]
     else:
         return csr_matrix(op)
 
