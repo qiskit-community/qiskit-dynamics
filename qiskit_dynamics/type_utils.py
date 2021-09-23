@@ -23,11 +23,10 @@ import numpy as np
 from scipy.sparse import issparse, spmatrix
 from scipy.sparse import kron as sparse_kron
 from scipy.sparse import identity as sparse_identity
-from scipy.sparse import csr
 from scipy.sparse.csr import csr_matrix
-from qiskit_dynamics import dispatch
 
 from qiskit.quantum_info.operators import Operator
+from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 
 
@@ -343,9 +342,9 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
         op: Either an Operator to be converted to an array, a list of Operators
             to be converted to a 3d array, or an array (which simply gets
             returned)
-        no_iter: Boolean determining whether to look inside iterables to make multiple Arrays.
-            If recurring, this should be True to avoid making each element of the input array a separate
-            Array.
+        no_iter (Bool): Boolean determining whether to look inside iterables to make multiple
+            Arrays. If recurring, this should be True to avoid making each element of the
+            input array into a separate Array.
     Returns:
         Array: Array version of input
     """
@@ -385,9 +384,9 @@ def to_csr(
         op: Either an Operator to be converted to an sparse matrix, a list of Operators
             to be converted to a 3d sparse matrix, or a sparse matrix (which simply gets
             returned)
-        no_iter: Boolean determining whether to look inside iterables to make multiple csr_matrices.
-            If recurring, this should be True to avoid making each element of the input array a separate
-            sparse matrix
+        no_iter (Bool): Boolean determining whether to look inside iterables to make multiple
+            csr_matrices. If recurring, this should be True to avoid making each element of
+            the input array a separate sparse matrix
     Returns:
         csr_matrix: Sparse matrix version of input
     """
@@ -398,7 +397,7 @@ def to_csr(
         return op
     if isinstance_qutip_qobj(op):
         return op.data
-    if (isinstance(op, Array) or isinstance(op, np.ndarray)) and op.ndim < 3:
+    if isinstance(op, (Array, np.ndarray)) and op.ndim < 3:
         return csr_matrix(op)
 
     if isinstance(op, Iterable) and not no_iter:
