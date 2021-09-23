@@ -129,112 +129,6 @@ class BaseGeneratorModel(ABC):
         return self.evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
 
 
-class CallableGenerator(BaseGeneratorModel):
-    r"""Specifies a linear matrix differential equation of the form
-    :math:`\dot{y}=\Lambda(t, y)=G(t)y` with :math:`G(t)` passed as a callable function.
-    """
-
-    def __init__(
-        self,
-        generator: Callable,
-        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
-        static_operator: Optional[Union[Operator, Array]] = None,
-        dim: Optional[int] = None,
-    ):
-        self._generator = generator
-        self.rotating_frame = rotating_frame
-        self._static_operator = static_operator
-        self._evaluation_mode = "callable_generator"
-        self._operator_collection = None
-        self._dim = dim
-
-    @property
-    def dim(self) -> int:
-        if self._dim is not None:
-            return self._dim
-        else:
-            raise ValueError(
-                "Dimension of CallableGenerator object should be specified at initialization."
-            )
-
-    def get_static_operator(self, in_frame_basis: Optional[bool] = False) -> Array:
-        if in_frame_basis and self.rotating_frame is not None:
-            return self.rotating_frame.operator_into_frame_basis(self._static_operator)
-        else:
-            return self._static_operator
-
-    def get_operators(self, in_frame_basis: Optional[bool] = False) -> Callable:
-        """`CallableGenerator` does not have decomposition in terms of operators."""
-        raise QiskitError("CallableGenerator does not have decomposition in terms of operators.")
-
-    def set_static_operator(
-        self,
-        new_static_operator: Array,
-        operator_in_frame_basis: Optional[bool] = False,
-    ):
-        # subtracting the frame operator from the generator is handled at evaluation time.
-        if operator_in_frame_basis and self.rotating_frame is not None:
-            self._static_operator = self.rotating_frame.operator_out_of_frame_basis(
-                new_static_operator
-            )
-        else:
-            self._static_operator = new_static_operator
-
-        if self.rotating_frame.frame_diag is not None:
-            self._static_operator = (
-                self._static_operator
-                + self.rotating_frame.operator_out_of_frame_basis(self.rotating_frame.frame_diag)
-            )
-
-    @property
-    def evaluation_mode(self) -> str:
-        """CallableGenerator does not support evaluation_mode."""
-        pass
-
-    @evaluation_mode.setter
-    def evaluation_mode(self, new_mode: str):
-        """Setting the evaluation mode for CallableGenerator
-        is not supported."""
-        raise NotImplementedError(
-            "Setting implementation mode for CallableGenerator is not supported."
-        )
-
-    @property
-    def rotating_frame(self) -> RotatingFrame:
-        """Return the frame."""
-        return self._rotating_frame
-
-    @rotating_frame.setter
-    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
-        """Set the frame; either an already instantiated :class:`RotatingFrame` object
-        a valid argument for the constructor of :class:`RotatingFrame`, or `None`.
-        """
-        self._rotating_frame = RotatingFrame(rotating_frame)
-
-    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
-        return self.evaluate(time, in_frame_basis=in_frame_basis) @ y
-
-    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        """Evaluate the model in array format.
-
-        Args:
-            time: Time to evaluate the model
-            in_frame_basis: Whether to evaluate in the basis in which the frame
-                            operator is diagonal
-
-        Returns:
-            Array: The evaluated model.
-        """
-
-        # evaluate generator and map it into the rotating frame
-        gen = self._generator(time)
-        if self._static_operator is not None:
-            gen = gen + self._static_operator
-        return self.rotating_frame.generator_into_frame(
-            time, gen, operator_in_frame_basis=False, return_in_frame_basis=in_frame_basis
-        )
-
-
 class GeneratorModel(BaseGeneratorModel):
     r"""A model for a a linear matrix differential equation in standard form.
 
@@ -374,10 +268,12 @@ class GeneratorModel(BaseGeneratorModel):
             NotImplementedError: if new_mode is not one of the above
             supported evaluation modes.
         """
-        self._operator_collection = construct_operator_collection(new_mode,
-                                                                  self._operator_collection.static_operator,
-                                                                  self._operator_collection.operators)
-        self._evaluation_mode = new_mode
+
+        if new_mode != self.evaluation_mode:
+            self._operator_collection = construct_operator_collection(new_mode,
+                                                                      self._operator_collection.static_operator,
+                                                                      self._operator_collection.operators)
+            self._evaluation_mode = new_mode
 
     @property
     def signals(self) -> SignalList:
@@ -445,8 +341,7 @@ class GeneratorModel(BaseGeneratorModel):
         if self._signals is None:
             raise QiskitError("GeneratorModel cannot be evaluated without signals.")
 
-        # pylint: disable=not-callable
-        sig_vals = self._signals(time)
+        sig_vals = self._signals.__call__(time)
 
         # Evaluated in frame basis, but without rotations
         op_combo = self._operator_collection(sig_vals)

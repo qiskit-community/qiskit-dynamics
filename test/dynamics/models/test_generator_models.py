@@ -21,7 +21,7 @@ import numpy as np
 import numpy.random as rand
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.models import CallableGenerator, GeneratorModel, RotatingFrame
+from qiskit_dynamics.models import GeneratorModel, RotatingFrame
 from qiskit_dynamics.models.generator_models import setup_operators_in_frame
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
@@ -562,110 +562,6 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 
 class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
     """Jax version of TestGeneratorModel tests.
-
-    Note: This class contains more tests due to inheritance.
-    """
-
-    def test_jitable_funcs(self):
-        """Tests whether all functions are jitable.
-        Checks if having a frame makes a difference, as well as
-        all jax-compatible evaluation_modes."""
-        self.jit_wrap(self.basic_model.evaluate)(1)
-        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
-
-        self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-
-        self.jit_wrap(self.basic_model.evaluate)(1)
-        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
-
-        self.basic_model.rotating_frame = None
-
-    def test_gradable_funcs(self):
-        """Tests whether all functions are gradable.
-        Checks if having a frame makes a difference, as well as
-        all jax-compatible evaluation_modes."""
-        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
-        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
-
-        self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-
-        self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
-        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
-
-        self.basic_model.rotating_frame = None
-
-
-class TestCallableGenerator(QiskitDynamicsTestCase):
-    """Tests for CallableGenerator."""
-
-    def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
-
-        # define a basic model
-        w = Array(2.0)
-        r = Array(0.5)
-        operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * r * self.X / 2]
-
-        def generator(t):
-            return w * operators[0] + np.cos(2 * np.pi * w * t) * operators[1]
-
-        self.w = 2
-        self.r = r
-        self.basic_model = CallableGenerator(generator)
-        self.state = Array([2, 3])
-
-    def test_diag_frame_operator_basic_model(self):
-        """Test setting a diagonal frame operator for the internally
-        set up basic model.
-        """
-
-        self._basic_frame_evaluate_test(Array([1j, -1j]), 1.123)
-        self._basic_frame_evaluate_test(Array([1j, -1j]), np.pi)
-
-    def test_non_diag_frame_operator_basic_model(self):
-        """Test setting a non-diagonal frame operator for the internally
-        set up basic model.
-        """
-        self._basic_frame_evaluate_test(-1j * (self.Y + self.Z), 1.123)
-        self._basic_frame_evaluate_test(-1j * (self.Y - self.Z), np.pi)
-
-    def _basic_frame_evaluate_test(self, frame_operator, t):
-        """Routine for testing setting of valid frame operators using the
-        basic_model.
-        """
-
-        self.basic_model.rotating_frame = frame_operator
-
-        # convert to 2d array
-        if isinstance(frame_operator, Operator):
-            frame_operator = Array(frame_operator.data)
-        if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
-            frame_operator = np.diag(frame_operator)
-
-        value_without_state = self.basic_model(t)
-        value_with_state = self.basic_model(t, self.state)
-
-        i2pi = -1j * 2 * np.pi
-
-        U = expm(-np.array(frame_operator) * t)
-
-        # drive coefficient
-        d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-
-        # manually evaluate frame
-        expected = (
-            i2pi * self.w * U @ self.Z.data @ U.conj().transpose() / 2
-            + d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2
-            - frame_operator
-        )
-        self.assertAllClose(value_without_state, expected)
-        self.assertAllClose(value_with_state, expected @ self.state)
-
-
-class TestCallableGeneratorJax(TestCallableGenerator, TestJaxBase):
-    """Jax version of TestCallableGenerator tests.
 
     Note: This class contains more tests due to inheritance.
     """

@@ -19,7 +19,6 @@ from typing import List, Optional, Union
 import numpy as np
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
-    CallableGenerator,
     GeneratorModel,
     HamiltonianModel,
     LindbladModel,
@@ -92,12 +91,8 @@ def rotating_wave_approximation(
         GeneratorModel with twice as many terms, and, if return_signal_map,
         also the function f.
     Raises:
-        NotImplementedError: If a ``CallableGenerator`` is passed.
         ValueError: If the model has no signals.
     """
-
-    if isinstance(model, CallableGenerator):
-        raise NotImplementedError("RWA for CallableGenerators is not supported.")
 
     if model.signals is None:
         raise ValueError("Model must have nontrivial signals to perform the RWA.")
