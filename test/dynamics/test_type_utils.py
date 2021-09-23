@@ -303,6 +303,14 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         list_of_arrays = [Array(op) for op in list_of_ops]
         self.assertAllClose(to_array(ndarray_list), list_of_arrays)
 
+    def test_to_array_3d_array(self):
+        """Tests for to_array with a list of numpy arrays"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        ndarray_list = [np.array(op) for op in list_of_ops]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        big_array = Array(list_of_arrays)
+        self.assertAllClose(to_array(ndarray_list), big_array)
+
     def test_to_array_sparse_matrix_list(self):
         """Tests for to_array with a list of sparse matrices"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]

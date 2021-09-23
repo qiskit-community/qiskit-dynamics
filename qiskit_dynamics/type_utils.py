@@ -366,6 +366,8 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
 
     if isinstance(op, Iterable) and not no_iter:
         op = Array([to_array(sub_op, no_iter=True) for sub_op in op])
+    elif isinstance(op, Iterable) and no_iter:
+        return op
     else:
         op = Array(op)
 
