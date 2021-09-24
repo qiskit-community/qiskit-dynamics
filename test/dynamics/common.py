@@ -70,7 +70,7 @@ class TestJaxBase(unittest.TestCase):
             Wrapped and jitted function."""
         wf = wrap(jit, decorator=True)
         # pylint: disable=unnecessary-lambda
-        return wf(func_to_test)
+        return wf(wrap(func_to_test))
 
     def jit_grad_wrap(self, func_to_test: Callable) -> Callable:
         """Tests whether a function can be graded. Converts
@@ -82,4 +82,4 @@ class TestJaxBase(unittest.TestCase):
             JIT-compiled gradient of function."""
         wf = wrap(lambda f: jit(grad(f)), decorator=True)
         f = lambda *args: np.sum(func_to_test(*args)).real
-        return wf(f)
+        return wf(wrap(f))
