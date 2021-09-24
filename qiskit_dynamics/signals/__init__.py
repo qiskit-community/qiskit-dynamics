@@ -175,7 +175,7 @@ A transfer function is a mapping from one or more :class:`Signal` to one or more
 Transfer functions can, for example, be used to model the effect of the electronics finite
 response. The code below shows the example of an :class:`IQMixer`. Here, two signals modulated at
 100 MHz and with a relative :math:`\pi/2` phase shift are passed through an IQ-mixer with a
-carrier frequency of 0.4 GHz to create a signal at 0.5 GHz. Note that the code below does not make
+carrier frequency of 400 MHz to create a signal at 500 MHz. Note that the code below does not make
 any assumptions about the time and frequency units which we interpret as ns and GHz, respectively.
 
 .. jupyter-execute::
