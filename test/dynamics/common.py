@@ -24,7 +24,7 @@ try:
 except ImportError:
     pass
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import wrap
+from qiskit_dynamics.dispatch import Array, wrap
 
 
 class QiskitDynamicsTestCase(unittest.TestCase):
@@ -32,6 +32,8 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
+        A = Array(A)
+        B = Array(B)
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
