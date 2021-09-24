@@ -33,11 +33,9 @@ from qiskit_dynamics.signals import DiscreteSignal
 class InstructionToSignals:
     """Converts pulse instructions to Signals to be used in models.
 
-    Qiskit-dynamics simulates the time evolution using the :class:`Signal` class.
-    However, Qiskit pulse specifies pulse instructions using a schedule. We therefore,
-    require the :class:`InstructionsToSignals` class to convert a pulse schedule to
-    a list of signals that can be given to a model. This conversion is done using
-    the :meth:`get_signals` method.
+    The :class:`InstructionsToSignals` class converts a pulse schedule to a list
+    of signals that can be given to a model. This conversion is done by calling
+    the :meth:`get_signals` method on a schedule.
     """
 
     def __init__(self, dt: float, carriers: List[float] = None):

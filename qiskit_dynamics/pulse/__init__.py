@@ -19,9 +19,18 @@ Pulse (:mod:`qiskit_dynamics.pulse`)
 
 .. currentmodule:: qiskit_dynamics.pulse
 
-This module contains converters that convert Qiskit pulse schedules into signals such that
-they can be simulated. This conversion is done using the :class:`InstructionToSignals`
-converted. The example below shows a schedule and the resulting signals converted using
+This module contains tools to interface qiskit pulse with qiskit dynamics. Indeed,
+Qiskit-dynamics simulates time evolution using the :class:`Signal` class. However,
+Qiskit pulse specifies pulse instructions using a schedule. This module contains
+the required converters to convert Qiskit pulse schedules into signals such that
+they can be simulated.
+
+Converters
+==========
+
+The conversion from a pulse schedule to a list of signals is done with the
+:class:`InstructionToSignals` converter. The example below shows a schedule and
+the resulting signals converted using
 
 .. code-block:: python
 
