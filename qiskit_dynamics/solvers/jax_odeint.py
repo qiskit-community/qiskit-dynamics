@@ -61,8 +61,8 @@ def jax_odeint(
 
     results = odeint(
         lambda y, t: t_direction * Array(rhs(t_direction * t, y)).data,
-        y0=y0.data,
-        t=t_direction * t_list.data,
+        y0=Array(y0).data,
+        t=t_direction * Array(t_list).data,
         **kwargs,
     )
 
