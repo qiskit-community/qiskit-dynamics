@@ -600,8 +600,8 @@ class TestCallableGenerator(QiskitDynamicsTestCase):
 
         # manually evaluate frame
         expected = (
-            i2pi * self.w * U @ self.Z.data @ U.conj().transpose() / 2
-            + d_coeff * i2pi * U @ self.X.data @ U.conj().transpose() / 2
+            i2pi * self.w * U @ self.Z @ U.conj().transpose() / 2
+            + d_coeff * i2pi * U @ self.X @ U.conj().transpose() / 2
             - frame_operator
         )
         self.assertAllClose(value_without_state, expected)
