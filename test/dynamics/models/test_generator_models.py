@@ -514,7 +514,7 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        self.jit_wrap(self.basic_model.evaluate)(1.)
+        self.jit_wrap(self.basic_model.evaluate)(1.0)
         self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))

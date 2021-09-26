@@ -488,15 +488,19 @@ class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
     def test_jitting(self):
         """Test jitting of state_into_frame and _conjugate_and_add."""
 
-        rotating_frame = RotatingFrame(Array([1., -1.]))
+        rotating_frame = RotatingFrame(Array([1.0, -1.0]))
 
-        self.jit_wrap(rotating_frame.state_into_frame)(t=0.1, y=np.array([0., 1.]))
-        self.jit_wrap(rotating_frame._conjugate_and_add)(t=0.1, operator=np.array([[0., 1.], [1., 0.]]))
+        self.jit_wrap(rotating_frame.state_into_frame)(t=0.1, y=np.array([0.0, 1.0]))
+        self.jit_wrap(rotating_frame._conjugate_and_add)(
+            t=0.1, operator=np.array([[0.0, 1.0], [1.0, 0.0]])
+        )
 
     def test_jit_and_grad(self):
         """Test jitting and gradding of state_into_frame and _conjugate_and_add."""
 
-        rotating_frame = RotatingFrame(Array([1., -1.]))
+        rotating_frame = RotatingFrame(Array([1.0, -1.0]))
 
-        self.jit_grad_wrap(lambda t, y: rotating_frame.state_into_frame(t, y))(0.1, np.array([0., 1.]))
-        self.jit_grad_wrap(lambda t, y: rotating_frame._conjugate_and_add(t, y))(0.1, np.array([[0., 1.], [1., 0.]]))
+        self.jit_grad_wrap(rotating_frame.state_into_frame)(0.1, np.array([0.0, 1.0]))
+        self.jit_grad_wrap(rotating_frame._conjugate_and_add)(
+            0.1, np.array([[0.0, 1.0], [1.0, 0.0]])
+        )
