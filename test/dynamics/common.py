@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,isinstance-second-argument-not-valid-type
 
 """
 Shared functionality and helpers for the unit tests.
@@ -18,7 +18,7 @@ Shared functionality and helpers for the unit tests.
 import unittest
 from typing import Callable, Iterable
 import numpy as np
-from scipy.sparse.base import spmatrix
+from scipy.sparse import issparse
 
 try:
     from jax import jit, grad
@@ -43,10 +43,10 @@ class QiskitDynamicsTestCase(unittest.TestCase):
         """Call np.allclose and assert true. Converts A and B to arrays and then calls np.allclose.
         Assumes that A and B are either sparse matrices or lists of sparse matrices"""
 
-        if isinstance(A, spmatrix):
+        if issparse(A):
             A = A.toarray()
             B = B.toarray()
-        elif isinstance(A, Iterable) and isinstance(A[0], spmatrix):
+        elif isinstance(A, Iterable) and issparse(A[0]):
             A = [item.toarray() for item in A]
             B = [item.toarray() for item in B]
 
@@ -85,7 +85,6 @@ class TestJaxBase(unittest.TestCase):
         Returns:
             Wrapped and jitted function."""
         wf = wrap(jit, decorator=True)
-        # pylint: disable=unnecessary-lambda
         return wf(wrap(func_to_test))
 
     def jit_grad_wrap(self, func_to_test: Callable) -> Callable:
@@ -111,7 +110,7 @@ class TestQutipBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         try:
-            # pylint: disable=import-outside-toplevel
+            # pylint: disable=import-outside-toplevel,unused-import
             import qutip
         except Exception as err:
             raise unittest.SkipTest("Skipping qutip tests.") from err

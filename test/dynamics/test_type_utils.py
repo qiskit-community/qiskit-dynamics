@@ -33,8 +33,8 @@ from qiskit_dynamics.type_utils import (
 from .common import QiskitDynamicsTestCase, TestJaxBase, TestQutipBase
 
 
-class TestTypeUtils(QiskitDynamicsTestCase):
-    """type_utils.py tests."""
+class TestStateTypeConverter(QiskitDynamicsTestCase):
+    """StateTypeConverter tests."""
 
     def test_convert_state_order_C(self):
         """Test convert_state with order parameter 'C'."""
@@ -227,6 +227,14 @@ class TestTypeUtils(QiskitDynamicsTestCase):
 
         self.assertAllClose(output, expected_output)
 
+
+class TestStateTypeConverterJax(TestStateTypeConverter, TestJaxBase):
+    """JAX version of TestStateTypeConverter."""
+
+
+class Testvec_commutator_dissipator(QiskitDynamicsTestCase):
+    """Tests for vec_commutator and vec_dissipator."""
+
     def test_sparse_commutator_dissipator(self):
         """Tests that vec_commutator and vec_dissipator gives
         identical results, whether the array passed is a (k,n,n)
@@ -238,7 +246,7 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         self.assertAllClose(vec_commutator(spm).toarray(), vec_commutator(spm.toarray()))
         multi_matrix = r(3, 8, 8)
         den_commutator = vec_commutator(multi_matrix)
-        sps_commutator = vec_commutator(np.array([csr_matrix(mat) for mat in multi_matrix]))
+        sps_commutator = vec_commutator([csr_matrix(mat) for mat in multi_matrix])
         self.assertTrue(
             np.all(
                 [
@@ -249,7 +257,7 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         )
 
         den_dissipator = vec_dissipator(multi_matrix)
-        sps_dissipator = vec_dissipator(np.array([csr_matrix(mat) for mat in multi_matrix]))
+        sps_dissipator = vec_dissipator([csr_matrix(mat) for mat in multi_matrix])
         self.assertTrue(
             np.all(
                 [
@@ -258,6 +266,10 @@ class TestTypeUtils(QiskitDynamicsTestCase):
                 ]
             )
         )
+
+
+class Test_to_array(QiskitDynamicsTestCase):
+    """Tests for to_array."""
 
     def test_to_array_Operator(self):
         """Tests for to_array with a single operator"""
@@ -305,6 +317,42 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
         self.assertAllClose(to_array(sparse_matrices), list_of_arrays)
 
+    def test_to_array_types(self):
+        """Type conversion tests for to_array"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        numpy_ops = np.array(list_of_ops)
+        normal_array = Array(np.array(list_of_ops))
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
+        single_op = op_arr[0]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        assert isinstance(to_array(numpy_ops), np.ndarray)
+        assert isinstance(to_array(normal_array), Array)
+        assert isinstance(to_array(op_arr), np.ndarray)
+        assert isinstance(to_array(single_op), np.ndarray)
+        assert isinstance(to_array(list_of_arrays), np.ndarray)
+
+
+class Test_to_array_Jax(Test_to_array, TestJaxBase):
+    """Jax version of Test_to_array tests."""
+
+    def test_to_array_types(self):
+        """Type conversion tests for to_array with jax backend"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        numpy_ops = np.array(list_of_ops)
+        normal_array = Array(np.array(list_of_ops))
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
+        single_op = op_arr[0]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        assert isinstance(to_array(numpy_ops), Array)
+        assert isinstance(to_array(normal_array), Array)
+        assert isinstance(to_array(op_arr), Array)
+        assert isinstance(to_array(single_op), Array)
+        assert isinstance(to_array(list_of_arrays), Array)
+
+
+class Test_to_csr(QiskitDynamicsTestCase):
+    """Tests for to_csr."""
+
     def test_to_csr_Operator(self):
         """Tests for to_csr with a single operator"""
         op = Operator.from_label("X")
@@ -348,20 +396,6 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
         self.assertAllCloseSparse(to_csr(sparse_matrices), sparse_matrices)
 
-    def test_to_array_types(self):
-        """Type conversion tests for to_array"""
-        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
-        numpy_ops = np.array(list_of_ops)
-        normal_array = Array(np.array(list_of_ops))
-        op_arr = [Operator.from_label(s) for s in "XYZ"]
-        single_op = op_arr[0]
-        list_of_arrays = [Array(op) for op in list_of_ops]
-        assert isinstance(to_array(numpy_ops), np.ndarray)
-        assert isinstance(to_array(normal_array), Array)
-        assert isinstance(to_array(op_arr), np.ndarray)
-        assert isinstance(to_array(single_op), np.ndarray)
-        assert isinstance(to_array(list_of_arrays), np.ndarray)
-
     def test_to_csr_types(self):
         """Type conversion tests for to_array"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
@@ -380,6 +414,10 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         assert isinstance(to_csr(list_of_arrays[0]), csr_matrix)
         assert isinstance(to_csr(sparse_matrices), Iterable)
         assert isinstance(to_csr(sparse_matrices)[0], csr_matrix)
+
+
+class Test_to_numeric_matrix_type(QiskitDynamicsTestCase):
+    """Test to_numeric_matrix_type"""
 
     def test_to_numeric_matrix_type(self):
         """Tests for to_numeric_matrix_type"""
@@ -402,32 +440,12 @@ class TestTypeUtilsQutip(QiskitDynamicsTestCase, TestQutipBase):
 
     def test_qutip_conversion(self):
         """Test qutip type conversion to numeric matrix generally, csr, and array"""
-        try:
-            import qutip
-        except ImportError:
-            pass
+        from qutip import Qobj
+
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         normal_array = Array(np.array(list_of_ops))
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
-        qutip_qobj = [qutip.Qobj(op) for op in list_of_ops]
+        qutip_qobj = [Qobj(op) for op in list_of_ops]
         self.assertAllCloseSparse(to_numeric_matrix_type(qutip_qobj)[0], sparse_matrices[0])
         self.assertAllCloseSparse(to_csr(qutip_qobj)[0], sparse_matrices[0])
-        self.assertAllCloseSparse(to_array(qutip_qobj)[0], normal_array[0])
-
-
-class TestTypeUtilsJax(TestTypeUtils, TestJaxBase):
-    """Jax version of TestTypeUtils tests."""
-
-    def test_to_array_types(self):
-        """Type conversion tests for to_array with jax backend"""
-        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
-        numpy_ops = np.array(list_of_ops)
-        normal_array = Array(np.array(list_of_ops))
-        op_arr = [Operator.from_label(s) for s in "XYZ"]
-        single_op = op_arr[0]
-        list_of_arrays = [Array(op) for op in list_of_ops]
-        assert isinstance(to_array(numpy_ops), Array)
-        assert isinstance(to_array(normal_array), Array)
-        assert isinstance(to_array(op_arr), Array)
-        assert isinstance(to_array(single_op), Array)
-        assert isinstance(to_array(list_of_arrays), Array)
+        self.assertAllClose(to_array(qutip_qobj)[0], normal_array[0])

@@ -409,11 +409,11 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
         """
 
         # Convert Hamiltonian to commutator formalism
-        vec_ham_ops = -1j * vec_commutator(hamiltonian_operators)
-        vec_drift = -1j * vec_commutator(drift)
+        vec_ham_ops = -1j * np.array(vec_commutator(to_csr(hamiltonian_operators)), dtype="O")
+        vec_drift = -1j * np.array(vec_commutator(to_csr(drift)), dtype="O")
         total_ops = None
         if dissipator_operators is not None:
-            vec_diss_ops = vec_dissipator(to_csr(dissipator_operators))
+            vec_diss_ops = np.array(vec_dissipator(to_csr(dissipator_operators)), dtype="O")
             total_ops = np.append(vec_ham_ops, vec_diss_ops, axis=0)
             self.empty_dissipators = False
         else:
