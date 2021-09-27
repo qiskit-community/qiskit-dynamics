@@ -493,7 +493,7 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
 
         try:
             import qutip
-        except: ImportError
+        except ImportError:
             return
         rotating_frame = RotatingFrame(None)
 
