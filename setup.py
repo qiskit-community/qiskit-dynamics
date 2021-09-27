@@ -22,6 +22,9 @@ requirements = [
     "qiskit-terra>=0.16.0",
 ]
 
+jax_extras = ['jax>=0.2.21',
+              'jaxlib>=0.1.71']
+
 PACKAGES = setuptools.find_packages(exclude=['test*'])
 
 version_path = os.path.abspath(
@@ -65,5 +68,8 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.7",
+    extras_require={
+        "jax": jax_extras
+    },
     zip_safe=False
 )
