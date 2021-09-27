@@ -259,19 +259,6 @@ class TestTypeUtils(QiskitDynamicsTestCase):
             )
         )
 
-    # def test_to_array(self):
-    #     """Tests for to_array"""
-    #     list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
-    #     normal_array = Array(np.array(list_of_ops))
-    #     list_of_arrays = [Array(op) for op in list_of_ops]
-    #     op_arr = [Operator.from_label(s) for s in "XYZ"]
-    #     sparse_matrices = [csr_matrix(op) for op in list_of_ops]
-    #     self.assertAllClose(to_array(list_of_ops), normal_array)
-    #     self.assertAllClose(to_array(list_of_arrays), normal_array)
-    #     self.assertAllClose(to_array(op_arr), list_of_arrays)
-    #     for i in range(3):
-    #         self.assertAllClose(sparse_matrices[i].toarray(), normal_array[i])
-
     def test_to_array_Operator(self):
         """Tests for to_array with a single operator"""
         op = Operator.from_label("X")
@@ -292,8 +279,9 @@ class TestTypeUtils(QiskitDynamicsTestCase):
     def test_to_array_Operator_list(self):
         """Tests for to_array with a list of operators"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
         normal_array = Array(np.array(list_of_ops))
-        self.assertAllClose(to_array(list_of_ops), normal_array)
+        self.assertAllClose(to_array(op_arr), normal_array)
 
     def test_to_array_nparray_list(self):
         """Tests for to_array with a list of numpy arrays"""
@@ -302,7 +290,7 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         list_of_arrays = [Array(op) for op in list_of_ops]
         self.assertAllClose(to_array(ndarray_list), list_of_arrays)
 
-    def test_to_array_3d_array(self):
+    def test_to_array_list_of_arrays(self):
         """Tests for to_array with a list of numpy arrays"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         ndarray_list = [np.array(op) for op in list_of_ops]
@@ -343,8 +331,9 @@ class TestTypeUtils(QiskitDynamicsTestCase):
     def test_to_csr_Operator_list(self):
         """Tests for to_csr with a list of operators"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
-        self.assertAllCloseSparse(to_csr(list_of_ops), sparse_matrices)
+        self.assertAllCloseSparse(to_csr(op_arr), sparse_matrices)
 
     def test_to_csr_nparray_list(self):
         """Tests for to_csr with a list of numpy arrays"""
@@ -408,7 +397,7 @@ class TestTypeUtils(QiskitDynamicsTestCase):
             )
 
 
-class TestTypeUtilsQutip(TestTypeUtils, TestQutipBase):
+class TestTypeUtilsQutip(QiskitDynamicsTestCase, TestQutipBase):
     """Perform type conversion testing for qutip qobj inputs"""
 
     def test_qutip_conversion(self):
@@ -427,10 +416,7 @@ class TestTypeUtilsQutip(TestTypeUtils, TestQutipBase):
 
 
 class TestTypeUtilsJax(TestTypeUtils, TestJaxBase):
-    """Jax version of TestTypeUtils tests.
-
-    Note: This class has no body but contains tests due to inheritance.
-    """
+    """Jax version of TestTypeUtils tests."""
 
     def test_to_array_types(self):
         """Type conversion tests for to_array with jax backend"""

@@ -413,7 +413,7 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
         vec_drift = -1j * vec_commutator(drift)
         total_ops = None
         if dissipator_operators is not None:
-            vec_diss_ops = vec_dissipator(to_array(dissipator_operators))
+            vec_diss_ops = vec_dissipator(to_csr(dissipator_operators))
             total_ops = np.append(vec_ham_ops, vec_diss_ops, axis=0)
             self.empty_dissipators = False
         else:
@@ -496,12 +496,12 @@ class SparseLindbladCollection(DenseLindbladCollection):
         # pylint: disable=consider-using-enumerate
         for i in range(len(hamiltonian_operators)):
             if isinstance(hamiltonian_operators[i], Operator):
-                hamiltonian_operators[i] = to_array(hamiltonian_operators[i])
+                hamiltonian_operators[i] = to_csr(hamiltonian_operators[i])
             self._hamiltonian_operators[i] = csr_matrix(
                 np.round(hamiltonian_operators[i], decimals)
             )
         if isinstance(drift, Operator):
-            drift = to_array(drift)
+            drift = to_csr(drift)
         self.drift = csr_matrix(np.round(drift, decimals))
         if dissipator_operators is not None:
             self._dissipator_operators = np.empty(shape=len(dissipator_operators), dtype="O")
@@ -509,7 +509,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
             # pylint: disable=consider-using-enumerate
             for i in range(len(dissipator_operators)):
                 if isinstance(dissipator_operators[i], Operator):
-                    dissipator_operators[i] = to_array(dissipator_operators[i])
+                    dissipator_operators[i] = to_csr(dissipator_operators[i])
                 self._dissipator_operators[i] = csr_matrix(
                     np.round(dissipator_operators[i], decimals)
                 )

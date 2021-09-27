@@ -322,10 +322,18 @@ def vec_dissipator(L: Array):
     )
 
 
+    """Check if the object is a qutip Qobj.
+
+    Bool: 
+    """
 def isinstance_qutip_qobj(obj):
     """Check if the object is a qutip Qobj.
 
-    Bool: True if obj is qutip Qobj
+    Args:
+        obj (any): Any object for testing.
+
+    Returns:
+        Bool: True if obj is qutip Qobj
     """
     if (
         type(obj).__name__ == "Qobj"
@@ -342,8 +350,8 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
         op: Either an Operator to be converted to an array, a list of Operators
             to be converted to a 3d array, or an array (which simply gets
             returned)
-        no_iter (Bool): Boolean determining whether to look inside iterables to make multiple
-            Arrays. If recurring, this should be True to avoid making each element of the
+        no_iter (Bool): Boolean determining whether to recursively unroll `Iterables`.
+            If recurring, this should be True to avoid making each element of the
             input array into a separate Array.
     Returns:
         Array: Array version of input
@@ -384,9 +392,9 @@ def to_csr(
         op: Either an Operator to be converted to an sparse matrix, a list of Operators
             to be converted to a 3d sparse matrix, or a sparse matrix (which simply gets
             returned)
-        no_iter (Bool): Boolean determining whether to look inside iterables to make multiple
-            csr_matrices. If recurring, this should be True to avoid making each element of
-            the input array a separate sparse matrix
+        no_iter (Bool): Boolean determining whether to recursively unroll `Iterables`.
+            If recurring, this should be True to avoid making each element of the
+            input into a separate csr_matrix.
     Returns:
         csr_matrix: Sparse matrix version of input
     """
