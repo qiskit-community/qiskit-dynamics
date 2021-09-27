@@ -267,12 +267,10 @@ def vec_commutator(A: Array):
         # single, sparse matrix
         sp_iden = sparse_identity(A.shape[-1], format="csr")
         return sparse_kron(sp_iden, A) - sparse_kron(A.T, sp_iden)
-    if A.dtype == "object":
+    if isinstance(A, List) and issparse(A[0]):
         # taken to be 1d array of 2d sparse matrices
         sp_iden = sparse_identity(A[0].shape[-1], format="csr")
-        out = np.empty_like(A)
-        for i, mat in enumerate(A):
-            out[i] = sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden)
+        out = [sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden) for mat in A]
         return out
 
     A = to_array(A)
@@ -297,14 +295,18 @@ def vec_dissipator(L: Array):
     Note: this function is also "vectorized" in the programming sense.
     """
 
-    if L.dtype == "object":
+    if issparse(L):
+        sp_iden = sparse_identity(L[0].shape[-1], format="csr")
+        return sparse_kron(L.conj(), mat) - 0.5 * (
+            sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(L.T * L.conj(), sp_iden)
+            )
+    if isinstance(L, list) and issparse(L[0]):
         # taken to be 1d array of 2d sparse matrices
         sp_iden = sparse_identity(L[0].shape[-1], format="csr")
-        out = np.empty_like(L)
-        for i, mat in enumerate(L):
-            out[i] = sparse_kron(mat.conj(), mat) - 0.5 * (
-                sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(mat.T * mat.conj(), sp_iden)
+        out = [sparse_kron(mat.conj(), mat) - 0.5 * (
+            sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(mat.T * mat.conj(), sp_iden)
             )
+            for mat in L]
         return out
 
     iden = Array(np.eye(L.shape[-1]))
@@ -324,7 +326,7 @@ def vec_dissipator(L: Array):
 
     """Check if the object is a qutip Qobj.
 
-    Bool: 
+    Bool:
     """
 def isinstance_qutip_qobj(obj):
     """Check if the object is a qutip Qobj.
