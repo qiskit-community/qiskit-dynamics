@@ -322,10 +322,6 @@ def vec_dissipator(L: Array):
     )
 
 
-    """Check if the object is a qutip Qobj.
-
-    Bool: 
-    """
 def isinstance_qutip_qobj(obj):
     """Check if the object is a qutip Qobj.
 
