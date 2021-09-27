@@ -237,7 +237,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
             dissipator_operators=self.dissipator_operators,
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho)
-        for i in range(len(self.multiple_rho)):
+        for i, _ in enumerate(self.multiple_rho):
             self.assertAllClose(
                 res[i],
                 full_lindblad_collection(
@@ -436,7 +436,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
             dissipator_operators=self.dissipator_operators,
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho)
-        for i in range(len(self.multiple_rho)):
+        for i, _ in enumerate(self.multiple_rho):
             self.assertAllClose(
                 res[i],
                 full_lindblad_collection(

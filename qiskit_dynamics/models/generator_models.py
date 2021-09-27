@@ -19,6 +19,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, Tuple, Union, List, Optional
 from copy import copy
 import numpy as np
+from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
@@ -29,7 +30,7 @@ from qiskit_dynamics.models.operator_collections import (
 )
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_array
+from qiskit_dynamics.type_utils import to_array, to_csr
 from .rotating_frame import RotatingFrame
 
 

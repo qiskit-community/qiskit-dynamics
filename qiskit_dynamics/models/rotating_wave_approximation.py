@@ -34,7 +34,8 @@ def rotating_wave_approximation(
     return_signal_map: Optional[bool] = False,
 ) -> BaseGeneratorModel:
     r"""Construct a new model by performing the rotating wave approximation with a
-    given cutoff frequency.
+    given cutoff frequency. The outputs of this function can be used in JAX-transformable
+    functions, however this function itself cannot (see below).
 
     Performs elementwise rotating wave approximation (RWA) with
     cutoff frequency ``cutoff_freq`` on each operator in a model, returning a new model.
@@ -57,6 +58,41 @@ def rotating_wave_approximation(
         rwa_model.signals = f(new_signals)
 
     result in an ``rwa_model`` with the same updated signals.
+
+    .. note::
+        The ``rotating_wave_approximation`` function itself cannot be included in a function
+        to-be JAX-transformed, however the resulting model and ``signal_map`` can. For example,
+        the following function is **not** JAX-transformable:
+
+        .. code-block:: python
+
+            def function_with_rwa(t):
+                operators = ...
+                signals = ...
+                model = GeneratorModel(operators=operators, signals=signals)
+                rwa_model = rotating_wave_approximation(model, cutoff_freq)
+                return rwa_model(t)
+
+        Whereas, defining:
+
+        .. code-block:: python
+
+            rwa_model, signal_map = rotating_wave_approximation(model,
+                                                                cutoff_freq,
+                                                                return_signal_map=True)
+
+        The following function **is** JAX-transformable:
+
+        .. code-block:: python
+
+            def jax_transformable_func(t):
+                rwa_model_copy = rwa_model.copy()
+                rwa_model_copy.signals = signal_map(new_signals)
+                return rwa_model_copy(t)
+
+        In this way, the outputs of ``rotating_wave_approximation`` can be used in
+        JAX-transformable functions, however ``rotating_wave_approximation`` itself cannot.
+
 
     Formalism: When considering :math:`s_i(t) e^{-tF}G_ie^{tF}`, in the basis in which
     :math:`F` is diagonal, the :math:`(j, k)` element of :math:`G_i` has effective frequency

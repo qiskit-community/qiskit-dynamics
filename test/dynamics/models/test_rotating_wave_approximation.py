@@ -149,21 +149,25 @@ class TestRotatingWave(QiskitDynamicsTestCase):
 
 
 class TestRotatingWaveJax(TestRotatingWave, TestJaxBase):
-    """Jax version of TestRotatingWave tests.
+    """Jax version of TestRotatingWave tests."""
 
-    Note: This class has no body but contains tests due to inheritance.
-    """
+    def test_jitable_gradable_signal_map(self):
+        """Tests that signal_map from the RWA is jitable and gradable."""
 
-    def test_jitable_gradable_rwa(self):
-        """Tests whether a function involving the RWA is jitable and gradable."""
+        sample_sigs = [Signal(1.0, 0.0), Signal(1.0, -3.0), Signal(1.0, 1.0), Signal(1.0, 3.0)]
+        ops = Array(np.ones((4, 2, 2)))
+        drift = Array(np.ones((2, 2)))
+        model = GeneratorModel(ops, signals=sample_sigs, drift=drift, rotating_frame=drift)
+        rwa_model, signal_map = rotating_wave_approximation(
+            model=model, cutoff_freq=2.0, return_signal_map=True
+        )
 
-        def _simple_function_using_rwa(w):
+        def _simple_function_using_rwa(t, w):
             """Simple function that involves taking the rotating wave approximation."""
-            sigs = [Signal(1, 0), Signal(lambda t: w * t, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
-            ops = Array(np.ones((4, 2, 2)))
-            dft = Array(np.ones((2, 2)))
-            GM = GeneratorModel(ops, signals=sigs, static_operator=dft, rotating_frame=None)
-            return rotating_wave_approximation(GM, 2)(2)
+            sigs = [Signal(1, 0), Signal(lambda s: w * s, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
+            rwa_model_copy = rwa_model.copy()
+            rwa_model_copy.signals = signal_map(sigs)
+            return rwa_model(t)
 
-        self.jit_wrap(_simple_function_using_rwa)(1.0)
-        self.jit_grad_wrap(_simple_function_using_rwa)(1.0)
+        self.jit_wrap(_simple_function_using_rwa)(1.0, 1.0)
+        self.jit_grad_wrap(_simple_function_using_rwa)(1.0, 1.0)

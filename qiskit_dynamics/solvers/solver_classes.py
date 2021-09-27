@@ -66,6 +66,13 @@ class Solver:
       :func:`~qiskit_dynamics.models.rotating_wave_approximation`
       for details.
 
+      .. note::
+            When using the ``rwa_cutoff_freq`` optional argument,
+            :class:`~qiskit_dynamics.solvers.solver_classes.Solver` cannot be instantiated within
+            a JAX-transformable function. However, after construction, instances can
+            still be used within JAX-transformable functions regardless of whether an
+            ``rwa_cutoff_freq`` is set.
+
     .. note::
         Modifications to the underlying model after instantiation may be made
         directly via the ``model`` property of this class. However,

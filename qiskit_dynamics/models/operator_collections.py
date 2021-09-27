@@ -20,7 +20,7 @@ import numpy as np
 from qiskit.quantum_info.operators.operator import Operator
 from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array, vec_commutator, vec_dissipator
+from qiskit_dynamics.type_utils import to_array, to_csr, vec_commutator, vec_dissipator
 
 
 class BaseOperatorCollection(ABC):
@@ -141,14 +141,12 @@ class SparseOperatorCollection(BaseOperatorCollection):
             static_operator: (n,n) Array specifying the static_operator term :math:`G_d`.
             decimals: Values will be rounded at ``decimals`` places after decimal.
                 Avoids storing excess sparse entries for entries close to zero."""
-        if isinstance(static_operator, Operator):
-            static_operator = to_array(static_operator)
-        self.static_operator = np.round(static_operator, decimals)
+        self.static_operator = np.round(to_csr(static_operator), decimals)
         self._operators = np.empty(shape=len(operators), dtype="O")
         # pylint: disable=consider-using-enumerate
         for i in range(len(operators)):
             if isinstance(operators[i], Operator):
-                operators[i] = to_array(operators[i])
+                operators[i] = to_csr(operators[i])
             self._operators[i] = csr_matrix(np.round(operators[i], decimals))
 
     @property
@@ -451,11 +449,11 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
         """
 
         # Convert Hamiltonian to commutator formalism
-        vec_ham_ops = -1j * vec_commutator(hamiltonian_operators)
-        vec_static_hamiltonian = -1j * vec_commutator(static_hamiltonian)
+        vec_ham_ops = -1j * np.array(vec_commutator(to_csr(hamiltonian_operators)), dtype="O")
+        vec_drift = -1j * np.array(vec_commutator(to_csr(drift)), dtype="O")
         total_ops = None
         if dissipator_operators is not None:
-            vec_diss_ops = vec_dissipator(to_array(dissipator_operators))
+            vec_diss_ops = np.array(vec_dissipator(to_csr(dissipator_operators)), dtype="O")
             total_ops = np.append(vec_ham_ops, vec_diss_ops, axis=0)
             self.empty_dissipators = False
         else:
@@ -550,12 +548,11 @@ class SparseLindbladCollection(DenseLindbladCollection):
         # pylint: disable=consider-using-enumerate
         for i in range(len(hamiltonian_operators)):
             if isinstance(hamiltonian_operators[i], Operator):
-                hamiltonian_operators[i] = to_array(hamiltonian_operators[i])
+                hamiltonian_operators[i] = to_csr(hamiltonian_operators[i])
             self._hamiltonian_operators[i] = csr_matrix(
                 np.round(hamiltonian_operators[i], decimals)
             )
-        if isinstance(static_hamiltonian, Operator):
-            static_hamiltonian = to_array(static_hamiltonian)
+        static_hamiltonian = to_csr(static_hamiltonian)
         self.static_hamiltonian = csr_matrix(np.round(static_hamiltonian, decimals))
         if dissipator_operators is not None:
             self._dissipator_operators = np.empty(shape=len(dissipator_operators), dtype="O")
@@ -563,7 +560,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
             # pylint: disable=consider-using-enumerate
             for i in range(len(dissipator_operators)):
                 if isinstance(dissipator_operators[i], Operator):
-                    dissipator_operators[i] = to_array(dissipator_operators[i])
+                    dissipator_operators[i] = to_csr(dissipator_operators[i])
                 self._dissipator_operators[i] = csr_matrix(
                     np.round(dissipator_operators[i], decimals)
                 )

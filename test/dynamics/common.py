@@ -9,22 +9,24 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,isinstance-second-argument-not-valid-type
 
 """
 Shared functionality and helpers for the unit tests.
 """
 
 import unittest
-from typing import Callable
+from typing import Callable, Iterable
 import numpy as np
+from scipy.sparse import issparse
 
 try:
     from jax import jit, grad
 except ImportError:
     pass
+
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import wrap
+from qiskit_dynamics.dispatch import Array, wrap
 
 
 class QiskitDynamicsTestCase(unittest.TestCase):
@@ -32,6 +34,22 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
+        A = Array(A)
+        B = Array(B)
+
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+
+    def assertAllCloseSparse(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true. Converts A and B to arrays and then calls np.allclose.
+        Assumes that A and B are either sparse matrices or lists of sparse matrices"""
+
+        if issparse(A):
+            A = A.toarray()
+            B = B.toarray()
+        elif isinstance(A, Iterable) and issparse(A[0]):
+            A = [item.toarray() for item in A]
+            B = [item.toarray() for item in B]
+
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
@@ -67,8 +85,7 @@ class TestJaxBase(unittest.TestCase):
         Returns:
             Wrapped and jitted function."""
         wf = wrap(jit, decorator=True)
-        # pylint: disable=unnecessary-lambda
-        return wf(lambda *args: func_to_test(*args))
+        return wf(wrap(func_to_test))
 
     def jit_grad_wrap(self, func_to_test: Callable) -> Callable:
         """Tests whether a function can be graded. Converts
@@ -81,3 +98,19 @@ class TestJaxBase(unittest.TestCase):
         wf = wrap(lambda f: jit(grad(f)), decorator=True)
         f = lambda *args: np.sum(func_to_test(*args)).real
         return wf(f)
+
+
+class TestQutipBase(unittest.TestCase):
+    """Base class with setUpClass for tests that utilize Qutip
+
+    Test cases that inherit from this class will automatically work with jax
+    backend.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            # pylint: disable=import-outside-toplevel,unused-import
+            import qutip
+        except Exception as err:
+            raise unittest.SkipTest("Skipping qutip tests.") from err

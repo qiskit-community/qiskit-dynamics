@@ -109,8 +109,8 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
         # manually evaluate frame
         expected = (
-            twopi * self.w * U @ self.Z.data @ U.conj().transpose() / 2
-            + d_coeff * twopi * U @ self.X.data @ U.conj().transpose() / 2
+            twopi * self.w * U @ self.Z @ U.conj().transpose() / 2
+            + d_coeff * twopi * U @ self.X @ U.conj().transpose() / 2
             - frame_operator
         )
 
