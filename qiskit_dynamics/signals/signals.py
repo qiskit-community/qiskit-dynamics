@@ -952,12 +952,12 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
             )
             samples = np.append(new_samples, new_samples_conj, axis=1)
 
-            new_freqs = (sig1.carrier_freq[:, None] + sig2.carrier_freq).flatten()
-            new_freqs_conj = (sig1.carrier_freq - sig2.carrier_freq).flatten()
+            new_freqs = sig1.carrier_freq + sig2.carrier_freq
+            new_freqs_conj = sig1.carrier_freq - sig2.carrier_freq
             freqs = np.append(Array(new_freqs), Array(new_freqs_conj))
 
-            new_phases = (sig1.phase[:, None] + sig2.phase).flatten()
-            new_phases_conj = (sig1.phase[:, None] - sig2.phase).flatten()
+            new_phases = sig1.phase + sig2.phase
+            new_phases_conj = sig1.phase - sig2.phase
             phases = np.append(Array(new_phases), Array(new_phases_conj))
 
             return DiscreteSignalSum(
