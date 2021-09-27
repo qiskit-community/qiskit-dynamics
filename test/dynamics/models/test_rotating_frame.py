@@ -464,6 +464,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
 
 
 class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
+    """Type handling testing with rotating frame functions"""
     def test_state_transformations_no_frame_csr_matrix_type(self):
         """Test frame transformations with no frame."""
 

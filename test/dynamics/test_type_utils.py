@@ -13,9 +13,8 @@
 
 """Tests for type_utils.py."""
 
-import numpy as np
 from collections.abc import Iterable
-from numpy.random import normal
+import numpy as np
 from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators.operator import Operator
@@ -393,19 +392,6 @@ class TestTypeUtils(QiskitDynamicsTestCase):
         assert isinstance(to_csr(sparse_matrices), Iterable)
         assert isinstance(to_csr(sparse_matrices)[0], csr_matrix)
 
-    # def test_to_csr(self):
-    #     """Tests for to_csr"""
-    #     list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
-    #     normal_array = Array(np.array(list_of_ops))
-    #     list_of_arrays = [Array(op) for op in list_of_ops]
-    #     op_arr = [Operator.from_label(s) for s in "XYZ"]
-    #     sparse_matrices = [csr_matrix(op) for op in list_of_ops]
-    #     self.assertAllCloseSparse(to_csr(list_of_ops), sparse_matrices)
-    #     self.assertAllCloseSparse(to_csr(list_of_arrays), sparse_matrices)
-    #     self.assertAllCloseSparse(to_csr(op_arr), sparse_matrices)
-    #     for i in range(3):
-    #         self.assertAllCloseSparse(sparse_matrices[i].toarray(), normal_array[i])
-
     def test_to_numeric_matrix_type(self):
         """Tests for to_numeric_matrix_type"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
@@ -426,6 +412,7 @@ class TestTypeUtilsQutip(TestTypeUtils, TestQutipBase):
     """Perform type conversion testing for qutip qobj inputs"""
 
     def test_qutip_conversion(self):
+        """Test qutip type conversion to numeric matrix generally, csr, and array"""
         try:
             import qutip
         except ImportError:

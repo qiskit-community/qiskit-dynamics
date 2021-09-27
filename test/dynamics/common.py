@@ -25,11 +25,6 @@ try:
 except ImportError:
     pass
 
-try:
-    import qutip
-except ImportError:
-    pass
-
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array, wrap
 
