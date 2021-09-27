@@ -18,70 +18,6 @@ from typing import Callable
 from .array import Array
 
 
-class WrappedFunction:
-    """Class for storing wrapped array backend functions to work with Arrays."""
-
-    def __init__(
-        self,
-        func: Callable,
-        wrap_return: bool = True,
-        wrap_args: bool = True,
-        decorator: bool = False,
-    ):
-        """Wrap an array backend function to work with Arrays.
-
-        Args:
-            func: a function to wrap.
-            wrap_return: If ``True`` convert results that are registered array
-                        backend types into Array objects (Default: True).
-            wrap_args: If ``True`` also wrap function type args and kwargs of the
-                   wrapped function.
-            decorator: If ``True`` the wrapped decorator function ``func`` will
-                    also wrap the decorated functions (Default: False).
-        """
-        self._func = func
-        self._wrap_return = wrap_return
-        self._wrap_args = wrap_args
-        self._decorator = decorator
-
-        if decorator:
-            self._wrapped_func = _wrap_decorator(func, wrap_return=wrap_return, wrap_args=wrap_args)
-        else:
-            self._wrapped_func = _wrap_function(func, wrap_return=wrap_return, wrap_args=wrap_args)
-
-    def __call__(self, *args, **kwargs):
-        """Evaluate the wrapped function."""
-        return self._wrapped_func(*args, **kwargs)
-
-    def __repr__(self):
-        ret = "WrappedFunction"
-        ret += f"\n decorator: {self._decorator}"
-        ret += f"\n wrap_return: {self._wrap_return}"
-        ret += f"\n wrap_args: {self._wrap_args}"
-        ret += f"\n func: {repr(self._func)}"
-        return ret
-
-    @property
-    def func(self):
-        """The original function."""
-        return self._func
-
-    @property
-    def decorator(self):
-        """Return if the wrapped function is a decorator."""
-        return self._decorator
-
-    @property
-    def wrap_return(self):
-        """Return if the wrapped function's return is also wrapped as an Arrays"""
-        return self._wrap_return
-
-    @property
-    def wrap_args(self):
-        """Return if the wrapped function also has recursively wrapped args and kwargs"""
-        return self._wrap_return
-
-
 def wrap(
     func: Callable, wrap_return: bool = True, wrap_args: bool = True, decorator: bool = False
 ) -> Callable:
@@ -97,9 +33,12 @@ def wrap(
                    also wrap the decorated functions (Default: False).
 
     Returns:
-        WrappedFunction: The wrapped function.
+        Callable: The wrapped function.
     """
-    return WrappedFunction(func, wrap_return=wrap_return, decorator=decorator, wrap_args=wrap_args)
+    if decorator:
+        return _wrap_decorator(func, wrap_return=wrap_return, wrap_args=wrap_args)
+    else:
+        return _wrap_function(func, wrap_return=wrap_return, wrap_args=wrap_args)
 
 
 def _wrap_array_function(func: Callable) -> Callable:
