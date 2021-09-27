@@ -463,7 +463,6 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         self.assertAllClose(op1, op2.reshape((6, 6), order="F"))
 
 
-<<<<<<< HEAD
 class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
     def test_state_transformations_no_frame_csr_matrix_type(self):
         """Test frame transformations with no frame."""
@@ -565,10 +564,7 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         assert isinstance(out, Array)
 
 
-class TestFrameJax(TestRotatingFrame, TestJaxBase):
-=======
 class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
->>>>>>> fd939183f9fb20403b945e17214b4e96e7fbad8a
     """Jax version of TestRotatingFrame tests.
 
     Note: This class has more tests due to inheritance.
