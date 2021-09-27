@@ -280,6 +280,12 @@ class Test_to_array(QiskitDynamicsTestCase):
         """Tests for to_array with a single numpy array"""
         ndarray = np.array([[0, 1], [1, 0]])
         self.assertAllClose(to_array(ndarray), ndarray)
+    
+    def test_to_array_Array(self):
+        """Tests for to_array from a qiskit Array"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        arr_in = Array(list_of_ops)
+        self.assertAllClose(to_array(arr_in), arr_in)
 
     def test_to_array_sparse_matrix(self):
         """Tests for to_array with a single sparse matrix"""
