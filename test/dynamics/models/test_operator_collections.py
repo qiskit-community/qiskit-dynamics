@@ -132,7 +132,9 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
             ham_ops_alt, drift=Array(drift_numpy_array)
         )
         sparse_collection_pure_array = SparseOperatorCollection(
-            Array(ham_ops), drift=Array(drift_numpy_array)
+            ham_ops,
+            drift=drift_numpy_array
+            # Array(ham_ops), drift=Array(drift_numpy_array)
         )
         a = sparse_collection_operator_list(sigVals)
         b = sparse_collection_array_list(sigVals)
@@ -227,7 +229,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
             dissipator_operators=self.dissipator_operators,
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho)
-        for i in range(len(self.multiple_rho)):
+        for i, _ in enumerate(self.multiple_rho):
             self.assertAllClose(
                 res[i],
                 full_lindblad_collection(
@@ -420,7 +422,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
             dissipator_operators=self.dissipator_operators,
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho)
-        for i in range(len(self.multiple_rho)):
+        for i, _ in enumerate(self.multiple_rho):
             self.assertAllClose(
                 res[i],
                 full_lindblad_collection(
