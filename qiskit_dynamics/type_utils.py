@@ -240,7 +240,9 @@ def type_spec_from_instance(y):
     return type_spec
 
 
-def vec_commutator(A: Array):
+def vec_commutator(
+    A: Union[Array, csr_matrix, List[csr_matrix]]
+) -> Union[Array, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map X -> [A, X]
     in column-stacking convention. In column-stacking convention we have
 
@@ -252,12 +254,12 @@ def vec_commutator(A: Array):
     .. math::
         [A, \cdot] = A \cdot - \cdot A \mapsto id \otimes A - A^T \otimes id
 
-    Note: this function is also "vectorized" in the programming sense.
+    Note: this function is also "vectorized" in the programming sense for dense arrays.
 
     Args:
         A: Either a 2d array representing the matrix A described above,
-           or a 3d array representing a list of matrices, or a 1d array
-           of dtype object containing 2d sparse matrices.
+           a 3d array representing a list of matrices, a sparse matrix, or a
+           list of sparse matrices.
 
     Returns:
         Array: vectorized version of the map.
@@ -267,7 +269,7 @@ def vec_commutator(A: Array):
         # single, sparse matrix
         sp_iden = sparse_identity(A.shape[-1], format="csr")
         return sparse_kron(sp_iden, A) - sparse_kron(A.T, sp_iden)
-    if isinstance(A, List) and issparse(A[0]):
+    if isinstance(A, list) and issparse(A[0]):
         # taken to be 1d array of 2d sparse matrices
         sp_iden = sparse_identity(A[0].shape[-1], format="csr")
         out = [sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden) for mat in A]
@@ -281,7 +283,9 @@ def vec_commutator(A: Array):
     return np.kron(iden, A) - np.kron(A.transpose(axes), iden)
 
 
-def vec_dissipator(L: Array):
+def vec_dissipator(
+    L: Union[Array, csr_matrix, List[csr_matrix]]
+) -> Union[Array, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)
     in column stacking convention.
@@ -292,21 +296,23 @@ def vec_dissipator(L: Array):
         \overline{L} \otimes L - 0.5(id \otimes L^\dagger L +
             (L^\dagger L)^T \otimes id)
 
-    Note: this function is also "vectorized" in the programming sense.
+    Note: this function is also "vectorized" in the programming sense for dense matrices.
     """
 
     if issparse(L):
         sp_iden = sparse_identity(L[0].shape[-1], format="csr")
-        return sparse_kron(L.conj(), mat) - 0.5 * (
-            sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(L.T * L.conj(), sp_iden)
-            )
+        return sparse_kron(L.conj(), L) - 0.5 * (
+            sparse_kron(sp_iden, L.conj().T * L) + sparse_kron(L.T * L.conj(), sp_iden)
+        )
     if isinstance(L, list) and issparse(L[0]):
         # taken to be 1d array of 2d sparse matrices
         sp_iden = sparse_identity(L[0].shape[-1], format="csr")
-        out = [sparse_kron(mat.conj(), mat) - 0.5 * (
-            sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(mat.T * mat.conj(), sp_iden)
-            )
-            for mat in L]
+        out = [
+            sparse_kron(mat.conj(), mat)
+            - 0.5
+            * (sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(mat.T * mat.conj(), sp_iden))
+            for mat in L
+        ]
         return out
 
     iden = Array(np.eye(L.shape[-1]))
@@ -324,10 +330,6 @@ def vec_dissipator(L: Array):
     )
 
 
-    """Check if the object is a qutip Qobj.
-
-    Bool:
-    """
 def isinstance_qutip_qobj(obj):
     """Check if the object is a qutip Qobj.
 
@@ -346,6 +348,7 @@ def isinstance_qutip_qobj(obj):
     return False
 
 
+# pylint: disable=too-many-return-statements
 def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False):
     """Convert an operator or list of operators to an Array.
     Args:
@@ -386,6 +389,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
         return op
 
 
+# pylint: disable=too-many-return-statements
 def to_csr(
     op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False
 ) -> csr_matrix:

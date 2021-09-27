@@ -434,21 +434,18 @@ class Test_to_numeric_matrix_type(QiskitDynamicsTestCase):
                 to_numeric_matrix_type(sparse_matrices)[i], sparse_matrices[i]
             )
 
+
 class TestTypeUtilsQutip(QiskitDynamicsTestCase, TestQutipBase):
     """Perform type conversion testing for qutip qobj inputs"""
 
     def test_qutip_conversion(self):
         """Test qutip type conversion to numeric matrix generally, csr, and array"""
-        try:
-            import qutip
-        except ImportError:
-            pass
+        from qutip import Qobj
 
-        import pdb; pdb.set_trace()
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         normal_array = Array(np.array(list_of_ops))
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
-        qutip_qobj = [qutip.Qobj(op) for op in list_of_ops]
+        qutip_qobj = [Qobj(op) for op in list_of_ops]
         self.assertAllCloseSparse(to_numeric_matrix_type(qutip_qobj)[0], sparse_matrices[0])
         self.assertAllCloseSparse(to_csr(qutip_qobj)[0], sparse_matrices[0])
-        self.assertAllCloseSparse(to_array(qutip_qobj)[0], normal_array[0])
+        self.assertAllClose(to_array(qutip_qobj)[0], normal_array[0])
