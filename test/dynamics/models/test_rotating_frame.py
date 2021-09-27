@@ -463,6 +463,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         self.assertAllClose(op1, op2.reshape((6, 6), order="F"))
 
 
+<<<<<<< HEAD
 class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
     def test_state_transformations_no_frame_csr_matrix_type(self):
         """Test frame transformations with no frame."""
@@ -565,6 +566,9 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
 
 
 class TestFrameJax(TestRotatingFrame, TestJaxBase):
+=======
+class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
+>>>>>>> fd939183f9fb20403b945e17214b4e96e7fbad8a
     """Jax version of TestRotatingFrame tests.
 
     Note: This class has more tests due to inheritance.
@@ -586,3 +590,23 @@ class TestFrameJax(TestRotatingFrame, TestJaxBase):
 
         rotating_frame = RotatingFrame(self.Z + 1j * self.X)
         self.assertTrue(jnp.isnan(rotating_frame.frame_diag[0]))
+
+    def test_jitting(self):
+        """Test jitting of state_into_frame and _conjugate_and_add."""
+
+        rotating_frame = RotatingFrame(Array([1.0, -1.0]))
+
+        self.jit_wrap(rotating_frame.state_into_frame)(t=0.1, y=np.array([0.0, 1.0]))
+        self.jit_wrap(rotating_frame._conjugate_and_add)(
+            t=0.1, operator=np.array([[0.0, 1.0], [1.0, 0.0]])
+        )
+
+    def test_jit_and_grad(self):
+        """Test jitting and gradding of state_into_frame and _conjugate_and_add."""
+
+        rotating_frame = RotatingFrame(Array([1.0, -1.0]))
+
+        self.jit_grad_wrap(rotating_frame.state_into_frame)(0.1, np.array([0.0, 1.0]))
+        self.jit_grad_wrap(rotating_frame._conjugate_and_add)(
+            0.1, np.array([[0.0, 1.0], [1.0, 0.0]])
+        )
