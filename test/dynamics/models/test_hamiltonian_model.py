@@ -30,10 +30,19 @@ from ..common import QiskitDynamicsTestCase, TestJaxBase
 class TestHamiltonianModelValidation(QiskitDynamicsTestCase):
     """Test validation handling of HamiltonianModel."""
 
-    def test_operators_not_hermitian(self):
+    def test_operators_array_not_hermitian(self):
         """Test raising error if operators are not Hermitian."""
 
         operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            HamiltonianModel(operators=operators)
+        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+
+    def test_operators_csr_not_hermitian(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [csr_matrix([[0.0, 1.0], [0.0, 0.0]])]
 
         with self.assertRaises(QiskitError) as qe:
             HamiltonianModel(operators=operators)
