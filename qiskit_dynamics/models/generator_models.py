@@ -20,7 +20,7 @@ from typing import Callable, Tuple, Union, List, Optional
 from copy import copy
 import numpy as np
 from scipy.sparse.csr import csr_matrix
-from scipy.sparse import issparse
+from scipy.sparse import issparse, diags
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
@@ -440,10 +440,16 @@ class GeneratorModel(BaseGeneratorModel):
         else:
             # "add" the frame operator to 0
             if old_frame.frame_operator is not None:
-                if old_frame.frame_operator.ndim == 1:
-                    static_operator = np.diag(old_frame.frame_operator)
+                if issparse(static_operator):
+                    if old_frame.frame_operator.ndim == 1:
+                        static_operator = diags(old_frame.frame_operator, format='csr')
+                    else:
+                        static_operator = csr_matrix(old_frame.frame_operator)
                 else:
-                    static_operator = old_frame.frame_operator
+                    if old_frame.frame_operator.ndim == 1:
+                        static_operator = np.diag(old_frame.frame_operator)
+                    else:
+                        static_operator = old_frame.frame_operator
 
         if operators is not None:
             # If list, loop
@@ -462,14 +468,17 @@ class GeneratorModel(BaseGeneratorModel):
         else:
             # "subtract" the frame operator from 0
             if new_frame.frame_operator is not None:
-                static_operator = np.diag(-new_frame.frame_diag)
+                if issparse(static_operator):
+                    static_operator = diags(-new_frame.frame_diag, format='csr')
+                else:
+                    static_operator = np.diag(-new_frame.frame_diag)
 
         if operators is not None:
             # If list, loop
             if isinstance(operators, List):
-                operators = [old_frame.operator_out_of_frame_basis(op) for op in operators]
+                operators = [new_frame.operator_into_frame_basis(op) for op in operators]
             else:
-                operators = old_frame.operator_out_of_frame_basis(operators)
+                operators = new_frame.operator_into_frame_basis(operators)
 
         return static_operator, operators
 

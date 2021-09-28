@@ -24,6 +24,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import GeneratorModel, RotatingFrame
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array, wrap
+from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -606,8 +607,8 @@ class Testtransfer_operators_between_frames(QiskitDynamicsTestCase):
         expected_static = Vadj @ (( U @ static_operator @ Uadj + old_frame) - new_frame) @ V
         expected_operators = Vadj @ (U @ operators @ Uadj) @ V
 
-        self.assertAllClose(out_operators, expected_operators)
         self.assertAllClose(out_static, expected_static)
+        self.assertAllClose(out_operators, expected_operators)
 
 
 class Testtransfer_operators_between_framesJax(Testtransfer_operators_between_frames, TestJaxBase):
@@ -617,8 +618,8 @@ class Testtransfer_operators_between_framesJax(Testtransfer_operators_between_fr
 class Testtransfer_operators_between_framesSparse(QiskitDynamicsTestCase):
     """Tests for transfer_operators_between_frames for sparse case."""
 
-    def test_csr_inputs(self):
-        """Test correct handling when operators are csr matrices."""
+    def test_csr_inputs_diagonal_frame(self):
+        """Test correct handling when operators are csr matrices with a diagonal frame."""
 
         static_operator = csr_matrix(-1j * np.array([[1.0, 0.0], [0.0, -1.0]]))
         operators = [
@@ -636,3 +637,29 @@ class Testtransfer_operators_between_framesSparse(QiskitDynamicsTestCase):
 
         self.assertAllCloseSparse(out_operators, operators)
         self.assertAllCloseSparse(out_static, csr_matrix(np.zeros((2, 2))))
+
+    def test_csr_inputs_non_diagonal_frame(self):
+        """Test correct handling when operators are csr matrices with non-diagonal frames."""
+
+        static_operator = csr_matrix(-1j * np.array([[1.0, 0.0], [0.0, -1.0]]))
+        operators = [
+            -1j * csr_matrix([[0.0, 1.0], [1.0, 0.0]]),
+            -1j * csr_matrix([[0.0, -1j], [1j, 0.0]]),
+        ]
+        old_frame = np.array([[0., 1.,], [1., 0.]])
+        new_frame = -1j * np.array([1.0, -1.0])
+
+        _, U = np.linalg.eigh(old_frame)
+        Uadj = U.conj().transpose()
+
+        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
+            static_operator, operators, new_frame=new_frame, old_frame=old_frame
+        )
+        self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
+        self.assertTrue(isinstance(out_operators, list) and isinstance(out_operators[0], (np.ndarray, Array)))
+
+        expected_ops = [U @ (op @ Uadj) for op in operators]
+        expected_static = U @ to_array(static_operator) @ Uadj + (-1j * old_frame) - np.diag(new_frame)
+
+        self.assertAllClose(out_operators, expected_ops)
+        self.assertAllClose(out_static, expected_static)
