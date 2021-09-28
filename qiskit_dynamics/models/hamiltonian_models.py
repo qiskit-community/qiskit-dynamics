@@ -56,9 +56,9 @@ class HamiltonianModel(GeneratorModel):
 
     def __init__(
         self,
-        operators: List[Operator],
-        signals: Optional[Union[SignalList, List[Signal]]] = None,
         static_operator: Optional[Array] = None,
+        operators: Optional[List[Operator]] = None,
+        signals: Optional[Union[SignalList, List[Signal]]] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: str = "dense",
         validate: bool = True,
@@ -66,10 +66,10 @@ class HamiltonianModel(GeneratorModel):
         """Initialize, ensuring that the operators are Hermitian.
 
         Args:
-            operators: list of Operator objects.
+            static_operator: Time-independent term in the Hamiltonian.
+            operators: List of Operator objects.
             signals: List of coefficients :math:`s_i(t)`. Not required at instantiation, but
                      necessary for evaluation of the model.
-            static_operator: Optional, time-independent term in the Hamiltonian.
             rotating_frame: Rotating frame operator.
                             If specified with a 1d array, it is interpreted as the
                             diagonal of a diagonal matrix. Assumed to store
@@ -95,9 +95,9 @@ class HamiltonianModel(GeneratorModel):
                 raise QiskitError("""HamiltonianModel static_operator must be Hermitian.""")
 
         super().__init__(
+            static_operator=static_operator,
             operators=operators,
             signals=signals,
-            static_operator=static_operator,
             rotating_frame=rotating_frame,
             evaluation_mode=evaluation_mode,
         )

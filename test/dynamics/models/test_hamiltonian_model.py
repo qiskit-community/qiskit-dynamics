@@ -240,7 +240,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             sig_list.append(Signal(get_env_func(), freq, phase))
         sig_list = SignalList(sig_list)
         model = HamiltonianModel(
-            operators, static_operator=None, signals=sig_list, rotating_frame=frame_op
+            operators=operators, static_operator=None, signals=sig_list, rotating_frame=frame_op
         )
 
         value = model(1.0, in_frame_basis=False) / -1j
@@ -255,6 +255,19 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         self.assertAllClose(model.get_operators(), operators)
 
         self.assertAllClose(value, expected)
+
+    def test_evaluate_static(self):
+        """Test evaluation of a GeneratorModel with only a static component."""
+
+        static_model = HamiltonianModel(static_operator=self.X)
+        self.assertAllClose(-1j * self.X, static_model(1.))
+
+        # now with frame
+        frame_op = -1j * (self.Z + 1.232 * self.Y)
+        static_model.rotating_frame = frame_op
+        t = 1.2312
+        expected = expm(-frame_op.data * t) @ (-1j * self.X - frame_op) @ expm(frame_op.data * t)
+        self.assertAllClose(expected, static_model(t))
 
 
 class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):

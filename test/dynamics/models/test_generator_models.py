@@ -28,6 +28,58 @@ from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
+class TestGeneratorModelErrors(QiskitDynamicsTestCase):
+    """Test deliberate error modes."""
+
+    def test_both_static_operator_operators_None(self):
+        """Test errors raising for a mal-formed GeneratorModel."""
+
+        with self.assertRaises(QiskitError) as qe:
+            GeneratorModel(static_operator=None, operators=None)
+        self.assertTrue("at least one of static_operator or operators" in str(qe.exception))
+
+    def test_operators_None_signals_not_None(self):
+        """Test setting signals with operators being None."""
+
+        with self.assertRaises(QiskitError) as qe:
+            GeneratorModel(static_operator=np.array([[1., 0.], [0., -1.]]),
+                           operators=None,
+                           signals=[1.])
+        self.assertTrue("Signals must be None if operators is None." in str(qe.exception))
+
+        # test after initial instantiation
+        model = GeneratorModel(static_operator=np.array([[1., 0.], [0., -1.]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = [1.]
+        self.assertTrue("Signals must be None if operators is None." in str(qe.exception))
+
+    def test_operators_signals_length_mismatch(self):
+        """Test setting operators and signals to incompatible lengths."""
+        with self.assertRaises(QiskitError) as qe:
+            GeneratorModel(operators=np.array([[[1., 0.], [0., -1.]]]),
+                           signals=[1., 1.])
+        self.assertTrue("same length as operators." in str(qe.exception))
+
+        # test after initial instantiation
+        model = GeneratorModel(operators=np.array([[[1., 0.], [0., -1.]]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = [1., 1.]
+        self.assertTrue("same length as operators." in str(qe.exception))
+
+    def test_signals_bad_format(self):
+        """Test setting signals in an unacceptable format."""
+        with self.assertRaises(QiskitError) as qe:
+            GeneratorModel(operators=np.array([[[1., 0.], [0., -1.]]]),
+                           signals=lambda t: t)
+        self.assertTrue("unaccepted format." in str(qe.exception))
+
+        # test after initial instantiation
+        model = GeneratorModel(operators=np.array([[[1., 0.], [0., -1.]]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = lambda t: t
+        self.assertTrue("unaccepted format." in str(qe.exception))
+
+
 class TestGeneratorModel(QiskitDynamicsTestCase):
     """Tests for GeneratorModel."""
 
@@ -189,7 +241,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
                 return env
 
             sig_list.append(Signal(get_env_func(), freq, phase))
-        model = GeneratorModel(operators, signals=sig_list)
+        model = GeneratorModel(operators=operators, signals=sig_list)
         model.rotating_frame = frame_op
 
         value = model(1.0)
@@ -254,7 +306,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(
-            test_operator_list, static_operator=None, signals=signals, rotating_frame=None
+            operators=test_operator_list, static_operator=None, signals=signals, rotating_frame=None
         )
 
         res = simple_model.evaluate(2)
@@ -270,7 +322,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(
-            test_operator_list, static_operator=None, signals=signals, rotating_frame=None
+            operators=test_operator_list, static_operator=None, signals=signals, rotating_frame=None
         )
         simple_model.set_static_operator(np.eye(2), operator_in_frame_basis=False)
         fop = Array([[0, 1j], [1j, 0]])
@@ -317,10 +369,10 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
 
         ## Run checks without rotating frame for now
-        gm1 = GeneratorModel(paulis, sarr, extra)
-        gm2 = GeneratorModel(paulis, static_operator=extra)
+        gm1 = GeneratorModel(operators=paulis, signals=sarr, static_operator=extra)
+        gm2 = GeneratorModel(operators=paulis, static_operator=extra)
         gm2.signals = sarr
-        gm3 = GeneratorModel(paulis, static_operator=extra)
+        gm3 = GeneratorModel(operators=paulis, static_operator=extra)
         gm3.signals = SignalList(sarr)
 
         # All should be the same, because there are no frames involved
@@ -352,23 +404,23 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.abs
         # Testing at the same time whether having static_operatorrift = None is an issue.
-        gm1 = GeneratorModel(paulis, signals=sarr, rotating_frame=RotatingFrame(farr))
-        gm2 = GeneratorModel(paulis, rotating_frame=farr)
+        gm1 = GeneratorModel(operators=paulis, signals=sarr, rotating_frame=RotatingFrame(farr))
+        gm2 = GeneratorModel(operators=paulis, rotating_frame=farr)
         gm2.signals = SignalList(sarr)
-        gm3 = GeneratorModel(paulis, rotating_frame=farr)
+        gm3 = GeneratorModel(operators=paulis, rotating_frame=farr)
         gm3.signals = sarr
         # Does adding a frame after make a difference?
         # If so, does it make a difference if we add signals or the frame first?
-        gm4 = GeneratorModel(paulis)
+        gm4 = GeneratorModel(operators=paulis)
         gm4.signals = sarr
         gm4.rotating_frame = farr
-        gm5 = GeneratorModel(paulis)
+        gm5 = GeneratorModel(operators=paulis)
         gm5.rotating_frame = farr
         gm5.signals = sarr
-        gm6 = GeneratorModel(paulis, signals=sarr)
+        gm6 = GeneratorModel(operators=paulis, signals=sarr)
         gm6.rotating_frame = farr
         # If we go to one frame, then transform back, does this make a difference?
-        gm7 = GeneratorModel(paulis, signals=sarr)
+        gm7 = GeneratorModel(operators=paulis, signals=sarr)
         gm7.rotating_frame = farr2
         gm7.rotating_frame = farr
 
@@ -421,7 +473,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         state = Array([0.3, 0.1])
         state_in_frame_basis = np.conjugate(np.transpose(evect)) @ state
 
-        gm1 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, static_operator=extra)
+        gm1 = GeneratorModel(operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra)
         self.assertAllClose(gm1(t, in_frame_basis=True), t_in_frame_actual)
         self.assertAllClose(
             gm1(t, state_in_frame_basis, in_frame_basis=True),
@@ -434,7 +486,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
             @ expm(np.array(t * farr))
         )
 
-        gm2 = GeneratorModel(paulis, signals=sarr, rotating_frame=farr, static_operator=extra)
+        gm2 = GeneratorModel(operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra)
         self.assertAllClose(gm2(t, in_frame_basis=False), t_not_in_frame_actual)
         self.assertAllClose(gm1(t, state, in_frame_basis=False), t_not_in_frame_actual @ state)
 
@@ -470,7 +522,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 
         operators = rand.uniform(-1, 1, (k, n, n))
 
-        gm = GeneratorModel(operators, static_operator=None, signals=sig_list)
+        gm = GeneratorModel(operators=operators, static_operator=None, signals=sig_list)
         self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
         self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
         for i in range(m):
@@ -503,12 +555,22 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
                 gm.evaluate_rhs(t, vectorized_states[:, i], in_frame_basis=True),
             )
 
+    def test_evaluate_static(self):
+        """Test evaluation of a GeneratorModel with only a static component."""
+
+        static_model = GeneratorModel(static_operator=self.X)
+        self.assertAllClose(self.X, static_model(1.))
+
+        # now with frame
+        frame_op = -1j * (self.Z + 1.232 * self.Y)
+        static_model.rotating_frame = frame_op
+        t = 1.2312
+        expected = expm(-frame_op.data * t) @ (self.X - frame_op) @ expm(frame_op.data * t)
+        self.assertAllClose(expected, static_model(t))
+
 
 class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
-    """Jax version of TestGeneratorModel tests.
-
-    Note: This class contains more tests due to inheritance.
-    """
+    """Jax version of TestGeneratorModel tests."""
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable.

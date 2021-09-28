@@ -162,8 +162,8 @@ def rotating_wave_approximation(
 
         # works for both GeneratorModel and HamiltonianModel
         rwa_model = model.__class__(
-            rwa_operators,
-            rwa_signals,
+            operators=rwa_operators,
+            signals=rwa_signals,
             static_operator=rwa_drift,
             rotating_frame=model.rotating_frame,
             evaluation_mode=model.evaluation_mode,

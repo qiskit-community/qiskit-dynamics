@@ -151,19 +151,19 @@ class GeneratorModel(BaseGeneratorModel):
 
     def __init__(
         self,
-        operators: Array,
-        signals: Optional[Union[SignalList, List[Signal]]] = None,
         static_operator: Optional[Array] = None,
+        operators: Optional[Array] = None,
+        signals: Optional[Union[SignalList, List[Signal]]] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: str = "dense",
     ):
         """Initialize.
 
         Args:
+            static_operator: Constant part of the generator.
             operators: A list of operators :math:`G_i`.
             signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
                      :class:`GeneratorModel` signals are not required at instantiation.
-            static_operator: Constant part of the generator.
             rotating_frame: Rotating frame operator.
             evaluation_mode: Evaluation mode to use. See ``GeneratorModel.evaluation_mode``
                              for more details. Supported options are:
@@ -172,13 +172,14 @@ class GeneratorModel(BaseGeneratorModel):
                                 - 'sparse' (SparseOperatorCollection)
 
         """
-
-        operators = to_array(operators)
-        static_operator = to_array(static_operator)
+        if static_operator is None and operators is None:
+            raise QiskitError(self.__class__.__name__ +
+                              """ requires at least one of static_operator or operators to be
+                              specified at construction.""")
 
         # initialize internal operator representation
         self._operator_collection = self.construct_operator_collection(
-            evaluation_mode, static_operator, operators
+            evaluation_mode=evaluation_mode, static_operator=static_operator, operators=operators
         )
         self._evaluation_mode = evaluation_mode
 
@@ -261,6 +262,8 @@ class GeneratorModel(BaseGeneratorModel):
 
         if signals is None:
             self._signals = None
+        elif signals is not None and self._operator_collection.operators is None:
+            raise QiskitError("Signals must be None if operators is None.")
         else:
             # if signals is a list, instantiate a SignalList
             if isinstance(signals, list):
@@ -286,7 +289,7 @@ class GeneratorModel(BaseGeneratorModel):
             The operators in the basis specified by `in_frame_basis`.
         """
         ops = self._operator_collection.operators
-        if not in_frame_basis and self.rotating_frame is not None:
+        if ops is not None and not in_frame_basis and self.rotating_frame is not None:
             return self.rotating_frame.operator_out_of_frame_basis(ops)
         else:
             return ops
@@ -346,9 +349,13 @@ class GeneratorModel(BaseGeneratorModel):
         """
 
         if self._signals is None:
-            raise QiskitError("GeneratorModel cannot be evaluated without signals.")
+            if self._operator_collection.operators is not None:
+                raise QiskitError(self.__class__.__name__ +
+                                  " with non-empty operators cannot be evaluated without signals.")
 
-        sig_vals = self._signals.__call__(time)
+            sig_vals = None
+        else:
+            sig_vals = self._signals.__call__(time)
 
         # Evaluated in frame basis, but without rotations
         op_combo = self._operator_collection(sig_vals)
@@ -377,9 +384,13 @@ class GeneratorModel(BaseGeneratorModel):
         """
 
         if self._signals is None:
-            raise QiskitError("""GeneratorModel cannot be evaluated without signals.""")
+            if self._operator_collection.operators is not None:
+                raise QiskitError(self.__class__.__name__ +
+                                  " with non-empty operators cannot be evaluated without signals.")
 
-        sig_vals = self._signals.__call__(time)
+            sig_vals = None
+        else:
+            sig_vals = self._signals.__call__(time)
 
         # Evaluated in frame basis, but without rotations e^{\pm Ft}
         op_combo = self._operator_collection(sig_vals)
@@ -504,9 +515,9 @@ class GeneratorModel(BaseGeneratorModel):
         """
 
         if evaluation_mode == "dense":
-            return DenseOperatorCollection(operators=operators, static_operator=static_operator)
+            return DenseOperatorCollection(static_operator=static_operator, operators=operators)
         if evaluation_mode == "sparse":
-            return SparseOperatorCollection(operators=operators, static_operator=static_operator)
+            return SparseOperatorCollection(static_operator=static_operator, operators=operators)
 
         raise NotImplementedError(
             "Evaluation mode '"
