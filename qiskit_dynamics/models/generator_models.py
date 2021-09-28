@@ -446,7 +446,11 @@ class GeneratorModel(BaseGeneratorModel):
                     static_operator = old_frame.frame_operator
 
         if operators is not None:
-            operators = old_frame.operator_out_of_frame_basis(operators)
+            # If list, loop
+            if isinstance(operators, List):
+                operators = [old_frame.operator_out_of_frame_basis(op) for op in operators]
+            else:
+                operators = old_frame.operator_out_of_frame_basis(operators)
 
         if static_operator is not None:
             static_operator = new_frame.generator_into_frame(
@@ -461,7 +465,11 @@ class GeneratorModel(BaseGeneratorModel):
                 static_operator = np.diag(-new_frame.frame_diag)
 
         if operators is not None:
-            operators = new_frame.operator_into_frame_basis(operators)
+            # If list, loop
+            if isinstance(operators, List):
+                operators = [old_frame.operator_out_of_frame_basis(op) for op in operators]
+            else:
+                operators = old_frame.operator_out_of_frame_basis(operators)
 
         return static_operator, operators
 

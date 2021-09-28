@@ -265,12 +265,12 @@ class RotatingFrame:
     def _conjugate_and_add(
         self,
         t: float,
-        operator: Array,
+        operator: Union[Array, csr_matrix],
         op_to_add_in_fb: Optional[Array] = None,
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
-    ) -> Array:
+    ) -> Union[Array, csr_matrix]:
         r"""General helper function for computing :math:`\exp(-tF)G\exp(tF) + B`.
 
         Note: B is added in the frame basis before any potential final change
@@ -297,6 +297,9 @@ class RotatingFrame:
         """
         operator = to_numeric_matrix_type(operator)
         op_to_add_in_fb = to_numeric_matrix_type(op_to_add_in_fb)
+        if issparse(operator):
+            op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
+
         if vectorized_operators:
             # If passing vectorized operator, undo vectorization temporarily
             if self._frame_operator is None:

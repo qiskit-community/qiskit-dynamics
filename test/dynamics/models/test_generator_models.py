@@ -632,7 +632,7 @@ class Testtransfer_operators_between_framesSparse(QiskitDynamicsTestCase):
             static_operator, operators, new_frame=new_frame
         )
         self.assertTrue(isinstance(out_static, csr_matrix))
-        self.assertTrue(isinstance(out_operators, csr_matrix))
+        self.assertTrue(isinstance(out_operators, list) and issparse(out_operators[0]))
 
-        self.assertAllClose(out_operators, operators)
-        self.assertAllClose(out_static, static_operator)
+        self.assertAllCloseSparse(out_operators, operators)
+        self.assertAllCloseSparse(out_static, csr_matrix(np.zeros((2, 2))))
