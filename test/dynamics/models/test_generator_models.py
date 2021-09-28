@@ -26,62 +26,6 @@ from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array, wrap
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
-"""
-    Unskip this ******************************************************************************************
-"""
-
-
-@unittest.skip("will fix later and don't want this to impact general testing")
-class Testtransfer_operators_between_frames(QiskitDynamicsTestCase):
-    """Tests for setup_operators_in_frame."""
-
-    def test_all_None(self):
-        """Test all arguments being None."""
-
-        static_operator, operators = GeneratorModel.transfer_operators_between_frames(None, None, None, None)
-
-        self.assertTrue(static_operator is None)
-        self.assertTrue(operators is None)
-
-    def test_array_inputs(self):
-        """Test correct handling when operators are arrays."""
-
-        static_operator = -1j * np.array([[1.0, 0.0], [0.0, -1.0]])
-        operators = -1j * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]])
-        old_frame = None
-        new_frame = -1j * np.array([1.0, -1.0])
-
-        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
-            static_operator, operators, new_frame=new_frame
-        )
-
-        self.assertTrue(isinstance(out_static, np.ndarray))
-        self.assertTrue(isinstance(out_operators, np.ndarray))
-
-        self.assertAllClose(out_operators, operators)
-        self.assertAllClose(out_static, static_operator)
-
-    def test_csr_inputs(self):
-        """Test correct handling when operators are csr matrices."""
-
-        static_operator = csr_matrix(-1j * np.array([[1.0, 0.0], [0.0, -1.0]]))
-        operators = [
-            -1j * csr_matrix([[0.0, 1.0], [1.0, 0.0]]),
-            -1j * csr_matrix([[0.0, -1j], [1j, 0.0]]),
-        ]
-        old_frame = None
-        new_frame = -1j * np.array([1.0, -1.0])
-
-        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
-            static_operator, operators, new_frame=new_frame
-        )
-
-        self.assertTrue(isinstance(out_static, csr_matrix))
-        self.assertTrue(isinstance(out_operators, csr_matrix))
-
-        self.assertAllClose(out_operators, operators)
-        self.assertAllClose(out_static, static_operator)
-
 
 class TestGeneratorModel(QiskitDynamicsTestCase):
     """Tests for GeneratorModel."""
@@ -592,3 +536,103 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
+
+
+class Testtransfer_operators_between_frames(QiskitDynamicsTestCase):
+    """Tests for transfer_operators_between_frames."""
+
+    def test_all_None(self):
+        """Test all arguments being None."""
+
+        static_operator, operators = GeneratorModel.transfer_operators_between_frames(
+            None, None, None, None
+        )
+
+        self.assertTrue(static_operator is None)
+        self.assertTrue(operators is None)
+
+    def test_array_inputs_diagonal_frame(self):
+        """Test correct handling when operators are arrays for diagonal frames."""
+
+        static_operator = -1j * np.array([[1.0, 0.0], [0.0, -1.0]])
+        operators = -1j * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]])
+        old_frame = None
+        new_frame = -1j * np.array([1.0, -1.0])
+
+        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
+            static_operator, operators, new_frame=new_frame
+        )
+
+        self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
+        self.assertTrue(isinstance(out_operators, (np.ndarray, Array)))
+
+        self.assertAllClose(out_operators, operators)
+        self.assertAllClose(out_static, np.zeros((2,2)))
+
+    def test_array_inputs_pseudo_random(self):
+        """Test correct handling when operators are pseudo random arrays."""
+
+        rng = np.random.default_rng(34233)
+        num_terms = 3
+        dim = 5
+        b = 1.0  # bound on size of random terms
+        static_operator = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        operators = rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        old_frame = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        old_frame = old_frame - old_frame.conj().transpose()
+        new_frame = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        new_frame = new_frame - new_frame.conj().transpose()
+
+        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
+            Array(static_operator), Array(operators), new_frame=Array(new_frame), old_frame=Array(old_frame)
+        )
+
+        self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
+        self.assertTrue(isinstance(out_operators, (np.ndarray, Array)))
+
+        _, U = wrap(np.linalg.eigh)(1j * old_frame)
+        _, V = wrap(np.linalg.eigh)(1j * new_frame)
+        Uadj = U.conj().transpose()
+        Vadj = V.conj().transpose()
+
+        expected_static = Vadj @ (( U @ static_operator @ Uadj + old_frame) - new_frame) @ V
+        expected_operators = Vadj @ (U @ operators @ Uadj) @ V
+
+        self.assertAllClose(out_operators, expected_operators)
+        self.assertAllClose(out_static, expected_static)
+
+
+class Testtransfer_operators_between_framesJax(Testtransfer_operators_between_frames, TestJaxBase):
+    """JAX version of Testtransfer_operators_between_frames."""
+
+
+class Testtransfer_operators_between_framesSparse(QiskitDynamicsTestCase):
+    """Tests for transfer_operators_between_frames for sparse case."""
+
+    def test_csr_inputs(self):
+        """Test correct handling when operators are csr matrices."""
+
+        static_operator = csr_matrix(-1j * np.array([[1.0, 0.0], [0.0, -1.0]]))
+        operators = [
+            -1j * csr_matrix([[0.0, 1.0], [1.0, 0.0]]),
+            -1j * csr_matrix([[0.0, -1j], [1j, 0.0]]),
+        ]
+        old_frame = None
+        new_frame = -1j * np.array([1.0, -1.0])
+
+        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
+            static_operator, operators, new_frame=new_frame
+        )
+        self.assertTrue(isinstance(out_static, csr_matrix))
+        self.assertTrue(isinstance(out_operators, csr_matrix))
+
+        self.assertAllClose(out_operators, operators)
+        self.assertAllClose(out_static, static_operator)

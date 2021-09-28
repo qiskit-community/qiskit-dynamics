@@ -20,6 +20,7 @@ from typing import Callable, Tuple, Union, List, Optional
 from copy import copy
 import numpy as np
 from scipy.sparse.csr import csr_matrix
+from scipy.sparse import issparse
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
@@ -30,7 +31,7 @@ from qiskit_dynamics.models.operator_collections import (
 )
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_array, to_csr
+from qiskit_dynamics.type_utils import to_array, to_csr, to_numeric_matrix_type
 from .rotating_frame import RotatingFrame
 
 
@@ -221,9 +222,11 @@ class GeneratorModel(BaseGeneratorModel):
         """
 
         if new_mode != self.evaluation_mode:
-            self._operator_collection = self.construct_operator_collection(new_mode,
-                                                                      self._operator_collection.static_operator,
-                                                                      self._operator_collection.operators)
+            self._operator_collection = self.construct_operator_collection(
+                new_mode,
+                self._operator_collection.static_operator,
+                self._operator_collection.operators,
+            )
             self._evaluation_mode = new_mode
 
     @property
@@ -273,7 +276,6 @@ class GeneratorModel(BaseGeneratorModel):
 
             self._signals = signals
 
-
     def get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
         """Get the operators used in the model construction.
 
@@ -321,7 +323,9 @@ class GeneratorModel(BaseGeneratorModel):
             self._operator_collection.static_operator = None
         else:
             if not operator_in_frame_basis and self.rotating_frame is not None:
-                new_static_operator = self.rotating_frame.operator_into_frame_basis(new_static_operator)
+                new_static_operator = self.rotating_frame.operator_into_frame_basis(
+                    new_static_operator
+                )
 
             self._operator_collection.static_operator = new_static_operator
 
@@ -397,11 +401,13 @@ class GeneratorModel(BaseGeneratorModel):
         return out
 
     @classmethod
-    def transfer_operators_between_frames(cls,
-                                          static_operator: Union[None, Array, csr_matrix],
-                                          operators: Union[None, Array, List[csr_matrix]],
-                                          new_frame: Optional[Union[Array, RotatingFrame]] = None,
-                                          old_frame: Optional[Union[Array, RotatingFrame]] = None) -> Tuple[Union[None, Array]]:
+    def transfer_operators_between_frames(
+        cls,
+        static_operator: Union[None, Array, csr_matrix],
+        operators: Union[None, Array, List[csr_matrix]],
+        new_frame: Optional[Union[Array, RotatingFrame]] = None,
+        old_frame: Optional[Union[Array, RotatingFrame]] = None,
+    ) -> Tuple[Union[None, Array]]:
         """Transform operator data for a GeneratorModel from one frame basis into another.
 
         This transformation converts ``operators`` from the frame basis of the old frame
@@ -421,9 +427,15 @@ class GeneratorModel(BaseGeneratorModel):
         old_frame = RotatingFrame(old_frame)
         new_frame = RotatingFrame(new_frame)
 
+        static_operator = to_numeric_matrix_type(static_operator)
+        operators = to_numeric_matrix_type(operators)
+
         if static_operator is not None:
             static_operator = old_frame.generator_out_of_frame(
-                t=0.0, operator=static_operator, operator_in_frame_basis=True, return_in_frame_basis=False
+                t=0.0,
+                operator=static_operator,
+                operator_in_frame_basis=True,
+                return_in_frame_basis=False,
             )
         else:
             # "add" the frame operator to 0
@@ -438,7 +450,10 @@ class GeneratorModel(BaseGeneratorModel):
 
         if static_operator is not None:
             static_operator = new_frame.generator_into_frame(
-                t=0.0, operator=static_operator, operator_in_frame_basis=False, return_in_frame_basis=True
+                t=0.0,
+                operator=static_operator,
+                operator_in_frame_basis=False,
+                return_in_frame_basis=True,
             )
         else:
             # "subtract" the frame operator from 0
@@ -451,10 +466,12 @@ class GeneratorModel(BaseGeneratorModel):
         return static_operator, operators
 
     @classmethod
-    def construct_operator_collection(cls,
-                                      evaluation_mode: str,
-                                      static_operator: Union[None, Array, csr_matrix],
-                                      operators: Union[None, Array, List[csr_matrix]]) -> BaseOperatorCollection:
+    def construct_operator_collection(
+        cls,
+        evaluation_mode: str,
+        static_operator: Union[None, Array, csr_matrix],
+        operators: Union[None, Array, List[csr_matrix]],
+    ) -> BaseOperatorCollection:
         """Construct operator collection for GeneratorModel.
 
         Args:

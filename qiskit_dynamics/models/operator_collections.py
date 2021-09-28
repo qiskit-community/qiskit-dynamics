@@ -165,7 +165,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
         return self._static_operator
 
     @static_operator.setter
-    def static_operator(self, new_static_operator):
+    def static_operator(self, new_static_operator: csr_matrix):
         if new_static_operator is not None:
             self._static_operator = np.round(to_csr(new_static_operator), self._decimals)
         else:
@@ -173,7 +173,6 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
     @property
     def operators(self) -> List[csr_matrix]:
-        """Operators in the collection."""
         return self._operators
 
     @operators.setter
@@ -205,13 +204,11 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
     def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
         if len(y.shape) == 2:
-            # For y a matrix with y[:,i] storing the i^{th} state, it is faster to
-            # first evaluate the generator in most cases
+            # For 2d array, compute linear combination then multiply
             gen = np.tensordot(signal_values, self._operators, axes=1) + self.static_operator
             out = gen.dot(y)
         elif len(y.shape) == 1:
-            # for y a vector, it is typically faster to use the following, very
-            # strange-looking implementation
+            # For a 1d array, multiply individual matrices then compute linear combination
             tmparr = np.empty(shape=(1), dtype="O")
             tmparr[0] = y
             out = np.dot(signal_values, self._operators * tmparr) + self.static_operator.dot(y)
@@ -475,7 +472,9 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
 
         # Convert Hamiltonian to commutator formalism
         vec_ham_ops = -1j * np.array(vec_commutator(to_csr(hamiltonian_operators)), dtype="O")
-        vec_static_hamiltonian = -1j * np.array(vec_commutator(to_csr(static_hamiltonian)), dtype="O")
+        vec_static_hamiltonian = -1j * np.array(
+            vec_commutator(to_csr(static_hamiltonian)), dtype="O"
+        )
         total_ops = None
         if dissipator_operators is not None:
             vec_diss_ops = np.array(vec_dissipator(to_csr(dissipator_operators)), dtype="O")

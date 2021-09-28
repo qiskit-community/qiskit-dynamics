@@ -157,7 +157,12 @@ class TestRotatingWaveJax(TestRotatingWave, TestJaxBase):
         sample_sigs = [Signal(1.0, 0.0), Signal(1.0, -3.0), Signal(1.0, 1.0), Signal(1.0, 3.0)]
         ops = Array(np.ones((4, 2, 2)))
         static_operator = Array(np.ones((2, 2)))
-        model = GeneratorModel(ops, signals=sample_sigs, static_operator=static_operator, rotating_frame=static_operator)
+        model = GeneratorModel(
+            ops,
+            signals=sample_sigs,
+            static_operator=static_operator,
+            rotating_frame=static_operator,
+        )
         rwa_model, signal_map = rotating_wave_approximation(
             model=model, cutoff_freq=2.0, return_signal_map=True
         )
