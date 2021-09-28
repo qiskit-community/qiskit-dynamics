@@ -26,6 +26,7 @@ from qiskit_dynamics.models.operator_collections import (
 )
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -97,9 +98,6 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
 class TestSparseOperatorCollection(QiskitDynamicsTestCase):
     """Tests for SparseOperatorCopllection."""
 
-    def setUp(self):
-        pass
-
     def test_consistency_with_dense_pseudorandom(self):
         """Tests if SparseOperatorCollection agrees with
         the DenseOperatorCollection."""
@@ -133,10 +131,10 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
             ham_ops, static_operator=Operator(static_operator_numpy_array)
         )
         sparse_collection_array_list = SparseOperatorCollection(
-            ham_ops_alt, static_operator=Array(static_operator_numpy_array)
+            ham_ops_alt, static_operator=to_array(static_operator_numpy_array)
         )
         sparse_collection_pure_array = SparseOperatorCollection(
-            Array(ham_ops), static_operator=Array(static_operator_numpy_array)
+            to_array(ham_ops), static_operator=to_array(static_operator_numpy_array)
         )
         a = sparse_collection_operator_list(sigVals)
         b = sparse_collection_array_list(sigVals)
