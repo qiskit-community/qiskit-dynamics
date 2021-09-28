@@ -15,7 +15,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Union, List, Optional
-from copy import deepcopy
+from copy import copy
 import numpy as np
 from qiskit.quantum_info.operators.operator import Operator
 from scipy.sparse.csr import csr_matrix
@@ -39,17 +39,18 @@ class BaseOperatorCollection(ABC):
     @property
     def static_operator(self) -> Array:
         """Returns static part of operator collection."""
-        return self._static_operator
 
     @static_operator.setter
     def static_operator(self, new_static_operator: Optional[Array] = None):
         """Sets static_operator term."""
-        self._static_operator = new_static_operator
 
     @property
     def operators(self) -> Array:
         """Return operators."""
-        return self._operators
+
+    @operators.setter
+    def operators(self, new_operators: Array) -> Array:
+        """Return operators."""
 
     @property
     @abstractmethod
@@ -84,7 +85,7 @@ class BaseOperatorCollection(ABC):
 
     def copy(self):
         """Return a copy of self."""
-        return deepcopy(self)
+        return copy(self)
 
 
 class DenseOperatorCollection(BaseOperatorCollection):
@@ -105,8 +106,27 @@ class DenseOperatorCollection(BaseOperatorCollection):
             operators: (k,n,n) Array specifying the terms :math:`G_j`.
             static_operator: (n,n) Array specifying the extra static_operator :math:`G_d`.
         """
-        self._operators = to_array(operators)
-        self.static_operator = to_array(static_operator)
+        self.operators = operators
+        self.static_operator = static_operator
+
+    @property
+    def static_operator(self) -> Array:
+        """Returns static part of operator collection."""
+        return self._static_operator
+
+    @static_operator.setter
+    def static_operator(self, new_static_operator: Array):
+        """Sets static_operator term."""
+        self._static_operator = to_array(new_static_operator)
+
+    @property
+    def operators(self) -> Array:
+        """Operators in the collection."""
+        return self._operators
+
+    @operators.setter
+    def operators(self, new_operators: Array):
+        self._operators = to_array(new_operators)
 
     @property
     def num_operators(self) -> int:
@@ -133,36 +153,46 @@ class SparseOperatorCollection(BaseOperatorCollection):
         static_operator: Optional[Union[Array, Operator]] = None,
         decimals: Optional[int] = 10,
     ):
-        """
-        Initialize.
+        """Initialize.
 
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`.
             static_operator: (n,n) Array specifying the static_operator term :math:`G_d`.
             decimals: Values will be rounded at ``decimals`` places after decimal.
-                Avoids storing excess sparse entries for entries close to zero."""
-        self.static_operator = np.round(to_csr(static_operator), decimals)
-        self._operators = np.empty(shape=len(operators), dtype="O")
-        # pylint: disable=consider-using-enumerate
-        for i in range(len(operators)):
-            if isinstance(operators[i], Operator):
-                operators[i] = to_csr(operators[i])
-            self._operators[i] = csr_matrix(np.round(operators[i], decimals))
+                Avoids storing excess sparse entries for entries close to zero.
+        """
+        self._decimals = decimals
+        self.static_operator = static_operator
+        self.operators = operators
+
+    @property
+    def static_operator(self) -> csr_matrix:
+        return self._static_operator
+
+    @static_operator.setter
+    def static_operator(self, new_static_operator):
+        if new_static_operator is not None:
+            self._static_operator = np.round(to_csr(new_static_operator), self._decimals)
+        else:
+            self._static_operator = None
+
+    @property
+    def operators(self) -> List[csr_matrix]:
+        """Operators in the collection."""
+        return self._operators
+
+    @operators.setter
+    def operators(self, new_operators: List[csr_matrix]):
+        new_operators = to_csr(list(new_operators))
+        new_operators_object = np.empty(shape=len(new_operators), dtype="O")
+        for idx, new_op in enumerate(new_operators):
+            new_operators_object[idx] = csr_matrix(np.round(new_op, self._decimals))
+
+        self._operators = new_operators_object
 
     @property
     def num_operators(self) -> int:
         return self._operators.shape[0]
-
-    @property
-    def static_operator(self) -> Array:
-        return super().static_operator
-
-    @static_operator.setter
-    def static_operator(self, new_static_operator):
-        if isinstance(new_static_operator, csr_matrix):
-            self._static_operator = new_static_operator
-        else:
-            self._static_operator = csr_matrix(new_static_operator)
 
     def evaluate(self, signal_values: Array) -> csr_matrix:
         r"""Sparse version of ``DenseOperatorCollection.evaluate``.
