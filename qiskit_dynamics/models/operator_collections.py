@@ -28,9 +28,9 @@ class BaseOperatorCollection(ABC):
 
     This class represents a function :math:`c,y \mapsto \Lambda(c, y)`,
     which is assumed to be decomposed as
-    :math:`\Lambda(c, y) = \Lambda_d(y) + \sum_jc_j\Lambda_j(y)`
-    for linear maps :math:`\Lambda_d` and :math:`\Lambda_j`, with
-    :math:`\Lambda_d` referred to as the static component.
+    :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y`
+    for matrices :math:`G_d` and :math:`G_j`, with
+    :math:`G_d` referred to as the static operator.
 
     Describes an interface for evaluating the map or its action on ``y``,
     given the 1d set of values :math:`c_j`.
@@ -57,19 +57,14 @@ class BaseOperatorCollection(ABC):
     def num_operators(self) -> int:
         """Returns number of operators the collection
         is storing."""
-        pass
 
     @abstractmethod
     def evaluate(self, signal_values: Array) -> Array:
-        r"""If possible, compute a matrix representation of the functino where the second
-        argument is left unspecified.
-        """
-        pass
+        r"""Evaluate the map."""
 
     @abstractmethod
     def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
         r"""Compute the function."""
-        pass
 
     def __call__(
         self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
@@ -92,8 +87,8 @@ class DenseOperatorCollection(BaseOperatorCollection):
     r"""Concrete operator collection representing a function computing left
     multiplication by an affine combination of matrices.
 
-    This class represents a function of the form :math:`Lambda(c, y) = (G_d + \sum_j c_j G_j) y`,
-    where the :math:`G_d` and :math:`G_j` are dense arrays.
+    Concrete instance of ``BaseOperatorCollection`` in which
+    :math:`G_d` and :math:`G_j` are dense arrays.
     """
 
     def __init__(
