@@ -176,7 +176,7 @@ class GeneratorModel(BaseGeneratorModel):
         static_operator = to_array(static_operator)
 
         # initialize internal operator representation
-        self._operator_collection = construct_operator_collection(
+        self._operator_collection = self.construct_operator_collection(
             evaluation_mode, static_operator, operators
         )
         self._evaluation_mode = evaluation_mode
@@ -221,7 +221,7 @@ class GeneratorModel(BaseGeneratorModel):
         """
 
         if new_mode != self.evaluation_mode:
-            self._operator_collection = construct_operator_collection(new_mode,
+            self._operator_collection = self.construct_operator_collection(new_mode,
                                                                       self._operator_collection.static_operator,
                                                                       self._operator_collection.operators)
             self._evaluation_mode = new_mode
@@ -234,7 +234,7 @@ class GeneratorModel(BaseGeneratorModel):
     @rotating_frame.setter
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
         new_frame = RotatingFrame(rotating_frame)
-        new_static_operator, new_operators = setup_operators_in_frame(
+        new_static_operator, new_operators = self.transfer_operators_between_frames(
             self.get_static_operator(in_frame_basis=True),
             self.get_operators(in_frame_basis=True),
             new_frame=new_frame,
@@ -243,7 +243,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         self._rotating_frame = new_frame
 
-        self._operator_collection = construct_operator_collection(
+        self._operator_collection = self.construct_operator_collection(
             self.evaluation_mode, new_static_operator, new_operators
         )
 

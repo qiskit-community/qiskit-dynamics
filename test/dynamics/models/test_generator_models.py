@@ -22,7 +22,6 @@ import numpy.random as rand
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import GeneratorModel, RotatingFrame
-from qiskit_dynamics.models.generator_models import setup_operators_in_frame
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array, wrap
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -33,13 +32,13 @@ from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 @unittest.skip("will fix later and don't want this to impact general testing")
-class Testsetup_operators_in_frame(QiskitDynamicsTestCase):
+class Testtransfer_operators_between_frames(QiskitDynamicsTestCase):
     """Tests for setup_operators_in_frame."""
 
     def test_all_None(self):
         """Test all arguments being None."""
 
-        static_operator, operators = setup_operators_in_frame(None, None, None, None)
+        static_operator, operators = GeneratorModel.transfer_operators_between_frames(None, None, None, None)
 
         self.assertTrue(static_operator is None)
         self.assertTrue(operators is None)
@@ -52,7 +51,7 @@ class Testsetup_operators_in_frame(QiskitDynamicsTestCase):
         old_frame = None
         new_frame = -1j * np.array([1.0, -1.0])
 
-        out_static, out_operators = setup_operators_in_frame(
+        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
             static_operator, operators, new_frame=new_frame
         )
 
@@ -73,7 +72,7 @@ class Testsetup_operators_in_frame(QiskitDynamicsTestCase):
         old_frame = None
         new_frame = -1j * np.array([1.0, -1.0])
 
-        out_static, out_operators = setup_operators_in_frame(
+        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
             static_operator, operators, new_frame=new_frame
         )
 

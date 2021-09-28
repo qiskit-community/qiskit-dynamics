@@ -23,7 +23,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_array
-from .generator_models import GeneratorModel, construct_operator_collection, setup_operators_in_frame
+from .generator_models import GeneratorModel
 from .rotating_frame import RotatingFrame
 
 
@@ -120,7 +120,7 @@ class HamiltonianModel(GeneratorModel):
         if ops is not None:
             ops = -1j * ops
 
-        new_static_operator, new_operators = setup_operators_in_frame(
+        new_static_operator, new_operators = self.transfer_operators_between_frames(
             static_op,
             ops,
             new_frame=new_frame,
@@ -135,7 +135,7 @@ class HamiltonianModel(GeneratorModel):
         if new_operators is not None:
             new_operators = 1j * new_operators
 
-        self._operator_collection = construct_operator_collection(
+        self._operator_collection = self.construct_operator_collection(
             self.evaluation_mode, new_static_operator, new_operators
         )
 
