@@ -16,10 +16,12 @@
 import numpy as np
 
 from scipy.linalg import expm
+from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel
+from qiskit_dynamics.models.hamiltonian_models import is_hermitian
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -303,3 +305,34 @@ class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
         self.jit_grad_wrap(self.basic_hamiltonian.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_hamiltonian.rotating_frame = None
+
+class Testis_hermitian(QiskitDynamicsTestCase):
+    """Test is_hermitian validation function."""
+
+    def test_2d_array(self):
+        """Test 2d array case."""
+        self.assertTrue(is_hermitian(Array([[1., 0.], [0., 1.]])))
+        self.assertFalse(is_hermitian(Array([[0., 1.], [0., 0.]])))
+        self.assertFalse(is_hermitian(Array([[0., 1j], [0., 0.]])))
+        self.assertTrue(is_hermitian(Array([[0., 1j], [-1j, 0.]])))
+
+    def test_3d_array(self):
+        """Test 3d array case."""
+        self.assertTrue(is_hermitian(Array([[[1., 0.], [0., 1.]]])))
+        self.assertFalse(is_hermitian(Array([[[0., 1.], [0., 0.]], [[0., 1.], [1., 0.]]])))
+        self.assertFalse(is_hermitian(Array([[[0., 1j], [0., 0.]], [[1., 0.], [0., 1.]]])))
+        self.assertTrue(is_hermitian(Array([[[0., 1j], [-1j, 0.]], [[0., 1.], [1., 0.]]])))
+
+    def test_csr_matrix(self):
+        """Test csr_matrix case."""
+        self.assertTrue(is_hermitian(csr_matrix([[1., 0.], [0., 1.]])))
+        self.assertFalse(is_hermitian(csr_matrix([[0., 1.], [0., 0.]])))
+        self.assertFalse(is_hermitian(csr_matrix([[0., 1j], [0., 0.]])))
+        self.assertTrue(is_hermitian(csr_matrix([[0., 1j], [-1j, 0.]])))
+
+    def test_list_csr_matrix(self):
+        """Test list of csr_matrix case."""
+        self.assertTrue(is_hermitian([csr_matrix([[1., 0.], [0., 1.]])]))
+        self.assertFalse(is_hermitian([csr_matrix([[0., 1.], [0., 0.]]), csr_matrix([[0., 1.], [1., 0.]])]))
+        self.assertFalse(is_hermitian([csr_matrix([[0., 1j], [0., 0.]]), csr_matrix([[1., 0.], [0., 1.]])]))
+        self.assertTrue(is_hermitian([csr_matrix([[0., 1j], [-1j, 0.]]), csr_matrix([[0., 1.], [1., 0.]])]))

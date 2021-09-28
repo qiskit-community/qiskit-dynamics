@@ -17,6 +17,9 @@ Hamiltonian models module.
 
 from typing import Union, List, Optional
 import numpy as np
+from scipy.sparse import issparse
+from scipy.sparse.csr import csr_matrix
+from scipy.sparse.linalg import norm as spnorm
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
@@ -85,8 +88,8 @@ class HamiltonianModel(GeneratorModel):
         """
 
         # verify operators are Hermitian, and if so instantiate
-        operators = to_array(operators)
-        static_operator = to_array(static_operator)
+        operators = to_numeric_matrix_type(operators)
+        static_operator = to_numeric_matrix_type(static_operator)
 
         if validate:
             if (operators is not None) and (not is_hermitian(operators)):
@@ -146,21 +149,25 @@ class HamiltonianModel(GeneratorModel):
         return -1j * super().evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
 
 
-def is_hermitian(operators: Array, tol: Optional[float] = 1e-10) -> bool:
+def is_hermitian(operators: Union[Array, csr_matrix, List[csr_matrix]], tol: Optional[float] = 1e-10) -> bool:
     """Validate that operators are Hermitian.
 
     Args:
-        operators: Either a 2d array representing a single operator, or a 3d array
-                   representing a list of operators.
+        operators: Either a 2d array representing a single operator, a 3d array
+                   representing a list of operators, a csr_matrix, or a list
+                   of csr_matrix.
 
     Returns:
         bool: Whether or not the operators are Hermitian to within tolerance.
     """
-
-    adj = None
-    if operators.ndim == 2:
-        adj = np.transpose(np.conjugate(operators))
-    elif operators.ndim == 3:
-        adj = np.transpose(np.conjugate(operators), (0, 2, 1))
-
-    return np.linalg.norm(adj - operators) < 1e-10
+    if isinstance(operators, (np.ndarray, Array)):
+        adj = None
+        if operators.ndim == 2:
+            adj = np.transpose(np.conjugate(operators))
+        elif operators.ndim == 3:
+            adj = np.transpose(np.conjugate(operators), (0, 2, 1))
+        return np.linalg.norm(adj - operators) < 1e-10
+    elif issparse(operators):
+        return spnorm(operators - operators.conj().transpose()) < 1e-10
+    elif isinstance(operators, list) and issparse(operators[0]):
+        return all([spnorm(op - op.conj().transpose()) < 1e-10 for op in operators])
