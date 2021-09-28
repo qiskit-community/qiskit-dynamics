@@ -23,8 +23,10 @@ import numpy as np
 from scipy.sparse import issparse, spmatrix
 from scipy.sparse import kron as sparse_kron
 from scipy.sparse import identity as sparse_identity
+from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators import Operator
+from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 
 
@@ -238,7 +240,9 @@ def type_spec_from_instance(y):
     return type_spec
 
 
-def vec_commutator(A: Array):
+def vec_commutator(
+    A: Union[Array, csr_matrix, List[csr_matrix]]
+) -> Union[Array, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map X -> [A, X]
     in column-stacking convention. In column-stacking convention we have
 
@@ -250,12 +254,12 @@ def vec_commutator(A: Array):
     .. math::
         [A, \cdot] = A \cdot - \cdot A \mapsto id \otimes A - A^T \otimes id
 
-    Note: this function is also "vectorized" in the programming sense.
+    Note: this function is also "vectorized" in the programming sense for dense arrays.
 
     Args:
         A: Either a 2d array representing the matrix A described above,
-           or a 3d array representing a list of matrices, or a 1d array
-           of dtype object containing 2d sparse matrices.
+           a 3d array representing a list of matrices, a sparse matrix, or a
+           list of sparse matrices.
 
     Returns:
         Array: vectorized version of the map.
@@ -265,12 +269,10 @@ def vec_commutator(A: Array):
         # single, sparse matrix
         sp_iden = sparse_identity(A.shape[-1], format="csr")
         return sparse_kron(sp_iden, A) - sparse_kron(A.T, sp_iden)
-    if A.dtype == "object":
+    if isinstance(A, list) and issparse(A[0]):
         # taken to be 1d array of 2d sparse matrices
         sp_iden = sparse_identity(A[0].shape[-1], format="csr")
-        out = np.empty_like(A)
-        for i, mat in enumerate(A):
-            out[i] = sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden)
+        out = [sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden) for mat in A]
         return out
 
     A = to_array(A)
@@ -281,7 +283,9 @@ def vec_commutator(A: Array):
     return np.kron(iden, A) - np.kron(A.transpose(axes), iden)
 
 
-def vec_dissipator(L: Array):
+def vec_dissipator(
+    L: Union[Array, csr_matrix, List[csr_matrix]]
+) -> Union[Array, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)
     in column stacking convention.
@@ -292,17 +296,23 @@ def vec_dissipator(L: Array):
         \overline{L} \otimes L - 0.5(id \otimes L^\dagger L +
             (L^\dagger L)^T \otimes id)
 
-    Note: this function is also "vectorized" in the programming sense.
+    Note: this function is also "vectorized" in the programming sense for dense matrices.
     """
 
-    if L.dtype == "object":
+    if issparse(L):
+        sp_iden = sparse_identity(L[0].shape[-1], format="csr")
+        return sparse_kron(L.conj(), L) - 0.5 * (
+            sparse_kron(sp_iden, L.conj().T * L) + sparse_kron(L.T * L.conj(), sp_iden)
+        )
+    if isinstance(L, list) and issparse(L[0]):
         # taken to be 1d array of 2d sparse matrices
         sp_iden = sparse_identity(L[0].shape[-1], format="csr")
-        out = np.empty_like(L)
-        for i, mat in enumerate(L):
-            out[i] = sparse_kron(mat.conj(), mat) - 0.5 * (
-                sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(mat.T * mat.conj(), sp_iden)
-            )
+        out = [
+            sparse_kron(mat.conj(), mat)
+            - 0.5
+            * (sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(mat.T * mat.conj(), sp_iden))
+            for mat in L
+        ]
         return out
 
     iden = Array(np.eye(L.shape[-1]))
@@ -320,39 +330,131 @@ def vec_dissipator(L: Array):
     )
 
 
-def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix]):
-    """Convert an operator or list of operators to an Array.
+def isinstance_qutip_qobj(obj):
+    """Check if the object is a qutip Qobj.
 
+    Args:
+        obj (any): Any object for testing.
+
+    Returns:
+        Bool: True if obj is qutip Qobj
+    """
+    if (
+        type(obj).__name__ == "Qobj"
+        and hasattr(obj, "_data")
+        and type(obj._data).__name__ == "fast_csr_matrix"
+    ):
+        return True
+    return False
+
+
+# pylint: disable=too-many-return-statements
+def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False):
+    """Convert an operator or list of operators to an Array.
     Args:
         op: Either an Operator to be converted to an array, a list of Operators
             to be converted to a 3d array, or an array (which simply gets
             returned)
+        no_iter (Bool): Boolean determining whether to recursively unroll `Iterables`.
+            If recurring, this should be True to avoid making each element of the
+            input array into a separate Array.
     Returns:
         Array: Array version of input
     """
     if op is None:
         return op
 
-    elif isinstance(op, Iterable) and isinstance(op[0], Operator):
-        shape = op[0].data.shape
-        dtype = op[0].data.dtype
-        arr = np.empty((len(op), *shape), dtype=dtype)
-        for i, sub_op in enumerate(op):
-            arr[i] = sub_op.data
-        out = Array(arr)
+    if isinstance(op, np.ndarray):
+        if dispatch.default_backend() in [None, "numpy"]:
+            return op
+        else:
+            return Array(op)
 
-    elif isinstance(op, Operator):
-        out = Array(op.data)
+    if isinstance(op, Array):
+        return op
 
-    elif issparse(op):
+    if issparse(op):
         return Array(op.toarray())
-    elif isinstance(op, Iterable) and issparse(op[0]):
-        out = Array(np.array([sparr.toarray() for sparr in op]))
-    else:
-        out = Array(op)
 
-    # now, everything is an Array
-    if out.backend == "numpy":
-        return out.data
+    if isinstance(op, Iterable) and not no_iter:
+        op = Array([to_array(sub_op, no_iter=True) for sub_op in op])
+    elif isinstance(op, Iterable) and no_iter:
+        return op
     else:
-        return out
+        op = Array(op)
+
+    if op.backend == "numpy":
+        return op.data
+    else:
+        return op
+
+
+# pylint: disable=too-many-return-statements
+def to_csr(
+    op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False
+) -> csr_matrix:
+    """Convert an operator or list of operators to a sparse matrix.
+    Args:
+        op: Either an Operator to be converted to an sparse matrix, a list of Operators
+            to be converted to a 3d sparse matrix, or a sparse matrix (which simply gets
+            returned)
+        no_iter (Bool): Boolean determining whether to recursively unroll `Iterables`.
+            If recurring, this should be True to avoid making each element of the
+            input into a separate csr_matrix.
+    Returns:
+        csr_matrix: Sparse matrix version of input
+    """
+    if op is None:
+        return op
+
+    if isinstance(op, csr_matrix):
+        return op
+    if isinstance_qutip_qobj(op):
+        return op.data
+    if isinstance(op, (Array, np.ndarray)) and op.ndim < 3:
+        return csr_matrix(op)
+
+    if isinstance(op, Iterable) and not no_iter:
+        return [to_csr(item, no_iter=True) for item in op]
+    else:
+        return csr_matrix(op)
+
+
+def to_numeric_matrix_type(
+    op: Union[Operator, Array, spmatrix, List[Operator], List[Array], List[spmatrix]]
+):
+    """Given an operator, array, sparse matrix, or a list of operators, arrays, or sparse matrices,
+    attempts to leave them in their original form, only converting the operator to an array,
+    and converting lists as necessary. Summarized below:
+    - operator is converted to array
+    - spmatrix and Array are unchanged
+    - lists of Arrays and sparse matrices are passed to their respective to_ functions
+    - anything else is passed to to_array
+    Args:
+        op: An operator, array, sparse matrix, or list of operators, arrays or sparse matrices.
+    Returns:
+        Array: Array version of input
+        csr_matrix: Sparse matrix version of input
+    """
+
+    if op is None:
+        return op
+
+    elif isinstance_qutip_qobj(op):
+        return to_csr(op.data)
+
+    elif isinstance(op, Array):
+        return op
+    elif isinstance(op, spmatrix):
+        return op
+    elif isinstance(op, Operator):
+        return to_array(op)
+
+    elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
+        return to_csr(op)
+
+    elif isinstance(op, Iterable) and isinstance_qutip_qobj(op[0]):
+        return to_csr(op)
+
+    else:
+        return to_array(op)
