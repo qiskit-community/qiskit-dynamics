@@ -17,6 +17,8 @@ from abc import ABC, abstractmethod
 from typing import Union, List, Optional
 from copy import copy
 import numpy as np
+
+from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
 from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.dispatch import Array
@@ -93,16 +95,17 @@ class DenseOperatorCollection(BaseOperatorCollection):
 
     def __init__(
         self,
-        operators: Union[Array, List[Operator]],
         static_operator: Optional[Union[Array, Operator]] = None,
+        operators: Optional[Union[Array, List[Operator]]] = None,
     ):
         """Initialize.
+
         Args:
             operators: (k,n,n) Array specifying the terms :math:`G_j`.
             static_operator: (n,n) Array specifying the extra static_operator :math:`G_d`.
         """
-        self.operators = operators
-        self.static_operator = static_operator
+        self.operators = to_array(operators)
+        self.static_operator = to_array(static_operator)
 
     @property
     def static_operator(self) -> Array:
@@ -127,14 +130,23 @@ class DenseOperatorCollection(BaseOperatorCollection):
     def num_operators(self) -> int:
         return self._operators.shape[0]
 
-    def evaluate(self, signal_values: Array) -> Array:
-        r"""Evaluate the affine combination of matrices."""
-        if self._static_operator is None:
-            return np.tensordot(signal_values, self._operators, axes=1)
-        else:
-            return np.tensordot(signal_values, self._operators, axes=1) + self._static_operator
+    def evaluate(self, signal_values: Union[Array, None]) -> Array:
+        r"""Evaluate the affine combination of matrices.
 
-    def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
+        Raises:
+            QiskitError: if both static_operator and operators are None
+        """
+        if self._static_operator is not None and self._operators is not None:
+            return np.tensordot(signal_values, self._operators, axes=1) + self._static_operator
+        elif self._static_operator is None and self._operators is not None:
+            return np.tensordot(signal_values, self._operators, axes=1)
+        elif self.static_operator is not None:
+            return self._static_operator
+        else:
+            raise QiskitError("""DenseOperatorCollection with None for both static_operator and
+                                operators cannot be evaluated.""")
+
+    def evaluate_rhs(self, signal_values: Union[Array, None], y: Array) -> Array:
         """Evaluates the function."""
         return np.dot(self.evaluate(signal_values), y)
 
@@ -144,8 +156,8 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
     def __init__(
         self,
-        operators: Union[Array, List[Operator]],
         static_operator: Optional[Union[Array, Operator]] = None,
+        operators: Optional[Union[Array, List[Operator]]] = None,
         decimals: Optional[int] = 10,
     ):
         """Initialize.
@@ -177,42 +189,56 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
     @operators.setter
     def operators(self, new_operators: List[csr_matrix]):
-        new_operators = to_csr(list(new_operators))
-        new_operators_object = np.empty(shape=len(new_operators), dtype="O")
-        for idx, new_op in enumerate(new_operators):
-            new_operators_object[idx] = csr_matrix(np.round(new_op, self._decimals))
+        if new_operators is not None:
+            new_operators_to_csr = to_csr(list(new_operators))
+            new_operators = np.empty(shape=len(new_operators_to_csr), dtype="O")
+            for idx, new_op in enumerate(new_operators_to_csr):
+                new_operators[idx] = csr_matrix(np.round(new_op, self._decimals))
 
-        self._operators = new_operators_object
+        self._operators = new_operators
 
     @property
     def num_operators(self) -> int:
         return self._operators.shape[0]
 
-    def evaluate(self, signal_values: Array) -> csr_matrix:
+    def evaluate(self, signal_values: Union[Array, None]) -> csr_matrix:
         r"""Sparse version of ``DenseOperatorCollection.evaluate``.
 
         Args:
             signal_values: Coefficients :math:`c_j`.
 
         Returns:
-            Generator as sparse array."""
-        signal_values = signal_values.reshape(1, signal_values.shape[-1])
-        if self._static_operator is None:
-            return np.tensordot(signal_values, self._operators, axes=1)[0]
+            Generator as sparse array.
+        """
+        if self._static_operator is not None and self._operators is not None:
+            return np.tensordot(signal_values, self._operators, axes=1).item() + self._static_operator
+        elif self._static_operator is None and self._operators is not None:
+            return np.tensordot(signal_values, self._operators, axes=1).item()
+        elif self.static_operator is not None:
+            return self._static_operator
         else:
-            return np.tensordot(signal_values, self._operators, axes=1)[0] + self._static_operator
+            raise QiskitError("""SparseOperatorCollection with None for both static_operator and
+                                operators cannot be evaluated.""")
 
-    def evaluate_rhs(self, signal_values: Array, y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: Union[Array, None], y: Array) -> Array:
         if len(y.shape) == 2:
             # For 2d array, compute linear combination then multiply
-            gen = np.tensordot(signal_values, self._operators, axes=1) + self.static_operator
-            out = gen.dot(y)
+            gen = self.evaluate(signal_values)
+            return gen.dot(y)
         elif len(y.shape) == 1:
             # For a 1d array, multiply individual matrices then compute linear combination
             tmparr = np.empty(shape=(1), dtype="O")
             tmparr[0] = y
-            out = np.dot(signal_values, self._operators * tmparr) + self.static_operator.dot(y)
-        return out
+
+            if self._static_operator is not None and self._operators is not None:
+                return np.dot(signal_values, self._operators * tmparr) + self.static_operator.dot(y)
+            elif self._static_operator is None and self._operators is not None:
+                return np.dot(signal_values, self._operators * tmparr)
+            elif self.static_operator is not None:
+                return self.static_operator.dot(y)
+            else:
+                raise QiskitError("""SparseOperatorCollection with None for both static_operator and
+                                    operators cannot be evaluated.""")
 
 
 class DenseLindbladCollection(BaseOperatorCollection):
@@ -392,7 +418,7 @@ class DenseVectorizedLindbladCollection(DenseOperatorCollection):
 
         self._static_hamiltonian = static_hamiltonian
 
-        super().__init__(total_ops, static_operator=vec_static_hamiltonian)
+        super().__init__(static_operator=vec_static_hamiltonian, operators=total_ops)
 
     @property
     def static_hamiltonian(self) -> Array:
@@ -485,7 +511,7 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
             self.empty_dissipators = True
 
         self._static_hamiltonian = static_hamiltonian
-        super().__init__(total_ops, static_operator=vec_static_hamiltonian)
+        super().__init__(static_operator=vec_static_hamiltonian, operators=total_ops)
 
     @property
     def static_hamiltonian(self) -> Array:
