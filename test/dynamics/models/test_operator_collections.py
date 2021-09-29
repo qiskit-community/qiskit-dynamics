@@ -50,6 +50,14 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
             operators=self.test_operator_list, static_operator=None
         )
 
+    def test_empty_collection_error(self):
+        """Verify that evaluating with no operators or static_operator raises an error."""
+
+        collection = DenseOperatorCollection(operators=None, static_operator=None)
+        with self.assertRaises(QiskitError) as qe:
+            collection(None)
+        self.assertTrue("cannot be evaluated." in str(qe.exception))
+
     def test_known_values_basic_functionality(self):
         """Test DenseOperatorCollection evaluation against
         analytically known values."""
@@ -79,14 +87,6 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         collection = DenseOperatorCollection(operators=None, static_operator=self.X)
         self.assertAllClose(self.X, collection(None))
 
-    def test_empty_collection_error(self):
-        """Verify that evaluating with no operators or static_operator raises an error."""
-
-        collection = DenseOperatorCollection(operators=None, static_operator=None)
-        with self.assertRaises(QiskitError) as qe:
-            collection(None)
-        self.assertTrue("cannot be evaluated." in str(qe.exception))
-
 
 class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
     """Jax version of TestDenseOperatorCollection tests.
@@ -113,6 +113,18 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
 
 class TestSparseOperatorCollection(QiskitDynamicsTestCase):
     """Tests for SparseOperatorCollection."""
+
+    def test_empty_collection_error(self):
+        """Verify that evaluating with no operators or static_operator raises an error."""
+
+        collection = SparseOperatorCollection(operators=None, static_operator=None)
+        with self.assertRaises(QiskitError) as qe:
+            collection(None)
+        self.assertTrue("cannot be evaluated." in str(qe.exception))
+
+        with self.assertRaises(QiskitError) as qe:
+            collection(None, np.array([1., 0.]))
+        self.assertTrue("cannot be evaluated." in str(qe.exception))
 
     def test_evaluate_simple_case(self):
         """Simple test case."""
@@ -184,18 +196,6 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllCloseSparse(X, collection(None))
         self.assertAllClose(np.array([0., 1.]), collection(None, np.array([1., 0.])))
 
-    def test_empty_collection_error(self):
-        """Verify that evaluating with no operators or static_operator raises an error."""
-
-        collection = SparseOperatorCollection(operators=None, static_operator=None)
-        with self.assertRaises(QiskitError) as qe:
-            collection(None)
-        self.assertTrue("cannot be evaluated." in str(qe.exception))
-
-        with self.assertRaises(QiskitError) as qe:
-            collection(None, np.array([1., 0.]))
-        self.assertTrue("cannot be evaluated." in str(qe.exception))
-
 
 class TestDenseLindbladCollection(QiskitDynamicsTestCase):
     """Tests for DenseLindbladCollection."""
@@ -217,13 +217,23 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         self.ham_sig_vals = rand.uniform(-1, 1, (k))
         self.dis_sig_vals = rand.uniform(-1, 1, (m))
 
+    def test_empty_collection_error(self):
+        """Test errors get raised for empty collection."""
+        collection = DenseLindbladCollection(None, None, None)
+        with self.assertRaises(QiskitError) as qe:
+            collection(None, None, np.array([1., 0.]))
+        self.assertTrue("DenseLindbladCollection with None" in str(qe.exception))
+
+        with self.assertRaises(QiskitError) as qe:
+            collection.evaluate_hamiltonian(None)
+        self.assertTrue("DenseLindbladCollection with None" in str(qe.exception))
+
     def test_no_static_hamiltonian_no_dissipator(self):
-        """Tests whether collections function correctly with no static_hamiltonian
-        and no dissipators."""
+        """Test evaluation with just hamiltonian operators."""
 
         ham_only_collection = DenseLindbladCollection(
-            self.hamiltonian_operators,
-            static_hamiltonian=0 * self.static_hamiltonian,
+            hamiltonian_operators=self.hamiltonian_operators,
+            static_hamiltonian=None,
             dissipator_operators=None,
         )
         hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
@@ -234,10 +244,10 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(res, expected)
 
     def test_static_hamiltonian_no_dissipator(self):
-        """Tests if providing static_hamiltonian but no dissipator is OK."""
+        """Tests evaluation with a static_hamiltonian and no dissipator."""
         # Now, test adding a static_hamiltonian
         ham_static_hamiltonian_collection = DenseLindbladCollection(
-            self.hamiltonian_operators,
+            hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
             dissipator_operators=None,
         )
@@ -250,10 +260,10 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         expected = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
         self.assertAllClose(res, expected)
 
-    def test_static_hamiltonian_dissipator(self):
-        """Tests if providing both static_hamiltonian and dissipator is OK."""
+    def test_full_collection(self):
+        """Tests correct evaluation with all terms."""
         full_lindblad_collection = DenseLindbladCollection(
-            self.hamiltonian_operators,
+            hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
             dissipator_operators=self.dissipator_operators,
         )
@@ -284,7 +294,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
         # Now, test if vectorization works as intended
         full_lindblad_collection = DenseLindbladCollection(
-            self.hamiltonian_operators,
+            hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
             dissipator_operators=self.dissipator_operators,
         )
@@ -297,17 +307,48 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
                 ),
             )
 
+    def test_static_hamiltonian_only(self):
+        """Test construction and evaluation with a static hamiltonian only."""
+
+        collection = DenseLindbladCollection(static_hamiltonian=self.X)
+
+        self.assertAllClose(collection.evaluate_hamiltonian(None), self.X)
+        rho = Array([[1., 0.], [0., 0.]])
+        expected = -1j * (self.X @ rho - rho @ self.X)
+        self.assertAllClose(collection.evaluate_rhs(None, None, rho), expected)
+
+    def test_dissipators_only(self):
+        """Tests correct evaluation with just dissipators."""
+        collection = DenseLindbladCollection(
+            hamiltonian_operators=None,
+            static_hamiltonian=None,
+            dissipator_operators=self.dissipator_operators,
+        )
+        res = collection(None, self.dis_sig_vals, self.rho)
+        dis_anticommutator = (-1 / 2) * np.tensordot(
+            self.dis_sig_vals,
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        )
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = np.tensordot(
+            self.dis_sig_vals,
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        )
+        self.assertAllClose(dis_anticommutator + dis_extra, res)
+
 
 class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
-    """Jax version of TestDenseLindbladCollection tests.
-
-    Note: This class has more tests due to inheritance.
-    """
+    """Jax version of TestDenseLindbladCollection tests."""
 
     def test_functions_jitable(self):
         """Tests that all class functions are jittable"""
         dlc = DenseLindbladCollection(
-            Array(self.hamiltonian_operators),
+            hamiltonian_operators=Array(self.hamiltonian_operators),
             static_hamiltonian=Array(self.static_hamiltonian),
             dissipator_operators=Array(self.dissipator_operators),
         )
@@ -320,7 +361,7 @@ class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
     def test_functions_gradable(self):
         """Tests if all class functions are gradable"""
         dlc = DenseLindbladCollection(
-            Array(self.hamiltonian_operators),
+            hamiltonian_operators=Array(self.hamiltonian_operators),
             static_hamiltonian=Array(self.static_hamiltonian),
             dissipator_operators=Array(self.dissipator_operators),
         )

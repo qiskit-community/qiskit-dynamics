@@ -115,27 +115,28 @@ class HamiltonianModel(GeneratorModel):
         The static_operator needs to be adjusted by -H in the new frame."""
         new_frame = RotatingFrame(rotating_frame)
 
+        # convert static operator to new frame setup
         static_op = self.get_static_operator(in_frame_basis=True)
         if static_op is not None:
             static_op = -1j * static_op
-
-        ops = self.get_operators(in_frame_basis=True)
 
         new_static_operator = self.transfer_static_operator_between_frames(
             static_op,
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
+
+        if new_static_operator is not None:
+            new_static_operator = 1j * new_static_operator
+
+        # convert operators to new frame set up
         new_operators = self.transfer_operators_between_frames(
-            ops,
+            self.get_operators(in_frame_basis=True),
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
 
         self._rotating_frame = new_frame
-
-        if new_static_operator is not None:
-            new_static_operator = 1j * new_static_operator
 
         self._operator_collection = self.construct_operator_collection(
             self.evaluation_mode, new_static_operator, new_operators
