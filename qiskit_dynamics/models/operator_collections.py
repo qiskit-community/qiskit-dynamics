@@ -9,7 +9,6 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=arguments-differ,signature-differs
 
 """Operator collections as math/calculation objects for Model classes"""
 
@@ -132,7 +131,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
             return np.tensordot(signal_values, self._operators, axes=1) + self._static_operator
         elif self._static_operator is None and self._operators is not None:
             return np.tensordot(signal_values, self._operators, axes=1)
-        elif self.static_operator is not None:
+        elif self._static_operator is not None:
             return self._static_operator
         else:
             raise QiskitError(self.__class__.__name__ + """ with None for both static_operator and
@@ -155,10 +154,9 @@ class SparseOperatorCollection(BaseOperatorCollection):
         """Initialize.
 
         Args:
-            operators: (k,n,n) Array specifying the terms :math:`G_j`.
             static_operator: (n,n) Array specifying the static_operator term :math:`G_d`.
+            operators: (k,n,n) Array specifying the terms :math:`G_j`.
             decimals: Values will be rounded at ``decimals`` places after decimal.
-                Avoids storing excess sparse entries for entries close to zero.
         """
         self._decimals = decimals
         super().__init__(static_operator=static_operator, operators=operators)
@@ -295,26 +293,18 @@ class BaseLindbladOperatorCollection(ABC):
         """Sets operators for non-static part of dissipator."""
 
     @abstractmethod
-    def evaluate(self, signal_values: Array) -> Array:
+    def evaluate_hamiltonian(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Union[csr_matrix, Array]:
+        """Evaluate the Hamiltonian of the model."""
+
+    @abstractmethod
+    def evaluate(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Union[csr_matrix, Array]:
         r"""Evaluate the map."""
 
     @abstractmethod
-    def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
+    def evaluate_rhs(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array) -> Array:
         r"""Compute the function."""
 
-    def __call__(
-        self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
-    ) -> Array:
-        """Call either ``self.evaluate`` or ``self.evaluate_rhs`` depending on number of
-        arguments.
-        """
-
-        if y is None:
-            return self.evaluate(signal_values)
-
-        return self.evaluate_rhs(signal_values, y)
-
-    def __call__(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Optional[Array]) -> Array:
+    def __call__(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Optional[Array]) -> Union[csr_matrix, Array]:
         """Evaluate the model, or evaluate the RHS."""
         if y is None:
             return self.evaluate(ham_sig_vals, dis_sig_vals)
@@ -448,7 +438,6 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
 class SparseLindbladCollection(DenseLindbladCollection):
     """Sparse version of DenseLindbladCollection."""
 
-    # pylint: disable=super-init-not-called
     def __init__(
         self,
         static_hamiltonian: Optional[Union[csr_matrix, Operator]] = None,
@@ -615,44 +604,41 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
         return out
 
+class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOperatorCollection):
+    """Base class for Vectorized Lindblad collections.
 
-class DenseVectorizedLindbladCollection(DenseLindbladCollection, DenseOperatorCollection):
-    r"""Vectorized version of DenseLindbladCollection.
+    The vectorized Lindblad equation represents the Lindblad master equation in the structure
+    of a linear matrix differential equation in standard form. Hence, this class inherits
+    from both ``BaseLindbladOperatorCollection`` and ``BaseOperatorCollection``.
 
-    This class evaluates the right hand side of the Lindblad equation in vectorized form, i.e.
-    in which the state :math:`\rho`, an :math:`(n,n)` matrix, is embedded in a vector space of
-    dimension :math:`n^2` using the column stacking convention."""
+    This class manages the general property handling of converting operators in a Lindblad
+    collection to the correct type, constructing vectorized versions, and combining for use in a
+    BaseOperatorCollection. Requires implementation of:
 
-    def __init__(
-        self,
-        static_hamiltonian: Optional[any] = None,
-        hamiltonian_operators: Optional[any] = None,
-        dissipator_operators: Optional[any] = None,
-    ):
-        r"""Initialize collection.
-
-        Args:
-            static_hamiltonian: Constant term :math:`H_d` to be added to the Hamiltonian of the
-                                system.
-            hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
-            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
-        """
-        # these need to be initialized for relationshpis between properties
-        self._static_hamiltonian = None
-        self._hamiltonian_operators = None
-        self._dissipator_operators = None
-        super().__init__(static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators)
+        - ``convert_to_internal_type``: Convert operators to the required internal type,
+          e.g. csr or Array.
+        - ``evaluation_class``: Class property that returns the subclass of BaseOperatorCollection
+          to be used when evaluating the model, e.g. DenseOperatorCollection or
+          SparseOperatorCollection.
+    """
+    @abstractmethod
+    def convert_to_internal_type(self, obj: any) -> any:
+        """Convert either a single operator or a list of operators to an internal representation."""
 
     @property
-    def static_hamiltonian(self) -> Array:
+    @abstractmethod
+    def evaluation_class(self) -> BaseOperatorCollection:
+        """Class used for evaluating the vectorized model or RHS."""
+
+    @property
+    def static_hamiltonian(self) -> Union[Array, csr_matrix]:
         """Returns static part of operator collection."""
         return self._static_hamiltonian
 
     @static_hamiltonian.setter
-    def static_hamiltonian(self, new_static_hamiltonian: Optional[Array] = None):
+    def static_hamiltonian(self, new_static_hamiltonian: Optional[Union[Array, csr_matrix]] = None):
         """Sets static_operator term."""
-        self._static_hamiltonian = to_array(new_static_hamiltonian)
+        self._static_hamiltonian = self.convert_to_internal_type(new_static_hamiltonian)
         if self._static_hamiltonian is not None:
             self._vec_static_hamiltonian = -1j * vec_commutator(self._static_hamiltonian)
 
@@ -663,20 +649,20 @@ class DenseVectorizedLindbladCollection(DenseLindbladCollection, DenseOperatorCo
         return self._hamiltonian_operators
 
     @hamiltonian_operators.setter
-    def hamiltonian_operators(self, new_hamiltonian_operators: Optional[Array] = None):
-        self._hamiltonian_operators = to_array(new_hamiltonian_operators)
+    def hamiltonian_operators(self, new_hamiltonian_operators: Optional[Union[Array, csr_matrix]] = None):
+        self._hamiltonian_operators = self.convert_to_internal_type(new_hamiltonian_operators)
         if self._hamiltonian_operators is not None:
             self._vec_hamiltonian_operators = -1j * vec_commutator(self._hamiltonian_operators)
 
         self.concatenate_operators()
 
     @property
-    def dissipator_operators(self) -> Array:
+    def dissipator_operators(self) -> Union[Array, csr_matrix]:
         return self._dissipator_operators
 
     @dissipator_operators.setter
-    def dissipator_operators(self, new_dissipator_operators: Optional[Array] = None):
-        self._dissipator_operators = to_array(new_dissipator_operators)
+    def dissipator_operators(self, new_dissipator_operators: Optional[Union[Array, csr_matrix]] = None):
+        self._dissipator_operators = self.convert_to_internal_type(new_dissipator_operators)
         if self._dissipator_operators is not None:
             self._vec_dissipator_operators = vec_dissipator(self._dissipator_operators)
 
@@ -700,17 +686,22 @@ class DenseVectorizedLindbladCollection(DenseLindbladCollection, DenseOperatorCo
         else:
             self._operators = None
 
-    def evaluate(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Array:
+    def concatenate_signals(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Array:
+        """Concatenate hamiltonian and linblad signals."""
         if self._hamiltonian_operators is not None and self._dissipator_operators is not None:
-            signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
-        elif self._hamiltonian_operators is not None and self._dissipator_operators is None:
-            signal_values = ham_sig_vals
-        elif self._hamiltonian_operators is None and self._dissipator_operators is not None:
-            signal_values = dis_sig_vals
-        else:
-            signal_values = None
+            return np.append(ham_sig_vals, dis_sig_vals, axis=-1)
+        if self._hamiltonian_operators is not None and self._dissipator_operators is None:
+            return ham_sig_vals
+        if self._hamiltonian_operators is None and self._dissipator_operators is not None:
+            return dis_sig_vals
 
-        return DenseOperatorCollection.evaluate(self, signal_values)
+        return None
+
+    def evaluate(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Array:
+        """Evaluate the model."""
+        import pdb; pdb.set_trace()
+        signal_values = self.concatenate_signals(ham_sig_vals, dis_sig_vals)
+        return self.evaluation_class.evaluate(self, signal_values)
 
     def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         r"""Evaluates the RHS of the Lindblad equation using
@@ -724,101 +715,93 @@ class DenseVectorizedLindbladCollection(DenseLindbladCollection, DenseOperatorCo
                 convention.
         Returns:
             Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking
-                convention."""
-        return np.dot(self.evaluate(ham_sig_vals, dis_sig_vals), y)
+                convention.
+        """
+        return self.evaluate(ham_sig_vals, dis_sig_vals) @ y
 
 
-class SparseVectorizedLindbladCollection(SparseOperatorCollection):
-    r"""Vectorized version of SparseLindbladCollection."""
+class DenseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
+                                        DenseLindbladCollection,
+                                        DenseOperatorCollection):
+    r"""Vectorized version of DenseLindbladCollection.
+
+    Utilizes BaseVectorizedLindbladCollection for property handling, DenseLindbladCollection
+    for evaluate_hamiltonian, and DenseOperatorCollection for operator property handling.
+    """
 
     def __init__(
         self,
-        hamiltonian_operators: Union[Array, List[Operator]],
-        static_hamiltonian: Union[Array, Operator],
-        dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
+        static_hamiltonian: Optional[any] = None,
+        hamiltonian_operators: Optional[any] = None,
+        dissipator_operators: Optional[any] = None,
+    ):
+        r"""Initialize collection.
+
+        Args:
+            static_hamiltonian: Constant term :math:`H_d` to be added to the Hamiltonian of the
+                                system.
+            hamiltonian_operators: Specifies breakdown of Hamiltonian
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
+            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
+        """
+        # need to be initialized for relationships between properties for VectorizedLindbladMixin
+        self._static_hamiltonian = None
+        self._hamiltonian_operators = None
+        self._dissipator_operators = None
+        super().__init__(static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators)
+
+    def convert_to_internal_type(self, obj: any) -> Array:
+        return to_array(obj)
+
+    @property
+    def evaluation_class(self):
+        return DenseOperatorCollection
+
+
+class SparseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
+                                         SparseLindbladCollection,
+                                         SparseOperatorCollection):
+    r"""Vectorized version of SparseLindbladCollection.
+
+    Utilizes BaseVectorizedLindbladCollection for property handling, SparseLindbladCollection
+    for evaluate_hamiltonian, and SparseOperatorCollection for static_operator and operator
+    property handling.
+    """
+
+    def __init__(
+        self,
+        static_hamiltonian: Optional[csr_matrix] = None,
+        hamiltonian_operators: Optional[List[csr_matrix]] = None,
+        dissipator_operators: Optional[List[csr_matrix]] = None,
+        decimals: Optional[int] = 10,
     ):
         r"""Initialize.
 
         Args:
-            hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) Array.
             static_hamiltonian: Constant term to be added to the Hamiltonian of the system.
                                 (n,n) Array.
+            hamiltonian_operators: Specifies breakdown of Hamiltonian
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) Array.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) Array.
+            decimals: Values will be rounded at ``decimals`` places after decimal.
         """
 
-        # Convert Hamiltonian to commutator formalism
-        vec_ham_ops = -1j * np.array(vec_commutator(to_csr(hamiltonian_operators)), dtype="O")
-        vec_static_hamiltonian = -1j * np.array(
-            vec_commutator(to_csr(static_hamiltonian)), dtype="O"
-        )
-        total_ops = None
-        if dissipator_operators is not None:
-            vec_diss_ops = np.array(vec_dissipator(to_csr(dissipator_operators)), dtype="O")
-            total_ops = np.append(vec_ham_ops, vec_diss_ops, axis=0)
-            self.empty_dissipators = False
-        else:
-            total_ops = vec_ham_ops
-            self.empty_dissipators = True
+        self._decimals = decimals
+        self._static_hamiltonian = None
+        self._hamiltonian_operators = None
+        self._dissipator_operators = None
+        super().__init__(static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators)
 
-        self._static_hamiltonian = static_hamiltonian
-        super().__init__(static_operator=vec_static_hamiltonian, operators=total_ops)
+    def convert_to_internal_type(self, obj: any) -> Union[csr_matrix, List[csr_matrix]]:
+        obj = to_csr(obj)
+        if issparse(obj):
+            return np.round(obj, decimals=self._decimals)
+        elif isinstance(obj, list):
+            return [np.round(sub_obj, decimals=self._decimals) for sub_obj in obj]
 
     @property
-    def static_hamiltonian(self) -> Array:
-        """Returns static part of operator collection."""
-        return self._static_hamiltonian
-
-    @static_hamiltonian.setter
-    def static_hamiltonian(self, new_static_hamiltonian: Optional[Array] = None):
-        """Sets static_operator term."""
-        self._static_hamiltonian = new_static_hamiltonian
-
-    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
-        r"""Evaluates the RHS of the Lindblad equation using
-        vectorized maps.
-
-        Args:
-            ham_sig_vals: hamiltonian signal coefficients.
-            dis_sig_vals: dissipator signal coefficients.
-                If none involved, pass None.
-            y: Density matrix represented as a vector using column-stacking
-                convention.
-        Returns:
-            Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking
-                convention."""
-        return self.evaluate(ham_sig_vals, dis_sig_vals) @ y
-
-    def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
-        r"""Evaluates the RHS of the Lindblad equation using
-        vectorized maps.
-
-        Args:
-            ham_sig_vals: stores the Hamiltonian signal coefficients.
-            dis_sig_vals: stores the dissipator signal coefficients.
-        Returns:
-            Vectorized generator of Lindblad equation :math:`\dot{\rho}` in column-stacking
-                convention."""
-        if self.empty_dissipators:
-            signal_values = ham_sig_vals
-        else:
-            signal_values = np.append(ham_sig_vals, dis_sig_vals, axis=-1)
-        return super().evaluate(signal_values)
-
-    def evaluate_hamiltonian(self, ham_sig_vals: Array) -> Array:
-        r"""Computes the Hamiltonian commutator part of the Lindblad equation,
-        vectorized in column-stacking convention.
-
-        Args:
-            ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
-        Returns:
-            Vectorized commutator :math:`[H,\cdot]`"""
-        if self.empty_dissipators:
-            signal_values = ham_sig_vals
-        else:
-            zero_padding = np.zeros(self.num_operators - len(ham_sig_vals))
-            signal_values = np.append(ham_sig_vals, zero_padding, axis=0)
-        return 1j * super().evaluate(signal_values)
+    def evaluation_class(self):
+        return SparseOperatorCollection
 
 
 def package_density_matrices(y: Array) -> Array:
