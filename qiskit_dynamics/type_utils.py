@@ -411,6 +411,8 @@ def to_csr(
         return op
     if isinstance_qutip_qobj(op):
         return op.data
+    if isinstance(op, np.ndarray) and op.dtype == "O":
+        op = list(op)
     if isinstance(op, (Array, np.ndarray)) and op.ndim < 3:
         return csr_matrix(op)
 

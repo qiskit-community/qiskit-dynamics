@@ -206,17 +206,15 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             low=-b, high=b, size=(dim, dim)
         )
         frame_op = Array(rand_op - rand_op.conj().transpose())
-        evect = -1j * np.linalg.eigh(1j * frame_op)[1]
+        evect = np.linalg.eigh(1j * frame_op)[1]
         f = lambda x: evect.T.conj() @ x @ evect
-
-        lindblad_frame_op = frame_op
 
         # construct model
         hamiltonian = HamiltonianModel(operators=rand_ham_ops, signals=ham_sigs)
         lindblad_model = LindbladModel.from_hamiltonian(
             hamiltonian=hamiltonian, dissipator_operators=rand_diss, dissipator_signals=diss_sigs
         )
-        lindblad_model.rotating_frame = lindblad_frame_op
+        lindblad_model.rotating_frame = frame_op
 
         A = Array(
             rng.uniform(low=-b, high=b, size=(dim, dim))
@@ -245,8 +243,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(ham_coeffs, ham_sigs(t))
         self.assertAllClose(diss_coeffs, diss_sigs(t))
-        self.assertAllClose(f(rand_diss), lindblad_model._dissipator_operators)
-        self.assertAllClose(f(rand_ham_ops), lindblad_model._hamiltonian_operators)
+        self.assertAllClose(f(rand_diss), lindblad_model.get_dissipator_operators(in_frame_basis=True))
+        self.assertAllClose(f(rand_ham_ops), lindblad_model.get_hamiltonian_operators(in_frame_basis=True))
         self.assertAllClose(
             f(-1j * frame_op), lindblad_model.get_static_hamiltonian(in_frame_basis=True)
         )

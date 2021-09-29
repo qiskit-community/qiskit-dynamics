@@ -124,6 +124,7 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_operators=dissipator_operators
         )
         self._evaluation_mode = evaluation_mode
+        self.vectorized_operators = 'vectorized' in evaluation_mode
 
         self._rotating_frame = None
         self.rotating_frame = rotating_frame
@@ -354,8 +355,8 @@ class LindbladModel(BaseGeneratorModel):
             old_frame=self.rotating_frame,
         )
 
-        if static_ham is not None:
-            static_ham = 1j * static_ham
+        if new_static_hamiltonian is not None:
+            new_static_hamiltonian = 1j * new_static_hamiltonian
 
         # convert hamiltonian operators and dissipator oeprators
         ham_ops = self.get_hamiltonian_operators(in_frame_basis=True)
