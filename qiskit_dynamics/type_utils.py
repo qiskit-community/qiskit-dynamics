@@ -243,7 +243,7 @@ def type_spec_from_instance(y):
 def vec_commutator(
     A: Union[Array, csr_matrix, List[csr_matrix]]
 ) -> Union[Array, csr_matrix, List[csr_matrix]]:
-    r"""Linear algebraic vectorization of the linear map X -> [A, X]
+    r"""Linear algebraic vectorization of the linear map X -> -i[A, X]
     in column-stacking convention. In column-stacking convention we have
 
     .. math::
@@ -252,7 +252,7 @@ def vec_commutator(
     so for the commutator we have
 
     .. math::
-        [A, \cdot] = A \cdot - \cdot A \mapsto id \otimes A - A^T \otimes id
+        -i[A, \cdot] = -i(A \cdot - \cdot A \mapsto id \otimes A - A^T \otimes id)
 
     Note: this function is also "vectorized" in the programming sense for dense arrays.
 
@@ -268,11 +268,11 @@ def vec_commutator(
     if issparse(A):
         # single, sparse matrix
         sp_iden = sparse_identity(A.shape[-1], format="csr")
-        return sparse_kron(sp_iden, A) - sparse_kron(A.T, sp_iden)
+        return -1j * (sparse_kron(sp_iden, A) - sparse_kron(A.T, sp_iden))
     if isinstance(A, list) and issparse(A[0]):
         # taken to be 1d array of 2d sparse matrices
         sp_iden = sparse_identity(A[0].shape[-1], format="csr")
-        out = [sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden) for mat in A]
+        out = [-1j * (sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden)) for mat in A]
         return out
 
     A = to_array(A)
@@ -280,7 +280,7 @@ def vec_commutator(
     axes = list(range(A.ndim))
     axes[-1] = axes[-2]
     axes[-2] += 1
-    return np.kron(iden, A) - np.kron(A.transpose(axes), iden)
+    return -1j * (np.kron(iden, A) - np.kron(A.transpose(axes), iden))
 
 
 def vec_dissipator(

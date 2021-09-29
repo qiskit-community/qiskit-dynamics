@@ -16,6 +16,7 @@ from abc import ABC, abstractmethod
 from typing import Union, List, Optional
 from copy import copy
 import numpy as np
+from scipy.sparse import issparse
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
@@ -521,7 +522,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         elif self._static_hamiltonian is not None:
             return self._static_hamiltonian
         else:
-            raise QiskitError("""SparseLindbladCollection with None for both static_hamiltonian and
+            raise QiskitError(self.__class__.__name__ + """ with None for both static_hamiltonian and
                                 hamiltonian_operators cannot evaluate Hamiltonian.""")
 
     def evaluate_rhs(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array) -> Array:
@@ -640,7 +641,7 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
         """Sets static_operator term."""
         self._static_hamiltonian = self.convert_to_internal_type(new_static_hamiltonian)
         if self._static_hamiltonian is not None:
-            self._vec_static_hamiltonian = -1j * vec_commutator(self._static_hamiltonian)
+            self._vec_static_hamiltonian = vec_commutator(self._static_hamiltonian)
 
         self.concatenate_static_operators()
 
@@ -652,7 +653,7 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
     def hamiltonian_operators(self, new_hamiltonian_operators: Optional[Union[Array, csr_matrix]] = None):
         self._hamiltonian_operators = self.convert_to_internal_type(new_hamiltonian_operators)
         if self._hamiltonian_operators is not None:
-            self._vec_hamiltonian_operators = -1j * vec_commutator(self._hamiltonian_operators)
+            self._vec_hamiltonian_operators = vec_commutator(self._hamiltonian_operators)
 
         self.concatenate_operators()
 
@@ -699,7 +700,6 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
 
     def evaluate(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Array:
         """Evaluate the model."""
-        import pdb; pdb.set_trace()
         signal_values = self.concatenate_signals(ham_sig_vals, dis_sig_vals)
         return self.evaluation_class.evaluate(self, signal_values)
 

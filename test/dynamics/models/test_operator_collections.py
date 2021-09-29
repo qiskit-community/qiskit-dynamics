@@ -26,6 +26,7 @@ from qiskit_dynamics.models.operator_collections import (
     DenseVectorizedLindbladCollection,
     SparseLindbladCollection,
     SparseOperatorCollection,
+    SparseVectorizedLindbladCollection
 )
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
@@ -99,16 +100,20 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
         doc = DenseOperatorCollection(
             operators=Array(self.test_operator_list), static_operator=Array(self.test_operator_list[0])
         )
-        self.jit_wrap(doc.evaluate)(Array(self.sigvals))
-        self.jit_wrap(doc.evaluate_rhs)(Array(self.sigvals), self.X)
+        rand.seed(3423)
+        coeffs = rand.uniform(-1, 1, 3)
+        self.jit_wrap(doc.evaluate)(Array(coeffs))
+        self.jit_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
 
     def test_functions_gradable(self):
         """Tests that all class functions are gradable."""
         doc = DenseOperatorCollection(
             operators=Array(self.test_operator_list), static_operator=Array(self.test_operator_list[0])
         )
-        self.jit_grad_wrap(doc.evaluate)(Array(self.sigvals))
-        self.jit_grad_wrap(doc.evaluate_rhs)(Array(self.sigvals), self.X)
+        rand.seed(5433)
+        coeffs = rand.uniform(-1, 1, 3)
+        self.jit_grad_wrap(doc.evaluate)(Array(coeffs))
+        self.jit_grad_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
 
 
 class TestSparseOperatorCollection(QiskitDynamicsTestCase):
@@ -571,17 +576,19 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         self.t = r()
         self.rand_ham_coeffs = r(k)
         self.rand_dis_coeffs = r(m)
+        self.vectorized_class = DenseVectorizedLindbladCollection
+        self.non_vectorized_class = DenseLindbladCollection
 
     def test_empty_collection_error(self):
         """Test errors get raised for empty collection."""
-        collection = DenseVectorizedLindbladCollection()
+        collection = self.vectorized_class()
         with self.assertRaises(QiskitError) as qe:
             collection(None, None, np.array([[1., 0.], [0., 0.]]))
-        self.assertTrue("DenseVectorizedLindbladCollection with None" in str(qe.exception))
+        self.assertTrue(self.vectorized_class.__name__ + " with None" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
             collection.evaluate_hamiltonian(None)
-        self.assertTrue("DenseVectorizedLindbladCollection with None" in str(qe.exception))
+        self.assertTrue(self.vectorized_class.__name__ + " with None" in str(qe.exception))
 
     def test_consistency_all_terms(self):
         """Check consistency with DenseLindbladCollection when hamiltonian,
@@ -621,10 +628,10 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         DenseVectorizedLindbladCollection.
         """
 
-        collection = DenseLindbladCollection(
+        collection = self.non_vectorized_class(
             static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators
         )
-        vec_collection = DenseVectorizedLindbladCollection(
+        vec_collection = self.vectorized_class(
             static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators
         )
 
@@ -646,3 +653,24 @@ class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollec
     are not directly jitable or compilable. The compilation of these steps
     is taken care of by the tests for LindbladModel.
     """
+
+class TestSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladCollection):
+    """Tests for SparseVectorizedLindbladCollection."""
+
+    def setUp(self) -> None:
+        rand.seed(31232)
+        n = 16
+        k = 4
+        m = 2
+        r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
+
+        self.r = r
+        self.rand_ham = r(k, n, n)
+        self.rand_dis = r(m, n, n)
+        self.rand_dft = r(n, n)
+        self.rho = r(n, n)
+        self.t = r()
+        self.rand_ham_coeffs = r(k)
+        self.rand_dis_coeffs = r(m)
+        self.vectorized_class = SparseVectorizedLindbladCollection
+        self.non_vectorized_class = SparseLindbladCollection
