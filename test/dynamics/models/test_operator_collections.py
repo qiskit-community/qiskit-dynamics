@@ -389,13 +389,24 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         self.dis_sig_vals = rand.uniform(-1, 1, (m))
         self.r = lambda *args: rand.uniform(-1, 1, args) + 1j * rand.uniform(-1, 1, args)
 
+    def test_empty_collection_error(self):
+        """Test errors get raised for empty collection."""
+        collection = SparseLindbladCollection(None, None, None)
+        with self.assertRaises(QiskitError) as qe:
+            collection(None, None, np.array([[1., 0.], [0., 0.]]))
+        self.assertTrue("SparseLindbladCollection with None" in str(qe.exception))
+
+        with self.assertRaises(QiskitError) as qe:
+            collection.evaluate_hamiltonian(None)
+        self.assertTrue("SparseLindbladCollection with None" in str(qe.exception))
+
     def test_no_static_hamiltonian_no_dissipator(self):
         """Tests whether collections function correctly with no static_hamiltonian
         and no dissipators."""
 
         ham_only_collection = SparseLindbladCollection(
-            self.hamiltonian_operators,
-            static_hamiltonian=0 * self.static_hamiltonian,
+            hamiltonian_operators=self.hamiltonian_operators,
+            static_hamiltonian=None,
             dissipator_operators=None,
         )
         hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
@@ -409,7 +420,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         """Tests if providing static_hamiltonian but no dissipator is OK."""
         # Now, test adding a static_hamiltonian
         ham_static_hamiltonian_collection = SparseLindbladCollection(
-            self.hamiltonian_operators,
+            hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
             dissipator_operators=None,
         )
@@ -425,7 +436,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
     def test_static_hamiltonian_dissipator(self):
         """Tests if providing both static_hamiltonian and dissipator is OK."""
         full_lindblad_collection = SparseLindbladCollection(
-            self.hamiltonian_operators,
+            hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
             dissipator_operators=self.dissipator_operators,
         )
@@ -456,7 +467,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
 
         # Now, test if vectorization works as intended
         full_lindblad_collection = SparseLindbladCollection(
-            self.hamiltonian_operators,
+            hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
             dissipator_operators=self.dissipator_operators,
         )
@@ -506,6 +517,40 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
             op_collection(sigVals, sigVals, many_rho), ar_collection(sigVals, sigVals, many_rho)
         )
 
+    def test_static_hamiltonian_only(self):
+        """Test construction and evaluation with a static hamiltonian only."""
+
+        sparse_X = csr_matrix([[0., 1.], [1., 0.]])
+        collection = SparseLindbladCollection(static_hamiltonian=sparse_X)
+
+        self.assertAllCloseSparse(collection.evaluate_hamiltonian(None), sparse_X)
+        rho = Array([[1., 0.], [0., 0.]])
+        expected = -1j * (sparse_X.toarray() @ rho - rho @ sparse_X.toarray())
+        self.assertAllClose(collection.evaluate_rhs(None, None, rho), expected)
+
+    def test_dissipators_only(self):
+        """Tests correct evaluation with just dissipators."""
+        collection = SparseLindbladCollection(
+            hamiltonian_operators=None,
+            static_hamiltonian=None,
+            dissipator_operators=self.dissipator_operators,
+        )
+        res = collection(None, self.dis_sig_vals, self.rho)
+        dis_anticommutator = (-1 / 2) * np.tensordot(
+            self.dis_sig_vals,
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        )
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = np.tensordot(
+            self.dis_sig_vals,
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        )
+        self.assertAllClose(dis_anticommutator + dis_extra, res)
 
 class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
     """Tests for DenseVectorizedLindbladCollection.
