@@ -601,14 +601,17 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         self.basic_model.rotating_frame = None
 
 
-class Testtransfer_operators_between_frames(QiskitDynamicsTestCase):
-    """Tests for transfer_operators_between_frames."""
+class Testtransfer_operator_functions(QiskitDynamicsTestCase):
+    """Tests for transfer_static_operator_between_frames and transfer_operators_between_frames."""
 
     def test_all_None(self):
         """Test all arguments being None."""
 
-        static_operator, operators = GeneratorModel.transfer_operators_between_frames(
-            None, None, None, None
+        static_operator = GeneratorModel.transfer_static_operator_between_frames(
+            None, None, None
+        )
+        operators = GeneratorModel.transfer_operators_between_frames(
+            None, None, None
         )
 
         self.assertTrue(static_operator is None)
@@ -622,8 +625,11 @@ class Testtransfer_operators_between_frames(QiskitDynamicsTestCase):
         old_frame = None
         new_frame = -1j * np.array([1.0, -1.0])
 
-        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
-            static_operator, operators, new_frame=new_frame
+        out_static = GeneratorModel.transfer_static_operator_between_frames(
+            static_operator, new_frame=new_frame
+        )
+        out_operators = GeneratorModel.transfer_operators_between_frames(
+            operators, new_frame=new_frame
         )
 
         self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
@@ -654,8 +660,11 @@ class Testtransfer_operators_between_frames(QiskitDynamicsTestCase):
         )
         new_frame = new_frame - new_frame.conj().transpose()
 
-        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
-            Array(static_operator), Array(operators), new_frame=Array(new_frame), old_frame=Array(old_frame)
+        out_static = GeneratorModel.transfer_static_operator_between_frames(
+            Array(static_operator), new_frame=Array(new_frame), old_frame=Array(old_frame)
+        )
+        out_operators = GeneratorModel.transfer_operators_between_frames(
+            Array(operators), new_frame=Array(new_frame), old_frame=Array(old_frame)
         )
 
         self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
@@ -673,12 +682,14 @@ class Testtransfer_operators_between_frames(QiskitDynamicsTestCase):
         self.assertAllClose(out_operators, expected_operators)
 
 
-class Testtransfer_operators_between_framesJax(Testtransfer_operators_between_frames, TestJaxBase):
-    """JAX version of Testtransfer_operators_between_frames."""
+class Testtransfer_operator_functionsJax(Testtransfer_operator_functions, TestJaxBase):
+    """JAX version of Testtransfer_operator_functions."""
 
 
-class Testtransfer_operators_between_framesSparse(QiskitDynamicsTestCase):
-    """Tests for transfer_operators_between_frames for sparse case."""
+class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
+    """Tests for transfer_static_operator_between_frames and transfer_operators_between_frames
+    for sparse cases.
+    """
 
     def test_csr_inputs_diagonal_frame(self):
         """Test correct handling when operators are csr matrices with a diagonal frame."""
@@ -691,9 +702,13 @@ class Testtransfer_operators_between_framesSparse(QiskitDynamicsTestCase):
         old_frame = None
         new_frame = -1j * np.array([1.0, -1.0])
 
-        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
-            static_operator, operators, new_frame=new_frame
+        out_static = GeneratorModel.transfer_static_operator_between_frames(
+            static_operator, new_frame=new_frame
         )
+        out_operators = GeneratorModel.transfer_operators_between_frames(
+            operators, new_frame=new_frame
+        )
+
         self.assertTrue(isinstance(out_static, csr_matrix))
         self.assertTrue(isinstance(out_operators, list) and issparse(out_operators[0]))
 
@@ -714,9 +729,13 @@ class Testtransfer_operators_between_framesSparse(QiskitDynamicsTestCase):
         _, U = np.linalg.eigh(old_frame)
         Uadj = U.conj().transpose()
 
-        out_static, out_operators = GeneratorModel.transfer_operators_between_frames(
-            static_operator, operators, new_frame=new_frame, old_frame=old_frame
+        out_static = GeneratorModel.transfer_static_operator_between_frames(
+            static_operator, new_frame=new_frame, old_frame=old_frame
         )
+        out_operators = GeneratorModel.transfer_operators_between_frames(
+            operators, new_frame=new_frame, old_frame=old_frame
+        )
+
         self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
         self.assertTrue(isinstance(out_operators, list) and isinstance(out_operators[0], (np.ndarray, Array)))
 

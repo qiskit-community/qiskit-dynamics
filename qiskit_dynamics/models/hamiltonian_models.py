@@ -120,11 +120,13 @@ class HamiltonianModel(GeneratorModel):
             static_op = -1j * static_op
 
         ops = self.get_operators(in_frame_basis=True)
-        if ops is not None:
-            ops = -1j * ops
 
-        new_static_operator, new_operators = self.transfer_operators_between_frames(
+        new_static_operator = self.transfer_static_operator_between_frames(
             static_op,
+            new_frame=new_frame,
+            old_frame=self.rotating_frame,
+        )
+        new_operators = self.transfer_operators_between_frames(
             ops,
             new_frame=new_frame,
             old_frame=self.rotating_frame,
@@ -134,9 +136,6 @@ class HamiltonianModel(GeneratorModel):
 
         if new_static_operator is not None:
             new_static_operator = 1j * new_static_operator
-
-        if new_operators is not None:
-            new_operators = 1j * new_operators
 
         self._operator_collection = self.construct_operator_collection(
             self.evaluation_mode, new_static_operator, new_operators
