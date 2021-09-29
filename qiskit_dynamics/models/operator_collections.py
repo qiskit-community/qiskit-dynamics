@@ -54,12 +54,6 @@ class BaseOperatorCollection(ABC):
     def operators(self, new_operators: Array) -> Array:
         """Return operators."""
 
-    @property
-    @abstractmethod
-    def num_operators(self) -> int:
-        """Returns number of operators the collection
-        is storing."""
-
     @abstractmethod
     def evaluate(self, signal_values: Array) -> Array:
         r"""Evaluate the map."""
@@ -104,8 +98,8 @@ class DenseOperatorCollection(BaseOperatorCollection):
             operators: (k,n,n) Array specifying the terms :math:`G_j`.
             static_operator: (n,n) Array specifying the extra static_operator :math:`G_d`.
         """
-        self.operators = to_array(operators)
-        self.static_operator = to_array(static_operator)
+        self.operators = operators
+        self.static_operator = static_operator
 
     @property
     def static_operator(self) -> Array:
@@ -125,10 +119,6 @@ class DenseOperatorCollection(BaseOperatorCollection):
     @operators.setter
     def operators(self, new_operators: Array):
         self._operators = to_array(new_operators)
-
-    @property
-    def num_operators(self) -> int:
-        return self._operators.shape[0]
 
     def evaluate(self, signal_values: Union[Array, None]) -> Array:
         r"""Evaluate the affine combination of matrices.
@@ -197,10 +187,6 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
         self._operators = new_operators
 
-    @property
-    def num_operators(self) -> int:
-        return self._operators.shape[0]
-
     def evaluate(self, signal_values: Union[Array, None]) -> csr_matrix:
         r"""Sparse version of ``DenseOperatorCollection.evaluate``.
 
@@ -241,6 +227,78 @@ class SparseOperatorCollection(BaseOperatorCollection):
                                     operators cannot be evaluated.""")
 
 
+class BaseLindbladOperatorCollection(ABC):
+    r"""Abstract class representing a two-variable matrix function for evaluating
+    the right hand side of the Lindblad equation.
+
+    In particular, this object represents the function:
+        .. math::
+            \Lambda(c_1, c_2, \rho) = -i[H_d + \sum_j c_{1,j}H_j,\rho]
+                                      + \sum_jc_{2,j}(L_j\rho L_j^\dagger
+                                        - (1/2) * {L_j^\daggerL_j,\rho})
+
+    where :math:`\[,\]` and :math:`\{,\}` are the operator
+    commutator and anticommutator, respectively.
+
+    Describes an interface for evaluating the map or its action on :math:`\rho`,
+    given a pair of 1d sets of values :math:`c_1, c_2`.
+    """
+
+    @property
+    @abstractmethod
+    def static_hamiltonian(self) -> Array:
+        """Returns static part of the hamiltonian."""
+
+    @static_operator.setter
+    @abstractmethod
+    def static_hamiltonian(self, new_static_operator: Optional[Array] = None):
+        """Sets static_operator term."""
+
+    @property
+    @abstractmethod
+    def hamiltonian_operators(self) -> Array:
+        """Returns operators for non-static part of Hamiltonian."""
+
+    @hamiltonian_operators.setter
+    @abstractmethod
+    def hamiltonian_operators(self, new_hamiltonian_operators: Optional[Array] = None):
+        """Set operators for non-static part of Hamiltonian."""
+
+    @property
+    @abstractmethod
+    def dissipator_operators(self) -> Array:
+        """Returns operators for non-static part of dissipator."""
+
+    @hamiltonian_operators.setter
+    @abstractmethod
+    def dissipator_operators(self, new_dissipator_operators: Optional[Array] = None):
+        """Sets operators for non-static part of dissipator."""
+
+    @abstractmethod
+    def evaluate(self, signal_values: Array) -> Array:
+        r"""Evaluate the map."""
+
+    @abstractmethod
+    def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
+        r"""Compute the function."""
+
+    def __call__(
+        self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
+    ) -> Array:
+        """Call either ``self.evaluate`` or ``self.evaluate_rhs`` depending on number of
+        arguments.
+        """
+
+        if y is None:
+            return self.evaluate(signal_values)
+
+        return self.evaluate_rhs(signal_values, y)
+
+    def copy(self):
+        """Return a copy of self."""
+        return copy(self)
+
+
 class DenseLindbladCollection(BaseOperatorCollection):
     r"""Object for computing the right hand side of the Lindblad equation
     with dense arrays.
@@ -257,8 +315,8 @@ class DenseLindbladCollection(BaseOperatorCollection):
 
     def __init__(
         self,
-        hamiltonian_operators: Union[Array, List[Operator]],
         static_hamiltonian: Union[Array, Operator],
+        hamiltonian_operators: Union[Array, List[Operator]],
         dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
     ):
         r"""Initialization.
@@ -273,40 +331,39 @@ class DenseLindbladCollection(BaseOperatorCollection):
                                   (m,n,n) Array.
         """
 
-        self._hamiltonian_operators = to_array(hamiltonian_operators)
-        self._dissipator_operators = to_array(dissipator_operators)
-        if dissipator_operators is not None:
-            self._dissipator_operators_conj = np.conjugate(
-                np.transpose(to_array(dissipator_operators), [0, 2, 1])
-            ).copy()
-            self._dissipator_products = np.matmul(
-                self._dissipator_operators_conj, self._dissipator_operators
-            )
-        self.static_hamiltonian = to_array(static_hamiltonian)
-
-    @property
-    def static_operator(self) -> Array:
-        """What to do with this?***********************************************************************."""
-        pass
-
-    @static_operator.setter
-    def static_operator(self, new_static_operator: Optional[Array] = None):
-        """What to do with this?***********************************************************************."""
-        pass
+        self.static_hamiltonian = static_hamiltonian
+        self.hamiltonian_operators = hamiltonian_operators
+        self.dissipator_operators = dissipator_operators
 
     @property
     def static_hamiltonian(self) -> Array:
-        """Returns static part of operator collection."""
         return self._static_hamiltonian
 
     @static_hamiltonian.setter
     def static_hamiltonian(self, new_static_hamiltonian: Optional[Array] = None):
-        """Sets static_operator term."""
-        self._static_hamiltonian = new_static_hamiltonian
+        self._static_hamiltonian = to_array(new_static_hamiltonian)
 
     @property
-    def num_operators(self):
-        return self._hamiltonian_operators.shape[-3], self._dissipator_operators.shape[-3]
+    def hamiltonian_operators(self) -> Array:
+        return self._hamiltonian_operators
+
+    @hamiltonian_operators.setter
+    def hamiltonian_operators(self, new_hamiltonian_operators: Optional[Array] = None):
+        self._hamiltonian_operators = to_array(new_hamiltonian_operators)
+
+    @property
+    def dissipator_operators(self) -> Array:
+        return self._dissipator_operators
+
+    @hamiltonian_operators.setter
+    def dissipator_operators(self, new_dissipator_operators: Optional[Array] = None):
+        self._dissipator_operators = to_array(new_dissipator_operators)
+        self._dissipator_operators_conj = np.conjugate(
+            np.transpose(self._dissipator_operators, [0, 2, 1])
+        ).copy()
+        self._dissipator_products = np.matmul(
+            self._dissipator_operators_conj, self._dissipator_operators
+        )
 
     def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")

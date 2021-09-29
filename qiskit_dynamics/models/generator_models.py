@@ -185,7 +185,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         # set frame
         self._rotating_frame = None
-        self.rotating_frame = RotatingFrame(rotating_frame)
+        self.rotating_frame = rotating_frame
 
         # initialize signal-related attributes
         self.signals = signals
@@ -195,7 +195,7 @@ class GeneratorModel(BaseGeneratorModel):
         if self._operator_collection.static_operator is not None:
             return self._operator_collection.static_operator.shape[-1]
         else:
-            return self._operator_collection.operators.shape[-1]
+            return self._operator_collection.operators[0].shape[-1]
 
     @property
     def evaluation_mode(self) -> str:
@@ -222,7 +222,7 @@ class GeneratorModel(BaseGeneratorModel):
             supported evaluation modes.
         """
 
-        if new_mode != self.evaluation_mode:
+        if new_mode != self._evaluation_mode:
             self._operator_collection = self.construct_operator_collection(
                 new_mode,
                 self._operator_collection.static_operator,
@@ -498,7 +498,7 @@ class GeneratorModel(BaseGeneratorModel):
         """
         new_frame = RotatingFrame(new_frame)
         old_frame = RotatingFrame(old_frame)
-        
+
         operators = to_numeric_matrix_type(operators)
 
         # transform out of old frame basis
