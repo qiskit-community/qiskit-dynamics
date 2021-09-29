@@ -42,10 +42,6 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.Z = Array(Operator.from_label("Z").data)
 
         self.test_operator_list = Array([self.X, self.Y, self.Z])
-
-        self.signals = SignalList([Signal(1, j / 3) for j in range(3)])
-        self.sigvals = np.real(self.signals.complex_value(2))
-
         self.simple_collection = DenseOperatorCollection(
             operators=self.test_operator_list, static_operator=None
         )
@@ -61,18 +57,22 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
     def test_known_values_basic_functionality(self):
         """Test DenseOperatorCollection evaluation against
         analytically known values."""
-        res = self.simple_collection(self.sigvals)
-        self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
+        rand.seed(34983)
+        coeffs = rand.uniform(-1, 1, 3)
+
+        res = self.simple_collection(coeffs)
+        self.assertAllClose(res, coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z)
+
 
         res = (DenseOperatorCollection(operators=self.test_operator_list, static_operator=np.eye(2)))(
-            self.sigvals
+            coeffs
         )
-        self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
+        self.assertAllClose(res, np.eye(2) + coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z)
 
     def test_basic_functionality_pseudorandom(self):
         """Test DenseOperatorCollection evaluation
         using pseudorandom arrays."""
-        rand.seed(0)
+        rand.seed(342)
         vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
         arr = rand.uniform(-1, 1, (32, 128, 128))
         res = (DenseOperatorCollection(operators=arr))(vals)
@@ -552,9 +552,9 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         )
         self.assertAllClose(dis_anticommutator + dis_extra, res)
 
+
 class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
-    """Tests for DenseVectorizedLindbladCollection.
-    Mostly checks consistency with DenseLindbladCollection."""
+    """Tests for DenseVectorizedLindbladCollection."""
 
     def setUp(self) -> None:
         rand.seed(123098341)
@@ -569,38 +569,71 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         self.rand_dft = r(n, n)
         self.rho = r(n, n)
         self.t = r()
-        self.rand_ham_sigs = SignalList([Signal(r(), r(), r()) for j in range(k)])
-        self.rand_dis_sigs = SignalList([Signal(r(), r(), r()) for j in range(m)])
+        self.rand_ham_coeffs = r(k)
+        self.rand_dis_coeffs = r(m)
 
-    def test_consistency_static_hamiltonian_dissipator(self):
+    def test_empty_collection_error(self):
+        """Test errors get raised for empty collection."""
+        collection = DenseVectorizedLindbladCollection()
+        with self.assertRaises(QiskitError) as qe:
+            collection(None, None, np.array([[1., 0.], [0., 0.]]))
+        self.assertTrue("DenseVectorizedLindbladCollection with None" in str(qe.exception))
+
+        with self.assertRaises(QiskitError) as qe:
+            collection.evaluate_hamiltonian(None)
+        self.assertTrue("DenseVectorizedLindbladCollection with None" in str(qe.exception))
+
+    def test_consistency_all_terms(self):
         """Check consistency with DenseLindbladCollection when hamiltonian,
         static_hamiltonian, and dissipator terms defined."""
-        stdLindblad = DenseLindbladCollection(
-            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=self.rand_dis
-        )
-        vecLindblad = DenseVectorizedLindbladCollection(
-            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=self.rand_dis
-        )
+        self._consistency_test(static_hamiltonian=self.rand_dft, hamiltonian_operators=self.rand_ham, dissipator_operators=self.rand_dis)
 
-        a = stdLindblad.evaluate_rhs(
-            self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho
-        ).flatten(order="F")
-        b = vecLindblad.evaluate_rhs(
-            self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho.flatten(order="F")
-        )
-        self.assertAllClose(a, b)
-
-    def test_consistency_static_hamiltonian_no_dissipator(self):
+    def test_consistency_no_dissipator(self):
         """Check consistency when only hamiltonian and static_hamiltonian terms defined."""
-        stdLindblad = DenseLindbladCollection(
-            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=None
+        self._consistency_test(static_hamiltonian=self.rand_dft, hamiltonian_operators=self.rand_ham, dissipator_operators=None)
+
+    def test_consistency_no_static_term(self):
+        """Check consistency with DenseLindbladCollection without a static term."""
+        self._consistency_test(static_hamiltonian=None, hamiltonian_operators=self.rand_ham, dissipator_operators=self.rand_dis)
+
+    def test_consistency_no_hamiltonian_operators(self):
+        """Check consistency with DenseLindbladCollection when hamiltonian,
+        static_hamiltonian, and dissipator terms defined."""
+        self._consistency_test(static_hamiltonian=self.rand_dft, hamiltonian_operators=None, dissipator_operators=self.rand_dis)
+
+    def test_consistency_only_dissipators(self):
+        """Check consistency with DenseLindbladCollection when hamiltonian,
+        static_hamiltonian, and dissipator terms defined."""
+        self._consistency_test(static_hamiltonian=None, hamiltonian_operators=None, dissipator_operators=self.rand_dis)
+
+    def test_consistency_only_static_hamiltonian(self):
+        """Check consistency with DenseLindbladCollection when hamiltonian,
+        static_hamiltonian, and dissipator terms defined."""
+        self._consistency_test(static_hamiltonian=self.rand_dft, hamiltonian_operators=None, dissipator_operators=None)
+
+    def test_consistency_only_hamiltonian_operators(self):
+        """Check consistency with DenseLindbladCollection when hamiltonian,
+        static_hamiltonian, and dissipator terms defined."""
+        self._consistency_test(static_hamiltonian=None, hamiltonian_operators=self.rand_ham, dissipator_operators=None)
+
+    def _consistency_test(self, static_hamiltonian, hamiltonian_operators, dissipator_operators):
+        """Consistency test template for DenseLindbladCollection and
+        DenseVectorizedLindbladCollection.
+        """
+
+        collection = DenseLindbladCollection(
+            static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators
         )
-        vecLindblad = DenseVectorizedLindbladCollection(
-            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=None
+        vec_collection = DenseVectorizedLindbladCollection(
+            static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators
         )
 
-        a = stdLindblad.evaluate_rhs(self.rand_ham_sigs(self.t), None, self.rho).flatten(order="F")
-        b = vecLindblad.evaluate_rhs(self.rand_ham_sigs(self.t), None, self.rho.flatten(order="F"))
+        a = collection.evaluate_rhs(
+            self.rand_ham_coeffs, self.rand_dis_coeffs, self.rho
+        ).flatten(order="F")
+        b = vec_collection.evaluate_rhs(
+            self.rand_ham_coeffs, self.rand_dis_coeffs, self.rho.flatten(order="F")
+        )
         self.assertAllClose(a, b)
 
 
