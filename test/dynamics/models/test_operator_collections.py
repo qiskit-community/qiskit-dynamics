@@ -371,74 +371,6 @@ class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
         self.jit_grad_wrap(dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
 
 
-class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
-    """Tests for DenseVectorizedLindbladCollection.
-    Mostly checks consistency with DenseLindbladCollection."""
-
-    def setUp(self) -> None:
-        rand.seed(123098341)
-        n = 16
-        k = 4
-        m = 2
-        r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
-
-        self.r = r
-        self.rand_ham = r(k, n, n)
-        self.rand_dis = r(m, n, n)
-        self.rand_dft = r(n, n)
-        self.rho = r(n, n)
-        self.t = r()
-        self.rand_ham_sigs = SignalList([Signal(r(), r(), r()) for j in range(k)])
-        self.rand_dis_sigs = SignalList([Signal(r(), r(), r()) for j in range(m)])
-
-    def test_consistency_static_hamiltonian_dissipator(self):
-        """Check consistency with DenseLindbladCollection when hamiltonian,
-        static_hamiltonian, and dissipator terms defined."""
-        stdLindblad = DenseLindbladCollection(
-            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=self.rand_dis
-        )
-        vecLindblad = DenseVectorizedLindbladCollection(
-            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=self.rand_dis
-        )
-
-        a = stdLindblad.evaluate_rhs(
-            self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho
-        ).flatten(order="F")
-        b = vecLindblad.evaluate_rhs(
-            self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho.flatten(order="F")
-        )
-        self.assertAllClose(a, b)
-
-    def test_consistency_static_hamiltonian_no_dissipator(self):
-        """Check consistency when only hamiltonian and static_hamiltonian terms defined."""
-        stdLindblad = DenseLindbladCollection(
-            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=None
-        )
-        vecLindblad = DenseVectorizedLindbladCollection(
-            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=None
-        )
-
-        a = stdLindblad.evaluate_rhs(self.rand_ham_sigs(self.t), None, self.rho).flatten(order="F")
-        b = vecLindblad.evaluate_rhs(self.rand_ham_sigs(self.t), None, self.rho.flatten(order="F"))
-        self.assertAllClose(a, b)
-
-
-class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
-    """Jax version of TestDenseVectorizedLindbladCollection tests.
-
-    Note: This class has more tests due to inheritance.
-
-    Note: The evaluation processes for DenseVectorizedLindbladCollection
-    are not directly jitable or compilable. The compilation of these steps
-    is taken care of by the tests for LindbladModel.
-    """
-
-    # DenseVectorizedLindbladCollection has methods that cannot be jited
-    # or graded. Despite this, the more important methods of evaluate
-    # and evaluate_rhs of LindbladModel with evaluation_mode = "dense_vectorized"
-    # are jitable and gradable.
-
-
 class TestSparseLindbladCollection(QiskitDynamicsTestCase):
     """Tests for SparseLindbladCollection."""
 
@@ -573,3 +505,66 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(
             op_collection(sigVals, sigVals, many_rho), ar_collection(sigVals, sigVals, many_rho)
         )
+
+
+class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
+    """Tests for DenseVectorizedLindbladCollection.
+    Mostly checks consistency with DenseLindbladCollection."""
+
+    def setUp(self) -> None:
+        rand.seed(123098341)
+        n = 16
+        k = 4
+        m = 2
+        r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
+
+        self.r = r
+        self.rand_ham = r(k, n, n)
+        self.rand_dis = r(m, n, n)
+        self.rand_dft = r(n, n)
+        self.rho = r(n, n)
+        self.t = r()
+        self.rand_ham_sigs = SignalList([Signal(r(), r(), r()) for j in range(k)])
+        self.rand_dis_sigs = SignalList([Signal(r(), r(), r()) for j in range(m)])
+
+    def test_consistency_static_hamiltonian_dissipator(self):
+        """Check consistency with DenseLindbladCollection when hamiltonian,
+        static_hamiltonian, and dissipator terms defined."""
+        stdLindblad = DenseLindbladCollection(
+            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=self.rand_dis
+        )
+        vecLindblad = DenseVectorizedLindbladCollection(
+            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=self.rand_dis
+        )
+
+        a = stdLindblad.evaluate_rhs(
+            self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho
+        ).flatten(order="F")
+        b = vecLindblad.evaluate_rhs(
+            self.rand_ham_sigs(self.t), self.rand_dis_sigs(self.t), self.rho.flatten(order="F")
+        )
+        self.assertAllClose(a, b)
+
+    def test_consistency_static_hamiltonian_no_dissipator(self):
+        """Check consistency when only hamiltonian and static_hamiltonian terms defined."""
+        stdLindblad = DenseLindbladCollection(
+            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=None
+        )
+        vecLindblad = DenseVectorizedLindbladCollection(
+            self.rand_ham, static_hamiltonian=self.rand_dft, dissipator_operators=None
+        )
+
+        a = stdLindblad.evaluate_rhs(self.rand_ham_sigs(self.t), None, self.rho).flatten(order="F")
+        b = vecLindblad.evaluate_rhs(self.rand_ham_sigs(self.t), None, self.rho.flatten(order="F"))
+        self.assertAllClose(a, b)
+
+
+class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
+    """Jax version of TestDenseVectorizedLindbladCollection tests.
+
+    Note: This class has more tests due to inheritance.
+
+    Note: The evaluation processes for DenseVectorizedLindbladCollection
+    are not directly jitable or compilable. The compilation of these steps
+    is taken care of by the tests for LindbladModel.
+    """

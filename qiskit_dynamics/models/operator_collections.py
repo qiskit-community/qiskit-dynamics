@@ -294,6 +294,13 @@ class BaseLindbladOperatorCollection(ABC):
 
         return self.evaluate_rhs(signal_values, y)
 
+    def __call__(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Optional[Array]) -> Array:
+        """Evaluate the model, or evaluate the RHS."""
+        if y is None:
+            return self.evaluate(ham_sig_vals, dis_sig_vals)
+
+        return self.evaluate_rhs(ham_sig_vals, dis_sig_vals, y)
+
     def copy(self):
         """Return a copy of self."""
         return copy(self)
@@ -439,11 +446,142 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
                                  hamiltonian_operators, and dissipator_operators, cannot evaluate
                                  rhs.""")
 
-    def __call__(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Optional[Array]) -> Array:
-        if y is None:
-            return self.evaluate(ham_sig_vals, dis_sig_vals)
 
-        return self.evaluate_rhs(ham_sig_vals, dis_sig_vals, y)
+class SparseLindbladCollection(DenseLindbladCollection):
+    """Sparse version of DenseLindbladCollection."""
+
+    # pylint: disable=super-init-not-called
+    def __init__(
+        self,
+        hamiltonian_operators: Union[Array, List[Operator]],
+        static_hamiltonian: Union[Array, Operator],
+        dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
+        decimals: Optional[int] = 10,
+    ):
+        r"""Initializes sparse version of DenseLindbladCollection.
+
+        Args:
+            hamiltonian_operators: Specifies breakdown of Hamiltonian
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
+            static_hamiltonian: Constant term :math:`H_d` to be added to the Hamiltonian of the
+                                system.
+            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
+            decimals: operator values will be rounded to ``decimals`` places after the
+                decimal place to avoid excess storage of near-zero values
+                in sparse format.
+        """
+
+        self._hamiltonian_operators = np.empty(shape=len(hamiltonian_operators), dtype="O")
+        # pylint: disable=consider-using-enumerate
+        for i in range(len(hamiltonian_operators)):
+            if isinstance(hamiltonian_operators[i], Operator):
+                hamiltonian_operators[i] = to_csr(hamiltonian_operators[i])
+            self._hamiltonian_operators[i] = csr_matrix(
+                np.round(hamiltonian_operators[i], decimals)
+            )
+        static_hamiltonian = to_csr(static_hamiltonian)
+        self.static_hamiltonian = csr_matrix(np.round(static_hamiltonian, decimals))
+        if dissipator_operators is not None:
+            self._dissipator_operators = np.empty(shape=len(dissipator_operators), dtype="O")
+            self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
+            # pylint: disable=consider-using-enumerate
+            for i in range(len(dissipator_operators)):
+                if isinstance(dissipator_operators[i], Operator):
+                    dissipator_operators[i] = to_csr(dissipator_operators[i])
+                self._dissipator_operators[i] = csr_matrix(
+                    np.round(dissipator_operators[i], decimals)
+                )
+                self._dissipator_operators_conj[i] = (
+                    self._dissipator_operators[i].conjugate().transpose()
+                )
+            self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
+        else:
+            self._dissipator_operators = None
+
+    @property
+    def static_hamiltonian(self) -> Array:
+        """Returns static part of operator collection."""
+        return self._static_hamiltonian
+
+    @static_hamiltonian.setter
+    def static_hamiltonian(self, new_static_hamiltonian: Optional[Array] = None):
+        """Sets static_operator term."""
+        self._static_hamiltonian = new_static_hamiltonian
+
+    def evaluate_hamiltonian(self, signal_values: Array) -> csr_matrix:
+        return (
+            np.sum(signal_values * self._hamiltonian_operators, axis=-1) + self.static_hamiltonian
+        )
+
+    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
+        r"""Evaluates the RHS of the LindbladModel for a given list of signal values.
+
+        Args:
+            ham_sig_vals: stores Hamiltonian signal values :math:`s_j(t)`.
+            dis_sig_vals: stores dissipator signal values :math:`\gamma_j(t)`.
+                Pass None if no dissipator operators involved.
+            y: density matrix of system. (k,n,n) Array.
+        Returns:
+            RHS of Lindbladian.
+
+        Calculation details:
+            * for csr_matrices is equivalent to matrix multiplicaiton.
+            We use numpy array broadcasting rules, combined with the above
+            fact, to achieve speeds that are substantially faster than a for loop.
+            First, in the case of a single (n,n) density matrix, we package the entire
+            array as a single-element array whose entry is the array. In the case of
+            multiple density matrices a (k,n,n) Array, we package everything as a
+            (k,1) Array whose [j,0] entry is the [j,:,:] density matrix.
+
+            In calculating the left- and right-mult contributions, we package
+            H+L and H-L as (1) object arrays whose single entry stores the relevant
+            sparse matrix. We can then multiply our packaged density matrix and
+            [H\pm L]. Using numpy broadcasting rules, [H\pm L] will be broadcast
+            to a (k,1) Array for elementwise multiplication with our packaged density
+            matrices. After this, elementwise multiplication is applied. This in turn
+            references each object's __mul__ function, which–for our csr_matrix components
+            means matrix multiplication.
+
+            In calculating the left-right-multiplication part, we use our (m)-shape
+            object arrays holding the dissipator operators to perform multiplication.
+            We can take an elementwise product with our packaged density matrix, at which
+            point our dissipator operators are broadcast as (m) -> (1,m) -> (k,m) shaped,
+            and our packaged density matrix as (k,1) -> (k,m). Elementwise multiplication
+            is then applied, which is interpreted as matrix multiplication. This yields
+            an array where entry [i,j] is an object storing the results of s_jL_j\rho_i L_j^\dagger.
+            We can then sum over j and unpackage our object array to get our desired result.
+        """
+        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
+
+        # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
+        # Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays of dtype object
+        y = package_density_matrices(y)
+
+        if self._dissipator_operators is not None:
+            dissipators_matrix = (-1 / 2) * np.sum(
+                dis_sig_vals * self._dissipator_products, axis=-1
+            )
+
+            left_mult_contribution = np.squeeze([hamiltonian_matrix + dissipators_matrix] * y)
+            right_mult_contribution = np.squeeze(y * [-hamiltonian_matrix + dissipators_matrix])
+
+            # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
+            both_mult_contribution = (
+                (dis_sig_vals * self._dissipator_operators) * y * self._dissipator_operators_conj
+            )
+            # sum on i
+            both_mult_contribution = np.sum(both_mult_contribution, axis=-1)
+
+            out = left_mult_contribution + right_mult_contribution + both_mult_contribution
+
+        else:
+            out = (([hamiltonian_matrix] * y) - (y * [hamiltonian_matrix]))[0]
+        if len(y.shape) == 2:
+            # Very slow; avoid if not necessary (or if better implementation found). Needs to
+            # map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
+            out = unpackage_density_matrices(out.reshape(y.shape[0], 1))
+
+        return out
 
 
 class DenseVectorizedLindbladCollection(DenseOperatorCollection):
@@ -633,143 +771,6 @@ class SparseVectorizedLindbladCollection(SparseOperatorCollection):
             zero_padding = np.zeros(self.num_operators - len(ham_sig_vals))
             signal_values = np.append(ham_sig_vals, zero_padding, axis=0)
         return 1j * super().evaluate(signal_values)
-
-
-class SparseLindbladCollection(DenseLindbladCollection):
-    """Sparse version of DenseLindbladCollection."""
-
-    # pylint: disable=super-init-not-called
-    def __init__(
-        self,
-        hamiltonian_operators: Union[Array, List[Operator]],
-        static_hamiltonian: Union[Array, Operator],
-        dissipator_operators: Optional[Union[Array, List[Operator]]] = None,
-        decimals: Optional[int] = 10,
-    ):
-        r"""Initializes sparse version of DenseLindbladCollection.
-
-        Args:
-            hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
-            static_hamiltonian: Constant term :math:`H_d` to be added to the Hamiltonian of the
-                                system.
-            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
-            decimals: operator values will be rounded to ``decimals`` places after the
-                decimal place to avoid excess storage of near-zero values
-                in sparse format.
-        """
-
-        self._hamiltonian_operators = np.empty(shape=len(hamiltonian_operators), dtype="O")
-        # pylint: disable=consider-using-enumerate
-        for i in range(len(hamiltonian_operators)):
-            if isinstance(hamiltonian_operators[i], Operator):
-                hamiltonian_operators[i] = to_csr(hamiltonian_operators[i])
-            self._hamiltonian_operators[i] = csr_matrix(
-                np.round(hamiltonian_operators[i], decimals)
-            )
-        static_hamiltonian = to_csr(static_hamiltonian)
-        self.static_hamiltonian = csr_matrix(np.round(static_hamiltonian, decimals))
-        if dissipator_operators is not None:
-            self._dissipator_operators = np.empty(shape=len(dissipator_operators), dtype="O")
-            self._dissipator_operators_conj = np.empty_like(self._dissipator_operators)
-            # pylint: disable=consider-using-enumerate
-            for i in range(len(dissipator_operators)):
-                if isinstance(dissipator_operators[i], Operator):
-                    dissipator_operators[i] = to_csr(dissipator_operators[i])
-                self._dissipator_operators[i] = csr_matrix(
-                    np.round(dissipator_operators[i], decimals)
-                )
-                self._dissipator_operators_conj[i] = (
-                    self._dissipator_operators[i].conjugate().transpose()
-                )
-            self._dissipator_products = self._dissipator_operators_conj * self._dissipator_operators
-        else:
-            self._dissipator_operators = None
-
-    @property
-    def static_hamiltonian(self) -> Array:
-        """Returns static part of operator collection."""
-        return self._static_hamiltonian
-
-    @static_hamiltonian.setter
-    def static_hamiltonian(self, new_static_hamiltonian: Optional[Array] = None):
-        """Sets static_operator term."""
-        self._static_hamiltonian = new_static_hamiltonian
-
-    def evaluate_hamiltonian(self, signal_values: Array) -> csr_matrix:
-        return (
-            np.sum(signal_values * self._hamiltonian_operators, axis=-1) + self.static_hamiltonian
-        )
-
-    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
-        r"""Evaluates the RHS of the LindbladModel for a given list of signal values.
-
-        Args:
-            ham_sig_vals: stores Hamiltonian signal values :math:`s_j(t)`.
-            dis_sig_vals: stores dissipator signal values :math:`\gamma_j(t)`.
-                Pass None if no dissipator operators involved.
-            y: density matrix of system. (k,n,n) Array.
-        Returns:
-            RHS of Lindbladian.
-
-        Calculation details:
-            * for csr_matrices is equivalent to matrix multiplicaiton.
-            We use numpy array broadcasting rules, combined with the above
-            fact, to achieve speeds that are substantially faster than a for loop.
-            First, in the case of a single (n,n) density matrix, we package the entire
-            array as a single-element array whose entry is the array. In the case of
-            multiple density matrices a (k,n,n) Array, we package everything as a
-            (k,1) Array whose [j,0] entry is the [j,:,:] density matrix.
-
-            In calculating the left- and right-mult contributions, we package
-            H+L and H-L as (1) object arrays whose single entry stores the relevant
-            sparse matrix. We can then multiply our packaged density matrix and
-            [H\pm L]. Using numpy broadcasting rules, [H\pm L] will be broadcast
-            to a (k,1) Array for elementwise multiplication with our packaged density
-            matrices. After this, elementwise multiplication is applied. This in turn
-            references each object's __mul__ function, which–for our csr_matrix components
-            means matrix multiplication.
-
-            In calculating the left-right-multiplication part, we use our (m)-shape
-            object arrays holding the dissipator operators to perform multiplication.
-            We can take an elementwise product with our packaged density matrix, at which
-            point our dissipator operators are broadcast as (m) -> (1,m) -> (k,m) shaped,
-            and our packaged density matrix as (k,1) -> (k,m). Elementwise multiplication
-            is then applied, which is interpreted as matrix multiplication. This yields
-            an array where entry [i,j] is an object storing the results of s_jL_j\rho_i L_j^\dagger.
-            We can then sum over j and unpackage our object array to get our desired result.
-        """
-        hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
-
-        # For fast matrix multiplicaiton we need to package (n,n) Arrays as (1)
-        # Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays of dtype object
-        y = package_density_matrices(y)
-
-        if self._dissipator_operators is not None:
-            dissipators_matrix = (-1 / 2) * np.sum(
-                dis_sig_vals * self._dissipator_products, axis=-1
-            )
-
-            left_mult_contribution = np.squeeze([hamiltonian_matrix + dissipators_matrix] * y)
-            right_mult_contribution = np.squeeze(y * [-hamiltonian_matrix + dissipators_matrix])
-
-            # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
-            both_mult_contribution = (
-                (dis_sig_vals * self._dissipator_operators) * y * self._dissipator_operators_conj
-            )
-            # sum on i
-            both_mult_contribution = np.sum(both_mult_contribution, axis=-1)
-
-            out = left_mult_contribution + right_mult_contribution + both_mult_contribution
-
-        else:
-            out = (([hamiltonian_matrix] * y) - (y * [hamiltonian_matrix]))[0]
-        if len(y.shape) == 2:
-            # Very slow; avoid if not necessary (or if better implementation found). Needs to
-            # map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
-            out = unpackage_density_matrices(out.reshape(y.shape[0], 1))
-
-        return out
 
 
 def package_density_matrices(y: Array) -> Array:
