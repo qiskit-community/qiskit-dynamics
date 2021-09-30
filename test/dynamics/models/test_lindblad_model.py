@@ -150,12 +150,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         return ham_part + diss_part
 
-        # pylint: disable=too-many-locals
-
     def test_lindblad_pseudorandom(self):
-        """Test LindbladModel with structureless
-        pseudorandom model parameters.
-        """
+        """Test LindbladModel with structureless pseudorandom model parameters."""
         rng = np.random.default_rng(9848)
         dim = 10
         num_ham = 4
