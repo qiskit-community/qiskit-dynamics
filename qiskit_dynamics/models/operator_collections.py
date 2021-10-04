@@ -457,8 +457,6 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
                     [1, 0, 2, 3]
                 )
 
-
-            # A matrix
             if self._static_dissipators is None:
                 both_mult_contribution = np.tensordot(
                     dis_sig_vals,
@@ -502,6 +500,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         self,
         static_hamiltonian: Optional[Union[csr_matrix, Operator]] = None,
         hamiltonian_operators: Optional[Union[List[csr_matrix], List[Operator]]] = None,
+        static_dissipators: Optional[Union[List[csr_matrix], List[Operator]]] = None,
         dissipator_operators: Optional[Union[List[csr_matrix], List[Operator]]] = None,
         decimals: Optional[int] = 10,
     ):
@@ -518,7 +517,10 @@ class SparseLindbladCollection(DenseLindbladCollection):
                 in sparse format.
         """
         self._decimals = decimals
-        super().__init__(static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators)
+        super().__init__(static_hamiltonian=static_hamiltonian,
+                         hamiltonian_operators=hamiltonian_operators,
+                         static_dissipators=static_dissipators,
+                         dissipator_operators=dissipator_operators)
 
     @property
     def static_hamiltonian(self) -> csr_matrix:
@@ -544,7 +546,36 @@ class SparseLindbladCollection(DenseLindbladCollection):
         self._hamiltonian_operators = new_hamiltonian_operators
 
     @property
-    def dissipator_operators(self) -> np.ndarray:
+    def static_dissipators(self) -> Union[None, csr_matrix]:
+        return self._static_dissipators
+
+    @static_dissipators.setter
+    def static_dissipators(self, new_static_dissipators: Optional[List[csr_matrix]] = None):
+        """Set up the dissipators themselves, as well as their adjoints, and the product of
+        adjoint with operator.
+        """
+        self._static_dissipators = None
+        if new_static_dissipators is not None:
+            # setup new dissipators
+            new_static_dissipators = to_csr(new_static_dissipators)
+            new_static_dissipators = [np.round(op, decimals=self._decimals) for op in new_static_dissipators]
+
+            # setup adjoints
+            static_dissipators_adj = [op.conj().transpose() for op in new_static_dissipators]
+
+            # wrap in object arrays
+            new_static_dissipators = np.array(new_static_dissipators, dtype="O")
+            static_dissipators_adj = np.array(static_dissipators_adj, dtype="O")
+
+            # pre-compute projducts
+            static_dissipators_product_sum = -0.5 * np.sum(static_dissipators_adj * new_static_dissipators, axis=0)
+
+            self._static_dissipators = new_static_dissipators
+            self._static_dissipators_adj = static_dissipators_adj
+            self._static_dissipators_product_sum = static_dissipators_product_sum
+
+    @property
+    def dissipator_operators(self) -> Union[None, List[csr_matrix]]:
         return self._dissipator_operators
 
     @dissipator_operators.setter
@@ -552,8 +583,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         """Set up the dissipators themselves, as well as their adjoints, and the product of
         adjoint with operator.
         """
-        dissipator_operators_adj = None
-        dissipator_products = None
+        self._dissipator_operators = None
         if new_dissipator_operators is not None:
             # setup new dissipators
             new_dissipator_operators = to_csr(new_dissipator_operators)
@@ -569,9 +599,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
             # pre-compute projducts
             dissipator_products = dissipator_operators_adj * new_dissipator_operators
 
-        self._dissipator_operators = new_dissipator_operators
-        self._dissipator_operators_adj = dissipator_operators_adj
-        self._dissipator_products = dissipator_products
+            self._dissipator_operators = new_dissipator_operators
+            self._dissipator_operators_adj = dissipator_operators_adj
+            self._dissipator_products = dissipator_products
 
     def evaluate_hamiltonian(self, signal_values: Union[None, Array]) -> csr_matrix:
         if self._static_hamiltonian is not None and self._hamiltonian_operators is not None:
@@ -631,10 +661,20 @@ class SparseLindbladCollection(DenseLindbladCollection):
         y = package_density_matrices(y)
 
         # if dissipators present (includes both hamiltonian is None and is not None)
-        if self._dissipator_operators is not None:
-            dissipators_matrix = (-1 / 2) * np.sum(
-                dis_sig_vals * self._dissipator_products, axis=-1
-            )
+        if self._dissipator_operators is not None or self._static_dissipators is not None:
+
+
+            # A matrix
+            if self._static_dissipators is None:
+                dissipators_matrix = np.sum(
+                    -0.5 * dis_sig_vals * self._dissipator_products, axis=-1
+                )
+            elif self._dissipator_operators is None:
+                dissipators_matrix = self._static_dissipators_product_sum
+            else:
+                dissipators_matrix = (self._static_dissipators_product_sum +np.sum(
+                    -0.5 * dis_sig_vals * self._dissipator_products, axis=-1
+                ))
 
             if hamiltonian_matrix is not None:
                 left_mult_contribution = np.squeeze([hamiltonian_matrix + dissipators_matrix] * y)
@@ -642,12 +682,23 @@ class SparseLindbladCollection(DenseLindbladCollection):
             else:
                 left_mult_contribution = np.squeeze([dissipators_matrix] * y)
                 right_mult_contribution = np.squeeze(y * [dissipators_matrix])
+
             # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
-            both_mult_contribution = (
-                (dis_sig_vals * self._dissipator_operators) * y * self._dissipator_operators_adj
-            )
-            # sum on i
-            both_mult_contribution = np.sum(both_mult_contribution, axis=-1)
+            if self._static_dissipators is None:
+                both_mult_contribution = np.sum(
+                    (dis_sig_vals * self._dissipator_operators) * y * self._dissipator_operators_adj,
+                axis=-1)
+            elif self._dissipator_operators is None:
+                both_mult_contribution = np.sum(
+                    self._static_dissipators * y * self._static_dissipators_adj,
+                axis=-1)
+            else:
+                both_mult_contribution = (np.sum(
+                    (dis_sig_vals * self._dissipator_operators) * y * self._dissipator_operators_adj,
+                axis=-1) +
+                np.sum(
+                    self._static_dissipators * y * self._static_dissipators_adj,
+                axis=-1))
 
             out = left_mult_contribution + right_mult_contribution + both_mult_contribution
 
