@@ -346,11 +346,11 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
     def dissipator_operators(self, new_dissipator_operators: Optional[Array] = None):
         self._dissipator_operators = to_array(new_dissipator_operators)
         if self._dissipator_operators is not None:
-            self._dissipator_operators_conj = np.conjugate(
+            self._dissipator_operators_adj = np.conjugate(
                 np.transpose(self._dissipator_operators, [0, 2, 1])
             ).copy()
             self._dissipator_products = np.matmul(
-                self._dissipator_operators_conj, self._dissipator_operators
+                self._dissipator_operators_adj, self._dissipator_operators
             )
 
     def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
@@ -421,7 +421,7 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
             both_mult_contribution = np.tensordot(
                 dis_sig_vals,
                 np.matmul(
-                    self._dissipator_operators, np.matmul(y, self._dissipator_operators_conj)
+                    self._dissipator_operators, np.matmul(y, self._dissipator_operators_adj)
                 ),
                 axes=(-1, -3),
             )  # C
