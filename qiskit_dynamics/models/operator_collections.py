@@ -125,6 +125,8 @@ class DenseOperatorCollection(BaseOperatorCollection):
     def evaluate(self, signal_values: Union[Array, None]) -> Array:
         r"""Evaluate the affine combination of matrices.
 
+        Returns:
+            Evaluated model.
         Raises:
             QiskitError: if both static_operator and operators are None
         """
@@ -135,8 +137,11 @@ class DenseOperatorCollection(BaseOperatorCollection):
         elif self._static_operator is not None:
             return self._static_operator
         else:
-            raise QiskitError(self.__class__.__name__ + """ with None for both static_operator and
-                                operators cannot be evaluated.""")
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with None for both static_operator and
+                                operators cannot be evaluated."""
+            )
 
     def evaluate_rhs(self, signal_values: Union[Array, None], y: Array) -> Array:
         """Evaluates the function."""
@@ -195,16 +200,23 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
         Returns:
             Generator as sparse array.
+
+        Raises:
+            QiskitError: If collection cannot be evaluated.
         """
         if self._static_operator is not None and self._operators is not None:
-            return np.tensordot(signal_values, self._operators, axes=1).item() + self._static_operator
+            return (
+                np.tensordot(signal_values, self._operators, axes=1).item() + self._static_operator
+            )
         elif self._static_operator is None and self._operators is not None:
             return np.tensordot(signal_values, self._operators, axes=1).item()
         elif self.static_operator is not None:
             return self._static_operator
-        else:
-            raise QiskitError(self.__class__.__name__ + """ with None for both static_operator and
-                                operators cannot be evaluated.""")
+        raise QiskitError(
+            self.__class__.__name__
+            + """ with None for both static_operator and
+                            operators cannot be evaluated."""
+        )
 
     def evaluate_rhs(self, signal_values: Union[Array, None], y: Array) -> Array:
         if len(y.shape) == 2:
@@ -223,8 +235,11 @@ class SparseOperatorCollection(BaseOperatorCollection):
             elif self.static_operator is not None:
                 return self.static_operator.dot(y)
             else:
-                raise QiskitError(self.__class__.__name__ + """  with None for both static_operator and
-                                    operators cannot be evaluated.""")
+                raise QiskitError(
+                    self.__class__.__name__
+                    + """  with None for both static_operator and
+                                    operators cannot be evaluated."""
+                )
 
 
 class BaseLindbladOperatorCollection(ABC):
@@ -309,18 +324,24 @@ class BaseLindbladOperatorCollection(ABC):
         """Sets operators for non-static part of dissipator."""
 
     @abstractmethod
-    def evaluate_hamiltonian(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Union[csr_matrix, Array]:
+    def evaluate_hamiltonian(self, ham_sig_vals: Union[None, Array]) -> Union[csr_matrix, Array]:
         """Evaluate the Hamiltonian of the model."""
 
     @abstractmethod
-    def evaluate(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Union[csr_matrix, Array]:
+    def evaluate(
+        self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]
+    ) -> Union[csr_matrix, Array]:
         r"""Evaluate the map."""
 
     @abstractmethod
-    def evaluate_rhs(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array) -> Array:
+    def evaluate_rhs(
+        self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array
+    ) -> Array:
         r"""Compute the function."""
 
-    def __call__(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Optional[Array]) -> Union[csr_matrix, Array]:
+    def __call__(
+        self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Optional[Array]
+    ) -> Union[csr_matrix, Array]:
         """Evaluate the model, or evaluate the RHS."""
         if y is None:
             return self.evaluate(ham_sig_vals, dis_sig_vals)
@@ -364,9 +385,9 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
             self._static_dissipators_adj = np.conjugate(
                 np.transpose(self._static_dissipators, [0, 2, 1])
             ).copy()
-            self._static_dissipators_product_sum = -0.5 * np.sum(np.matmul(
-                self._static_dissipators_adj, self._static_dissipators
-            ), axis=0)
+            self._static_dissipators_product_sum = -0.5 * np.sum(
+                np.matmul(self._static_dissipators_adj, self._static_dissipators), axis=0
+            )
 
     @property
     def dissipator_operators(self) -> Array:
@@ -386,25 +407,35 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
     def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
         raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
 
-    def evaluate_hamiltonian(self, signal_values: Union[None, Array]) -> Array:
+    def evaluate_hamiltonian(self, ham_sig_vals: Union[None, Array]) -> Array:
         r"""Compute the Hamiltonian.
 
         Args:
-            signal_values: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+            ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
         Returns:
             Hamiltonian matrix.
+        Raises:
+            QiskitError: If collection not sufficiently specified.
         """
         if self._static_hamiltonian is not None and self._hamiltonian_operators is not None:
-            return np.tensordot(signal_values, self._hamiltonian_operators, axes=1) + self._static_hamiltonian
+            return (
+                np.tensordot(ham_sig_vals, self._hamiltonian_operators, axes=1)
+                + self._static_hamiltonian
+            )
         elif self._static_hamiltonian is None and self._hamiltonian_operators is not None:
-            return np.tensordot(signal_values, self._hamiltonian_operators, axes=1)
+            return np.tensordot(ham_sig_vals, self._hamiltonian_operators, axes=1)
         elif self._static_hamiltonian is not None:
             return self._static_hamiltonian
         else:
-            raise QiskitError(self.__class__.__name__ + """ with None for both static_hamiltonian and
-                                hamiltonian_operators cannot evaluate Hamiltonian.""")
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with None for both static_hamiltonian and
+                                hamiltonian_operators cannot evaluate Hamiltonian."""
+            )
 
-    def evaluate_rhs(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array) -> Array:
+    def evaluate_rhs(
+        self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array
+    ) -> Array:
         r"""Evaluates Lindblad equation RHS given a pair of signal values
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as :math:`(A+B)y + y(A-B) + C`, where
@@ -427,7 +458,7 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
 
         hamiltonian_matrix = None
         if self._static_hamiltonian is not None or self._hamiltonian_operators is not None:
-            hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals) # B matrix
+            hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
 
         # if dissipators present (includes both hamiltonian is None and is not None)
         if self._dissipator_operators is not None or self._static_dissipators is not None:
@@ -440,9 +471,9 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
             elif self._dissipator_operators is None:
                 dissipators_matrix = self._static_dissipators_product_sum
             else:
-                dissipators_matrix = (self._static_dissipators_product_sum +np.tensordot(
+                dissipators_matrix = self._static_dissipators_product_sum + np.tensordot(
                     -0.5 * dis_sig_vals, self._dissipator_products, axes=1
-                ))
+                )
 
             if hamiltonian_matrix is not None:
                 left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
@@ -466,31 +497,32 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
                     axes=(-1, -3),
                 )
             elif self._dissipator_operators is None:
-                both_mult_contribution = np.sum(np.matmul(
-                        self._static_dissipators, np.matmul(y, self._static_dissipators_adj)
-                    ),
-                    axis=-3)
+                both_mult_contribution = np.sum(
+                    np.matmul(self._static_dissipators, np.matmul(y, self._static_dissipators_adj)),
+                    axis=-3,
+                )
             else:
-                both_mult_contribution = (np.sum(np.matmul(
-                        self._static_dissipators, np.matmul(y, self._static_dissipators_adj)
+                both_mult_contribution = np.sum(
+                    np.matmul(self._static_dissipators, np.matmul(y, self._static_dissipators_adj)),
+                    axis=-3,
+                ) + np.tensordot(
+                    dis_sig_vals,
+                    np.matmul(
+                        self._dissipator_operators, np.matmul(y, self._dissipator_operators_adj)
                     ),
-                    axis=-3)
-                    + np.tensordot(
-                        dis_sig_vals,
-                        np.matmul(
-                            self._dissipator_operators, np.matmul(y, self._dissipator_operators_adj)
-                        ),
-                        axes=(-1, -3),
-                    ))
+                    axes=(-1, -3),
+                )
 
             return left_mult_contribution + right_mult_contribution + both_mult_contribution
         # if just hamiltonian
         elif hamiltonian_matrix is not None:
             return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
         else:
-            raise QiskitError("""DenseLindbladCollection with None for static_hamiltonian,
+            raise QiskitError(
+                """DenseLindbladCollection with None for static_hamiltonian,
                                  hamiltonian_operators, static_dissipators, and
-                                 dissipator_operators, cannot evaluate rhs.""")
+                                 dissipator_operators, cannot evaluate rhs."""
+            )
 
 
 class SparseLindbladCollection(DenseLindbladCollection):
@@ -517,10 +549,12 @@ class SparseLindbladCollection(DenseLindbladCollection):
                 in sparse format.
         """
         self._decimals = decimals
-        super().__init__(static_hamiltonian=static_hamiltonian,
-                         hamiltonian_operators=hamiltonian_operators,
-                         static_dissipators=static_dissipators,
-                         dissipator_operators=dissipator_operators)
+        super().__init__(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            static_dissipators=static_dissipators,
+            dissipator_operators=dissipator_operators,
+        )
 
     @property
     def static_hamiltonian(self) -> csr_matrix:
@@ -529,7 +563,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
     @static_hamiltonian.setter
     def static_hamiltonian(self, new_static_hamiltonian: Optional[csr_matrix] = None):
         if new_static_hamiltonian is not None:
-            new_static_hamiltonian = np.round(to_csr(new_static_hamiltonian), decimals=self._decimals)
+            new_static_hamiltonian = np.round(
+                to_csr(new_static_hamiltonian), decimals=self._decimals
+            )
         self._static_hamiltonian = new_static_hamiltonian
 
     @property
@@ -540,7 +576,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
     def hamiltonian_operators(self, new_hamiltonian_operators: Optional[List[csr_matrix]] = None):
         if new_hamiltonian_operators is not None:
             new_hamiltonian_operators = to_csr(new_hamiltonian_operators)
-            new_hamiltonian_operators = [np.round(op, decimals=self._decimals) for op in new_hamiltonian_operators]
+            new_hamiltonian_operators = [
+                np.round(op, decimals=self._decimals) for op in new_hamiltonian_operators
+            ]
             new_hamiltonian_operators = np.array(new_hamiltonian_operators, dtype="O")
 
         self._hamiltonian_operators = new_hamiltonian_operators
@@ -558,7 +596,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
         if new_static_dissipators is not None:
             # setup new dissipators
             new_static_dissipators = to_csr(new_static_dissipators)
-            new_static_dissipators = [np.round(op, decimals=self._decimals) for op in new_static_dissipators]
+            new_static_dissipators = [
+                np.round(op, decimals=self._decimals) for op in new_static_dissipators
+            ]
 
             # setup adjoints
             static_dissipators_adj = [op.conj().transpose() for op in new_static_dissipators]
@@ -568,7 +608,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
             static_dissipators_adj = np.array(static_dissipators_adj, dtype="O")
 
             # pre-compute projducts
-            static_dissipators_product_sum = -0.5 * np.sum(static_dissipators_adj * new_static_dissipators, axis=0)
+            static_dissipators_product_sum = -0.5 * np.sum(
+                static_dissipators_adj * new_static_dissipators, axis=0
+            )
 
             self._static_dissipators = new_static_dissipators
             self._static_dissipators_adj = static_dissipators_adj
@@ -587,7 +629,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
         if new_dissipator_operators is not None:
             # setup new dissipators
             new_dissipator_operators = to_csr(new_dissipator_operators)
-            new_dissipator_operators = [np.round(op, decimals=self._decimals) for op in new_dissipator_operators]
+            new_dissipator_operators = [
+                np.round(op, decimals=self._decimals) for op in new_dissipator_operators
+            ]
 
             # setup adjoints
             dissipator_operators_adj = [op.conj().transpose() for op in new_dissipator_operators]
@@ -603,18 +647,35 @@ class SparseLindbladCollection(DenseLindbladCollection):
             self._dissipator_operators_adj = dissipator_operators_adj
             self._dissipator_products = dissipator_products
 
-    def evaluate_hamiltonian(self, signal_values: Union[None, Array]) -> csr_matrix:
+    def evaluate_hamiltonian(self, ham_sig_vals: Union[None, Array]) -> csr_matrix:
+        r"""Compute the Hamiltonian.
+
+        Args:
+            ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+        Returns:
+            Hamiltonian matrix.
+        Raises:
+            QiskitError: If collection not sufficiently specified.
+        """
         if self._static_hamiltonian is not None and self._hamiltonian_operators is not None:
-            return np.sum(signal_values * self._hamiltonian_operators, axis=-1) + self.static_hamiltonian
+            return (
+                np.sum(ham_sig_vals * self._hamiltonian_operators, axis=-1)
+                + self.static_hamiltonian
+            )
         elif self._static_hamiltonian is None and self._hamiltonian_operators is not None:
-            return np.sum(signal_values * self._hamiltonian_operators, axis=-1)
+            return np.sum(ham_sig_vals * self._hamiltonian_operators, axis=-1)
         elif self._static_hamiltonian is not None:
             return self._static_hamiltonian
         else:
-            raise QiskitError(self.__class__.__name__ + """ with None for both static_hamiltonian and
-                                hamiltonian_operators cannot evaluate Hamiltonian.""")
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with None for both static_hamiltonian and
+                                hamiltonian_operators cannot evaluate Hamiltonian."""
+            )
 
-    def evaluate_rhs(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array) -> Array:
+    def evaluate_rhs(
+        self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array
+    ) -> Array:
         r"""Evaluates the RHS of the LindbladModel for a given list of signal values.
 
         Args:
@@ -654,7 +715,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
         """
         hamiltonian_matrix = None
         if self._static_hamiltonian is not None or self._hamiltonian_operators is not None:
-            hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals) # B matrix
+            hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
 
         # package (n,n) Arrays as (1)
         # Arrays of dtype object, or (k,n,n) Arrays as (k,1) Arrays of dtype object
@@ -662,7 +723,6 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
         # if dissipators present (includes both hamiltonian is None and is not None)
         if self._dissipator_operators is not None or self._static_dissipators is not None:
-
 
             # A matrix
             if self._static_dissipators is None:
@@ -672,9 +732,9 @@ class SparseLindbladCollection(DenseLindbladCollection):
             elif self._dissipator_operators is None:
                 dissipators_matrix = self._static_dissipators_product_sum
             else:
-                dissipators_matrix = (self._static_dissipators_product_sum +np.sum(
+                dissipators_matrix = self._static_dissipators_product_sum + np.sum(
                     -0.5 * dis_sig_vals * self._dissipator_products, axis=-1
-                ))
+                )
 
             if hamiltonian_matrix is not None:
                 left_mult_contribution = np.squeeze([hamiltonian_matrix + dissipators_matrix] * y)
@@ -686,34 +746,43 @@ class SparseLindbladCollection(DenseLindbladCollection):
             # both_mult_contribution[i] = \gamma_i L_i\rho L_i^\dagger performed in array language
             if self._static_dissipators is None:
                 both_mult_contribution = np.sum(
-                    (dis_sig_vals * self._dissipator_operators) * y * self._dissipator_operators_adj,
-                axis=-1)
+                    (dis_sig_vals * self._dissipator_operators)
+                    * y
+                    * self._dissipator_operators_adj,
+                    axis=-1,
+                )
             elif self._dissipator_operators is None:
                 both_mult_contribution = np.sum(
-                    self._static_dissipators * y * self._static_dissipators_adj,
-                axis=-1)
+                    self._static_dissipators * y * self._static_dissipators_adj, axis=-1
+                )
             else:
-                both_mult_contribution = (np.sum(
-                    (dis_sig_vals * self._dissipator_operators) * y * self._dissipator_operators_adj,
-                axis=-1) +
-                np.sum(
-                    self._static_dissipators * y * self._static_dissipators_adj,
-                axis=-1))
+                both_mult_contribution = (
+                    np.sum(
+                        (dis_sig_vals * self._dissipator_operators)
+                        * y
+                        * self._dissipator_operators_adj,
+                        axis=-1,
+                    )
+                    + np.sum(self._static_dissipators * y * self._static_dissipators_adj, axis=-1)
+                )
 
             out = left_mult_contribution + right_mult_contribution + both_mult_contribution
 
         elif hamiltonian_matrix is not None:
             out = (([hamiltonian_matrix] * y) - (y * [hamiltonian_matrix]))[0]
         else:
-            raise QiskitError("""SparseLindbladCollection with None for static_hamiltonian,
+            raise QiskitError(
+                """SparseLindbladCollection with None for static_hamiltonian,
                                  hamiltonian_operators, and dissipator_operators, cannot evaluate
-                                 rhs.""")
+                                 rhs."""
+            )
         if len(y.shape) == 2:
             # Very slow; avoid if not necessary (or if better implementation found). Needs to
             # map a (k) Array of dtype object with j^{th} entry a (n,n) Array -> (k,n,n) Array.
             out = unpackage_density_matrices(out.reshape(y.shape[0], 1))
 
         return out
+
 
 class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOperatorCollection):
     """Base class for Vectorized Lindblad collections.
@@ -732,6 +801,7 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
           to be used when evaluating the model, e.g. DenseOperatorCollection or
           SparseOperatorCollection.
     """
+
     @abstractmethod
     def convert_to_internal_type(self, obj: any) -> any:
         """Convert either a single operator or a list of operators to an internal representation."""
@@ -760,7 +830,9 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
         return self._hamiltonian_operators
 
     @hamiltonian_operators.setter
-    def hamiltonian_operators(self, new_hamiltonian_operators: Optional[Union[Array, csr_matrix]] = None):
+    def hamiltonian_operators(
+        self, new_hamiltonian_operators: Optional[Union[Array, csr_matrix]] = None
+    ):
         self._hamiltonian_operators = self.convert_to_internal_type(new_hamiltonian_operators)
         if self._hamiltonian_operators is not None:
             self._vec_hamiltonian_operators = vec_commutator(self._hamiltonian_operators)
@@ -772,10 +844,14 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
         return self._dissipator_operators
 
     @static_dissipators.setter
-    def static_dissipators(self, new_static_dissipators: Optional[Union[Array, List[csr_matrix]]] = None):
+    def static_dissipators(
+        self, new_static_dissipators: Optional[Union[Array, List[csr_matrix]]] = None
+    ):
         self._static_dissipators = self.convert_to_internal_type(new_static_dissipators)
         if self._static_dissipators is not None:
-            self._vec_static_dissipators_sum = np.sum(vec_dissipator(self._static_dissipators), axis=0)
+            self._vec_static_dissipators_sum = np.sum(
+                vec_dissipator(self._static_dissipators), axis=0
+            )
 
         self.concatenate_static_operators()
 
@@ -784,7 +860,9 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
         return self._dissipator_operators
 
     @dissipator_operators.setter
-    def dissipator_operators(self, new_dissipator_operators: Optional[Union[Array, List[csr_matrix]]] = None):
+    def dissipator_operators(
+        self, new_dissipator_operators: Optional[Union[Array, List[csr_matrix]]] = None
+    ):
         self._dissipator_operators = self.convert_to_internal_type(new_dissipator_operators)
         if self._dissipator_operators is not None:
             self._vec_dissipator_operators = vec_dissipator(self._dissipator_operators)
@@ -805,7 +883,9 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
     def concatenate_operators(self):
         """Concatenate hamiltonian operators and dissipator operators."""
         if self._hamiltonian_operators is not None and self._dissipator_operators is not None:
-            self._operators = np.append(self._vec_hamiltonian_operators, self._vec_dissipator_operators, axis=0)
+            self._operators = np.append(
+                self._vec_hamiltonian_operators, self._vec_dissipator_operators, axis=0
+            )
         elif self._hamiltonian_operators is not None and self._dissipator_operators is None:
             self._operators = self._vec_hamiltonian_operators
         elif self._hamiltonian_operators is None and self._dissipator_operators is not None:
@@ -813,7 +893,9 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
         else:
             self._operators = None
 
-    def concatenate_signals(self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]) -> Array:
+    def concatenate_signals(
+        self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array]
+    ) -> Array:
         """Concatenate hamiltonian and linblad signals."""
         if self._hamiltonian_operators is not None and self._dissipator_operators is not None:
             return np.append(ham_sig_vals, dis_sig_vals, axis=-1)
@@ -846,9 +928,9 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
         return self.evaluate(ham_sig_vals, dis_sig_vals) @ y
 
 
-class DenseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
-                                        DenseLindbladCollection,
-                                        DenseOperatorCollection):
+class DenseVectorizedLindbladCollection(
+    BaseVectorizedLindbladCollection, DenseLindbladCollection, DenseOperatorCollection
+):
     r"""Vectorized version of DenseLindbladCollection.
 
     Utilizes BaseVectorizedLindbladCollection for property handling, DenseLindbladCollection
@@ -872,15 +954,18 @@ class DenseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
             static_dissipators: Dissipator terms with coefficient 1.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
         """
-        # need to be initialized for relationships between properties for BaseVectorizedLindbladCollection
+        # need to be initialized for relationships between properties in
+        # BaseVectorizedLindbladCollection
         self._static_hamiltonian = None
         self._hamiltonian_operators = None
         self._static_dissipators = None
         self._dissipator_operators = None
-        super().__init__(static_hamiltonian=static_hamiltonian,
-                         hamiltonian_operators=hamiltonian_operators,
-                         static_dissipators=static_dissipators,
-                         dissipator_operators=dissipator_operators)
+        super().__init__(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            static_dissipators=static_dissipators,
+            dissipator_operators=dissipator_operators,
+        )
 
     def convert_to_internal_type(self, obj: any) -> Array:
         return to_array(obj)
@@ -890,9 +975,9 @@ class DenseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
         return DenseOperatorCollection
 
 
-class SparseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
-                                         SparseLindbladCollection,
-                                         SparseOperatorCollection):
+class SparseVectorizedLindbladCollection(
+    BaseVectorizedLindbladCollection, SparseLindbladCollection, SparseOperatorCollection
+):
     r"""Vectorized version of SparseLindbladCollection.
 
     Utilizes BaseVectorizedLindbladCollection for property handling, SparseLindbladCollection
@@ -925,10 +1010,12 @@ class SparseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
         self._hamiltonian_operators = None
         self._static_dissipators = None
         self._dissipator_operators = None
-        super().__init__(static_hamiltonian=static_hamiltonian,
-                         hamiltonian_operators=hamiltonian_operators,
-                         static_dissipators=static_dissipators,
-                         dissipator_operators=dissipator_operators)
+        super().__init__(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            static_dissipators=static_dissipators,
+            dissipator_operators=dissipator_operators,
+        )
 
     def convert_to_internal_type(self, obj: any) -> Union[csr_matrix, List[csr_matrix]]:
         obj = to_csr(obj)

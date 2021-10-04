@@ -26,7 +26,7 @@ from qiskit_dynamics.models.operator_collections import (
     DenseVectorizedLindbladCollection,
     SparseLindbladCollection,
     SparseOperatorCollection,
-    SparseVectorizedLindbladCollection
+    SparseVectorizedLindbladCollection,
 )
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
@@ -64,11 +64,12 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         res = self.simple_collection(coeffs)
         self.assertAllClose(res, coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z)
 
-
-        res = (DenseOperatorCollection(operators=self.test_operator_list, static_operator=np.eye(2)))(
-            coeffs
+        res = (
+            DenseOperatorCollection(operators=self.test_operator_list, static_operator=np.eye(2))
+        )(coeffs)
+        self.assertAllClose(
+            res, np.eye(2) + coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z
         )
-        self.assertAllClose(res, np.eye(2) + coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z)
 
     def test_basic_functionality_pseudorandom(self):
         """Test DenseOperatorCollection evaluation
@@ -98,7 +99,8 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
     def test_functions_jitable(self):
         """Tests that all class functions are jittable."""
         doc = DenseOperatorCollection(
-            operators=Array(self.test_operator_list), static_operator=Array(self.test_operator_list[0])
+            operators=Array(self.test_operator_list),
+            static_operator=Array(self.test_operator_list[0]),
         )
         rand.seed(3423)
         coeffs = rand.uniform(-1, 1, 3)
@@ -108,7 +110,8 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
     def test_functions_gradable(self):
         """Tests that all class functions are gradable."""
         doc = DenseOperatorCollection(
-            operators=Array(self.test_operator_list), static_operator=Array(self.test_operator_list[0])
+            operators=Array(self.test_operator_list),
+            static_operator=Array(self.test_operator_list[0]),
         )
         rand.seed(5433)
         coeffs = rand.uniform(-1, 1, 3)
@@ -128,27 +131,27 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         self.assertTrue("cannot be evaluated." in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            collection(None, np.array([1., 0.]))
+            collection(None, np.array([1.0, 0.0]))
         self.assertTrue("cannot be evaluated." in str(qe.exception))
 
     def test_evaluate_simple_case(self):
         """Simple test case."""
 
-        collection = SparseOperatorCollection(operators=[np.eye(2), [[0., 1.], [1., 0.]]])
+        collection = SparseOperatorCollection(operators=[np.eye(2), [[0.0, 1.0], [1.0, 0.0]]])
 
-        value = collection(np.array([1., 2.]))
+        value = collection(np.array([1.0, 2.0]))
         self.assertTrue(issparse(value))
-        self.assertAllCloseSparse(value, csr_matrix([[1., 2.], [2., 1.]]))
+        self.assertAllCloseSparse(value, csr_matrix([[1.0, 2.0], [2.0, 1.0]]))
 
         # 2d case
-        value = collection(np.array([1., 2.]), np.ones((2, 2)))
+        value = collection(np.array([1.0, 2.0]), np.ones((2, 2)))
         self.assertTrue(isinstance(value, (np.ndarray, Array)))
-        self.assertAllClose(value, 3. * np.ones((2, 2)))
+        self.assertAllClose(value, 3.0 * np.ones((2, 2)))
 
         # 1d case
-        value = collection(np.array([1., 2.]), np.array([1., 1.]))
+        value = collection(np.array([1.0, 2.0]), np.array([1.0, 1.0]))
         self.assertTrue(isinstance(value, (np.ndarray, Array)))
-        self.assertAllClose(value, np.array([3., 3.]))
+        self.assertAllClose(value, np.array([3.0, 3.0]))
 
     def test_consistency_with_dense_pseudorandom(self):
         """Tests if SparseOperatorCollection agrees with
@@ -196,10 +199,10 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
 
     def test_static_collection(self):
         """Test the case in which only a static operator is present."""
-        X = csr_matrix([[0., 1.], [1., 0.]])
+        X = csr_matrix([[0.0, 1.0], [1.0, 0.0]])
         collection = SparseOperatorCollection(static_operator=X)
         self.assertAllCloseSparse(X, collection(None))
-        self.assertAllClose(np.array([0., 1.]), collection(None, np.array([1., 0.])))
+        self.assertAllClose(np.array([0.0, 1.0]), collection(None, np.array([1.0, 0.0])))
 
 
 class TestDenseLindbladCollection(QiskitDynamicsTestCase):
@@ -226,7 +229,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         """Test errors get raised for empty collection."""
         collection = DenseLindbladCollection()
         with self.assertRaises(QiskitError) as qe:
-            collection(None, None, np.array([1., 0.]))
+            collection(None, None, np.array([1.0, 0.0]))
         self.assertTrue("DenseLindbladCollection with None" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
@@ -318,7 +321,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         collection = DenseLindbladCollection(static_hamiltonian=self.X)
 
         self.assertAllClose(collection.evaluate_hamiltonian(None), self.X)
-        rho = Array([[1., 0.], [0., 0.]])
+        rho = Array([[1.0, 0.0], [0.0, 0.0]])
         expected = -1j * (self.X @ rho - rho @ self.X)
         self.assertAllClose(collection.evaluate_rhs(None, None, rho), expected)
 
@@ -374,36 +377,31 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         sin_ops = np.sin(self.dissipator_operators)
 
         collection = DenseLindbladCollection(
-            static_dissipators=self.dissipator_operators,
-            dissipator_operators=sin_ops
+            static_dissipators=self.dissipator_operators, dissipator_operators=sin_ops
         )
         res = collection(None, self.dis_sig_vals, self.rho)
-        dis_anticommutator = ((-1 / 2) * np.tensordot(
+        dis_anticommutator = (-1 / 2) * np.tensordot(
             np.ones_like(self.dis_sig_vals),
             np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
             @ self.dissipator_operators,
             axes=1,
         ) + (-1 / 2) * np.tensordot(
             self.dis_sig_vals,
-            np.conjugate(np.transpose(sin_ops, [0, 2, 1]))
-            @ sin_ops,
+            np.conjugate(np.transpose(sin_ops, [0, 2, 1])) @ sin_ops,
             axes=1,
-        ))
+        )
         dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
-        dis_extra = (np.tensordot(
+        dis_extra = np.tensordot(
             np.ones_like(self.dis_sig_vals),
             self.dissipator_operators
             @ self.rho
             @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
             axes=1,
-        ) +
-        np.tensordot(
+        ) + np.tensordot(
             self.dis_sig_vals,
-            sin_ops
-            @ self.rho
-            @ np.conjugate(np.transpose(sin_ops, [0, 2, 1])),
+            sin_ops @ self.rho @ np.conjugate(np.transpose(sin_ops, [0, 2, 1])),
             axes=1,
-        ))
+        )
         self.assertAllClose(dis_anticommutator + dis_extra, res)
 
 
@@ -458,7 +456,7 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         """Test errors get raised for empty collection."""
         collection = SparseLindbladCollection(None, None, None)
         with self.assertRaises(QiskitError) as qe:
-            collection(None, None, np.array([[1., 0.], [0., 0.]]))
+            collection(None, None, np.array([[1.0, 0.0], [0.0, 0.0]]))
         self.assertTrue("SparseLindbladCollection with None" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
@@ -585,11 +583,11 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
     def test_static_hamiltonian_only(self):
         """Test construction and evaluation with a static hamiltonian only."""
 
-        sparse_X = csr_matrix([[0., 1.], [1., 0.]])
+        sparse_X = csr_matrix([[0.0, 1.0], [1.0, 0.0]])
         collection = SparseLindbladCollection(static_hamiltonian=sparse_X)
 
         self.assertAllCloseSparse(collection.evaluate_hamiltonian(None), sparse_X)
-        rho = Array([[1., 0.], [0., 0.]])
+        rho = Array([[1.0, 0.0], [0.0, 0.0]])
         expected = -1j * (sparse_X.toarray() @ rho - rho @ sparse_X.toarray())
         self.assertAllClose(collection.evaluate_rhs(None, None, rho), expected)
 
@@ -643,36 +641,31 @@ class TestSparseLindbladCollection(QiskitDynamicsTestCase):
         sin_ops = np.sin(self.dissipator_operators)
 
         collection = SparseLindbladCollection(
-            static_dissipators=self.dissipator_operators,
-            dissipator_operators=sin_ops
+            static_dissipators=self.dissipator_operators, dissipator_operators=sin_ops
         )
         res = collection(None, self.dis_sig_vals, self.rho)
-        dis_anticommutator = ((-1 / 2) * np.tensordot(
+        dis_anticommutator = (-1 / 2) * np.tensordot(
             np.ones_like(self.dis_sig_vals),
             np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
             @ self.dissipator_operators,
             axes=1,
         ) + (-1 / 2) * np.tensordot(
             self.dis_sig_vals,
-            np.conjugate(np.transpose(sin_ops, [0, 2, 1]))
-            @ sin_ops,
+            np.conjugate(np.transpose(sin_ops, [0, 2, 1])) @ sin_ops,
             axes=1,
-        ))
+        )
         dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
-        dis_extra = (np.tensordot(
+        dis_extra = np.tensordot(
             np.ones_like(self.dis_sig_vals),
             self.dissipator_operators
             @ self.rho
             @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
             axes=1,
-        ) +
-        np.tensordot(
+        ) + np.tensordot(
             self.dis_sig_vals,
-            sin_ops
-            @ self.rho
-            @ np.conjugate(np.transpose(sin_ops, [0, 2, 1])),
+            sin_ops @ self.rho @ np.conjugate(np.transpose(sin_ops, [0, 2, 1])),
             axes=1,
-        ))
+        )
         self.assertAllClose(dis_anticommutator + dis_extra, res)
 
 
@@ -690,7 +683,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         self.rand_ham = r(k, n, n)
         self.rand_dis = r(m, n, n)
         self.rand_dft = r(n, n)
-        self.rand_static_dis = r(k, n ,n)
+        self.rand_static_dis = r(k, n, n)
         self.rho = r(n, n)
         self.t = r()
         self.rand_ham_coeffs = r(k)
@@ -702,7 +695,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         """Test errors get raised for empty collection."""
         collection = self.vectorized_class()
         with self.assertRaises(QiskitError) as qe:
-            collection(None, None, np.array([[1., 0.], [0., 0.]]))
+            collection(None, None, np.array([[1.0, 0.0], [0.0, 0.0]]))
         self.assertTrue(self.vectorized_class.__name__ + " with None" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
@@ -712,93 +705,113 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
     def test_consistency_all_terms(self):
         """Check consistency with non-vectorized class when hamiltonian,
         static_hamiltonian, and dissipator terms defined."""
-        self._consistency_test(static_hamiltonian=self.rand_dft,
-                               hamiltonian_operators=self.rand_ham,
-                               static_dissipators=self.rand_static_dis,
-                               dissipator_operators=self.rand_dis)
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=self.rand_ham,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=self.rand_dis,
+        )
 
     def test_consistency_no_dissipators(self):
         """Check consistency with non-vectorized class when only hamiltonian and static_hamiltonian terms defined."""
-        self._consistency_test(static_hamiltonian=self.rand_dft,
-                               hamiltonian_operators=self.rand_ham,
-                               static_dissipators=None,
-                               dissipator_operators=None)
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=self.rand_ham,
+            static_dissipators=None,
+            dissipator_operators=None,
+        )
 
     def test_consistency_no_static_terms(self):
         """Check consistency with DenseLindbladCollection without static terms."""
-        self._consistency_test(static_hamiltonian=None,
-                               hamiltonian_operators=self.rand_ham,
-                               static_dissipators=None,
-                               dissipator_operators=self.rand_dis)
+        self._consistency_test(
+            static_hamiltonian=None,
+            hamiltonian_operators=self.rand_ham,
+            static_dissipators=None,
+            dissipator_operators=self.rand_dis,
+        )
 
     def test_consistency_no_hamiltonian_operators(self):
         """Check consistency with non-vectorized class when hamiltonian,
         static_hamiltonian, static_dissipators, and dissipator terms defined."""
-        self._consistency_test(static_hamiltonian=self.rand_dft,
-                               hamiltonian_operators=None,
-                               static_dissipators=self.rand_static_dis,
-                               dissipator_operators=self.rand_dis)
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=None,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=self.rand_dis,
+        )
 
     def test_consistency_only_dissipators(self):
         """Check consistency with non-vectorized class when no hamiltonian
         or static_hamiltonian defined."""
-        self._consistency_test(static_hamiltonian=None,
-                               hamiltonian_operators=None,
-                               static_dissipators=self.rand_static_dis,
-                               dissipator_operators=self.rand_dis)
+        self._consistency_test(
+            static_hamiltonian=None,
+            hamiltonian_operators=None,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=self.rand_dis,
+        )
 
     def test_consistency_only_static_hamiltonian(self):
         """Check consistency with non-vectorized class when only
         static_hamiltonian defined."""
-        self._consistency_test(static_hamiltonian=self.rand_dft,
-                               hamiltonian_operators=None,
-                               static_dissipators=None,
-                               dissipator_operators=None)
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=None,
+            static_dissipators=None,
+            dissipator_operators=None,
+        )
 
     def test_consistency_only_hamiltonian_operators(self):
         """Check consistency with non-vectorized class when only hamiltonian operators defined."""
-        self._consistency_test(static_hamiltonian=None,
-                               hamiltonian_operators=self.rand_ham,
-                               static_dissipators=None,
-                               dissipator_operators=None)
+        self._consistency_test(
+            static_hamiltonian=None,
+            hamiltonian_operators=self.rand_ham,
+            static_dissipators=None,
+            dissipator_operators=None,
+        )
 
     def test_consistency_only_static_dissipators(self):
         """Check consistency with non-vectorized class when only hamiltonian operators defined."""
-        self._consistency_test(static_hamiltonian=None,
-                               hamiltonian_operators=None,
-                               static_dissipators=self.rand_static_dis,
-                               dissipator_operators=None)
+        self._consistency_test(
+            static_hamiltonian=None,
+            hamiltonian_operators=None,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=None,
+        )
 
     def test_consistency_only_static_terms(self):
         """Check consistency with non-vectorized class when only hamiltonian operators defined."""
-        self._consistency_test(static_hamiltonian=self.rand_dft,
-                               hamiltonian_operators=None,
-                               static_dissipators=self.rand_static_dis,
-                               dissipator_operators=None)
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=None,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=None,
+        )
 
-    def _consistency_test(self,
-                          static_hamiltonian=None,
-                          hamiltonian_operators=None,
-                          static_dissipators=None,
-                          dissipator_operators=None):
+    def _consistency_test(
+        self,
+        static_hamiltonian=None,
+        hamiltonian_operators=None,
+        static_dissipators=None,
+        dissipator_operators=None,
+    ):
         """Consistency test template for non-vectorized class and vectorized class."""
 
         collection = self.non_vectorized_class(
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
             static_dissipators=static_dissipators,
-            dissipator_operators=dissipator_operators
+            dissipator_operators=dissipator_operators,
         )
         vec_collection = self.vectorized_class(
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
             static_dissipators=static_dissipators,
-            dissipator_operators=dissipator_operators
+            dissipator_operators=dissipator_operators,
         )
 
-        a = collection.evaluate_rhs(
-            self.rand_ham_coeffs, self.rand_dis_coeffs, self.rho
-        ).flatten(order="F")
+        a = collection.evaluate_rhs(self.rand_ham_coeffs, self.rand_dis_coeffs, self.rho).flatten(
+            order="F"
+        )
         b = vec_collection.evaluate_rhs(
             self.rand_ham_coeffs, self.rand_dis_coeffs, self.rho.flatten(order="F")
         )
@@ -808,12 +821,11 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
 class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
     """Jax version of TestDenseVectorizedLindbladCollection tests.
 
-    Note: This class has more tests due to inheritance.
-
     Note: The evaluation processes for DenseVectorizedLindbladCollection
     are not directly jitable or compilable. The compilation of these steps
     is taken care of by the tests for LindbladModel.
     """
+
 
 class TestSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladCollection):
     """Tests for SparseVectorizedLindbladCollection."""
@@ -827,7 +839,7 @@ class TestSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladCollecti
 
         self.r = r
         self.rand_ham = r(k, n, n)
-        self.rand_static_dis = r(k, n ,n)
+        self.rand_static_dis = r(k, n, n)
         self.rand_dis = r(m, n, n)
         self.rand_dft = r(n, n)
         self.rho = r(n, n)

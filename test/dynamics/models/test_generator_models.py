@@ -42,39 +42,37 @@ class TestGeneratorModelErrors(QiskitDynamicsTestCase):
         """Test setting signals with operators being None."""
 
         with self.assertRaises(QiskitError) as qe:
-            GeneratorModel(static_operator=np.array([[1., 0.], [0., -1.]]),
-                           operators=None,
-                           signals=[1.])
+            GeneratorModel(
+                static_operator=np.array([[1.0, 0.0], [0.0, -1.0]]), operators=None, signals=[1.0]
+            )
         self.assertTrue("Signals must be None if operators is None." in str(qe.exception))
 
         # test after initial instantiation
-        model = GeneratorModel(static_operator=np.array([[1., 0.], [0., -1.]]))
+        model = GeneratorModel(static_operator=np.array([[1.0, 0.0], [0.0, -1.0]]))
         with self.assertRaises(QiskitError) as qe:
-            model.signals = [1.]
+            model.signals = [1.0]
         self.assertTrue("Signals must be None if operators is None." in str(qe.exception))
 
     def test_operators_signals_length_mismatch(self):
         """Test setting operators and signals to incompatible lengths."""
         with self.assertRaises(QiskitError) as qe:
-            GeneratorModel(operators=np.array([[[1., 0.], [0., -1.]]]),
-                           signals=[1., 1.])
+            GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]), signals=[1.0, 1.0])
         self.assertTrue("same length as operators." in str(qe.exception))
 
         # test after initial instantiation
-        model = GeneratorModel(operators=np.array([[[1., 0.], [0., -1.]]]))
+        model = GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
         with self.assertRaises(QiskitError) as qe:
-            model.signals = [1., 1.]
+            model.signals = [1.0, 1.0]
         self.assertTrue("same length as operators." in str(qe.exception))
 
     def test_signals_bad_format(self):
         """Test setting signals in an unacceptable format."""
         with self.assertRaises(QiskitError) as qe:
-            GeneratorModel(operators=np.array([[[1., 0.], [0., -1.]]]),
-                           signals=lambda t: t)
+            GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]), signals=lambda t: t)
         self.assertTrue("unaccepted format." in str(qe.exception))
 
         # test after initial instantiation
-        model = GeneratorModel(operators=np.array([[[1., 0.], [0., -1.]]]))
+        model = GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
         with self.assertRaises(QiskitError) as qe:
             model.signals = lambda t: t
         self.assertTrue("unaccepted format." in str(qe.exception))
@@ -468,7 +466,9 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         state = Array([0.3, 0.1])
         state_in_frame_basis = np.conjugate(np.transpose(evect)) @ state
 
-        gm1 = GeneratorModel(operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra)
+        gm1 = GeneratorModel(
+            operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra
+        )
         self.assertAllClose(gm1(t, in_frame_basis=True), t_in_frame_actual)
         self.assertAllClose(
             gm1(t, state_in_frame_basis, in_frame_basis=True),
@@ -481,7 +481,9 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
             @ expm(np.array(t * farr))
         )
 
-        gm2 = GeneratorModel(operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra)
+        gm2 = GeneratorModel(
+            operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra
+        )
         self.assertAllClose(gm2(t, in_frame_basis=False), t_not_in_frame_actual)
         self.assertAllClose(gm1(t, state, in_frame_basis=False), t_not_in_frame_actual @ state)
 
@@ -554,7 +556,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         """Test evaluation of a GeneratorModel with only a static component."""
 
         static_model = GeneratorModel(static_operator=self.X)
-        self.assertAllClose(self.X, static_model(1.))
+        self.assertAllClose(self.X, static_model(1.0))
 
         # now with frame
         frame_op = -1j * (self.Z + 1.232 * self.Y)
@@ -595,6 +597,7 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
 
         self.basic_model.rotating_frame = None
 
+
 class TestGeneratorModelSparse(QiskitDynamicsTestCase):
     """Sparse-mode specific tests."""
 
@@ -606,47 +609,48 @@ class TestGeneratorModelSparse(QiskitDynamicsTestCase):
     def test_switch_modes_and_evaluate(self):
         """Test construction of a model, switching modes, and evaluating."""
 
-        model = GeneratorModel(static_operator=self.Z, operators=[self.X], signals=[1.])
-        self.assertAllClose(model(1.), self.Z + self.X)
+        model = GeneratorModel(static_operator=self.Z, operators=[self.X], signals=[1.0])
+        self.assertAllClose(model(1.0), self.Z + self.X)
 
-        model.evaluation_mode = 'sparse'
-        output = model(1.)
+        model.evaluation_mode = "sparse"
+        output = model(1.0)
         self.assertTrue(issparse(output))
         self.assertAllCloseSparse(output, csr_matrix(self.Z + self.X))
 
-        model.evaluation_mode = 'dense'
-        self.assertAllClose(model(1.), self.Z + self.X)
+        model.evaluation_mode = "dense"
+        self.assertAllClose(model(1.0), self.Z + self.X)
 
     def test_frame_change_sparse(self):
         """Test setting a frame after instantiation in sparse mode and evaluating."""
-        model = GeneratorModel(static_operator=self.Z,
-                               operators=[self.X],
-                               signals=[1.],
-                               evaluation_mode='sparse')
+        model = GeneratorModel(
+            static_operator=self.Z, operators=[self.X], signals=[1.0], evaluation_mode="sparse"
+        )
 
         # test non-diagonal frame
         model.rotating_frame = self.Z
         expected = expm(1j * self.Z) @ ((1 + 1j) * self.Z + self.X) @ expm(-1j * self.Z)
-        self.assertAllClose(expected, model(1.))
+        self.assertAllClose(expected, model(1.0))
 
         # test diagonal frame
-        model.rotating_frame = np.array([1., -1.])
-        val = model(1.)
+        model.rotating_frame = np.array([1.0, -1.0])
+        val = model(1.0)
         self.assertTrue(issparse(val))
         self.assertAllClose(to_array(val), expected)
 
     def test_switching_to_sparse_with_frame(self):
         """Test switching to sparse with a frame already set."""
 
-        model = GeneratorModel(static_operator=self.Z,
-                               operators=[self.X],
-                               signals=[1.],
-                               rotating_frame=np.array([1., -1.]))
+        model = GeneratorModel(
+            static_operator=self.Z,
+            operators=[self.X],
+            signals=[1.0],
+            rotating_frame=np.array([1.0, -1.0]),
+        )
 
-        model.evaluation_mode = 'sparse'
+        model.evaluation_mode = "sparse"
 
         expected = expm(1j * self.Z) @ ((1 + 1j) * self.Z + self.X) @ expm(-1j * self.Z)
-        val = model(1.)
+        val = model(1.0)
         self.assertTrue(issparse(val))
         self.assertAllClose(to_array(val), expected)
 
@@ -657,12 +661,8 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
     def test_all_None(self):
         """Test all arguments being None."""
 
-        static_operator = GeneratorModel.transfer_static_operator_between_frames(
-            None, None, None
-        )
-        operators = GeneratorModel.transfer_operators_between_frames(
-            None, None, None
-        )
+        static_operator = GeneratorModel.transfer_static_operator_between_frames(None, None, None)
+        operators = GeneratorModel.transfer_operators_between_frames(None, None, None)
 
         self.assertTrue(static_operator is None)
         self.assertTrue(operators is None)
@@ -686,7 +686,7 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         self.assertTrue(isinstance(out_operators, (np.ndarray, Array)))
 
         self.assertAllClose(out_operators, operators)
-        self.assertAllClose(out_static, np.zeros((2,2)))
+        self.assertAllClose(out_static, np.zeros((2, 2)))
 
     def test_array_inputs_pseudo_random(self):
         """Test correct handling when operators are pseudo random arrays."""
@@ -725,7 +725,7 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         Uadj = U.conj().transpose()
         Vadj = V.conj().transpose()
 
-        expected_static = Vadj @ (( U @ static_operator @ Uadj + old_frame) - new_frame) @ V
+        expected_static = Vadj @ ((U @ static_operator @ Uadj + old_frame) - new_frame) @ V
         expected_operators = Vadj @ (U @ operators @ Uadj) @ V
 
         self.assertAllClose(out_static, expected_static)
@@ -773,7 +773,15 @@ class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
             -1j * csr_matrix([[0.0, 1.0], [1.0, 0.0]]),
             -1j * csr_matrix([[0.0, -1j], [1j, 0.0]]),
         ]
-        old_frame = np.array([[0., 1.,], [1., 0.]])
+        old_frame = np.array(
+            [
+                [
+                    0.0,
+                    1.0,
+                ],
+                [1.0, 0.0],
+            ]
+        )
         new_frame = -1j * np.array([1.0, -1.0])
 
         _, U = np.linalg.eigh(old_frame)
@@ -787,10 +795,14 @@ class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
         )
 
         self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
-        self.assertTrue(isinstance(out_operators, list) and isinstance(out_operators[0], (np.ndarray, Array)))
+        self.assertTrue(
+            isinstance(out_operators, list) and isinstance(out_operators[0], (np.ndarray, Array))
+        )
 
         expected_ops = [U @ (op @ Uadj) for op in operators]
-        expected_static = U @ to_array(static_operator) @ Uadj + (-1j * old_frame) - np.diag(new_frame)
+        expected_static = (
+            U @ to_array(static_operator) @ Uadj + (-1j * old_frame) - np.diag(new_frame)
+        )
 
         self.assertAllClose(out_operators, expected_ops)
         self.assertAllClose(out_static, expected_static)

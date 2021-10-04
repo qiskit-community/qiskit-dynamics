@@ -106,14 +106,20 @@ class LindbladModel(BaseGeneratorModel):
                       Hermitian.
 
         Raises:
-            Exception: if signals incorrectly specified.
+            QiskitError: If model insufficiently or incorrectly specified.
         """
 
-        if static_hamiltonian is None and hamiltonian_operators is None and dissipator_operators is None:
-            raise QiskitError(self.__class__.__name__ +
-                              """ requires at least one of static_hamiltonian,
+        if (
+            static_hamiltonian is None
+            and hamiltonian_operators is None
+            and dissipator_operators is None
+        ):
+            raise QiskitError(
+                self.__class__.__name__
+                + """ requires at least one of static_hamiltonian,
                               hamiltonian_operators, or dissipator_operators to be
-                              specified at construction.""")
+                              specified at construction."""
+            )
 
         static_hamiltonian = to_numeric_matrix_type(static_hamiltonian)
         hamiltonian_operators = to_numeric_matrix_type(hamiltonian_operators)
@@ -127,10 +133,10 @@ class LindbladModel(BaseGeneratorModel):
             evaluation_mode=evaluation_mode,
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
-            dissipator_operators=dissipator_operators
+            dissipator_operators=dissipator_operators,
         )
         self._evaluation_mode = evaluation_mode
-        self.vectorized_operators = 'vectorized' in evaluation_mode
+        self.vectorized_operators = "vectorized" in evaluation_mode
 
         self._rotating_frame = None
         self.rotating_frame = rotating_frame
@@ -191,6 +197,11 @@ class LindbladModel(BaseGeneratorModel):
 
     @signals.setter
     def signals(self, new_signals: Tuple[List[Signal]]):
+        """Set signals.
+
+        Raises:
+            QiskitError: If signals incompatible with operator structure.
+        """
         hamiltonian_signals, dissipator_signals = new_signals
 
         # set Hamiltonian signals
@@ -209,14 +220,16 @@ class LindbladModel(BaseGeneratorModel):
 
             # verify signal length is same as operators
             if len(hamiltonian_signals) != len(self.get_hamiltonian_operators()):
-                raise QiskitError("Hamiltonian signals need to have the same length as Hamiltonian operators.")
+                raise QiskitError(
+                    "Hamiltonian signals need to have the same length as Hamiltonian operators."
+                )
 
             self._hamiltonian_signals = hamiltonian_signals
 
         # set dissipator signals
         if dissipator_signals is None:
             if self.get_dissipator_operators() is not None:
-                dissipator_signals = SignalList([1.] * len(self.get_dissipator_operators()))
+                dissipator_signals = SignalList([1.0] * len(self.get_dissipator_operators()))
             self._dissipator_signals = dissipator_signals
         elif dissipator_signals is not None and self.get_dissipator_operators() is None:
             raise QiskitError("Dissipator signals must be None if dissipator_signals is None.")
@@ -231,7 +244,9 @@ class LindbladModel(BaseGeneratorModel):
 
             # verify signal length is same as operators
             if len(dissipator_signals) != len(self.get_dissipator_operators()):
-                raise QiskitError("Dissipator signals need to have the same length as dissipator operators.")
+                raise QiskitError(
+                    "Dissipator signals need to have the same length as dissipator operators."
+                )
 
             self._dissipator_signals = dissipator_signals
 
@@ -338,7 +353,7 @@ class LindbladModel(BaseGeneratorModel):
                 new_mode,
                 self._operator_collection.static_hamiltonian,
                 self._operator_collection.hamiltonian_operators,
-                self._operator_collection.dissipator_operators
+                self._operator_collection.dissipator_operators,
             )
 
             self.vectorized_operators = "vectorized" in new_mode
@@ -387,7 +402,7 @@ class LindbladModel(BaseGeneratorModel):
             evaluation_mode=self.evaluation_mode,
             static_hamiltonian=new_static_hamiltonian,
             hamiltonian_operators=new_hamiltonian_operators,
-            dissipator_operators=new_dissipator_operators
+            dissipator_operators=new_dissipator_operators,
         )
 
     def evaluate_hamiltonian(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
@@ -426,9 +441,7 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_sig_vals = self._dissipator_signals(time)
 
         if self.vectorized_operators:
-            out = self._operator_collection.evaluate(
-                hamiltonian_sig_vals, dissipator_sig_vals
-            )
+            out = self._operator_collection.evaluate(hamiltonian_sig_vals, dissipator_sig_vals)
             return self.rotating_frame.vectorized_map_into_frame(
                 time, out, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
             )
@@ -495,11 +508,13 @@ class LindbladModel(BaseGeneratorModel):
         return rhs
 
     @classmethod
-    def construct_operator_collection(cls,
-                                      evaluation_mode: str,
-                                      static_hamiltonian: Union[None, Array, csr_matrix],
-                                      hamiltonian_operators: Union[None, Array, List[csr_matrix]],
-                                      dissipator_operators: Union[None, Array, List[csr_matrix]]) -> BaseLindbladOperatorCollection:
+    def construct_operator_collection(
+        cls,
+        evaluation_mode: str,
+        static_hamiltonian: Union[None, Array, csr_matrix],
+        hamiltonian_operators: Union[None, Array, List[csr_matrix]],
+        dissipator_operators: Union[None, Array, List[csr_matrix]],
+    ) -> BaseLindbladOperatorCollection:
         """Sets evaluation mode.
 
         Args:
@@ -542,6 +557,6 @@ class LindbladModel(BaseGeneratorModel):
                 "Evaluation mode '"
                 + str(evaluation_mode)
                 + "' is not supported. Call help("
-                + str(self.__class__.__name__)
+                + str(cls.__name__)
                 + ".evaluation_mode) for available options."
             )

@@ -43,26 +43,28 @@ class TestLindbladModelErrors(QiskitDynamicsTestCase):
 
         # test Hamiltonian signals
         with self.assertRaises(QiskitError) as qe:
-            LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]),
-                          hamiltonian_signals=[1.])
+            LindbladModel(
+                static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]), hamiltonian_signals=[1.0]
+            )
         self.assertTrue("Hamiltonian signals must be None" in str(qe.exception))
 
         # test after initial instantiation
-        model = LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]))
+        model = LindbladModel(static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]))
         with self.assertRaises(QiskitError) as qe:
-            model.signals = ([1.], None)
+            model.signals = ([1.0], None)
         self.assertTrue("Hamiltonian signals must be None" in str(qe.exception))
 
         # test dissipator signals
         with self.assertRaises(QiskitError) as qe:
-            LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]),
-                          dissipator_signals=[1.])
+            LindbladModel(
+                static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]), dissipator_signals=[1.0]
+            )
         self.assertTrue("Dissipator signals must be None" in str(qe.exception))
 
         # test after initial instantiation
-        model = LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]))
+        model = LindbladModel(static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]))
         with self.assertRaises(QiskitError) as qe:
-            model.signals = (None, [1.])
+            model.signals = (None, [1.0])
         self.assertTrue("Dissipator signals must be None" in str(qe.exception))
 
     def test_operators_signals_length_mismatch(self):
@@ -70,26 +72,30 @@ class TestLindbladModelErrors(QiskitDynamicsTestCase):
 
         # Test Hamiltonian signals
         with self.assertRaises(QiskitError) as qe:
-            LindbladModel(hamiltonian_operators=np.array([[[1., 0.], [0., -1.]]]),
-                          hamiltonian_signals=[1., 1.])
+            LindbladModel(
+                hamiltonian_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
+                hamiltonian_signals=[1.0, 1.0],
+            )
         self.assertTrue("same length" in str(qe.exception))
 
         # test after initial instantiation
-        model = LindbladModel(hamiltonian_operators=np.array([[[1., 0.], [0., -1.]]]))
+        model = LindbladModel(hamiltonian_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
         with self.assertRaises(QiskitError) as qe:
-            model.signals = ([1., 1.], None)
+            model.signals = ([1.0, 1.0], None)
         self.assertTrue("same length" in str(qe.exception))
 
         # Test dissipator signals
         with self.assertRaises(QiskitError) as qe:
-            LindbladModel(dissipator_operators=np.array([[[1., 0.], [0., -1.]]]),
-                          dissipator_signals=[1., 1.])
+            LindbladModel(
+                dissipator_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
+                dissipator_signals=[1.0, 1.0],
+            )
         self.assertTrue("same length" in str(qe.exception))
 
         # test after initial instantiation
-        model = LindbladModel(dissipator_operators=np.array([[[1., 0.], [0., -1.]]]))
+        model = LindbladModel(dissipator_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
         with self.assertRaises(QiskitError) as qe:
-            model.signals = (None, [1., 1.])
+            model.signals = (None, [1.0, 1.0])
         self.assertTrue("same length" in str(qe.exception))
 
     def test_signals_bad_format(self):
@@ -97,24 +103,28 @@ class TestLindbladModelErrors(QiskitDynamicsTestCase):
 
         # test Hamiltonian signals
         with self.assertRaises(QiskitError) as qe:
-            LindbladModel(hamiltonian_operators=np.array([[[1., 0.], [0., -1.]]]),
-                          hamiltonian_signals=lambda t: t)
+            LindbladModel(
+                hamiltonian_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
+                hamiltonian_signals=lambda t: t,
+            )
         self.assertTrue("unaccepted format." in str(qe.exception))
 
         # test after initial instantiation
-        model = LindbladModel(hamiltonian_operators=np.array([[[1., 0.], [0., -1.]]]))
+        model = LindbladModel(hamiltonian_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
         with self.assertRaises(QiskitError) as qe:
             model.signals = (lambda t: t, None)
         self.assertTrue("unaccepted format." in str(qe.exception))
 
         # test dissipator signals
         with self.assertRaises(QiskitError) as qe:
-            LindbladModel(dissipator_operators=np.array([[[1., 0.], [0., -1.]]]),
-                          dissipator_signals=lambda t: t)
+            LindbladModel(
+                dissipator_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
+                dissipator_signals=lambda t: t,
+            )
         self.assertTrue("unaccepted format." in str(qe.exception))
 
         # test after initial instantiation
-        model = LindbladModel(dissipator_operators=np.array([[[1., 0.], [0., -1.]]]))
+        model = LindbladModel(dissipator_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
         with self.assertRaises(QiskitError) as qe:
             model.signals = (None, lambda t: t)
         self.assertTrue("unaccepted format." in str(qe.exception))
@@ -201,35 +211,32 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         model = LindbladModel(dissipator_operators=[self.X])
 
-        rho = np.array([[1., 0.], [0., 0.]], dtype=complex)
+        rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
-        self.assertAllClose(model(1., rho),
-                            self._evaluate_lindblad_rhs(rho,
-                                                        ham=np.zeros((2, 2), dtype=complex),
-                                                        dissipators=[self.X]))
+        self.assertAllClose(
+            model(1.0, rho),
+            self._evaluate_lindblad_rhs(
+                rho, ham=np.zeros((2, 2), dtype=complex), dissipators=[self.X]
+            ),
+        )
 
     def test_evaluate_only_static_hamiltonian(self):
         """Test evaluation with just static hamiltonian."""
 
         model = LindbladModel(static_hamiltonian=self.X)
 
-        rho = np.array([[1., 0.], [0., 0.]], dtype=complex)
+        rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
-        self.assertAllClose(model(1., rho),
-                            self._evaluate_lindblad_rhs(rho,
-                                                        ham=self.X))
+        self.assertAllClose(model(1.0, rho), self._evaluate_lindblad_rhs(rho, ham=self.X))
 
     def test_evaluate_only_hamiltonian_operators(self):
         """Test evaluation with just hamiltonian operators."""
 
-        model = LindbladModel(hamiltonian_operators=[self.X],
-                                          hamiltonian_signals=[1.])
+        model = LindbladModel(hamiltonian_operators=[self.X], hamiltonian_signals=[1.0])
 
-        rho = np.array([[1., 0.], [0., 0.]], dtype=complex)
+        rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
-        self.assertAllClose(model(1., rho),
-                            self._evaluate_lindblad_rhs(rho,
-                                                        ham=self.X))
+        self.assertAllClose(model(1.0, rho), self._evaluate_lindblad_rhs(rho, ham=self.X))
 
     # pylint: disable=no-self-use,too-many-arguments
     def _evaluate_lindblad_rhs(
@@ -368,10 +375,17 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(ham_coeffs, ham_sigs(t))
         self.assertAllClose(diss_coeffs, diss_sigs(t))
-        self.assertAllClose(into_frame_basis(rand_diss), lindblad_model.get_dissipator_operators(in_frame_basis=True))
-        self.assertAllClose(into_frame_basis(rand_ham_ops), lindblad_model.get_hamiltonian_operators(in_frame_basis=True))
         self.assertAllClose(
-            into_frame_basis(-1j * frame_op), lindblad_model.get_static_hamiltonian(in_frame_basis=True)
+            into_frame_basis(rand_diss),
+            lindblad_model.get_dissipator_operators(in_frame_basis=True),
+        )
+        self.assertAllClose(
+            into_frame_basis(rand_ham_ops),
+            lindblad_model.get_hamiltonian_operators(in_frame_basis=True),
+        )
+        self.assertAllClose(
+            into_frame_basis(-1j * frame_op),
+            lindblad_model.get_static_hamiltonian(in_frame_basis=True),
         )
         self.assertAllClose(
             -1j * frame_op, lindblad_model.get_static_hamiltonian(in_frame_basis=False)
@@ -493,52 +507,56 @@ class TestLindbladModelSparse(QiskitDynamicsTestCase):
     def test_switch_modes_and_evaluate(self):
         """Test construction of a model, switching modes, and evaluating."""
 
-        model = LindbladModel(static_hamiltonian=self.Z,
-                              hamiltonian_operators=[self.X],
-                              hamiltonian_signals=[1.])
-        rho = np.array([[1., 0.], [0., 0.]])
+        model = LindbladModel(
+            static_hamiltonian=self.Z, hamiltonian_operators=[self.X], hamiltonian_signals=[1.0]
+        )
+        rho = np.array([[1.0, 0.0], [0.0, 0.0]])
         ham = self.Z + self.X
         expected = -1j * (ham @ rho - rho @ ham)
-        self.assertAllClose(model(1., rho), expected)
+        self.assertAllClose(model(1.0, rho), expected)
 
-        model.evaluation_mode = 'sparse'
-        self.assertAllClose(model(1., rho), expected)
+        model.evaluation_mode = "sparse"
+        self.assertAllClose(model(1.0, rho), expected)
 
-        model.evaluation_mode = 'dense'
-        self.assertAllClose(model(1., rho), expected)
+        model.evaluation_mode = "dense"
+        self.assertAllClose(model(1.0, rho), expected)
 
     def test_frame_change_sparse(self):
         """Test setting a frame after instantiation in sparse mode and evaluating."""
-        model = LindbladModel(static_hamiltonian=self.Z,
-                              hamiltonian_operators=[self.X],
-                              hamiltonian_signals=[1.],
-                               evaluation_mode='sparse')
+        model = LindbladModel(
+            static_hamiltonian=self.Z,
+            hamiltonian_operators=[self.X],
+            hamiltonian_signals=[1.0],
+            evaluation_mode="sparse",
+        )
 
         # test non-diagonal frame
         model.rotating_frame = self.Z
-        rho = np.array([[1., 0.], [0., 0.]])
+        rho = np.array([[1.0, 0.0], [0.0, 0.0]])
         ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
         expected = -1j * (ham @ rho - rho @ ham)
-        self.assertAllClose(expected, model(1., rho))
+        self.assertAllClose(expected, model(1.0, rho))
 
         # test diagonal frame
-        model.rotating_frame = np.array([1., -1.])
-        self.assertAllClose(expected, model(1., rho))
+        model.rotating_frame = np.array([1.0, -1.0])
+        self.assertAllClose(expected, model(1.0, rho))
 
     def test_switching_to_sparse_with_frame(self):
         """Test switching to sparse with a frame already set."""
 
-        model = LindbladModel(static_hamiltonian=self.Z,
-                              hamiltonian_operators=[self.X],
-                              hamiltonian_signals=[1.],
-                               rotating_frame=np.array([1., -1.]))
+        model = LindbladModel(
+            static_hamiltonian=self.Z,
+            hamiltonian_operators=[self.X],
+            hamiltonian_signals=[1.0],
+            rotating_frame=np.array([1.0, -1.0]),
+        )
 
-        model.evaluation_mode = 'sparse'
+        model.evaluation_mode = "sparse"
 
-        rho = np.array([[1., 0.], [0., 0.]])
+        rho = np.array([[1.0, 0.0], [0.0, 0.0]])
         ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
         expected = -1j * (ham @ rho - rho @ ham)
-        self.assertAllClose(expected, model(1., rho))
+        self.assertAllClose(expected, model(1.0, rho))
 
 
 def get_const_func(const):

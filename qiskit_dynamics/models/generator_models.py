@@ -16,7 +16,7 @@ Generator models module.
 """
 
 from abc import ABC, abstractmethod
-from typing import Callable, Tuple, Union, List, Optional
+from typing import Tuple, Union, List, Optional
 from copy import copy
 import numpy as np
 from scipy.sparse.csr import csr_matrix
@@ -31,7 +31,7 @@ from qiskit_dynamics.models.operator_collections import (
 )
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_array, to_csr, to_numeric_matrix_type
+from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from .rotating_frame import RotatingFrame
 
 
@@ -170,12 +170,15 @@ class GeneratorModel(BaseGeneratorModel):
 
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
-
+        Raises:
+            QiskitError: If model not sufficiently specified.
         """
         if static_operator is None and operators is None:
-            raise QiskitError(self.__class__.__name__ +
-                              """ requires at least one of static_operator or operators to be
-                              specified at construction.""")
+            raise QiskitError(
+                self.__class__.__name__
+                + """ requires at least one of static_operator or operators to be
+                              specified at construction."""
+            )
 
         # initialize internal operator representation
         self._operator_collection = self.construct_operator_collection(
@@ -355,8 +358,10 @@ class GeneratorModel(BaseGeneratorModel):
 
         if self._signals is None:
             if self._operator_collection.operators is not None:
-                raise QiskitError(self.__class__.__name__ +
-                                  " with non-empty operators cannot be evaluated without signals.")
+                raise QiskitError(
+                    self.__class__.__name__
+                    + " with non-empty operators cannot be evaluated without signals."
+                )
 
             sig_vals = None
         else:
@@ -390,8 +395,10 @@ class GeneratorModel(BaseGeneratorModel):
 
         if self._signals is None:
             if self._operator_collection.operators is not None:
-                raise QiskitError(self.__class__.__name__ +
-                                  " with non-empty operators cannot be evaluated without signals.")
+                raise QiskitError(
+                    self.__class__.__name__
+                    + " with non-empty operators cannot be evaluated without signals."
+                )
 
             sig_vals = None
         else:
@@ -417,10 +424,11 @@ class GeneratorModel(BaseGeneratorModel):
         return out
 
     @classmethod
-    def transfer_static_operator_between_frames(cls,
-                                                static_operator: Union[None, Array, csr_matrix],
-                                                new_frame: Optional[Union[Array, RotatingFrame]] = None,
-                                                old_frame: Optional[Union[Array, RotatingFrame]] = None,
+    def transfer_static_operator_between_frames(
+        cls,
+        static_operator: Union[None, Array, csr_matrix],
+        new_frame: Optional[Union[Array, RotatingFrame]] = None,
+        old_frame: Optional[Union[Array, RotatingFrame]] = None,
     ) -> Tuple[Union[None, Array]]:
         """Transform the static operator for a GeneratorModel from one frame basis into another.
 
@@ -453,7 +461,7 @@ class GeneratorModel(BaseGeneratorModel):
             if old_frame.frame_operator is not None:
                 if issparse(static_operator):
                     if old_frame.frame_operator.ndim == 1:
-                        static_operator = diags(old_frame.frame_operator, format='csr')
+                        static_operator = diags(old_frame.frame_operator, format="csr")
                     else:
                         static_operator = csr_matrix(old_frame.frame_operator)
                 else:
@@ -473,7 +481,7 @@ class GeneratorModel(BaseGeneratorModel):
             # "subtract" the frame operator from 0
             if new_frame.frame_operator is not None:
                 if issparse(static_operator):
-                    static_operator = diags(-new_frame.frame_diag, format='csr')
+                    static_operator = diags(-new_frame.frame_diag, format="csr")
                 else:
                     static_operator = np.diag(-new_frame.frame_diag)
 
@@ -504,7 +512,7 @@ class GeneratorModel(BaseGeneratorModel):
         # transform out of old frame basis
         if operators is not None:
             # For sparse case, if list, loop
-            if isinstance(operators, List):
+            if isinstance(operators, list):
                 operators = [old_frame.operator_out_of_frame_basis(op) for op in operators]
             else:
                 operators = old_frame.operator_out_of_frame_basis(operators)
@@ -512,7 +520,7 @@ class GeneratorModel(BaseGeneratorModel):
         # transform into new frame basis
         if operators is not None:
             # For sparse case, if list, loop
-            if isinstance(operators, List):
+            if isinstance(operators, list):
                 operators = [new_frame.operator_into_frame_basis(op) for op in operators]
             else:
                 operators = new_frame.operator_into_frame_basis(operators)
@@ -549,6 +557,6 @@ class GeneratorModel(BaseGeneratorModel):
             "Evaluation mode '"
             + str(evaluation_mode)
             + "' is not supported. Call help("
-            + str(self.__class__.__name__)
+            + str(cls.__name__)
             + ".evaluation_mode) for available options."
         )

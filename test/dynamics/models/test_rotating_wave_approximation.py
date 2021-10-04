@@ -40,7 +40,9 @@ class TestRotatingWave(QiskitDynamicsTestCase):
         self.assertAllClose(sigs(0), np.array([-1, -1, 3]))
         ops = np.array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]])
 
-        GM = GeneratorModel(operators=ops, static_operator=None, signals=sigs, rotating_frame=frame_op)
+        GM = GeneratorModel(
+            operators=ops, static_operator=None, signals=sigs, rotating_frame=frame_op
+        )
         self.assertAllClose(GM(0), np.array([[3 - 4j, -1], [-1 - 2j, -3 - 2j]]))
         self.assertAllClose(
             GM(1),

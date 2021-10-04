@@ -149,16 +149,22 @@ class HamiltonianModel(GeneratorModel):
         return -1j * super().evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
 
 
-def is_hermitian(operators: Union[Array, csr_matrix, List[csr_matrix]], tol: Optional[float] = 1e-10) -> bool:
+def is_hermitian(
+    operators: Union[Array, csr_matrix, List[csr_matrix]], tol: Optional[float] = 1e-10
+) -> bool:
     """Validate that operators are Hermitian.
 
     Args:
         operators: Either a 2d array representing a single operator, a 3d array
                    representing a list of operators, a csr_matrix, or a list
                    of csr_matrix.
+        tol: Tolerance for checking zeros.
 
     Returns:
         bool: Whether or not the operators are Hermitian to within tolerance.
+
+    Raises:
+        QiskitError: If an unexpeted type.
     """
     if isinstance(operators, (np.ndarray, Array)):
         adj = None
@@ -166,8 +172,10 @@ def is_hermitian(operators: Union[Array, csr_matrix, List[csr_matrix]], tol: Opt
             adj = np.transpose(np.conjugate(operators))
         elif operators.ndim == 3:
             adj = np.transpose(np.conjugate(operators), (0, 2, 1))
-        return np.linalg.norm(adj - operators) < 1e-10
+        return np.linalg.norm(adj - operators) < tol
     elif issparse(operators):
-        return spnorm(operators - operators.conj().transpose()) < 1e-10
+        return spnorm(operators - operators.conj().transpose()) < tol
     elif isinstance(operators, list) and issparse(operators[0]):
-        return all([spnorm(op - op.conj().transpose()) < 1e-10 for op in operators])
+        return all(spnorm(op - op.conj().transpose()) < tol for op in operators)
+
+    raise QiskitError("is_hermitian got an unexpected type.")

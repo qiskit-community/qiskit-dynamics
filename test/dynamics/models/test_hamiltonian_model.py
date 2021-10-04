@@ -271,7 +271,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         """Test evaluation of a GeneratorModel with only a static component."""
 
         static_model = HamiltonianModel(static_operator=self.X)
-        self.assertAllClose(-1j * self.X, static_model(1.))
+        self.assertAllClose(-1j * self.X, static_model(1.0))
 
         # now with frame
         frame_op = -1j * (self.Z + 1.232 * self.Y)
@@ -315,33 +315,46 @@ class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
 
         self.basic_hamiltonian.rotating_frame = None
 
+
 class Testis_hermitian(QiskitDynamicsTestCase):
     """Test is_hermitian validation function."""
 
     def test_2d_array(self):
         """Test 2d array case."""
-        self.assertTrue(is_hermitian(Array([[1., 0.], [0., 1.]])))
-        self.assertFalse(is_hermitian(Array([[0., 1.], [0., 0.]])))
-        self.assertFalse(is_hermitian(Array([[0., 1j], [0., 0.]])))
-        self.assertTrue(is_hermitian(Array([[0., 1j], [-1j, 0.]])))
+        self.assertTrue(is_hermitian(Array([[1.0, 0.0], [0.0, 1.0]])))
+        self.assertFalse(is_hermitian(Array([[0.0, 1.0], [0.0, 0.0]])))
+        self.assertFalse(is_hermitian(Array([[0.0, 1j], [0.0, 0.0]])))
+        self.assertTrue(is_hermitian(Array([[0.0, 1j], [-1j, 0.0]])))
 
     def test_3d_array(self):
         """Test 3d array case."""
-        self.assertTrue(is_hermitian(Array([[[1., 0.], [0., 1.]]])))
-        self.assertFalse(is_hermitian(Array([[[0., 1.], [0., 0.]], [[0., 1.], [1., 0.]]])))
-        self.assertFalse(is_hermitian(Array([[[0., 1j], [0., 0.]], [[1., 0.], [0., 1.]]])))
-        self.assertTrue(is_hermitian(Array([[[0., 1j], [-1j, 0.]], [[0., 1.], [1., 0.]]])))
+        self.assertTrue(is_hermitian(Array([[[1.0, 0.0], [0.0, 1.0]]])))
+        self.assertFalse(is_hermitian(Array([[[0.0, 1.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 0.0]]])))
+        self.assertFalse(is_hermitian(Array([[[0.0, 1j], [0.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]])))
+        self.assertTrue(is_hermitian(Array([[[0.0, 1j], [-1j, 0.0]], [[0.0, 1.0], [1.0, 0.0]]])))
 
     def test_csr_matrix(self):
         """Test csr_matrix case."""
-        self.assertTrue(is_hermitian(csr_matrix([[1., 0.], [0., 1.]])))
-        self.assertFalse(is_hermitian(csr_matrix([[0., 1.], [0., 0.]])))
-        self.assertFalse(is_hermitian(csr_matrix([[0., 1j], [0., 0.]])))
-        self.assertTrue(is_hermitian(csr_matrix([[0., 1j], [-1j, 0.]])))
+        self.assertTrue(is_hermitian(csr_matrix([[1.0, 0.0], [0.0, 1.0]])))
+        self.assertFalse(is_hermitian(csr_matrix([[0.0, 1.0], [0.0, 0.0]])))
+        self.assertFalse(is_hermitian(csr_matrix([[0.0, 1j], [0.0, 0.0]])))
+        self.assertTrue(is_hermitian(csr_matrix([[0.0, 1j], [-1j, 0.0]])))
 
     def test_list_csr_matrix(self):
         """Test list of csr_matrix case."""
-        self.assertTrue(is_hermitian([csr_matrix([[1., 0.], [0., 1.]])]))
-        self.assertFalse(is_hermitian([csr_matrix([[0., 1.], [0., 0.]]), csr_matrix([[0., 1.], [1., 0.]])]))
-        self.assertFalse(is_hermitian([csr_matrix([[0., 1j], [0., 0.]]), csr_matrix([[1., 0.], [0., 1.]])]))
-        self.assertTrue(is_hermitian([csr_matrix([[0., 1j], [-1j, 0.]]), csr_matrix([[0., 1.], [1., 0.]])]))
+        self.assertTrue(is_hermitian([csr_matrix([[1.0, 0.0], [0.0, 1.0]])]))
+        self.assertFalse(
+            is_hermitian(
+                [csr_matrix([[0.0, 1.0], [0.0, 0.0]]), csr_matrix([[0.0, 1.0], [1.0, 0.0]])]
+            )
+        )
+        self.assertFalse(
+            is_hermitian(
+                [csr_matrix([[0.0, 1j], [0.0, 0.0]]), csr_matrix([[1.0, 0.0], [0.0, 1.0]])]
+            )
+        )
+        self.assertTrue(
+            is_hermitian(
+                [csr_matrix([[0.0, 1j], [-1j, 0.0]]), csr_matrix([[0.0, 1.0], [1.0, 0.0]])]
+            )
+        )
