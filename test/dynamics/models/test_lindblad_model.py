@@ -196,6 +196,41 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         value = self.basic_lindblad(t, A)
         self.assertAllClose(expected, value)
 
+    def test_evaluate_only_dissipators(self):
+        """Test evaluation with just dissipators."""
+
+        model = LindbladModel(dissipator_operators=[self.X])
+
+        rho = np.array([[1., 0.], [0., 0.]], dtype=complex)
+
+        self.assertAllClose(model(1., rho),
+                            self._evaluate_lindblad_rhs(rho,
+                                                        ham=np.zeros((2, 2), dtype=complex),
+                                                        dissipators=[self.X]))
+
+    def test_evaluate_only_static_hamiltonian(self):
+        """Test evaluation with just static hamiltonian."""
+
+        model = LindbladModel(static_hamiltonian=self.X)
+
+        rho = np.array([[1., 0.], [0., 0.]], dtype=complex)
+
+        self.assertAllClose(model(1., rho),
+                            self._evaluate_lindblad_rhs(rho,
+                                                        ham=self.X))
+
+    def test_evaluate_only_hamiltonian_operators(self):
+        """Test evaluation with just hamiltonian operators."""
+
+        model = LindbladModel(hamiltonian_operators=[self.X],
+                                          hamiltonian_signals=[1.])
+
+        rho = np.array([[1., 0.], [0., 0.]], dtype=complex)
+
+        self.assertAllClose(model(1., rho),
+                            self._evaluate_lindblad_rhs(rho,
+                                                        ham=self.X))
+
     # pylint: disable=no-self-use,too-many-arguments
     def _evaluate_lindblad_rhs(
         self, A, ham, dissipators=None, dissipator_coeffs=None, frame_op=None, t=0.0
