@@ -224,7 +224,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
     def test_empty_collection_error(self):
         """Test errors get raised for empty collection."""
-        collection = DenseLindbladCollection(None, None, None)
+        collection = DenseLindbladCollection()
         with self.assertRaises(QiskitError) as qe:
             collection(None, None, np.array([1., 0.]))
         self.assertTrue("DenseLindbladCollection with None" in str(qe.exception))
@@ -345,6 +345,67 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
             axes=1,
         )
         self.assertAllClose(dis_anticommutator + dis_extra, res)
+
+    def test_static_dissipator_only(self):
+        """Test correct evaluation with just static dissipators."""
+        collection = DenseLindbladCollection(
+            static_dissipators=self.dissipator_operators,
+        )
+        res = collection(None, None, self.rho)
+        dis_anticommutator = (-1 / 2) * np.tensordot(
+            np.ones_like(self.dis_sig_vals),
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        )
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = np.tensordot(
+            np.ones_like(self.dis_sig_vals),
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        )
+        self.assertAllClose(dis_anticommutator + dis_extra, res)
+
+    def test_both_dissipators(self):
+        """Test correct evaluation with both kinds of dissipators."""
+
+        sin_ops = np.sin(self.dissipator_operators)
+
+        collection = DenseLindbladCollection(
+            static_dissipators=self.dissipator_operators,
+            dissipator_operators=sin_ops
+        )
+        res = collection(None, self.dis_sig_vals, self.rho)
+        dis_anticommutator = ((-1 / 2) * np.tensordot(
+            np.ones_like(self.dis_sig_vals),
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        ) + (-1 / 2) * np.tensordot(
+            self.dis_sig_vals,
+            np.conjugate(np.transpose(sin_ops, [0, 2, 1]))
+            @ sin_ops,
+            axes=1,
+        ))
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = (np.tensordot(
+            np.ones_like(self.dis_sig_vals),
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        ) +
+        np.tensordot(
+            self.dis_sig_vals,
+            sin_ops
+            @ self.rho
+            @ np.conjugate(np.transpose(sin_ops, [0, 2, 1])),
+            axes=1,
+        ))
+        self.assertAllClose(dis_anticommutator + dis_extra, res)
+
 
 
 class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):

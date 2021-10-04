@@ -234,6 +234,8 @@ class BaseLindbladOperatorCollection(ABC):
     In particular, this object represents the function:
         .. math::
             \Lambda(c_1, c_2, \rho) = -i[H_d + \sum_j c_{1,j}H_j,\rho]
+                                        + \sum_j(D_j\rho D_j^\dagger
+                                          - (1/2) * {D_j^\daggerD_j,\rho})
                                       + \sum_jc_{2,j}(L_j\rho L_j^\dagger
                                         - (1/2) * {L_j^\daggerL_j,\rho})
 
@@ -248,6 +250,7 @@ class BaseLindbladOperatorCollection(ABC):
         self,
         static_hamiltonian: Optional[any] = None,
         hamiltonian_operators: Optional[any] = None,
+        static_dissipators: Optional[any] = None,
         dissipator_operators: Optional[any] = None,
     ):
         r"""Initialize collection. Argument types depend on concrete subclass.
@@ -257,10 +260,12 @@ class BaseLindbladOperatorCollection(ABC):
                                 system.
             hamiltonian_operators: Specifies breakdown of Hamiltonian
                 as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
+            static_dissipators: Constant dissipator terms.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
         """
         self.static_hamiltonian = static_hamiltonian
         self.hamiltonian_operators = hamiltonian_operators
+        self.static_dissipators = static_dissipators
         self.dissipator_operators = dissipator_operators
 
     @property
@@ -282,6 +287,16 @@ class BaseLindbladOperatorCollection(ABC):
     @abstractmethod
     def hamiltonian_operators(self, new_hamiltonian_operators: Optional[Array] = None):
         """Set operators for non-static part of Hamiltonian."""
+
+    @property
+    @abstractmethod
+    def static_dissipators(self) -> Array:
+        """Returns operators for static part of dissipator."""
+
+    @static_dissipators.setter
+    @abstractmethod
+    def static_dissipators(self, new_static_dissipators: Optional[Array] = None):
+        """Sets operators for static part of dissipator."""
 
     @property
     @abstractmethod
@@ -339,6 +354,21 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
         self._hamiltonian_operators = to_array(new_hamiltonian_operators)
 
     @property
+    def static_dissipators(self) -> Array:
+        return self._static_dissipators
+
+    @static_dissipators.setter
+    def static_dissipators(self, new_static_dissipators: Optional[Array] = None):
+        self._static_dissipators = to_array(new_static_dissipators)
+        if self._static_dissipators is not None:
+            self._static_dissipators_adj = np.conjugate(
+                np.transpose(self._static_dissipators, [0, 2, 1])
+            ).copy()
+            self._static_dissipators_product_sum = -0.5 * np.sum(np.matmul(
+                self._static_dissipators_adj, self._static_dissipators
+            ), axis=0)
+
+    @property
     def dissipator_operators(self) -> Array:
         return self._dissipator_operators
 
@@ -379,7 +409,7 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as :math:`(A+B)y + y(A-B) + C`, where
             .. math::
-            A = (-1/2)*\sum_j\gamma_j(t) L_j^\dagger L_j,
+            A = (-1/2)*\sum_jD_j^\dagger D_j + (-1/2)*\sum_j\gamma_j(t) L_j^\dagger L_j,
 
             B = -iH,
 
@@ -400,10 +430,19 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
             hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals) # B matrix
 
         # if dissipators present (includes both hamiltonian is None and is not None)
-        if self._dissipator_operators is not None:
-            dissipators_matrix = (-1 / 2) * np.tensordot(  # A matrix
-                dis_sig_vals, self._dissipator_products, axes=1
-            )
+        if self._dissipator_operators is not None or self._static_dissipators is not None:
+
+            # A matrix
+            if self._static_dissipators is None:
+                dissipators_matrix = np.tensordot(
+                    -0.5 * dis_sig_vals, self._dissipator_products, axes=1
+                )
+            elif self._dissipator_operators is None:
+                dissipators_matrix = self._static_dissipators_product_sum
+            else:
+                dissipators_matrix = (self._static_dissipators_product_sum +np.tensordot(
+                    -0.5 * dis_sig_vals, self._dissipator_products, axes=1
+                ))
 
             if hamiltonian_matrix is not None:
                 left_mult_contribution = np.matmul(hamiltonian_matrix + dissipators_matrix, y)
@@ -418,13 +457,33 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
                     [1, 0, 2, 3]
                 )
 
-            both_mult_contribution = np.tensordot(
-                dis_sig_vals,
-                np.matmul(
-                    self._dissipator_operators, np.matmul(y, self._dissipator_operators_adj)
-                ),
-                axes=(-1, -3),
-            )  # C
+
+            # A matrix
+            if self._static_dissipators is None:
+                both_mult_contribution = np.tensordot(
+                    dis_sig_vals,
+                    np.matmul(
+                        self._dissipator_operators, np.matmul(y, self._dissipator_operators_adj)
+                    ),
+                    axes=(-1, -3),
+                )
+            elif self._dissipator_operators is None:
+                both_mult_contribution = np.sum(np.matmul(
+                        self._static_dissipators, np.matmul(y, self._static_dissipators_adj)
+                    ),
+                    axis=-3)
+            else:
+                both_mult_contribution = (np.sum(np.matmul(
+                        self._static_dissipators, np.matmul(y, self._static_dissipators_adj)
+                    ),
+                    axis=-3)
+                    + np.tensordot(
+                        dis_sig_vals,
+                        np.matmul(
+                            self._dissipator_operators, np.matmul(y, self._dissipator_operators_adj)
+                        ),
+                        axes=(-1, -3),
+                    ))
 
             return left_mult_contribution + right_mult_contribution + both_mult_contribution
         # if just hamiltonian
@@ -432,8 +491,8 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
             return np.dot(hamiltonian_matrix, y) - np.dot(y, hamiltonian_matrix)
         else:
             raise QiskitError("""DenseLindbladCollection with None for static_hamiltonian,
-                                 hamiltonian_operators, and dissipator_operators, cannot evaluate
-                                 rhs.""")
+                                 hamiltonian_operators, static_dissipators, and
+                                 dissipator_operators, cannot evaluate rhs.""")
 
 
 class SparseLindbladCollection(DenseLindbladCollection):
