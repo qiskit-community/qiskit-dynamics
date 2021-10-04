@@ -64,6 +64,13 @@ class TestLindbladModelValidation(QiskitDynamicsTestCase):
         self.assertAllClose(lindblad_model(1.0, np.eye(2)), np.zeros(2))
 
 
+class TestLindbladModelErrors(QiskitDynamicsTestCase):
+    """Test error raising for LindbladModel."""
+
+    pass
+
+
+
 class TestLindbladModel(QiskitDynamicsTestCase):
     """Tests for LindbladModel."""
 

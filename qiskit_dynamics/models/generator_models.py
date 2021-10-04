@@ -279,7 +279,7 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != self.get_operators().shape[0]:
+            if len(signals) != len(self.get_operators()):
                 raise QiskitError("Signals needs to have the same length as operators.")
 
             self._signals = signals

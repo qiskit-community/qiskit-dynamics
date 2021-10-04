@@ -80,11 +80,11 @@ class LindbladModel(BaseGeneratorModel):
 
     def __init__(
         self,
-        hamiltonian_operators: Array,
+        static_hamiltonian: Optional[Array] = None,
+        hamiltonian_operators: Optional[Array] = None,
         hamiltonian_signals: Union[List[Signal], SignalList] = None,
         dissipator_operators: Array = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        static_hamiltonian: Optional[Array] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: Optional[str] = "dense",
         validate: bool = True,
@@ -92,11 +92,11 @@ class LindbladModel(BaseGeneratorModel):
         """Initialize.
 
         Args:
+            static_hamiltonian: Optional, constant term in Hamiltonian.
             hamiltonian_operators: list of operators in Hamiltonian.
             hamiltonian_signals: list of signals in the Hamiltonian.
             dissipator_operators: list of dissipator operators.
             dissipator_signals: list of dissipator signals.
-            static_hamiltonian: Optional, constant term in Hamiltonian.
             rotating_frame: rotating frame in which calcualtions are to be done.
                             If provided, it is assumed that all operators were
                             already in the frame basis.
@@ -108,6 +108,12 @@ class LindbladModel(BaseGeneratorModel):
         Raises:
             Exception: if signals incorrectly specified.
         """
+
+        if static_hamiltonian is None and hamiltonian_operators is None and dissipator_operators is None:
+            raise QiskitError(self.__class__.__name__ +
+                              """ requires at least one of static_hamiltonian,
+                              hamiltonian_operators, or dissipator_operators to be
+                              specified at construction.""")
 
         static_hamiltonian = to_numeric_matrix_type(static_hamiltonian)
         hamiltonian_operators = to_numeric_matrix_type(hamiltonian_operators)
@@ -131,6 +137,39 @@ class LindbladModel(BaseGeneratorModel):
 
         self.signals = (hamiltonian_signals, dissipator_signals)
 
+    @classmethod
+    def from_hamiltonian(
+        cls,
+        hamiltonian: HamiltonianModel,
+        dissipator_operators: Optional[Array] = None,
+        dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
+        evaluation_mode: Optional[str] = None,
+    ):
+        """Construct from a :class:`HamiltonianModel`.
+
+        Args:
+            hamiltonian: The :class:`HamiltonianModel`.
+            dissipator_operators: List of dissipator operators.
+            dissipator_signals: List of dissipator signals.
+            evaluation_mode: Evaluation mode. See LindbladModel.evaluation_mode
+                for more information.
+
+        Returns:
+            LindbladModel: Linblad model from parameters.
+        """
+
+        if evaluation_mode is None:
+            evaluation_mode = hamiltonian.evaluation_mode
+
+        return cls(
+            hamiltonian_operators=hamiltonian.get_operators(False),
+            hamiltonian_signals=hamiltonian.signals,
+            dissipator_operators=dissipator_operators,
+            dissipator_signals=dissipator_signals,
+            static_hamiltonian=hamiltonian.get_static_operator(False),
+            evaluation_mode=evaluation_mode,
+        )
+
     @property
     def dim(self) -> int:
         if self._operator_collection.static_hamiltonian is not None:
@@ -153,46 +192,48 @@ class LindbladModel(BaseGeneratorModel):
     @signals.setter
     def signals(self, new_signals: Tuple[List[Signal]]):
         hamiltonian_signals, dissipator_signals = new_signals
-        ham_ops = self.get_hamiltonian_operators()
-        diss_ops = self.get_dissipator_operators()
 
-        if isinstance(hamiltonian_signals, list):
-            hamiltonian_signals = SignalList(hamiltonian_signals)
+        # set Hamiltonian signals
+        if hamiltonian_signals is None:
+            self._hamiltonian_signals = None
+        elif hamiltonian_signals is not None and self.get_hamiltonian_operators() is None:
+            raise QiskitError("Hamiltonian signals must be None if hamiltonian_operators is None.")
+        else:
+            # if signals is a list, instantiate a SignalList
+            if isinstance(hamiltonian_signals, list):
+                hamiltonian_signals = SignalList(hamiltonian_signals)
 
-        if hamiltonian_signals is not None:
+            # if it isn't a SignalList by now, raise an error
             if not isinstance(hamiltonian_signals, SignalList):
-                raise QiskitError(
-                    """hamiltonian_signals must either be a list of
-                                 Signals, or a SignalList."""
-                )
-            if ham_ops is not None and len(hamiltonian_signals) != len(ham_ops):
-                raise QiskitError(
-                    """hamiltonian_signals must have the same length as the
-                       hamiltonian_operators."""
-                )
+                raise QiskitError("Hamiltonian signals specified in unaccepted format.")
 
+            # verify signal length is same as operators
+            if len(hamiltonian_signals) != len(self.get_hamiltonian_operators()):
+                raise QiskitError("Hamiltonian signals need to have the same length as Hamiltonian operators.")
+
+            self._hamiltonian_signals = hamiltonian_signals
+
+        # set dissipator signals
         if dissipator_signals is None:
-            if diss_ops is not None:
-                dissipator_signals = SignalList([1.0] * len(diss_ops))
-            else:
-                dissipator_signals = None
-        elif isinstance(dissipator_signals, list):
-            dissipator_signals = SignalList(dissipator_signals)
+            if self.get_dissipator_operators() is not None:
+                dissipator_signals = SignalList([1.] * len(self.get_dissipator_operators()))
+            self._dissipator_signals = dissipator_signals
+        elif dissipator_signals is not None and self.get_dissipator_operators() is None:
+            raise QiskitError("Dissipator signals must be None if dissipator_signals is None.")
+        else:
+            # if signals is a list, instantiate a SignalList
+            if isinstance(dissipator_signals, list):
+                dissipator_signals = SignalList(dissipator_signals)
 
-        if dissipator_signals is not None:
+            # if it isn't a SignalList by now, raise an error
             if not isinstance(dissipator_signals, SignalList):
-                raise QiskitError(
-                    """dissipator_signals must either be a list of
-                                     Signals, or a SignalList."""
-                )
-            if diss_ops is not None and len(dissipator_signals) != len(diss_ops):
-                raise QiskitError(
-                    """dissipator_signals must have the same length as the
-                       dissipator_operators."""
-                )
+                raise QiskitError("Dissipator signals specified in unaccepted format.")
 
-        self._hamiltonian_signals = hamiltonian_signals
-        self._dissipator_signals = dissipator_signals
+            # verify signal length is same as operators
+            if len(dissipator_signals) != len(self.get_dissipator_operators()):
+                raise QiskitError("Dissipator signals need to have the same length as dissipator operators.")
+
+            self._dissipator_signals = dissipator_signals
 
     def get_static_hamiltonian(self, in_frame_basis: Optional[bool] = False) -> Array:
         """Get the constant hamiltonian term.
@@ -303,39 +344,6 @@ class LindbladModel(BaseGeneratorModel):
             self.vectorized_operators = "vectorized" in new_mode
             self._evaluation_mode = new_mode
 
-    @classmethod
-    def from_hamiltonian(
-        cls,
-        hamiltonian: HamiltonianModel,
-        dissipator_operators: Optional[Array] = None,
-        dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        evaluation_mode: Optional[str] = None,
-    ):
-        """Construct from a :class:`HamiltonianModel`.
-
-        Args:
-            hamiltonian: The :class:`HamiltonianModel`.
-            dissipator_operators: List of dissipator operators.
-            dissipator_signals: List of dissipator signals.
-            evaluation_mode: Evaluation mode. See LindbladModel.evaluation_mode
-                for more information.
-
-        Returns:
-            LindbladModel: Linblad model from parameters.
-        """
-
-        if evaluation_mode is None:
-            evaluation_mode = hamiltonian.evaluation_mode
-
-        return cls(
-            hamiltonian_operators=hamiltonian.get_operators(False),
-            hamiltonian_signals=hamiltonian.signals,
-            dissipator_operators=dissipator_operators,
-            dissipator_signals=dissipator_signals,
-            static_hamiltonian=hamiltonian.get_static_operator(False),
-            evaluation_mode=evaluation_mode,
-        )
-
     @property
     def rotating_frame(self):
         return self._rotating_frame
@@ -391,7 +399,11 @@ class LindbladModel(BaseGeneratorModel):
                 the frame operator is diagonal.
         Returns:
             Array: Hamiltonian matrix."""
-        hamiltonian_sig_vals = self._hamiltonian_signals(time)
+
+        hamiltonian_sig_vals = None
+        if self._hamiltonian_signals is not None:
+            hamiltonian_sig_vals = self._hamiltonian_signals(time)
+
         ham = self._operator_collection.evaluate_hamiltonian(hamiltonian_sig_vals)
         if self.rotating_frame.frame_diag is not None:
             ham = self.rotating_frame.operator_into_frame(
@@ -405,13 +417,17 @@ class LindbladModel(BaseGeneratorModel):
         return ham
 
     def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+        hamiltonian_sig_vals = None
+        if self._hamiltonian_signals is not None:
+            hamiltonian_sig_vals = self._hamiltonian_signals(time)
+
+        dissipator_sig_vals = None
         if self._dissipator_signals is not None:
             dissipator_sig_vals = self._dissipator_signals(time)
-        else:
-            dissipator_sig_vals = None
+
         if self.vectorized_operators:
             out = self._operator_collection.evaluate(
-                self._hamiltonian_signals(time), dissipator_sig_vals
+                hamiltonian_sig_vals, dissipator_sig_vals
             )
             return self.rotating_frame.vectorized_map_into_frame(
                 time, out, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
@@ -439,11 +455,13 @@ class LindbladModel(BaseGeneratorModel):
             Array: Either the evaluated generator or the state.
         """
 
-        hamiltonian_sig_vals = self._hamiltonian_signals(time)
+        hamiltonian_sig_vals = None
+        if self._hamiltonian_signals is not None:
+            hamiltonian_sig_vals = self._hamiltonian_signals(time)
+
+        dissipator_sig_vals = None
         if self._dissipator_signals is not None:
             dissipator_sig_vals = self._dissipator_signals(time)
-        else:
-            dissipator_sig_vals = None
 
         if self.rotating_frame.frame_diag is not None:
 
