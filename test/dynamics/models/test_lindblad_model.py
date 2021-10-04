@@ -28,6 +28,98 @@ from qiskit_dynamics.dispatch.dispatch import Dispatch
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
+class TestLindbladModelErrors(QiskitDynamicsTestCase):
+    """Test error raising for LindbladModel."""
+
+    def test_all_operators_None(self):
+        """Test error raised if no operators set."""
+
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel()
+        self.assertTrue("requires at least one of" in str(qe.exception))
+
+    def test_operators_None_signals_not_None(self):
+        """Test setting signals with operators being None."""
+
+        # test Hamiltonian signals
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]),
+                          hamiltonian_signals=[1.])
+        self.assertTrue("Hamiltonian signals must be None" in str(qe.exception))
+
+        # test after initial instantiation
+        model = LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = ([1.], None)
+        self.assertTrue("Hamiltonian signals must be None" in str(qe.exception))
+
+        # test dissipator signals
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]),
+                          dissipator_signals=[1.])
+        self.assertTrue("Dissipator signals must be None" in str(qe.exception))
+
+        # test after initial instantiation
+        model = LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = (None, [1.])
+        self.assertTrue("Dissipator signals must be None" in str(qe.exception))
+
+    def test_operators_signals_length_mismatch(self):
+        """Test setting operators and signals to incompatible lengths."""
+
+        # Test Hamiltonian signals
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel(hamiltonian_operators=np.array([[[1., 0.], [0., -1.]]]),
+                          hamiltonian_signals=[1., 1.])
+        self.assertTrue("same length" in str(qe.exception))
+
+        # test after initial instantiation
+        model = LindbladModel(hamiltonian_operators=np.array([[[1., 0.], [0., -1.]]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = ([1., 1.], None)
+        self.assertTrue("same length" in str(qe.exception))
+
+        # Test dissipator signals
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel(dissipator_operators=np.array([[[1., 0.], [0., -1.]]]),
+                          dissipator_signals=[1., 1.])
+        self.assertTrue("same length" in str(qe.exception))
+
+        # test after initial instantiation
+        model = LindbladModel(dissipator_operators=np.array([[[1., 0.], [0., -1.]]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = (None, [1., 1.])
+        self.assertTrue("same length" in str(qe.exception))
+
+    def test_signals_bad_format(self):
+        """Test setting signals in an unacceptable format."""
+
+        # test Hamiltonian signals
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel(hamiltonian_operators=np.array([[[1., 0.], [0., -1.]]]),
+                          hamiltonian_signals=lambda t: t)
+        self.assertTrue("unaccepted format." in str(qe.exception))
+
+        # test after initial instantiation
+        model = LindbladModel(hamiltonian_operators=np.array([[[1., 0.], [0., -1.]]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = (lambda t: t, None)
+        self.assertTrue("unaccepted format." in str(qe.exception))
+
+        # test dissipator signals
+        with self.assertRaises(QiskitError) as qe:
+            LindbladModel(dissipator_operators=np.array([[[1., 0.], [0., -1.]]]),
+                          dissipator_signals=lambda t: t)
+        self.assertTrue("unaccepted format." in str(qe.exception))
+
+        # test after initial instantiation
+        model = LindbladModel(dissipator_operators=np.array([[[1., 0.], [0., -1.]]]))
+        with self.assertRaises(QiskitError) as qe:
+            model.signals = (None, lambda t: t)
+        self.assertTrue("unaccepted format." in str(qe.exception))
+
+
 class TestLindbladModelValidation(QiskitDynamicsTestCase):
     """Test validation handling of LindbladModel."""
 
@@ -62,13 +154,6 @@ class TestLindbladModelValidation(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(lindblad_model(1.0, np.eye(2)), np.zeros(2))
-
-
-class TestLindbladModelErrors(QiskitDynamicsTestCase):
-    """Test error raising for LindbladModel."""
-
-    pass
-
 
 
 class TestLindbladModel(QiskitDynamicsTestCase):
