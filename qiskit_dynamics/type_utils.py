@@ -364,7 +364,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
     if op is None:
         return op
 
-    if isinstance(op, np.ndarray):
+    if isinstance(op, np.ndarray) and op.dtype != "O":
         if dispatch.default_backend() in [None, "numpy"]:
             return op
         else:

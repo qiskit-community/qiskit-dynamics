@@ -243,7 +243,9 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         return ham_part + diss_part
 
     def test_lindblad_pseudorandom(self):
-        """Test LindbladModel with structureless pseudorandom model parameters."""
+        """Test various evaluation modes of LindbladModel with structureless pseudorandom
+        model parameters.
+        """
         rng = np.random.default_rng(9848)
         dim = 10
         num_ham = 4
@@ -295,7 +297,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
         frame_op = Array(rand_op - rand_op.conj().transpose())
         evect = np.linalg.eigh(1j * frame_op)[1]
-        f = lambda x: evect.T.conj() @ x @ evect
+        into_frame_basis = lambda x: evect.T.conj() @ x @ evect
 
         # construct model
         hamiltonian = HamiltonianModel(operators=rand_ham_ops, signals=ham_sigs)
@@ -331,16 +333,16 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(ham_coeffs, ham_sigs(t))
         self.assertAllClose(diss_coeffs, diss_sigs(t))
-        self.assertAllClose(f(rand_diss), lindblad_model.get_dissipator_operators(in_frame_basis=True))
-        self.assertAllClose(f(rand_ham_ops), lindblad_model.get_hamiltonian_operators(in_frame_basis=True))
+        self.assertAllClose(into_frame_basis(rand_diss), lindblad_model.get_dissipator_operators(in_frame_basis=True))
+        self.assertAllClose(into_frame_basis(rand_ham_ops), lindblad_model.get_hamiltonian_operators(in_frame_basis=True))
         self.assertAllClose(
-            f(-1j * frame_op), lindblad_model.get_static_hamiltonian(in_frame_basis=True)
+            into_frame_basis(-1j * frame_op), lindblad_model.get_static_hamiltonian(in_frame_basis=True)
         )
         self.assertAllClose(
             -1j * frame_op, lindblad_model.get_static_hamiltonian(in_frame_basis=False)
         )
         self.assertAllClose(
-            f(-1j * frame_op), lindblad_model._operator_collection.static_hamiltonian
+            into_frame_basis(-1j * frame_op), lindblad_model._operator_collection.static_hamiltonian
         )
         self.assertAllClose(expected, value)
 
@@ -443,6 +445,65 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
         )
 
         self.basic_lindblad.rotating_frame = None
+
+
+class TestLindbladModelSparse(QiskitDynamicsTestCase):
+    """Sparse-mode specific tests."""
+
+    def setUp(self):
+        self.X = Array(Operator.from_label("X").data)
+        self.Y = Array(Operator.from_label("Y").data)
+        self.Z = Array(Operator.from_label("Z").data)
+
+    def test_switch_modes_and_evaluate(self):
+        """Test construction of a model, switching modes, and evaluating."""
+
+        model = LindbladModel(static_hamiltonian=self.Z,
+                              hamiltonian_operators=[self.X],
+                              hamiltonian_signals=[1.])
+        rho = np.array([[1., 0.], [0., 0.]])
+        ham = self.Z + self.X
+        expected = -1j * (ham @ rho - rho @ ham)
+        self.assertAllClose(model(1., rho), expected)
+
+        model.evaluation_mode = 'sparse'
+        self.assertAllClose(model(1., rho), expected)
+
+        model.evaluation_mode = 'dense'
+        self.assertAllClose(model(1., rho), expected)
+
+    def test_frame_change_sparse(self):
+        """Test setting a frame after instantiation in sparse mode and evaluating."""
+        model = LindbladModel(static_hamiltonian=self.Z,
+                              hamiltonian_operators=[self.X],
+                              hamiltonian_signals=[1.],
+                               evaluation_mode='sparse')
+
+        # test non-diagonal frame
+        model.rotating_frame = self.Z
+        rho = np.array([[1., 0.], [0., 0.]])
+        ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
+        expected = -1j * (ham @ rho - rho @ ham)
+        self.assertAllClose(expected, model(1., rho))
+
+        # test diagonal frame
+        model.rotating_frame = np.array([1., -1.])
+        self.assertAllClose(expected, model(1., rho))
+
+    def test_switching_to_sparse_with_frame(self):
+        """Test switching to sparse with a frame already set."""
+
+        model = LindbladModel(static_hamiltonian=self.Z,
+                              hamiltonian_operators=[self.X],
+                              hamiltonian_signals=[1.],
+                               rotating_frame=np.array([1., -1.]))
+
+        model.evaluation_mode = 'sparse'
+
+        rho = np.array([[1., 0.], [0., 0.]])
+        ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
+        expected = -1j * (ham @ rho - rho @ ham)
+        self.assertAllClose(expected, model(1., rho))
 
 
 def get_const_func(const):

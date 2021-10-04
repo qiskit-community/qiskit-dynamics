@@ -297,8 +297,6 @@ class RotatingFrame:
         """
         operator = to_numeric_matrix_type(operator)
         op_to_add_in_fb = to_numeric_matrix_type(op_to_add_in_fb)
-        if issparse(operator) and op_to_add_in_fb is not None:
-            op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
 
         if vectorized_operators:
             # If passing vectorized operator, undo vectorization temporarily
@@ -315,6 +313,8 @@ class RotatingFrame:
             if op_to_add_in_fb is None:
                 return operator
             else:
+                if issparse(operator) and op_to_add_in_fb is not None:
+                    op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
                 return operator + op_to_add_in_fb
 
         out = operator
@@ -334,6 +334,8 @@ class RotatingFrame:
             out = frame_mat * out
 
         if op_to_add_in_fb is not None:
+            if issparse(out) and op_to_add_in_fb is not None:
+                op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
             out = out + op_to_add_in_fb
 
         # if output is requested to not be in the frame basis, convert it

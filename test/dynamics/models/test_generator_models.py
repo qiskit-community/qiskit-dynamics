@@ -230,6 +230,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
+        """Test evaluation of both dense and sparse."""
         sig_list = []
         for coeff, freq, phase in zip(coefficients, carriers, phases):
 
@@ -292,12 +293,6 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 
         self.basic_model.signals = None
         self.assertTrue(self.basic_model.signals is None)
-
-    def test_signal_setting_incorrect_length(self):
-        """Test error being raised if signals is the wrong length."""
-
-        with self.assertRaises(QiskitError):
-            self.basic_model.signals = [1.0]
 
     def test_evaluate_analytic(self):
         """Test for checking that with known operators that
@@ -599,6 +594,61 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_model.rotating_frame = None
+
+class TestGeneratorModelSparse(QiskitDynamicsTestCase):
+    """Sparse-mode specific tests."""
+
+    def setUp(self):
+        self.X = Array(Operator.from_label("X").data)
+        self.Y = Array(Operator.from_label("Y").data)
+        self.Z = Array(Operator.from_label("Z").data)
+
+    def test_switch_modes_and_evaluate(self):
+        """Test construction of a model, switching modes, and evaluating."""
+
+        model = GeneratorModel(static_operator=self.Z, operators=[self.X], signals=[1.])
+        self.assertAllClose(model(1.), self.Z + self.X)
+
+        model.evaluation_mode = 'sparse'
+        output = model(1.)
+        self.assertTrue(issparse(output))
+        self.assertAllCloseSparse(output, csr_matrix(self.Z + self.X))
+
+        model.evaluation_mode = 'dense'
+        self.assertAllClose(model(1.), self.Z + self.X)
+
+    def test_frame_change_sparse(self):
+        """Test setting a frame after instantiation in sparse mode and evaluating."""
+        model = GeneratorModel(static_operator=self.Z,
+                               operators=[self.X],
+                               signals=[1.],
+                               evaluation_mode='sparse')
+
+        # test non-diagonal frame
+        model.rotating_frame = self.Z
+        expected = expm(1j * self.Z) @ ((1 + 1j) * self.Z + self.X) @ expm(-1j * self.Z)
+        self.assertAllClose(expected, model(1.))
+
+        # test diagonal frame
+        model.rotating_frame = np.array([1., -1.])
+        val = model(1.)
+        self.assertTrue(issparse(val))
+        self.assertAllClose(to_array(val), expected)
+
+    def test_switching_to_sparse_with_frame(self):
+        """Test switching to sparse with a frame already set."""
+
+        model = GeneratorModel(static_operator=self.Z,
+                               operators=[self.X],
+                               signals=[1.],
+                               rotating_frame=np.array([1., -1.]))
+
+        model.evaluation_mode = 'sparse'
+
+        expected = expm(1j * self.Z) @ ((1 + 1j) * self.Z + self.X) @ expm(-1j * self.Z)
+        val = model(1.)
+        self.assertTrue(issparse(val))
+        self.assertAllClose(to_array(val), expected)
 
 
 class Testtransfer_operator_functions(QiskitDynamicsTestCase):
