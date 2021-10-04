@@ -379,7 +379,7 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
         for the hamiltonian terms and the dissipator terms. Expresses
         the RHS of the Lindblad equation as :math:`(A+B)y + y(A-B) + C`, where
             .. math::
-            A = (-1/2)*\sum_j\gamma(t) L_j^\dagger L_j,
+            A = (-1/2)*\sum_j\gamma_j(t) L_j^\dagger L_j,
 
             B = -iH,
 
