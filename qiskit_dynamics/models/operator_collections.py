@@ -768,11 +768,23 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
         self.concatenate_operators()
 
     @property
-    def dissipator_operators(self) -> Union[Array, csr_matrix]:
+    def static_dissipators(self) -> Union[Array, List[csr_matrix]]:
+        return self._dissipator_operators
+
+    @static_dissipators.setter
+    def static_dissipators(self, new_static_dissipators: Optional[Union[Array, List[csr_matrix]]] = None):
+        self._static_dissipators = self.convert_to_internal_type(new_static_dissipators)
+        if self._static_dissipators is not None:
+            self._vec_static_dissipators_sum = np.sum(vec_dissipator(self._static_dissipators), axis=0)
+
+        self.concatenate_static_operators()
+
+    @property
+    def dissipator_operators(self) -> Union[Array, List[csr_matrix]]:
         return self._dissipator_operators
 
     @dissipator_operators.setter
-    def dissipator_operators(self, new_dissipator_operators: Optional[Union[Array, csr_matrix]] = None):
+    def dissipator_operators(self, new_dissipator_operators: Optional[Union[Array, List[csr_matrix]]] = None):
         self._dissipator_operators = self.convert_to_internal_type(new_dissipator_operators)
         if self._dissipator_operators is not None:
             self._vec_dissipator_operators = vec_dissipator(self._dissipator_operators)
@@ -780,8 +792,12 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
         self.concatenate_operators()
 
     def concatenate_static_operators(self):
-        """Concatenate static hamiltonian and static dissipators.************************************"""
-        if self._static_hamiltonian is not None:
+        """Concatenate static hamiltonian and static dissipators."""
+        if self._static_hamiltonian is not None and self._static_dissipators is not None:
+            self._static_operator = self._vec_static_hamiltonian + self._vec_static_dissipators_sum
+        elif self._static_hamiltonian is None and self._static_dissipators is not None:
+            self._static_operator = self._vec_static_dissipators_sum
+        elif self._static_hamiltonian is not None and self._static_dissipators is None:
             self._static_operator = self._vec_static_hamiltonian
         else:
             self._static_operator = None
@@ -841,9 +857,10 @@ class DenseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
 
     def __init__(
         self,
-        static_hamiltonian: Optional[any] = None,
-        hamiltonian_operators: Optional[any] = None,
-        dissipator_operators: Optional[any] = None,
+        static_hamiltonian: Optional[Array] = None,
+        hamiltonian_operators: Optional[Array] = None,
+        static_dissipators: Optional[Array] = None,
+        dissipator_operators: Optional[Array] = None,
     ):
         r"""Initialize collection.
 
@@ -852,13 +869,18 @@ class DenseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
                                 system.
             hamiltonian_operators: Specifies breakdown of Hamiltonian
                 as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
+            static_dissipators: Dissipator terms with coefficient 1.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
         """
-        # need to be initialized for relationships between properties for VectorizedLindbladMixin
+        # need to be initialized for relationships between properties for BaseVectorizedLindbladCollection
         self._static_hamiltonian = None
         self._hamiltonian_operators = None
+        self._static_dissipators = None
         self._dissipator_operators = None
-        super().__init__(static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators)
+        super().__init__(static_hamiltonian=static_hamiltonian,
+                         hamiltonian_operators=hamiltonian_operators,
+                         static_dissipators=static_dissipators,
+                         dissipator_operators=dissipator_operators)
 
     def convert_to_internal_type(self, obj: any) -> Array:
         return to_array(obj)
@@ -882,6 +904,7 @@ class SparseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
         self,
         static_hamiltonian: Optional[csr_matrix] = None,
         hamiltonian_operators: Optional[List[csr_matrix]] = None,
+        static_dissipators: Optional[List[csr_matrix]] = None,
         dissipator_operators: Optional[List[csr_matrix]] = None,
         decimals: Optional[int] = 10,
     ):
@@ -892,6 +915,7 @@ class SparseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
                                 (n,n) Array.
             hamiltonian_operators: Specifies breakdown of Hamiltonian
                 as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) Array.
+            static_dissipators: Dissipator terms with coefficient 1.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) Array.
             decimals: Values will be rounded at ``decimals`` places after decimal.
         """
@@ -899,8 +923,12 @@ class SparseVectorizedLindbladCollection(BaseVectorizedLindbladCollection,
         self._decimals = decimals
         self._static_hamiltonian = None
         self._hamiltonian_operators = None
+        self._static_dissipators = None
         self._dissipator_operators = None
-        super().__init__(static_hamiltonian=static_hamiltonian, hamiltonian_operators=hamiltonian_operators, dissipator_operators=dissipator_operators)
+        super().__init__(static_hamiltonian=static_hamiltonian,
+                         hamiltonian_operators=hamiltonian_operators,
+                         static_dissipators=static_dissipators,
+                         dissipator_operators=dissipator_operators)
 
     def convert_to_internal_type(self, obj: any) -> Union[csr_matrix, List[csr_matrix]]:
         obj = to_csr(obj)
