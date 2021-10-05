@@ -107,7 +107,11 @@ class TestRotatingWave(QiskitDynamicsTestCase):
             Signal(1, 3, -np.pi / 2),
         ]
         dft = Array(np.ones((2, 2)))
-        LM = LindbladModel(ops, sigs, ops, sigs, dft)
+        LM = LindbladModel(static_hamiltonian=dft,
+                           hamiltonian_operators=ops,
+                           hamiltonian_signals=sigs,
+                           dissipator_operators=ops,
+                           dissipator_signals=sigs)
         f = rotating_wave_approximation(LM, 100, return_signal_map=True)[1]
         rwa_ham_sig, rwa_dis_sig = f(sigs, sigs)
         self.assertAllClose(rwa_ham_sig.complex_value(2)[:4], SignalList(sigs).complex_value(2))

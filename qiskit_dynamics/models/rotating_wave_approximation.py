@@ -162,9 +162,9 @@ def rotating_wave_approximation(
 
         # works for both GeneratorModel and HamiltonianModel
         rwa_model = model.__class__(
+            static_operator=rwa_drift,
             operators=rwa_operators,
             signals=rwa_signals,
-            static_operator=rwa_drift,
             rotating_frame=model.rotating_frame,
             evaluation_mode=model.evaluation_mode,
         )
@@ -173,11 +173,25 @@ def rotating_wave_approximation(
         return rwa_model
 
     elif isinstance(model, LindbladModel):
-        cur_drift = model.get_static_hamiltonian(True) + frame_shift  # undo frame shifting for RWA
+        # static hamiltonian part
+        cur_drift = model.get_static_hamiltonian(True) + frame_shift
         rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
         rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
 
-        cur_ham_ops, cur_dis_ops = model.get_operators(in_frame_basis=True)
+        # static dissipator part
+        cur_static_dis = model.get_static_dissipators(in_frame_basis=True)
+        rwa_static_dis = None
+        if cur_static_dis is not None:
+            rwa_static_dis = []
+            for op in cur_static_dis:
+                rwa_op = op * (abs(frame_freqs) < cutoff_freq).astype(int)
+                rwa_op = model.rotating_frame.operator_out_of_frame_basis(rwa_op)
+                rwa_static_dis.append(rwa_op)
+
+
+        cur_ham_ops = model.get_hamiltonian_operators(in_frame_basis=True)
+        cur_dis_ops = model.get_dissipator_operators(in_frame_basis=True)
+
         cur_ham_sig, cur_dis_sig = model.signals
 
         rwa_ham_ops = get_rwa_operators(
@@ -185,18 +199,19 @@ def rotating_wave_approximation(
         )
         rwa_ham_sig = get_rwa_signals(cur_ham_sig)
 
-        if cur_dis_ops is not None and cur_dis_sig is not None:
-            rwa_dis_ops = get_rwa_operators(
-                cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
-            )
-            rwa_dis_sig = get_rwa_signals(cur_dis_sig)
+        rwa_dis_ops = get_rwa_operators(
+            cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
+        )
+
+        rwa_dis_sig = get_rwa_signals(cur_dis_sig)
+
 
         rwa_model = LindbladModel(
-            rwa_ham_ops,
+            static_hamiltonian=rwa_drift,
+            hamiltonian_operators=rwa_ham_ops,
             hamiltonian_signals=rwa_ham_sig,
             dissipator_operators=rwa_dis_ops,
             dissipator_signals=rwa_dis_sig,
-            static_hamiltonian=rwa_drift,
             rotating_frame=model.rotating_frame,
             evaluation_mode=model.evaluation_mode,
         )
@@ -232,6 +247,9 @@ def get_rwa_operators(
     Returns:
         SignaLList: (2k,n,n) Array of new operators post RWA.
     """
+    if current_ops is None:
+        return None
+
     current_sigs = current_sigs.flatten()
     carrier_freqs = np.zeros(current_ops.shape[0])
 
