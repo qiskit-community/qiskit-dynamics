@@ -139,7 +139,7 @@ Model transformations
 """
 
 from .rotating_frame import RotatingFrame
-from .generator_models import BaseGeneratorModel, GeneratorModel
-from .hamiltonian_models import HamiltonianModel
-from .lindblad_models import LindbladModel
+from .generator_model import BaseGeneratorModel, GeneratorModel
+from .hamiltonian_model import HamiltonianModel
+from .lindblad_model import LindbladModel
 from .rotating_wave_approximation import rotating_wave_approximation

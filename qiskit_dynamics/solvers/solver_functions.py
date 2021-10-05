@@ -35,14 +35,13 @@ from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array, requires_backend
 
 from qiskit_dynamics.models import (
+    BaseGeneratorModel,
     GeneratorModel,
     RotatingFrame,
     rotating_wave_approximation,
     HamiltonianModel,
     LindbladModel,
 )
-
-from ..models.generator_models import BaseGeneratorModel
 
 from .solver_utils import is_lindblad_model_not_vectorized
 from .fixed_step_solvers import scipy_expm_solver, jax_expm_solver

@@ -24,8 +24,8 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from qiskit_dynamics.signals import Signal, SignalList
-from .generator_models import BaseGeneratorModel, GeneratorModel
-from .hamiltonian_models import HamiltonianModel, is_hermitian
+from .generator_model import BaseGeneratorModel, GeneratorModel
+from .hamiltonian_model import HamiltonianModel, is_hermitian
 from .operator_collections import (
     BaseLindbladOperatorCollection,
     DenseLindbladCollection,

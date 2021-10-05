@@ -26,7 +26,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
-from .generator_models import GeneratorModel
+from .generator_model import GeneratorModel
 from .rotating_frame import RotatingFrame
 
 
