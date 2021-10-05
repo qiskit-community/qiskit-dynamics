@@ -24,7 +24,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.dispatch.dispatch import Dispatch
+from qiskit_dynamics import dispatch
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -220,6 +220,20 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             ),
         )
 
+    def test_evaluate_only_static_dissipators(self):
+        """Test evaluation with just dissipators."""
+
+        model = LindbladModel(static_dissipators=[self.X, self.Y])
+
+        rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
+
+        self.assertAllClose(
+            model(1.0, rho),
+            self._evaluate_lindblad_rhs(
+                rho, ham=np.zeros((2, 2), dtype=complex), dissipators=[self.X, self.Y]
+            ),
+        )
+
     def test_evaluate_only_static_hamiltonian(self):
         """Test evaluation with just static hamiltonian."""
 
@@ -237,52 +251,6 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
         self.assertAllClose(model(1.0, rho), self._evaluate_lindblad_rhs(rho, ham=self.X))
-
-    # pylint: disable=no-self-use,too-many-arguments
-    def _evaluate_lindblad_rhs(
-        self, A, ham, dissipators=None, dissipator_coeffs=None, frame_op=None, t=0.0
-    ):
-        """Evaluate the Lindblad equation
-
-        frame_op assumed anti-Hermitian
-
-        Note: here we force everything into numpy arrays as these parts of
-        the test are just for confirmation
-        """
-        # if a frame operator is given, transform the model pieces into
-        # the frame
-        if frame_op is not None:
-            frame_op = np.array(frame_op)
-            U = expm(-t * frame_op)
-            Uadj = U.conj().transpose()
-
-            ham = U @ ham @ Uadj - 1j * frame_op
-
-            if dissipators is not None:
-                dissipators = np.array(dissipators)
-                dissipators = [U @ D @ Uadj for D in dissipators]
-
-        ham = np.array(ham)
-        A = np.array(A)
-        ham_part = -1j * (ham @ A - A @ ham)
-
-        if dissipators is None:
-            return ham_part
-
-        dissipators = np.array(dissipators)
-
-        if dissipator_coeffs is None:
-            dissipator_coeffs = np.ones(len(dissipators))
-        else:
-            dissipator_coeffs = np.array(dissipator_coeffs)
-
-        diss_part = np.zeros_like(A)
-        for c, D in zip(dissipator_coeffs, dissipators):
-            Dadj = D.conj().transpose()
-            DadjD = Dadj @ D
-            diss_part += c * (D @ A @ Dadj - 0.5 * (DadjD @ A + A @ DadjD))
-
-        return ham_part + diss_part
 
     def test_lindblad_pseudorandom(self):
         """Test various evaluation modes of LindbladModel with structureless pseudorandom
@@ -314,6 +282,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         ham_sigs = SignalList(ham_sigs)
 
+        # generate random static dissipators
+        rand_static_diss = Array(
+            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        )
+
         # generate random dissipators
         rand_diss = Array(
             rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
@@ -342,9 +316,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         into_frame_basis = lambda x: evect.T.conj() @ x @ evect
 
         # construct model
-        hamiltonian = HamiltonianModel(operators=rand_ham_ops, signals=ham_sigs)
-        lindblad_model = LindbladModel.from_hamiltonian(
-            hamiltonian=hamiltonian, dissipator_operators=rand_diss, dissipator_signals=diss_sigs
+        lindblad_model = LindbladModel(
+            hamiltonian_operators=rand_ham_ops,
+            hamiltonian_signals=ham_sigs,
+            static_dissipators=rand_static_diss,
+            dissipator_operators=rand_diss,
+            dissipator_signals=diss_sigs
         )
         lindblad_model.rotating_frame = frame_op
 
@@ -370,7 +347,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
 
         expected = self._evaluate_lindblad_rhs(
-            A, ham, dissipators=rand_diss, dissipator_coeffs=diss_coeffs, frame_op=frame_op, t=t
+            A, ham, static_dissipators=rand_static_diss, dissipators=rand_diss, dissipator_coeffs=diss_coeffs, frame_op=frame_op, t=t
         )
 
         self.assertAllClose(ham_coeffs, ham_sigs(t))
@@ -411,7 +388,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         ).reshape((dim, dim), order="F")
         self.assertAllClose(vectorized_value_lmult_fb, value_in_frame_basis)
 
-        if Dispatch.DEFAULT_BACKEND != "jax":
+        if dispatch.default_backend() != "jax":
             lindblad_model.evaluation_mode = "sparse"
             sparse_value = lindblad_model.evaluate_rhs(t, A, in_frame_basis=False)
             self.assertAllCloseSparse(value, sparse_value)
@@ -427,6 +404,122 @@ class TestLindbladModel(QiskitDynamicsTestCase):
                 (dim, dim), order="F"
             )
             self.assertAllCloseSparse(sparse_vectorized_value_lmult, value)
+
+    def test_dissipator_consistency(self):
+        """Test consistent evaluation with different ways of specifying dissipators."""
+        rng = np.random.default_rng(1231)
+        dim = 8
+        num_diss = 4
+
+        b = 1.0  # bound on size of random terms
+
+        # generate random dissipators
+        rand_diss = Array(
+            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        )
+
+        static_model = LindbladModel(static_dissipators=rand_diss)
+        non_static_model = LindbladModel(dissipator_operators=rand_diss,
+                                         dissipator_signals=[1.] * num_diss)
+
+        rand_input = Array(
+            rng.uniform(low=-b, high=b, size=(dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        )
+
+        self.assertAllClose(static_model(0., rand_input),
+                            non_static_model(0., rand_input)
+                            )
+
+        rand_vec_input = Array(
+                    rng.uniform(low=-b, high=b, size=(dim**2,))
+                    + 1j * rng.uniform(low=-b, high=b, size=(dim**2,))
+                )
+
+        static_model.evaluation_mode = 'dense_vectorized'
+        non_static_model.evaluation_mode = 'dense_vectorized'
+
+        self.assertAllClose(static_model(0., rand_vec_input),
+                            non_static_model(0., rand_vec_input)
+                            )
+
+        if dispatch.default_backend() != 'jax':
+            static_model.evaluation_mode = 'sparse'
+            non_static_model.evaluation_mode = 'sparse'
+
+            self.assertAllClose(static_model(0., rand_input), non_static_model(0., rand_input))
+
+            static_model.evaluation_mode = 'sparse_vectorized'
+            non_static_model.evaluation_mode = 'sparse_vectorized'
+
+            self.assertAllClose(static_model(0., rand_vec_input), non_static_model(0., rand_vec_input))
+
+    # pylint: disable=no-self-use,too-many-arguments
+    def _evaluate_lindblad_rhs(
+        self,
+        A,
+        ham,
+        static_dissipators=None,
+        dissipators=None,
+        dissipator_coeffs=None,
+        frame_op=None,
+        t=0.0
+    ):
+        """Evaluate the Lindblad equation
+
+        frame_op assumed anti-Hermitian
+
+        Note: here we force everything into numpy arrays as these parts of
+        the test are just for confirmation
+        """
+        # if a frame operator is given, transform the model pieces into
+        # the frame
+        if frame_op is not None:
+            frame_op = np.array(frame_op)
+            U = expm(-t * frame_op)
+            Uadj = U.conj().transpose()
+
+            ham = U @ ham @ Uadj - 1j * frame_op
+
+            if static_dissipators is not None:
+                static_dissipators = np.array(static_dissipators)
+                static_dissipators = np.array([U @ D @ Uadj for D in static_dissipators])
+
+            if dissipators is not None:
+                dissipators = np.array(dissipators)
+                dissipators = np.array([U @ D @ Uadj for D in dissipators])
+
+        ham = np.array(ham)
+        A = np.array(A)
+        ham_part = -1j * (ham @ A - A @ ham)
+
+        if static_dissipators is None and dissipators is None:
+            return ham_part
+
+        diss_part = np.zeros_like(A)
+        if static_dissipators is not None:
+            # force numpy here if using JAX
+            static_dissipators = np.array(static_dissipators)
+            for D in static_dissipators:
+                Dadj = D.conj().transpose()
+                DadjD = Dadj @ D
+                diss_part += D @ A @ Dadj - 0.5 * (DadjD @ A + A @ DadjD)
+
+        if dissipators is not None:
+            # force numpy here if using JAX
+            dissipators = np.array(dissipators)
+            if dissipator_coeffs is None:
+                dissipator_coeffs = np.ones(len(dissipators))
+            else:
+                dissipator_coeffs = np.array(dissipator_coeffs)
+
+            for c, D in zip(dissipator_coeffs, dissipators):
+                Dadj = D.conj().transpose()
+                DadjD = Dadj @ D
+                diss_part += c * (D @ A @ Dadj - 0.5 * (DadjD @ A + A @ DadjD))
+
+        return ham_part + diss_part
 
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
