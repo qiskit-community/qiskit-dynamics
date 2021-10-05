@@ -80,10 +80,11 @@ class LindbladModel(BaseGeneratorModel):
 
     def __init__(
         self,
-        static_hamiltonian: Optional[Array] = None,
-        hamiltonian_operators: Optional[Array] = None,
-        hamiltonian_signals: Union[List[Signal], SignalList] = None,
-        dissipator_operators: Array = None,
+        static_hamiltonian: Optional[Union[Array, csr_matrix]] = None,
+        hamiltonian_operators: Optional[Union[Array, List[csr_matrix]]] = None,
+        hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
+        static_dissipators: Optional[Union[Array, csr_matrix]] = None,
+        dissipator_operators: Optional[Union[Array, List[csr_matrix]]] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         evaluation_mode: Optional[str] = "dense",
@@ -92,12 +93,14 @@ class LindbladModel(BaseGeneratorModel):
         """Initialize.
 
         Args:
-            static_hamiltonian: Optional, constant term in Hamiltonian.
-            hamiltonian_operators: list of operators in Hamiltonian.
-            hamiltonian_signals: list of signals in the Hamiltonian.
-            dissipator_operators: list of dissipator operators.
-            dissipator_signals: list of dissipator signals.
-            rotating_frame: rotating frame in which calcualtions are to be done.
+            static_hamiltonian: Constant term in Hamiltonian.
+            hamiltonian_operators: List of operators in Hamiltonian with time-dependent
+                                   coefficients.
+            hamiltonian_signals: Time-dependent coefficients for hamiltonian_operators.
+            static_dissipators: List of dissipators with coefficient 1.
+            dissipator_operators: List of dissipator operators with time-dependent coefficients.
+            dissipator_signals: Time-dependent coefficients for dissipator_operators.
+            rotating_frame: Rotating frame in which calcualtions are to be done.
                             If provided, it is assumed that all operators were
                             already in the frame basis.
             evaluation_mode: Evaluation mode to use. See ``LindbladModel.evaluation_mode``
@@ -112,13 +115,14 @@ class LindbladModel(BaseGeneratorModel):
         if (
             static_hamiltonian is None
             and hamiltonian_operators is None
+            and static_dissipators is None
             and dissipator_operators is None
         ):
             raise QiskitError(
                 self.__class__.__name__
                 + """ requires at least one of static_hamiltonian,
-                              hamiltonian_operators, or dissipator_operators to be
-                              specified at construction."""
+                              hamiltonian_operators, static_dissipators, or dissipator_operators
+                              to be specified at construction."""
             )
 
         static_hamiltonian = to_numeric_matrix_type(static_hamiltonian)
@@ -133,6 +137,7 @@ class LindbladModel(BaseGeneratorModel):
             evaluation_mode=evaluation_mode,
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
+            static_dissipators=static_dissipators,
             dissipator_operators=dissipator_operators,
         )
         self._evaluation_mode = evaluation_mode
@@ -147,7 +152,8 @@ class LindbladModel(BaseGeneratorModel):
     def from_hamiltonian(
         cls,
         hamiltonian: HamiltonianModel,
-        dissipator_operators: Optional[Array] = None,
+        static_dissipators: Optional[Union[Array, csr_matrix]] = None,
+        dissipator_operators: Optional[Union[Array, List[csr_matrix]]] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         evaluation_mode: Optional[str] = None,
     ):
@@ -155,8 +161,9 @@ class LindbladModel(BaseGeneratorModel):
 
         Args:
             hamiltonian: The :class:`HamiltonianModel`.
-            dissipator_operators: List of dissipator operators.
-            dissipator_signals: List of dissipator signals.
+            static_dissipators: List of dissipators with coefficient 1.
+            dissipator_operators: List of dissipators with time-dependent coefficients.
+            dissipator_signals: List time-dependent coefficients for dissipator_operators.
             evaluation_mode: Evaluation mode. See LindbladModel.evaluation_mode
                 for more information.
 
@@ -182,6 +189,8 @@ class LindbladModel(BaseGeneratorModel):
             return self._operator_collection.static_hamiltonian.shape[-1]
         elif self._operator_collection.hamiltonian_operators is not None:
             return self._operator_collection.hamiltonian_operators[0].shape[-1]
+        elif self._operator_collection.static_dissipators is not None:
+            return self._operator_collection.static_dissipators[0].shape[-1]
         else:
             return self._operator_collection.dissipator_operators[0].shape[-1]
 
@@ -303,6 +312,20 @@ class LindbladModel(BaseGeneratorModel):
 
         return ham_ops
 
+    def get_static_dissipators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
+        """Get the static dissipators, either in the frame basis or not.
+
+        Args:
+            in_frame_basis: Whether to return in frame basis or not.
+        Returns:
+            Dissipator operators.
+        """
+        diss_ops = self._operator_collection.static_dissipators
+        if not in_frame_basis and self.rotating_frame is not None:
+            diss_ops = self.rotating_frame.operator_out_of_frame_basis(diss_ops)
+
+        return diss_ops
+
     def get_dissipator_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
         """Get the Dissipator operators, either in the frame basis or not.
 
@@ -350,10 +373,11 @@ class LindbladModel(BaseGeneratorModel):
         """
         if new_mode != self._evaluation_mode:
             self._operator_collection = self.construct_operator_collection(
-                new_mode,
-                self._operator_collection.static_hamiltonian,
-                self._operator_collection.hamiltonian_operators,
-                self._operator_collection.dissipator_operators,
+                evaluation_mode=new_mode,
+                static_hamiltonian=self._operator_collection.static_hamiltonian,
+                hamiltonian_operators=self._operator_collection.hamiltonian_operators,
+                static_dissipators=self._operator_collection.static_dissipators,
+                dissipator_operators=self._operator_collection.dissipator_operators,
             )
 
             self.vectorized_operators = "vectorized" in new_mode
@@ -381,12 +405,18 @@ class LindbladModel(BaseGeneratorModel):
         if new_static_hamiltonian is not None:
             new_static_hamiltonian = 1j * new_static_hamiltonian
 
-        # convert hamiltonian operators and dissipator oeprators
+        # convert hamiltonian operators and dissipator operators
         ham_ops = self.get_hamiltonian_operators(in_frame_basis=True)
+        static_diss_ops = self.get_static_dissipators(in_frame_basis=True)
         diss_ops = self.get_dissipator_operators(in_frame_basis=True)
 
         new_hamiltonian_operators = GeneratorModel.transfer_operators_between_frames(
             ham_ops,
+            new_frame=new_frame,
+            old_frame=self.rotating_frame,
+        )
+        new_static_dissipators = GeneratorModel.transfer_operators_between_frames(
+            static_diss_ops,
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
@@ -402,6 +432,7 @@ class LindbladModel(BaseGeneratorModel):
             evaluation_mode=self.evaluation_mode,
             static_hamiltonian=new_static_hamiltonian,
             hamiltonian_operators=new_hamiltonian_operators,
+            static_dissipators=new_static_dissipators,
             dissipator_operators=new_dissipator_operators,
         )
 
@@ -513,6 +544,7 @@ class LindbladModel(BaseGeneratorModel):
         evaluation_mode: str,
         static_hamiltonian: Union[None, Array, csr_matrix],
         hamiltonian_operators: Union[None, Array, List[csr_matrix]],
+        static_dissipators: Union[None, Array, csr_matrix],
         dissipator_operators: Union[None, Array, List[csr_matrix]],
     ) -> BaseLindbladOperatorCollection:
         """Sets evaluation mode.
@@ -521,37 +553,23 @@ class LindbladModel(BaseGeneratorModel):
             evaluation_mode: String specifying new mode. Available options
                              are 'dense', 'sparse', 'dense_vectorized', and 'sparse_vectorized'.
                              See property doc string for details.
+            static_hamiltonian: Constant part of the Hamiltonian.
+            hamiltonian_operators: Operators in Hamiltonian with time-dependent coefficients.
+            static_dissipators: Dissipation operators with coefficient 1.
+            dissipator_operators: Dissipation operators with variable coefficients.
 
         Raises:
             NotImplementedError: if evaluation_mode is not one of the above
             supported evaluation modes.
         """
         if evaluation_mode == "dense":
-            return DenseLindbladCollection(
-                static_hamiltonian=static_hamiltonian,
-                hamiltonian_operators=hamiltonian_operators,
-                dissipator_operators=dissipator_operators,
-            )
-            self.vectorized_operators = False
+            CollectionClass = DenseLindbladCollection
         elif evaluation_mode == "sparse":
-            return SparseLindbladCollection(
-                static_hamiltonian=static_hamiltonian,
-                hamiltonian_operators=hamiltonian_operators,
-                dissipator_operators=dissipator_operators,
-            )
-            self.vectorized_operators = False
+            CollectionClass = SparseLindbladCollection
         elif evaluation_mode == "dense_vectorized":
-            return DenseVectorizedLindbladCollection(
-                static_hamiltonian=static_hamiltonian,
-                hamiltonian_operators=hamiltonian_operators,
-                dissipator_operators=dissipator_operators,
-            )
+            CollectionClass = DenseVectorizedLindbladCollection
         elif evaluation_mode == "sparse_vectorized":
-            return SparseVectorizedLindbladCollection(
-                static_hamiltonian=static_hamiltonian,
-                hamiltonian_operators=hamiltonian_operators,
-                dissipator_operators=dissipator_operators,
-            )
+            CollectionClass = SparseVectorizedLindbladCollection
         else:
             raise NotImplementedError(
                 "Evaluation mode '"
@@ -560,3 +578,10 @@ class LindbladModel(BaseGeneratorModel):
                 + str(cls.__name__)
                 + ".evaluation_mode) for available options."
             )
+
+        return CollectionClass(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            static_dissipators=static_dissipators,
+            dissipator_operators=dissipator_operators,
+        )

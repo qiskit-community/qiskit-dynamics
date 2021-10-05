@@ -607,7 +607,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
             new_static_dissipators = np.array(new_static_dissipators, dtype="O")
             static_dissipators_adj = np.array(static_dissipators_adj, dtype="O")
 
-            # pre-compute projducts
+            # pre-compute products
             static_dissipators_product_sum = -0.5 * np.sum(
                 static_dissipators_adj * new_static_dissipators, axis=0
             )
@@ -841,7 +841,7 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
 
     @property
     def static_dissipators(self) -> Union[Array, List[csr_matrix]]:
-        return self._dissipator_operators
+        return self._static_dissipators
 
     @static_dissipators.setter
     def static_dissipators(
