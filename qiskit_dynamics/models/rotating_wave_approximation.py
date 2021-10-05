@@ -17,6 +17,7 @@ on Model classes."""
 
 from typing import List, Optional, Union
 import numpy as np
+from scipy.sparse import issparse
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
     GeneratorModel,
@@ -26,6 +27,7 @@ from qiskit_dynamics.models import (
 )
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.type_utils import to_csr
 
 
 def rotating_wave_approximation(
@@ -137,7 +139,7 @@ def rotating_wave_approximation(
 
     frame_freqs = None
     if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
-        frame_freqs = np.zeros((n, n))
+        frame_freqs = np.zeros((n, n), dtype=complex)
     else:
         diag = model.rotating_frame.frame_diag
         diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
@@ -148,12 +150,20 @@ def rotating_wave_approximation(
         if isinstance(model, (HamiltonianModel, LindbladModel)):
             frame_shift = 1j * frame_shift
     else:
-        frame_shift = 0
+        frame_shift = np.zeros((n, n), dtype=complex)
 
     if isinstance(model, GeneratorModel):
-        cur_drift = model.get_static_operator(True) + frame_shift  # undo frame shifting for RWA
-        rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
-        rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
+        cur_drift = model.get_static_operator(True)
+        if cur_drift is not None:
+            # undo frame shifting for RWA
+            if issparse(cur_drift):
+                cur_drift = cur_drift + to_csr(frame_shift)
+            else:
+                cur_drift = cur_drift + frame_shift
+            rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
+            rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
+        else:
+            rwa_drift = None
 
         rwa_operators = get_rwa_operators(
             model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
@@ -204,7 +214,6 @@ def rotating_wave_approximation(
         )
 
         rwa_dis_sig = get_rwa_signals(cur_dis_sig)
-
 
         rwa_model = LindbladModel(
             static_hamiltonian=rwa_drift,
@@ -258,7 +267,7 @@ def get_rwa_operators(
         carrier_freqs[i] = sig.carrier_freq
 
     num_components = len(carrier_freqs)
-    n = current_ops.shape[-1]
+    n = current_ops[0].shape[-1]
 
     frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
     carrier_freqs = carrier_freqs.reshape((num_components, 1, 1))
