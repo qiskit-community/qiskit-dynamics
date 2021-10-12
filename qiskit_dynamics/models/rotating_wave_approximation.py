@@ -118,12 +118,10 @@ def rotating_wave_approximation(
     but with a phase shift of :math:`\phi_i - \pi/2`.
 
     Args:
-        model: The GeneratorModel to which you
-        wish to apply the RWA.
-        cutoff_freq: The maximum (magnitude) of
-        frequency you wish to allow.
-        return_signal_map: Whether to also return a function f that
-            converts pre-RWA SignalLists to post-RWA SignalLists.
+        model: The model to approximate.
+        cutoff_freq: The cutoff frequency for the approximation.
+        return_signal_map: Whether to also return the function for mapping
+                           pre-RWA signals to post-RWA signals.
     Returns:
         GeneratorModel with twice as many terms, and, if return_signal_map,
         also the function f.

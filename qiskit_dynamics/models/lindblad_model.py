@@ -65,9 +65,10 @@ class LindbladModel(BaseGeneratorModel):
 
     .. code-block:: python
 
-        lindblad_model = LindbladModel(hamiltonian_operators,
+        lindblad_model = LindbladModel(static_hamiltonian,
+                                       hamiltonian_operators,
                                        hamiltonian_signals,
-                                       static_hamiltonian,
+                                       static_dissipators,
                                        dissipator_operators,
                                        dissipator_signals)
 
