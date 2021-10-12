@@ -26,7 +26,7 @@ from qiskit_dynamics.models import (
 )
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array, to_csr
+from qiskit_dynamics.type_utils import to_array
 
 
 def rotating_wave_approximation(
@@ -131,9 +131,6 @@ def rotating_wave_approximation(
         ValueError: If the model has no signals.
     """
 
-    if model.signals is None:
-        raise ValueError("Model must have nontrivial signals to perform the RWA.")
-
     n = model.dim
 
     frame_freqs = None
@@ -152,6 +149,9 @@ def rotating_wave_approximation(
         frame_shift = np.zeros((n, n), dtype=complex)
 
     if isinstance(model, GeneratorModel):
+        if model.signals is None and model.get_operators() is not None:
+            raise ValueError("Model must have nontrivial signals to perform the RWA.")
+
         cur_drift = to_array(model.get_static_operator(True))
         if cur_drift is not None:
             cur_drift = cur_drift + frame_shift
@@ -178,6 +178,12 @@ def rotating_wave_approximation(
         return rwa_model
 
     elif isinstance(model, LindbladModel):
+        if model.signals[0] is None and model.get_hamiltonian_operators() is not None:
+            raise ValueError("Model must have nontrivial Hamiltonian signals to perform the RWA.")
+
+        if model.signals[1] is None and model.get_dissipator_operators() is not None:
+            raise ValueError("Model must have nontrivial dissipator signals to perform the RWA.")
+
         # static hamiltonian part
         cur_drift = to_array(model.get_static_hamiltonian(True)) + frame_shift
         rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)

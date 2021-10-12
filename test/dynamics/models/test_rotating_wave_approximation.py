@@ -103,6 +103,34 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         )
         self.assertAllClose(GMP.get_operators(True), post_rwa_ops)
 
+    def test_generator_model_rotating_frame_no_operators(self):
+        """Test case for GeneratorModel with rotating frame and no operators."""
+        frame_op = 2 * np.pi * np.array([1, -1]) / 2
+
+        GM = GeneratorModel(
+            static_operator=np.array([[3., 1], [1, 2.]]) - 1j * np.diag(frame_op),
+            operators=None,
+            signals=None,
+            rotating_frame=frame_op
+        )
+        GM2 = rotating_wave_approximation(GM, 1.)
+        self.assertAllClose(GM2(0), np.array([[3., 0], [0, 2.]]))
+
+
+    def test_lindblad_model_rotating_frame_only_static_hamiltonian(self):
+        """Test case for LindbladModel with just a static hamiltonian."""
+        frame_op = 2 * np.pi * np.array([1, -1]) / 2
+
+        model = LindbladModel(
+            static_hamiltonian=np.array([[3., 1], [1, 2.]]) + np.diag(frame_op),
+            rotating_frame=frame_op
+        )
+        rwa_model = rotating_wave_approximation(model, 1.)
+        ham = np.array([[3., 0], [0, 2.]])
+        rho = np.array([[1., 2.], [3., 4.]])
+        expected = -1j * (ham @ rho - rho @ ham)
+        self.assertAllClose(rwa_model(0, rho), expected)
+
     def test_classic_hamiltonian_model(self):
         """Test classic analytic case for HamiltonianModel."""
 
