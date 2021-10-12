@@ -21,7 +21,7 @@ from scipy.linalg import expm
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.models import HamiltonianModel, LindbladModel
+from qiskit_dynamics.models import LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics import dispatch
@@ -321,7 +321,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             hamiltonian_signals=ham_sigs,
             static_dissipators=rand_static_diss,
             dissipator_operators=rand_diss,
-            dissipator_signals=diss_sigs
+            dissipator_signals=diss_sigs,
         )
         lindblad_model.rotating_frame = frame_op
 
@@ -347,7 +347,13 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
 
         expected = self._evaluate_lindblad_rhs(
-            A, ham, static_dissipators=rand_static_diss, dissipators=rand_diss, dissipator_coeffs=diss_coeffs, frame_op=frame_op, t=t
+            A,
+            ham,
+            static_dissipators=rand_static_diss,
+            dissipators=rand_diss,
+            dissipator_coeffs=diss_coeffs,
+            frame_op=frame_op,
+            t=t,
         )
 
         self.assertAllClose(ham_coeffs, ham_sigs(t))
@@ -420,40 +426,41 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
 
         static_model = LindbladModel(static_dissipators=rand_diss)
-        non_static_model = LindbladModel(dissipator_operators=rand_diss,
-                                         dissipator_signals=[1.] * num_diss)
+        non_static_model = LindbladModel(
+            dissipator_operators=rand_diss, dissipator_signals=[1.0] * num_diss
+        )
 
         rand_input = Array(
             rng.uniform(low=-b, high=b, size=(dim, dim))
             + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
         )
 
-        self.assertAllClose(static_model(0., rand_input),
-                            non_static_model(0., rand_input)
-                            )
+        self.assertAllClose(static_model(0.0, rand_input), non_static_model(0.0, rand_input))
 
         rand_vec_input = Array(
-                    rng.uniform(low=-b, high=b, size=(dim**2,))
-                    + 1j * rng.uniform(low=-b, high=b, size=(dim**2,))
-                )
+            rng.uniform(low=-b, high=b, size=(dim ** 2,))
+            + 1j * rng.uniform(low=-b, high=b, size=(dim ** 2,))
+        )
 
-        static_model.evaluation_mode = 'dense_vectorized'
-        non_static_model.evaluation_mode = 'dense_vectorized'
+        static_model.evaluation_mode = "dense_vectorized"
+        non_static_model.evaluation_mode = "dense_vectorized"
 
-        self.assertAllClose(static_model(0., rand_vec_input),
-                            non_static_model(0., rand_vec_input)
-                            )
+        self.assertAllClose(
+            static_model(0.0, rand_vec_input), non_static_model(0.0, rand_vec_input)
+        )
 
-        if dispatch.default_backend() != 'jax':
-            static_model.evaluation_mode = 'sparse'
-            non_static_model.evaluation_mode = 'sparse'
+        if dispatch.default_backend() != "jax":
+            static_model.evaluation_mode = "sparse"
+            non_static_model.evaluation_mode = "sparse"
 
-            self.assertAllClose(static_model(0., rand_input), non_static_model(0., rand_input))
+            self.assertAllClose(static_model(0.0, rand_input), non_static_model(0.0, rand_input))
 
-            static_model.evaluation_mode = 'sparse_vectorized'
-            non_static_model.evaluation_mode = 'sparse_vectorized'
+            static_model.evaluation_mode = "sparse_vectorized"
+            non_static_model.evaluation_mode = "sparse_vectorized"
 
-            self.assertAllClose(static_model(0., rand_vec_input), non_static_model(0., rand_vec_input))
+            self.assertAllClose(
+                static_model(0.0, rand_vec_input), non_static_model(0.0, rand_vec_input)
+            )
 
     # pylint: disable=no-self-use,too-many-arguments
     def _evaluate_lindblad_rhs(
@@ -464,7 +471,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         dissipators=None,
         dissipator_coeffs=None,
         frame_op=None,
-        t=0.0
+        t=0.0,
     ):
         """Evaluate the Lindblad equation
 

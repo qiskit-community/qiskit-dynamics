@@ -159,7 +159,11 @@ def rotating_wave_approximation(
             rwa_drift = None
 
         rwa_operators = get_rwa_operators(
-            to_array(model.get_operators(True)), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
+            to_array(model.get_operators(True)),
+            model.signals,
+            model.rotating_frame,
+            frame_freqs,
+            cutoff_freq,
         )
         rwa_signals = get_rwa_signals(model.signals)
 
@@ -196,7 +200,6 @@ def rotating_wave_approximation(
                 rwa_op = op * (abs(frame_freqs) < cutoff_freq).astype(int)
                 rwa_op = model.rotating_frame.operator_out_of_frame_basis(rwa_op)
                 rwa_static_dis.append(rwa_op)
-
 
         cur_ham_ops = to_array(model.get_hamiltonian_operators(in_frame_basis=True))
         cur_dis_ops = to_array(model.get_dissipator_operators(in_frame_basis=True))

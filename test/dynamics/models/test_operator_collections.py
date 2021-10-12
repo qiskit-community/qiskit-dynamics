@@ -28,7 +28,6 @@ from qiskit_dynamics.models.operator_collections import (
     SparseOperatorCollection,
     SparseVectorizedLindbladCollection,
 )
-from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -713,7 +712,9 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         )
 
     def test_consistency_no_dissipators(self):
-        """Check consistency with non-vectorized class when only hamiltonian and static_hamiltonian terms defined."""
+        """Check consistency with non-vectorized class when only hamiltonian and
+        static_hamiltonian terms defined.
+        """
         self._consistency_test(
             static_hamiltonian=self.rand_dft,
             hamiltonian_operators=self.rand_ham,

@@ -17,10 +17,10 @@ from typing import Union, List, Optional
 from copy import copy
 import numpy as np
 from scipy.sparse import issparse
+from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
-from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, to_csr, vec_commutator, vec_dissipator
 
@@ -237,12 +237,14 @@ class SparseOperatorCollection(BaseOperatorCollection):
                 return np.dot(signal_values, self._operators * tmparr)
             elif self.static_operator is not None:
                 return self.static_operator.dot(y)
-            else:
-                raise QiskitError(
-                    self.__class__.__name__
-                    + """  with None for both static_operator and
-                                    operators cannot be evaluated."""
-                )
+
+            raise QiskitError(
+                self.__class__.__name__
+                + """  with None for both static_operator and
+                                operators cannot be evaluated."""
+            )
+
+        raise QiskitError(self.__class__.__name__ + """  cannot evaluate RHS for y.ndim > 3.""")
 
 
 class BaseLindbladOperatorCollection(ABC):
@@ -457,6 +459,8 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
             RHS of Lindblad equation
             .. math::
                 -i[H,y] + \sum_j\gamma_j(t)(L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y}).
+        Raises:
+            QiskitError: If operator collection is underspecified.
         """
 
         hamiltonian_matrix = None
@@ -697,6 +701,8 @@ class SparseLindbladCollection(DenseLindbladCollection):
             y: density matrix of system. (k,n,n) Array.
         Returns:
             RHS of Lindbladian.
+        Raises:
+            QiskitError: If RHS cannot be evaluated due to insufficient collection data.
 
         Calculation details:
             * for csr_matrices is equivalent to matrix multiplicaiton.
@@ -1033,7 +1039,7 @@ class SparseVectorizedLindbladCollection(
         obj = to_csr(obj)
         if issparse(obj):
             return np.round(obj, decimals=self._decimals)
-        elif isinstance(obj, list):
+        else:
             return [np.round(sub_obj, decimals=self._decimals) for sub_obj in obj]
 
     @property

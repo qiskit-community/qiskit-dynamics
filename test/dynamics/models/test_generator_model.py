@@ -13,8 +13,6 @@
 
 """Tests for generator_models.py. """
 
-import unittest
-
 from scipy.sparse import issparse, csr_matrix
 from scipy.linalg import expm
 import numpy as np
@@ -672,7 +670,6 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
 
         static_operator = -1j * np.array([[1.0, 0.0], [0.0, -1.0]])
         operators = -1j * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]])
-        old_frame = None
         new_frame = -1j * np.array([1.0, -1.0])
 
         out_static = GeneratorModel.transfer_static_operator_between_frames(
@@ -749,7 +746,6 @@ class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
             -1j * csr_matrix([[0.0, 1.0], [1.0, 0.0]]),
             -1j * csr_matrix([[0.0, -1j], [1j, 0.0]]),
         ]
-        old_frame = None
         new_frame = -1j * np.array([1.0, -1.0])
 
         out_static = GeneratorModel.transfer_static_operator_between_frames(

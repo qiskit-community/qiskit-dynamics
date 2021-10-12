@@ -16,7 +16,6 @@ Lindblad models module.
 """
 
 from typing import Tuple, Union, List, Optional
-import numpy as np
 from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
@@ -176,11 +175,12 @@ class LindbladModel(BaseGeneratorModel):
             evaluation_mode = hamiltonian.evaluation_mode
 
         return cls(
-            hamiltonian_operators=hamiltonian.get_operators(False),
+            static_hamiltonian=hamiltonian.get_static_operator(in_frame_basis=False),
+            hamiltonian_operators=hamiltonian.get_operators(in_frame_basis=False),
             hamiltonian_signals=hamiltonian.signals,
+            static_dissipators=static_dissipators,
             dissipator_operators=dissipator_operators,
             dissipator_signals=dissipator_signals,
-            static_hamiltonian=hamiltonian.get_static_operator(False),
             evaluation_mode=evaluation_mode,
         )
 
@@ -558,7 +558,8 @@ class LindbladModel(BaseGeneratorModel):
             hamiltonian_operators: Operators in Hamiltonian with time-dependent coefficients.
             static_dissipators: Dissipation operators with coefficient 1.
             dissipator_operators: Dissipation operators with variable coefficients.
-
+        Returns:
+            BaseLindbladOperatorCollection: Right-hand side evaluation object.
         Raises:
             NotImplementedError: if evaluation_mode is not one of the above
             supported evaluation modes.
