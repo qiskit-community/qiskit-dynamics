@@ -180,7 +180,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
     @property
     def operators(self) -> List[csr_matrix]:
-        return self._operators
+        return list(self._operators)
 
     @operators.setter
     def operators(self, new_operators: List[csr_matrix]):
@@ -570,7 +570,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
     @property
     def hamiltonian_operators(self) -> np.ndarray:
-        return self._hamiltonian_operators
+        return list(self._hamiltonian_operators)
 
     @hamiltonian_operators.setter
     def hamiltonian_operators(self, new_hamiltonian_operators: Optional[List[csr_matrix]] = None):
@@ -585,7 +585,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
     @property
     def static_dissipators(self) -> Union[None, csr_matrix]:
-        return self._static_dissipators
+        return list(self._static_dissipators)
 
     @static_dissipators.setter
     def static_dissipators(self, new_static_dissipators: Optional[List[csr_matrix]] = None):
@@ -618,7 +618,7 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
     @property
     def dissipator_operators(self) -> Union[None, List[csr_matrix]]:
-        return self._dissipator_operators
+        return list(self._dissipator_operators)
 
     @dissipator_operators.setter
     def dissipator_operators(self, new_dissipator_operators: Optional[List[csr_matrix]] = None):

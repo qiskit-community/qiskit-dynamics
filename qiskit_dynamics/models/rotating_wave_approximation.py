@@ -17,7 +17,6 @@ on Model classes."""
 
 from typing import List, Optional, Union
 import numpy as np
-from scipy.sparse import issparse
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
     GeneratorModel,
@@ -27,7 +26,7 @@ from qiskit_dynamics.models import (
 )
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_csr
+from qiskit_dynamics.type_utils import to_array, to_csr
 
 
 def rotating_wave_approximation(
@@ -153,21 +152,16 @@ def rotating_wave_approximation(
         frame_shift = np.zeros((n, n), dtype=complex)
 
     if isinstance(model, GeneratorModel):
-        cur_drift = model.get_static_operator(True)
+        cur_drift = to_array(model.get_static_operator(True))
         if cur_drift is not None:
-            # undo frame shifting for RWA
-            if issparse(cur_drift):
-                cur_drift = cur_drift + to_csr(frame_shift)
-                rwa_drift = cur_drift.multiply((abs(frame_freqs) < cutoff_freq).astype(int))
-            else:
-                cur_drift = cur_drift + frame_shift
-                rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
+            cur_drift = cur_drift + frame_shift
+            rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
             rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
         else:
             rwa_drift = None
 
         rwa_operators = get_rwa_operators(
-            model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
+            to_array(model.get_operators(True)), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
         )
         rwa_signals = get_rwa_signals(model.signals)
 
@@ -185,12 +179,12 @@ def rotating_wave_approximation(
 
     elif isinstance(model, LindbladModel):
         # static hamiltonian part
-        cur_drift = model.get_static_hamiltonian(True) + frame_shift
+        cur_drift = to_array(model.get_static_hamiltonian(True)) + frame_shift
         rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
         rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
 
         # static dissipator part
-        cur_static_dis = model.get_static_dissipators(in_frame_basis=True)
+        cur_static_dis = to_array(model.get_static_dissipators(in_frame_basis=True))
         rwa_static_dis = None
         if cur_static_dis is not None:
             rwa_static_dis = []
@@ -200,8 +194,8 @@ def rotating_wave_approximation(
                 rwa_static_dis.append(rwa_op)
 
 
-        cur_ham_ops = model.get_hamiltonian_operators(in_frame_basis=True)
-        cur_dis_ops = model.get_dissipator_operators(in_frame_basis=True)
+        cur_ham_ops = to_array(model.get_hamiltonian_operators(in_frame_basis=True))
+        cur_dis_ops = to_array(model.get_dissipator_operators(in_frame_basis=True))
 
         cur_ham_sig, cur_dis_sig = model.signals
 
@@ -261,7 +255,7 @@ def get_rwa_operators(
         return None
 
     current_sigs = current_sigs.flatten()
-    carrier_freqs = np.zeros(current_ops.shape[0])
+    carrier_freqs = np.zeros(len(current_ops))
 
     for i, sig_sum in enumerate(current_sigs.components):
         sig = sig_sum.components[0]

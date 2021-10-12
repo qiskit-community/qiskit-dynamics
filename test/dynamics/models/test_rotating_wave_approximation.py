@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""tests for qiskit_dynamics.models.rotating_wave_approximation"""
+"""Tests for qiskit_dynamics.models.rotating_wave_approximation"""
 
 import numpy as np
 from qiskit.quantum_info import Operator
@@ -25,6 +25,7 @@ from qiskit_dynamics.models import (
     rotating_wave_approximation,
 )
 from qiskit_dynamics.models.rotating_wave_approximation import get_rwa_operators
+from qiskit_dynamics.type_utils import to_csr
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -240,6 +241,6 @@ class TestRotatingWaveApproximationSparse(QiskitDynamicsTestCase):
 
         rwa_ham_model = rotating_wave_approximation(self.classic_hamiltonian, 2 * self.v)
 
-        self.assertAllClose(rwa_ham_model.get_static_operator(), np.zeros((2, 2)))
+        self.assertAllCloseSparse(rwa_ham_model.get_static_operator(), to_csr(np.zeros((2, 2))))
         expected_ops = 2 * np.pi * self.r * np.array([[[0., 1.], [1., 0.]], [[0., -1j], [1j, 0.]]]) / 4
-        self.assertAllClose(rwa_ham_model.get_operators(), expected_ops)
+        self.assertAllCloseSparse(rwa_ham_model.get_operators(), to_csr(expected_ops))
