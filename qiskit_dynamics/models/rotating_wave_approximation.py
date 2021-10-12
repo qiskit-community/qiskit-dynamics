@@ -158,9 +158,10 @@ def rotating_wave_approximation(
             # undo frame shifting for RWA
             if issparse(cur_drift):
                 cur_drift = cur_drift + to_csr(frame_shift)
+                rwa_drift = cur_drift.multiply((abs(frame_freqs) < cutoff_freq).astype(int))
             else:
                 cur_drift = cur_drift + frame_shift
-            rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
+                rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
             rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
         else:
             rwa_drift = None
