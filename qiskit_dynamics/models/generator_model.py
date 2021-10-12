@@ -481,9 +481,9 @@ class GeneratorModel(BaseGeneratorModel):
             # "subtract" the frame operator from 0
             if new_frame.frame_operator is not None:
                 if issparse(static_operator):
-                    static_operator = diags(-new_frame.frame_diag, format="csr")
+                    static_operator = -diags(new_frame.frame_diag, format="csr")
                 else:
-                    static_operator = np.diag(-new_frame.frame_diag)
+                    static_operator = -np.diag(new_frame.frame_diag)
 
         return static_operator
 
