@@ -563,6 +563,12 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         expected = expm(-frame_op.data * t) @ (self.X - frame_op) @ expm(frame_op.data * t)
         self.assertAllClose(expected, static_model(t))
 
+    def test_get_operators_when_None(self):
+        """Test getting operators when None."""
+
+        model = GeneratorModel(static_operator=np.array([[1., 0.], [0., -1.]]))
+        self.assertTrue(model.get_operators() is None)
+
 
 class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
     """Jax version of TestGeneratorModel tests."""

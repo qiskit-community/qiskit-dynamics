@@ -174,13 +174,17 @@ class LindbladModel(BaseGeneratorModel):
         if evaluation_mode is None:
             evaluation_mode = hamiltonian.evaluation_mode
 
+        ham_copy = hamiltonian.copy()
+        ham_copy.rotating_frame = None
+
         return cls(
-            static_hamiltonian=hamiltonian.get_static_operator(in_frame_basis=False),
-            hamiltonian_operators=hamiltonian.get_operators(in_frame_basis=False),
-            hamiltonian_signals=hamiltonian.signals,
+            static_hamiltonian=ham_copy.get_static_operator(in_frame_basis=False),
+            hamiltonian_operators=ham_copy.get_operators(in_frame_basis=False),
+            hamiltonian_signals=ham_copy.signals,
             static_dissipators=static_dissipators,
             dissipator_operators=dissipator_operators,
             dissipator_signals=dissipator_signals,
+            rotating_frame=hamiltonian.rotating_frame,
             evaluation_mode=evaluation_mode,
         )
 
