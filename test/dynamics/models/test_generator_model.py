@@ -566,7 +566,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
     def test_get_operators_when_None(self):
         """Test getting operators when None."""
 
-        model = GeneratorModel(static_operator=np.array([[1., 0.], [0., -1.]]))
+        model = GeneratorModel(static_operator=np.array([[1.0, 0.0], [0.0, -1.0]]))
         self.assertTrue(model.get_operators() is None)
 
 

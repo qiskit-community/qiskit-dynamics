@@ -531,12 +531,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
     def test_get_operators_when_None(self):
         """Test getting various operators when None."""
 
-        model = LindbladModel(static_hamiltonian=np.array([[1., 0.], [0., -1.]]))
+        model = LindbladModel(static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]))
         self.assertTrue(model.get_hamiltonian_operators() is None)
         self.assertTrue(model.get_static_dissipators() is None)
         self.assertTrue(model.get_dissipator_operators() is None)
 
-        model = LindbladModel(hamiltonian_operators=[np.array([[1., 0.], [0., -1.]])])
+        model = LindbladModel(hamiltonian_operators=[np.array([[1.0, 0.0], [0.0, -1.0]])])
         self.assertTrue(model.get_static_hamiltonian() is None)
 
 
