@@ -353,7 +353,6 @@ class GeneratorModel(BaseGeneratorModel):
 
         Raises:
             QiskitError: If model cannot be evaluated.
-
         """
 
         if self._signals is None:
@@ -390,7 +389,6 @@ class GeneratorModel(BaseGeneratorModel):
 
         Raises:
             QiskitError: If model cannot be evaluated.
-
         """
 
         if self._signals is None:

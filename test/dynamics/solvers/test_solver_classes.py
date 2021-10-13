@@ -34,13 +34,13 @@ class TestSolverExceptions(QiskitDynamicsTestCase):
         self.ham_solver = Solver(hamiltonian_operators=[X], hamiltonian_signals=[1.0])
 
         self.lindblad_solver = Solver(
-            hamiltonian_operators=[X], hamiltonian_signals=[1.0], dissipator_operators=[X]
+            hamiltonian_operators=[X], hamiltonian_signals=[1.0], static_dissipators=[X]
         )
 
         self.vec_lindblad_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[1.0],
-            dissipator_operators=[X],
+            static_dissipators=[X],
             evaluation_mode="dense_vectorized",
         )
 
@@ -104,6 +104,8 @@ class TestSolver(QiskitDynamicsTestCase):
         """Set up some simple models."""
         X = 2 * np.pi * Operator.from_label("X") / 2
         Z = 2 * np.pi * Operator.from_label("Z") / 2
+        self.X = X
+        self.Z = Z
         self.ham_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
@@ -122,7 +124,7 @@ class TestSolver(QiskitDynamicsTestCase):
         self.lindblad_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
-            dissipator_operators=[0.01 * X],
+            static_dissipators=[0.01 * X],
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
         )
@@ -130,7 +132,7 @@ class TestSolver(QiskitDynamicsTestCase):
         self.vec_lindblad_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
-            dissipator_operators=[0.01 * X],
+            static_dissipators=[0.01 * X],
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
             evaluation_mode="dense_vectorized",
@@ -140,7 +142,7 @@ class TestSolver(QiskitDynamicsTestCase):
         self.vec_lindblad_solver_no_diss = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
-            dissipator_operators=[0.0 * X],
+            static_dissipators=[0.0 * X],
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
             evaluation_mode="dense_vectorized",
@@ -216,6 +218,23 @@ class TestSolver(QiskitDynamicsTestCase):
         )
         self.assertAllClose(results.y[-1].data, results2.y[-1].data)
 
+    def test_lindblad_solver_consistency(self):
+        """Test consistency of lindblad solver with dissipators specified
+        as constant v.s. non-constant.
+        """
+        lindblad_solver2 = Solver(
+            hamiltonian_operators=[self.X],
+            hamiltonian_signals=[Signal(1.0, 5.0)],
+            dissipator_operators=[self.X],
+            dissipator_signals=[0.01 ** 2],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+        )
+
+        results = lindblad_solver2.solve([0.0, 1.0], y0=Statevector([0.0, 1.0]), method=self.method)
+        self.assertTrue(isinstance(results.y[-1], DensityMatrix))
+        self.assertTrue(results.y[-1].data[0, 0] > 0.99 and results.y[-1].data[0, 0] < 0.999)
+
 
 class TestSolverJax(TestSolver, TestJaxBase):
     """JAX version of TestSolver."""
@@ -242,11 +261,16 @@ class TestSolverJax(TestSolver, TestJaxBase):
     def test_jit_grad_solve(self):
         """Test jitting setting signals and solving."""
 
+        X = Operator.from_label("X")
+        solver = Solver(
+            hamiltonian_operators=[X], hamiltonian_signals=[1.0], dissipator_operators=[X]
+        )
+
         def func(a):
-            lindblad_solver = self.lindblad_solver.copy()
-            lindblad_solver.signals = [[Signal(lambda t: a, 5.0)], [1.0]]
-            yf = lindblad_solver.solve(
-                [0.0, 1.0], y0=np.array([[0.0, 1.0], [0.0, 1.0]]), method=self.method
+            solver_copy = solver.copy()
+            solver_copy.signals = [[Signal(lambda t: a, 5.0)], [1.0]]
+            yf = solver_copy.solve(
+                [0.0, 1.0], y0=np.array([[0.0, 1.0], [0.0, 1.0]], dtype=complex), method=self.method
             ).y[-1]
             return yf
 

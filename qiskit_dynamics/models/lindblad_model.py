@@ -242,11 +242,9 @@ class LindbladModel(BaseGeneratorModel):
 
         # set dissipator signals
         if dissipator_signals is None:
-            if self.get_dissipator_operators() is not None:
-                dissipator_signals = SignalList([1.0] * len(self.get_dissipator_operators()))
-            self._dissipator_signals = dissipator_signals
+            self._dissipator_signals = None
         elif dissipator_signals is not None and self.get_dissipator_operators() is None:
-            raise QiskitError("Dissipator signals must be None if dissipator_signals is None.")
+            raise QiskitError("Dissipator signals must be None if dissipator_operators is None.")
         else:
             # if signals is a list, instantiate a SignalList
             if isinstance(dissipator_signals, list):
@@ -471,10 +469,22 @@ class LindbladModel(BaseGeneratorModel):
         hamiltonian_sig_vals = None
         if self._hamiltonian_signals is not None:
             hamiltonian_sig_vals = self._hamiltonian_signals(time)
+        elif self._operator_collection.hamiltonian_operators is not None:
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with non-empty hamiltonian operators cannot be evaluated without
+                hamiltonian signals."""
+            )
 
         dissipator_sig_vals = None
         if self._dissipator_signals is not None:
             dissipator_sig_vals = self._dissipator_signals(time)
+        elif self._operator_collection.dissipator_operators is not None:
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with non-empty dissipator operators cannot be evaluated without
+                dissipator signals."""
+            )
 
         if self.vectorized_operators:
             out = self._operator_collection.evaluate(hamiltonian_sig_vals, dissipator_sig_vals)
@@ -499,18 +509,31 @@ class LindbladModel(BaseGeneratorModel):
             in_frame_basis: whether the density matrix is in the
                             frame already, and if the final result
                             is returned in the rotating frame or not.
-
         Returns:
             Array: Either the evaluated generator or the state.
+        Raises:
+            QiskitError: If signals not sufficiently specified.
         """
 
         hamiltonian_sig_vals = None
         if self._hamiltonian_signals is not None:
             hamiltonian_sig_vals = self._hamiltonian_signals(time)
+        elif self._operator_collection.hamiltonian_operators is not None:
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with non-empty hamiltonian operators cannot be evaluated without
+                hamiltonian signals."""
+            )
 
         dissipator_sig_vals = None
         if self._dissipator_signals is not None:
             dissipator_sig_vals = self._dissipator_signals(time)
+        elif self._operator_collection.dissipator_operators is not None:
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with non-empty dissipator operators cannot be evaluated without
+                dissipator signals."""
+            )
 
         if self.rotating_frame.frame_diag is not None:
 

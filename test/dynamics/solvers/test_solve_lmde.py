@@ -73,7 +73,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
             hamiltonian_operators=[Operator.from_label("X")],
             hamiltonian_signals=[Signal(1.0, 5.0)],
             static_hamiltonian=Operator.from_label("Z"),
-            dissipator_operators=[Operator.from_label("Y")],
+            static_dissipators=[Operator.from_label("Y")],
         )
 
         self.vec_lindblad_model = self.lindblad_model.copy()

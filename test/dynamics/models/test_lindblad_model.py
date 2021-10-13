@@ -183,12 +183,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.w = w
         self.r = r
 
-        dissipator_operators = Array([[[0.0, 0.0], [1.0, 0.0]]])
+        static_dissipators = Array([[[0.0, 0.0], [1.0, 0.0]]])
 
         self.basic_lindblad = LindbladModel(
             hamiltonian_operators=ham_operators,
             hamiltonian_signals=ham_signals,
-            dissipator_operators=dissipator_operators,
+            static_dissipators=static_dissipators,
         )
 
     def test_basic_lindblad_lmult(self):
@@ -209,7 +209,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
     def test_evaluate_only_dissipators(self):
         """Test evaluation with just dissipators."""
 
-        model = LindbladModel(dissipator_operators=[self.X])
+        model = LindbladModel(dissipator_operators=[self.X], dissipator_signals=[1.0])
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 

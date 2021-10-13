@@ -88,11 +88,12 @@ class Solver:
 
     def __init__(
         self,
-        hamiltonian_operators: Array,
+        static_hamiltonian: Optional[Array] = None,
+        hamiltonian_operators: Optional[Array] = None,
         hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
+        static_dissipators: Optional[Array] = None,
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        static_hamiltonian: Optional[Array] = None,
         rotating_frame: Optional[Union[Array, RotatingFrame]] = None,
         evaluation_mode: Optional[str] = "dense",
         rwa_cutoff_freq: Optional[float] = None,
@@ -100,13 +101,15 @@ class Solver:
         """Initialize solver with model information.
 
         Args:
+            static_hamiltonian: Constant Hamiltonian term. If a ``rotating_frame``
+                                is specified, the ``frame_operator`` will be subtracted from
+                                the static_hamiltonian.
             hamiltonian_operators: Hamiltonian operators.
             hamiltonian_signals: Coefficients for the Hamiltonian operators.
-            dissipator_operators: Optional dissipation operators.
+            static_dissipators: Constant dissipation operators.
+            dissipator_operators: Dissipation operators with time-dependent coefficients.
             dissipator_signals: Optional time-dependent coefficients for the dissipators. If
                                 ``None``, coefficients are assumed to be the constant ``1.``.
-            static_hamiltonian: Constant Hamiltonian term. If a ``rotating_frame`` is specified, the
-                   ``frame_operator`` will be subtracted from the static_hamiltonian.
             rotating_frame: Rotating frame to transform the model into.
             evaluation_mode: Method for model evaluation. See documentation for
                              ``HamiltonianModel.evaluation_mode`` or
@@ -117,23 +120,24 @@ class Solver:
         """
 
         model = None
-        if dissipator_operators is None:
+        if static_dissipators is None and dissipator_operators is None:
             model = HamiltonianModel(
+                static_operator=static_hamiltonian,
                 operators=hamiltonian_operators,
                 signals=hamiltonian_signals,
                 rotating_frame=rotating_frame,
-                static_operator=static_hamiltonian,
                 evaluation_mode=evaluation_mode,
             )
             self._signals = hamiltonian_signals
         else:
             model = LindbladModel(
+                static_hamiltonian=static_hamiltonian,
                 hamiltonian_operators=hamiltonian_operators,
                 hamiltonian_signals=hamiltonian_signals,
+                static_dissipators=static_dissipators,
                 dissipator_operators=dissipator_operators,
                 dissipator_signals=dissipator_signals,
                 rotating_frame=rotating_frame,
-                static_hamiltonian=static_hamiltonian,
                 evaluation_mode=evaluation_mode,
             )
             self._signals = (hamiltonian_signals, dissipator_signals)
