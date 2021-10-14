@@ -22,8 +22,8 @@ requirements = [
     "qiskit-terra>=0.16.0",
 ]
 
-jax_extras = ['jax>=0.2.21',
-              'jaxlib>=0.1.71']
+jax_extras = ['jax>=0.2.11',
+              'jaxlib>=0.1.65']
 
 PACKAGES = setuptools.find_packages(exclude=['test*'])
 
