@@ -45,7 +45,7 @@ class HamiltonianModel(GeneratorModel):
 
     .. code-block:: python
 
-        hamiltonian = HamiltonianModel(operators, signals, static_operator)
+        hamiltonian = HamiltonianModel(static_operator=static_operator, operators=operators, signals=signals)
 
     This class inherits most functionality from :class:`GeneratorModel`,
     with the following modifications:
