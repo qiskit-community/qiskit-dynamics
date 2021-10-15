@@ -20,6 +20,10 @@ import numpy.random as rand
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import GeneratorModel, RotatingFrame
+from qiskit_dynamics.models.generator_model import (
+    transfer_static_operator_between_frames,
+    transfer_operators_between_frames,
+)
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array, wrap
 from qiskit_dynamics.type_utils import to_array
@@ -665,8 +669,8 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
     def test_all_None(self):
         """Test all arguments being None."""
 
-        static_operator = GeneratorModel.transfer_static_operator_between_frames(None, None, None)
-        operators = GeneratorModel.transfer_operators_between_frames(None, None, None)
+        static_operator = transfer_static_operator_between_frames(None, None, None)
+        operators = transfer_operators_between_frames(None, None, None)
 
         self.assertTrue(static_operator is None)
         self.assertTrue(operators is None)
@@ -678,12 +682,8 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         operators = -1j * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]])
         new_frame = -1j * np.array([1.0, -1.0])
 
-        out_static = GeneratorModel.transfer_static_operator_between_frames(
-            static_operator, new_frame=new_frame
-        )
-        out_operators = GeneratorModel.transfer_operators_between_frames(
-            operators, new_frame=new_frame
-        )
+        out_static = transfer_static_operator_between_frames(static_operator, new_frame=new_frame)
+        out_operators = transfer_operators_between_frames(operators, new_frame=new_frame)
 
         self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
         self.assertTrue(isinstance(out_operators, (np.ndarray, Array)))
@@ -713,10 +713,10 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         )
         new_frame = new_frame - new_frame.conj().transpose()
 
-        out_static = GeneratorModel.transfer_static_operator_between_frames(
+        out_static = transfer_static_operator_between_frames(
             Array(static_operator), new_frame=Array(new_frame), old_frame=Array(old_frame)
         )
-        out_operators = GeneratorModel.transfer_operators_between_frames(
+        out_operators = transfer_operators_between_frames(
             Array(operators), new_frame=Array(new_frame), old_frame=Array(old_frame)
         )
 
@@ -754,12 +754,8 @@ class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
         ]
         new_frame = -1j * np.array([1.0, -1.0])
 
-        out_static = GeneratorModel.transfer_static_operator_between_frames(
-            static_operator, new_frame=new_frame
-        )
-        out_operators = GeneratorModel.transfer_operators_between_frames(
-            operators, new_frame=new_frame
-        )
+        out_static = transfer_static_operator_between_frames(static_operator, new_frame=new_frame)
+        out_operators = transfer_operators_between_frames(operators, new_frame=new_frame)
 
         self.assertTrue(isinstance(out_static, csr_matrix))
         self.assertTrue(isinstance(out_operators, list) and issparse(out_operators[0]))
@@ -789,10 +785,10 @@ class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
         _, U = np.linalg.eigh(old_frame)
         Uadj = U.conj().transpose()
 
-        out_static = GeneratorModel.transfer_static_operator_between_frames(
+        out_static = transfer_static_operator_between_frames(
             static_operator, new_frame=new_frame, old_frame=old_frame
         )
-        out_operators = GeneratorModel.transfer_operators_between_frames(
+        out_operators = transfer_operators_between_frames(
             operators, new_frame=new_frame, old_frame=old_frame
         )
 

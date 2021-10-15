@@ -26,7 +26,11 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
-from .generator_model import GeneratorModel
+from .generator_model import (
+    GeneratorModel,
+    transfer_static_operator_between_frames,
+    transfer_operators_between_frames,
+)
 from .rotating_frame import RotatingFrame
 
 
@@ -45,7 +49,9 @@ class HamiltonianModel(GeneratorModel):
 
     .. code-block:: python
 
-        hamiltonian = HamiltonianModel(static_operator=static_operator, operators=operators, signals=signals)
+        hamiltonian = HamiltonianModel(static_operator=static_operator,
+                                       operators=operators,
+                                       signals=signals)
 
     This class inherits most functionality from :class:`GeneratorModel`,
     with the following modifications:
@@ -120,7 +126,7 @@ class HamiltonianModel(GeneratorModel):
         if static_op is not None:
             static_op = -1j * static_op
 
-        new_static_operator = self.transfer_static_operator_between_frames(
+        new_static_operator = transfer_static_operator_between_frames(
             static_op,
             new_frame=new_frame,
             old_frame=self.rotating_frame,
@@ -130,7 +136,7 @@ class HamiltonianModel(GeneratorModel):
             new_static_operator = 1j * new_static_operator
 
         # convert operators to new frame set up
-        new_operators = self.transfer_operators_between_frames(
+        new_operators = transfer_operators_between_frames(
             self.get_operators(in_frame_basis=True),
             new_frame=new_frame,
             old_frame=self.rotating_frame,

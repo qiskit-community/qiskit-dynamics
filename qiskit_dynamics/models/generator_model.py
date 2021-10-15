@@ -242,12 +242,12 @@ class GeneratorModel(BaseGeneratorModel):
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
         new_frame = RotatingFrame(rotating_frame)
 
-        new_static_operator = self.transfer_static_operator_between_frames(
+        new_static_operator = transfer_static_operator_between_frames(
             self.get_static_operator(in_frame_basis=True),
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
-        new_operators = self.transfer_operators_between_frames(
+        new_operators = transfer_operators_between_frames(
             self.get_operators(in_frame_basis=True),
             new_frame=new_frame,
             old_frame=self.rotating_frame,
@@ -422,110 +422,6 @@ class GeneratorModel(BaseGeneratorModel):
         return out
 
     @classmethod
-    def transfer_static_operator_between_frames(
-        cls,
-        static_operator: Union[None, Array, csr_matrix],
-        new_frame: Optional[Union[Array, RotatingFrame]] = None,
-        old_frame: Optional[Union[Array, RotatingFrame]] = None,
-    ) -> Tuple[Union[None, Array]]:
-        """Transform the static operator for a GeneratorModel from one frame basis into another.
-
-        ``static_operator`` is additionally transformed as a generator: the old frame operator is
-        added, and the new one is subtracted.
-
-        Args:
-            static_operator: Static operator of the model. None is treated as 0.
-            new_frame: New rotating frame.
-            old_frame: Old rotating frame.
-
-        Returns:
-            static_operator: Transformed as described above.
-        """
-        new_frame = RotatingFrame(new_frame)
-        old_frame = RotatingFrame(old_frame)
-
-        static_operator = to_numeric_matrix_type(static_operator)
-
-        # transform out of old frame basis, and add the old frame operator
-        if static_operator is not None:
-            static_operator = old_frame.generator_out_of_frame(
-                t=0.0,
-                operator=static_operator,
-                operator_in_frame_basis=True,
-                return_in_frame_basis=False,
-            )
-        else:
-            # "add" the frame operator to 0
-            if old_frame.frame_operator is not None:
-                if issparse(static_operator):
-                    if old_frame.frame_operator.ndim == 1:
-                        static_operator = diags(old_frame.frame_operator, format="csr")
-                    else:
-                        static_operator = csr_matrix(old_frame.frame_operator)
-                else:
-                    if old_frame.frame_operator.ndim == 1:
-                        static_operator = np.diag(old_frame.frame_operator)
-                    else:
-                        static_operator = old_frame.frame_operator
-        # transform into new frame basis, and add the new frame operator
-        if static_operator is not None:
-            static_operator = new_frame.generator_into_frame(
-                t=0.0,
-                operator=static_operator,
-                operator_in_frame_basis=False,
-                return_in_frame_basis=True,
-            )
-        else:
-            # "subtract" the frame operator from 0
-            if new_frame.frame_operator is not None:
-                if issparse(static_operator):
-                    static_operator = -diags(new_frame.frame_diag, format="csr")
-                else:
-                    static_operator = -np.diag(new_frame.frame_diag)
-
-        return static_operator
-
-    @classmethod
-    def transfer_operators_between_frames(
-        cls,
-        operators: Union[None, Array, List[csr_matrix]],
-        new_frame: Optional[Union[Array, RotatingFrame]] = None,
-        old_frame: Optional[Union[Array, RotatingFrame]] = None,
-    ) -> Tuple[Union[None, Array]]:
-        """Transform operators for a GeneratorModel from one frame basis into another.
-
-        Args:
-            operators: Operators of the model. If None, remains as None.
-            new_frame: New rotating frame.
-            old_frame: Old rotating frame.
-
-        Returns:
-            operators: Transformed as described above.
-        """
-        new_frame = RotatingFrame(new_frame)
-        old_frame = RotatingFrame(old_frame)
-
-        operators = to_numeric_matrix_type(operators)
-
-        # transform out of old frame basis
-        if operators is not None:
-            # For sparse case, if list, loop
-            if isinstance(operators, list):
-                operators = [old_frame.operator_out_of_frame_basis(op) for op in operators]
-            else:
-                operators = old_frame.operator_out_of_frame_basis(operators)
-
-        # transform into new frame basis
-        if operators is not None:
-            # For sparse case, if list, loop
-            if isinstance(operators, list):
-                operators = [new_frame.operator_into_frame_basis(op) for op in operators]
-            else:
-                operators = new_frame.operator_into_frame_basis(operators)
-
-        return operators
-
-    @classmethod
     def construct_operator_collection(
         cls,
         evaluation_mode: str,
@@ -558,3 +454,107 @@ class GeneratorModel(BaseGeneratorModel):
             + str(cls.__name__)
             + ".evaluation_mode) for available options."
         )
+
+
+def transfer_static_operator_between_frames(
+    static_operator: Union[None, Array, csr_matrix],
+    new_frame: Optional[Union[Array, RotatingFrame]] = None,
+    old_frame: Optional[Union[Array, RotatingFrame]] = None,
+) -> Tuple[Union[None, Array]]:
+    """Helper function for transforming the static operator for a model from one
+    frame basis into another.
+
+    ``static_operator`` is additionally transformed as a generator: the old frame operator is
+    added, and the new one is subtracted.
+
+    Args:
+        static_operator: Static operator of the model. None is treated as 0.
+        new_frame: New rotating frame.
+        old_frame: Old rotating frame.
+
+    Returns:
+        static_operator: Transformed as described above.
+    """
+    new_frame = RotatingFrame(new_frame)
+    old_frame = RotatingFrame(old_frame)
+
+    static_operator = to_numeric_matrix_type(static_operator)
+
+    # transform out of old frame basis, and add the old frame operator
+    if static_operator is not None:
+        static_operator = old_frame.generator_out_of_frame(
+            t=0.0,
+            operator=static_operator,
+            operator_in_frame_basis=True,
+            return_in_frame_basis=False,
+        )
+    else:
+        # "add" the frame operator to 0
+        if old_frame.frame_operator is not None:
+            if issparse(static_operator):
+                if old_frame.frame_operator.ndim == 1:
+                    static_operator = diags(old_frame.frame_operator, format="csr")
+                else:
+                    static_operator = csr_matrix(old_frame.frame_operator)
+            else:
+                if old_frame.frame_operator.ndim == 1:
+                    static_operator = np.diag(old_frame.frame_operator)
+                else:
+                    static_operator = old_frame.frame_operator
+    # transform into new frame basis, and add the new frame operator
+    if static_operator is not None:
+        static_operator = new_frame.generator_into_frame(
+            t=0.0,
+            operator=static_operator,
+            operator_in_frame_basis=False,
+            return_in_frame_basis=True,
+        )
+    else:
+        # "subtract" the frame operator from 0
+        if new_frame.frame_operator is not None:
+            if issparse(static_operator):
+                static_operator = -diags(new_frame.frame_diag, format="csr")
+            else:
+                static_operator = -np.diag(new_frame.frame_diag)
+
+    return static_operator
+
+
+def transfer_operators_between_frames(
+    operators: Union[None, Array, List[csr_matrix]],
+    new_frame: Optional[Union[Array, RotatingFrame]] = None,
+    old_frame: Optional[Union[Array, RotatingFrame]] = None,
+) -> Tuple[Union[None, Array]]:
+    """Helper function for transforming a list of operators for a model
+    from one frame basis into another.
+
+    Args:
+        operators: Operators of the model. If None, remains as None.
+        new_frame: New rotating frame.
+        old_frame: Old rotating frame.
+
+    Returns:
+        operators: Transformed as described above.
+    """
+    new_frame = RotatingFrame(new_frame)
+    old_frame = RotatingFrame(old_frame)
+
+    operators = to_numeric_matrix_type(operators)
+
+    # transform out of old frame basis
+    if operators is not None:
+        # For sparse case, if list, loop
+        if isinstance(operators, list):
+            operators = [old_frame.operator_out_of_frame_basis(op) for op in operators]
+        else:
+            operators = old_frame.operator_out_of_frame_basis(operators)
+
+    # transform into new frame basis
+    if operators is not None:
+        # For sparse case, if list, loop
+        if isinstance(operators, list):
+            operators = [new_frame.operator_into_frame_basis(op) for op in operators]
+        else:
+            operators = new_frame.operator_into_frame_basis(operators)
+
+    return operators

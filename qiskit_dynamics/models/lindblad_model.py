@@ -23,7 +23,11 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from qiskit_dynamics.signals import Signal, SignalList
-from .generator_model import BaseGeneratorModel, GeneratorModel
+from .generator_model import (
+    BaseGeneratorModel,
+    transfer_static_operator_between_frames,
+    transfer_operators_between_frames,
+)
 from .hamiltonian_model import HamiltonianModel, is_hermitian
 from .operator_collections import (
     BaseLindbladOperatorCollection,
@@ -399,7 +403,7 @@ class LindbladModel(BaseGeneratorModel):
         if static_ham is not None:
             static_ham = -1j * static_ham
 
-        new_static_hamiltonian = GeneratorModel.transfer_static_operator_between_frames(
+        new_static_hamiltonian = transfer_static_operator_between_frames(
             static_ham,
             new_frame=new_frame,
             old_frame=self.rotating_frame,
@@ -413,17 +417,17 @@ class LindbladModel(BaseGeneratorModel):
         static_diss_ops = self.get_static_dissipators(in_frame_basis=True)
         diss_ops = self.get_dissipator_operators(in_frame_basis=True)
 
-        new_hamiltonian_operators = GeneratorModel.transfer_operators_between_frames(
+        new_hamiltonian_operators = transfer_operators_between_frames(
             ham_ops,
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
-        new_static_dissipators = GeneratorModel.transfer_operators_between_frames(
+        new_static_dissipators = transfer_operators_between_frames(
             static_diss_ops,
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
-        new_dissipator_operators = GeneratorModel.transfer_operators_between_frames(
+        new_dissipator_operators = transfer_operators_between_frames(
             diss_ops,
             new_frame=new_frame,
             old_frame=self.rotating_frame,
