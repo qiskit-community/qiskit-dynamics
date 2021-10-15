@@ -68,12 +68,12 @@ class LindbladModel(BaseGeneratorModel):
 
     .. code-block:: python
 
-        lindblad_model = LindbladModel(static_hamiltonian,
-                                       hamiltonian_operators,
-                                       hamiltonian_signals,
-                                       static_dissipators,
-                                       dissipator_operators,
-                                       dissipator_signals)
+        lindblad_model = LindbladModel(static_hamiltonian=static_hamiltonian,
+                                       hamiltonian_operators=hamiltonian_operators,
+                                       hamiltonian_signals=hamiltonian_signals,
+                                       static_dissipators=static_dissipators,
+                                       dissipator_operators=dissipator_operators,
+                                       dissipator_signals=dissipator_signals)
 
     where the arguments ``hamiltonian_operators``, ``hamiltonian_signals``, and
     ``static_hamiltonian`` are for the Hamiltonian decomposition as in
@@ -123,10 +123,9 @@ class LindbladModel(BaseGeneratorModel):
             and dissipator_operators is None
         ):
             raise QiskitError(
-                self.__class__.__name__
-                + """ requires at least one of static_hamiltonian,
-                              hamiltonian_operators, static_dissipators, or dissipator_operators
-                              to be specified at construction."""
+                f"{type(self).__name__} requires at least one of static_hamiltonian "
+                "hamiltonian_operators, static_dissipators, or dissipator_operators "
+                "to be specified at construction."
             )
 
         static_hamiltonian = to_numeric_matrix_type(static_hamiltonian)
