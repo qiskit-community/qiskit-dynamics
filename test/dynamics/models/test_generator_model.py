@@ -162,11 +162,14 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         # enter the frame given by the -1j * X
         self.basic_model.rotating_frame = frame_op
 
+        # set to operate in frame basis
+        self.basic_model.in_frame_basis = True
+
         # get the frame basis that is used in model
         _, U = wrap(np.linalg.eigh)(1j * frame_op)
 
         t = 3.21412
-        value = self.basic_model(t, in_frame_basis=True)
+        value = self.basic_model(t)
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
@@ -307,22 +310,22 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         res = simple_model.evaluate(2)
         self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
-        simple_model.set_static_operator(np.eye(2), operator_in_frame_basis=False)
+        simple_model.static_operator = np.eye(2)
         res = simple_model.evaluate(2)
         self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
-        simple_model.set_static_operator(None, operator_in_frame_basis=False)
 
     def test_evaluate_in_frame_basis_analytic(self):
-        """Tests evaluation in rotating frame against analytic values."""
+        """Tests evaluation in rotating frame against analytic values,
+        both in specified basis and in frame basis."""
         test_operator_list = Array([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(
             operators=test_operator_list, static_operator=None, signals=signals, rotating_frame=None
         )
-        simple_model.set_static_operator(np.eye(2), operator_in_frame_basis=False)
+        simple_model.static_operator = np.eye(2)
         fop = Array([[0, 1j], [1j, 0]])
         simple_model.rotating_frame = fop
-        res = simple_model(2, in_frame_basis=False)
+        res = simple_model(2.)
         expected = (
             expm(np.array(-2 * fop))
             @ (Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]) - fop)
@@ -330,7 +333,8 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         )
         self.assertAllClose(res, expected)
 
-        res = simple_model(2, in_frame_basis=True)
+        simple_model.in_frame_basis = True
+        res = simple_model(2)
         expected = (
             np.array([[1, 1], [1, -1]])
             / np.sqrt(2)
@@ -371,12 +375,15 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         gm3.signals = SignalList(sarr)
 
         # All should be the same, because there are no frames involved
-        t11 = gm1.evaluate(t, False)
-        t12 = gm1.evaluate(t, True)
-        t21 = gm2.evaluate(t, False)
-        t22 = gm2.evaluate(t, True)
-        t31 = gm3.evaluate(t, False)
-        t32 = gm3.evaluate(t, True)
+        t11 = gm1.evaluate(t)
+        gm1.in_frame_basis = True
+        t12 = gm1.evaluate(t)
+        t21 = gm2.evaluate(t)
+        gm2.in_frame_basis = True
+        t22 = gm2.evaluate(t)
+        t31 = gm3.evaluate(t)
+        gm3.in_frame_basis = True
+        t32 = gm3.evaluate(t)
         t_analytical = Array([[0.5, 1.0 + 0.5j], [1.0 - 0.5j, 1.5]])
 
         self.assertAllClose(t11, t12)
@@ -387,35 +394,38 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self.assertAllClose(t11, t_analytical)
 
         # now work with a specific statevector
-        ts1 = gm1.evaluate_rhs(t, state, in_frame_basis=False)
-        ts2 = gm1.evaluate_rhs(t, state, in_frame_basis=True)
+        ts1 = gm1.evaluate_rhs(t, state)
+        gm1.in_frame_basis = True
+        ts2 = gm1.evaluate_rhs(t, state)
         ts_analytical = Array([0.6 + 0.25j, 0.95 - 0.1j])
 
         self.assertAllClose(ts1, ts2)
         self.assertAllClose(ts1, ts_analytical)
-        self.assertAllClose(gm1(t, in_frame_basis=False) @ state, ts1)
-        self.assertAllClose(gm1(t, in_frame_basis=True) @ state, ts1)
+        self.assertAllClose(gm1(t) @ state, ts1)
+        gm1.in_frame_basis = False
+        self.assertAllClose(gm1(t) @ state, ts1)
+
 
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.abs
         # Testing at the same time whether having static_operatorrift = None is an issue.
-        gm1 = GeneratorModel(operators=paulis, signals=sarr, rotating_frame=RotatingFrame(farr))
-        gm2 = GeneratorModel(operators=paulis, rotating_frame=farr)
+        gm1 = GeneratorModel(operators=paulis, signals=sarr, rotating_frame=RotatingFrame(farr), in_frame_basis=True)
+        gm2 = GeneratorModel(operators=paulis, rotating_frame=farr, in_frame_basis=True)
         gm2.signals = SignalList(sarr)
-        gm3 = GeneratorModel(operators=paulis, rotating_frame=farr)
+        gm3 = GeneratorModel(operators=paulis, rotating_frame=farr, in_frame_basis=True)
         gm3.signals = sarr
         # Does adding a frame after make a difference?
         # If so, does it make a difference if we add signals or the frame first?
-        gm4 = GeneratorModel(operators=paulis)
+        gm4 = GeneratorModel(operators=paulis, in_frame_basis=True)
         gm4.signals = sarr
         gm4.rotating_frame = farr
-        gm5 = GeneratorModel(operators=paulis)
+        gm5 = GeneratorModel(operators=paulis, in_frame_basis=True)
         gm5.rotating_frame = farr
         gm5.signals = sarr
-        gm6 = GeneratorModel(operators=paulis, signals=sarr)
+        gm6 = GeneratorModel(operators=paulis, signals=sarr, in_frame_basis=True)
         gm6.rotating_frame = farr
         # If we go to one frame, then transform back, does this make a difference?
-        gm7 = GeneratorModel(operators=paulis, signals=sarr)
+        gm7 = GeneratorModel(operators=paulis, signals=sarr, in_frame_basis=True)
         gm7.rotating_frame = farr2
         gm7.rotating_frame = farr
 
@@ -424,13 +434,13 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
             @ (np.tensordot(sigvals, paulis_in_frame_basis, axes=1) - diafarr)
             @ np.diag(np.exp(t * evals))
         )
-        tf1 = gm1.evaluate(t, in_frame_basis=True)
-        tf2 = gm2.evaluate(t, in_frame_basis=True)
-        tf3 = gm3.evaluate(t, in_frame_basis=True)
-        tf4 = gm4.evaluate(t, in_frame_basis=True)
-        tf5 = gm5.evaluate(t, in_frame_basis=True)
-        tf6 = gm6.evaluate(t, in_frame_basis=True)
-        tf7 = gm7.evaluate(t, in_frame_basis=True)
+        tf1 = gm1.evaluate(t)
+        tf2 = gm2.evaluate(t)
+        tf3 = gm3.evaluate(t)
+        tf4 = gm4.evaluate(t)
+        tf5 = gm5.evaluate(t)
+        tf6 = gm6.evaluate(t)
+        tf7 = gm7.evaluate(t)
 
         self.assertAllClose(t_in_frame_actual, tf1)
         self.assertAllClose(tf1, tf2)
@@ -469,11 +479,11 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         state_in_frame_basis = np.conjugate(np.transpose(evect)) @ state
 
         gm1 = GeneratorModel(
-            operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra
+            operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra, in_frame_basis=True
         )
-        self.assertAllClose(gm1(t, in_frame_basis=True), t_in_frame_actual)
+        self.assertAllClose(gm1(t), t_in_frame_actual)
         self.assertAllClose(
-            gm1(t, state_in_frame_basis, in_frame_basis=True),
+            gm1(t, state_in_frame_basis),
             t_in_frame_actual @ state_in_frame_basis,
         )
 
@@ -484,10 +494,11 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         )
 
         gm2 = GeneratorModel(
-            operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra
+            operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra, in_frame_basis=False
         )
-        self.assertAllClose(gm2(t, in_frame_basis=False), t_not_in_frame_actual)
-        self.assertAllClose(gm1(t, state, in_frame_basis=False), t_not_in_frame_actual @ state)
+        gm1.in_frame_basis = False
+        self.assertAllClose(gm2(t), t_not_in_frame_actual)
+        self.assertAllClose(gm1(t, state), t_not_in_frame_actual @ state)
 
         # now, remove the frame
         gm1.rotating_frame = None
@@ -497,13 +508,14 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 
         state_in_frame_basis = state
 
-        self.assertAllClose(gm1.get_operators(True), gm1.get_operators(True))
-        self.assertAllClose(gm1.get_static_operator(True), gm1.get_static_operator(False))
+        self.assertAllClose(gm1._get_operators(True), gm1._get_operators(False))
+        self.assertAllClose(gm1._get_static_operator(True), gm1._get_static_operator(False))
 
-        self.assertAllClose(gm1(t, in_frame_basis=True), t_expected)
-        self.assertAllClose(gm1(t, state, in_frame_basis=True), t_expected @ state_in_frame_basis)
-        self.assertAllClose(gm2(t, in_frame_basis=False), t_expected)
-        self.assertAllClose(gm2(t, state, in_frame_basis=False), t_expected @ state_in_frame_basis)
+        gm1.in_frame_basis = True
+        self.assertAllClose(gm1(t), t_expected)
+        self.assertAllClose(gm1(t, state), t_expected @ state_in_frame_basis)
+        self.assertAllClose(gm2(t), t_expected)
+        self.assertAllClose(gm2(t, state), t_expected @ state_in_frame_basis)
 
     def test_evaluate_rhs_vectorized_pseudorandom(self):
         """Test for whether evaluating a model at m different
@@ -544,14 +556,15 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
                 gm.evaluate_rhs(t, vectorized_states[:, i]),
             )
 
-        vectorized_result = gm.evaluate_rhs(t, vectorized_states, in_frame_basis=True)
+        gm.in_frame_basis = True
+        vectorized_result = gm(t, vectorized_states)
 
-        self.assertTrue(gm.evaluate_rhs(t, normal_states, in_frame_basis=True).shape == (n,))
+        self.assertTrue(gm(t, normal_states).shape == (n,))
         self.assertTrue(vectorized_result.shape == (n, m))
         for i in range(m):
             self.assertAllClose(
                 vectorized_result[:, i],
-                gm.evaluate_rhs(t, vectorized_states[:, i], in_frame_basis=True),
+                gm(t, vectorized_states[:, i]),
             )
 
     def test_evaluate_static(self):
@@ -571,7 +584,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         """Test getting operators when None."""
 
         model = GeneratorModel(static_operator=np.array([[1.0, 0.0], [0.0, -1.0]]))
-        self.assertTrue(model.get_operators() is None)
+        self.assertTrue(model.operators is None)
 
 
 class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):

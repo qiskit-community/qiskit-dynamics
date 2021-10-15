@@ -85,24 +85,21 @@ class BaseGeneratorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate(self, time: float) -> Array:
         r"""If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
 
         Args:
             time: Time.
-            in_frame_basis: Whether to return the result in the rotating frame basis.
         """
         pass
 
     @abstractmethod
-    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate_rhs(self, time: float, y: Array) -> Array:
         r"""Evaluate the right hand side :math:`\dot{y}(t) = \Lambda(t, y)`.
 
         Args:
             time: Time.
             y: State of the differential equation.
-            in_frame_basis: Whether `y` is in the rotating frame basis and the results should be
-                returned in the rotatign frame basis.
         """
         pass
 
@@ -111,7 +108,7 @@ class BaseGeneratorModel(ABC):
         return copy(self)
 
     def __call__(
-        self, time: float, y: Optional[Array] = None, in_frame_basis: Optional[bool] = False
+        self, time: float, y: Optional[Array] = None
     ) -> Array:
         r"""Evaluate generator RHS functions. If ``y is None``,
         attemps to evaluate :math:`\Lambda(t, \cdot)`, otherwise, calculates
@@ -120,16 +117,15 @@ class BaseGeneratorModel(ABC):
         Args:
             time: Time.
             y: Optional state.
-            in_frame_basis: Whether or not to evaluate in the rotating frame basis.
 
         Returns:
             Array: Either the evaluated model or the RHS for the given y
         """
 
         if y is None:
-            return self.evaluate(time, in_frame_basis=in_frame_basis)
+            return self.evaluate(time)
 
-        return self.evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
+        return self.evaluate_rhs(time, y)
 
 
 class GeneratorModel(BaseGeneratorModel):
@@ -155,6 +151,7 @@ class GeneratorModel(BaseGeneratorModel):
         operators: Optional[Array] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
     ):
         """Initialize.
@@ -165,6 +162,8 @@ class GeneratorModel(BaseGeneratorModel):
             signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
                      :class:`GeneratorModel` signals are not required at instantiation.
             rotating_frame: Rotating frame operator.
+            in_frame_basis: Whether to represent the model in the basis in which the rotating
+                            frame operator is diagonalized.
             evaluation_mode: Evaluation mode to use. See ``GeneratorModel.evaluation_mode``
                              for more details. Supported options are:
 
@@ -189,6 +188,10 @@ class GeneratorModel(BaseGeneratorModel):
         # set frame
         self._rotating_frame = None
         self.rotating_frame = rotating_frame
+
+        # set operation in frame basis
+        self._in_frame_basis = None
+        self.in_frame_basis = in_frame_basis
 
         # initialize signal-related attributes
         self.signals = signals
@@ -243,12 +246,12 @@ class GeneratorModel(BaseGeneratorModel):
         new_frame = RotatingFrame(rotating_frame)
 
         new_static_operator = transfer_static_operator_between_frames(
-            self.get_static_operator(in_frame_basis=True),
+            self._get_static_operator(in_frame_basis=True),
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
         new_operators = transfer_operators_between_frames(
-            self.get_operators(in_frame_basis=True),
+            self._get_operators(in_frame_basis=True),
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
@@ -270,7 +273,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         if signals is None:
             self._signals = None
-        elif signals is not None and self._operator_collection.operators is None:
+        elif signals is not None and self.operators is None:
             raise QiskitError("Signals must be None if operators is None.")
         else:
             # if signals is a list, instantiate a SignalList
@@ -282,12 +285,39 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != len(self.get_operators()):
+            if len(signals) != len(self.operators):
                 raise QiskitError("Signals needs to have the same length as operators.")
 
             self._signals = signals
 
-    def get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
+    @property
+    def in_frame_basis(self) -> bool:
+        """Whether to represent the model in the basis in which the frame operator
+        is diagonalized.
+        """
+        return self._in_frame_basis
+
+    @in_frame_basis.setter
+    def in_frame_basis(self, in_frame_basis: bool):
+        self._in_frame_basis = in_frame_basis
+
+    @property
+    def operators(self) -> Array:
+        """Get the operators in the model."""
+        return self._get_operators(in_frame_basis=self._in_frame_basis)
+
+    @property
+    def static_operator(self) -> Array:
+        """Get the static operator."""
+        return self._get_static_operator(in_frame_basis=self._in_frame_basis)
+
+    @static_operator.setter
+    def static_operator(self, static_operator: Array):
+        """Set the static operator."""
+        self._set_static_operator(new_static_operator=static_operator,
+                                  operator_in_frame_basis=self._in_frame_basis)
+
+    def _get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
         """Get the operators used in the model construction.
 
         Args:
@@ -302,7 +332,7 @@ class GeneratorModel(BaseGeneratorModel):
         else:
             return ops
 
-    def get_static_operator(self, in_frame_basis: Optional[bool] = False) -> Array:
+    def _get_static_operator(self, in_frame_basis: Optional[bool] = False) -> Array:
         """Get the constant term.
 
         Args:
@@ -317,7 +347,7 @@ class GeneratorModel(BaseGeneratorModel):
         else:
             return op
 
-    def set_static_operator(
+    def _set_static_operator(
         self,
         new_static_operator: Array,
         operator_in_frame_basis: Optional[bool] = False,
@@ -340,13 +370,11 @@ class GeneratorModel(BaseGeneratorModel):
 
             self._operator_collection.static_operator = new_static_operator
 
-    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate(self, time: float) -> Array:
         """Evaluate the model in array format as a matrix, independent of state.
 
         Args:
             time: Time to evaluate the model.
-            in_frame_basis: Whether to evaluate in the basis in which the rotating frame
-            operator is diagonal.
 
         Returns:
             Array: the evaluated model as a (n,n) matrix
@@ -371,18 +399,15 @@ class GeneratorModel(BaseGeneratorModel):
 
         # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
         return self.rotating_frame.operator_into_frame(
-            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
         )
 
-    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
+    def evaluate_rhs(self, time: float, y: Array) -> Array:
         r"""Evaluate `G(t) @ y`.
 
         Args:
             time: Time to evaluate the model.
-            y: Array specifying system state, in basis specified by
-            in_frame_basis.
-            in_frame_basis: Whether to evaluate in the basis in which the frame
-                            operator is diagonal.
+            y: Array specifying system state.
 
         Returns:
             Array defined by :math:`G(t) \times y`.
@@ -408,13 +433,13 @@ class GeneratorModel(BaseGeneratorModel):
         if self.rotating_frame is not None:
             # First, compute e^{tF}y as a pre-rotation in the frame basis
             out = self.rotating_frame.state_out_of_frame(
-                time, y, y_in_frame_basis=in_frame_basis, return_in_frame_basis=True
+                time, y, y_in_frame_basis=self._in_frame_basis, return_in_frame_basis=True
             )
             # Then, compute the product Ae^{tF}y
             out = op_combo @ out
             # Finally, we have the full operator e^{-tF}Ae^{tF}y
             out = self.rotating_frame.state_into_frame(
-                time, out, y_in_frame_basis=True, return_in_frame_basis=in_frame_basis
+                time, out, y_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
             )
         else:
             return op_combo @ y
