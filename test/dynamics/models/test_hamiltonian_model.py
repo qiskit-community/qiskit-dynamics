@@ -160,13 +160,14 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
         # enter the frame given by the -1j * X
         self.basic_hamiltonian.rotating_frame = frame_op
+        self.basic_hamiltonian.in_frame_basis = True
 
         # get the frame basis used in model. Note that the Frame object
         # orders the basis according to the ordering of eigh
         _, U = np.linalg.eigh(frame_op)
 
         t = 3.21412
-        value = self.basic_hamiltonian(t, in_frame_basis=True) / -1j
+        value = self.basic_hamiltonian(t) / -1j
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
@@ -254,7 +255,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             operators=operators, static_operator=None, signals=sig_list, rotating_frame=frame_op
         )
 
-        value = model(1.0, in_frame_basis=False) / -1j
+        value = model(1.0) / -1j
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
         expected = (
             expm(1j * np.array(frame_op))
@@ -263,7 +264,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             - frame_op
         )
         self.assertAllClose(model._signals(1), coeffs)
-        self.assertAllClose(model.get_operators(), operators)
+        self.assertAllClose(model.operators, operators)
 
         self.assertAllClose(value, expected)
 

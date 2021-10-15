@@ -70,6 +70,7 @@ class HamiltonianModel(GeneratorModel):
         operators: Optional[List[Operator]] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
         validate: bool = True,
     ):
@@ -84,6 +85,8 @@ class HamiltonianModel(GeneratorModel):
                             If specified with a 1d array, it is interpreted as the
                             diagonal of a diagonal matrix. Assumed to store
                             the antihermitian matrix F = -iH.
+            in_frame_basis: Whether to represent the model in the basis in which the rotating
+                            frame operator is diagonalized.
             evaluation_mode: Evaluation mode to use. Supported options are:
                                 - 'dense' (DenseOperatorCollection)
                                 - 'sparse' (SparseOperatorCollection)
@@ -109,6 +112,7 @@ class HamiltonianModel(GeneratorModel):
             operators=operators,
             signals=signals,
             rotating_frame=rotating_frame,
+            in_frame_basis=in_frame_basis,
             evaluation_mode=evaluation_mode,
         )
 
@@ -123,7 +127,7 @@ class HamiltonianModel(GeneratorModel):
         new_frame = RotatingFrame(rotating_frame)
 
         # convert static operator to new frame setup
-        static_op = self.get_static_operator(in_frame_basis=True)
+        static_op = self._get_static_operator(in_frame_basis=True)
         if static_op is not None:
             static_op = -1j * static_op
 
@@ -138,7 +142,7 @@ class HamiltonianModel(GeneratorModel):
 
         # convert operators to new frame set up
         new_operators = transfer_operators_between_frames(
-            self.get_operators(in_frame_basis=True),
+            self._get_operators(in_frame_basis=True),
             new_frame=new_frame,
             old_frame=self.rotating_frame,
         )
@@ -149,11 +153,11 @@ class HamiltonianModel(GeneratorModel):
             self.evaluation_mode, new_static_operator, new_operators
         )
 
-    def evaluate(self, time: float, in_frame_basis: Optional[bool] = False) -> Array:
-        return -1j * super().evaluate(time, in_frame_basis=in_frame_basis)
+    def evaluate(self, time: float) -> Array:
+        return -1j * super().evaluate(time)
 
-    def evaluate_rhs(self, time: float, y: Array, in_frame_basis: Optional[bool] = False) -> Array:
-        return -1j * super().evaluate_rhs(time, y, in_frame_basis=in_frame_basis)
+    def evaluate_rhs(self, time: float, y: Array) -> Array:
+        return -1j * super().evaluate_rhs(time, y)
 
 
 def is_hermitian(
