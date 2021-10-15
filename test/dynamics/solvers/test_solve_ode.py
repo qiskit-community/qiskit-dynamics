@@ -132,6 +132,7 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
             rotating_frame=frame_op,
         )
 
+        # test solving not in frame basis
         results = solve_ode(model, t_span=[0, 0.5], y0=y0, method=method, atol=1e-8, rtol=1e-8)
         yf = model.rotating_frame.state_out_of_frame(0.5, results.y[-1])
 
@@ -142,6 +143,18 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
         results2 = solve_ode(rhs, t_span=[0, 0.5], y0=y0, method=method, atol=1e-8, rtol=1e-8)
         # check consistency - this is relatively low tolerance due to the solver tolerance
         self.assertAllClose(yf, results2.y[-1], atol=1e-5, rtol=1e-5)
+        self.assertFalse(model.in_frame_basis)
+
+        # test solving in frame basis
+        model.in_frame_basis = True
+        y0_in_frame_basis = model.rotating_frame.state_into_frame_basis(y0)
+        results3 = solve_ode(model, t_span=[0, 0.5], y0=y0_in_frame_basis, method=method, atol=1e-8, rtol=1e-8)
+        yf_in_frame_basis = results3.y[-1]
+        self.assertAllClose(yf, model.rotating_frame.state_out_of_frame(0.5,
+                                                                  y=yf_in_frame_basis,
+                                                                  y_in_frame_basis=True,
+                                                                  return_in_frame_basis=False))
+        self.assertTrue(model.in_frame_basis)
 
 
 class Testsolve_ode_numpy(Testsolve_ode_Base):

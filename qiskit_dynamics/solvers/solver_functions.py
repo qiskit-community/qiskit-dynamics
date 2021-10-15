@@ -113,7 +113,7 @@ def solve_ode(
     y0 = Array(y0)
 
     if isinstance(rhs, BaseGeneratorModel):
-        _, solver_rhs, y0 = setup_generator_model_rhs_y0_in_frame_basis(rhs, y0)
+        _, solver_rhs, y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(rhs, y0)
     else:
         solver_rhs = rhs
 
@@ -123,9 +123,13 @@ def solve_ode(
     elif isinstance(method, str) and method == "jax_odeint":
         results = jax_odeint(solver_rhs, t_span, y0, t_eval, **kwargs)
 
-    # convert results to correct basis if necessary
+    # convert results out of frame basis if necessary
     if isinstance(rhs, BaseGeneratorModel):
-        results.y = results_y_out_of_frame_basis(rhs, Array(results.y), y0.ndim)
+        if not model_in_frame_basis:
+            results.y = results_y_out_of_frame_basis(rhs, Array(results.y), y0.ndim)
+
+        # convert model back to original basis
+        rhs.in_frame_basis = model_in_frame_basis
 
     return results
 
@@ -228,7 +232,7 @@ def solve_lmde(
 
     # setup generator and rhs functions to pass to numerical methods
     if isinstance(generator, BaseGeneratorModel):
-        solver_generator, _, y0 = setup_generator_model_rhs_y0_in_frame_basis(generator, y0)
+        solver_generator, _, y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(generator, y0)
     else:
         solver_generator = generator
 
@@ -239,7 +243,10 @@ def solve_lmde(
 
     # convert results to correct basis if necessary
     if isinstance(generator, BaseGeneratorModel):
-        results.y = results_y_out_of_frame_basis(generator, Array(results.y), y0.ndim)
+        if not model_in_frame_basis:
+            results.y = results_y_out_of_frame_basis(generator, Array(results.y), y0.ndim)
+
+        generator.in_frame_basis = model_in_frame_basis
 
     return results
 
@@ -250,34 +257,43 @@ def setup_generator_model_rhs_y0_in_frame_basis(
     """Helper function for setting up a subclass of
     :class:`~qiskit_dynamics.models.BaseGeneratorModel` to be solved in the frame basis.
 
+    Note: this function modifies ``generator_model`` to function in the frame basis.
+
     Args:
         generator_model: Subclass of :class:`~qiskit_dynamics.models.BaseGeneratorModel`.
         y0: Initial state.
 
     Returns:
-        Callable for generator in frame basis, Callable for RHS in frame basis, and y0
-        transformed to frame basis.
+        Callable for generator in frame basis, Callable for RHS in frame basis, y0
+        in frame basis, and boolean indicating whether model was already specified in frame basis.
     """
 
-    if (
-        isinstance(generator_model, LindbladModel)
-        and "vectorized" in generator_model.evaluation_mode
-    ):
-        if generator_model.rotating_frame.frame_basis is not None:
-            y0 = generator_model.rotating_frame.vectorized_frame_basis_adjoint @ y0
-    elif isinstance(generator_model, LindbladModel):
-        y0 = generator_model.rotating_frame.operator_into_frame_basis(y0)
-    elif isinstance(generator_model, GeneratorModel):
-        y0 = generator_model.rotating_frame.state_into_frame_basis(y0)
+    model_in_frame_basis = generator_model.in_frame_basis
+
+    # if model not specified in frame basis, transform initial state into frame basis
+    if not model_in_frame_basis:
+        if (
+            isinstance(generator_model, LindbladModel)
+            and "vectorized" in generator_model.evaluation_mode
+        ):
+            if generator_model.rotating_frame.frame_basis is not None:
+                y0 = generator_model.rotating_frame.vectorized_frame_basis_adjoint @ y0
+        elif isinstance(generator_model, LindbladModel):
+            y0 = generator_model.rotating_frame.operator_into_frame_basis(y0)
+        elif isinstance(generator_model, GeneratorModel):
+            y0 = generator_model.rotating_frame.state_into_frame_basis(y0)
+
+    # set model to operator in frame basis
+    generator_model.in_frame_basis = True
 
     # define rhs functions in frame basis
     def generator(t):
-        return generator_model(t, in_frame_basis=True)
+        return generator_model(t)
 
     def rhs(t, y):
-        return generator_model(t, y, in_frame_basis=True)
+        return generator_model(t, y)
 
-    return generator, rhs, y0
+    return generator, rhs, y0, model_in_frame_basis
 
 
 def results_y_out_of_frame_basis(
