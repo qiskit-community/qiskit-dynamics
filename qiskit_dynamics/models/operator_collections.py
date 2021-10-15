@@ -790,9 +790,8 @@ class SparseLindbladCollection(DenseLindbladCollection):
             out = (([hamiltonian_matrix] * y) - (y * [hamiltonian_matrix]))[0]
         else:
             raise QiskitError(
-                """SparseLindbladCollection with None for static_hamiltonian,
-                                 hamiltonian_operators, and dissipator_operators, cannot evaluate
-                                 rhs."""
+                "SparseLindbladCollection with None for static_hamiltonian, "
+                "hamiltonian_operators, and dissipator_operators, cannot evaluate rhs."
             )
         if len(y.shape) == 2:
             # Very slow; avoid if not necessary (or if better implementation found). Needs to
