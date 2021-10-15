@@ -136,7 +136,7 @@ class LindbladModel(BaseGeneratorModel):
             if (static_hamiltonian is not None) and (not is_hermitian(static_hamiltonian)):
                 raise QiskitError("""LinbladModel static_hamiltonian must be Hermitian.""")
 
-        self._operator_collection = self.construct_operator_collection(
+        self._operator_collection = construct_lindblad_operator_collection(
             evaluation_mode=evaluation_mode,
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
@@ -378,7 +378,7 @@ class LindbladModel(BaseGeneratorModel):
             supported evaluation modes.
         """
         if new_mode != self._evaluation_mode:
-            self._operator_collection = self.construct_operator_collection(
+            self._operator_collection = construct_lindblad_operator_collection(
                 evaluation_mode=new_mode,
                 static_hamiltonian=self._operator_collection.static_hamiltonian,
                 hamiltonian_operators=self._operator_collection.hamiltonian_operators,
@@ -434,7 +434,7 @@ class LindbladModel(BaseGeneratorModel):
 
         self._rotating_frame = new_frame
 
-        self._operator_collection = self.construct_operator_collection(
+        self._operator_collection = construct_lindblad_operator_collection(
             evaluation_mode=self.evaluation_mode,
             static_hamiltonian=new_static_hamiltonian,
             hamiltonian_operators=new_hamiltonian_operators,
@@ -569,51 +569,48 @@ class LindbladModel(BaseGeneratorModel):
 
         return rhs
 
-    @classmethod
-    def construct_operator_collection(
-        cls,
-        evaluation_mode: str,
-        static_hamiltonian: Union[None, Array, csr_matrix],
-        hamiltonian_operators: Union[None, Array, List[csr_matrix]],
-        static_dissipators: Union[None, Array, csr_matrix],
-        dissipator_operators: Union[None, Array, List[csr_matrix]],
-    ) -> BaseLindbladOperatorCollection:
-        """Sets evaluation mode.
 
-        Args:
-            evaluation_mode: String specifying new mode. Available options
-                             are 'dense', 'sparse', 'dense_vectorized', and 'sparse_vectorized'.
-                             See property doc string for details.
-            static_hamiltonian: Constant part of the Hamiltonian.
-            hamiltonian_operators: Operators in Hamiltonian with time-dependent coefficients.
-            static_dissipators: Dissipation operators with coefficient 1.
-            dissipator_operators: Dissipation operators with variable coefficients.
-        Returns:
-            BaseLindbladOperatorCollection: Right-hand side evaluation object.
-        Raises:
-            NotImplementedError: if evaluation_mode is not one of the above
-            supported evaluation modes.
-        """
-        if evaluation_mode == "dense":
-            CollectionClass = DenseLindbladCollection
-        elif evaluation_mode == "sparse":
-            CollectionClass = SparseLindbladCollection
-        elif evaluation_mode == "dense_vectorized":
-            CollectionClass = DenseVectorizedLindbladCollection
-        elif evaluation_mode == "sparse_vectorized":
-            CollectionClass = SparseVectorizedLindbladCollection
-        else:
-            raise NotImplementedError(
-                "Evaluation mode '"
-                + str(evaluation_mode)
-                + "' is not supported. Call help("
-                + str(cls.__name__)
-                + ".evaluation_mode) for available options."
-            )
+def construct_lindblad_operator_collection(
+    evaluation_mode: str,
+    static_hamiltonian: Union[None, Array, csr_matrix],
+    hamiltonian_operators: Union[None, Array, List[csr_matrix]],
+    static_dissipators: Union[None, Array, csr_matrix],
+    dissipator_operators: Union[None, Array, List[csr_matrix]],
+) -> BaseLindbladOperatorCollection:
+    """Construct Lindblad operator collection.
 
-        return CollectionClass(
-            static_hamiltonian=static_hamiltonian,
-            hamiltonian_operators=hamiltonian_operators,
-            static_dissipators=static_dissipators,
-            dissipator_operators=dissipator_operators,
+    Args:
+        evaluation_mode: String specifying new mode. Available options
+                         are 'dense', 'sparse', 'dense_vectorized', and 'sparse_vectorized'.
+                         See property doc string for details.
+        static_hamiltonian: Constant part of the Hamiltonian.
+        hamiltonian_operators: Operators in Hamiltonian with time-dependent coefficients.
+        static_dissipators: Dissipation operators with coefficient 1.
+        dissipator_operators: Dissipation operators with variable coefficients.
+    Returns:
+        BaseLindbladOperatorCollection: Right-hand side evaluation object.
+    Raises:
+        NotImplementedError: if evaluation_mode is not one of the above
+        supported evaluation modes.
+    """
+    if evaluation_mode == "dense":
+        CollectionClass = DenseLindbladCollection
+    elif evaluation_mode == "sparse":
+        CollectionClass = SparseLindbladCollection
+    elif evaluation_mode == "dense_vectorized":
+        CollectionClass = DenseVectorizedLindbladCollection
+    elif evaluation_mode == "sparse_vectorized":
+        CollectionClass = SparseVectorizedLindbladCollection
+    else:
+        raise NotImplementedError(
+            "Evaluation mode '"
+            + str(evaluation_mode)
+            + "' is not supported. Call help(LindbladModel.evaluation_mode) for available options."
         )
+
+    return CollectionClass(
+        static_hamiltonian=static_hamiltonian,
+        hamiltonian_operators=hamiltonian_operators,
+        static_dissipators=static_dissipators,
+        dissipator_operators=dissipator_operators,
+    )

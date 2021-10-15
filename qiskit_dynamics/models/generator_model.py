@@ -181,7 +181,7 @@ class GeneratorModel(BaseGeneratorModel):
             )
 
         # initialize internal operator representation
-        self._operator_collection = self.construct_operator_collection(
+        self._operator_collection = construct_operator_collection(
             evaluation_mode=evaluation_mode, static_operator=static_operator, operators=operators
         )
         self._evaluation_mode = evaluation_mode
@@ -226,7 +226,7 @@ class GeneratorModel(BaseGeneratorModel):
         """
 
         if new_mode != self._evaluation_mode:
-            self._operator_collection = self.construct_operator_collection(
+            self._operator_collection = construct_operator_collection(
                 new_mode,
                 self._operator_collection.static_operator,
                 self._operator_collection.operators,
@@ -255,7 +255,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         self._rotating_frame = new_frame
 
-        self._operator_collection = self.construct_operator_collection(
+        self._operator_collection = construct_operator_collection(
             self.evaluation_mode, new_static_operator, new_operators
         )
 
@@ -421,40 +421,6 @@ class GeneratorModel(BaseGeneratorModel):
 
         return out
 
-    @classmethod
-    def construct_operator_collection(
-        cls,
-        evaluation_mode: str,
-        static_operator: Union[None, Array, csr_matrix],
-        operators: Union[None, Array, List[csr_matrix]],
-    ) -> BaseOperatorCollection:
-        """Construct operator collection for GeneratorModel.
-
-        Args:
-            evaluation_mode: Evaluation mode.
-            static_operator: Static operator of the model.
-            operators: Operators for the model.
-
-        Returns:
-            BaseOperatorCollection: The relevant operator collection.
-
-        Raises:
-            NotImplementedError: If the evaluation_mode is invalid.
-        """
-
-        if evaluation_mode == "dense":
-            return DenseOperatorCollection(static_operator=static_operator, operators=operators)
-        if evaluation_mode == "sparse":
-            return SparseOperatorCollection(static_operator=static_operator, operators=operators)
-
-        raise NotImplementedError(
-            "Evaluation mode '"
-            + str(evaluation_mode)
-            + "' is not supported. Call help("
-            + str(cls.__name__)
-            + ".evaluation_mode) for available options."
-        )
-
 
 def transfer_static_operator_between_frames(
     static_operator: Union[None, Array, csr_matrix],
@@ -558,3 +524,34 @@ def transfer_operators_between_frames(
             operators = new_frame.operator_into_frame_basis(operators)
 
     return operators
+
+
+def construct_operator_collection(
+    evaluation_mode: str,
+    static_operator: Union[None, Array, csr_matrix],
+    operators: Union[None, Array, List[csr_matrix]],
+) -> BaseOperatorCollection:
+    """Construct operator collection for GeneratorModel.
+
+    Args:
+        evaluation_mode: Evaluation mode.
+        static_operator: Static operator of the model.
+        operators: Operators for the model.
+
+    Returns:
+        BaseOperatorCollection: The relevant operator collection.
+
+    Raises:
+        NotImplementedError: If the evaluation_mode is invalid.
+    """
+
+    if evaluation_mode == "dense":
+        return DenseOperatorCollection(static_operator=static_operator, operators=operators)
+    if evaluation_mode == "sparse":
+        return SparseOperatorCollection(static_operator=static_operator, operators=operators)
+
+    raise NotImplementedError(
+        "Evaluation mode '"
+        + str(evaluation_mode)
+        + "' is not supported. Call help(GeneratorModel.evaluation_mode) for available options."
+    )

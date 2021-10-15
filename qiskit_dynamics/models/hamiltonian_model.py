@@ -30,6 +30,7 @@ from .generator_model import (
     GeneratorModel,
     transfer_static_operator_between_frames,
     transfer_operators_between_frames,
+    construct_operator_collection,
 )
 from .rotating_frame import RotatingFrame
 
@@ -144,7 +145,7 @@ class HamiltonianModel(GeneratorModel):
 
         self._rotating_frame = new_frame
 
-        self._operator_collection = self.construct_operator_collection(
+        self._operator_collection = construct_operator_collection(
             self.evaluation_mode, new_static_operator, new_operators
         )
 
