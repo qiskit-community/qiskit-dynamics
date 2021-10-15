@@ -331,9 +331,10 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
 
         t = rng.uniform(low=-b, high=b)
-        value = lindblad_model(t, A, in_frame_basis=False)
+        value = lindblad_model(t, A)
+        lindblad_model.in_frame_basis = True
         value_in_frame_basis = lindblad_model(
-            t, lindblad_model.rotating_frame.operator_into_frame_basis(A), in_frame_basis=True
+            t, lindblad_model.rotating_frame.operator_into_frame_basis(A)
         )
 
         ham_coeffs = np.real(
@@ -358,54 +359,53 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         self.assertAllClose(ham_coeffs, ham_sigs(t))
         self.assertAllClose(diss_coeffs, diss_sigs(t))
+        # lindblad model is in frame basis here
         self.assertAllClose(
             into_frame_basis(rand_diss),
-            lindblad_model.get_dissipator_operators(in_frame_basis=True),
+            lindblad_model.dissipator_operators,
         )
         self.assertAllClose(
             into_frame_basis(rand_ham_ops),
-            lindblad_model.get_hamiltonian_operators(in_frame_basis=True),
+            lindblad_model.hamiltonian_operators,
         )
         self.assertAllClose(
             into_frame_basis(-1j * frame_op),
-            lindblad_model.get_static_hamiltonian(in_frame_basis=True),
+            lindblad_model.static_hamiltonian,
         )
+        lindblad_model.in_frame_basis=False
         self.assertAllClose(
-            -1j * frame_op, lindblad_model.get_static_hamiltonian(in_frame_basis=False)
-        )
-        self.assertAllClose(
-            into_frame_basis(-1j * frame_op), lindblad_model._operator_collection.static_hamiltonian
+            -1j * frame_op, lindblad_model.static_hamiltonian
         )
         self.assertAllClose(expected, value)
 
         lindblad_model.evaluation_mode = "dense_vectorized"
-        vectorized_value = lindblad_model.evaluate_rhs(
-            t, A.flatten(order="F"), in_frame_basis=False
-        ).reshape((dim, dim), order="F")
+        vectorized_value = lindblad_model.evaluate_rhs(t, A.flatten(order="F")).reshape((dim, dim), order="F")
         self.assertAllClose(value, vectorized_value)
 
-        vec_gen = lindblad_model.evaluate(t, in_frame_basis=False)
+        vec_gen = lindblad_model.evaluate(t)
         vectorized_value_lmult = (vec_gen @ A.flatten(order="F")).reshape((dim, dim), order="F")
         self.assertAllClose(value, vectorized_value_lmult)
 
+        lindblad_model.in_frame_basis = True
         rho_in_frame_basis = lindblad_model.rotating_frame.operator_into_frame_basis(A)
         vectorized_value_lmult_fb = (
-            lindblad_model.evaluate(t, in_frame_basis=True) @ rho_in_frame_basis.flatten(order="F")
+            lindblad_model.evaluate(t) @ rho_in_frame_basis.flatten(order="F")
         ).reshape((dim, dim), order="F")
         self.assertAllClose(vectorized_value_lmult_fb, value_in_frame_basis)
 
+        lindblad_model.in_frame_basis = False
         if dispatch.default_backend() != "jax":
             lindblad_model.evaluation_mode = "sparse"
-            sparse_value = lindblad_model.evaluate_rhs(t, A, in_frame_basis=False)
+            sparse_value = lindblad_model.evaluate_rhs(t, A)
             self.assertAllCloseSparse(value, sparse_value)
 
             lindblad_model.evaluation_mode = "sparse_vectorized"
             sparse_vectorized_value = lindblad_model.evaluate_rhs(
-                t, A.flatten(order="F"), in_frame_basis=False
+                t, A.flatten(order="F")
             ).reshape((dim, dim), order="F")
             self.assertAllCloseSparse(value, sparse_vectorized_value)
 
-            sparse_vec_gen = lindblad_model.evaluate(t, in_frame_basis=False)
+            sparse_vec_gen = lindblad_model.evaluate(t)
             sparse_vectorized_value_lmult = (sparse_vec_gen @ A.flatten(order="F")).reshape(
                 (dim, dim), order="F"
             )
@@ -532,12 +532,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         """Test getting various operators when None."""
 
         model = LindbladModel(static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]))
-        self.assertTrue(model.get_hamiltonian_operators() is None)
-        self.assertTrue(model.get_static_dissipators() is None)
-        self.assertTrue(model.get_dissipator_operators() is None)
+        self.assertTrue(model.hamiltonian_operators is None)
+        self.assertTrue(model.static_dissipators is None)
+        self.assertTrue(model.dissipator_operators is None)
 
         model = LindbladModel(hamiltonian_operators=[np.array([[1.0, 0.0], [0.0, -1.0]])])
-        self.assertTrue(model.get_static_hamiltonian() is None)
+        self.assertTrue(model.static_hamiltonian is None)
 
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):

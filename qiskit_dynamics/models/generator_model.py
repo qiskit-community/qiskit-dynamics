@@ -56,13 +56,11 @@ class BaseGeneratorModel(ABC):
     @abstractmethod
     def dim(self) -> int:
         """Gets matrix dimension."""
-        pass
 
     @property
     @abstractmethod
     def rotating_frame(self) -> RotatingFrame:
         """Get the rotating frame."""
-        pass
 
     @rotating_frame.setter
     @abstractmethod
@@ -70,19 +68,26 @@ class BaseGeneratorModel(ABC):
         """Set the rotating frame; either an already instantiated :class:`RotatingFrame` object,
         or a valid argument for the constructor of :class:`RotatingFrame`.
         """
-        pass
+
+    @property
+    @abstractmethod
+    def in_frame_basis(self) -> bool:
+        """Whether or not the model is evaluated in the basis in which the frame is diagonalized."""
+
+    @in_frame_basis.setter
+    @abstractmethod
+    def in_frame_basis(self, in_frame_basis: bool):
+        """Set whether to evaluate in the basis in which the frame is diagonalized."""
 
     @property
     @abstractmethod
     def evaluation_mode(self) -> str:
         """Numerical evaluation mode of the model."""
-        pass
 
     @evaluation_mode.setter
     @abstractmethod
     def evaluation_mode(self, new_mode: str):
         """Sets evaluation mode of model."""
-        pass
 
     @abstractmethod
     def evaluate(self, time: float) -> Array:
@@ -91,7 +96,6 @@ class BaseGeneratorModel(ABC):
         Args:
             time: Time.
         """
-        pass
 
     @abstractmethod
     def evaluate_rhs(self, time: float, y: Array) -> Array:
@@ -101,7 +105,6 @@ class BaseGeneratorModel(ABC):
             time: Time.
             y: State of the differential equation.
         """
-        pass
 
     def copy(self):
         """Return a copy of self."""
