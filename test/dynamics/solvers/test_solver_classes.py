@@ -22,8 +22,50 @@ from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
 
 from qiskit_dynamics import Solver
 from qiskit_dynamics.signals import Signal
+from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.type_utils import to_array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+
+
+class TestSolverValidation(QiskitDynamicsTestCase):
+    """Test validation for Hamiltonian terms."""
+
+    def test_hamiltonian_operators_array_not_hermitian(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            Solver(hamiltonian_operators=operators)
+        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+
+    def test_validation_override_hamiltonian(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+        solver = Solver(hamiltonian_operators=operators, validate=False)
+
+        self.assertAllClose(solver.model.operators, operators)
+
+    def test_hamiltonian_operators_array_not_hermitian_lindblad(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            Solver(hamiltonian_operators=operators, static_dissipators=operators)
+        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+
+    def test_validation_override_lindblad(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+        solver = Solver(
+            hamiltonian_operators=operators, static_dissipators=operators, validate=False
+        )
+
+        self.assertAllClose(solver.model.hamiltonian_operators, operators)
 
 
 class TestSolverExceptions(QiskitDynamicsTestCase):
@@ -243,6 +285,31 @@ class TestSolverJax(TestSolver, TestJaxBase):
         """Set method to 'jax_odeint' to speed up running of jax version of tests."""
         super().setUp()
         self.method = "jax_odeint"
+
+    def test_transform_through_construction_when_validate_false(self):
+        """Test that a function building a Solver can be compiled if validate=False."""
+
+        Z = to_array(self.Z)
+        X = to_array(self.X)
+
+        def func(a):
+            solver = Solver(
+                static_hamiltonian=5 * Z,
+                hamiltonian_operators=[X],
+                hamiltonian_signals=[Signal(Array(a), 5.0)],
+                rotating_frame=5 * Z,
+                validate=False,
+            )
+            yf = solver.solve(np.array([0.0, 0.1]), y0=np.array([0.0, 1.0]), method=self.method).y[
+                -1
+            ]
+            return yf
+
+        jit_func = self.jit_wrap(func)
+        self.assertAllClose(jit_func(2.0), func(2.0))
+
+        jit_grad_func = self.jit_grad_wrap(func)
+        jit_grad_func(1.0)
 
     def test_jit_solve(self):
         """Test jitting setting signals and solving."""

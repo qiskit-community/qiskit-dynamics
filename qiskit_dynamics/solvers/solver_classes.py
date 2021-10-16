@@ -98,6 +98,7 @@ class Solver:
         in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
         rwa_cutoff_freq: Optional[float] = None,
+        validate: bool = True,
     ):
         """Initialize solver with model information.
 
@@ -120,6 +121,7 @@ class Solver:
                              (if dissipators in model) for valid modes.
             rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
                              approximation is made.
+            validate: Whether or not to validate Hamiltonian operators as being Hermitian.
         """
 
         model = None
@@ -131,6 +133,7 @@ class Solver:
                 rotating_frame=rotating_frame,
                 in_frame_basis=in_frame_basis,
                 evaluation_mode=evaluation_mode,
+                validate=validate,
             )
             self._signals = hamiltonian_signals
         else:
@@ -144,6 +147,7 @@ class Solver:
                 rotating_frame=rotating_frame,
                 in_frame_basis=in_frame_basis,
                 evaluation_mode=evaluation_mode,
+                validate=validate,
             )
             self._signals = (hamiltonian_signals, dissipator_signals)
 
