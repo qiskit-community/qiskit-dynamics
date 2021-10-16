@@ -95,7 +95,8 @@ class Solver:
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         rotating_frame: Optional[Union[Array, RotatingFrame]] = None,
-        evaluation_mode: Optional[str] = "dense",
+        in_frame_basis: bool = False,
+        evaluation_mode: str = "dense",
         rwa_cutoff_freq: Optional[float] = None,
     ):
         """Initialize solver with model information.
@@ -111,6 +112,8 @@ class Solver:
             dissipator_signals: Optional time-dependent coefficients for the dissipators. If
                                 ``None``, coefficients are assumed to be the constant ``1.``.
             rotating_frame: Rotating frame to transform the model into.
+            in_frame_basis: Whether to represent the model in the basis in which the rotating
+                            frame operator is diagonalized.
             evaluation_mode: Method for model evaluation. See documentation for
                              ``HamiltonianModel.evaluation_mode`` or
                              ``LindbladModel.evaluation_mode``.
@@ -126,6 +129,7 @@ class Solver:
                 operators=hamiltonian_operators,
                 signals=hamiltonian_signals,
                 rotating_frame=rotating_frame,
+                in_frame_basis=in_frame_basis,
                 evaluation_mode=evaluation_mode,
             )
             self._signals = hamiltonian_signals
@@ -138,6 +142,7 @@ class Solver:
                 dissipator_operators=dissipator_operators,
                 dissipator_signals=dissipator_signals,
                 rotating_frame=rotating_frame,
+                in_frame_basis=in_frame_basis,
                 evaluation_mode=evaluation_mode,
             )
             self._signals = (hamiltonian_signals, dissipator_signals)

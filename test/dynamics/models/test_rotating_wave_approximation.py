@@ -76,6 +76,57 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
             rtol=1e-5,
         )
 
+    def test_generator_model_rwa_with_frame_in_frame_basis(self):
+        """Test analytic RWA with a frame operator with model in frame basis."""
+        frame_op = np.array([[4j, 1j], [1j, 2j]])
+        sigs = SignalList([Signal(1 + 1j * k, k / 3, np.pi / 2 * k) for k in range(1, 4)])
+        self.assertAllClose(sigs(0), np.array([-1, -1, 3]))
+        ops = np.array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]])
+
+        GM = GeneratorModel(
+            static_operator=None,
+            operators=ops,
+            signals=sigs,
+            rotating_frame=frame_op,
+            in_frame_basis=True,
+        )
+        rotating_frame = GM.rotating_frame
+        self.assertAllClose(
+            GM(0),
+            rotating_frame.operator_into_frame_basis(np.array([[3 - 4j, -1], [-1 - 2j, -3 - 2j]])),
+        )
+        self.assertAllClose(
+            GM(1),
+            rotating_frame.operator_into_frame_basis(
+                np.array(
+                    [[-0.552558 - 4j, 3.18653 - 1.43887j], [3.18653 - 0.561126j, 0.552558 - 2j]]
+                )
+            ),
+            rtol=1e-5,
+        )
+        GM2 = rotating_wave_approximation(GM, 1 / 2 / np.pi)
+        self.assertAllClose(GM2.signals(0), [-1, -1, 3, 1, -2, -1])
+        self.assertAllClose(
+            GM2(0),
+            rotating_frame.operator_into_frame_basis(
+                np.array([[0.25 - 4.0j, -0.25 - 0.646447j], [-0.25 - 1.35355j, -0.25 - 2.0j]])
+            ),
+            rtol=1e-5,
+        )
+        self.assertAllClose(
+            GM2(1),
+            rotating_frame.operator_into_frame_basis(
+                np.array(
+                    [
+                        [0.0181527 - 4.0j, -0.0181527 - 0.500659j],
+                        [-0.0181527 - 1.49934j, -0.0181527 - 2.0j],
+                    ]
+                )
+            ),
+            rtol=1e-5,
+        )
+        self.assertTrue(GM2.in_frame_basis)
+
     def test_generator_model_no_rotating_frame(self):
         """Tests whether RWA works in the absence of a rotating frame"""
         ops = Array(np.ones((4, 2, 2)))
@@ -83,11 +134,11 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         dft = Array(np.ones((2, 2)))
         GM = GeneratorModel(static_operator=dft, operators=ops, signals=sigs)
         GMP = rotating_wave_approximation(GM, 2)
-        self.assertAllClose(GMP.get_static_operator(True), Array(np.ones((2, 2))))
+        self.assertAllClose(GMP._get_static_operator(True), Array(np.ones((2, 2))))
         post_rwa_ops = Array(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * Array(
             np.ones((8, 2, 2))
         )
-        self.assertAllClose(GMP.get_operators(True), post_rwa_ops)
+        self.assertAllClose(GMP._get_operators(True), post_rwa_ops)
 
     def test_generator_model_no_rotating_frame_no_static_operator(self):
         """Test case of no frame and no static_operator."""
@@ -97,11 +148,11 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         # test without static_operator
         GM = GeneratorModel(static_operator=None, operators=ops, signals=sigs)
         GMP = rotating_wave_approximation(GM, 2)
-        self.assertTrue(GMP.get_static_operator() is None)
+        self.assertTrue(GMP.static_operator is None)
         post_rwa_ops = Array(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * Array(
             np.ones((8, 2, 2))
         )
-        self.assertAllClose(GMP.get_operators(True), post_rwa_ops)
+        self.assertAllClose(GMP._get_operators(True), post_rwa_ops)
 
     def test_generator_model_rotating_frame_no_operators(self):
         """Test case for GeneratorModel with rotating frame and no operators."""
@@ -130,16 +181,38 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         expected = -1j * (ham @ rho - rho @ ham)
         self.assertAllClose(rwa_model(0, rho), expected)
 
+    def test_lindblad_model_rotating_frame_only_static_hamiltonian_in_frame_basis(self):
+        """Test case for LindbladModel with just a static hamiltonian
+        in frame basis.
+        """
+
+        U = np.array([[1.0, 1.0], [1.0, -1.0]]) / np.sqrt(2)
+        Uadj = U.conj().transpose()
+        frame_op = 2 * np.pi * U @ np.diag([1, -1]) @ Uadj / 2
+
+        model = LindbladModel(
+            static_hamiltonian=U @ np.array([[3.0, 1], [1, 2.0]]) @ Uadj + frame_op,
+            rotating_frame=frame_op,
+            in_frame_basis=True,
+        )
+        rwa_model = rotating_wave_approximation(model, 0.99)
+        # flipped due to eigenvalue ordering
+        ham = np.array([[2.0, 0], [0, 3.0]])
+        rho = np.array([[1.0, 2.0], [3.0, 4.0]])
+        expected = -1j * (ham @ rho - rho @ ham)
+        self.assertTrue(rwa_model.in_frame_basis)
+        self.assertAllClose(rwa_model(0, rho), expected)
+
     def test_classic_hamiltonian_model(self):
         """Test classic analytic case for HamiltonianModel."""
 
         rwa_ham_model = rotating_wave_approximation(self.classic_hamiltonian, 2 * self.v)
 
-        self.assertAllClose(rwa_ham_model.get_static_operator(), np.zeros((2, 2)))
+        self.assertAllClose(rwa_ham_model.static_operator, np.zeros((2, 2)))
         expected_ops = (
             2 * np.pi * self.r * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]]) / 4
         )
-        self.assertAllClose(rwa_ham_model.get_operators(), expected_ops)
+        self.assertAllClose(rwa_ham_model.operators, expected_ops)
 
     def test_signal_translator_generator_model(self):
         """Tests signal translation from pre-RWA to post-RWA through
@@ -274,8 +347,8 @@ class TestRotatingWaveApproximationSparse(QiskitDynamicsTestCase):
 
         rwa_ham_model = rotating_wave_approximation(self.classic_hamiltonian, 2 * self.v)
 
-        self.assertAllCloseSparse(rwa_ham_model.get_static_operator(), to_csr(np.zeros((2, 2))))
+        self.assertAllCloseSparse(rwa_ham_model.static_operator, to_csr(np.zeros((2, 2))))
         expected_ops = (
             2 * np.pi * self.r * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]]) / 4
         )
-        self.assertAllCloseSparse(rwa_ham_model.get_operators(), to_csr(expected_ops))
+        self.assertAllCloseSparse(rwa_ham_model.operators, to_csr(expected_ops))

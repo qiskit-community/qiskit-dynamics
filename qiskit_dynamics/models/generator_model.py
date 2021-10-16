@@ -110,9 +110,7 @@ class BaseGeneratorModel(ABC):
         """Return a copy of self."""
         return copy(self)
 
-    def __call__(
-        self, time: float, y: Optional[Array] = None
-    ) -> Array:
+    def __call__(self, time: float, y: Optional[Array] = None) -> Array:
         r"""Evaluate generator RHS functions. If ``y is None``,
         attemps to evaluate :math:`\Lambda(t, \cdot)`, otherwise, calculates
         :math:`\Lambda(t, y)`
@@ -317,8 +315,9 @@ class GeneratorModel(BaseGeneratorModel):
     @static_operator.setter
     def static_operator(self, static_operator: Array):
         """Set the static operator."""
-        self._set_static_operator(new_static_operator=static_operator,
-                                  operator_in_frame_basis=self._in_frame_basis)
+        self._set_static_operator(
+            new_static_operator=static_operator, operator_in_frame_basis=self._in_frame_basis
+        )
 
     def _get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
         """Get the operators used in the model construction.

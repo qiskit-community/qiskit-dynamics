@@ -88,7 +88,9 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         """Test functions for Hamiltonian with no frame."""
 
         y0 = np.array([3.43, 1.31])
-        gen, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(self.ham_model, y0)
+        gen, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(
+            self.ham_model, y0
+        )
 
         # expect nothing to happen
         self.assertAllClose(y0, new_y0)
@@ -107,7 +109,9 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         ham_model = self.ham_model.copy()
         ham_model.rotating_frame = self.frame_op
         y0 = np.array([3.43, 1.31])
-        gen, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(ham_model, y0)
+        gen, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(
+            ham_model, y0
+        )
 
         # check frame parameters
         self.assertFalse(model_in_frame_basis)
@@ -125,7 +129,9 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         """Test functions for LindbladModel with no frame."""
 
         y0 = np.array([[3.43, 1.31], [3.0, 1.23]])
-        _, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(self.lindblad_model, y0)
+        _, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(
+            self.lindblad_model, y0
+        )
 
         # expect nothing to happen
         self.assertAllClose(y0, new_y0)
@@ -140,7 +146,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         lindblad_model.rotating_frame = self.frame_op
 
         y0 = np.array([[3.43, 1.31], [3.0, 1.23]])
-        _, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(lindblad_model, y0)
+        _, rhs, new_y0, _ = setup_generator_model_rhs_y0_in_frame_basis(lindblad_model, y0)
 
         # expect nothing to happen
         self.assertAllClose(self.Uadj @ y0 @ self.U, new_y0)
@@ -152,7 +158,9 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         """Test functions for vectorized LindbladModel with no frame."""
 
         y0 = np.array([[3.43, 1.31], [3.0, 1.23]]).flatten()
-        gen, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(self.vec_lindblad_model, y0)
+        gen, rhs, new_y0, _ = setup_generator_model_rhs_y0_in_frame_basis(
+            self.vec_lindblad_model, y0
+        )
 
         # expect nothing to happen
         self.assertAllClose(y0, new_y0)
@@ -168,7 +176,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         vec_lindblad_model.rotating_frame = self.frame_op
 
         y0 = np.array([[3.43, 1.31], [3.0, 1.23]]).flatten()
-        gen, rhs, new_y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(vec_lindblad_model, y0)
+        gen, rhs, new_y0, _ = setup_generator_model_rhs_y0_in_frame_basis(vec_lindblad_model, y0)
 
         # expect nothing to happen
         self.assertAllClose(np.kron(self.Uadj.conj(), self.Uadj) @ y0, new_y0)
@@ -324,7 +332,6 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
 
         self.pseudo_random_generator = pseudo_random_generator
 
-
     def _fixed_step_LMDE_method_tests(self, method):
         # test basic generator
         results = solve_lmde(
@@ -337,9 +344,21 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
 
         # test solving in a frame with generator model and solving with a function
         # and no frame
-        results = solve_lmde(self.pseudo_random_model, t_span=[0, 0.5], y0=self.pseudo_random_y0, method=method, max_dt=0.01)
+        results = solve_lmde(
+            self.pseudo_random_model,
+            t_span=[0, 0.5],
+            y0=self.pseudo_random_y0,
+            method=method,
+            max_dt=0.01,
+        )
         yf = self.pseudo_random_model.rotating_frame.state_out_of_frame(0.5, results.y[-1])
-        results2 = solve_lmde(self.pseudo_random_generator, t_span=[0, 0.5], y0=self.pseudo_random_y0, method=method, max_dt=0.01)
+        results2 = solve_lmde(
+            self.pseudo_random_generator,
+            t_span=[0, 0.5],
+            y0=self.pseudo_random_y0,
+            method=method,
+            max_dt=0.01,
+        )
         self.assertAllClose(yf, results2.y[-1], atol=1e-5, rtol=1e-5)
 
         # verify that model is returned to not being in the frame basis
@@ -349,12 +368,20 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
         self.pseudo_random_model.in_frame_basis = True
         rotating_frame = self.pseudo_random_model.rotating_frame
         y0_in_frame_basis = rotating_frame.state_into_frame_basis(self.pseudo_random_y0)
-        results3 = solve_lmde(self.pseudo_random_model, t_span=[0, 0.5], y0=y0_in_frame_basis, method=method, max_dt=0.01)
+        results3 = solve_lmde(
+            self.pseudo_random_model,
+            t_span=[0, 0.5],
+            y0=y0_in_frame_basis,
+            method=method,
+            max_dt=0.01,
+        )
         yf_in_frame_basis = results3.y[-1]
-        self.assertAllClose(yf, rotating_frame.state_out_of_frame(0.5,
-                                                                  y=yf_in_frame_basis,
-                                                                  y_in_frame_basis=True,
-                                                                  return_in_frame_basis=False))
+        self.assertAllClose(
+            yf,
+            rotating_frame.state_out_of_frame(
+                0.5, y=yf_in_frame_basis, y_in_frame_basis=True, return_in_frame_basis=False
+            ),
+        )
         self.assertTrue(self.pseudo_random_model.in_frame_basis)
 
 

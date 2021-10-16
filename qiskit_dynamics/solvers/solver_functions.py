@@ -113,7 +113,9 @@ def solve_ode(
     y0 = Array(y0)
 
     if isinstance(rhs, BaseGeneratorModel):
-        _, solver_rhs, y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(rhs, y0)
+        _, solver_rhs, y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(
+            rhs, y0
+        )
     else:
         solver_rhs = rhs
 
@@ -232,7 +234,9 @@ def solve_lmde(
 
     # setup generator and rhs functions to pass to numerical methods
     if isinstance(generator, BaseGeneratorModel):
-        solver_generator, _, y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(generator, y0)
+        solver_generator, _, y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(
+            generator, y0
+        )
     else:
         solver_generator = generator
 

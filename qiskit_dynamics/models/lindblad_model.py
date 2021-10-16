@@ -289,9 +289,11 @@ class LindbladModel(BaseGeneratorModel):
         return self._get_static_hamiltonian(in_frame_basis=self._in_frame_basis)
 
     @static_hamiltonian.setter
-    def static_hamiltonian(self, static_hamitonian: Array):
+    def static_hamiltonian(self, static_hamiltonian: Array):
         """Set the static Hamiltonian term."""
-        self._set_static_hamiltonian(new_static_hamiltonian=static_hamiltonian, in_frame_basis=self._in_frame_basis)
+        self._set_static_hamiltonian(
+            new_static_hamiltonian=static_hamiltonian, operator_in_frame_basis=self._in_frame_basis
+        )
 
     @property
     def hamiltonian_operators(self) -> Array:

@@ -325,7 +325,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         simple_model.static_operator = np.eye(2)
         fop = Array([[0, 1j], [1j, 0]])
         simple_model.rotating_frame = fop
-        res = simple_model(2.)
+        res = simple_model(2.0)
         expected = (
             expm(np.array(-2 * fop))
             @ (Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]) - fop)
@@ -405,11 +405,12 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         gm1.in_frame_basis = False
         self.assertAllClose(gm1(t) @ state, ts1)
 
-
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.abs
         # Testing at the same time whether having static_operatorrift = None is an issue.
-        gm1 = GeneratorModel(operators=paulis, signals=sarr, rotating_frame=RotatingFrame(farr), in_frame_basis=True)
+        gm1 = GeneratorModel(
+            operators=paulis, signals=sarr, rotating_frame=RotatingFrame(farr), in_frame_basis=True
+        )
         gm2 = GeneratorModel(operators=paulis, rotating_frame=farr, in_frame_basis=True)
         gm2.signals = SignalList(sarr)
         gm3 = GeneratorModel(operators=paulis, rotating_frame=farr, in_frame_basis=True)
@@ -479,7 +480,11 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         state_in_frame_basis = np.conjugate(np.transpose(evect)) @ state
 
         gm1 = GeneratorModel(
-            operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra, in_frame_basis=True
+            operators=paulis,
+            signals=sarr,
+            rotating_frame=farr,
+            static_operator=extra,
+            in_frame_basis=True,
         )
         self.assertAllClose(gm1(t), t_in_frame_actual)
         self.assertAllClose(
@@ -494,7 +499,11 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         )
 
         gm2 = GeneratorModel(
-            operators=paulis, signals=sarr, rotating_frame=farr, static_operator=extra, in_frame_basis=False
+            operators=paulis,
+            signals=sarr,
+            rotating_frame=farr,
+            static_operator=extra,
+            in_frame_basis=False,
         )
         gm1.in_frame_basis = False
         self.assertAllClose(gm2(t), t_not_in_frame_actual)

@@ -372,14 +372,14 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             into_frame_basis(-1j * frame_op),
             lindblad_model.static_hamiltonian,
         )
-        lindblad_model.in_frame_basis=False
-        self.assertAllClose(
-            -1j * frame_op, lindblad_model.static_hamiltonian
-        )
+        lindblad_model.in_frame_basis = False
+        self.assertAllClose(-1j * frame_op, lindblad_model.static_hamiltonian)
         self.assertAllClose(expected, value)
 
         lindblad_model.evaluation_mode = "dense_vectorized"
-        vectorized_value = lindblad_model.evaluate_rhs(t, A.flatten(order="F")).reshape((dim, dim), order="F")
+        vectorized_value = lindblad_model.evaluate_rhs(t, A.flatten(order="F")).reshape(
+            (dim, dim), order="F"
+        )
         self.assertAllClose(value, vectorized_value)
 
         vec_gen = lindblad_model.evaluate(t)
@@ -400,9 +400,9 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             self.assertAllCloseSparse(value, sparse_value)
 
             lindblad_model.evaluation_mode = "sparse_vectorized"
-            sparse_vectorized_value = lindblad_model.evaluate_rhs(
-                t, A.flatten(order="F")
-            ).reshape((dim, dim), order="F")
+            sparse_vectorized_value = lindblad_model.evaluate_rhs(t, A.flatten(order="F")).reshape(
+                (dim, dim), order="F"
+            )
             self.assertAllCloseSparse(value, sparse_vectorized_value)
 
             sparse_vec_gen = lindblad_model.evaluate(t)

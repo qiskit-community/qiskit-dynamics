@@ -148,12 +148,16 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
         # test solving in frame basis
         model.in_frame_basis = True
         y0_in_frame_basis = model.rotating_frame.state_into_frame_basis(y0)
-        results3 = solve_ode(model, t_span=[0, 0.5], y0=y0_in_frame_basis, method=method, atol=1e-8, rtol=1e-8)
+        results3 = solve_ode(
+            model, t_span=[0, 0.5], y0=y0_in_frame_basis, method=method, atol=1e-8, rtol=1e-8
+        )
         yf_in_frame_basis = results3.y[-1]
-        self.assertAllClose(yf, model.rotating_frame.state_out_of_frame(0.5,
-                                                                  y=yf_in_frame_basis,
-                                                                  y_in_frame_basis=True,
-                                                                  return_in_frame_basis=False))
+        self.assertAllClose(
+            yf,
+            model.rotating_frame.state_out_of_frame(
+                0.5, y=yf_in_frame_basis, y_in_frame_basis=True, return_in_frame_basis=False
+            ),
+        )
         self.assertTrue(model.in_frame_basis)
 
 
