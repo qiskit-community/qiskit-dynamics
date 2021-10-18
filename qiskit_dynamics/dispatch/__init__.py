@@ -23,22 +23,6 @@ This module contains an :class:`Array` class that wraps N-dimensional array
 objects from different libraries for use with Numpy functions through a common
 interface and functions for working with Array objects and other libraries.
 
-Contents
-========
-
-.. autosummary::
-    :toctree: ../stubs/
-
-    Array
-    wrap
-    set_default_backend
-    default_backend
-    available_backends
-    backend_types
-    asarray
-    requires_backend
-
-
 Array Class
 ===========
 
@@ -50,7 +34,7 @@ compatible function has been specified in the dispatch system.
 The following array libraries have built in support for the dispatch module
 
 * `Numpy <https://numpy.org/>`_
-* `Jax <https://github.com/google/jax>`_
+* `JAX <https://github.com/google/jax>`_
 
 Basic Usage
 -----------
@@ -83,8 +67,8 @@ Attributes and Methods
 The :class:`Array` class exposes the same methods and attributes of the wrapped
 array class and adds two additional attributes
 
-* :attr`~Array.data` which returns the wrapped array object
-* :attr`~Array.backend` which returns the backend string of the wrapped array.
+* :attr:`~Array.data` which returns the wrapped array object
+* :attr:`~Array.backend` which returns the backend string of the wrapped array.
 
 All other attributes and methods of the wrapped array are accessable
 through this class, but with any array return types wrapped into
@@ -98,11 +82,11 @@ through this class, but with any array return types wrapped into
 Array Initialization
 --------------------
 
-An `Array` object can be initialized as `Array(data)` from any ``data`` that is
+An :class:`Array` object can be initialized as `Array(data)` from any ``data`` that is
 
 1. An ``array`` object of one of the supported backends.
 2. An object that can be used to initialize the backend array.
-3. An object of a class that defines a `__qiskit_array__` method with the
+3. An object of a class that defines a ``__qiskit_array__`` method with the
    following signature
 
     .. code-block:: python
@@ -129,7 +113,7 @@ The :meth:`Array.__init__` method has optional kwargs
 Using Arrays with other Libraries
 =================================
 
-The :class`Array` class is intended to be used with array functions in
+The :class:`Array` class is intended to be used with array functions in
 Python libraries that work with any of the supported Array backends.
 
 Wrapping Functions
@@ -154,7 +138,7 @@ the :func:`wrap` function as
 
 The wrapped function will automatically unwrapping any Array args and kwargs
 for calling the wrapped function. If the result of the function is a backend array
-or an instance of a class that defines a `__qiskit_array__` method the wrapped
+or an instance of a class that defines a ``__qiskit_array__`` method the wrapped
 function will return this as an Array object. Similarly if the result is a tuple
 this conversion will be applied to each element of the tuple where appropriate.
 
@@ -164,7 +148,7 @@ Wrapping Decorators
 The :func:`wrap` function can also be used to wrap function decorators by setting
 the ``decorator=True`` kwarg.
 
-For example to wrap autograd and jit decorators from the Kax library to work with
+For example to wrap autograd and jit decorators from the JAX library to work with
 Array functions we can do the following
 
 .. code-block:: python
@@ -195,6 +179,29 @@ Array functions we can do the following
     .. code-block:: python
 
         f_wrapped = wrap(wrap(func)(f))
+
+
+Dispatch Classes
+================
+
+.. autosummary::
+    :toctree: ../stubs/
+
+    Array
+
+Dispatch Functions
+==================
+
+.. autosummary::
+    :toctree: ../stubs/
+
+    wrap
+    set_default_backend
+    default_backend
+    available_backends
+    backend_types
+    asarray
+    requires_backend
 """
 
 # Import Array
