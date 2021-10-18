@@ -22,8 +22,50 @@ from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
 
 from qiskit_dynamics import Solver
 from qiskit_dynamics.signals import Signal
+from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.type_utils import to_array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+
+
+class TestSolverValidation(QiskitDynamicsTestCase):
+    """Test validation for Hamiltonian terms."""
+
+    def test_hamiltonian_operators_array_not_hermitian(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            Solver(hamiltonian_operators=operators)
+        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+
+    def test_validation_override_hamiltonian(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+        solver = Solver(hamiltonian_operators=operators, validate=False)
+
+        self.assertAllClose(solver.model.operators, operators)
+
+    def test_hamiltonian_operators_array_not_hermitian_lindblad(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            Solver(hamiltonian_operators=operators, static_dissipators=operators)
+        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+
+    def test_validation_override_lindblad(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+        solver = Solver(
+            hamiltonian_operators=operators, static_dissipators=operators, validate=False
+        )
+
+        self.assertAllClose(solver.model.hamiltonian_operators, operators)
 
 
 class TestSolverExceptions(QiskitDynamicsTestCase):
@@ -34,13 +76,13 @@ class TestSolverExceptions(QiskitDynamicsTestCase):
         self.ham_solver = Solver(hamiltonian_operators=[X], hamiltonian_signals=[1.0])
 
         self.lindblad_solver = Solver(
-            hamiltonian_operators=[X], hamiltonian_signals=[1.0], dissipator_operators=[X]
+            hamiltonian_operators=[X], hamiltonian_signals=[1.0], static_dissipators=[X]
         )
 
         self.vec_lindblad_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[1.0],
-            dissipator_operators=[X],
+            static_dissipators=[X],
             evaluation_mode="dense_vectorized",
         )
 
@@ -104,17 +146,19 @@ class TestSolver(QiskitDynamicsTestCase):
         """Set up some simple models."""
         X = 2 * np.pi * Operator.from_label("X") / 2
         Z = 2 * np.pi * Operator.from_label("Z") / 2
+        self.X = X
+        self.Z = Z
         self.ham_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
-            drift=5 * Z,
+            static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
         )
 
         self.rwa_ham_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
-            drift=5 * Z,
+            static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
             rwa_cutoff_freq=2 * 5.0,
         )
@@ -122,16 +166,16 @@ class TestSolver(QiskitDynamicsTestCase):
         self.lindblad_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
-            dissipator_operators=[0.01 * X],
-            drift=5 * Z,
+            static_dissipators=[0.01 * X],
+            static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
         )
 
         self.vec_lindblad_solver = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
-            dissipator_operators=[0.01 * X],
-            drift=5 * Z,
+            static_dissipators=[0.01 * X],
+            static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
             evaluation_mode="dense_vectorized",
         )
@@ -140,8 +184,8 @@ class TestSolver(QiskitDynamicsTestCase):
         self.vec_lindblad_solver_no_diss = Solver(
             hamiltonian_operators=[X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
-            dissipator_operators=[0.0 * X],
-            drift=5 * Z,
+            static_dissipators=[0.0 * X],
+            static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
             evaluation_mode="dense_vectorized",
         )
@@ -216,6 +260,23 @@ class TestSolver(QiskitDynamicsTestCase):
         )
         self.assertAllClose(results.y[-1].data, results2.y[-1].data)
 
+    def test_lindblad_solver_consistency(self):
+        """Test consistency of lindblad solver with dissipators specified
+        as constant v.s. non-constant.
+        """
+        lindblad_solver2 = Solver(
+            hamiltonian_operators=[self.X],
+            hamiltonian_signals=[Signal(1.0, 5.0)],
+            dissipator_operators=[self.X],
+            dissipator_signals=[0.01 ** 2],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+        )
+
+        results = lindblad_solver2.solve([0.0, 1.0], y0=Statevector([0.0, 1.0]), method=self.method)
+        self.assertTrue(isinstance(results.y[-1], DensityMatrix))
+        self.assertTrue(results.y[-1].data[0, 0] > 0.99 and results.y[-1].data[0, 0] < 0.999)
+
 
 class TestSolverJax(TestSolver, TestJaxBase):
     """JAX version of TestSolver."""
@@ -224,6 +285,31 @@ class TestSolverJax(TestSolver, TestJaxBase):
         """Set method to 'jax_odeint' to speed up running of jax version of tests."""
         super().setUp()
         self.method = "jax_odeint"
+
+    def test_transform_through_construction_when_validate_false(self):
+        """Test that a function building a Solver can be compiled if validate=False."""
+
+        Z = to_array(self.Z)
+        X = to_array(self.X)
+
+        def func(a):
+            solver = Solver(
+                static_hamiltonian=5 * Z,
+                hamiltonian_operators=[X],
+                hamiltonian_signals=[Signal(Array(a), 5.0)],
+                rotating_frame=5 * Z,
+                validate=False,
+            )
+            yf = solver.solve(np.array([0.0, 0.1]), y0=np.array([0.0, 1.0]), method=self.method).y[
+                -1
+            ]
+            return yf
+
+        jit_func = self.jit_wrap(func)
+        self.assertAllClose(jit_func(2.0), func(2.0))
+
+        jit_grad_func = self.jit_grad_wrap(func)
+        jit_grad_func(1.0)
 
     def test_jit_solve(self):
         """Test jitting setting signals and solving."""
@@ -242,11 +328,16 @@ class TestSolverJax(TestSolver, TestJaxBase):
     def test_jit_grad_solve(self):
         """Test jitting setting signals and solving."""
 
+        X = Operator.from_label("X")
+        solver = Solver(
+            hamiltonian_operators=[X], hamiltonian_signals=[1.0], dissipator_operators=[X]
+        )
+
         def func(a):
-            lindblad_solver = self.lindblad_solver.copy()
-            lindblad_solver.signals = [[Signal(lambda t: a, 5.0)], [1.0]]
-            yf = lindblad_solver.solve(
-                [0.0, 1.0], y0=np.array([[0.0, 1.0], [0.0, 1.0]]), method=self.method
+            solver_copy = solver.copy()
+            solver_copy.signals = [[Signal(lambda t: a, 5.0)], [1.0]]
+            yf = solver_copy.solve(
+                [0.0, 1.0], y0=np.array([[0.0, 1.0], [0.0, 1.0]], dtype=complex), method=self.method
             ).y[-1]
             return yf
 
