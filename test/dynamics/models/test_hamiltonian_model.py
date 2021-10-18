@@ -16,11 +16,56 @@
 import numpy as np
 
 from scipy.linalg import expm
+from scipy.sparse.csr import csr_matrix
+
+from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel
+from qiskit_dynamics.models.hamiltonian_model import is_hermitian
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+
+
+class TestHamiltonianModelValidation(QiskitDynamicsTestCase):
+    """Test validation handling of HamiltonianModel."""
+
+    def test_operators_array_not_hermitian(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            HamiltonianModel(operators=operators)
+        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+
+    def test_operators_csr_not_hermitian(self):
+        """Test raising error if operators are not Hermitian."""
+
+        operators = [csr_matrix([[0.0, 1.0], [0.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            HamiltonianModel(operators=operators)
+        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+
+    def test_static_operator_not_hermitian(self):
+        """Test raising error if static_operator is not Hermitian."""
+
+        static_operator = np.array([[0.0, 1.0], [0.0, 0.0]])
+        operators = [np.array([[0.0, 1.0], [1.0, 0.0]])]
+
+        with self.assertRaises(QiskitError) as qe:
+            HamiltonianModel(operators=operators, static_operator=static_operator)
+        self.assertTrue("static_operator must be Hermitian." in str(qe.exception))
+
+    def test_validate_false(self):
+        """Verify setting validate=False avoids error raising."""
+
+        ham_model = HamiltonianModel(
+            operators=[np.array([[0.0, 1.0], [0.0, 0.0]])], signals=[1.0], validate=False
+        )
+
+        self.assertAllClose(ham_model(1.0), -1j * np.array([[0.0, 1.0], [0.0, 0.0]]))
 
 
 class TestHamiltonianModel(QiskitDynamicsTestCase):
@@ -115,13 +160,14 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
         # enter the frame given by the -1j * X
         self.basic_hamiltonian.rotating_frame = frame_op
+        self.basic_hamiltonian.in_frame_basis = True
 
         # get the frame basis used in model. Note that the Frame object
         # orders the basis according to the ordering of eigh
         _, U = np.linalg.eigh(frame_op)
 
         t = 3.21412
-        value = self.basic_hamiltonian(t, in_frame_basis=True) / -1j
+        value = self.basic_hamiltonian(t) / -1j
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
@@ -205,9 +251,11 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
             sig_list.append(Signal(get_env_func(), freq, phase))
         sig_list = SignalList(sig_list)
-        model = HamiltonianModel(operators, drift=None, signals=sig_list, rotating_frame=frame_op)
+        model = HamiltonianModel(
+            operators=operators, static_operator=None, signals=sig_list, rotating_frame=frame_op
+        )
 
-        value = model(1.0, in_frame_basis=False) / -1j
+        value = model(1.0) / -1j
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
         expected = (
             expm(1j * np.array(frame_op))
@@ -216,9 +264,22 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
             - frame_op
         )
         self.assertAllClose(model._signals(1), coeffs)
-        self.assertAllClose(model.get_operators(), operators)
+        self.assertAllClose(model.operators, operators)
 
         self.assertAllClose(value, expected)
+
+    def test_evaluate_static(self):
+        """Test evaluation of a GeneratorModel with only a static component."""
+
+        static_model = HamiltonianModel(static_operator=self.X)
+        self.assertAllClose(-1j * self.X, static_model(1.0))
+
+        # now with frame
+        frame_op = -1j * (self.Z + 1.232 * self.Y)
+        static_model.rotating_frame = frame_op
+        t = 1.2312
+        expected = expm(-frame_op.data * t) @ (-1j * self.X - frame_op) @ expm(frame_op.data * t)
+        self.assertAllClose(expected, static_model(t))
 
 
 class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
@@ -254,3 +315,47 @@ class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
         self.jit_grad_wrap(self.basic_hamiltonian.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
 
         self.basic_hamiltonian.rotating_frame = None
+
+
+class Testis_hermitian(QiskitDynamicsTestCase):
+    """Test is_hermitian validation function."""
+
+    def test_2d_array(self):
+        """Test 2d array case."""
+        self.assertTrue(is_hermitian(Array([[1.0, 0.0], [0.0, 1.0]])))
+        self.assertFalse(is_hermitian(Array([[0.0, 1.0], [0.0, 0.0]])))
+        self.assertFalse(is_hermitian(Array([[0.0, 1j], [0.0, 0.0]])))
+        self.assertTrue(is_hermitian(Array([[0.0, 1j], [-1j, 0.0]])))
+
+    def test_3d_array(self):
+        """Test 3d array case."""
+        self.assertTrue(is_hermitian(Array([[[1.0, 0.0], [0.0, 1.0]]])))
+        self.assertFalse(is_hermitian(Array([[[0.0, 1.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 0.0]]])))
+        self.assertFalse(is_hermitian(Array([[[0.0, 1j], [0.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]])))
+        self.assertTrue(is_hermitian(Array([[[0.0, 1j], [-1j, 0.0]], [[0.0, 1.0], [1.0, 0.0]]])))
+
+    def test_csr_matrix(self):
+        """Test csr_matrix case."""
+        self.assertTrue(is_hermitian(csr_matrix([[1.0, 0.0], [0.0, 1.0]])))
+        self.assertFalse(is_hermitian(csr_matrix([[0.0, 1.0], [0.0, 0.0]])))
+        self.assertFalse(is_hermitian(csr_matrix([[0.0, 1j], [0.0, 0.0]])))
+        self.assertTrue(is_hermitian(csr_matrix([[0.0, 1j], [-1j, 0.0]])))
+
+    def test_list_csr_matrix(self):
+        """Test list of csr_matrix case."""
+        self.assertTrue(is_hermitian([csr_matrix([[1.0, 0.0], [0.0, 1.0]])]))
+        self.assertFalse(
+            is_hermitian(
+                [csr_matrix([[0.0, 1.0], [0.0, 0.0]]), csr_matrix([[0.0, 1.0], [1.0, 0.0]])]
+            )
+        )
+        self.assertFalse(
+            is_hermitian(
+                [csr_matrix([[0.0, 1j], [0.0, 0.0]]), csr_matrix([[1.0, 0.0], [0.0, 1.0]])]
+            )
+        )
+        self.assertTrue(
+            is_hermitian(
+                [csr_matrix([[0.0, 1j], [-1j, 0.0]]), csr_matrix([[0.0, 1.0], [1.0, 0.0]])]
+            )
+        )

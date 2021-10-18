@@ -59,8 +59,20 @@ class Solver:
     Transformations on the model can be specified via the optional arguments:
 
     * ``rotating_frame``: Transforms the model into a rotating frame. Note that
-      operator specifying the frame will be substracted from the drift.
-      See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
+      operator specifying the frame will be substracted from the static_hamiltonian.
+      If supplied as a 1d array, ``rotating_frame`` is interpreted as the diagonal
+      elements of a diagonal matrix. See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
+    * ``in_frame_basis``: Whether to represent the model in the basis in which the frame
+      operator is diagonal, henceforth called the "frame basis".
+      If ``rotating_frame`` is ``None`` or was supplied as a 1d array,
+      this kwarg has no effect. If ``rotating_frame`` was specified as a 2d array,
+      the frame basis is hte diagonalizing basis supplied by ``np.linalg.eigh``.
+      If ``in_frame_basis==True``, calls to ``solve``, this objects behaves as if all
+      operators were supplied in the frame basis: calls to ``solve`` will assume the initial
+      state is supplied in the frame basis, and the results will be returned in the frame basis.
+      If ``in_frame_basis==False``, the system will still be solved in the frame basis for
+      efficiency, however the initial state (and final output states) will automatically be
+      transformed into (and, respectively, out of) the frame basis.
     * ``rwa_cutoff_freq``: Performs a rotating wave approximation (RWA) on the model
       with cutoff frequency ``rwa_cutoff_freq``. See
       :func:`~qiskit_dynamics.models.rotating_wave_approximation`
@@ -88,53 +100,69 @@ class Solver:
 
     def __init__(
         self,
-        hamiltonian_operators: Array,
+        static_hamiltonian: Optional[Array] = None,
+        hamiltonian_operators: Optional[Array] = None,
         hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
+        static_dissipators: Optional[Array] = None,
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        drift: Optional[Array] = None,
         rotating_frame: Optional[Union[Array, RotatingFrame]] = None,
-        evaluation_mode: Optional[str] = "dense",
+        in_frame_basis: bool = False,
+        evaluation_mode: str = "dense",
         rwa_cutoff_freq: Optional[float] = None,
+        validate: bool = True,
     ):
         """Initialize solver with model information.
 
         Args:
+            static_hamiltonian: Constant Hamiltonian term. If a ``rotating_frame``
+                                is specified, the ``frame_operator`` will be subtracted from
+                                the static_hamiltonian.
             hamiltonian_operators: Hamiltonian operators.
             hamiltonian_signals: Coefficients for the Hamiltonian operators.
-            dissipator_operators: Optional dissipation operators.
+            static_dissipators: Constant dissipation operators.
+            dissipator_operators: Dissipation operators with time-dependent coefficients.
             dissipator_signals: Optional time-dependent coefficients for the dissipators. If
                                 ``None``, coefficients are assumed to be the constant ``1.``.
-            drift: Hamiltonian drift operator. If a ``rotating_frame`` is specified, the
-                   ``frame_operator`` will be subtracted from the drift.
-            rotating_frame: Rotating frame to transform the model into.
+            rotating_frame: Rotating frame to transform the model into. Rotating frames which
+                            are diagonal can be supplied as a 1d array of the diagonal elements,
+                            to explicitly indicate that they are diagonal.
+            in_frame_basis: Whether to represent the model in the basis in which the rotating
+                            frame operator is diagonalized. See class documentation for a more
+                            detailed explanation on how this argument affects object behaviour.
             evaluation_mode: Method for model evaluation. See documentation for
                              ``HamiltonianModel.evaluation_mode`` or
                              ``LindbladModel.evaluation_mode``.
                              (if dissipators in model) for valid modes.
             rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
                              approximation is made.
+            validate: Whether or not to validate Hamiltonian operators as being Hermitian.
         """
 
         model = None
-        if dissipator_operators is None:
+        if static_dissipators is None and dissipator_operators is None:
             model = HamiltonianModel(
+                static_operator=static_hamiltonian,
                 operators=hamiltonian_operators,
                 signals=hamiltonian_signals,
                 rotating_frame=rotating_frame,
-                drift=drift,
+                in_frame_basis=in_frame_basis,
                 evaluation_mode=evaluation_mode,
+                validate=validate,
             )
             self._signals = hamiltonian_signals
         else:
             model = LindbladModel(
+                static_hamiltonian=static_hamiltonian,
                 hamiltonian_operators=hamiltonian_operators,
                 hamiltonian_signals=hamiltonian_signals,
+                static_dissipators=static_dissipators,
                 dissipator_operators=dissipator_operators,
                 dissipator_signals=dissipator_signals,
                 rotating_frame=rotating_frame,
-                drift=drift,
+                in_frame_basis=in_frame_basis,
                 evaluation_mode=evaluation_mode,
+                validate=validate,
             )
             self._signals = (hamiltonian_signals, dissipator_signals)
 
