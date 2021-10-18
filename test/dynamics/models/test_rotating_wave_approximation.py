@@ -214,6 +214,34 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         )
         self.assertAllClose(rwa_ham_model.operators, expected_ops)
 
+    def test_static_dissipator_vs_non_static(self):
+        """Compare evaluation of static dissipators with non-static."""
+
+        np.random.seed(2314)
+        random_mats = lambda *args: Array(np.random.uniform(-1, 1, args))
+        random_complex_mats = lambda *args: random_mats(*args) + 1j * random_mats(*args)
+
+        random_diss = random_complex_mats(3, 2, 2)
+
+        lindblad_model1 = LindbladModel.from_hamiltonian(
+            hamiltonian=self.classic_hamiltonian,
+            dissipator_operators=random_diss,
+            dissipator_signals=[1.0] * 3,
+        )
+        lindblad_model2 = LindbladModel.from_hamiltonian(
+            hamiltonian=self.classic_hamiltonian, static_dissipators=random_diss
+        )
+
+        rwa_lindblad_model1 = rotating_wave_approximation(lindblad_model1, cutoff_freq=self.v)
+        rwa_lindblad_model2 = rotating_wave_approximation(lindblad_model2, cutoff_freq=self.v)
+
+        t = 0.23124
+        A = random_complex_mats(2, 2)
+        out1 = rwa_lindblad_model1(t, A)
+        out2 = rwa_lindblad_model2(t, A)
+
+        self.assertAllClose(out1, out2)
+
     def test_signal_translator_generator_model(self):
         """Tests signal translation from pre-RWA to post-RWA through
         rotating_wave_approximation.get_rwa_signals when passed a

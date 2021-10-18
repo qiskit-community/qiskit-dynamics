@@ -222,6 +222,7 @@ def rotating_wave_approximation(
             static_hamiltonian=rwa_drift,
             hamiltonian_operators=rwa_ham_ops,
             hamiltonian_signals=rwa_ham_sig,
+            static_dissipators=rwa_static_dis,
             dissipator_operators=rwa_dis_ops,
             dissipator_signals=rwa_dis_sig,
             rotating_frame=model.rotating_frame,
