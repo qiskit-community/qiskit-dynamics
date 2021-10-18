@@ -136,7 +136,7 @@ the :func:`wrap` function as
     a = Array([0, 1, 2, 4])
     b = f(a)
 
-The wrapped function will automatically unwrapping any Array args and kwargs
+The wrapped function will automatically unwrapping any :class:`Array` args and kwargs
 for calling the wrapped function. If the result of the function is a backend array
 or an instance of a class that defines a ``__qiskit_array__`` method the wrapped
 function will return this as an Array object. Similarly if the result is a tuple
