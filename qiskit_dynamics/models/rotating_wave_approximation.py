@@ -19,7 +19,6 @@ from typing import List, Optional, Union
 import numpy as np
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
-    CallableGenerator,
     GeneratorModel,
     HamiltonianModel,
     LindbladModel,
@@ -27,6 +26,7 @@ from qiskit_dynamics.models import (
 )
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.type_utils import to_array
 
 
 def rotating_wave_approximation(
@@ -118,31 +118,22 @@ def rotating_wave_approximation(
     but with a phase shift of :math:`\phi_i - \pi/2`.
 
     Args:
-        model: The GeneratorModel to which you
-        wish to apply the RWA.
-        cutoff_freq: The maximum (magnitude) of
-        frequency you wish to allow.
-        return_signal_map: Whether to also return a function f that
-            converts pre-RWA SignalLists to post-RWA SignalLists.
+        model: The model to approximate.
+        cutoff_freq: The cutoff frequency for the approximation.
+        return_signal_map: Whether to also return the function for mapping
+                           pre-RWA signals to post-RWA signals.
     Returns:
         GeneratorModel with twice as many terms, and, if return_signal_map,
         also the function f.
     Raises:
-        NotImplementedError: If a ``CallableGenerator`` is passed.
         ValueError: If the model has no signals.
     """
-
-    if isinstance(model, CallableGenerator):
-        raise NotImplementedError("RWA for CallableGenerators is not supported.")
-
-    if model.signals is None:
-        raise ValueError("Model must have nontrivial signals to perform the RWA.")
 
     n = model.dim
 
     frame_freqs = None
     if model.rotating_frame is None or model.rotating_frame.frame_diag is None:
-        frame_freqs = np.zeros((n, n))
+        frame_freqs = np.zeros((n, n), dtype=complex)
     else:
         diag = model.rotating_frame.frame_diag
         diff_matrix = np.broadcast_to(diag, (n, n)) - np.broadcast_to(diag, (n, n)).T
@@ -153,23 +144,36 @@ def rotating_wave_approximation(
         if isinstance(model, (HamiltonianModel, LindbladModel)):
             frame_shift = 1j * frame_shift
     else:
-        frame_shift = 0
-    cur_drift = model.get_drift(True) + frame_shift  # undo frame shifting for RWA
-    rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
-    rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
+        frame_shift = np.zeros((n, n), dtype=complex)
 
     if isinstance(model, GeneratorModel):
+        if model.signals is None and model.operators is not None:
+            raise ValueError("Model must have nontrivial signals to perform the RWA.")
+
+        cur_drift = to_array(model._get_static_operator(True))
+        if cur_drift is not None:
+            cur_drift = cur_drift + frame_shift
+            rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
+            rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
+        else:
+            rwa_drift = None
+
         rwa_operators = get_rwa_operators(
-            model.get_operators(True), model.signals, model.rotating_frame, frame_freqs, cutoff_freq
+            to_array(model._get_operators(True)),
+            model.signals,
+            model.rotating_frame,
+            frame_freqs,
+            cutoff_freq,
         )
         rwa_signals = get_rwa_signals(model.signals)
 
         # works for both GeneratorModel and HamiltonianModel
         rwa_model = model.__class__(
-            rwa_operators,
-            rwa_signals,
-            drift=rwa_drift,
+            static_operator=rwa_drift,
+            operators=rwa_operators,
+            signals=rwa_signals,
             rotating_frame=model.rotating_frame,
+            in_frame_basis=model.in_frame_basis,
             evaluation_mode=model.evaluation_mode,
         )
         if return_signal_map:
@@ -177,8 +181,30 @@ def rotating_wave_approximation(
         return rwa_model
 
     elif isinstance(model, LindbladModel):
+        if model.signals[0] is None and model.hamiltonian_operators is not None:
+            raise ValueError("Model must have nontrivial Hamiltonian signals to perform the RWA.")
 
-        cur_ham_ops, cur_dis_ops = model.get_operators(in_frame_basis=True)
+        if model.signals[1] is None and model.dissipator_operators is not None:
+            raise ValueError("Model must have nontrivial dissipator signals to perform the RWA.")
+
+        # static hamiltonian part
+        cur_drift = to_array(model._get_static_hamiltonian(True)) + frame_shift
+        rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
+        rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
+
+        # static dissipator part
+        cur_static_dis = to_array(model._get_static_dissipators(in_frame_basis=True))
+        rwa_static_dis = None
+        if cur_static_dis is not None:
+            rwa_static_dis = []
+            for op in cur_static_dis:
+                rwa_op = op * (abs(frame_freqs) < cutoff_freq).astype(int)
+                rwa_op = model.rotating_frame.operator_out_of_frame_basis(rwa_op)
+                rwa_static_dis.append(rwa_op)
+
+        cur_ham_ops = to_array(model._get_hamiltonian_operators(in_frame_basis=True))
+        cur_dis_ops = to_array(model._get_dissipator_operators(in_frame_basis=True))
+
         cur_ham_sig, cur_dis_sig = model.signals
 
         rwa_ham_ops = get_rwa_operators(
@@ -186,19 +212,21 @@ def rotating_wave_approximation(
         )
         rwa_ham_sig = get_rwa_signals(cur_ham_sig)
 
-        if cur_dis_ops is not None and cur_dis_sig is not None:
-            rwa_dis_ops = get_rwa_operators(
-                cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
-            )
-            rwa_dis_sig = get_rwa_signals(cur_dis_sig)
+        rwa_dis_ops = get_rwa_operators(
+            cur_dis_ops, cur_dis_sig, model.rotating_frame, frame_freqs, cutoff_freq
+        )
+
+        rwa_dis_sig = get_rwa_signals(cur_dis_sig)
 
         rwa_model = LindbladModel(
-            rwa_ham_ops,
+            static_hamiltonian=rwa_drift,
+            hamiltonian_operators=rwa_ham_ops,
             hamiltonian_signals=rwa_ham_sig,
+            static_dissipators=rwa_static_dis,
             dissipator_operators=rwa_dis_ops,
             dissipator_signals=rwa_dis_sig,
-            drift=rwa_drift,
             rotating_frame=model.rotating_frame,
+            in_frame_basis=model.in_frame_basis,
             evaluation_mode=model.evaluation_mode,
         )
 
@@ -233,15 +261,18 @@ def get_rwa_operators(
     Returns:
         SignaLList: (2k,n,n) Array of new operators post RWA.
     """
+    if current_ops is None:
+        return None
+
     current_sigs = current_sigs.flatten()
-    carrier_freqs = np.zeros(current_ops.shape[0])
+    carrier_freqs = np.zeros(len(current_ops))
 
     for i, sig_sum in enumerate(current_sigs.components):
         sig = sig_sum.components[0]
         carrier_freqs[i] = sig.carrier_freq
 
     num_components = len(carrier_freqs)
-    n = current_ops.shape[-1]
+    n = current_ops[0].shape[-1]
 
     frame_freqs = np.broadcast_to(frame_freqs, (num_components, n, n))
     carrier_freqs = carrier_freqs.reshape((num_components, 1, 1))

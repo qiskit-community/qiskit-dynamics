@@ -108,7 +108,7 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
         dim = 7
         b = 0.5
         rng = np.random.default_rng(3093)
-        drift = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+        static_operator = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
         operators = rng.uniform(low=-b, high=b, size=(1, dim, dim)) + 1j * rng.uniform(
@@ -126,19 +126,39 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
             samples=rng.uniform(low=-b, high=b, size=(5,)), dt=0.1, carrier_freq=1.0
         )
         model = GeneratorModel(
-            operators=operators, signals=[sig], drift=drift, rotating_frame=frame_op
+            operators=operators,
+            signals=[sig],
+            static_operator=static_operator,
+            rotating_frame=frame_op,
         )
 
+        # test solving not in frame basis
         results = solve_ode(model, t_span=[0, 0.5], y0=y0, method=method, atol=1e-8, rtol=1e-8)
         yf = model.rotating_frame.state_out_of_frame(0.5, results.y[-1])
 
         # simulate directly out of frame
         def rhs(t, y):
-            return (drift + sig(t) * operators[0]) @ y
+            return (static_operator + sig(t) * operators[0]) @ y
 
         results2 = solve_ode(rhs, t_span=[0, 0.5], y0=y0, method=method, atol=1e-8, rtol=1e-8)
         # check consistency - this is relatively low tolerance due to the solver tolerance
         self.assertAllClose(yf, results2.y[-1], atol=1e-5, rtol=1e-5)
+        self.assertFalse(model.in_frame_basis)
+
+        # test solving in frame basis
+        model.in_frame_basis = True
+        y0_in_frame_basis = model.rotating_frame.state_into_frame_basis(y0)
+        results3 = solve_ode(
+            model, t_span=[0, 0.5], y0=y0_in_frame_basis, method=method, atol=1e-8, rtol=1e-8
+        )
+        yf_in_frame_basis = results3.y[-1]
+        self.assertAllClose(
+            yf,
+            model.rotating_frame.state_out_of_frame(
+                0.5, y=yf_in_frame_basis, y_in_frame_basis=True, return_in_frame_basis=False
+            ),
+        )
+        self.assertTrue(model.in_frame_basis)
 
 
 class Testsolve_ode_numpy(Testsolve_ode_Base):
