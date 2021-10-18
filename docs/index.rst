@@ -15,6 +15,14 @@ as the backend for array operations. `NumPy <https://github.com/numpy/numpy>`_ i
 and `JAX <https://github.com/google/jax>`_ is an optional dependency, which enables
 just-in-time compilation, automatic differentiation, and GPU execution of Qiskit Dynamics code.
 
+.. warning::
+
+   This package is still in the early stages of development and it is very likely
+   that there will be breaking API changes in future releases.
+   If you encounter any bugs please open an issue on
+   `Github <https://github.com/Qiskit/qiskit-dynamics/issues>`_
+
+
 .. toctree::
   :maxdepth: 1
 
