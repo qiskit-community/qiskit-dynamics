@@ -6,7 +6,7 @@ Dynamics Tutorials
 .. toctree::
    :maxdepth: 1
 
-   Rabi_oscillations.ipynb
+   Rabi_oscillations.rst
    Lindblad_dynamics_simulation.ipynb
    qiskit_pulse.rst
    optimizing_pulse_sequence.rst
