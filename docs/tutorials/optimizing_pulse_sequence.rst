@@ -180,7 +180,7 @@ The function we want to optimize consists of:
 
         # compute and return infidelity
         fid = fidelity(U)
-        return 1. - fid
+        return 1. - fid.data
 
 6. Perform JAX transformations and optimize
 -------------------------------------------
@@ -196,11 +196,8 @@ Finally, we gradient optimize the objective:
 
 .. jupyter-execute::
 
+    from jax import jit, value_and_grad
     from scipy.optimize import minimize
-
-    # wrap to work with Arrays
-    jit = dispatch.wrap(jax.jit, decorator=True)
-    value_and_grad = dispatch.wrap(jax.value_and_grad, decorator=True)
 
     jit_grad_obj = jit(value_and_grad(objective))
 

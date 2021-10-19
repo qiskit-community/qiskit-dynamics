@@ -61,7 +61,7 @@ def jax_odeint(
     rhs = wrap(rhs)
 
     results = odeint(
-        lambda y, t: rhs(t_direction * t, y) * t_direction,
+        lambda y, t: rhs(np.real(t_direction * t), y) * t_direction,
         y0=Array(y0, dtype=complex),
         t=np.real(t_direction) * Array(t_list),
         **kwargs,
