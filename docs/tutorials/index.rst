@@ -7,7 +7,7 @@ Dynamics Tutorials
    :maxdepth: 1
 
    Rabi_oscillations.rst
-   Lindblad_dynamics_simulation.ipynb
+   Lindblad_dynamics_simulation.rst
    qiskit_pulse.rst
    optimizing_pulse_sequence.rst
 
