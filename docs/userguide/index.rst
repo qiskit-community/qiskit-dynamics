@@ -9,7 +9,7 @@ Qiskit Dynamics User Guide
 .. toctree::
    :maxdepth: 2
 
-   how_to_use_jax.ipynb
+   how_to_use_jax.rst
 
 
 .. Hiding - Indices and tables
