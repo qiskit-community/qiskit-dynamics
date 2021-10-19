@@ -9,7 +9,7 @@ Dynamics Tutorials
    Rabi_oscillations.ipynb
    Lindblad_dynamics_simulation.ipynb
    qiskit_pulse.ipynb
-   optimizing_pulse_sequence.ipynb
+   optimizing_pulse_sequence.rst
 
 
 .. Hiding - Indices and tables
