@@ -8,7 +8,7 @@ Dynamics Tutorials
 
    Rabi_oscillations.ipynb
    Lindblad_dynamics_simulation.ipynb
-   qiskit_pulse.ipynb
+   qiskit_pulse.rst
    optimizing_pulse_sequence.rst
 
 
