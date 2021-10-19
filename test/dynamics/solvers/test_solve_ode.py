@@ -83,7 +83,6 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
 
     def _variable_step_method_standard_tests(self, method):
         """tests to run on a variable step solver."""
-
         # simple case with basic_rhs
         results = solve_ode(
             self.basic_rhs, t_span=self.t_span, y0=self.y0, method=method, atol=1e-10, rtol=1e-10
@@ -96,7 +95,7 @@ class Testsolve_ode_Base(QiskitDynamicsTestCase):
         # non-LMDE example
         # pylint: disable=unused-argument
         def quad_rhs(t, y):
-            return Array([t ** 2], dtype=float)
+            return np.real(Array([t ** 2]))
 
         results = solve_ode(
             quad_rhs, t_span=[0.0, 1.0], y0=Array([0.0]), method=method, atol=1e-10, rtol=1e-10
