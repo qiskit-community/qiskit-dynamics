@@ -212,7 +212,7 @@ Subsequent runs of the function reveal the execution time once compiled.
 4. Gotchas when using JAX with dynamics
 ---------------------------------------
 
-4.1 JAX must be set as the default backend before building any objects in dynamics
+4.1 JAX must be set as the default backend before building any objects in Qiskit dynamics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To get dynamics to run with JAX, it is necessary to configure dynamics
