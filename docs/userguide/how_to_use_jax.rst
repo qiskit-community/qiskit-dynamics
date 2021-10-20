@@ -78,7 +78,15 @@ use-case: parameterized simulation of a model of a quantum system.
 3.1 Just-in-time compiling a parameterized simulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Just-in-time compilation is performed using the ``jax.jit`` function.
+"Just-in-time compiling" a function means to compile it at run time. Just-in-time compilation
+incurs an initial cost associated with the construction of the compiled function,
+but subsequent calls to the function will generally be faster than the uncompiled version.
+In JAX, just-in-time compilation is performed using the ``jax.jit`` function,
+which transforms a JAX-compatible function into optimized code using
+`XLA <https://www.tensorflow.org/xla>`__. We demonstrate here how, using the JAX backend,
+functions built using Qiskit Dynamics can be
+just-in-time compiled, resulting in faster simulation times.
+
 For convenience, the ``dispatch.wrap`` function can be used to transform
 ``jax.jit`` to also work on functions that have ``Array`` objects as
 inputs and outputs.
@@ -105,9 +113,11 @@ Construct a ``Solver`` instance with a model that will be used to solve.
     static_hamiltonian = 2 * np.pi * w * Z/2
     hamiltonian_operators = [2 * np.pi * r * X/2]
 
-    solver = Solver(static_hamiltonian=static_hamiltonian,
-                    hamiltonian_operators=hamiltonian_operators,
-                    rotating_frame=static_hamiltonian)
+    solver = Solver(
+        static_hamiltonian=static_hamiltonian,
+        hamiltonian_operators=hamiltonian_operators,
+        rotating_frame=static_hamiltonian
+    )
 
 
 Next, define the function to be compiled:
@@ -116,6 +126,9 @@ Next, define the function to be compiled:
     :math:`[0, 3]`.
   - The output is the state of the system, starting in the ground state, at
     ``100`` points over the total evolution time.
+
+Note, as described at the beginning of this section, we need to make a copy of ``solver``
+before setting the signals, to ensure the simulation function remains pure.
 
 .. jupyter-execute::
 
@@ -132,10 +145,13 @@ Next, define the function to be compiled:
         # simulate and return results
         # setting user_frame tells solve that states should be specified and returned in the frame
         # of the drift
-        results = solver_copy.solve(t_span=[0, 3.],
-                                    t_eval=np.linspace(0, 3., 100),
-                                    y0=np.array([0., 1.], dtype=complex),
-                                    method='jax_odeint')
+        results = solver_copy.solve(
+            t_span=[0, 3.],
+            t_eval=np.linspace(0, 3., 100),
+            y0=np.array([0., 1.], dtype=complex),
+            method='jax_odeint'
+        )
+
         return results.y
 
 Compile the function.
@@ -144,7 +160,8 @@ Compile the function.
 
     fast_sim = jit(sim_function)
 
-The first time the function is called, it will compile and then execute.
+The first time the function is called, JAX will compile an
+`XLA <https://www.tensorflow.org/xla>`__ version of the function, which is then executed.
 Hence, the time taken on the first call *includes* compilation time.
 
 .. jupyter-execute::
@@ -209,10 +226,10 @@ Subsequent runs of the function reveal the execution time once compiled.
     %timeit excited_pop_grad(1.).block_until_ready()
 
 
-4. Gotchas when using JAX with dynamics
----------------------------------------
+4. Pitfalls when using JAX with dynamics
+----------------------------------------
 
-4.1 JAX must be set as the default backend before building any objects in Qiskit dynamics
+4.1 JAX must be set as the default backend before building any objects in Qiskit Dynamics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To get dynamics to run with JAX, it is necessary to configure dynamics
