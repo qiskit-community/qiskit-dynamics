@@ -66,7 +66,7 @@ JAX-transformable functions must be:
 
 The previous section shows how to handle the first two points using
 ``dispatch`` and ``Array``. The last point further restricts the type of
-code that can be safely transformed. Dynamics uses various objects which
+code that can be safely transformed. Qiskit Dynamics uses various objects which
 can be updated by setting properties (models, solvers). If a function to
 be transformed requires updating an already-constructed object of this
 form, it is necessary to first make a *copy*.
