@@ -101,8 +101,7 @@ Construct a ``Solver`` instance with a model that will be used to solve.
 
     import numpy as np
     from qiskit.quantum_info import Operator
-    from qiskit_dynamics import Solver
-    from qiskit_dynamics.signals import Signal
+    from qiskit_dynamics import Solver, Signal
     from qiskit_dynamics.dispatch import Array
 
     r = 0.5

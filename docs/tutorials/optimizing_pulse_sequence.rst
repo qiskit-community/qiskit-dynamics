@@ -110,8 +110,9 @@ example of one.
 
 .. jupyter-execute::
 
+    from qiskit_dynamics import DiscreteSignal
     from qiskit_dynamics.dispatch import Array
-    from qiskit_dynamics.signals import DiscreteSignal, Convolution
+    from qiskit_dynamics.signals import Convolution
 
     # define convolution filter
     def gaus(t):
