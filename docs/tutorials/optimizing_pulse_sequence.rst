@@ -14,7 +14,7 @@ the following steps:
 3. Define a pulse sequence parameterization to optimize over.
 4. Define a gate fidelity function.
 5. Define an objective function for optimization.
-6. Use JAX to differentiate objective, then gradient optimize.
+6. Use JAX to differentiate the objective, then do the gradient optimization.
 
 1. Configure to use JAX
 -----------------------
