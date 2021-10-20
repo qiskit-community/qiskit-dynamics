@@ -58,9 +58,11 @@ update these and optimize over this later.
     static_hamiltonian = 2 * np.pi * v * Operator.from_label('Z') / 2
     drive_term = 2 * np.pi * r * Operator.from_label('X') / 2
 
-    ham_solver = Solver(hamiltonian_operators=[drive_term],
-                        static_hamiltonian=static_hamiltonian,
-                        rotating_frame=static_hamiltonian)
+    ham_solver = Solver(
+        hamiltonian_operators=[drive_term],
+        static_hamiltonian=static_hamiltonian,
+        rotating_frame=static_hamiltonian,
+    )
 
 
 3. Define a pulse sequence parameterization to optimize over
