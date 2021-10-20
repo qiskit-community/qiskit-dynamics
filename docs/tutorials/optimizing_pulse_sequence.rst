@@ -78,7 +78,7 @@ update these and optimize over this later.
 3. Define a pulse sequence parameterization to optimize over
 ------------------------------------------------------------
 
-We will optimize over a set of signals that are:
+We will optimize over signals that are:
 
 -  On resonance with piecewise constant envelopes,
 -  Envelopes bounded between :math:`[-1, 1]`,
