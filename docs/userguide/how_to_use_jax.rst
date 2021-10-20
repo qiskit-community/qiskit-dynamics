@@ -202,7 +202,7 @@ As before, the first execution includes compilation time.
     %time excited_pop_grad(1.).block_until_ready()
 
 
-Subsequent runs of the function reveal the true time.
+Subsequent runs of the function reveal the execution time once compiled.
 
 .. jupyter-execute::
 
