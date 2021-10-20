@@ -57,16 +57,16 @@ def jax_odeint(
     t_list = merge_t_args(t_span, t_eval)
 
     # determine direction of integration
-    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax"))
+    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=complex))
     rhs = wrap(rhs)
 
     results = odeint(
-        lambda y, t: rhs(t_direction * t, y) * t_direction,
-        y0=Array(y0),
-        t=t_direction * Array(t_list),
+        lambda y, t: rhs(np.real(t_direction * t), y) * t_direction,
+        y0=Array(y0, dtype=complex),
+        t=np.real(t_direction) * Array(t_list),
         **kwargs,
     )
 
-    results = OdeResult(t=t_list, y=Array(results, backend="jax"))
+    results = OdeResult(t=t_list, y=Array(results, backend="jax", dtype=complex))
 
     return trim_t_results(results, t_span, t_eval)
