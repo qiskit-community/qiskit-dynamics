@@ -19,8 +19,11 @@ the following steps:
 1. Configure to use JAX
 -----------------------
 
-First, set JAX to operate in 64-bit mode, and set it as the default
-backend for ``qiskit-dynamics``.
+First, set JAX to operate in 64-bit mode, and set JAX as the default
+backend using ``qiskit-dynamics.dispatch`` for performing array operations.
+This is necessary to enable automatic differentiation of the Qiskit Dynamics code
+in this tutorial. See the user guide entry on using JAX
+for a more detailed explanation of why this step is necessary.
 
 .. jupyter-execute::
 
@@ -40,6 +43,13 @@ Here we will setup a ``Solver`` with a simple model of a qubit. The
 Hamiltonian is:
 
 .. math:: H(t) = 2 \pi \nu \frac{Z}{2} + 2 \pi r s(t) \frac{X}{2}
+
+In the above:
+
+- :math:`\nu` is the qubit frequency,
+- :math:`r` is the drive strength,
+- :math:`s(t)` is the drive signal which we will optimize, and
+- :math:`X` and :math:`Z` are the Pauli X and Z operators.
 
 We will setup the problem to be in the rotating frame of the drift term.
 
@@ -141,8 +151,8 @@ Observe, for example, the signal generated when all parameters are
 4. Define gate fidelity
 -----------------------
 
-We will optimize an :math:`X` gate, and define the fidelity of a unitary
-via the standard fidelity measure:
+We will optimize an :math:`X` gate, and define the fidelity of the unitary :math:`U`
+implemented by the pulse via the standard fidelity measure:
 
 .. math:: f(U) = \frac{|\text{Tr}(XU)|^2}{4}
 
@@ -175,9 +185,13 @@ The function we want to optimize consists of:
         solver_copy.signals = [signal]
 
         # Simulate
-        results = solver_copy.solve(y0=np.eye(2, dtype=complex),
-                                    t_span=[0, signal.duration * signal.dt],
-                                    method='jax_odeint', atol=1e-8, rtol=1e-8)
+        results = solver_copy.solve(
+            y0=np.eye(2, dtype=complex),
+            t_span=[0, signal.duration * signal.dt],
+            method='jax_odeint',
+            atol=1e-8,
+            rtol=1e-8
+        )
         U = results.y[-1]
 
         # compute and return infidelity
@@ -191,7 +205,10 @@ Finally, we gradient optimize the objective:
 
 -  Use ``jax.value_and_grad`` to transform the objective into a function
    that computes both the objective and the gradient.
--  Use ``jax.jit`` to compile the above.
+-  Use ``jax.jit`` to just-in-time compile the function into optimized
+   `XLA <https://www.tensorflow.org/xla>`__ code. For the initial cost of
+   performing the compilation, this speeds up each call of the function,
+   speeding up the optimization.
 -  Call ``scipy.optimize.minimize`` with the above, with
    ``method='BFGS'`` and ``jac=True`` to indicate that the passed
    objective also computes the gradient.
@@ -221,8 +238,13 @@ We can draw the optimized signal, which is retrieved by applying the
 
     opt_signal = signal_mapping(opt_results.x)
 
-    opt_signal.draw(t0=0, tf=opt_signal.duration * opt_signal.dt,
-                    n=1000, function='envelope', title='Optimized envelope')
+    opt_signal.draw(
+        t0=0,
+        tf=opt_signal.duration * opt_signal.dt,
+        n=1000,
+        function='envelope',
+        title='Optimized envelope'
+    )
 
 
 Summing the signal samples yields approximately :math:`\pm 50`, which is
