@@ -126,8 +126,7 @@ generalizations of this approach supported with ``qiskit-dynamics``.
 
 .. jupyter-execute::
 
-    from qiskit_dynamics import Solver
-    from qiskit_dynamics.signals import Signal
+    from qiskit_dynamics import Solver, Signal
 
     nu_z = 4.
     nu_x = 1.

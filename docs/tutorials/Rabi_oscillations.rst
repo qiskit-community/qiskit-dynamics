@@ -49,8 +49,7 @@ for the trasverse driving term we setup a harmonic signal.
 
     import numpy as np
     from qiskit.quantum_info import Operator
-    from qiskit_dynamics import Solver
-    from qiskit_dynamics.signals import Signal
+    from qiskit_dynamics import Solver, Signal
 
 
     nu_z = 10.
