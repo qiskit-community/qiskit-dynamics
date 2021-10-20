@@ -98,16 +98,16 @@ Numerical methods and evaluation modes
 ======================================
 
 All model classes offer different underlying numerical implementations that a user can choose
-using the ``set_evaluation_mode`` method. For example,
+using the ``evaluation_mode`` property. For example,
 :class:`~qiskit_dynamics.models.HamiltonianModel` can internally use
 either sparse or dense arrays to compute :math:`H(t)` or a product :math:`-iH(t)y`.
 The default is dense arrays, and a model can be set to use sparse arrays via:
 
 .. code-block:: python
 
-    model.set_evaluation_mode('sparse')
+    model.evaluation_mode = 'sparse'
 
-See ``set_evaluation_mode`` for each model class for available modes.
+See the ``evaluation_mode`` property for each model class for available modes.
 
 .. note::
 
