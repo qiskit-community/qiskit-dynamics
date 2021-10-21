@@ -60,7 +60,7 @@ For questions that are more suited for a forum we use the Qiskit tag in the
 
 ## Authors and Citation
 
-Qiskit is the work of [many people](https://github.com/Qiskit/qiskit-terra/graphs/contributors) who contribute
+Qiskit Dynamics is the work of [many people](https://github.com/Qiskit/qiskit-dynamics/graphs/contributors) who contribute
 to the project at different levels. If you use Qiskit, please cite as per the included [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
 
 ## License
