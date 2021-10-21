@@ -9,7 +9,7 @@ time-dependent quantum systems in Qiskit.
 
 The goal of Qiskit Dynamics is to provide access to different numerical
 methods for solving differential equations, and to automate common processes typically performed by hand,
-e.g. entering rotating frames, or doing the rotating wave approximation.
+e.g. applying frame transformations or rotating wave approximations to system and control Hamiltonians.
 
 Qiskit Dynamics can be configured to use either
 [NumPy](https://github.com/numpy/numpy) or [JAX](https://github.com/google/jax)
