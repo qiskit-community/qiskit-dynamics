@@ -65,6 +65,11 @@ setuptools.setup(
         "Topic :: Scientific/Engineering",
     ],
     keywords="qiskit sdk quantum",
+    project_urls={
+        "Bug Tracker": "https://github.com/Qiskit/qiskit-dynamics/issues",
+        "Source Code": "https://github.com/Qiskit/qiskit-dynamics",
+        "Documentation": "https://qiskit.org/documentation/dynamics",
+    },
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.7",

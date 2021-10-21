@@ -1,1 +1,2 @@
 include qiskit_dynamics/VERSION.txt
+include README.md
