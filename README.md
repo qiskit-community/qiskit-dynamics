@@ -8,7 +8,7 @@ Qiskit Dynamics is an open-source project for building, transforming, and solvin
 time-dependent quantum systems in Qiskit.
 
 The goal of Qiskit Dynamics is to provide access to different numerical
-methods, and to automate common processes typically performed by hand,
+methods for solving differential equations, and to automate common processes typically performed by hand,
 e.g. entering rotating frames, or doing the rotating wave approximation.
 
 Qiskit Dynamics can be configured to use either
