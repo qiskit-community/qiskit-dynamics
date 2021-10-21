@@ -13,7 +13,7 @@ e.g. applying frame transformations or rotating wave approximations to system an
 
 Qiskit Dynamics can be configured to use either
 [NumPy](https://github.com/numpy/numpy) or [JAX](https://github.com/google/jax)
-as the backend for array operations. [NumPy](https://github.com/numpy/numpy) is the default,  
+as the backend for array operations. [NumPy](https://github.com/numpy/numpy) is the default,
 and [JAX](https://github.com/google/jax) is an optional dependency.
 [JAX](https://github.com/google/jax) provides just-in-time compilation, automatic differentiation,
 and GPU execution, and therefore is well-suited to tasks involving repeated
@@ -64,7 +64,7 @@ For questions that are more suited for a forum we use the Qiskit tag in the
 Qiskit Dynamics is the work of
 [many people](https://github.com/Qiskit/qiskit-dynamics/graphs/contributors) who contribute
 to the project at different levels. If you use Qiskit, please cite as per the included
-[BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
+[BibTeX file](https://github.com/Qiskit/qiskit-dynamics/blob/main/CITATION.bib).
 
 ## License
 
