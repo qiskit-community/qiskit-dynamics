@@ -23,8 +23,9 @@ from scipy.linalg import expm
 from qiskit_dynamics.dispatch import requires_backend, Array
 
 try:
+    from jax import vmap
     import jax.numpy as jnp
-    from jax.lax import scan, cond
+    from jax.lax import scan, cond, associative_scan
     from jax.scipy.linalg import expm as jexpm
 except ImportError:
     pass
@@ -182,7 +183,7 @@ def fixed_step_solver_template_jax(
     def wrapped_rhs_func(*args):
         return Array(rhs_func(*args), backend="jax").data
 
-    y0 = Array(y0, backend="jax").data
+    y0 = Array(y0).data
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
 
@@ -215,6 +216,58 @@ def fixed_step_solver_template_jax(
 
     ys = Array(jnp.append(jnp.expand_dims(y0, axis=0), ys, axis=0), backend="jax")
 
+    results = OdeResult(t=t_list, y=ys)
+
+    return trim_t_results(results, t_span, t_eval)
+
+
+def fixed_step_lmde_solver_parallel_template_jax(
+    take_step: Callable,
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Template fixed solver for parallel execution in JAX, where "parallel"
+    means that loops are done in parallel where possible, e.g. using vmap and associative_scan
+    instead of scan.
+
+    This function assumes y0 is square, i.e. it assumes one is computing the "propagator"
+    of an LMDE.
+    """
+
+    # ensure the output of rhs_func is a raw array
+    def wrapped_rhs_func(*args):
+        return Array(rhs_func(*args), backend="jax").data
+
+    t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
+
+    # if jax, need bound on number of iterations in each interval
+    max_steps = n_steps_list.max()
+
+    all_times = []
+    t_list_locations = [0]
+    for t, h, n_steps in zip(t_list, h_list, n_steps_list):
+        all_times = np.append(all_times, t + h * np.arange(n_steps))
+        t_list_locations.append(t_list_locations[-1] + n_steps + 1)
+
+    t_list_locations.append(-1)
+
+
+    id = jnp.eye(y0.shape[0], dtype=complex)
+    # compute propagators in reverse order for purposes of matrix multiplication
+
+    """
+        This is wrong, need to also vmap over the stepsize
+    """
+    step_propagators = vmap(lambda t: take_step(generator, t, id))(jnp.flip(all_times))
+
+    # compute all intermediate propagators using associative_scan
+    intermediate_props = associative_scan(jnp.matmul, step_propagators, axis=0)
+
+    # extract propagators at requested times, and multiply with initial y0
+    ys = Array(jnp.flip(intermediate_props)[t_list_locations], backend='jax') @ Array(y0)
     results = OdeResult(t=t_list, y=ys)
 
     return trim_t_results(results, t_span, t_eval)
