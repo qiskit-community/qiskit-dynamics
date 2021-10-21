@@ -215,28 +215,35 @@ class Solver:
             t_span: Time interval to integrate over.
             y0: Initial state.
             kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
+
         Returns:
-            OdeResult object with formatted output types.
+            OdeResult: object with formatted output types.
+
         Raises:
             QiskitError: Initial state ``y0`` is of invalid shape.
+
         Additional Information:
+
             The behaviour of this method is impacted by the input type of ``y0``:
 
-            - If ``y0`` is an ``Array``, it is passed directly to
-            :func:`~qiskit_dynamics.solve_lmde` as is. Acceptable array shapes are
-            determined by the model type and evaluation mode.
-            - If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumState`:
-                - If ``self.model`` is a :class:`~qiskit_dynamics.models.LindbladModel`,
-                ``y0`` is converted to a :class:`DensityMatrix`. Further, if the model
-                evaluation mode is vectorized ``y0`` will be suitably reshaped for solving.
-                - If ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`,
-                and ``y0`` a :class:`DensityMatrix`, the full unitary will be simulated,
-                and the evolution of ``y0`` is attained via conjugation.
-            - If ``y0`` is a subclass of :class`qiskit.quantum_info.QuantumChannel`, the full
-            evolution map will be computed and composed with ``y0``; either the unitary if
-            ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`, or the full
-            Lindbladian ``SuperOp`` if the model is a
-            :class:`~qiskit_dynamics.models.LindbladModel`.
+             * If ``y0`` is an ``Array``, it is passed directly to
+                :func:`~qiskit_dynamics.solve_lmde` as is. Acceptable array shapes are
+                determined by the model type and evaluation mode.
+             * If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumState`:
+
+                 * If ``self.model`` is a :class:`~qiskit_dynamics.models.LindbladModel`,
+                    ``y0`` is converted to a :class:`DensityMatrix`. Further, if the model
+                    evaluation mode is vectorized ``y0`` will be suitably reshaped for solving.
+                 * If ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`,
+                    and ``y0`` a :class:`DensityMatrix`, the full unitary will be simulated,
+                    and the evolution of ``y0`` is attained via conjugation.
+
+             * If ``y0`` is a subclass of :class`qiskit.quantum_info.QuantumChannel`, the full
+                evolution map will be computed and composed with ``y0``; either the unitary if
+                ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`, or the full
+                Lindbladian ``SuperOp`` if the model is a
+                :class:`~qiskit_dynamics.models.LindbladModel`.
+
         """
 
         # convert types
