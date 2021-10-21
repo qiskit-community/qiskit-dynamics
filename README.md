@@ -35,12 +35,8 @@ JAX via:
 pip install "qiskit-dynamics[jax]"
 ```
 
-which is equivalent to
-
-```
-pip install "jax[cpu]"
-pip install qiskit-dynamics
-```
+Installing JAX with GPU support must be done manually, for instructions refer to the
+[JAX installation documentation](https://github.com/google/jax#installation).
 
 
 ## Contribution Guidelines
