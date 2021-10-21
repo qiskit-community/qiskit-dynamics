@@ -5,7 +5,7 @@
 **This repo is still in the early stages of development, there will be breaking API changes**
 
 Qiskit Dynamics is an open-source project for building, transforming, and solving
-models of quantum systems in Qiskit.
+time-dependent quantum systems in Qiskit.
 
 The goal of Qiskit Dynamics is to provide access to different numerical
 methods, and to automate common processes typically performed by hand,
