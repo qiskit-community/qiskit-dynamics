@@ -65,7 +65,6 @@ setuptools.setup(
         "Topic :: Scientific/Engineering",
     ],
     keywords="qiskit sdk quantum",
-    url="https://github.com/Qiskit/qiskit-dynamics",
     project_urls={
         "Bug Tracker": "https://github.com/Qiskit/qiskit-dynamics/issues",
         "Source Code": "https://github.com/Qiskit/qiskit-dynamics",
