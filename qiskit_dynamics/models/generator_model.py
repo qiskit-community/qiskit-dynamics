@@ -44,11 +44,11 @@ class BaseGeneratorModel(ABC):
 
     Additionally, the class defines interfaces for:
 
-        - Setting a "rotating frame", specified either directly as a :class:`RotatingFrame`
+     * Setting a "rotating frame", specified either directly as a :class:`RotatingFrame`
         instance, or an operator from which a :class:`RotatingFrame` instance can be constructed.
         The exact meaning of this transformation is determined by the structure of
         :math:`\Lambda(t, y)`, and is therefore by handled by concrete subclasses.
-        - Setting an internal "evaluation mode", to set the specific numerical methods to use
+     * Setting an internal "evaluation mode", to set the specific numerical methods to use
         when evaluating :math:`\Lambda(t, y)`.
     """
 
@@ -136,6 +136,7 @@ class GeneratorModel(BaseGeneratorModel):
     map :math:`\Lambda(t, y)` is explicitly constructed as:
 
     .. math::
+
         \Lambda(t, y) = G(t)y,
 
         G(t) = \sum_i s_i(t) G_i + G_d
@@ -161,15 +162,15 @@ class GeneratorModel(BaseGeneratorModel):
             static_operator: Constant part of the generator.
             operators: A list of operators :math:`G_i`.
             signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
-                     :class:`GeneratorModel` signals are not required at instantiation.
+                :class:`GeneratorModel` signals are not required at instantiation.
             rotating_frame: Rotating frame operator.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
-                            frame operator is diagonalized.
+                frame operator is diagonalized.
             evaluation_mode: Evaluation mode to use. See ``GeneratorModel.evaluation_mode``
-                             for more details. Supported options are:
+                for more details. Supported options are:
 
-                                - 'dense' (DenseOperatorCollection)
-                                - 'sparse' (SparseOperatorCollection)
+                 * 'dense' (DenseOperatorCollection)
+                 * 'sparse' (SparseOperatorCollection)
         Raises:
             QiskitError: If model not sufficiently specified.
         """
@@ -210,9 +211,9 @@ class GeneratorModel(BaseGeneratorModel):
 
         Available options:
 
-            - 'dense': Stores/evaluates operators using dense Arrays.
-            - 'sparse': stores/evaluates operators using scipy
-            :class:`csr_matrix` types. Not compatible with JAX.
+         * 'dense': Stores/evaluates operators using dense Arrays.
+         * 'sparse': stores/evaluates operators using scipy :class:`csr_matrix`
+            types. Not compatible with JAX.
         """
         return self._evaluation_mode
 

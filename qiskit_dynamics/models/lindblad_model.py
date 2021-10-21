@@ -397,15 +397,14 @@ class LindbladModel(BaseGeneratorModel):
 
         Available options:
 
-            - 'dense': Stores Hamiltonian and dissipator terms as dense
-               Array types.
-            - 'dense_vectorized': Stores the Hamiltonian and dissipator
-              terms as (dim^2,dim^2) matrices that acts on a vectorized
-              density matrix by left-multiplication. Allows for direct evaluate generator.
-            - 'sparse': Like dense, but stores Hamiltonian components with
-              `csr_matrix` types. Outputs will be dense if a 2d frame operator is
-              used. Not compatible with jax.
-            - `sparse_vectorized': Like dense_vectorized, but stores everything as csr_matrices.
+         * 'dense': Stores Hamiltonian and dissipator terms as dense Array types.
+         * 'dense_vectorized': Stores the Hamiltonian and dissipator
+            terms as :math:`(dim^2,dim^2)` matrices that acts on a vectorized
+            density matrix by left-multiplication. Allows for direct evaluate generator.
+         * 'sparse': Like dense, but stores Hamiltonian components with
+            `csr_matrix` types. Outputs will be dense if a 2d frame operator is
+            used. Not compatible with jax.
+         * `sparse_vectorized`: Like dense_vectorized, but stores everything as csr_matrices.
         """
         return self._evaluation_mode
 
