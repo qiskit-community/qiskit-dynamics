@@ -201,8 +201,6 @@ class TestExpmSolver(QiskitDynamicsTestCase):
 
         self.assertAllClose(t_eval, results.t)
 
-        gen = gen
-
         expected_y0 = expm(0.1 * gen(2.25)) @ expm(0.1 * gen(2.15)) @ y0
         expected_y1 = expm(0.1 * gen(2.45)) @ expm(0.1 * gen(2.35)) @ expected_y0
 
@@ -228,8 +226,6 @@ class TestExpmSolver(QiskitDynamicsTestCase):
         results = self.expm_solver(gen, t_span, y0, max_dt=0.1, t_eval=t_eval)
 
         self.assertAllClose(t_eval, results.t)
-
-        gen = gen
 
         expected_y0 = expm(0.1 * gen(2.25)) @ expm(0.1 * gen(2.15)) @ y0
         expected_y1 = expm(0.1 * gen(2.45)) @ expm(0.1 * gen(2.35)) @ expected_y0
