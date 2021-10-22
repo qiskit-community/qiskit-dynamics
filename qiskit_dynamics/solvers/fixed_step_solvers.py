@@ -320,13 +320,12 @@ def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[A
     n_steps_list = np.abs(delta_t_list / max_dt).astype(int)
 
     # correct potential rounding errors
-    # pylint: disable=consider-using-enumerate
-    for k in range(len(n_steps_list)):
-        if n_steps_list[k] == 0:
-            n_steps_list[k] = 1
+    for idx, (delta_t, n_steps)  in enumerate(zip(delta_t_list, n_steps_list)):
+        if n_steps == 0:
+            n_steps = 1
         # absolute value to handle backwards integration
-        if np.abs(delta_t_list[k] / n_steps_list[k]) > max_dt:
-            n_steps_list[k] = n_steps_list[k] + 1
+        if np.abs(delta_t / n_steps) / max_dt > 1 + 1e-15:
+            n_steps_list[idx] = n_steps + 1
 
     # step size in each interval
     h_list = np.array(delta_t_list / n_steps_list)
