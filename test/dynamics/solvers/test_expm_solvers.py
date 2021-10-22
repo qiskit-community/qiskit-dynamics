@@ -217,6 +217,34 @@ class TestExpmSolver(QiskitDynamicsTestCase):
         expected_y = np.array([expected_y0, expected_y1, expected_y2])
         self.assertAllClose(expected_y, results.y)
 
+    def test_random_generator_nonsquare_y0(self):
+        """Test generator with pseudo random structure for non-square y0."""
+
+        t_span = np.array([2.1, 3.2])
+        t_eval = np.array([2.3, 2.5, 2.78])
+        y0 = self.random_y0[0]
+        gen = self.random_generator
+
+        results = self.expm_solver(gen, t_span, y0, max_dt=0.1, t_eval=t_eval)
+
+        self.assertAllClose(t_eval, results.t)
+
+        gen = gen
+
+        expected_y0 = expm(0.1 * gen(2.25)) @ expm(0.1 * gen(2.15)) @ y0
+        expected_y1 = expm(0.1 * gen(2.45)) @ expm(0.1 * gen(2.35)) @ expected_y0
+
+        dt2 = (2.78 - 2.5) / 3
+        expected_y2 = (
+            expm(dt2 * gen(2.5 + 2.5 * dt2))
+            @ expm(dt2 * gen(2.5 + 1.5 * dt2))
+            @ expm(dt2 * gen(2.5 + 0.5 * dt2))
+            @ expected_y1
+        )
+
+        expected_y = np.array([expected_y0, expected_y1, expected_y2])
+        self.assertAllClose(expected_y, results.y)
+
 
 class TestJaxExpmSolver(TestExpmSolver, TestJaxBase):
     """Test cases for jax_expm_solver."""
@@ -234,6 +262,9 @@ class TestJaxExpmSolver(TestExpmSolver, TestJaxBase):
         rand_ops = rng.uniform(low=-b, high=b, size=(3, dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(3, dim, dim)
         )
+
+        # make anti-hermitian
+        rand_ops = rand_ops - rand_ops.conj().transpose((0, 2, 1))
 
         self.random_y0 = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)

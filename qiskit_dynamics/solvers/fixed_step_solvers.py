@@ -248,17 +248,26 @@ def fixed_step_lmde_solver_parallel_template_jax(
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
 ):
-    """Template fixed solver for parallel execution in JAX, where "parallel"
-    means that loops are done in parallel where possible, e.g. using vmap and associative_scan
-    instead of scan.
+    """Parallelized and LMDE specific version of fixed_step_solver_template_jax.
 
-    This function assumes y0 is square, i.e. it assumes one is computing the "propagator"
-    of an LMDE.
-        * we may not actually want to make this assumption
+    Assuming the structure of an LMDE:
+    * Computes all propagators over each individual time-step in parallel using ``jax.vmap``.
+    * Computes all propagators from t_span[0] to each intermediate time point in parallel
+      using ``jax.lax.associative_scan``.
+    * Applies results to y0 and extracts the desired time points from ``t_eval``.
 
-    Other notes:
-        * For take_step function, if y is None, should assume here that it is the identity.
-          This is more important here than in serial solvers
+    The above logic is slightly varied to save some operations is ``y0`` is square.
+
+    Args:
+        take_step: Fixed step integration rule.
+        generator: Generator for the LMDE.
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
     """
 
     # ensure the output of rhs_func is a raw array
@@ -273,22 +282,30 @@ def fixed_step_lmde_solver_parallel_template_jax(
     # set things up to compute propagators in reverse order for the purposes of scanning
     all_times_reverse = [] # all stepping points given in reverse order
     all_h_reverse = [] # step sizes for each point above
-    t_list_locations = [-1] # ordered list of locations in all_times_reverse that are in t_eval
+    t_list_locations = [-1] # ordered list of locations in all_times_reverse that are in t_list
     for t, h, n_steps in zip(t_list, h_list, n_steps_list):
         all_times_reverse = np.append(t + h * np.flip(np.arange(n_steps)), all_times_reverse)
         all_h_reverse = np.append(h * np.ones(n_steps), all_h_reverse)
         t_list_locations = np.append(t_list_locations, [t_list_locations[-1] - n_steps])
 
-    id = jnp.eye(y0.shape[0], dtype=complex)
-
+    # compute propagators over each time step in parallel
+    id = jnp.eye(y0.shape[-1], dtype=complex)
     step_propagators = vmap(lambda t, h: take_step(generator, t, id, h))(all_times_reverse, all_h_reverse)
 
-    # compute all intermediate propagators using associative_scan
+    # multiply propagators together in parallel
+    ys = None
     reverse_mul = lambda A, B: jnp.matmul(B, A)
-    intermediate_props = associative_scan(reverse_mul, jnp.append(step_propagators, jnp.array([y0]), axis=0), reverse=True, axis=0)
+    if y0.ndim == 2 and y0.shape[0] == y0.shape[1]:
+        # if square, append y0 as the first step propagator, scan, and extract
+        intermediate_props = associative_scan(reverse_mul, jnp.append(step_propagators, jnp.array([y0]), axis=0), reverse=True, axis=0)
+        ys = Array(intermediate_props[t_list_locations], backend='jax')
+    else:
+        # if not square, scan propagators, extract relevant time points, multiply by y0,
+        # then append y0
+        intermediate_props = associative_scan(reverse_mul, step_propagators, reverse=True, axis=0)
+        intermediate_y = intermediate_props[t_list_locations[1:]] @ y0
+        ys = Array(jnp.append(jnp.array([y0]), intermediate_y, axis=0), backend='jax')
 
-    # extract propagators at requested times, and multiply with initial y0
-    ys = Array(intermediate_props[t_list_locations], backend='jax')
     results = OdeResult(t=t_list, y=ys)
 
     return trim_t_results(results, t_span, t_eval)
