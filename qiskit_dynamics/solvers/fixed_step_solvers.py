@@ -94,6 +94,25 @@ def jax_expm_solver(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
+@requires_backend("jax")
+def jax_expm_parallel_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Parallel version of jax_expm_solver
+    """
+
+    def take_step(generator, t, y, h):
+        eval_time = t + (h / 2)
+        return jexpm(generator(eval_time) * h) @ y
+
+    return fixed_step_lmde_solver_parallel_template_jax(
+        take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
 
 def fixed_step_solver_template(
     take_step: Callable,
@@ -235,6 +254,11 @@ def fixed_step_lmde_solver_parallel_template_jax(
 
     This function assumes y0 is square, i.e. it assumes one is computing the "propagator"
     of an LMDE.
+        * we may not actually want to make this assumption
+
+    Other notes:
+        * For take_step function, if y is None, should assume here that it is the identity.
+          This is more important here than in serial solvers
     """
 
     # ensure the output of rhs_func is a raw array
@@ -246,28 +270,25 @@ def fixed_step_lmde_solver_parallel_template_jax(
     # if jax, need bound on number of iterations in each interval
     max_steps = n_steps_list.max()
 
-    all_times = []
-    t_list_locations = [0]
+    # set things up to compute propagators in reverse order for the purposes of scanning
+    all_times_reverse = [] # all stepping points given in reverse order
+    all_h_reverse = [] # step sizes for each point above
+    t_list_locations = [-1] # ordered list of locations in all_times_reverse that are in t_eval
     for t, h, n_steps in zip(t_list, h_list, n_steps_list):
-        all_times = np.append(all_times, t + h * np.arange(n_steps))
-        t_list_locations.append(t_list_locations[-1] + n_steps + 1)
-
-    t_list_locations.append(-1)
-
+        all_times_reverse = np.append(t + h * np.flip(np.arange(n_steps)), all_times_reverse)
+        all_h_reverse = np.append(h * np.ones(n_steps), all_h_reverse)
+        t_list_locations = np.append(t_list_locations, [t_list_locations[-1] - n_steps])
 
     id = jnp.eye(y0.shape[0], dtype=complex)
-    # compute propagators in reverse order for purposes of matrix multiplication
 
-    """
-        This is wrong, need to also vmap over the stepsize
-    """
-    step_propagators = vmap(lambda t: take_step(generator, t, id))(jnp.flip(all_times))
+    step_propagators = vmap(lambda t, h: take_step(generator, t, id, h))(all_times_reverse, all_h_reverse)
 
     # compute all intermediate propagators using associative_scan
-    intermediate_props = associative_scan(jnp.matmul, step_propagators, axis=0)
+    reverse_mul = lambda A, B: jnp.matmul(B, A)
+    intermediate_props = associative_scan(reverse_mul, jnp.append(step_propagators, jnp.array([y0]), axis=0), reverse=True, axis=0)
 
     # extract propagators at requested times, and multiply with initial y0
-    ys = Array(jnp.flip(intermediate_props)[t_list_locations], backend='jax') @ Array(y0)
+    ys = Array(intermediate_props[t_list_locations], backend='jax')
     results = OdeResult(t=t_list, y=ys)
 
     return trim_t_results(results, t_span, t_eval)
