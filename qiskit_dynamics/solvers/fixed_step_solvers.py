@@ -340,9 +340,9 @@ def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[A
     # correct potential rounding errors
     for idx, (delta_t, n_steps)  in enumerate(zip(delta_t_list, n_steps_list)):
         if n_steps == 0:
-            n_steps = 1
+            n_steps_list[idx] = 1
         # absolute value to handle backwards integration
-        if np.abs(delta_t / n_steps) / max_dt > 1 + 1e-15:
+        elif np.abs(delta_t / n_steps) / max_dt > 1 + 1e-15:
             n_steps_list[idx] = n_steps + 1
 
     # step size in each interval

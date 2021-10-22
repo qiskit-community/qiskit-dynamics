@@ -110,6 +110,28 @@ class TestExpmSolver(QiskitDynamicsTestCase):
 
         self.assertAllClose(expected_y, results.y)
 
+    def test_t_eval_arg_overlap2(self):
+        """Test handling of t_eval with overlap with t_span case 2."""
+
+        t_span = np.array([0.0, 1.5])
+        t_eval = np.array([0.0, 0.25, 1.37, 1.5])
+        y0 = np.eye(2, dtype=complex)
+        gen = self.linear_generator
+
+        results = self.expm_solver(gen, t_span, y0, max_dt=0.5, t_eval=t_eval)
+
+        self.assertAllClose(t_eval, results.t)
+
+        expected_y0 = y0
+        expected_y1 = expm(gen(0.25 / 2 ) * 0.25) @ y0
+        h = (1.37 - 0.25) / 3
+        expected_y2 = expm(gen(0.25 + 2.5 * h) * h) @ expm(gen(0.25 + 1.5 * h) * h) @ expm(gen(0.25 + 0.5 * h) * h) @ expected_y1
+        h = 1.5 - 1.37
+        expected_y3 = expm(gen(1.37 + 0.5 * h) * h) @ expected_y2
+
+        expected_y = np.array([expected_y0, expected_y1, expected_y2, expected_y3])
+        self.assertAllClose(expected_y, results.y)
+
     def test_t_eval_arg_overlap_backwards(self):
         """Test handling of t_eval with overlap with t_span for backwards integration."""
 
