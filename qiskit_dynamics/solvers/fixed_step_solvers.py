@@ -94,6 +94,7 @@ def jax_expm_solver(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
+
 @requires_backend("jax")
 def jax_expm_parallel_solver(
     generator: Callable,
@@ -102,8 +103,7 @@ def jax_expm_parallel_solver(
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
 ):
-    """Parallel version of jax_expm_solver
-    """
+    """Parallel version of jax_expm_solver"""
 
     def take_step(generator, t, y, h):
         eval_time = t + (h / 2)
@@ -271,33 +271,34 @@ def fixed_step_lmde_solver_parallel_template_jax(
     """
 
     # ensure the output of rhs_func is a raw array
-    def wrapped_rhs_func(*args):
-        return Array(rhs_func(*args), backend="jax").data
+    def wrapped_generator(*args):
+        return Array(generator(*args), backend="jax").data
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
 
-    # if jax, need bound on number of iterations in each interval
-    max_steps = n_steps_list.max()
-
     # set up time information for computing propagators in parallel
-    all_times = [] # all stepping points
-    all_h = [] # step sizes for each point above
-    t_list_locations = [0] # ordered list of locations in all_times that are in t_list
+    all_times = []  # all stepping points
+    all_h = []  # step sizes for each point above
+    t_list_locations = [0]  # ordered list of locations in all_times that are in t_list
     for t, h, n_steps in zip(t_list, h_list, n_steps_list):
         all_times = np.append(all_times, t + h * np.arange(n_steps))
         all_h = np.append(all_h, h * np.ones(n_steps))
         t_list_locations = np.append(t_list_locations, [t_list_locations[-1] + n_steps])
 
     # compute propagators over each time step in parallel
-    id = jnp.eye(y0.shape[-1], dtype=complex)
-    step_propagators = vmap(lambda t, h: take_step(generator, t, id, h))(all_times, all_h)
+    ident = jnp.eye(y0.shape[-1], dtype=complex)
+    step_propagators = vmap(lambda t, h: take_step(wrapped_generator, t, ident, h))(
+        all_times, all_h
+    )
 
     # multiply propagators together in parallel
     ys = None
     reverse_mul = lambda A, B: jnp.matmul(B, A)
     if y0.ndim == 2 and y0.shape[0] == y0.shape[1]:
         # if square, append y0 as the first step propagator, scan, and extract
-        intermediate_props = associative_scan(reverse_mul, jnp.append(jnp.array([y0]), step_propagators, axis=0), axis=0)
+        intermediate_props = associative_scan(
+            reverse_mul, jnp.append(jnp.array([y0]), step_propagators, axis=0), axis=0
+        )
         ys = intermediate_props[t_list_locations]
     else:
         # if not square, scan propagators, extract relevant time points, multiply by y0,
@@ -307,7 +308,7 @@ def fixed_step_lmde_solver_parallel_template_jax(
         intermediate_y = intermediate_props[t_list_locations[1:] - 1] @ y0
         ys = jnp.append(jnp.array([y0]), intermediate_y, axis=0)
 
-    results = OdeResult(t=t_list, y=Array(ys, backend='jax'))
+    results = OdeResult(t=t_list, y=Array(ys, backend="jax"))
 
     return trim_t_results(results, t_span, t_eval)
 
@@ -338,7 +339,7 @@ def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[A
     n_steps_list = np.abs(delta_t_list / max_dt).astype(int)
 
     # correct potential rounding errors
-    for idx, (delta_t, n_steps)  in enumerate(zip(delta_t_list, n_steps_list)):
+    for idx, (delta_t, n_steps) in enumerate(zip(delta_t_list, n_steps_list)):
         if n_steps == 0:
             n_steps_list[idx] = 1
         # absolute value to handle backwards integration

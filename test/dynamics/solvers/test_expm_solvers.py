@@ -20,7 +20,11 @@ import numpy as np
 from scipy.linalg import expm
 
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.solvers.fixed_step_solvers import scipy_expm_solver, jax_expm_solver, jax_expm_parallel_solver
+from qiskit_dynamics.solvers.fixed_step_solvers import (
+    scipy_expm_solver,
+    jax_expm_solver,
+    jax_expm_parallel_solver,
+)
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -54,7 +58,7 @@ class TestExpmSolver(QiskitDynamicsTestCase):
         )
 
         def random_generator(t):
-            return np.sin(t) * rand_ops[0] + t**5 * rand_ops[1] + np.exp(t) * rand_ops[2]
+            return np.sin(t) * rand_ops[0] + t ** 5 * rand_ops[1] + np.exp(t) * rand_ops[2]
 
         self.random_generator = random_generator
 
@@ -123,9 +127,14 @@ class TestExpmSolver(QiskitDynamicsTestCase):
         self.assertAllClose(t_eval, results.t)
 
         expected_y0 = y0
-        expected_y1 = expm(gen(0.25 / 2 ) * 0.25) @ y0
+        expected_y1 = expm(gen(0.25 / 2) * 0.25) @ y0
         h = (1.37 - 0.25) / 3
-        expected_y2 = expm(gen(0.25 + 2.5 * h) * h) @ expm(gen(0.25 + 1.5 * h) * h) @ expm(gen(0.25 + 0.5 * h) * h) @ expected_y1
+        expected_y2 = (
+            expm(gen(0.25 + 2.5 * h) * h)
+            @ expm(gen(0.25 + 1.5 * h) * h)
+            @ expm(gen(0.25 + 0.5 * h) * h)
+            @ expected_y1
+        )
         h = 1.5 - 1.37
         expected_y3 = expm(gen(1.37 + 0.5 * h) * h) @ expected_y2
 
@@ -289,7 +298,7 @@ class TestJaxExpmSolver(TestExpmSolver, TestJaxBase):
         )
 
         def random_generator(t):
-            return jnp.sin(t) * rand_ops[0] + t**5 * rand_ops[1] + jnp.exp(1j * t) * rand_ops[2]
+            return jnp.sin(t) * rand_ops[0] + t ** 5 * rand_ops[1] + jnp.exp(1j * t) * rand_ops[2]
 
         self.random_generator = random_generator
 
@@ -297,8 +306,6 @@ class TestJaxExpmSolver(TestExpmSolver, TestJaxBase):
 
     def test_t_span_with_jax_transformations(self):
         """Test handling of t_span as a list with jax transformations."""
-        from jax import jit
-
         t_span = [0.0, 1.0]
         y0 = jnp.array([[1.0, 0.0], [0.0, 1.0]], dtype=complex)
 
@@ -316,6 +323,7 @@ class TestJaxExpmSolver(TestExpmSolver, TestJaxBase):
 
         grad_func = self.jit_grad_wrap(func)
         grad_func(1.0)
+
 
 class TestJaxExpmParallelSolver(TestJaxExpmSolver):
     """Test cases for jax_expm_parallel_solver. Runs the same tests as
