@@ -33,6 +33,44 @@ except ImportError:
 from .solver_utils import merge_t_args, trim_t_results
 
 
+def rk4_solver(
+    rhs: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Fixed step RK4 solver.
+
+    Args:
+        rhs: Callable, either a generator rhs
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    div6 = 1. / 6
+
+    def take_step(rhs_func, t, y, h):
+        h2 = 0.5 * h
+        t_plus_h2 = t + h2
+
+        k1 = rhs_func(t, y)
+        k2 = rhs_func(t_plus_h2, y + h2 * k1)
+        k3 = rhs_func(t_plus_h2, y + h2 * k2)
+        k4 = rhs_func(t + h, y + h * k3)
+
+        return y + div6 * (k1 + 2 * k2 + 2 * k3 + k4)
+
+    return fixed_step_solver_template(
+        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
 def scipy_expm_solver(
     generator: Callable,
     t_span: Array,
@@ -45,7 +83,7 @@ def scipy_expm_solver(
     size no larger than ``max_dt``.
 
     Args:
-        generator: Callable, either a generator rhs
+        generator: Generator for the LMDE.
         t_span: Interval to solve over.
         y0: Initial state.
         max_dt: Maximum step size.
@@ -65,6 +103,87 @@ def scipy_expm_solver(
 
 
 @requires_backend("jax")
+def jax_rk4_solver(
+    rhs: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """JAX version of rk4_solver.
+
+    Args:
+        rhs: Callable, either a generator rhs
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    div6 = 1. / 6
+
+    def take_step(rhs_func, t, y, h):
+        h2 = 0.5 * h
+        t_plus_h2 = t + h2
+
+        k1 = rhs_func(t, y)
+        k2 = rhs_func(t_plus_h2, y + h2 * k1)
+        k3 = rhs_func(t_plus_h2, y + h2 * k2)
+        k4 = rhs_func(t + h, y + h * k3)
+
+        return y + div6 * (k1 + 2 * k2 + 2 * k3 + k4)
+
+    return fixed_step_solver_template_jax(
+        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
+@requires_backend("jax")
+def jax_rk4_parallel_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Parallel version of jax_rk4_solver specialized to LMDEs.
+
+    Args:
+        generator: Generator of the LMDE.
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    dim = y0.shape[-1]
+    ident = jnp.eye(dim, dtype=complex)
+
+    div6 = 1. / 6
+
+    def take_step(generator, t, h):
+        h2 = 0.5 * h
+        gh2 = generator(t + h2)
+
+        k1 = generator(t)
+        k2 = gh2 @ (ident + h2 * k1)
+        k3 = gh2 @ (ident + h2 * k2)
+        k4 = generator(t + h) @ (ident + h * k3)
+
+        return y + div6 * (k1 + 2 * k2 + 2 * k3 + k4)
+
+    return fixed_step_lmde_solver_parallel_template_jax(
+        take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
+@requires_backend("jax")
 def jax_expm_solver(
     generator: Callable,
     t_span: Array,
@@ -76,7 +195,7 @@ def jax_expm_solver(
     Solves the specified problem by taking steps of size no larger than ``max_dt``.
 
     Args:
-        generator: Callable, either a generator rhs
+        generator: Generator for the LMDE.
         t_span: Interval to solve over.
         y0: Initial state.
         max_dt: Maximum step size.
@@ -103,11 +222,11 @@ def jax_expm_parallel_solver(
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
 ):
-    """Parallel version of jax_expm_solver"""
+    """Parallel version of jax_expm_solver implemented with JAX parallel operations."""
 
-    def take_step(generator, t, y, h):
-        eval_time = t + (h / 2)
-        return jexpm(generator(eval_time) * h) @ y
+    def take_step(generator, t, h):
+        eval_time = t + 0.5 * h
+        return jexpm(generator(eval_time) * h)
 
     return fixed_step_lmde_solver_parallel_template_jax(
         take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
@@ -258,6 +377,19 @@ def fixed_step_lmde_solver_parallel_template_jax(
 
     The above logic is slightly varied to save some operations is ``y0`` is square.
 
+    The signature of ``take_step`` is assumed to be:
+        - generator: A generator :math:`G(t)`.
+        - t: The current time.
+        - h: The size of the step to take.
+
+    It returns:
+        - y: The state of the DE at time t + h.
+
+    Note that this differs slightly from the other template functions, in that
+    ``take_step`` does not take take in ``y``, the state at time ``t``. The
+    parallelization procedure described above uses the initial state being the identity
+    matrix for each time step, and thus it is unnecessary to supply this to ``take_step``.
+
     Args:
         take_step: Fixed step integration rule.
         generator: Generator for the LMDE.
@@ -286,8 +418,7 @@ def fixed_step_lmde_solver_parallel_template_jax(
         t_list_locations = np.append(t_list_locations, [t_list_locations[-1] + n_steps])
 
     # compute propagators over each time step in parallel
-    ident = jnp.eye(y0.shape[-1], dtype=complex)
-    step_propagators = vmap(lambda t, h: take_step(wrapped_generator, t, ident, h))(
+    step_propagators = vmap(lambda t, h: take_step(wrapped_generator, t, h))(
         all_times, all_h
     )
 
