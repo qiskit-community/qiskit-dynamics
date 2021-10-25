@@ -33,7 +33,7 @@ except ImportError:
 from .solver_utils import merge_t_args, trim_t_results
 
 
-def rk4_solver(
+def RK4_solver(
     rhs: Callable,
     t_span: Array,
     y0: Array,
@@ -103,14 +103,14 @@ def scipy_expm_solver(
 
 
 @requires_backend("jax")
-def jax_rk4_solver(
+def jax_RK4_solver(
     rhs: Callable,
     t_span: Array,
     y0: Array,
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
 ):
-    """JAX version of rk4_solver.
+    """JAX version of RK4_solver.
 
     Args:
         rhs: Callable, either a generator rhs
@@ -142,14 +142,14 @@ def jax_rk4_solver(
 
 
 @requires_backend("jax")
-def jax_rk4_parallel_solver(
+def jax_RK4_parallel_solver(
     generator: Callable,
     t_span: Array,
     y0: Array,
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
 ):
-    """Parallel version of jax_rk4_solver specialized to LMDEs.
+    """Parallel version of jax_RK4_solver specialized to LMDEs.
 
     Args:
         generator: Generator of the LMDE.
@@ -176,7 +176,7 @@ def jax_rk4_parallel_solver(
         k3 = gh2 @ (ident + h2 * k2)
         k4 = generator(t + h) @ (ident + h * k3)
 
-        return y + div6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        return ident + div6 * (k1 + 2 * k2 + 2 * k3 + k4)
 
     return fixed_step_lmde_solver_parallel_template_jax(
         take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
