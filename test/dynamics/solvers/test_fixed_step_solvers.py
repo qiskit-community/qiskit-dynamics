@@ -34,22 +34,24 @@ from qiskit_dynamics.solvers.fixed_step_solvers import (
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 try:
-    import jax.numpy as jnp
     from jax.scipy.linalg import expm as jexpm
 # pylint: disable=broad-except
 except Exception:
     pass
 
 
-class TestFixedStepBase(ABC):
+class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
     """Base class for defining common test patterns for fixed step solvers.
 
     Assumes the solvers follow the signature of those in fixed_step_solvers.py.
     """
 
     def setUp(self):
-        # some generators for testing
+        """Setup RHS functions for testing of fixed step solvers. Constructed as LMDEs
+        so that the tests can be used for both LMDE and ODE methods.
+        """
         self.constant_generator = lambda t: -1j * Array([[0.0, 1.0], [1.0, 0.0]]).data
+
         def constant_rhs(t, y=None):
             if y is None:
                 return self.constant_generator(t)
@@ -58,7 +60,10 @@ class TestFixedStepBase(ABC):
 
         self.constant_rhs = constant_rhs
 
-        self.linear_generator = lambda t: -1j * Array([[0.0, 1.0 - 1j * t], [1.0 + 1j * t, 0.0]]).data
+        self.linear_generator = (
+            lambda t: -1j * Array([[0.0, 1.0 - 1j * t], [1.0 + 1j * t, 0.0]]).data
+        )
+
         def linear_rhs(t, y=None):
             if y is None:
                 return self.linear_generator(t)
@@ -85,10 +90,11 @@ class TestFixedStepBase(ABC):
 
         def random_generator(t):
             t = Array(t)
-            output = np.sin(t) * rand_ops[0] + t ** 5 * rand_ops[1] + np.exp(t) * rand_ops[2]
-            return output.data
+            output = np.sin(t) * rand_ops[0] + (t ** 5) * rand_ops[1] + np.exp(t) * rand_ops[2]
+            return Array(output).data
 
         self.random_generator = random_generator
+
         def random_rhs(t, y=None):
             if y is None:
                 return self.random_generator(t)
@@ -276,7 +282,6 @@ class TestFixedStepBase(ABC):
         t_span = np.array([2.1, 3.2])
         t_eval = np.array([2.3, 2.5, 2.78])
         y0 = self.random_y0[0]
-        gen = self.random_generator
 
         results = self.solve(self.random_rhs, t_span, y0, max_dt=0.1, t_eval=t_eval)
 
@@ -291,7 +296,7 @@ class TestFixedStepBase(ABC):
         self.assertAllClose(expected_y, results.y)
 
 
-class TestRK4Solver(TestFixedStepBase, QiskitDynamicsTestCase):
+class TestRK4Solver(TestFixedStepBase):
     """Tests for RK4_solver."""
 
     def take_step(self, rhs, t, y, h):
@@ -300,13 +305,13 @@ class TestRK4Solver(TestFixedStepBase, QiskitDynamicsTestCase):
         k3 = rhs(t + 0.5 * h, y + (h * k2 / 2))
         k4 = rhs(t + h, y + h * k3)
 
-        return y + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        return y + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
         return RK4_solver(rhs, t_span, y0, max_dt, t_eval)
 
 
-class TestScipyExpmSolver(TestFixedStepBase, QiskitDynamicsTestCase):
+class TestScipyExpmSolver(TestFixedStepBase):
     """Tests for scipy_expm_solver."""
 
     def take_step(self, rhs, t, y, h):
@@ -315,6 +320,7 @@ class TestScipyExpmSolver(TestFixedStepBase, QiskitDynamicsTestCase):
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
         return scipy_expm_solver(rhs, t_span, y0, max_dt, t_eval)
+
 
 class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
     """JAX version of TestFixedStepBase, adding JAX setup class TestJaxBase,
@@ -340,7 +346,7 @@ class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
         grad_func(1.0)
 
 
-class TestJaxRK4Solver(TestJaxFixedStepBase, QiskitDynamicsTestCase):
+class TestJaxRK4Solver(TestJaxFixedStepBase):
     """Test cases for jax_RK4_solver."""
 
     def take_step(self, rhs, t, y, h):
@@ -349,7 +355,7 @@ class TestJaxRK4Solver(TestJaxFixedStepBase, QiskitDynamicsTestCase):
         k3 = rhs(t + 0.5 * h, y + (h * k2 / 2))
         k4 = rhs(t + h, y + h * k3)
 
-        return y + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        return y + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
         return jax_RK4_solver(rhs, t_span, y0, max_dt, t_eval)
@@ -362,7 +368,7 @@ class TestJaxRK4ParallelSolver(TestJaxRK4Solver):
         return jax_RK4_parallel_solver(rhs, t_span, y0, max_dt, t_eval)
 
 
-class TestJaxExpmSolver(TestJaxFixedStepBase, QiskitDynamicsTestCase):
+class TestJaxExpmSolver(TestJaxFixedStepBase):
     """Test cases for jax_expm_solver."""
 
     def take_step(self, rhs, t, y, h):
@@ -380,3 +386,7 @@ class TestJaxExpmParallelSolver(TestJaxExpmSolver):
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
         return jax_expm_parallel_solver(rhs, t_span, y0, max_dt, t_eval)
+
+
+# to ensure unittest doesn't try to run these classes
+del TestFixedStepBase, TestJaxFixedStepBase

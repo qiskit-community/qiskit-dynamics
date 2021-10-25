@@ -53,7 +53,7 @@ def RK4_solver(
         OdeResult: Results object.
     """
 
-    div6 = 1. / 6
+    div6 = 1.0 / 6
 
     def take_step(rhs_func, t, y, h):
         h2 = 0.5 * h
@@ -64,7 +64,7 @@ def RK4_solver(
         k3 = rhs_func(t_plus_h2, y + h2 * k2)
         k4 = rhs_func(t + h, y + h * k3)
 
-        return y + div6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
 
     return fixed_step_solver_template(
         take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
@@ -123,7 +123,7 @@ def jax_RK4_solver(
         OdeResult: Results object.
     """
 
-    div6 = 1. / 6
+    div6 = 1.0 / 6
 
     def take_step(rhs_func, t, y, h):
         h2 = 0.5 * h
@@ -165,7 +165,7 @@ def jax_RK4_parallel_solver(
     dim = y0.shape[-1]
     ident = jnp.eye(dim, dtype=complex)
 
-    div6 = 1. / 6
+    div6 = 1.0 / 6
 
     def take_step(generator, t, h):
         h2 = 0.5 * h
@@ -176,7 +176,7 @@ def jax_RK4_parallel_solver(
         k3 = gh2 @ (ident + h2 * k2)
         k4 = generator(t + h) @ (ident + h * k3)
 
-        return ident + div6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        return ident + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
 
     return fixed_step_lmde_solver_parallel_template_jax(
         take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
@@ -418,9 +418,7 @@ def fixed_step_lmde_solver_parallel_template_jax(
         t_list_locations = np.append(t_list_locations, [t_list_locations[-1] + n_steps])
 
     # compute propagators over each time step in parallel
-    step_propagators = vmap(lambda t, h: take_step(wrapped_generator, t, h))(
-        all_times, all_h
-    )
+    step_propagators = vmap(lambda t, h: take_step(wrapped_generator, t, h))(all_times, all_h)
 
     # multiply propagators together in parallel
     ys = None

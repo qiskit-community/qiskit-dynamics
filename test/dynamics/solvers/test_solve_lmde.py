@@ -332,15 +332,15 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
 
         self.pseudo_random_generator = pseudo_random_generator
 
-    def _fixed_step_LMDE_method_tests(self, method):
+    def _fixed_step_LMDE_method_tests(self, method, max_dt=0.01, tol=1e-5):
         # test basic generator
         results = solve_lmde(
-            self.basic_generator, t_span=self.t_span, y0=self.y0, method=method, max_dt=0.1
+            self.basic_generator, t_span=self.t_span, y0=self.y0, method=method, max_dt=max_dt
         )
 
         expected = expm(-1j * np.pi * self.X.data)
 
-        self.assertAllClose(results.y[-1], expected)
+        self.assertAllClose(results.y[-1], expected, atol=tol, rtol=tol)
 
         # test solving in a frame with generator model and solving with a function
         # and no frame
@@ -349,7 +349,7 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
             t_span=[0, 0.5],
             y0=self.pseudo_random_y0,
             method=method,
-            max_dt=0.01,
+            max_dt=max_dt,
         )
         yf = self.pseudo_random_model.rotating_frame.state_out_of_frame(0.5, results.y[-1])
         results2 = solve_lmde(
@@ -357,7 +357,7 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
             t_span=[0, 0.5],
             y0=self.pseudo_random_y0,
             method=method,
-            max_dt=0.01,
+            max_dt=max_dt,
         )
         self.assertAllClose(yf, results2.y[-1], atol=1e-5, rtol=1e-5)
 
@@ -373,7 +373,7 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
             t_span=[0, 0.5],
             y0=y0_in_frame_basis,
             method=method,
-            max_dt=0.01,
+            max_dt=max_dt,
         )
         yf_in_frame_basis = results3.y[-1]
         self.assertAllClose(
@@ -381,6 +381,7 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
             rotating_frame.state_out_of_frame(
                 0.5, y=yf_in_frame_basis, y_in_frame_basis=True, return_in_frame_basis=False
             ),
+            atol=tol, rtol=tol
         )
         self.assertTrue(self.pseudo_random_model.in_frame_basis)
 
@@ -393,9 +394,41 @@ class Testsolve_lmde_scipy_expm(Testsolve_lmde_Base):
         self._fixed_step_LMDE_method_tests("scipy_expm")
 
 
+class Testsolve_lmde_RK4(Testsolve_lmde_Base):
+    """Basic tests for solve_lmde with method=='RK4'."""
+
+    def test_RK4_solver(self):
+        """Test RK4_solver."""
+        self._fixed_step_LMDE_method_tests("RK4", max_dt=1e-3)
+
+
+class Testsolve_lmde_jax_RK4(Testsolve_lmde_Base):
+    """Basic tests for solve_lmde with method=='jax_RK4'."""
+
+    def test_jax_RK4_solver(self):
+        """Test jax_RK4_solver."""
+        self._fixed_step_LMDE_method_tests("jax_RK4", max_dt=1e-3)
+
+
+class Testsolve_lmde_jax_RK4_parallel(Testsolve_lmde_Base):
+    """Basic tests for solve_lmde with method=='jax_RK4_parallel'."""
+
+    def test_jax_RK4_parallel_solver(self):
+        """Test jax_RK4_parallel_solver."""
+        self._fixed_step_LMDE_method_tests("jax_RK4_parallel", max_dt=1e-3)
+
+
 class Testsolve_lmde_jax_expm(Testsolve_lmde_Base, TestJaxBase):
     """Basic tests for solve_lmde with method=='jax_expm'."""
 
     def test_jax_expm_solver(self):
         """Test jax_expm_solver."""
         self._fixed_step_LMDE_method_tests("jax_expm")
+
+
+class Testsolve_lmde_jax_expm_parallel(Testsolve_lmde_Base, TestJaxBase):
+    """Basic tests for solve_lmde with method=='jax_expm_parallel'."""
+
+    def test_jax_expm_parallel_solver(self):
+        """Test jax_expm_parallel_solver."""
+        self._fixed_step_LMDE_method_tests("jax_expm_parallel")
