@@ -134,7 +134,7 @@ def jax_RK4_solver(
         k3 = rhs_func(t_plus_h2, y + h2 * k2)
         k4 = rhs_func(t + h, y + h * k3)
 
-        return y + div6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
 
     return fixed_step_solver_template_jax(
         take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
@@ -405,6 +405,8 @@ def fixed_step_lmde_solver_parallel_template_jax(
     # ensure the output of rhs_func is a raw array
     def wrapped_generator(*args):
         return Array(generator(*args), backend="jax").data
+
+    y0 = Array(y0).data
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
 

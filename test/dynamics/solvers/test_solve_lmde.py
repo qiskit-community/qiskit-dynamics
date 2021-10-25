@@ -381,7 +381,8 @@ class Testsolve_lmde_Base(QiskitDynamicsTestCase):
             rotating_frame.state_out_of_frame(
                 0.5, y=yf_in_frame_basis, y_in_frame_basis=True, return_in_frame_basis=False
             ),
-            atol=tol, rtol=tol
+            atol=tol,
+            rtol=tol,
         )
         self.assertTrue(self.pseudo_random_model.in_frame_basis)
 
@@ -402,7 +403,7 @@ class Testsolve_lmde_RK4(Testsolve_lmde_Base):
         self._fixed_step_LMDE_method_tests("RK4", max_dt=1e-3)
 
 
-class Testsolve_lmde_jax_RK4(Testsolve_lmde_Base):
+class Testsolve_lmde_jax_RK4(Testsolve_lmde_Base, TestJaxBase):
     """Basic tests for solve_lmde with method=='jax_RK4'."""
 
     def test_jax_RK4_solver(self):
@@ -410,7 +411,7 @@ class Testsolve_lmde_jax_RK4(Testsolve_lmde_Base):
         self._fixed_step_LMDE_method_tests("jax_RK4", max_dt=1e-3)
 
 
-class Testsolve_lmde_jax_RK4_parallel(Testsolve_lmde_Base):
+class Testsolve_lmde_jax_RK4_parallel(Testsolve_lmde_Base, TestJaxBase):
     """Basic tests for solve_lmde with method=='jax_RK4_parallel'."""
 
     def test_jax_RK4_parallel_solver(self):
