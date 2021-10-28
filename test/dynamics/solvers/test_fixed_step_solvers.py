@@ -388,5 +388,5 @@ class TestJaxExpmParallelSolver(TestJaxExpmSolver):
         return jax_expm_parallel_solver(rhs, t_span, y0, max_dt, t_eval)
 
 
-# to ensure unittest doesn't try to run these classes
+# to ensure unittest doesn't try to run the abstract classes
 del TestFixedStepBase, TestJaxFixedStepBase
