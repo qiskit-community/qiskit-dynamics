@@ -95,16 +95,15 @@ def solve_ode(
     - ``scipy.integrate.solve_ivp`` - supports methods
       ``['RK45', 'RK23', 'BDF', 'DOP853', 'Radau', 'LSODA']`` or by passing a valid
       ``scipy`` :class:`OdeSolver` instance.
-    - Fixed-step 4th order Runge-Kutta solver - accessed by passing ``method='RK4'``.
+    - ``'RK4'``: A fixed-step 4th order Runge-Kutta solver.
       Requires additional kwarg ``max_dt``, indicating the maximum step
       size to take. This solver will break integration periods into even
       sub-intervals no larger than ``max_dt``, and step over each sub-interval
       using the standard 4th order Runge-Kutta integration rule.
-    - JAX-based 4th order Runge-Kutta solver - accessed by passing ``method='jax_RK4'``.
-      Has the same interface and requirements as ``method='RK4'``, however uses JAX
+    - ``'jax_RK4'``: JAX-version of ``'RK4'``, implemented using JAX
       looping logic.
-    - ``jax.experimental.ode.odeint`` - accessed via passing
-      ``method='jax_odeint'``.
+    - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
+      solver.
 
     Results are returned as a :class:`OdeResult` object.
 
