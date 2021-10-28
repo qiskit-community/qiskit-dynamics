@@ -109,7 +109,9 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
 
     @property
     def is_ode_method(self):
-        """Whether or not the method is a general ODE method."""
+        """Whether or not the method is a general ODE method. Used to determine
+        whether to skip tests that don't apply to LMDEs.
+        """
         return False
 
     @property
