@@ -11,9 +11,9 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name,broad-except
 
-"""Tests error handling of solve_lmde and helper functions.
+"""Tests error handling of solve_ode and solve_lmde, and helper functions.
 
-Tests for results of solve_lmde are in test_solve_functions.py.
+Tests for results of solvers are in test_solve_functions.py.
 """
 
 import numpy as np
@@ -23,13 +23,25 @@ from qiskit.quantum_info import Operator
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal
-from qiskit_dynamics import solve_lmde
+from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.solvers.solver_functions import (
     setup_generator_model_rhs_y0_in_frame_basis,
     results_y_out_of_frame_basis,
 )
 
 from ..common import QiskitDynamicsTestCase
+
+
+class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
+    """Test exceptions of solve_ode."""
+
+    def test_method_does_not_exist(self):
+        """Test method does not exist exception."""
+
+        with self.assertRaises(QiskitError) as qe:
+            solve_ode(lambda t, y: y, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
+
+        self.assertTrue("not supported" in str(qe.exception))
 
 
 class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
