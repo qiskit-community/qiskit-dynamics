@@ -29,6 +29,11 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 
+try:
+    from jax.experimental import sparse as jsparse
+except ImportError:
+    pass
+
 
 class StateTypeConverter:
     """Contains descriptions of two type specifications for DE solvers/methods,
@@ -422,6 +427,16 @@ def to_csr(
         return csr_matrix(op)
 
 
+def to_BCOO(op):
+    ##################################################################################################
+    #   Add documentation
+    ##################################################################################################
+    if type(op).__name__ == 'BCOO':
+        return op
+
+    return jsparse.BCOO.fromdense(to_array(op).data)
+
+
 def to_numeric_matrix_type(
     op: Union[Operator, Array, spmatrix, List[Operator], List[Array], List[spmatrix]]
 ):
@@ -448,6 +463,8 @@ def to_numeric_matrix_type(
     elif isinstance(op, Array):
         return op
     elif isinstance(op, spmatrix):
+        return op
+    elif type(op).__name__ == 'BCOO':
         return op
     elif isinstance(op, Operator):
         return to_array(op)

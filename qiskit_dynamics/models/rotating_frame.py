@@ -25,6 +25,11 @@ from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, to_numeric_matrix_type
 
+try:
+    from jax.experimental import sparse as jsparse
+except ImportError:
+    pass
+
 
 class RotatingFrame:
     r"""Class for representing a rotation frame transformation.
@@ -313,8 +318,12 @@ class RotatingFrame:
             if op_to_add_in_fb is None:
                 return operator
             else:
-                if issparse(operator) and op_to_add_in_fb is not None:
-                    op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
+                if op_to_add_in_fb is not None:
+                    if issparse(operator):
+                        op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
+                    elif type(operator).__name__ == 'BCOO':
+                        op_to_add_in_fb = jsparse.BCOO.fromdense(Array(op_to_add_in_fb).data)
+
                 return operator + op_to_add_in_fb
 
         out = operator
@@ -330,12 +339,18 @@ class RotatingFrame:
         frame_mat = exp_freq.conj().reshape(self.dim, 1) * exp_freq
         if issparse(out):
             out = out.multiply(frame_mat)
+        elif type(out).__name__ == 'BCOO':
+            out = out * frame_mat.data
         else:
             out = frame_mat * out
 
         if op_to_add_in_fb is not None:
-            if issparse(out) and op_to_add_in_fb is not None:
-                op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
+            if op_to_add_in_fb is not None:
+                if issparse(operator):
+                    op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
+                elif type(operator).__name__ == 'BCOO':
+                    op_to_add_in_fb = jsparse.BCOO.fromdense(Array(op_to_add_in_fb).data)
+
             out = out + op_to_add_in_fb
 
         # if output is requested to not be in the frame basis, convert it

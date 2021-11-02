@@ -28,6 +28,7 @@ from qiskit_dynamics.models.operator_collections import (
     BaseOperatorCollection,
     DenseOperatorCollection,
     SparseOperatorCollection,
+    JAXSparseOperatorCollection
 )
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
@@ -287,7 +288,11 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != len(self.operators):
+            if isinstance(self.operators, list):
+                len_operators = len(self.operators)
+            else:
+                len_operators = self.operators.shape[0]
+            if len(signals) != len_operators:
                 raise QiskitError("Signals needs to have the same length as operators.")
 
             self._signals = signals
@@ -577,6 +582,8 @@ def construct_operator_collection(
         return DenseOperatorCollection(static_operator=static_operator, operators=operators)
     if evaluation_mode == "sparse":
         return SparseOperatorCollection(static_operator=static_operator, operators=operators)
+    if evaluation_mode == "jax_sparse":
+        return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
 
     raise NotImplementedError(
         "Evaluation mode '"

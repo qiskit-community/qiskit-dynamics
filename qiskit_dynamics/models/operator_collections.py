@@ -22,7 +22,7 @@ from scipy.sparse.csr import csr_matrix
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array, to_csr, vec_commutator, vec_dissipator
+from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
 
 try:
     import jax.numpy as jnp
@@ -277,7 +277,9 @@ class JAXSparseOperatorCollection(BaseOperatorCollection):
         # Raise error if default backedn != JAX?
         # Do something smarter than calling to_array when instantiating?
         #################################################################################################
-        self._decimals = decimals
+
+        # cannot round sparse jax types
+        #self._decimals = decimals
         super().__init__(static_operator=static_operator, operators=operators)
 
     @property
@@ -287,7 +289,7 @@ class JAXSparseOperatorCollection(BaseOperatorCollection):
     @static_operator.setter
     def static_operator(self, new_static_operator: 'BCOO'):
         if new_static_operator is not None:
-            self._static_operator = jsparse.BCOO.fromdense(np.round(to_array(new_static_operator), self._decimals).data)
+            self._static_operator = to_BCOO(new_static_operator)
         else:
             self._static_operator = None
 
@@ -298,7 +300,7 @@ class JAXSparseOperatorCollection(BaseOperatorCollection):
     @operators.setter
     def operators(self, new_operators: 'BCOO'):
         if new_operators is not None:
-            self._operators = jsparse.BCOO.fromdense(np.round(to_array(new_operators), self._decimals).data)
+            self._operators =to_BCOO(new_operators)
         else:
             self._operators = None
 
