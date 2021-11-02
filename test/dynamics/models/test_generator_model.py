@@ -696,6 +696,27 @@ class TestGeneratorModelSparseJax(TestGeneratorModelSparse, TestJaxBase):
         self.assertTrue(type(op).__name__ == 'BCOO')
         self.assertAllClose(to_array(op), to_array(expected))
 
+    def test_jit_grad(self):
+        """Test jitting and gradding."""
+
+        model = GeneratorModel(static_operator=-1j * self.Z,
+                               operators=[-1j * self.X],
+                               rotating_frame=self.Z,
+                               evaluation_mode='sparse')
+
+        y = np.array([0., 1.])
+
+        def func(a):
+            model_copy = model.copy()
+            model_copy.signals = [Signal(Array(a))]
+            return model_copy(0.232, y)
+
+        jitted_func = self.jit_wrap(func)
+        self.assertAllClose(jitted_func(1.2), func(1.2))
+
+        grad_jit_func = self.jit_grad_wrap(func)
+        grad_jit_func(1.2)
+
 
 class Testtransfer_operator_functions(QiskitDynamicsTestCase):
     """Tests for transfer_static_operator_between_frames and transfer_operators_between_frames."""
