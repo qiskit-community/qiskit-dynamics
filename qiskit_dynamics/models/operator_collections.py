@@ -24,6 +24,14 @@ from qiskit.quantum_info.operators.operator import Operator
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, to_csr, vec_commutator, vec_dissipator
 
+try:
+    import jax.numpy as jnp
+    from jax.experimental import sparse as jsparse
+    jsparse_sum = jsparse.sparsify(jnp.sum)
+    jsparse_matmul = jsparse.sparsify(jnp.matmul)
+except ImportError:
+    pass
+
 
 class BaseOperatorCollection(ABC):
     r"""Abstract class representing a two-variable matrix function.
@@ -243,6 +251,96 @@ class SparseOperatorCollection(BaseOperatorCollection):
                 + """  with None for both static_operator and
                                 operators cannot be evaluated."""
             )
+
+        raise QiskitError(self.__class__.__name__ + """  cannot evaluate RHS for y.ndim > 3.""")
+
+
+class JAXSparseOperatorCollection(BaseOperatorCollection):
+    """Jax version of SparseOperatorCollection built on jax.experimental.sparse.BCOO
+    """
+    def __init__(
+        self,
+        static_operator: Optional[Union[Array, Operator]] = None,
+        operators: Optional[Union[Array, List[Operator]]] = None,
+        decimals: Optional[int] = 10,
+    ):
+        """Initialize.
+
+        Args:
+            static_operator: (n,n) Array specifying the static_operator term :math:`G_d`.
+            operators: (k,n,n) Array specifying the terms :math:`G_j`.
+            decimals: Values will be rounded at ``decimals`` places after decimal.
+        """
+
+
+        #################################################################################################
+        # Raise error if default backedn != JAX?
+        # Do something smarter than calling to_array when instantiating?
+        #################################################################################################
+        self._decimals = decimals
+        super().__init__(static_operator=static_operator, operators=operators)
+
+    @property
+    def static_operator(self) -> 'BCOO':
+        return self._static_operator
+
+    @static_operator.setter
+    def static_operator(self, new_static_operator: 'BCOO'):
+        if new_static_operator is not None:
+            self._static_operator = jsparse.BCOO.fromdense(np.round(to_array(new_static_operator), self._decimals).data)
+        else:
+            self._static_operator = None
+
+    @property
+    def operators(self) -> 'BCOO':
+        return self._operators
+
+    @operators.setter
+    def operators(self, new_operators: 'BCOO'):
+        if new_operators is not None:
+            self._operators = jsparse.BCOO.fromdense(np.round(to_array(new_operators), self._decimals).data)
+        else:
+            self._operators = None
+
+    def evaluate(self, signal_values: Union[Array, None]) -> 'BCOO':
+        r"""Jax sparse version of ``DenseOperatorCollection.evaluate``.
+
+        Args:
+            signal_values: Coefficients :math:`c_j`.
+
+        Returns:
+            Generator as sparse jax array.
+
+        Raises:
+            QiskitError: If collection cannot be evaluated.
+        """
+        if signal_values is not None and isinstance(signal_values, Array):
+            signal_values = signal_values.data
+
+        if self._static_operator is not None and self._operators is not None:
+            return (
+                ######################################################################################
+                # Before merging check if jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats
+                # can be replaced by coeffs[:, None, None] * mats
+                #######################################################################################
+                jsparse_sum(jnp.broadcast_to(signal_values[:, None, None], self._operators.shape) * self._operators, axis=0) + self._static_operator
+            )
+        elif self._static_operator is None and self._operators is not None:
+            return jsparse_sum(jnp.broadcast_to(signal_values[:, None, None], self._operators.shape) * self._operators, axis=0)
+        elif self.static_operator is not None:
+            return self._static_operator
+        raise QiskitError(
+            self.__class__.__name__
+            + """ with None for both static_operator and
+                            operators cannot be evaluated."""
+        )
+
+    def evaluate_rhs(self, signal_values: Union[Array, None], y: Array) -> Array:
+
+        if y.ndim < 3:
+            if isinstance(y, Array):
+                y = y.data
+            return Array(jsparse_matmul(self.evaluate(signal_values), y))
 
         raise QiskitError(self.__class__.__name__ + """  cannot evaluate RHS for y.ndim > 3.""")
 

@@ -26,11 +26,17 @@ from qiskit_dynamics.models.operator_collections import (
     DenseVectorizedLindbladCollection,
     SparseLindbladCollection,
     SparseOperatorCollection,
+    JAXSparseOperatorCollection,
     SparseVectorizedLindbladCollection,
 )
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+
+try:
+    from jax.experimental import sparse as jsparse
+except ImportError:
+    pass
 
 
 class TestDenseOperatorCollection(QiskitDynamicsTestCase):
@@ -174,8 +180,8 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         ham_ops = []
         ham_ops_alt = []
         r = lambda *args: np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
-        # pylint: disable=unused-variable
-        for i in range(4):
+
+        for _ in range(4):
             op = r(3, 3)
             ham_ops.append(Operator(op))
             ham_ops_alt.append(Array(op))
@@ -202,6 +208,89 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         collection = SparseOperatorCollection(static_operator=X)
         self.assertAllCloseSparse(X, collection(None))
         self.assertAllClose(np.array([0.0, 1.0]), collection(None, np.array([1.0, 0.0])))
+
+
+class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):
+    """Test cases for JAXSparseOperatorCollection."""
+
+    def setUp(self):
+        self.X = Array(Operator.from_label("X").data)
+        self.Y = Array(Operator.from_label("Y").data)
+        self.Z = Array(Operator.from_label("Z").data)
+
+        self.test_operator_list = Array([self.X, self.Y, self.Z])
+        self.simple_collection = JAXSparseOperatorCollection(
+            operators=self.test_operator_list, static_operator=None
+        )
+
+    def test_empty_collection_error(self):
+        """Verify that evaluating with no operators or static_operator raises an error."""
+
+        collection = JAXSparseOperatorCollection(operators=None, static_operator=None)
+        with self.assertRaises(QiskitError) as qe:
+            collection(None)
+        self.assertTrue("cannot be evaluated." in str(qe.exception))
+
+    def test_known_values_basic_functionality(self):
+        """Test JAXSparseOperatorCollection evaluation against
+        analytically known values."""
+        rand.seed(34983)
+        coeffs = rand.uniform(-1, 1, 3)
+
+        res = self.simple_collection(coeffs)
+        self.assertTrue(isinstance(res, jsparse.BCOO))
+        self.assertAllClose(res.todense(), coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z)
+
+        res = (
+            JAXSparseOperatorCollection(operators=self.test_operator_list, static_operator=np.eye(2))
+        )(coeffs)
+        self.assertTrue(isinstance(res, jsparse.BCOO))
+        self.assertAllClose(
+            res.todense(), np.eye(2) + coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z
+        )
+
+    def test_basic_functionality_pseudorandom(self):
+        """Test JAXSparseOperatorCollection evaluation
+        using pseudorandom arrays."""
+        rand.seed(342)
+        vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
+        arr = rand.uniform(-1, 1, (32, 128, 128))
+        collection = JAXSparseOperatorCollection(operators=arr)
+        for i in range(10):
+            res = collection(vals[i])
+            total = 0
+            for j in range(32):
+                total = total + vals[i, j] * arr[j]
+            self.assertTrue(isinstance(res, jsparse.BCOO))
+            self.assertAllClose(res.todense(), total)
+
+    def test_static_collection(self):
+        """Test the case in which only a static operator is present."""
+        collection = JAXSparseOperatorCollection(operators=None, static_operator=self.X)
+        self.assertTrue(isinstance(collection(None), jsparse.BCOO))
+        self.assertAllClose(self.X, collection(None).todense())
+
+    def test_functions_jitable(self):
+        """Tests that all class functions are jittable."""
+        doc = JAXSparseOperatorCollection(
+            operators=Array(self.test_operator_list),
+            static_operator=Array(self.test_operator_list[0]),
+        )
+        rand.seed(3423)
+        coeffs = rand.uniform(-1, 1, 3)
+        self.jit_wrap(doc.evaluate)(Array(coeffs))
+        self.jit_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
+
+    def test_functions_gradable(self):
+        """Tests that all class functions are gradable."""
+        doc = JAXSparseOperatorCollection(
+            operators=Array(self.test_operator_list),
+            static_operator=Array(self.test_operator_list[0]),
+        )
+        rand.seed(5433)
+        coeffs = rand.uniform(-1, 1, 3)
+        self.jit_grad_wrap(doc.evaluate)(Array(coeffs))
+        self.jit_grad_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
 
 
 class TestDenseLindbladCollection(QiskitDynamicsTestCase):
