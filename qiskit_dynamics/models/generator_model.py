@@ -30,6 +30,7 @@ from qiskit_dynamics.models.operator_collections import (
     SparseOperatorCollection,
     JAXSparseOperatorCollection
 )
+from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
@@ -213,8 +214,9 @@ class GeneratorModel(BaseGeneratorModel):
         Available options:
 
          * 'dense': Stores/evaluates operators using dense Arrays.
-         * 'sparse': stores/evaluates operators using scipy :class:`csr_matrix`
-            types. Not compatible with JAX.
+         * 'sparse': Stores/evaluates operators using sparse matrices. If
+           the default backend is JAX, implemented with JAX BCOO matrices,
+           otherwise uses scipy :class:`csr_matrix` sparse type.
         """
         return self._evaluation_mode
 
@@ -577,10 +579,10 @@ def construct_operator_collection(
 
     if evaluation_mode == "dense":
         return DenseOperatorCollection(static_operator=static_operator, operators=operators)
+    if evaluation_mode == "sparse" and dispatch.default_backend() == 'jax':
+        return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
     if evaluation_mode == "sparse":
         return SparseOperatorCollection(static_operator=static_operator, operators=operators)
-    if evaluation_mode == "jax_sparse":
-        return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
 
     raise NotImplementedError(
         "Evaluation mode '"

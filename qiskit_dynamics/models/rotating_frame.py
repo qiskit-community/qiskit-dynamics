@@ -25,6 +25,13 @@ from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, to_BCOO, to_numeric_matrix_type
 
+try:
+    import jax.numpy as jnp
+    from jax.experimental import sparse as jsparse
+    jsparse_matmul = jsparse.sparsify(jnp.matmul)
+except ImportError:
+    pass
+
 
 class RotatingFrame:
     r"""Class for representing a rotation frame transformation.
@@ -179,8 +186,12 @@ class RotatingFrame:
         op = to_numeric_matrix_type(op)
         if self.frame_basis is None or op is None:
             return op
-        # parentheses are necessary for sparse op evaluation
-        return self.frame_basis_adjoint @ (op @ self.frame_basis)
+
+        if type(op).__name__ == 'BCOO':
+            return self.frame_basis_adjoint @ jsparse_matmul(op, self.frame_basis.data)
+        else:
+            # parentheses are necessary for sparse op evaluation
+            return self.frame_basis_adjoint @ (op @ self.frame_basis)
 
     def operator_out_of_frame_basis(
         self, op: Union[Operator, List[Operator], Array, csr_matrix, None]
@@ -196,8 +207,12 @@ class RotatingFrame:
         op = to_numeric_matrix_type(op)
         if self.frame_basis is None or op is None:
             return op
-        # parentheses are necessary for sparse op evaluation
-        return self.frame_basis @ (op @ self.frame_basis_adjoint)
+
+        if type(op).__name__ == 'BCOO':
+            return self.frame_basis @ jsparse_matmul(op, self.frame_basis_adjoint.data)
+        else:
+            # parentheses are necessary for sparse op evaluation
+            return self.frame_basis @ (op @ self.frame_basis_adjoint)
 
     def state_into_frame(
         self,

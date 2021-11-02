@@ -539,7 +539,6 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
     def test_state_transformations_no_frame_array_type(self):
         """Test frame transformations with no frame."""
 
-        # rotating_frame = RotatingFrame(Array(np.zeros(2)))
         rotating_frame = RotatingFrame(None)
 
         t = 0.123
@@ -561,8 +560,8 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         self.assertTrue(isinstance(out, Array))
 
 
-class TestRotatingFrameTypeHandlingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
-    """Test correct handling of BCOO arrays in relevant functions."""
+class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
+    """Test correct handling of JAX BCOO arrays in relevant functions."""
 
     def test_conjugate_and_add_BCOO(self):
         """Test _conjugate_and_add with operator being BCOO."""
@@ -577,7 +576,31 @@ class TestRotatingFrameTypeHandlingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
 
         self.assertAllClose(to_array(out), rotating_frame._conjugate_and_add(t, to_array(op), to_array(op_to_add)))
 
+    def test_operator_into_frame_basis(self):
+        """Test operator_into_frame_basis with operator being BCOO, for
+        frame specified as full matrix.
+        """
 
+        rotating_frame = RotatingFrame(np.array([[1., 0.], [0., -1.]]))
+
+        op = to_BCOO(np.array([[1., -1j], [0., 1.]]))
+        output = rotating_frame.operator_into_frame_basis(op)
+        expected = rotating_frame.operator_into_frame_basis(to_array(op))
+
+        self.assertAllClose(output, expected)
+
+    def test_operator_out_of_frame_basis(self):
+        """Test operator_out_of_frame_basis with operator being BCOO, for
+        frame specified as full matrix.
+        """
+
+        rotating_frame = RotatingFrame(np.array([[1., 0.], [0., -1.]]))
+
+        op = to_BCOO(np.array([[1., -1j], [0., 1.]]))
+        output = rotating_frame.operator_out_of_frame_basis(op)
+        expected = rotating_frame.operator_out_of_frame_basis(to_array(op))
+
+        self.assertAllClose(output, expected)
 
 
 class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
