@@ -345,11 +345,10 @@ class RotatingFrame:
             out = frame_mat * out
 
         if op_to_add_in_fb is not None:
-            if op_to_add_in_fb is not None:
-                if issparse(operator):
-                    op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
-                elif type(operator).__name__ == 'BCOO':
-                    op_to_add_in_fb = jsparse.BCOO.fromdense(Array(op_to_add_in_fb).data)
+            if issparse(out):
+                op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
+            elif type(out).__name__ == 'BCOO':
+                op_to_add_in_fb = jsparse.BCOO.fromdense(Array(op_to_add_in_fb).data)
 
             out = out + op_to_add_in_fb
 

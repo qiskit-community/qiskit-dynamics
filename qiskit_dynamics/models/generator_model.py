@@ -435,22 +435,19 @@ class GeneratorModel(BaseGeneratorModel):
         else:
             sig_vals = self._signals.__call__(time)
 
-        # Evaluated in frame basis, but without rotations e^{\pm Ft}
-        op_combo = self._operator_collection(sig_vals)
-
         if self.rotating_frame is not None:
             # First, compute e^{tF}y as a pre-rotation in the frame basis
             out = self.rotating_frame.state_out_of_frame(
                 time, y, y_in_frame_basis=self._in_frame_basis, return_in_frame_basis=True
             )
             # Then, compute the product Ae^{tF}y
-            out = op_combo @ out
+            out = self._operator_collection(sig_vals, out)
             # Finally, we have the full operator e^{-tF}Ae^{tF}y
             out = self.rotating_frame.state_into_frame(
                 time, out, y_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
             )
         else:
-            return op_combo @ y
+            return self._operator_collection(sig_vals, y)
 
         return out
 
