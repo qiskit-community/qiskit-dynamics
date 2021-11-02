@@ -23,12 +23,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array, to_numeric_matrix_type
-
-try:
-    from jax.experimental import sparse as jsparse
-except ImportError:
-    pass
+from qiskit_dynamics.type_utils import to_array, to_BCOO, to_numeric_matrix_type
 
 
 class RotatingFrame:
@@ -322,7 +317,7 @@ class RotatingFrame:
                     if issparse(operator):
                         op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
                     elif type(operator).__name__ == 'BCOO':
-                        op_to_add_in_fb = jsparse.BCOO.fromdense(Array(op_to_add_in_fb).data)
+                        op_to_add_in_fb = to_BCOO(op_to_add_in_fb)
 
                 return operator + op_to_add_in_fb
 
@@ -348,7 +343,7 @@ class RotatingFrame:
             if issparse(out):
                 op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
             elif type(out).__name__ == 'BCOO':
-                op_to_add_in_fb = jsparse.BCOO.fromdense(Array(op_to_add_in_fb).data)
+                op_to_add_in_fb = to_BCOO(op_to_add_in_fb)
 
             out = out + op_to_add_in_fb
 

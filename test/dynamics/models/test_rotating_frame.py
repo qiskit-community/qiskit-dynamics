@@ -20,6 +20,7 @@ from qiskit.quantum_info.operators import Operator
 from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.models.rotating_frame import RotatingFrame
 from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.type_utils import to_BCOO, to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -558,6 +559,25 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
         self.assertTrue(isinstance(out, Array))
+
+
+class TestRotatingFrameTypeHandlingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
+    """Test correct handling of BCOO arrays in relevant functions."""
+
+    def test_conjugate_and_add_BCOO(self):
+        """Test _conjugate_and_add with operator being BCOO."""
+
+        rotating_frame = RotatingFrame(np.array([1., -1.]))
+
+        t = 0.123
+        op = to_BCOO(np.array([[1., -1j], [0., 1.]]))
+        op_to_add = to_BCOO(np.array([[0., -0.11j], [0., 1.]]))
+        out = rotating_frame._conjugate_and_add(t, op, op_to_add)
+        self.assertTrue(type(out).__name__ == 'BCOO')
+
+        self.assertAllClose(to_array(out), rotating_frame._conjugate_and_add(t, to_array(op), to_array(op_to_add)))
+
+
 
 
 class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
