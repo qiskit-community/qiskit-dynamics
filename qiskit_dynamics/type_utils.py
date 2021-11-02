@@ -27,7 +27,7 @@ from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.dispatch import Array, requires_backend
 
 try:
     from jax.experimental import sparse as jsparse
@@ -381,6 +381,9 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
     if issparse(op):
         return Array(op.toarray())
 
+    if type(op).__name__ == 'BCOO':
+        return Array(op.todense())
+
     if isinstance(op, Iterable) and not no_iter:
         op = Array([to_array(sub_op, no_iter=True) for sub_op in op])
     elif isinstance(op, Iterable) and no_iter:
@@ -427,10 +430,21 @@ def to_csr(
         return csr_matrix(op)
 
 
-def to_BCOO(op):
-    ##################################################################################################
-    #   Add documentation
-    ##################################################################################################
+@requires_backend("jax")
+def to_BCOO(
+    op: Union[Operator, Array, List[Operator], List[Array], spmatrix, 'BCOO']
+) -> 'BCOO':
+    """Convert input op or list of ops to a jax BCOO sparse array.
+
+    Calls ``to_array`` to handle general conversion to a numpy or jax array, then
+    builds the BCOO sparse array from the result.
+
+    Args:
+        op: Operator or list of operators to convert.
+
+    Returns:
+        BCOO: BCOO sparse version of the operator.
+    """
     if type(op).__name__ == 'BCOO':
         return op
 
