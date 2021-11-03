@@ -445,6 +445,9 @@ def to_BCOO(
     Returns:
         BCOO: BCOO sparse version of the operator.
     """
+    if op is None:
+        return op
+
     if type(op).__name__ == 'BCOO':
         return op
 

@@ -278,6 +278,10 @@ class Testvec_commutator_dissipator(QiskitDynamicsTestCase):
 class Test_to_array(QiskitDynamicsTestCase):
     """Tests for to_array."""
 
+    def test_None_to_None(self):
+        """Test that None input returns None."""
+        self.assertTrue(to_array(None) is None)
+
     def test_to_array_Operator(self):
         """Tests for to_array with a single operator"""
         op = Operator.from_label("X")
@@ -374,6 +378,10 @@ class Test_to_array_Jax(Test_to_array, TestJaxBase):
 class Test_to_csr(QiskitDynamicsTestCase):
     """Tests for to_csr."""
 
+    def test_None_to_None(self):
+        """Test that None input returns None."""
+        self.assertTrue(to_csr(None) is None)
+
     def test_to_csr_Operator(self):
         """Tests for to_csr with a single operator"""
         op = Operator.from_label("X")
@@ -439,6 +447,10 @@ class Test_to_csr(QiskitDynamicsTestCase):
 
 class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
     """Test the to_BCOO function."""
+
+    def test_None_to_None(self):
+        """Test that None input returns None."""
+        self.assertTrue(to_BCOO(None) is None)
 
     def test_to_BCOO_Operator(self):
         """Tests for to_BCOO with a single operator"""
