@@ -14,6 +14,7 @@
 """Tests for qiskit_dynamics.models.rotating_wave_approximation"""
 
 import numpy as np
+from scipy.sparse import issparse
 from qiskit.quantum_info import Operator
 from qiskit_dynamics.dispatch.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
@@ -25,7 +26,7 @@ from qiskit_dynamics.models import (
     rotating_wave_approximation,
 )
 from qiskit_dynamics.models.rotating_wave_approximation import get_rwa_operators
-from qiskit_dynamics.type_utils import to_csr
+from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -375,8 +376,26 @@ class TestRotatingWaveApproximationSparse(QiskitDynamicsTestCase):
 
         rwa_ham_model = rotating_wave_approximation(self.classic_hamiltonian, 2 * self.v)
 
-        self.assertAllCloseSparse(rwa_ham_model.static_operator, to_csr(np.zeros((2, 2))))
+        self.assertSparseEquality(rwa_ham_model.static_operator, np.zeros((2, 2)))
         expected_ops = (
             2 * np.pi * self.r * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]]) / 4
         )
-        self.assertAllCloseSparse(rwa_ham_model.operators, to_csr(expected_ops))
+        self.assertSparseEquality(rwa_ham_model.operators, expected_ops)
+
+    def assertSparseEquality(self, op, expected):
+        """Validate that op is sparse and is equal to expected."""
+        if isinstance(op, list):
+            for sub_op in op:
+                self.assertTrue(issparse(sub_op))
+        else:
+            self.assertTrue(issparse(op))
+
+        self.assertAllClose(to_array(op), to_array(expected))
+
+class TestRotatingWaveApproximationSparseJax(TestRotatingWaveApproximationSparse, TestJaxBase):
+    """JAX version of TestRotatingWaveApproximationSparse."""
+
+    def assertSparseEquality(self, op, expected):
+        """Validate that op is sparse and is equal to expected."""
+        self.assertTrue(type(op).__name__ == 'BCOO')
+        self.assertAllClose(to_array(op), to_array(expected))
