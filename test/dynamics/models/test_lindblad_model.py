@@ -24,7 +24,6 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics import dispatch
 from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -210,6 +209,10 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         sm = Array([[0.0, 0.0], [1.0, 0.0]])
 
         expected = self._evaluate_lindblad_rhs(A, ham, [sm])
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            A = A.flatten(order="F")
+
         value = self.basic_lindblad(t, A)
         self.assertAllClose(expected, value)
 
@@ -224,12 +227,14 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
-        self.assertAllClose(
-            model(1.0, rho),
-            self._evaluate_lindblad_rhs(
-                rho, ham=np.zeros((2, 2), dtype=complex), dissipators=[self.X]
-            ),
+        expected = self._evaluate_lindblad_rhs(
+            rho, ham=np.zeros((2, 2), dtype=complex), dissipators=[self.X]
         )
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            rho = rho.flatten(order="F")
+
+        self.assertAllClose(model(1.0, rho), expected)
 
     def test_evaluate_only_static_dissipators(self):
         """Test evaluation with just dissipators."""
@@ -239,13 +244,14 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
-
-        self.assertAllClose(
-            model(1.0, rho),
-            self._evaluate_lindblad_rhs(
-                rho, ham=np.zeros((2, 2), dtype=complex), dissipators=[self.X, self.Y]
-            ),
+        expected = self._evaluate_lindblad_rhs(
+            rho, ham=np.zeros((2, 2), dtype=complex), dissipators=[self.X, self.Y]
         )
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            rho = rho.flatten(order="F")
+
+        self.assertAllClose(model(1.0, rho), expected)
 
     def test_evaluate_only_static_hamiltonian(self):
         """Test evaluation with just static hamiltonian."""
@@ -253,8 +259,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         model = LindbladModel(static_hamiltonian=self.X, evaluation_mode=self.evaluation_mode)
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
+        expected = self._evaluate_lindblad_rhs(rho, ham=self.X)
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            rho = rho.flatten(order="F")
 
-        self.assertAllClose(model(1.0, rho), self._evaluate_lindblad_rhs(rho, ham=self.X))
+        self.assertAllClose(model(1.0, rho), expected)
 
     def test_evaluate_only_hamiltonian_operators(self):
         """Test evaluation with just hamiltonian operators."""
@@ -266,8 +276,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
+        expected = self._evaluate_lindblad_rhs(rho, ham=self.X)
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            rho = rho.flatten(order="F")
 
-        self.assertAllClose(model(1.0, rho), self._evaluate_lindblad_rhs(rho, ham=self.X))
+        self.assertAllClose(model(1.0, rho), expected)
 
     def test_lindblad_pseudorandom(self):
         """Test various evaluation modes of LindbladModel with structureless pseudorandom
@@ -343,16 +357,11 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
         lindblad_model.rotating_frame = frame_op
 
-        A = Array(
-            rng.uniform(low=-b, high=b, size=(dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
-        )
-
         t = rng.uniform(low=-b, high=b)
-        value = lindblad_model(t, A)
-        lindblad_model.in_frame_basis = True
-        value_in_frame_basis = lindblad_model(
-            t, lindblad_model.rotating_frame.operator_into_frame_basis(A)
+        # test storage of operators in class
+        diss_coeffs = np.real(
+            rand_diss_coeffs
+            * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
         )
 
         ham_coeffs = np.real(
@@ -360,24 +369,10 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
         ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
 
-        diss_coeffs = np.real(
-            rand_diss_coeffs
-            * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
-        )
-
-        expected = self._evaluate_lindblad_rhs(
-            A,
-            ham,
-            static_dissipators=rand_static_diss,
-            dissipators=rand_diss,
-            dissipator_coeffs=diss_coeffs,
-            frame_op=frame_op,
-            t=t,
-        )
-
         self.assertAllClose(ham_coeffs, ham_sigs(t))
         self.assertAllClose(diss_coeffs, diss_sigs(t))
         # lindblad model is in frame basis here
+        lindblad_model.in_frame_basis = True
         self.assertAllClose(
             into_frame_basis(rand_diss),
             to_array(lindblad_model.dissipator_operators),
@@ -392,42 +387,47 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
         lindblad_model.in_frame_basis = False
         self.assertAllClose(-1j * frame_op, lindblad_model.static_hamiltonian)
+
+        # evaluation tests
+        A = Array(
+            rng.uniform(low=-b, high=b, size=(dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
+        )
+
+        expected = self._evaluate_lindblad_rhs(
+            A,
+            ham,
+            static_dissipators=rand_static_diss,
+            dissipators=rand_diss,
+            dissipator_coeffs=diss_coeffs,
+            frame_op=frame_op,
+            t=t,
+        )
+        expected_in_frame_basis = self._evaluate_lindblad_rhs(
+            lindblad_model.rotating_frame.operator_out_of_frame_basis(A),
+            ham,
+            static_dissipators=rand_static_diss,
+            dissipators=rand_diss,
+            dissipator_coeffs=diss_coeffs,
+            frame_op=frame_op,
+            t=t,
+        )
+        expected_in_frame_basis = lindblad_model.rotating_frame.operator_into_frame_basis(
+            expected_in_frame_basis
+        )
+
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            expected_in_frame_basis = expected_in_frame_basis.flatten(order="F")
+            A = A.flatten(order="F")
+
+        value = lindblad_model(t, A)
         self.assertAllClose(expected, value)
 
-        lindblad_model.evaluation_mode = "dense_vectorized"
-        vectorized_value = lindblad_model.evaluate_rhs(t, A.flatten(order="F")).reshape(
-            (dim, dim), order="F"
-        )
-        self.assertAllClose(value, vectorized_value)
-
-        vec_gen = lindblad_model.evaluate(t)
-        vectorized_value_lmult = (vec_gen @ A.flatten(order="F")).reshape((dim, dim), order="F")
-        self.assertAllClose(value, vectorized_value_lmult)
-
         lindblad_model.in_frame_basis = True
-        rho_in_frame_basis = lindblad_model.rotating_frame.operator_into_frame_basis(A)
-        vectorized_value_lmult_fb = (
-            lindblad_model.evaluate(t) @ rho_in_frame_basis.flatten(order="F")
-        ).reshape((dim, dim), order="F")
-        self.assertAllClose(vectorized_value_lmult_fb, value_in_frame_basis)
-
-        lindblad_model.in_frame_basis = False
-        if dispatch.default_backend() != "jax":
-            lindblad_model.evaluation_mode = "sparse"
-            sparse_value = lindblad_model.evaluate_rhs(t, A)
-            self.assertAllCloseSparse(value, sparse_value)
-
-            lindblad_model.evaluation_mode = "sparse_vectorized"
-            sparse_vectorized_value = lindblad_model.evaluate_rhs(t, A.flatten(order="F")).reshape(
-                (dim, dim), order="F"
-            )
-            self.assertAllCloseSparse(value, sparse_vectorized_value)
-
-            sparse_vec_gen = lindblad_model.evaluate(t)
-            sparse_vectorized_value_lmult = (sparse_vec_gen @ A.flatten(order="F")).reshape(
-                (dim, dim), order="F"
-            )
-            self.assertAllCloseSparse(sparse_vectorized_value_lmult, value)
+        value_in_frame_basis = lindblad_model(t, A)
+        self.assertAllClose(expected, value)
+        self.assertAllClose(expected_in_frame_basis, value_in_frame_basis)
 
     def test_dissipator_consistency(self):
         """Test consistent evaluation with different ways of specifying dissipators."""
@@ -454,35 +454,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         rand_input = Array(
             rng.uniform(low=-b, high=b, size=(dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
         )
+        if "vectorized" in self.evaluation_mode:
+            rand_input = rand_input.flatten(order="F")
 
         self.assertAllClose(static_model(0.0, rand_input), non_static_model(0.0, rand_input))
-
-        rand_vec_input = Array(
-            rng.uniform(low=-b, high=b, size=(dim ** 2,))
-            + 1j * rng.uniform(low=-b, high=b, size=(dim ** 2,))
-        )
-
-        static_model.evaluation_mode = "dense_vectorized"
-        non_static_model.evaluation_mode = "dense_vectorized"
-
-        self.assertAllClose(
-            static_model(0.0, rand_vec_input), non_static_model(0.0, rand_vec_input)
-        )
-
-        if dispatch.default_backend() != "jax":
-            static_model.evaluation_mode = "sparse"
-            non_static_model.evaluation_mode = "sparse"
-
-            self.assertAllClose(static_model(0.0, rand_input), non_static_model(0.0, rand_input))
-
-            static_model.evaluation_mode = "sparse_vectorized"
-            non_static_model.evaluation_mode = "sparse_vectorized"
-
-            self.assertAllClose(
-                static_model(0.0, rand_vec_input), non_static_model(0.0, rand_vec_input)
-            )
 
     # pylint: disable=no-self-use,too-many-arguments
     def _evaluate_lindblad_rhs(
@@ -575,61 +552,28 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(
-            1.0, Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
-        )
+        rho = Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
+        if "vectorized" in self.evaluation_mode:
+            rho = rho.flatten(order="F")
+
+        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-
-        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(
-            1.0, Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
-        )
-
-        self.basic_lindblad.rotating_frame = None
-
-        self.basic_lindblad.evaluation_mode = "dense_vectorized"
-
-        self.jit_wrap(self.basic_lindblad.evaluate)(1.0)
-        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
-
-        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-
-        self.jit_wrap(self.basic_lindblad.evaluate)(1.0)
-        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4, 0.6, 0.8])))
-
-        self.basic_lindblad.rotating_frame = None
+        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
     def test_gradable_funcs(self):
         """Tests whether all functions are gradable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(
-            1.0, Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
-        )
+
+        rho = Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
+        if "vectorized" in self.evaluation_mode:
+            rho = rho.flatten(order="F")
+
+        self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-
-        self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(
-            1.0, Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
-        )
-
-        self.basic_lindblad.rotating_frame = None
-
-        self.basic_lindblad.evaluation_mode = "dense_vectorized"
-
-        self.jit_grad_wrap(self.basic_lindblad.evaluate)(1.0)
-        self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(
-            1.0, Array(np.array([0.2, 0.4, 0.6, 0.8]))
-        )
-
-        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-
-        self.jit_grad_wrap(self.basic_lindblad.evaluate)(1.0)
-        self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(
-            1.0, Array(np.array([0.2, 0.4, 0.6, 0.8]))
-        )
-
-        self.basic_lindblad.rotating_frame = None
+        self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
 
 class TestLindbladModelSparse(TestLindbladModel):
@@ -652,12 +596,17 @@ class TestLindbladModelSparse(TestLindbladModel):
         rho = np.array([[1.0, 0.0], [0.0, 0.0]])
         ham = self.Z + self.X
         expected = -1j * (ham @ rho - rho @ ham)
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            rho = rho.flatten(order="F")
+
         self.assertAllClose(model(1.0, rho), expected)
 
-        model.evaluation_mode = "sparse"
-        self.assertAllClose(model(1.0, rho), expected)
+        if "vectorized" in self.evaluation_mode:
+            model.evaluation_mode = "dense_vectorized"
+        else:
+            model.evaluation_mode = "dense"
 
-        model.evaluation_mode = "dense"
         self.assertAllClose(model(1.0, rho), expected)
 
     def test_frame_change_sparse(self):
@@ -674,6 +623,9 @@ class TestLindbladModelSparse(TestLindbladModel):
         rho = np.array([[1.0, 0.0], [0.0, 0.0]])
         ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
         expected = -1j * (ham @ rho - rho @ ham)
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            rho = rho.flatten(order="F")
         self.assertAllClose(expected, model(1.0, rho))
 
         # test diagonal frame
@@ -690,11 +642,15 @@ class TestLindbladModelSparse(TestLindbladModel):
             rotating_frame=np.array([1.0, -1.0]),
         )
 
-        model.evaluation_mode = "sparse"
+        model.evaluation_mode = self.evaluation_mode
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]])
         ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
         expected = -1j * (ham @ rho - rho @ ham)
+        if "vectorized" in self.evaluation_mode:
+            expected = expected.flatten(order="F")
+            rho = rho.flatten(order="F")
+
         self.assertAllClose(expected, model(1.0, rho))
 
 
@@ -720,6 +676,30 @@ class TestLindbladModelJAXSparse(TestLindbladModelSparse, TestLindbladModelJax):
         self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
         jacfwd_func = jit(jacfwd(func_to_grad))
         jacfwd_func(1.0, np.array([[0.2, 0.4], [0.6, 0.8]]))
+
+
+class TestLindbladModelDenseVectorized(TestLindbladModel):
+    """Test class for dense vectorized mode operation of LindbladModel."""
+
+    @property
+    def evaluation_mode(self):
+        return "dense_vectorized"
+
+
+class TestLindbladModelSparseVectorized(TestLindbladModelSparse):
+    """Test class for sparse vectorized mode operation of LindbladModel."""
+
+    @property
+    def evaluation_mode(self):
+        return "sparse_vectorized"
+
+
+class TestLindbladModelDenseVectorizedJax(TestLindbladModelJax):
+    """Test class for jax dense vectorized mode operation of LindbladModel."""
+
+    @property
+    def evaluation_mode(self):
+        return "dense_vectorized"
 
 
 def get_const_func(const):
