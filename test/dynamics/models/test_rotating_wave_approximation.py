@@ -392,10 +392,11 @@ class TestRotatingWaveApproximationSparse(QiskitDynamicsTestCase):
 
         self.assertAllClose(to_array(op), to_array(expected))
 
+
 class TestRotatingWaveApproximationSparseJax(TestRotatingWaveApproximationSparse, TestJaxBase):
     """JAX version of TestRotatingWaveApproximationSparse."""
 
     def assertSparseEquality(self, op, expected):
         """Validate that op is sparse and is equal to expected."""
-        self.assertTrue(type(op).__name__ == 'BCOO')
+        self.assertTrue(type(op).__name__ == "BCOO")
         self.assertAllClose(to_array(op), to_array(expected))

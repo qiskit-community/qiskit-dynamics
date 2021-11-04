@@ -28,6 +28,7 @@ from qiskit_dynamics.type_utils import to_array, to_BCOO, to_numeric_matrix_type
 try:
     import jax.numpy as jnp
     from jax.experimental import sparse as jsparse
+
     jsparse_matmul = jsparse.sparsify(jnp.matmul)
 except ImportError:
     pass
@@ -187,7 +188,7 @@ class RotatingFrame:
         if self.frame_basis is None or op is None:
             return op
 
-        if type(op).__name__ == 'BCOO':
+        if type(op).__name__ == "BCOO":
             return self.frame_basis_adjoint @ jsparse_matmul(op, self.frame_basis.data)
         else:
             # parentheses are necessary for sparse op evaluation
@@ -208,7 +209,7 @@ class RotatingFrame:
         if self.frame_basis is None or op is None:
             return op
 
-        if type(op).__name__ == 'BCOO':
+        if type(op).__name__ == "BCOO":
             return self.frame_basis @ jsparse_matmul(op, self.frame_basis_adjoint.data)
         else:
             # parentheses are necessary for sparse op evaluation
@@ -331,7 +332,7 @@ class RotatingFrame:
                 if op_to_add_in_fb is not None:
                     if issparse(operator):
                         op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
-                    elif type(operator).__name__ == 'BCOO':
+                    elif type(operator).__name__ == "BCOO":
                         op_to_add_in_fb = to_BCOO(op_to_add_in_fb)
 
                 return operator + op_to_add_in_fb
@@ -349,7 +350,7 @@ class RotatingFrame:
         frame_mat = exp_freq.conj().reshape(self.dim, 1) * exp_freq
         if issparse(out):
             out = out.multiply(frame_mat)
-        elif type(out).__name__ == 'BCOO':
+        elif type(out).__name__ == "BCOO":
             out = out * frame_mat.data
         else:
             out = frame_mat * out
@@ -357,7 +358,7 @@ class RotatingFrame:
         if op_to_add_in_fb is not None:
             if issparse(out):
                 op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
-            elif type(out).__name__ == 'BCOO':
+            elif type(out).__name__ == "BCOO":
                 op_to_add_in_fb = to_BCOO(op_to_add_in_fb)
 
             out = out + op_to_add_in_fb
@@ -620,7 +621,6 @@ def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optio
     if mat.backend == "jax":
 
         from jax.lax import cond
-        import jax.numpy as jnp
 
         mat = mat.data
 

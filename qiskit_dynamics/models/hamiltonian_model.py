@@ -161,7 +161,7 @@ class HamiltonianModel(GeneratorModel):
 
 
 def is_hermitian(
-    operators: Union[Array, csr_matrix, List[csr_matrix], 'BCOO'], tol: Optional[float] = 1e-10
+    operators: Union[Array, csr_matrix, List[csr_matrix], "BCOO"], tol: Optional[float] = 1e-10
 ) -> bool:
     """Validate that operators are Hermitian.
 
@@ -188,7 +188,7 @@ def is_hermitian(
         return spnorm(operators - operators.conj().transpose()) < tol
     elif isinstance(operators, list) and issparse(operators[0]):
         return all(spnorm(op - op.conj().transpose()) < tol for op in operators)
-    elif type(operators).__name__ == 'BCOO':
+    elif type(operators).__name__ == "BCOO":
         # fall back on array case for BCOO
         return is_hermitian(to_array(operators))
 

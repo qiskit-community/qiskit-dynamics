@@ -28,7 +28,7 @@ from qiskit_dynamics.models.operator_collections import (
     BaseOperatorCollection,
     DenseOperatorCollection,
     SparseOperatorCollection,
-    JAXSparseOperatorCollection
+    JAXSparseOperatorCollection,
 )
 from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
@@ -579,7 +579,7 @@ def construct_operator_collection(
 
     if evaluation_mode == "dense":
         return DenseOperatorCollection(static_operator=static_operator, operators=operators)
-    if evaluation_mode == "sparse" and dispatch.default_backend() == 'jax':
+    if evaluation_mode == "sparse" and dispatch.default_backend() == "jax":
         return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
     if evaluation_mode == "sparse":
         return SparseOperatorCollection(static_operator=static_operator, operators=operators)

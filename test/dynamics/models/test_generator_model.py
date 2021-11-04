@@ -693,18 +693,20 @@ class TestGeneratorModelSparseJax(TestGeneratorModelSparse, TestJaxBase):
 
     def validate_generator_eval(self, op, expected):
         """Validate that op is sparse and agrees with expected."""
-        self.assertTrue(type(op).__name__ == 'BCOO')
+        self.assertTrue(type(op).__name__ == "BCOO")
         self.assertAllClose(to_array(op), to_array(expected))
 
     def test_jit_grad(self):
         """Test jitting and gradding."""
 
-        model = GeneratorModel(static_operator=-1j * self.Z,
-                               operators=[-1j * self.X],
-                               rotating_frame=self.Z,
-                               evaluation_mode='sparse')
+        model = GeneratorModel(
+            static_operator=-1j * self.Z,
+            operators=[-1j * self.X],
+            rotating_frame=self.Z,
+            evaluation_mode="sparse",
+        )
 
-        y = np.array([0., 1.])
+        y = np.array([0.0, 1.0])
 
         def func(a):
             model_copy = model.copy()

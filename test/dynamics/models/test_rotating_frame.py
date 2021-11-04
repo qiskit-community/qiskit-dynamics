@@ -566,24 +566,26 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
     def test_conjugate_and_add_BCOO(self):
         """Test _conjugate_and_add with operator being BCOO."""
 
-        rotating_frame = RotatingFrame(np.array([1., -1.]))
+        rotating_frame = RotatingFrame(np.array([1.0, -1.0]))
 
         t = 0.123
-        op = to_BCOO(np.array([[1., -1j], [0., 1.]]))
-        op_to_add = to_BCOO(np.array([[0., -0.11j], [0., 1.]]))
+        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
+        op_to_add = to_BCOO(np.array([[0.0, -0.11j], [0.0, 1.0]]))
         out = rotating_frame._conjugate_and_add(t, op, op_to_add)
-        self.assertTrue(type(out).__name__ == 'BCOO')
+        self.assertTrue(type(out).__name__ == "BCOO")
 
-        self.assertAllClose(to_array(out), rotating_frame._conjugate_and_add(t, to_array(op), to_array(op_to_add)))
+        self.assertAllClose(
+            to_array(out), rotating_frame._conjugate_and_add(t, to_array(op), to_array(op_to_add))
+        )
 
     def test_operator_into_frame_basis(self):
         """Test operator_into_frame_basis with operator being BCOO, for
         frame specified as full matrix.
         """
 
-        rotating_frame = RotatingFrame(np.array([[1., 0.], [0., -1.]]))
+        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
 
-        op = to_BCOO(np.array([[1., -1j], [0., 1.]]))
+        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
         output = rotating_frame.operator_into_frame_basis(op)
         expected = rotating_frame.operator_into_frame_basis(to_array(op))
 
@@ -594,9 +596,9 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
         frame specified as full matrix.
         """
 
-        rotating_frame = RotatingFrame(np.array([[1., 0.], [0., -1.]]))
+        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
 
-        op = to_BCOO(np.array([[1., -1j], [0., 1.]]))
+        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
         output = rotating_frame.operator_out_of_frame_basis(op)
         expected = rotating_frame.operator_out_of_frame_basis(to_array(op))
 

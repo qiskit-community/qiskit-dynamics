@@ -69,6 +69,8 @@ class TestHamiltonianModelValidation(QiskitDynamicsTestCase):
         self.assertAllClose(ham_model(1.0), -1j * np.array([[0.0, 1.0], [0.0, 0.0]]))
 
     def to_sparse(self, ops):
+        """Conversion of an operator or list of operators to the correct
+        sparse format for this class."""
         return to_csr(ops)
 
 

@@ -381,7 +381,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
     if issparse(op):
         return Array(op.toarray())
 
-    if type(op).__name__ == 'BCOO':
+    if type(op).__name__ == "BCOO":
         return Array(op.todense())
 
     if isinstance(op, Iterable) and not no_iter:
@@ -431,9 +431,7 @@ def to_csr(
 
 
 @requires_backend("jax")
-def to_BCOO(
-    op: Union[Operator, Array, List[Operator], List[Array], spmatrix, 'BCOO']
-) -> 'BCOO':
+def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "BCOO"]) -> "BCOO":
     """Convert input op or list of ops to a jax BCOO sparse array.
 
     Calls ``to_array`` to handle general conversion to a numpy or jax array, then
@@ -448,7 +446,7 @@ def to_BCOO(
     if op is None:
         return op
 
-    if type(op).__name__ == 'BCOO':
+    if type(op).__name__ == "BCOO":
         return op
 
     return jsparse.BCOO.fromdense(to_array(op).data)
@@ -481,7 +479,7 @@ def to_numeric_matrix_type(
         return op
     elif isinstance(op, spmatrix):
         return op
-    elif type(op).__name__ == 'BCOO':
+    elif type(op).__name__ == "BCOO":
         return op
     elif isinstance(op, Operator):
         return to_array(op)

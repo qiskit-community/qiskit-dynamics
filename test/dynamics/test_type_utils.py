@@ -35,7 +35,6 @@ from .common import QiskitDynamicsTestCase, TestJaxBase, TestQutipBase
 
 try:
     from jax.experimental import sparse as jsparse
-    import jax.numpy as jnp
 except ImportError:
     pass
 
@@ -369,10 +368,10 @@ class Test_to_array_Jax(Test_to_array, TestJaxBase):
     def test_to_array_BCOO(self):
         """Convert BCOO type to array."""
 
-        bcoo = jsparse.BCOO.fromdense(np.array([[0., 1.], [1., 0.]]))
+        bcoo = jsparse.BCOO.fromdense(np.array([[0.0, 1.0], [1.0, 0.0]]))
         out = to_array(bcoo)
         self.assertTrue(isinstance(out, Array))
-        self.assertAllClose(out, np.array([[0., 1.], [1., 0.]]))
+        self.assertAllClose(out, np.array([[0.0, 1.0], [1.0, 0.0]]))
 
 
 class Test_to_csr(QiskitDynamicsTestCase):
@@ -457,20 +456,20 @@ class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
         op = Operator.from_label("X")
         bcoo_op = to_BCOO(op)
         self.assertAllClose(Array(bcoo_op.todense()), Array([[0, 1], [1, 0]]))
-        self.assertTrue(type(bcoo_op).__name__ == 'BCOO')
+        self.assertTrue(type(bcoo_op).__name__ == "BCOO")
 
     def test_to_BCOO_nparray(self):
         """Tests for to_BCOO with a single numpy array"""
         ndarray = np.array([[0, 1], [1, 0]])
         bcoo = to_BCOO(ndarray)
-        self.assertTrue(type(bcoo).__name__ == 'BCOO')
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
         self.assertAllClose(to_array(ndarray), ndarray)
 
     def test_to_array_Array(self):
         """Tests for to_BCOO from a qiskit Array"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         bcoo = to_BCOO(list_of_ops)
-        self.assertTrue(type(bcoo).__name__ == 'BCOO')
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
         self.assertAllClose(bcoo.todense(), Array(list_of_ops))
 
     def test_to_BCOO_Operator_list(self):
@@ -478,7 +477,7 @@ class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         op_arr = [Operator.from_label(s) for s in "XYZ"]
         bcoo = to_BCOO(op_arr)
-        self.assertTrue(type(bcoo).__name__ == 'BCOO')
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
         self.assertAllClose(bcoo.todense(), Array(list_of_ops))
 
     def test_to_BCOO_nparray_list(self):
@@ -486,7 +485,7 @@ class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         ndarray_list = [np.array(op) for op in list_of_ops]
         bcoo = to_BCOO(ndarray_list)
-        self.assertTrue(type(bcoo).__name__ == 'BCOO')
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
         self.assertAllClose(to_array(ndarray_list), bcoo.todense())
 
     def test_to_BCOO_list_of_arrays(self):
@@ -494,7 +493,7 @@ class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         list_of_arrays = [Array(op) for op in list_of_ops]
         bcoo = to_BCOO(list_of_arrays)
-        self.assertTrue(type(bcoo).__name__ == 'BCOO')
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
         self.assertAllClose(to_array(list_of_arrays), bcoo.todense())
 
 
@@ -516,6 +515,7 @@ class Test_to_numeric_matrix_type(QiskitDynamicsTestCase):
                 to_numeric_matrix_type(sparse_matrices)[i], sparse_matrices[i]
             )
 
+
 class Test_to_numeric_matrix_type_Jax(QiskitDynamicsTestCase, TestJaxBase):
     """Test to_numeric_matrix_type"""
 
@@ -524,7 +524,7 @@ class Test_to_numeric_matrix_type_Jax(QiskitDynamicsTestCase, TestJaxBase):
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         bcoo = jsparse.BCOO.fromdense(to_array(list_of_ops))
         bcoo2 = to_numeric_matrix_type(bcoo)
-        self.assertTrue(type(bcoo2).__name__ == 'BCOO')
+        self.assertTrue(type(bcoo2).__name__ == "BCOO")
         self.assertAllClose(bcoo.todense(), bcoo2.todense())
 
 

@@ -643,7 +643,7 @@ def construct_lindblad_operator_collection(
     if evaluation_mode == "dense":
         CollectionClass = DenseLindbladCollection
     elif evaluation_mode == "sparse":
-        if dispatch.default_backend() == 'jax':
+        if dispatch.default_backend() == "jax":
             CollectionClass = JAXSparseLindbladCollection
         else:
             CollectionClass = SparseLindbladCollection

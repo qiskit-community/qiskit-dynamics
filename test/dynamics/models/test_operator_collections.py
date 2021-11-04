@@ -240,10 +240,14 @@ class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):
 
         res = self.simple_collection(coeffs)
         self.assertTrue(isinstance(res, jsparse.BCOO))
-        self.assertAllClose(res.todense(), coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z)
+        self.assertAllClose(
+            res.todense(), coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z
+        )
 
         res = (
-            JAXSparseOperatorCollection(operators=self.test_operator_list, static_operator=np.eye(2))
+            JAXSparseOperatorCollection(
+                operators=self.test_operator_list, static_operator=np.eye(2)
+            )
         )(coeffs)
         self.assertTrue(isinstance(res, jsparse.BCOO))
         self.assertAllClose(
@@ -315,11 +319,17 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         self.dis_sig_vals = rand.uniform(-1, 1, (m))
         self.r = lambda *args: rand.uniform(-1, 1, args) + 1j * rand.uniform(-1, 1, args)
 
+    def construct_collection(self, *args, **kwargs):
+        """Construct collection to be tested by this class
+        Used for inheritance.
+        """
+        return DenseLindbladCollection(*args, **kwargs)
+
     def test_empty_collection_error(self):
         """Test errors get raised for empty collection."""
         collection = self.construct_collection()
         with self.assertRaises(QiskitError) as qe:
-            collection(None, None, np.array([[1.0, 0.0], [0., 0.]]))
+            collection(None, None, np.array([[1.0, 0.0], [0.0, 0.0]]))
         self.assertTrue("cannot evaluate rhs" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
@@ -559,9 +569,6 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(
             op_collection(sigVals, sigVals, many_rho), ar_collection(sigVals, sigVals, many_rho)
         )
-
-    def construct_collection(self, *args, **kwargs):
-        return DenseLindbladCollection(*args, **kwargs)
 
 
 class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
