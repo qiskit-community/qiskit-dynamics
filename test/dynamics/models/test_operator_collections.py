@@ -29,6 +29,7 @@ from qiskit_dynamics.models.operator_collections import (
     SparseOperatorCollection,
     JAXSparseOperatorCollection,
     SparseVectorizedLindbladCollection,
+    JAXSparseVectorizedLindbladCollection
 )
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array
@@ -795,3 +796,26 @@ class TestSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladCollecti
         self.rand_dis_coeffs = r(m)
         self.vectorized_class = SparseVectorizedLindbladCollection
         self.non_vectorized_class = SparseLindbladCollection
+
+
+class TestJAXSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladCollectionJax):
+    """Tests for JAXSparseVectorizedLindbladCollection."""
+
+    def setUp(self) -> None:
+        rand.seed(31232)
+        n = 16
+        k = 4
+        m = 2
+        r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
+
+        self.r = r
+        self.rand_ham = r(k, n, n)
+        self.rand_static_dis = r(k, n, n)
+        self.rand_dis = r(m, n, n)
+        self.rand_dft = r(n, n)
+        self.rho = r(n, n)
+        self.t = r()
+        self.rand_ham_coeffs = r(k)
+        self.rand_dis_coeffs = r(m)
+        self.vectorized_class = JAXSparseVectorizedLindbladCollection
+        self.non_vectorized_class = JAXSparseLindbladCollection

@@ -21,6 +21,7 @@ from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
+from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
 
@@ -988,6 +989,7 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
                                 hamiltonian_operators cannot evaluate Hamiltonian."""
             )
 
+    @dispatch.wrap
     def evaluate_rhs(
         self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array
     ) -> Array:
@@ -1012,18 +1014,6 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
         Raises:
             QiskitError: If operator collection is underspecified.
         """
-
-        # this function is written purely using jax.numpy, so unwrap arrays
-        wrap_array = False
-        if isinstance(y, Array):
-            wrap_array = True
-            y = y.data
-
-        if isinstance(ham_sig_vals, Array):
-            ham_sig_vals = ham_sig_vals.data
-
-        if isinstance(dis_sig_vals, Array):
-            dis_sig_vals = dis_sig_vals.data
 
         hamiltonian_matrix = None
         if self._static_hamiltonian is not None or self._hamiltonian_operators is not None:
@@ -1086,9 +1076,6 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
                 )
 
             out = left_mult_contribution + right_mult_contribution + both_mult_contribution
-
-            if wrap_array:
-                out = Array(out)
 
             return out
         # if just hamiltonian
@@ -1316,6 +1303,44 @@ class SparseVectorizedLindbladCollection(
     @property
     def evaluation_class(self):
         return SparseOperatorCollection
+
+
+class JAXSparseVectorizedLindbladCollection(
+    BaseVectorizedLindbladCollection, JAXSparseLindbladCollection, JAXSparseOperatorCollection
+):
+    r"""Vectorized version of JAXSparseLindbladCollection.
+
+    Utilizes BaseVectorizedLindbladCollection for property handling, JAXSparseLindbladCollection
+    for evaluate_hamiltonian, and JAXSparseOperatorCollection for static_operator and operator
+    property handling.
+    """
+
+    def convert_to_internal_type(self, obj: any) -> 'BCOO':
+        return to_BCOO(obj)
+
+    @property
+    def evaluation_class(self):
+        return JAXSparseOperatorCollection
+
+    def concatenate_static_operators(self):
+        """Override base class to convert to BCOO again at the end. The vectorization operations
+        are not implemented for BCOO type, so they automatically get converted to Arrays,
+        and hence need to be converted back.
+        """
+        super().concatenate_static_operators()
+        self._static_operator = self.convert_to_internal_type(self._static_operator)
+
+    def concatenate_operators(self):
+        """Override base class to convert to BCOO again at the end. The vectorization operations
+        are not implemented for BCOO type, so they automatically get converted to Arrays,
+        and hence need to be converted back.
+        """
+        super().concatenate_operators()
+        self._operators = self.convert_to_internal_type(self._operators)
+
+    @dispatch.wrap
+    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
+        return jsparse_matmul(self.evaluate(ham_sig_vals, dis_sig_vals), y)
 
 
 def package_density_matrices(y: Array) -> Array:

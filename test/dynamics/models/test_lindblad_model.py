@@ -702,6 +702,14 @@ class TestLindbladModelDenseVectorizedJax(TestLindbladModelJax):
         return "dense_vectorized"
 
 
+class TestLindbladModelSparseVectorizedJax(TestLindbladModelJax):
+    """Test class for jax sparse vectorized mode operation of LindbladModel."""
+
+    @property
+    def evaluation_mode(self):
+        return "sparse_vectorized"
+
+
 def get_const_func(const):
     """Helper function for defining a constant function."""
     # pylint: disable=unused-argument
