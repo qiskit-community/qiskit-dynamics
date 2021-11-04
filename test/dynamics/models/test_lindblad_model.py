@@ -25,6 +25,7 @@ from qiskit_dynamics.models import LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics import dispatch
+from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -170,9 +171,9 @@ class TestLindbladModel(QiskitDynamicsTestCase):
     """Tests for LindbladModel."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+        self.X = Operator.from_label("X").data
+        self.Y = Operator.from_label("Y").data
+        self.Z = Operator.from_label("Z").data
 
         # define a basic hamiltonian
         w = 2.0
@@ -189,7 +190,13 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             hamiltonian_operators=ham_operators,
             hamiltonian_signals=ham_signals,
             static_dissipators=static_dissipators,
+            evaluation_mode=self.evaluation_mode
         )
+
+    @property
+    def evaluation_mode(self):
+        """Evaluation mode to use for tests, useful for inheritance."""
+        return 'dense'
 
     def test_basic_lindblad_lmult(self):
         """Test lmult method of Lindblad generator OperatorModel."""
@@ -197,8 +204,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
         t = 1.123
         ham = (
-            2 * np.pi * self.w * self.Z.data / 2
-            + 2 * np.pi * self.r * np.cos(2 * np.pi * self.w * t) * self.X.data / 2
+            2 * np.pi * self.w * self.Z / 2
+            + 2 * np.pi * self.r * np.cos(2 * np.pi * self.w * t) * self.X / 2
         )
         sm = Array([[0.0, 0.0], [1.0, 0.0]])
 
@@ -209,7 +216,9 @@ class TestLindbladModel(QiskitDynamicsTestCase):
     def test_evaluate_only_dissipators(self):
         """Test evaluation with just dissipators."""
 
-        model = LindbladModel(dissipator_operators=[self.X], dissipator_signals=[1.0])
+        model = LindbladModel(dissipator_operators=[self.X],
+                              dissipator_signals=[1.0],
+                              evaluation_mode=self.evaluation_mode)
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
@@ -223,7 +232,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
     def test_evaluate_only_static_dissipators(self):
         """Test evaluation with just dissipators."""
 
-        model = LindbladModel(static_dissipators=[self.X, self.Y])
+        model = LindbladModel(static_dissipators=[self.X, self.Y],
+                              evaluation_mode=self.evaluation_mode)
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
@@ -237,7 +247,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
     def test_evaluate_only_static_hamiltonian(self):
         """Test evaluation with just static hamiltonian."""
 
-        model = LindbladModel(static_hamiltonian=self.X)
+        model = LindbladModel(static_hamiltonian=self.X,
+                              evaluation_mode=self.evaluation_mode)
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
@@ -246,7 +257,9 @@ class TestLindbladModel(QiskitDynamicsTestCase):
     def test_evaluate_only_hamiltonian_operators(self):
         """Test evaluation with just hamiltonian operators."""
 
-        model = LindbladModel(hamiltonian_operators=[self.X], hamiltonian_signals=[1.0])
+        model = LindbladModel(hamiltonian_operators=[self.X],
+                              hamiltonian_signals=[1.0],
+                              evaluation_mode=self.evaluation_mode)
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
 
@@ -322,6 +335,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             static_dissipators=rand_static_diss,
             dissipator_operators=rand_diss,
             dissipator_signals=diss_sigs,
+            evaluation_mode=self.evaluation_mode
         )
         lindblad_model.rotating_frame = frame_op
 
@@ -362,15 +376,15 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         # lindblad model is in frame basis here
         self.assertAllClose(
             into_frame_basis(rand_diss),
-            lindblad_model.dissipator_operators,
+            to_array(lindblad_model.dissipator_operators),
         )
         self.assertAllClose(
             into_frame_basis(rand_ham_ops),
-            lindblad_model.hamiltonian_operators,
+            to_array(lindblad_model.hamiltonian_operators),
         )
         self.assertAllClose(
             into_frame_basis(-1j * frame_op),
-            lindblad_model.static_hamiltonian,
+            to_array(lindblad_model.static_hamiltonian),
         )
         lindblad_model.in_frame_basis = False
         self.assertAllClose(-1j * frame_op, lindblad_model.static_hamiltonian)
@@ -425,9 +439,12 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
         )
 
-        static_model = LindbladModel(static_dissipators=rand_diss)
+        static_model = LindbladModel(static_dissipators=rand_diss,
+                                     evaluation_mode=self.evaluation_mode)
         non_static_model = LindbladModel(
-            dissipator_operators=rand_diss, dissipator_signals=[1.0] * num_diss
+            dissipator_operators=rand_diss,
+            dissipator_signals=[1.0] * num_diss,
+            evaluation_mode=self.evaluation_mode
         )
 
         rand_input = Array(
@@ -531,20 +548,19 @@ class TestLindbladModel(QiskitDynamicsTestCase):
     def test_get_operators_when_None(self):
         """Test getting various operators when None."""
 
-        model = LindbladModel(static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]))
+        model = LindbladModel(static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]),
+                              evaluation_mode=self.evaluation_mode)
         self.assertTrue(model.hamiltonian_operators is None)
         self.assertTrue(model.static_dissipators is None)
         self.assertTrue(model.dissipator_operators is None)
 
-        model = LindbladModel(hamiltonian_operators=[np.array([[1.0, 0.0], [0.0, -1.0]])])
+        model = LindbladModel(hamiltonian_operators=[np.array([[1.0, 0.0], [0.0, -1.0]])],
+                              evaluation_mode=self.evaluation_mode)
         self.assertTrue(model.static_hamiltonian is None)
 
 
 class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
-    """Jax version of TestLindbladModel tests.
-
-    Note: This class has contains more tests due to inheritance.
-    """
+    """Jax version of TestLindbladModel tests."""
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable.
@@ -607,19 +623,22 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
         self.basic_lindblad.rotating_frame = None
 
 
-class TestLindbladModelSparse(QiskitDynamicsTestCase):
-    """Sparse-mode specific tests."""
+class TestLindbladModelSparse(TestLindbladModel):
+    """Sparse-mode tests."""
 
-    def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+    @property
+    def evaluation_mode(self):
+        """Evaluation mode to use for tests."""
+        return 'sparse'
 
     def test_switch_modes_and_evaluate(self):
         """Test construction of a model, switching modes, and evaluating."""
 
         model = LindbladModel(
-            static_hamiltonian=self.Z, hamiltonian_operators=[self.X], hamiltonian_signals=[1.0]
+            static_hamiltonian=self.Z,
+            hamiltonian_operators=[self.X],
+            hamiltonian_signals=[1.0],
+            evaluation_mode=self.evaluation_mode
         )
         rho = np.array([[1.0, 0.0], [0.0, 0.0]])
         ham = self.Z + self.X
@@ -638,7 +657,7 @@ class TestLindbladModelSparse(QiskitDynamicsTestCase):
             static_hamiltonian=self.Z,
             hamiltonian_operators=[self.X],
             hamiltonian_signals=[1.0],
-            evaluation_mode="sparse",
+            evaluation_mode=self.evaluation_mode
         )
 
         # test non-diagonal frame
@@ -668,6 +687,30 @@ class TestLindbladModelSparse(QiskitDynamicsTestCase):
         ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
         expected = -1j * (ham @ rho - rho @ ham)
         self.assertAllClose(expected, model(1.0, rho))
+
+
+class TestLindbladModelJAXSparse(TestLindbladModelSparse, TestLindbladModelJax):
+    """JAX sparse-mode tests."""
+
+    def test_gradable_funcs(self):
+        """Override base class to test forward mode differentiability,
+        as current implementation only allows for this.
+        """
+
+        from jax import jacfwd, jit
+
+        def func_to_grad(t, y):
+            t = Array(t).data
+            y = Array(y).data
+            return Array(self.basic_lindblad.evaluate_rhs(t, y)).data
+
+        jacfwd_func = jit(jacfwd(func_to_grad))
+        jacfwd_func(1.0, np.array([[0.2, 0.4], [0.6, 0.8]]))
+
+        # set rotating frame after construction and re-grad the function
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+        jacfwd_func = jit(jacfwd(func_to_grad))
+        jacfwd_func(1.0, np.array([[0.2, 0.4], [0.6, 0.8]]))
 
 
 def get_const_func(const):

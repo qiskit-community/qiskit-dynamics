@@ -20,6 +20,7 @@ from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
+from qiskit_dynamics import dispatch
 from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from qiskit_dynamics.signals import Signal, SignalList
@@ -34,6 +35,7 @@ from .operator_collections import (
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
     SparseLindbladCollection,
+    JAXSparseLindbladCollection,
     SparseVectorizedLindbladCollection,
 )
 from .rotating_frame import RotatingFrame
@@ -243,7 +245,11 @@ class LindbladModel(BaseGeneratorModel):
                 raise QiskitError("Hamiltonian signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(hamiltonian_signals) != len(self.hamiltonian_operators):
+            if isinstance(self.hamiltonian_operators, list):
+                len_hamiltonian_operators = len(self.hamiltonian_operators)
+            else:
+                len_hamiltonian_operators = self.hamiltonian_operators.shape[0]
+            if len(hamiltonian_signals) != len_hamiltonian_operators:
                 raise QiskitError(
                     "Hamiltonian signals need to have the same length as Hamiltonian operators."
                 )
@@ -265,7 +271,11 @@ class LindbladModel(BaseGeneratorModel):
                 raise QiskitError("Dissipator signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(dissipator_signals) != len(self.dissipator_operators):
+            if isinstance(self.dissipator_operators, list):
+                len_dissipator_operators = len(self.dissipator_operators)
+            else:
+                len_dissipator_operators = self.dissipator_operators.shape[0]
+            if len(dissipator_signals) != len_dissipator_operators:
                 raise QiskitError(
                     "Dissipator signals need to have the same length as dissipator operators."
                 )
@@ -401,9 +411,9 @@ class LindbladModel(BaseGeneratorModel):
          * 'dense_vectorized': Stores the Hamiltonian and dissipator
             terms as :math:`(dim^2,dim^2)` matrices that acts on a vectorized
             density matrix by left-multiplication. Allows for direct evaluate generator.
-         * 'sparse': Like dense, but stores Hamiltonian components with
-            `csr_matrix` types. Outputs will be dense if a 2d frame operator is
-            used. Not compatible with jax.
+         * 'sparse': Like dense, but matrices stored in sparse format. If the default backend
+            is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
+            :class:`csr_matrix` sparse type.
          * `sparse_vectorized`: Like dense_vectorized, but stores everything as csr_matrices.
         """
         return self._evaluation_mode
@@ -633,7 +643,10 @@ def construct_lindblad_operator_collection(
     if evaluation_mode == "dense":
         CollectionClass = DenseLindbladCollection
     elif evaluation_mode == "sparse":
-        CollectionClass = SparseLindbladCollection
+        if dispatch.default_backend() == 'jax':
+            CollectionClass = JAXSparseLindbladCollection
+        else:
+            CollectionClass = SparseLindbladCollection
     elif evaluation_mode == "dense_vectorized":
         CollectionClass = DenseVectorizedLindbladCollection
     elif evaluation_mode == "sparse_vectorized":

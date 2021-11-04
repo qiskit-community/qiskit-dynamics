@@ -39,6 +39,11 @@ try:
     def jsparse_linear_combo(coeffs, mats):
         return jsparse_sum(jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats, axis=0)
 
+    def batch_triple_product(A, X, B):
+        return A @ X @ B
+
+    jsparse_batch_triple_product = jsparse.sparsify(batch_triple_product)
+
 except ImportError:
     pass
 
@@ -267,31 +272,6 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
 class JAXSparseOperatorCollection(BaseOperatorCollection):
     """Jax version of SparseOperatorCollection built on jax.experimental.sparse.BCOO."""
-
-    def __init__(
-        self,
-        static_operator: Optional[Union[Array, Operator]] = None,
-        operators: Optional[Union[Array, List[Operator]]] = None,
-        decimals: Optional[int] = 10,
-    ):
-        """Initialize.
-
-        Args:
-            static_operator: (n,n) Array specifying the static_operator term :math:`G_d`.
-            operators: (k,n,n) Array specifying the terms :math:`G_j`.
-            decimals: Values will be rounded at ``decimals`` places after decimal.
-        """
-
-
-        #################################################################################################
-        # Raise error if default backedn != JAX?
-        # Do something smarter than calling to_array when instantiating?
-        #################################################################################################
-
-        # cannot round sparse jax types
-        # If we don't include this then this constructor can be completely removed
-        #self._decimals = decimals
-        super().__init__(static_operator=static_operator, operators=operators)
 
     @property
     def static_operator(self) -> 'BCOO':
@@ -904,39 +884,6 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
     with using jax.experimental.sparse.BCOO arrays.
     """
 
-    def __init__(
-        self,
-        static_hamiltonian: Optional[Union[csr_matrix, Operator]] = None,
-        hamiltonian_operators: Optional[Union[List[csr_matrix], List[Operator]]] = None,
-        static_dissipators: Optional[Union[List[csr_matrix], List[Operator]]] = None,
-        dissipator_operators: Optional[Union[List[csr_matrix], List[Operator]]] = None,
-        decimals: Optional[int] = 10,
-    ):
-        r"""Initializes sparse lindblad collection.
-
-        Args:
-            static_hamiltonian: Constant term :math:`H_d` to be added to the Hamiltonian of the
-                                system.
-            hamiltonian_operators: Specifies breakdown of Hamiltonian
-                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
-            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
-            decimals: operator values will be rounded to ``decimals`` places after the
-                decimal place to avoid excess storage of near-zero values
-                in sparse format.
-        """
-        ####################################################################################################
-        # Similar to JAXSparseOperatorCollection - if we don't include decimals, need to remove this
-        # constructor
-        ####################################################################################################
-
-        #self._decimals = decimals
-        super().__init__(
-            static_hamiltonian=static_hamiltonian,
-            hamiltonian_operators=hamiltonian_operators,
-            static_dissipators=static_dissipators,
-            dissipator_operators=dissipator_operators,
-        )
-
     @property
     def static_hamiltonian(self) -> 'BCOO':
         return self._static_hamiltonian
@@ -1010,6 +957,9 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
         Raises:
             QiskitError: If collection not sufficiently specified.
         """
+        if isinstance(ham_sig_vals, Array):
+            ham_sig_vals = ham_sig_vals.data
+
         if self._static_hamiltonian is not None and self._hamiltonian_operators is not None:
             return jsparse_linear_combo(ham_sig_vals, self._hamiltonian_operators) + self._static_hamiltonian
         elif self._static_hamiltonian is None and self._hamiltonian_operators is not None:
@@ -1048,10 +998,17 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
             QiskitError: If operator collection is underspecified.
         """
 
+        # this function is written purely using jax.numpy, so unwrap arrays
         wrap_array = False
         if isinstance(y, Array):
             wrap_array = True
             y = y.data
+
+        if isinstance(ham_sig_vals, Array):
+            ham_sig_vals = ham_sig_vals.data
+
+        if isinstance(dis_sig_vals, Array):
+            dis_sig_vals = dis_sig_vals.data
 
         hamiltonian_matrix = None
         if self._static_hamiltonian is not None or self._hamiltonian_operators is not None:
@@ -1083,25 +1040,21 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
             if self._static_dissipators is None:
                 both_mult_contribution = jnp.tensordot(
                     dis_sig_vals,
-                    jsparse_matmul(
-                        self._dissipator_operators, jsparse_matmul(y, self._dissipator_operators_adj)
-                    ),
+                    jsparse_batch_triple_product(self._dissipator_operators, y, self._dissipator_operators_adj),
                     axes=(-1, -3),
                 )
             elif self._dissipator_operators is None:
                 both_mult_contribution = jnp.sum(
-                    jsparse_matmul(self._static_dissipators, jsparse_matmul(y, self._static_dissipators_adj)),
+                    jsparse_batch_triple_product(self._static_dissipators, y, self._static_dissipators_adj),
                     axis=-3,
                 )
             else:
                 both_mult_contribution = jnp.sum(
-                    jsparse_matmul(self._static_dissipators, jsparse_matmul(y, self._static_dissipators_adj)),
+                    jsparse_batch_triple_product(self._static_dissipators, y, self._static_dissipators_adj),
                     axis=-3,
                 ) + jnp.tensordot(
                     dis_sig_vals,
-                    jsparse_matmul(
-                        self._dissipator_operators, jsparse_matmul(y, self._dissipator_operators_adj)
-                    ),
+                    jsparse_batch_triple_product(self._dissipator_operators, y, self._dissipator_operators_adj),
                     axes=(-1, -3),
                 )
 
