@@ -1315,7 +1315,7 @@ class JAXSparseVectorizedLindbladCollection(
     property handling.
     """
 
-    def convert_to_internal_type(self, obj: any) -> 'BCOO':
+    def convert_to_internal_type(self, obj: any) -> "BCOO":
         return to_BCOO(obj)
 
     @property

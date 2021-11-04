@@ -37,7 +37,7 @@ from .operator_collections import (
     SparseLindbladCollection,
     JAXSparseLindbladCollection,
     SparseVectorizedLindbladCollection,
-    JAXSparseVectorizedLindbladCollection
+    JAXSparseVectorizedLindbladCollection,
 )
 from .rotating_frame import RotatingFrame
 
@@ -654,7 +654,7 @@ def construct_lindblad_operator_collection(
     elif evaluation_mode == "dense_vectorized":
         CollectionClass = DenseVectorizedLindbladCollection
     elif evaluation_mode == "sparse_vectorized":
-        if dispatch.default_backend() == 'jax':
+        if dispatch.default_backend() == "jax":
             CollectionClass = JAXSparseVectorizedLindbladCollection
         else:
             CollectionClass = SparseVectorizedLindbladCollection
