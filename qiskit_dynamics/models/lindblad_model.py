@@ -113,7 +113,7 @@ class LindbladModel(BaseGeneratorModel):
                             already in the frame basis.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                             frame operator is diagonalized.
-            evaluation_mode: Evaluation mode to use. See ``LindbladModel.evaluation_mode``
+            evaluation_mode: Evaluation mode to use. Call ``help(LindbladModel.evaluation_mode)``
                              for more details.
             validate: If True check input hamiltonian_operators and static_hamiltonian are
                       Hermitian.
@@ -176,7 +176,7 @@ class LindbladModel(BaseGeneratorModel):
             static_dissipators: List of dissipators with coefficient 1.
             dissipator_operators: List of dissipators with time-dependent coefficients.
             dissipator_signals: List time-dependent coefficients for dissipator_operators.
-            evaluation_mode: Evaluation mode. See LindbladModel.evaluation_mode
+            evaluation_mode: Evaluation mode. Call ``help(LindbladModel.evaluation_mode)``
                 for more information.
 
         Returns:
@@ -414,8 +414,11 @@ class LindbladModel(BaseGeneratorModel):
             density matrix by left-multiplication. Allows for direct evaluate generator.
          * 'sparse': Like dense, but matrices stored in sparse format. If the default backend
             is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
+            :class:`csr_matrix` sparse type. Note that reverse mode automatic differentiation
+            does not work in sparse mode when default backend is JAX, use forward mode instead.
+         * `sparse_vectorized`: Like dense_vectorized, but matrices stored in sparse format.
+            If the default backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
             :class:`csr_matrix` sparse type.
-         * `sparse_vectorized`: Like dense_vectorized, but stores everything as csr_matrices.
         """
         return self._evaluation_mode
 

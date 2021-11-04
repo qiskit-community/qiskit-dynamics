@@ -87,10 +87,9 @@ class HamiltonianModel(GeneratorModel):
                             the antihermitian matrix F = -iH.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                             frame operator is diagonalized.
-            evaluation_mode: Evaluation mode to use. Supported options are:
-                                - 'dense' (DenseOperatorCollection)
-                                - 'sparse' (SparseOperatorCollection)
-                                See ``GeneratorModel.evaluation_mode`` for more details.
+            evaluation_mode: Evaluation mode to use. Supported options are ``'dense'`` and
+                             ``'sparse'``. Call ``help(HamiltonianModel.evaluation_mode)`` for more
+                             details.
             validate: If True check input operators are Hermitian.
 
         Raises:

@@ -168,11 +168,9 @@ class GeneratorModel(BaseGeneratorModel):
             rotating_frame: Rotating frame operator.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                 frame operator is diagonalized.
-            evaluation_mode: Evaluation mode to use. See ``GeneratorModel.evaluation_mode``
-                for more details. Supported options are:
-
-                 * 'dense' (DenseOperatorCollection)
-                 * 'sparse' (SparseOperatorCollection)
+            evaluation_mode: Evaluation mode to use.  Supported options are
+                ``'dense'`` and ``'sparse'``. Call ``help(GeneratorModel.evaluation_mode)``
+                for more details.
         Raises:
             QiskitError: If model not sufficiently specified.
         """
@@ -215,7 +213,7 @@ class GeneratorModel(BaseGeneratorModel):
 
          * 'dense': Stores/evaluates operators using dense Arrays.
          * 'sparse': Stores/evaluates operators using sparse matrices. If
-           the default backend is JAX, implemented with JAX BCOO matrices,
+           the default backend is JAX, implemented with JAX BCOO arrays,
            otherwise uses scipy :class:`csr_matrix` sparse type.
         """
         return self._evaluation_mode
