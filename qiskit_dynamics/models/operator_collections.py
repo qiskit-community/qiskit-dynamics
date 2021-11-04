@@ -29,15 +29,12 @@ try:
     import jax.numpy as jnp
     from jax.experimental import sparse as jsparse
 
+    # sparse versions of jax.numpy operations
     jsparse_sum = jsparse.sparsify(jnp.sum)
     jsparse_matmul = jsparse.sparsify(jnp.matmul)
     jsparse_add = jsparse.sparsify(jnp.add)
     jsparse_subtract = jsparse.sparsify(jnp.subtract)
 
-    ###################################################################################################
-    # Before merging check if jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats
-    # can be replaced by coeffs[:, None, None] * mats
-    ###################################################################################################
     def jsparse_linear_combo(coeffs, mats):
         """Method for computing a linear combination of sparse arrays."""
         return jsparse_sum(jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats, axis=0)
@@ -907,10 +904,7 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
 
     @static_dissipators.setter
     def static_dissipators(self, new_static_dissipators: Union["BCOO", None]):
-        ##################################################################################################
-        # sparse-sparse multiplication is limited, so this setup currently requires using dense operations
-        # also, setting batch dimension=1 made this work but I'm not totally sure what this means
-        ##################################################################################################
+        """Operators constructed using dense operations."""
         self._static_dissipators = to_array(new_static_dissipators)
         if self._static_dissipators is not None:
             self._static_dissipators_adj = np.conjugate(
@@ -935,10 +929,7 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
 
     @dissipator_operators.setter
     def dissipator_operators(self, new_dissipator_operators: Union["BCOO", None]):
-        ##################################################################################################
-        # sparse-sparse multiplication is limited, so this setup currently requires using dense operations
-        # also, setting batch dimension=1 made this work but I'm not totally sure what this means
-        ##################################################################################################
+        """Operators constructed using dense operations."""
         self._dissipator_operators = to_array(new_dissipator_operators)
         if self._dissipator_operators is not None:
             self._dissipator_operators_adj = np.conjugate(
