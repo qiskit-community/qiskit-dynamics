@@ -100,8 +100,7 @@ def solve_ode(
       size to take. This solver will break integration periods into even
       sub-intervals no larger than ``max_dt``, and step over each sub-interval
       using the standard 4th order Runge-Kutta integration rule.
-    - ``'jax_RK4'``: JAX-version of ``'RK4'``, implemented using JAX
-      looping logic.
+    - ``'jax_RK4'``: JAX-implemented version of ``'RK4'``.
     - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
       solver.
 
@@ -202,7 +201,7 @@ def solve_lmde(
       sub-intervals no larger than ``max_dt``, and solve over each sub-interval via
       matrix exponentiation of the generator sampled at the midpoint.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
-      logic.
+      behaviour.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
       parallel operations. I.e. all matrix-exponentials for taking a single step are computed
       in parallel using ``jax.vmap``, and are subsequently multiplied together in parallel
