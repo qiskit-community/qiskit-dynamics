@@ -100,7 +100,7 @@ def solve_ode(
       size to take. This solver will break integration periods into even
       sub-intervals no larger than ``max_dt``, and step over each sub-interval
       using the standard 4th order Runge-Kutta integration rule.
-    - ``'jax_RK4'``: JAX-implemented version of ``'RK4'``.
+    - ``'jax_RK4'``: JAX backend implementation of ``'RK4'`` method.
     - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
       solver.
 
