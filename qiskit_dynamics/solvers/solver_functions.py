@@ -64,7 +64,7 @@ except ImportError:
 ODE_METHODS = (
     ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"]  # scipy solvers
     + ["RK4"]  # fixed step solvers
-    + ["jax_odeint", "jax_RK4_solver"]  # jax solvers
+    + ["jax_odeint", "jax_RK4"]  # jax solvers
 )
 LMDE_METHODS = ["scipy_expm", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]
 
