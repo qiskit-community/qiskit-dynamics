@@ -63,9 +63,9 @@ except ImportError:
 
 ODE_METHODS = (
     ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"]  # scipy solvers
-    + ["RK4", "jax_RK4"]  # fixed step solvers
-    + ["jax_odeint", "jax_RK4_solver"]
-)  # jax solvers
+    + ["RK4"]  # fixed step solvers
+    + ["jax_odeint", "jax_RK4_solver"] # jax solvers
+)
 LMDE_METHODS = ["scipy_expm", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]
 
 
@@ -205,12 +205,14 @@ def solve_lmde(
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
       parallel operations. I.e. all matrix-exponentials for taking a single step are computed
       in parallel using ``jax.vmap``, and are subsequently multiplied together in parallel
-      using ``jax.lax.associative_scan``.
+      using ``jax.lax.associative_scan``. This method is only recommended for use with GPU
+      execution.
     - ``'jax_RK4_parallel'``: 4th order Runge-Kutta fixed step solver. Under the assumption
       of the structure of an LMDE, utilizes the same parallelization approach as
       ``'jax_expm_parallel'``, however the single step rule is the standard 4th order
       Runge-Kutta rule, rather than matrix-exponentiation. Requires and utilizes the
-      ``max_dt`` kwarg in the same manner as ``method='scipy_expm'``.
+      ``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
+      recommended for use with GPU execution.
 
     Results are returned as a :class:`OdeResult` object.
 
