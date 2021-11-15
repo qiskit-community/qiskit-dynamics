@@ -175,3 +175,31 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
 
     if hamiltonian_dict.get('osc', {}) != {}:
         raise QiskitError('Oscillator-type systems are not supported.')
+
+    # verify that terms in h_str contain at most a single channel label, and that it
+    # is the only thing appearing after ||
+    for term in hamiltonian_dict['h_str']:
+        channel_count = term.count('D') + term.count('U')
+        # verify at most one channel appears
+        if channel_count > 1:
+            raise QiskitError("""Hamiltonian term '{}' contains more than one channel label.
+                                 Hamiltonian terms can only contain one channel label.""".format(term))
+
+        # if no channels ensure doesn't contain divider ||
+        elif channel_count == 0 and term.count('|') > 0:
+            raise QiskitError("""Operator-channel divider '||' appears in term '{}' with no channels specified.""".format(term))
+
+        # ensure formatted as aa||Dxx or aa||Uxx where aa specifies an operator and
+        # xx is a string of digits
+        elif channel_count == 1:
+            malformed_text = """Term '{}' does not conform to required string format.
+                                Channels 'D' or 'U' may only be specified in the format
+                                'aa||Dxx' or 'aa||Uxx', where 'aa' specifies an operator
+                                and 'xx' is a string of digits.""".format(term)
+            if term.count('||') != 1 or term.count('|') > 2:
+                raise QiskitError(malformed_text)
+            else:
+                # make sure after || is either U or D followed by a string of digits
+                divider_idx = term.index('||')
+                if term[divider_idx + 2] not in ['D', 'U'] or any([not a.isdigit() for a in term[divider_idx + 3]]):
+                    raise QiskitError(malformed_text)
