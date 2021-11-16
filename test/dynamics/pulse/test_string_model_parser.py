@@ -111,6 +111,22 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         self.adag = self.a.conj().transpose()
         self.N = np.array(np.diag(range(dim)), dtype=complex)
 
+    def test_only_static_terms(self):
+        """Test a basic system."""
+        ham_dict = {
+                    'h_str': ['v*np.pi*Z0'],
+                    'qub': {
+                        '0': 2
+                    },
+                    'vars': {'v': 2.1}
+                }
+
+        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
+
+        self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
+        self.assertTrue(ham_ops == [])
+        self.assertTrue(channels == [])
+
     def test_simple_single_q_system(self):
         """Test a basic system."""
         ham_dict = {

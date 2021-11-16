@@ -31,6 +31,50 @@ def parse_hamiltonian_dict(
     """Convert Hamiltonian string representation into concrete operators
     and an ordered list of channels corresponding to the operators.
 
+    hamiltonian_dict needs to have keys:
+        - 'h_str': List strings giving terms in the Hamiltonian.
+        - 'qub': Dictionary giving subsystem dimensions. Keys are subsystem labels,
+                 values are their dimensions.
+        - 'vars': Dictionary with variables appearing in the terms in the h_str dict,
+                  keys are strings giving the variables, values are the values of the variables.
+
+    Operators in h_str are specified with capital letters, and their interpretation depends
+    on the dimension of the subsystem.
+
+    Pauli operators are represented with capital X, Y, Z. If the dimension of the subsystem is
+    2, then these are the standard pauli operators. If dim > 2, then we have the associations:
+        - X = a + adagger
+        - Y = -1j * (a - adagger)
+        - Z = (identity - 2 * N)
+
+    ##################################################################################################
+    # Do we want the above definition of Z? It orders the energy of the states in reverse order,
+    # might be confusing.
+    ##################################################################################################
+
+    For oscillator type operators:
+       - O is the number operator for some reason
+       - Can we do adagger?
+
+
+    Also Sp, Sm - check out operator_from_string.
+    N is going to the identity for some reason? Need to look into this.
+
+
+    Channels:
+    I've modified the parser so that it will only accept/understand channel specs of the form:
+    'aa||Dxx' or 'aa||Uxx', where 'aa' is a valid specification of an operator,
+    and 'xx' is a string consisting only of numbers. This format must be obeyed, if not an
+    error will be raised (or should be raised, if I've written it correctly). Note that this
+    explicitly excludes the possibility of having multiple channels appear, which may have
+    been possible in the Aer pulse simulator. For now though we will enforce this limitation,
+    have it be actually documented, and then maybe expand on it later.
+
+
+    The output merges all static terms, or terms with the same channel, into a single
+    matrix. It returns these with the channel names, which have been sorted in lexicographic
+    order (and hte matrices corresponding to those channels are set in the same order).
+
     Args:
         hamiltonian_dict: Dictionary representation of Hamiltonian.
                             ********************************************************************************
@@ -156,7 +200,8 @@ def parse_hamiltonian_dict(
                 reduced_channels.append(channel)
 
     # sort channels/operators according to channel ordering
-    reduced_channels, hamiltonian_operators = zip(*sorted(zip(reduced_channels, hamiltonian_operators)))
+    if len(reduced_channels) > 0:
+        reduced_channels, hamiltonian_operators = zip(*sorted(zip(reduced_channels, hamiltonian_operators)))
 
     return static_hamiltonian, list(hamiltonian_operators), list(reduced_channels)
 
