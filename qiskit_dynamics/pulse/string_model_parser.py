@@ -22,8 +22,8 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit_dynamics.dispatch import Array
 
-from .string_model_parser_old.string_model_parser import HamiltonianParser
-
+#from .string_model_parser_old.string_model_parser import HamiltonianParser
+from .string_model_parser_object import HamiltonianParser
 
 def parse_hamiltonian_dict(
     hamiltonian_dict: dict, subsystem_list: Optional[List[int]] = None
@@ -124,14 +124,10 @@ def parse_hamiltonian_dict(
     # We don't support this, should we drop it? Need to see to what extent
     # this is required by the HamiltonianParser object
     ##################################################################################################
-    if "osc" in hamiltonian_dict:
-        oscillator_dims = {int(key): val for key, val in hamiltonian_dict["osc"].items()}
-    else:
-        oscillator_dims = {}
 
     # Parse the Hamiltonian
     system = HamiltonianParser(
-        h_str=hamiltonian_dict["h_str"], dim_osc=oscillator_dims, dim_qub=subsystem_dims
+        h_str=hamiltonian_dict["h_str"], subsystem_dims=subsystem_dims
     )
     system.parse(subsystem_list)
     system = system.compiled

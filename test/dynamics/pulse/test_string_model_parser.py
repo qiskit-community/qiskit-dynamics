@@ -122,7 +122,6 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
                 }
 
         static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
-
         self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
         self.assertTrue(ham_ops == [])
         self.assertTrue(channels == [])
@@ -174,7 +173,6 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
 
         ident = np.eye(2)
-
         self.assertAllClose(static_ham, 2.1 * np.pi * np.kron(ident, self.Z) + 2.0 * np.pi * np.kron(self.Z, ident) + 0.02 * np.pi * np.kron(self.Y, self.X))
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * np.kron(ident, self.X), 0.03 * np.pi * np.kron(self.X, ident)])
         self.assertTrue(channels == ['D0', 'D1'])
