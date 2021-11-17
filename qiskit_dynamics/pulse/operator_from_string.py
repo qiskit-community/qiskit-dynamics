@@ -18,26 +18,53 @@
 import numpy as np
 
 def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: dict) -> np.ndarray:
-    """ Generates an operator acting on a single subsystem, tensoring identities for remaining
+    """Generates an dense operator acting on a single subsystem, tensoring identities for remaining
     subsystems.
 
-    ###########################################################################################################
-    to document:
-    - single operator definitions
-    - reverse ordering of tensor factors
+    The single system operator is specified via a string in ``op_label``,
+    the list of subsystems and their corresponding dimensions are specified in the
+    dictionary ``subsystem_dims``, with system label being the keys specified as ``int``s,
+    and system dimensions the values also specified as ``int``s, and ``subsystem_index``
+    indicates which subsystem the operator specified by ``op_label`` acts on.
 
-    inputs:
-        - op_label: label for a single-subsystem operator
-        - subsystem_index: index of the subsystem that the operator applies to
-        - subsystem_dims: dimensions of all subsystems.
+    Accepted ``op_labels`` are:
+        - `'X'`: If the target subsystem is two dimensional, the
+          Pauli :math:`X` operator, and if greater than two dimensional, returns
+          :math:`a + a^\dagger`, where :math:`a` and :math:`a^\dagger` are the
+          annihiliation and creation operators, respectively.
+        - `'Y'`: If the target subsystem is two dimensional, the
+          Pauli :math:`Y` operator, and if greater than two dimensional, returns
+          :math:`-i(a - a^\dagger)`, where :math:`a` and :math:`a^\dagger` are the
+          annihiliation and creation operators, respectively.
+        - `'Z'`: If the target subsystem is two dimensional, the
+          Pauli :math:`Z` operator, and if greater than two dimensional, returns
+          :math:`I - 2 * N`, where :math:`N` is the number operator.
+        - `'a'`, `'A'`, or `'Sm'`: If two dimensional, the sigma minus operator, and if greater,
+          generalizes to the operator.
+        - `'C'`, or `'Sp'`: If two dimensional, sigma plus operator, and if greater,
+          generalizes to the creation operator.
+        - `'N'`, or `'O'`: The number operator.
+        - `'I'`: The identity operator.
 
-    returns:
+    Note that the ordering of tensor factors is reversed.
+
+    Args:
+        op_label: The string labelling the single system operator.
+        subsystem_index: Index of the subsystem to apply the operator.
+        subsystem_dims: dictionary of subsystem labels and dimensions.
+
+    Returns:
         np.ndarray corresponding to the specified operator.
     """
+
+    # construct single system operator
     out = single_operator_from_string(op_label, subsystem_dims[subsystem_index])
 
-    sorted_subsystem_keys, sorted_subsystem_dims = zip(*sorted(zip(subsystem_dims.keys(), subsystem_dims.values())))
+    # sort subsystem labels and dimensions
+    sorted_subsystem_keys, sorted_subsystem_dims = zip(*sorted(zip(subsystem_dims.keys(),
+                                                                   subsystem_dims.values())))
 
+    # get subsystem location in ordered list
     subsystem_location = sorted_subsystem_keys.index(subsystem_index)
 
     # tensor identity on right if subsystem_index is not first subsystem
@@ -51,9 +78,6 @@ def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: di
         out = np.kron(ident(total_dim), out)
 
     return out
-
-# derived operators:
-# Sp -> a, Sm -> adag, O -> N
 
 # functions for generating individual operators
 def a(dim: int) -> np.ndarray:
