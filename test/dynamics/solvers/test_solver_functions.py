@@ -228,7 +228,7 @@ class Testjax_RK4_parallel(TestSolverMethodJax):
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
         # ensure that warning is raised as tests are run on CPU
         with self.assertWarns(Warning) as w:
-            results =  solve_lmde(
+            results = solve_lmde(
                 generator=rhs,
                 t_span=t_span,
                 y0=y0,
@@ -240,6 +240,7 @@ class Testjax_RK4_parallel(TestSolverMethodJax):
 
         self.assertTrue("run slower on CPUs" in str(w.warning))
         return results
+
 
 class Testscipy_expm(TestSolverMethod):
     """Test class for scipy_expm_solver."""
