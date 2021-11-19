@@ -95,6 +95,13 @@ class TestOperatorFromString(QiskitDynamicsTestCase):
         expected = np.kron(np.eye(8), np.array([[1., 0.], [0., -1.]]))
         self.assertAllClose(out, expected)
 
+    def test_ident_after_unordered(self):
+        """Test adding identity after the subsystem in question."""
+
+        out = operator_from_string('Z', 0, {2: 4, 0: 2, 1: 2})
+        expected = np.kron(np.eye(8), np.array([[1., 0.], [0., -1.]]))
+        self.assertAllClose(out, expected)
+
     def test_ident_before_and_after(self):
         """Test adding identity before and after the subsystem in question."""
 
