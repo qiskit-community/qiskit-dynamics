@@ -16,6 +16,7 @@ Custom fixed step solvers.
 """
 
 from typing import Callable, Optional, Union, Tuple, List
+from warnings import warn
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
@@ -23,6 +24,7 @@ from scipy.linalg import expm
 from qiskit_dynamics.dispatch import requires_backend, Array
 
 try:
+    import jax
     from jax import vmap
     import jax.numpy as jnp
     from jax.lax import scan, cond, associative_scan
@@ -401,6 +403,11 @@ def fixed_step_lmde_solver_parallel_template_jax(
     Returns:
         OdeResult: Results object.
     """
+
+    # warn the user that the parallel solver will be very slow if run on a cpu
+    if jax.default_backend() == 'cpu':
+        warn("Jax parallel solvers will likely run slower on cpus than non-parallel solvers. To make use of their capabilities it is recommended to use a GPU", stacklevel=2)
+
 
     # ensure the output of rhs_func is a raw array
     def wrapped_generator(*args):
