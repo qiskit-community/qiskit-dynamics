@@ -365,7 +365,12 @@ class TestJaxRK4ParallelSolver(TestJaxRK4Solver):
     """Test cases for jax_RK4_parallel_solver."""
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return jax_RK4_parallel_solver(rhs, t_span, y0, max_dt, t_eval)
+        # ensure that warning is raised as tests are run on CPU
+        with self.assertWarns(Warning) as w:
+            results = jax_RK4_parallel_solver(rhs, t_span, y0, max_dt, t_eval)
+
+        self.assertTrue("run slower on CPUs" in str(w.warning))
+        return results
 
 
 class TestJaxExpmSolver(TestJaxFixedStepBase):
@@ -385,7 +390,12 @@ class TestJaxExpmParallelSolver(TestJaxExpmSolver):
     """
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return jax_expm_parallel_solver(rhs, t_span, y0, max_dt, t_eval)
+        # ensure that warning is raised as tests are run on CPU
+        with self.assertWarns(Warning) as w:
+            results = jax_expm_parallel_solver(rhs, t_span, y0, max_dt, t_eval)
+
+        self.assertTrue("run slower on CPUs" in str(w.warning))
+        return results
 
 
 # to ensure unittest doesn't try to run the abstract classes

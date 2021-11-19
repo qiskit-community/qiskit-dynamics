@@ -226,16 +226,20 @@ class Testjax_RK4_parallel(TestSolverMethodJax):
     """Test class for jax_RK4_parallel_solver."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="jax_RK4_parallel",
-            t_eval=t_eval,
-            max_dt=0.001,
-            **kwargs,
-        )
+        # ensure that warning is raised as tests are run on CPU
+        with self.assertWarns(Warning) as w:
+            results =  solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="jax_RK4_parallel",
+                t_eval=t_eval,
+                max_dt=0.001,
+                **kwargs,
+            )
 
+        self.assertTrue("run slower on CPUs" in str(w.warning))
+        return results
 
 class Testscipy_expm(TestSolverMethod):
     """Test class for scipy_expm_solver."""
@@ -271,15 +275,20 @@ class Testjax_expm_parallel(TestSolverMethodJax):
     """Test class for jax_expm_parallel_solver."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="jax_expm_parallel",
-            t_eval=t_eval,
-            max_dt=0.01,
-            **kwargs,
-        )
+        # ensure that warning is raised as tests are run on CPU
+        with self.assertWarns(Warning) as w:
+            results = solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="jax_expm_parallel",
+                t_eval=t_eval,
+                max_dt=0.01,
+                **kwargs,
+            )
+
+        self.assertTrue("run slower on CPUs" in str(w.warning))
+        return results
 
 
 class Testscipy_RK45(TestSolverMethod):

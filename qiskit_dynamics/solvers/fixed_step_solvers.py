@@ -405,9 +405,12 @@ def fixed_step_lmde_solver_parallel_template_jax(
     """
 
     # warn the user that the parallel solver will be very slow if run on a cpu
-    if jax.default_backend() == 'cpu':
-        warn("Jax parallel solvers will likely run slower on cpus than non-parallel solvers. To make use of their capabilities it is recommended to use a GPU", stacklevel=2)
-
+    if jax.default_backend() == "cpu":
+        warn(
+            """JAX parallel solvers will likely run slower on CPUs than non-parallel solvers.
+            To make use of their capabilities it is recommended to use a GPU.""",
+            stacklevel=2,
+        )
 
     # ensure the output of rhs_func is a raw array
     def wrapped_generator(*args):
