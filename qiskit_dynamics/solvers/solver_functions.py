@@ -44,7 +44,14 @@ from qiskit_dynamics.models import (
 )
 
 from .solver_utils import is_lindblad_model_not_vectorized
-from .fixed_step_solvers import scipy_expm_solver, jax_expm_solver
+from .fixed_step_solvers import (
+    RK4_solver,
+    jax_RK4_solver,
+    scipy_expm_solver,
+    jax_expm_solver,
+    jax_RK4_parallel_solver,
+    jax_expm_parallel_solver,
+)
 from .scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .jax_odeint import jax_odeint
 
@@ -54,8 +61,12 @@ except ImportError:
     pass
 
 
-ODE_METHODS = ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"] + ["jax_odeint"]
-LMDE_METHODS = ["scipy_expm", "jax_expm"]
+ODE_METHODS = (
+    ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"]  # scipy solvers
+    + ["RK4"]  # fixed step solvers
+    + ["jax_odeint", "jax_RK4"]  # jax solvers
+)
+LMDE_METHODS = ["scipy_expm", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]
 
 
 def solve_ode(
@@ -84,8 +95,14 @@ def solve_ode(
     - ``scipy.integrate.solve_ivp`` - supports methods
       ``['RK45', 'RK23', 'BDF', 'DOP853', 'Radau', 'LSODA']`` or by passing a valid
       ``scipy`` :class:`OdeSolver` instance.
-    - ``jax.experimental.ode.odeint`` - accessed via passing
-      ``method='jax_odeint'``.
+    - ``'RK4'``: A fixed-step 4th order Runge-Kutta solver.
+      Requires additional kwarg ``max_dt``, indicating the maximum step
+      size to take. This solver will break integration periods into even
+      sub-intervals no larger than ``max_dt``, and step over each sub-interval
+      using the standard 4th order Runge-Kutta integration rule.
+    - ``'jax_RK4'``: JAX backend implementation of ``'RK4'`` method.
+    - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
+      solver.
 
     Results are returned as a :class:`OdeResult` object.
 
@@ -121,9 +138,13 @@ def solve_ode(
 
     # solve the problem using specified method
     if method in SOLVE_IVP_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
-        results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval, **kwargs)
+        results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
+    elif isinstance(method, str) and method == "RK4":
+        results = RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
+    elif isinstance(method, str) and method == "jax_RK4":
+        results = jax_RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "jax_odeint":
-        results = jax_odeint(solver_rhs, t_span, y0, t_eval, **kwargs)
+        results = jax_odeint(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
 
     # convert results out of frame basis if necessary
     if isinstance(rhs, BaseGeneratorModel):
@@ -174,14 +195,24 @@ def solve_lmde(
     Optional arguments for any of the solver routines can be passed via ``kwargs``.
     Available LMDE-specific methods are:
 
-    - ``'scipy_expm'``: A matrix-exponential solver using ``scipy.linalg.expm``.
-      Requires additional kwarg ``max_dt``, indicating the maximum step
+    - ``'scipy_expm'``: A fixed-step matrix-exponential solver using ``scipy.linalg.expm``.
+      Requires additional kwarg ``max_dt`` indicating the maximum step
       size to take. This solver will break integration periods into even
-      sub-intervals no larger than ``max_dt``, and solve over each sub-intervals via
+      sub-intervals no larger than ``max_dt``, and solve over each sub-interval via
       matrix exponentiation of the generator sampled at the midpoint.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
-      logic.
-
+      behaviour.
+    - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
+      parallel operations. I.e. all matrix-exponentials for taking a single step are computed
+      in parallel using ``jax.vmap``, and are subsequently multiplied together in parallel
+      using ``jax.lax.associative_scan``. This method is only recommended for use with GPU
+      execution.
+    - ``'jax_RK4_parallel'``: 4th order Runge-Kutta fixed step solver. Under the assumption
+      of the structure of an LMDE, utilizes the same parallelization approach as
+      ``'jax_expm_parallel'``, however the single step rule is the standard 4th order
+      Runge-Kutta rule, rather than matrix-exponentiation. Requires and utilizes the
+      ``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
+      recommended for use with GPU execution.
 
     Results are returned as a :class:`OdeResult` object.
 
@@ -244,6 +275,10 @@ def solve_lmde(
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
         results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+    elif method == "jax_expm_parallel":
+        results = jax_expm_parallel_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+    elif method == "jax_RK4_parallel":
+        results = jax_RK4_parallel_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
 
     # convert results to correct basis if necessary
     if isinstance(generator, BaseGeneratorModel):

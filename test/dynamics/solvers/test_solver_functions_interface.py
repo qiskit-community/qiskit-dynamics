@@ -11,24 +11,37 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name,broad-except
 
-"""Tests for solve_lmde and related functions."""
+"""Tests error handling of solve_ode and solve_lmde, and helper functions.
+
+Tests for results of solvers are in test_solve_functions.py.
+"""
 
 import numpy as np
-from scipy.linalg import expm
 
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
-from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel
-from qiskit_dynamics.signals import Signal, DiscreteSignal
-from qiskit_dynamics import solve_lmde
+from qiskit_dynamics.models import HamiltonianModel, LindbladModel
+from qiskit_dynamics.signals import Signal
+from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.solvers.solver_functions import (
     setup_generator_model_rhs_y0_in_frame_basis,
     results_y_out_of_frame_basis,
 )
-from qiskit_dynamics.dispatch import Array
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase
+
+
+class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
+    """Test exceptions of solve_ode."""
+
+    def test_method_does_not_exist(self):
+        """Test method does not exist exception."""
+
+        with self.assertRaises(QiskitError) as qe:
+            solve_ode(lambda t, y: y, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
+
+        self.assertTrue("not supported" in str(qe.exception))
 
 
 class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
@@ -275,127 +288,3 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         output = results_y_out_of_frame_basis(vec_lindblad_model, results_y, y0_ndim=2)
         expected = [P @ y for y in results_y]
         self.assertAllClose(expected, output)
-
-
-# pylint: disable=too-many-instance-attributes
-class Testsolve_lmde_Base(QiskitDynamicsTestCase):
-    """Some reusable routines for high level solve_lmde tests."""
-
-    def setUp(self):
-        self.t_span = [0.0, 1.0]
-        self.y0 = Array(np.eye(2, dtype=complex))
-
-        self.X = Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex)
-        self.Y = Array([[0.0, -1j], [1j, 0.0]], dtype=complex)
-        self.Z = Array([[1.0, 0.0], [0.0, -1.0]], dtype=complex)
-
-        # simple generator and rhs
-        # pylint: disable=unused-argument
-        def generator(t):
-            return -1j * 2 * np.pi * self.X / 2
-
-        self.basic_generator = generator
-
-        # randomized LMDE example
-        dim = 7
-        b = 0.5
-        rng = np.random.default_rng(3093)
-        static_operator = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
-            low=-b, high=b, size=(dim, dim)
-        )
-        operators = rng.uniform(low=-b, high=b, size=(1, dim, dim)) + 1j * rng.uniform(
-            low=-b, high=b, size=(1, dim, dim)
-        )
-        frame_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
-            low=-b, high=b, size=(dim, dim)
-        )
-        frame_op = frame_op.conj().transpose() - frame_op
-        y0 = rng.uniform(low=-b, high=b, size=(dim,)) + 1j * rng.uniform(
-            low=-b, high=b, size=(dim,)
-        )
-
-        self.pseudo_random_y0 = y0
-
-        self.pseudo_random_signal = DiscreteSignal(
-            samples=rng.uniform(low=-b, high=b, size=(5,)), dt=0.1, carrier_freq=1.0
-        )
-        self.pseudo_random_model = GeneratorModel(
-            operators=operators,
-            signals=[self.pseudo_random_signal],
-            static_operator=static_operator,
-            rotating_frame=frame_op,
-        )
-
-        # simulate directly out of frame
-        def pseudo_random_generator(t):
-            return static_operator + self.pseudo_random_signal(t) * operators[0]
-
-        self.pseudo_random_generator = pseudo_random_generator
-
-    def _fixed_step_LMDE_method_tests(self, method):
-        # test basic generator
-        results = solve_lmde(
-            self.basic_generator, t_span=self.t_span, y0=self.y0, method=method, max_dt=0.1
-        )
-
-        expected = expm(-1j * np.pi * self.X.data)
-
-        self.assertAllClose(results.y[-1], expected)
-
-        # test solving in a frame with generator model and solving with a function
-        # and no frame
-        results = solve_lmde(
-            self.pseudo_random_model,
-            t_span=[0, 0.5],
-            y0=self.pseudo_random_y0,
-            method=method,
-            max_dt=0.01,
-        )
-        yf = self.pseudo_random_model.rotating_frame.state_out_of_frame(0.5, results.y[-1])
-        results2 = solve_lmde(
-            self.pseudo_random_generator,
-            t_span=[0, 0.5],
-            y0=self.pseudo_random_y0,
-            method=method,
-            max_dt=0.01,
-        )
-        self.assertAllClose(yf, results2.y[-1], atol=1e-5, rtol=1e-5)
-
-        # verify that model is returned to not being in the frame basis
-        self.assertFalse(self.pseudo_random_model.in_frame_basis)
-
-        # test solving in frame basis and compare to previous result
-        self.pseudo_random_model.in_frame_basis = True
-        rotating_frame = self.pseudo_random_model.rotating_frame
-        y0_in_frame_basis = rotating_frame.state_into_frame_basis(self.pseudo_random_y0)
-        results3 = solve_lmde(
-            self.pseudo_random_model,
-            t_span=[0, 0.5],
-            y0=y0_in_frame_basis,
-            method=method,
-            max_dt=0.01,
-        )
-        yf_in_frame_basis = results3.y[-1]
-        self.assertAllClose(
-            yf,
-            rotating_frame.state_out_of_frame(
-                0.5, y=yf_in_frame_basis, y_in_frame_basis=True, return_in_frame_basis=False
-            ),
-        )
-        self.assertTrue(self.pseudo_random_model.in_frame_basis)
-
-
-class Testsolve_lmde_scipy_expm(Testsolve_lmde_Base):
-    """Basic tests for solve_lmde with method=='expm'."""
-
-    def test_scipy_expm_solver(self):
-        """Test scipy_expm_solver."""
-        self._fixed_step_LMDE_method_tests("scipy_expm")
-
-
-class Testsolve_lmde_jax_expm(Testsolve_lmde_Base, TestJaxBase):
-    """Basic tests for solve_lmde with method=='jax_expm'."""
-
-    def test_jax_expm_solver(self):
-        """Test jax_expm_solver."""
-        self._fixed_step_LMDE_method_tests("jax_expm")
