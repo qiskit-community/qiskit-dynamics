@@ -17,6 +17,7 @@ Generator models module.
 
 from abc import ABC, abstractmethod
 from typing import Tuple, Union, List, Optional
+from warnings import warn
 from copy import copy
 import numpy as np
 from scipy.sparse.csr import csr_matrix
@@ -35,6 +36,11 @@ from qiskit_dynamics.dispatch import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from .rotating_frame import RotatingFrame
+
+try:
+    import jax
+except ImportError:
+    pass
 
 
 class BaseGeneratorModel(ABC):
@@ -578,6 +584,13 @@ def construct_operator_collection(
     if evaluation_mode == "dense":
         return DenseOperatorCollection(static_operator=static_operator, operators=operators)
     if evaluation_mode == "sparse" and dispatch.default_backend() == "jax":
+        # warn that sparse mode when using JAX is primarily recommended for use on CPU
+        if jax.default_backend() != "cpu":
+            warn(
+                """Using sparse mode with JAX is primarily recommended for use on CPU.""",
+                stacklevel=2,
+            )
+
         return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
     if evaluation_mode == "sparse":
         return SparseOperatorCollection(static_operator=static_operator, operators=operators)

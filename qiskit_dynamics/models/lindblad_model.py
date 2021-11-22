@@ -16,6 +16,7 @@ Lindblad models module.
 """
 
 from typing import Tuple, Union, List, Optional
+from warnings import warn
 from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
@@ -40,6 +41,11 @@ from .operator_collections import (
     JAXSparseVectorizedLindbladCollection,
 )
 from .rotating_frame import RotatingFrame
+
+try:
+    import jax
+except ImportError:
+    pass
 
 
 class LindbladModel(BaseGeneratorModel):
@@ -648,6 +654,12 @@ def construct_lindblad_operator_collection(
         CollectionClass = DenseLindbladCollection
     elif evaluation_mode == "sparse":
         if dispatch.default_backend() == "jax":
+            # warn that sparse mode when using JAX is primarily recommended for use on CPU
+            if jax.default_backend() != "cpu":
+                warn(
+                    """Using sparse mode with JAX is primarily recommended for use on CPU.""",
+                    stacklevel=2,
+                )
             CollectionClass = JAXSparseLindbladCollection
         else:
             CollectionClass = SparseLindbladCollection
@@ -655,6 +667,12 @@ def construct_lindblad_operator_collection(
         CollectionClass = DenseVectorizedLindbladCollection
     elif evaluation_mode == "sparse_vectorized":
         if dispatch.default_backend() == "jax":
+            # warn that sparse mode when using JAX is primarily recommended for use on CPU
+            if jax.default_backend() != "cpu":
+                warn(
+                    """Using sparse mode with JAX is primarily recommended for use on CPU.""",
+                    stacklevel=2,
+                )
             CollectionClass = JAXSparseVectorizedLindbladCollection
         else:
             CollectionClass = SparseVectorizedLindbladCollection
