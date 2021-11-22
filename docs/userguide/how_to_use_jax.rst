@@ -225,7 +225,7 @@ Subsequent runs of the function reveal the execution time once compiled.
     %timeit excited_pop_grad(1.).block_until_ready()
 
 
-4. Pitfalls when using JAX with dynamics
+4. Pitfalls when using JAX with Dynamics
 ----------------------------------------
 
 4.1 JAX must be set as the default backend before building any objects in Qiskit Dynamics
@@ -239,9 +239,13 @@ the operators in a model or ``Solver`` instance will be wrapped in an
 ``Array`` whose backend is the current default backend, and changing the
 default backend after building the object won’t change this.
 
-4.2 Dynamics does not currently support JAX sparse types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2 Running Dynamics with JAX on CPU vs GPU
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sparse evaluation modes for models and solvers cannot be used when JAX
-is the default backend. Setting a sparse evaluation mode when JAX is the
-default backend will result in an error.
+Certain JAX-based features in Dynamics are primarily recommended for use only with CPU
+or only with GPU. In such cases, a warning is raised if non-recommended hardware is used,
+however users are not prevented from configuring Dynamics and JAX in whatever way they choose.
+
+Instances of such features are:
+  * Setting ``evaluation_mode='sparse'`` for solvers and models is only recommended for use on CPU.
+  * Parallel fixed step solver options in ``solve_lmde`` are recommended only for use on GPU.

@@ -654,7 +654,11 @@ def construct_lindblad_operator_collection(
     """
 
     # raise warning if sparse mode set with JAX not on cpu
-    if dispatch.default_backend() == 'jax' and 'sparse' in evaluation_mode and jax.default_backend() != 'cpu':
+    if (
+        dispatch.default_backend() == "jax"
+        and "sparse" in evaluation_mode
+        and jax.default_backend() != "cpu"
+    ):
         warn(
             """Using sparse mode with JAX is primarily recommended for use on CPU.""",
             stacklevel=2,
