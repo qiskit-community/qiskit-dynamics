@@ -220,7 +220,8 @@ class GeneratorModel(BaseGeneratorModel):
          * 'dense': Stores/evaluates operators using dense Arrays.
          * 'sparse': Stores/evaluates operators using sparse matrices. If
            the default backend is JAX, implemented with JAX BCOO arrays,
-           otherwise uses scipy :class:`csr_matrix` sparse type.
+           otherwise uses scipy :class:`csr_matrix` sparse type. Note that
+           JAX sparse mode is only recommended for use on CPU.
         """
         return self._evaluation_mode
 

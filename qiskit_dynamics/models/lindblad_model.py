@@ -422,9 +422,11 @@ class LindbladModel(BaseGeneratorModel):
             is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
             :class:`csr_matrix` sparse type. Note that reverse mode automatic differentiation
             does not work in sparse mode when default backend is JAX, use forward mode instead.
+            Note that JAX sparse mode is only recommended for use on CPU.
          * `sparse_vectorized`: Like dense_vectorized, but matrices stored in sparse format.
             If the default backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
-            :class:`csr_matrix` sparse type.
+            :class:`csr_matrix` sparse type. Note that
+            JAX sparse mode is only recommended for use on CPU.
         """
         return self._evaluation_mode
 
@@ -650,16 +652,18 @@ def construct_lindblad_operator_collection(
         NotImplementedError: if evaluation_mode is not one of the above
         supported evaluation modes.
     """
+
+    # raise warning if sparse mode set with JAX not on cpu
+    if dispatch.default_backend() == 'jax' and 'sparse' in evaluation_mode and jax.default_backend() != 'cpu':
+        warn(
+            """Using sparse mode with JAX is primarily recommended for use on CPU.""",
+            stacklevel=2,
+        )
+
     if evaluation_mode == "dense":
         CollectionClass = DenseLindbladCollection
     elif evaluation_mode == "sparse":
         if dispatch.default_backend() == "jax":
-            # warn that sparse mode when using JAX is primarily recommended for use on CPU
-            if jax.default_backend() != "cpu":
-                warn(
-                    """Using sparse mode with JAX is primarily recommended for use on CPU.""",
-                    stacklevel=2,
-                )
             CollectionClass = JAXSparseLindbladCollection
         else:
             CollectionClass = SparseLindbladCollection
@@ -667,12 +671,6 @@ def construct_lindblad_operator_collection(
         CollectionClass = DenseVectorizedLindbladCollection
     elif evaluation_mode == "sparse_vectorized":
         if dispatch.default_backend() == "jax":
-            # warn that sparse mode when using JAX is primarily recommended for use on CPU
-            if jax.default_backend() != "cpu":
-                warn(
-                    """Using sparse mode with JAX is primarily recommended for use on CPU.""",
-                    stacklevel=2,
-                )
             CollectionClass = JAXSparseVectorizedLindbladCollection
         else:
             CollectionClass = SparseVectorizedLindbladCollection
