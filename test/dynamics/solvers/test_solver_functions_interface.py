@@ -21,7 +21,7 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
-from qiskit_dynamics.models import HamiltonianModel, LindbladModel
+from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.solvers.solver_functions import (
