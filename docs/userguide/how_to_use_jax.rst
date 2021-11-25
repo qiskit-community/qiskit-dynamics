@@ -1,6 +1,8 @@
 How-to use JAX with ``qiskit-dynamics``
 =======================================
 
+.. _how-to use jax:
+
 JAX enables just-in-time compilation, automatic differentation, and GPU
 execution. JAX is integrated into ``qiskit-dynamics`` via the
 ``dispatch`` submodule, which allows most parts of the package to be
