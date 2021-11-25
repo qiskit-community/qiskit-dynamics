@@ -19,31 +19,72 @@ Dispatch Module (:mod:`qiskit_dynamics.dispatch`)
 
 .. currentmodule:: qiskit_dynamics.dispatch
 
-This module contains dispatch methods used by the
-:class:`~qiskit_dynamics.array.Array` class.
+This module contains a common interface for working with array types from
+multiple array libraries.
 
-
-Dispatch Functions
-==================
+Dispatching Functions
+=====================
 
 .. autosummary::
     :toctree: ../stubs/
 
-    set_default_backend
-    default_backend
-    available_backends
-    backend_types
+    dispatcher
+    dispatch_function
+
+
+Additional Functions
+====================
+
+.. autosummary::
+    :toctree: ../stubs/
+
+    infer_library
+    registered_libraries
+    validate_library
+    requires_library
     asarray
-    requires_backend
+
+Registering Array Libraries
+===========================
+
+.. autosummary::
+    :toctree: ../stubs/
+
+    registered_libraries
+    is_registered_library
+    registered_types
+    is_registered_type
+    register_function
+    register_module
+    register_type
 """
 
-# Import Array
-from .array import Array
+# Dispatcher
+from .dispatcher import (
+    dispatcher,
+    dispatch_function,
+    infer_library,
+)
 
-# Import wrapper function
-from .wrap import wrap
+from .functions import (
+    requires_library,
+    asarray,
+)
 
-# Import dispatch utilities
+from .register import (
+    registered_libraries,
+    is_registered_library,
+    registered_types,
+    is_registered_type,
+    register_function,
+    register_module,
+    register_type,
+)
+
+# Register built-in supported libraries
+from .dispatcher_libraries import *
+
+# Depreacted dispatch functions
 from .dispatch import (
     set_default_backend,
     default_backend,
@@ -53,9 +94,7 @@ from .dispatch import (
     requires_backend,
 )
 
-# Register backends
-from .backends import *
+# Deprecated import paths
+from .array import Array
 
-# If only one backend is available, set it as the default
-if len(available_backends()) == 1:
-    set_default_backend(available_backends()[0])
+from .wrap import wrap
