@@ -14,7 +14,7 @@
 Pulse schedule to Signals converter.
 """
 
-from typing import List
+from typing import List, Optional, Union
 import numpy as np
 
 from qiskit.pulse import (
@@ -38,7 +38,9 @@ class InstructionToSignals:
     the :meth:`get_signals` method on a schedule.
     """
 
-    def __init__(self, dt: float, carriers: List[float] = None):
+    def __init__(
+        self, dt: float, carriers: List[float] = None, channels: Optional[List[str]] = None
+    ):
         """Initialize pulse schedule to signals converter.
 
         Args:
@@ -48,10 +50,35 @@ class InstructionToSignals:
             carriers: a list of carrier frequencies. If it is not None there
                 must be at least as many carrier frequencies as there are
                 channels in the schedules that will be converted.
+            channels: A list of channels that the :meth:`get_signals` method should return.
+                This argument will cause :meth:`get_signals` to return the signals in the
+                same order as the channels. Channels present in the schedule but absent
+                from channels will not be included in the returned object. If None is given
+                (the default) then all channels present in the pulse schedule are returned.
+
+        Raises:
+            QiskitError: If the number of channels and carriers does not match when both are given.
         """
 
         self._dt = dt
-        self._carriers = carriers
+        self._channels = channels
+        self._carriers = {}
+
+        # If both are given we tie them together in a dict to ensure consistency.
+        if channels is not None and carriers is not None:
+            if len(channels) != len(carriers):
+                raise QiskitError(
+                    "The number of required channels and carries does not match: "
+                    f"len({channels}) != len({carriers})."
+                )
+
+            for idx, chan in enumerate(channels):
+                self._carriers[chan] = carriers[idx]
+
+        # If only carriers is given we map using the index of the carriers.
+        elif channels is None and carriers is not None:
+            for idx, carrier in enumerate(carriers):
+                self._carriers[idx] = carrier
 
     def get_signals(self, schedule: Schedule) -> List[DiscreteSignal]:
         """
@@ -65,14 +92,17 @@ class InstructionToSignals:
             qiskit.QiskitError: if not enough frequencies supplied
         """
 
-        if self._carriers and len(self._carriers) < len(schedule.channels):
-            raise QiskitError("Not enough carrier frequencies supplied.")
+        if self._channels is None:
+            if self._carriers and len(self._carriers) < len(schedule.channels):
+                raise QiskitError("Not enough carrier frequencies supplied.")
 
         signals, phases, frequency_shifts = {}, {}, {}
 
         for idx, chan in enumerate(schedule.channels):
-            if self._carriers:
+            if self._carriers and not self._channels:
                 carrier_freq = self._carriers[idx]
+            elif self._carriers and self._channels:
+                carrier_freq = self._carriers.get(chan.name, 0.0)
             else:
                 carrier_freq = 0.0
 
@@ -129,7 +159,19 @@ class InstructionToSignals:
                     samples=np.zeros(max_duration - sig.duration, dtype=complex),
                 )
 
-        return list(signals.values())
+        # filter the channels
+        if self._channels is None:
+            return list(signals.values())
+
+        return_signals = []
+        for chan_name in self._channels:
+            signal = signals.get(
+                chan_name, DiscreteSignal(samples=[], dt=self._dt, name=chan_name, carrier_freq=0.0)
+            )
+
+            return_signals.append(signal)
+
+        return return_signals
 
     @staticmethod
     def get_awg_signals(

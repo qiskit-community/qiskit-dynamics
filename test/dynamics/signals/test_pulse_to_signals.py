@@ -13,11 +13,15 @@
 Tests to convert from pulse schedules to signals.
 """
 
+from ddt import ddt, data, unpack
 import numpy as np
 
+import qiskit.pulse as pulse
 from qiskit.pulse import (
     Schedule,
     DriveChannel,
+    ControlChannel,
+    MeasureChannel,
     Play,
     Drag,
     ShiftFrequency,
@@ -28,6 +32,9 @@ from qiskit.pulse import (
     Constant,
     Waveform,
 )
+from qiskit.pulse.transforms.canonicalization import block_to_schedule
+from qiskit.exceptions import QiskitError
+
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.signals import DiscreteSignal
 
@@ -134,3 +141,68 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
 
         self.assertTrue(signals[0].carrier_freq == 2.0)
         self.assertTrue(signals[1].carrier_freq == 3.0)
+
+
+@ddt
+class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
+    """Test the extraction of signals when specifying channels."""
+
+    def setUp(self):
+        """Setup the tests."""
+
+        super().setUp()
+
+        # Drags on all qubits, then two CRs, then readout all qubits.
+        with pulse.build(name="test schedule") as schedule:
+            with pulse.align_sequential():
+                with pulse.align_left():
+                    for chan_idx in [0, 1, 2, 3]:
+                        pulse.play(Drag(160, 0.5, 40, 0.1), DriveChannel(chan_idx))
+
+                with pulse.align_sequential():
+                    for chan_idx in [0, 1]:
+                        pulse.play(GaussianSquare(660, 0.2, 40, 500), ControlChannel(chan_idx))
+
+                with pulse.align_left():
+                    for chan_idx in [0, 1, 2, 3]:
+                        pulse.play(GaussianSquare(660, 0.2, 40, 500), MeasureChannel(chan_idx))
+
+        self._schedule = block_to_schedule(schedule)
+
+    @unpack
+    @data(
+        ([5.0, 5.1, 5.0, 5.1], ["d0", "d2", "u0", "u1"]),
+        ([5.0, 5.1, 5.0, 5.1], ["m0", "m1", "m2", "m3"]),
+        ([5.0, 5.1, 5.0, 5.1], ["m0", "m1", "d0", "d1"]),
+        ([5.0], ["d1"]),
+        ([5.0], ["d123"]),
+    )
+    def test_channel_combinations(self, carriers, channels):
+        """Test that we can filter out channels in the right order and number."""
+
+        converter = InstructionToSignals(dt=0.222, carriers=carriers, channels=channels)
+
+        signals = converter.get_signals(self._schedule)
+
+        self.assertEqual(len(signals), len(channels))
+        for idx, chan_name in enumerate(channels):
+            self.assertEqual(signals[idx].name, chan_name)
+
+    def test_empty_signal(self):
+        """Test that requesting a channel that is not in the schedule gives and empty signal."""
+
+        converter = InstructionToSignals(dt=0.222, carriers=[1.0], channels=["d123"])
+
+        signals = converter.get_signals(self._schedule)
+
+        self.assertEqual(len(signals), 1)
+        self.assertEqual(signals[0].duration, 0)
+
+    def test_malformed_input_args(self):
+        """Test that we get errors if the carriers and channels do not match."""
+
+        with self.assertRaises(QiskitError):
+            InstructionToSignals(dt=1, carriers=[1], channels=["d0", "d1"])
+
+        with self.assertRaises(QiskitError):
+            InstructionToSignals(dt=1, carriers=[1, 2], channels=["d0"])
