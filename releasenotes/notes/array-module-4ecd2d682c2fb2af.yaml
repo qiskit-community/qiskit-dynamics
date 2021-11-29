@@ -1,0 +1,17 @@
+---
+upgrade:
+  - |
+    The :class:`~qiskit_dynamics.array.Array` class and
+    :func:`~qiskit_dynamics.array.wrap` function have been moved from the
+    :mod:`qiskit_dynamics.dispatch` module to a separate
+    :mod:`qiskit_dynamics.array` module to separate the ``Array`` class
+    from the underlying dispatch system it uses internally.
+deprecations:
+  - |
+    Importing the :class:`~qiskit_dynamics.array.Array` class for the
+    :mod:`qiskit_dynamics.dispatch` module has been deprecated. It should now
+    be imported from the :mod:`qiskit_dynamics.array` module instead.
+  - |
+    Importing the :class:`~qiskit_dynamics.array.wrap` function for the
+    :mod:`qiskit_dynamics.dispatch` module has been deprecated. It should now
+    be imported from the :mod:`qiskit_dynamics.array` module instead.

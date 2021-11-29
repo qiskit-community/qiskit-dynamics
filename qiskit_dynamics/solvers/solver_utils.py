@@ -21,7 +21,7 @@ from typing import Optional, Union, List, Tuple
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import LindbladModel
 
 

@@ -21,7 +21,7 @@ import numpy as np
 
 from scipy.linalg import expm
 
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.solvers.fixed_step_solvers import (
     RK4_solver,
     scipy_expm_solver,

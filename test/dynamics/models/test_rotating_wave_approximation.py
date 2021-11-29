@@ -15,7 +15,7 @@
 
 import numpy as np
 from qiskit.quantum_info import Operator
-from qiskit_dynamics.dispatch.array import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.models import (
     GeneratorModel,

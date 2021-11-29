@@ -42,7 +42,7 @@ from qiskit_dynamics.models import (
     rotating_wave_approximation,
 )
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 
 from .solver_functions import solve_lmde
 from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized

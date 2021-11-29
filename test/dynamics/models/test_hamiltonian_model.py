@@ -23,7 +23,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel
 from qiskit_dynamics.models.hamiltonian_model import is_hermitian
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 

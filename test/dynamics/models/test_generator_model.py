@@ -25,7 +25,7 @@ from qiskit_dynamics.models.generator_model import (
     transfer_operators_between_frames,
 )
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.dispatch import Array, wrap
+from qiskit_dynamics.array import Array, wrap
 from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
