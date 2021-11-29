@@ -90,7 +90,6 @@ from .dispatch import (
     default_backend,
     available_backends,
     backend_types,
-    asarray,
     requires_backend,
 )
 

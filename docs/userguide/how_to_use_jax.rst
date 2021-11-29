@@ -33,14 +33,14 @@ options is used.
     jax.config.update('jax_platform_name', 'cpu')
 
     # import dispatch and set default backend
-    from qiskit_dynamics import dispatch
-    dispatch.set_default_backend('jax')
+    from qiskit_dynamics.array import Array, wrap
+    Array.set_default_backend('jax')
 
 The default backend can be observed via:
 
 .. jupyter-execute::
 
-    dispatch.default_backend()
+    Array.default_backend()
 
 
 2. How do I write code using dispatch that can be executed with either ``numpy`` or JAX?
