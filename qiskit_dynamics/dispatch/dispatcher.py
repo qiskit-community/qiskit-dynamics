@@ -12,18 +12,19 @@
 """Array library dispatcher functions"""
 
 import functools
-from typing import Union, Callable
+from typing import Union, Callable, Optional
 from .exceptions import DispatchError
 from .register import CACHE, register_type
 
 __all__ = ["dispatcher", "dispatch_function", "infer_library"]
 
 
-def dispatcher(lib: str) -> Callable:
+def dispatcher(lib: Optional[str] = None) -> Callable:
     """Return the dispatcher for the specified library.
 
     Args:
-        lib: An array library name
+        lib: An array library name. If None and the default library will be
+             used if one has been set.
 
     Returns:
         The function dispatcher for the specified library.
@@ -31,6 +32,11 @@ def dispatcher(lib: str) -> Callable:
     Raises:
         DispatchError: if the input library is not registered.
     """
+    if lib is None:
+        if CACHE.DEFAULT_LIB is None:
+            raise DispatchError("No default library has be set.")
+        lib = CACHE.DEFAULT_LIB
+
     # Return cached dispatcher
     if lib in CACHE.DISPATCHERS:
         return CACHE.DISPATCHERS[lib]
@@ -74,7 +80,7 @@ def dispatch_function(func: Union[Callable, str]) -> Callable:
 
     .. note::
 
-        The first argument of the `func` must be an array. The type
+        The first argument of the `func` should be an array. The type
         of this array is used to determine the library for the
         dispatched function.
 
@@ -92,9 +98,11 @@ def dispatch_function(func: Union[Callable, str]) -> Callable:
     def _function(array, *args, **kwargs):
         lib = infer_library(array)
         if lib is NotImplemented:
-            raise DispatchError(
-                f"{type(array)} is not a registered type for any registered array libraries."
-            )
+            if CACHE.DEFAULT_LIB is None:
+                raise DispatchError(
+                    f"{type(array)} is not a registered type for any registered array libraries."
+                )
+            lib = CACHE.DEFAULT_LIB
         lib_func = dispatcher(lib)(func_name)
         return lib_func(array, *args, **kwargs)
 

@@ -60,6 +60,8 @@ class Array(NDArrayOperatorsMixin):
 
         Raises:
             ValueError: if input cannot be converted to an Array.
+            DispatchError: if the specified backend is not a registered
+                           array library.
         """
 
         # Check if we can override setattr and

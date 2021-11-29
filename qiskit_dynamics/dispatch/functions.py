@@ -17,10 +17,10 @@ from typing import Optional, Callable
 from qiskit.utils import deprecate_arguments
 from .exceptions import DispatchError
 
-from .register import is_registered_library
+from .register import is_registered_library, CACHE
 from .dispatcher import dispatch_function, dispatcher
 
-__all__ = ["requires_library", "asarray"]
+__all__ = ["requires_library", "asarray", "array"]
 
 
 def requires_library(lib: str) -> Callable:
@@ -80,7 +80,7 @@ def requires_library(lib: str) -> Callable:
 
 @deprecate_arguments({"backend": "lib"})
 def asarray(
-    array: any,
+    obj: any,
     dtype: Optional[any] = None,
     order: Optional[str] = None,
     lib: Optional[str] = None,
@@ -92,18 +92,59 @@ def asarray(
     casting to other registered array libraries.
 
     Args:
-        array: An array_like input.
+        obj: An array like input.
         dtype: Optional. The dtype of the returned array. This value
                must be supported by the specified array backend.
         order: Optional. The array order. This value must be supported
                by the specified array backend.
-        lib: A registered array library name. If None the library of
-             the input array will be used.
+        lib: A registered array library name. If None the default
+             array library will be used.
         backend: DEPREACTED, use lib kwarg instead.
 
     Returns:
-        array: an array object of the form specified by the backend
-                kwarg.
+        array: an array object from the specified array library.
+
+    Raises:
+        DispatchError: If `lib` is None, the default library is None, and the
+                       input `array` is not an array type of a registered array
+                       library.
+    """
+    kwargs = {}
+    if dtype is not None:
+        kwargs["dtype"] = dtype
+    if order:
+        kwargs["order"] = order
+    if lib is None:
+        lib = CACHE.DEFAULT_LIB
+    if lib:
+        lib_func = dispatcher(lib)("asarray")
+    else:
+        lib_func = dispatch_function("asarray")
+    return lib_func(obj, **kwargs)
+
+
+def array(
+    obj: any,
+    dtype: Optional[any] = None,
+    order: Optional[str] = None,
+    lib: Optional[str] = None,
+) -> any:
+    """Construct an array of the specified array library.
+
+    This functions like `numpy.array` but supports returning array
+    types of other registered array libraries.
+
+    Args:
+        obj: An array like input.
+        dtype: Optional. The dtype of the returned array. This value
+               must be supported by the specified array backend.
+        order: Optional. The array order. This value must be supported
+               by the specified array backend.
+        lib: A registered array library name. If None the default
+             array library will be used.
+
+    Returns:
+        array: an array object from the specified array library.
 
     Raises:
         DispatchError: If `lib` is None and the input `array` is not an
@@ -114,8 +155,13 @@ def asarray(
         kwargs["dtype"] = dtype
     if order:
         kwargs["order"] = order
-    if lib:
-        lib_func = dispatcher(lib)("asarray")
-    else:
-        lib_func = dispatch_function("asarray")
-    return lib_func(array, **kwargs)
+    if lib is None:
+        if CACHE.DEFAULT_LIB is None:
+            raise DispatchError(
+                "No default array library has been set. Either specify a library using "
+                "the `lib` kwarg or set a default library using `set_default_library`"
+            )
+        lib = CACHE.DEFAULT_LIB
+
+    lib_func = dispatcher(lib)("array")
+    return lib_func(obj, **kwargs)

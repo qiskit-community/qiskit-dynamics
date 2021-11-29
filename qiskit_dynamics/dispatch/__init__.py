@@ -38,11 +38,12 @@ Additional Functions
 .. autosummary::
     :toctree: ../stubs/
 
+    array
+    asarray
     infer_library
     registered_libraries
     validate_library
     requires_library
-    asarray
 
 Registering Array Libraries
 ===========================
@@ -50,6 +51,8 @@ Registering Array Libraries
 .. autosummary::
     :toctree: ../stubs/
 
+    default_library
+    set_default_library
     registered_libraries
     is_registered_library
     registered_types
@@ -69,6 +72,7 @@ from .dispatcher import (
 from .functions import (
     requires_library,
     asarray,
+    array,
 )
 
 from .register import (

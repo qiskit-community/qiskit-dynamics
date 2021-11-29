@@ -15,9 +15,13 @@ import functools
 from types import ModuleType, FunctionType, SimpleNamespace
 from typing import Optional, Union, Callable, Set, Tuple
 
+from qiskit_dynamics.dispatch.exceptions import DispatchError
+
 __all__ = [
     "registered_libraries",
     "is_registered_library",
+    "default_library",
+    "set_default_library",
     "registered_types",
     "is_registered_type",
     "register_function",
@@ -30,6 +34,9 @@ CACHE = SimpleNamespace()
 
 # Registered array library names
 CACHE.REGISTERED_LIBS = set()
+
+# Set a default array library
+CACHE.DEFAULT_LIB = None
 
 # Map from registered type to array library
 CACHE.REGISTERED_TYPES_LIB = {}
@@ -55,6 +62,20 @@ def registered_libraries() -> Set[str]:
 def is_registered_library(lib: str) -> bool:
     """Return True if input lib is a registered array library."""
     return lib in CACHE.REGISTERED_LIBS
+
+
+def default_library() -> Union[str, None]:
+    """Return the default array library or None if no default is set."""
+    return CACHE.DEFAULT_LIB
+
+
+def set_default_library(lib: str):
+    """Return the default array library or None if no default is set."""
+    if not is_registered_library(lib):
+        raise DispatchError(
+            f"Cannot set default library, '{lib}' is not a registered array library"
+        )
+    CACHE.DEFAULT_LIB = lib
 
 
 def register_type(array_type: type, lib: Optional[str] = None):
