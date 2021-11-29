@@ -92,6 +92,8 @@ For convenience, the ``wrap`` function can be used to transform
 inputs and outputs.
 
 .. jupyter-execute::
+    
+    from qiskit_dynamics.array import wrap
 
     jit = wrap(jax.jit, decorator=True)
 
@@ -102,7 +104,7 @@ Construct a ``Solver`` instance with a model that will be used to solve.
     import numpy as np
     from qiskit.quantum_info import Operator
     from qiskit_dynamics import Solver, Signal
-    from qiskit_dynamics.array import Array, wrap
+    from qiskit_dynamics.array import Array
 
     r = 0.5
     w = 1.
