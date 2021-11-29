@@ -1,0 +1,48 @@
+---
+features:
+  - |
+    This :mod:`qiskit_dynamics.dispatch` module has been rewritten to provide
+    a common API for working directly with array types from different array
+    libraries such as Numpy and JAX.
+    
+    This module allows registering other array backend libraries and custom
+    function dispatch rules. Currently only Numpy and JAX are automatically
+    registered.
+upgrade:
+  - |
+    The :class:`~qiskit_dynamics.array.Array` class and
+    :func:`~qiskit_dynamics.array.wrap` function have been moved from the
+    :mod:`qiskit_dynamics.dispatch` module to the
+    :mod:`qiskit_dynamics.array` module.
+  - |
+    The :mod:`qiskit_dynamics.dispatch` module has been rewritten to allow
+    direct usage for dispatch
+deprecations:
+  - |
+    Importing the :class:`~qiskit_dynamics.array.Array` class for the
+    :mod:`qiskit_dynamics.dispatch` module has been deprecated. It should now
+    be imported from the :mod:`qiskit_dynamics.array` module instead.
+  - |
+    Importing the :class:`~qiskit_dynamics.array.wrap` function for the
+    :mod:`qiskit_dynamics.dispatch` module has been deprecated. It should now
+    be imported from the :mod:`qiskit_dynamics.array` module instead.
+  - |
+    The :func:`qiskit_dynamics.dispatch.default_backend` function has been
+    deprecated. It has been superseeded by the
+    :meth:`qiskit_dynamics.array.Array.default_backend` class method.
+  - |
+    The :func:`qiskit_dynamics.dispatch.set_default_backend` function has been
+    deprecated. It has been superseeded by the
+    :meth:`qiskit_dynamics.array.Array.set_default_backend` class method.
+  - |
+    The :func:`qiskit_dynamics.dispatch.backend_types` function has been
+    deprecated. It has been superseeded by the
+    :meth:`qiskit_dynamics.dispatch.registered_types` function.
+  - |
+    The :func:`qiskit_dynamics.dispatch.available_backends` function has been
+    deprecated. It has been superseeded by the
+    :func:`qiskit_dynamics.dispatch.registered_libraries` function.
+  - |
+    The :func:`qiskit_dynamics.dispatch.required_backend` decorator function
+    has been deprecated. It has been superseeded by the
+    :func:`qiskit_dynamics.dispatch.required_library` function.
