@@ -34,6 +34,17 @@ Dispatcher
     function
 
 
+Registering Functions and Libraries
+===================================
+
+.. autosummary::
+    :toctree: ../stubs/
+
+    register_function
+    register_module
+    register_type
+
+
 Additional Functions
 ====================
 
@@ -45,22 +56,9 @@ Additional Functions
     infer_library
     registered_libraries
     requires_library
-
-Registering Array Libraries
-===========================
-
-.. autosummary::
-    :toctree: ../stubs/
-
     default_library
     set_default_library
-    registered_libraries
-    is_registered_library
     registered_types
-    is_registered_type
-    register_function
-    register_module
-    register_type
 """
 
 # Dispatcher
@@ -79,15 +77,13 @@ from .functions import (
 )
 
 from .register import (
-    default_library,
-    set_default_library,
-    registered_libraries,
-    is_registered_library,
-    registered_types,
-    is_registered_type,
     register_function,
     register_module,
     register_type,
+    default_library,
+    set_default_library,
+    registered_libraries,
+    registered_types,
 )
 
 # Register built-in supported libraries

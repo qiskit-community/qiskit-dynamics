@@ -9,12 +9,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""Dispatch module exceptions"""
-
-from qiskit.exceptions import QiskitError
+"""Dispatch module exception"""
 
 
-class DispatchError(QiskitError):
+class DispatchError(Exception):
     """Class for dispatch module errors"""
 
     def __init__(self, *msg):

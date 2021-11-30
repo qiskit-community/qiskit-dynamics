@@ -19,11 +19,9 @@ from qiskit_dynamics.dispatch.exceptions import DispatchError
 
 __all__ = [
     "registered_libraries",
-    "is_registered_library",
     "default_library",
     "set_default_library",
     "registered_types",
-    "is_registered_type",
     "register_function",
     "register_module",
     "register_type",
@@ -59,11 +57,6 @@ def registered_libraries() -> Set[str]:
     return CACHE.REGISTERED_LIBS
 
 
-def is_registered_library(lib: str) -> bool:
-    """Return True if input lib is a registered array library."""
-    return lib in CACHE.REGISTERED_LIBS
-
-
 def default_library() -> Union[str, None]:
     """Return the default array library or None if no default is set."""
     return CACHE.DEFAULT_LIB
@@ -71,7 +64,7 @@ def default_library() -> Union[str, None]:
 
 def set_default_library(lib: str):
     """Return the default array library or None if no default is set."""
-    if not is_registered_library(lib):
+    if lib not in CACHE.REGISTERED_LIBS:
         raise DispatchError(
             f"Cannot set default library, '{lib}' is not a registered array library"
         )
@@ -98,11 +91,6 @@ def register_type(array_type: type, lib: Optional[str] = None):
 def registered_types() -> Tuple[type]:
     """Return a tuple of registered array library types."""
     return CACHE.REGISTERED_TYPES
-
-
-def is_registered_type(obj: any) -> bool:
-    """Return True if object is a registered array library type."""
-    return isinstance(obj, CACHE.REGISTERED_TYPES)
 
 
 def register_module(module: ModuleType, lib: Optional[str] = None):

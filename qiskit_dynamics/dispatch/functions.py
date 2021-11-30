@@ -17,7 +17,7 @@ from typing import Optional, Callable
 from qiskit.utils import deprecate_arguments
 from .exceptions import DispatchError
 
-from .register import is_registered_library, CACHE
+from .register import CACHE
 from .dispatcher import function, dispatcher
 
 __all__ = ["requires_library", "asarray", "array"]
@@ -42,7 +42,7 @@ def requires_library(lib: str) -> Callable:
         """Specify that the decorated object requires a specifc array library."""
 
         def check_lib(descriptor):
-            if not is_registered_library(lib):
+            if lib not in CACHE.REGISTERED_LIBS:
                 raise DispatchError(
                     f"Array library '{lib}' required by {descriptor} "
                     "is not installed. Please install the optional "

@@ -30,9 +30,7 @@ try:
     except ImportError:
         pass
 
-    from ..register import register_function, register_module, register_type
-    import numpy as np
-    from .numpy import array_repr as numpy_repr
+    from qiskit_dynamics.dispatch.register import register_function, register_module, register_type
 
     __all__ = []
 
@@ -40,21 +38,13 @@ try:
     for atype in JAX_TYPES:
         register_type(atype, "jax")
 
-    # Register modules
+    # Register jax numpy modules
     register_module(jax.numpy, "jax")
     register_module(jax.numpy.linalg, "jax")
 
-    # Register custom functions
-    @register_function(name="repr", lib="jax")
-    def array_repr(array, prefix="", suffix=""):
-        """Wrapper for showing Numpy array in custom class"""
-        if hasattr(array, "_value"):
-            return numpy_repr(array._value, prefix=prefix, suffix=suffix)
-        return prefix + repr(array) + suffix
-
     # Jax doesn't implement a copy method, so we add one using the
     # jax numpy.array constructor which implicitly copies
-    @register_function(name=np.copy, lib="jax")
+    @register_function(name="copy", lib="jax")
     def _copy(array, order="K"):
         return jax.numpy.array(array, copy=True, order=order)
 

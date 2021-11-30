@@ -11,36 +11,19 @@
 # that they have been altered from the originals.
 """Register numpy library for Dispatch"""
 
-import numpy
-from ..register import register_function, register_module, register_type
+try:
+    import numpy
+    from qiskit_dynamics.dispatch.register import register_module, register_type
 
-__all__ = []
+    __all__ = []
 
-# Register jax types
-register_type(numpy.ndarray)
+    # Register numpy ndarray
+    register_type(numpy.ndarray)
 
-# Register modules
-register_module(numpy)
-register_module(numpy.linalg)
-register_module(numpy.random)
+    # Register numpy modules
+    register_module(numpy)
+    register_module(numpy.linalg)
+    register_module(numpy.random)
 
-
-@register_function(name="repr", lib="numpy")
-def array_repr(array, prefix="", suffix=""):
-    """Wrapper for showing Numpy array in custom class"""
-    max_line_width = numpy.get_printoptions()["linewidth"]
-    array_str = numpy.array2string(
-        array,
-        separator=", ",
-        prefix=prefix,
-        suffix="," if suffix else None,
-        max_line_width=max_line_width,
-    )
-    sep = ""
-    if len(suffix) > 1:
-        last_line_width = len(array_str) - array_str.rfind("\n") + 1
-        if last_line_width + len(suffix) + 1 > max_line_width:
-            sep = ",\n" + " " * len(prefix)
-        else:
-            sep = ", "
-    return prefix + array_str + sep + suffix
+except ModuleNotFoundError:
+    pass

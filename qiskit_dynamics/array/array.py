@@ -23,7 +23,7 @@ from numpy.lib.mixins import NDArrayOperatorsMixin
 from qiskit_dynamics.dispatch.exceptions import DispatchError
 from qiskit_dynamics.dispatch.dispatcher import infer_library, dispatcher
 from qiskit_dynamics.dispatch.functions import asarray
-from qiskit_dynamics.dispatch.register import CACHE, is_registered_library, registered_libraries
+from qiskit_dynamics.dispatch.register import CACHE, registered_libraries
 
 __all__ = ["Array"]
 
@@ -124,7 +124,7 @@ class Array(NDArrayOperatorsMixin):
     @backend.setter
     def backend(self, value: str):
         """Set the backend of the wrapped array class"""
-        if not is_registered_library(value):
+        if value not in registered_libraries():
             raise DispatchError(
                 f"'{value}' is not a registered array library "
                 f"(registered libraries: {registered_libraries()})"
@@ -136,7 +136,7 @@ class Array(NDArrayOperatorsMixin):
     def set_default_backend(cls, backend: Union[str, None]):
         """Set the default array backend."""
         if backend is not None:
-            if not is_registered_library(backend):
+            if backend not in registered_libraries():
                 raise DispatchError(
                     f"'{backend}' is not a registered array library "
                     f"(registered libraries: {registered_libraries()})"
@@ -149,12 +149,33 @@ class Array(NDArrayOperatorsMixin):
         return cls._DEFAULT_BACKEND
 
     def __repr__(self):
+        max_line_width = numpy.get_printoptions()["linewidth"]
         prefix = "Array("
         if self._backend == Array._DEFAULT_BACKEND:
             suffix = ")"
         else:
             suffix = "backend='{}')".format(self._backend)
-        return self._dispatcher("repr")(self._data, prefix=prefix, suffix=suffix)
+        try:
+            array_str = numpy.array2string(
+                numpy.asarray(self._data),
+                separator=", ",
+                prefix=prefix,
+                suffix="," if suffix else None,
+                max_line_width=max_line_width,
+            )
+        except Exception:  # pylint: disable = broad-except
+            array_str = repr(self._data)
+            if suffix:
+                array_str += ","
+
+        sep = ""
+        if len(suffix) > 1:
+            last_line_width = len(array_str) - array_str.rfind("\n") + 1
+            if last_line_width + len(suffix) + 1 > max_line_width:
+                sep = ",\n" + " " * len(prefix)
+            else:
+                sep = ", "
+        return prefix + array_str + sep + suffix
 
     def __copy__(self):
         """Return a shallow copy referencing the same wrapped data array"""
