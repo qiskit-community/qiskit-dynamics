@@ -22,31 +22,17 @@ Dispatch Module (:mod:`qiskit_dynamics.dispatch`)
 This module contains a common interface for working with array types from
 multiple array libraries.
 
-Dispatcher
-==========
+Dispatcher Object
+=================
 
 .. autosummary::
     :toctree: ../stubs/
 
-    Dispatcher
-    AutoDispatcher
-    dispatcher
-    function
+    default_dispatcher
 
 
-Registering Functions and Libraries
-===================================
-
-.. autosummary::
-    :toctree: ../stubs/
-
-    register_function
-    register_module
-    register_type
-
-
-Additional Functions
-====================
+Utility Functions
+=================
 
 .. autosummary::
     :toctree: ../stubs/
@@ -54,40 +40,31 @@ Additional Functions
     array
     asarray
     infer_library
-    registered_libraries
     requires_library
-    default_library
-    set_default_library
-    registered_types
+
+
+Dispatcher Classes
+==================
+
+    DynamicDispatcher
+    StaticDispatcher
 """
 
-# Dispatcher
-from .dispatcher import (
-    Dispatcher,
-    AutoDispatcher,
-    dispatcher,
-    function,
-    infer_library,
-)
+from .default_dispatcher import default_dispatcher
+from .static_dispatcher import StaticDispatcher
+from .dynamic_dispatcher import DynamicDispatcher
 
 from .functions import (
-    requires_library,
-    asarray,
     array,
-)
-
-from .register import (
-    register_function,
-    register_module,
-    register_type,
-    default_library,
-    set_default_library,
-    registered_libraries,
-    registered_types,
+    asarray,
+    infer_library,
+    requires_library,
 )
 
 # Register built-in supported libraries
 from .dispatcher_libraries import *
+
+# DEPRECATED
 
 # Depreacted dispatch functions
 from .dispatch import (

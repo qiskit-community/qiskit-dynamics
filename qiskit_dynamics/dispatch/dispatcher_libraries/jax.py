@@ -30,21 +30,21 @@ try:
     except ImportError:
         pass
 
-    from qiskit_dynamics.dispatch.register import register_function, register_module, register_type
+    from qiskit_dynamics.dispatch.default_dispatcher import default_dispatcher as DISPATCHER
 
     __all__ = []
 
     # Register jax types
     for atype in JAX_TYPES:
-        register_type(atype, "jax")
+        DISPATCHER.register_type(atype, "jax")
 
     # Register jax numpy modules
-    register_module(jax.numpy, "jax")
-    register_module(jax.numpy.linalg, "jax")
+    DISPATCHER.register_module(jax.numpy, "jax")
+    DISPATCHER.register_module(jax.numpy.linalg, "jax")
 
     # Jax doesn't implement a copy method, so we add one using the
     # jax numpy.array constructor which implicitly copies
-    @register_function(name="copy", lib="jax")
+    @DISPATCHER.register_function(name="copy", lib="jax")
     def _copy(array, order="K"):
         return jax.numpy.array(array, copy=True, order=order)
 

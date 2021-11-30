@@ -13,69 +13,56 @@
 
 import functools
 from types import FunctionType
-from typing import Optional, Callable
+from typing import Optional, Callable, Union
 from qiskit.utils import deprecate_arguments
 from .exceptions import DispatchError
 
-from .register import CACHE
-from .dispatcher import function, dispatcher
-
-__all__ = ["requires_library", "asarray", "array"]
+from .default_dispatcher import default_dispatcher as DISPATCHER
 
 
-def requires_library(lib: str) -> Callable:
-    """Return a function and class decorator for checking a required library is available.
+def array(
+    obj: any,
+    dtype: Optional[any] = None,
+    order: Optional[str] = None,
+    lib: Optional[str] = None,
+) -> any:
+    """Construct an array of the specified array library.
 
-    If the the required library is not in the list of :func:`registered_libs`
-    any decorated function or method will raise an exception when called, and
-    any decorated class will raise an exeption when its ``__init__`` is called.
+    This functions like `numpy.array` but supports returning array
+    types of other registered array libraries.
 
     Args:
-        lib: the array library name required by class or function.
+        obj: An array like input.
+        dtype: Optional. The dtype of the returned array. This value
+               must be supported by the specified array backend.
+        order: Optional. The array order. This value must be supported
+               by the specified array backend.
+        lib: A registered array library name. If None the default
+             array library will be used.
 
     Returns:
-        Callable: A decorator that may be used to specify that a function, class,
-                  or class method requires a specific library to be installed.
+        array: an array object from the specified array library.
+
+    Raises:
+        DispatchError: If `lib` is None and the input `array` is not an
+                       array type of a registered array library.
     """
+    kwargs = {}
+    if dtype is not None:
+        kwargs["dtype"] = dtype
+    if order:
+        kwargs["order"] = order
+    if lib is None:
+        if DISPATCHER.default_lib is None:
+            raise DispatchError(
+                "No default array library has been set for built in dispatcher. Either "
+                "specify a library using the `lib` kwarg or set a default library using "
+                " `dispatcher.default_library = lib`"
+            )
+        lib = DISPATCHER.default_library
 
-    def decorator(obj):
-        """Specify that the decorated object requires a specifc array library."""
-
-        def check_lib(descriptor):
-            if lib not in CACHE.REGISTERED_LIBS:
-                raise DispatchError(
-                    f"Array library '{lib}' required by {descriptor} "
-                    "is not installed. Please install the optional "
-                    f"library '{lib}'."
-                )
-
-        # Decorate a function or method
-        if isinstance(obj, FunctionType):
-
-            @functools.wraps(obj)
-            def decorated_func(*args, **kwargs):
-                check_lib(f"function {obj}")
-                return obj(*args, **kwargs)
-
-            return decorated_func
-
-        # Decorate a class
-        elif isinstance(obj, type):
-
-            obj_init = obj.__init__
-
-            @functools.wraps(obj_init)
-            def decorated_init(self, *args, **kwargs):
-                check_lib(f"class {obj}")
-                obj_init(self, *args, **kwargs)
-
-            obj.__init__ = decorated_init
-            return obj
-
-        else:
-            raise Exception(f"Cannot decorate object {obj} that is not a class or function.")
-
-    return decorator
+    lib_func = DISPATCHER.static_dispatcher(lib).array
+    return lib_func(obj, **kwargs)
 
 
 @deprecate_arguments({"backend": "lib"})
@@ -115,53 +102,77 @@ def asarray(
     if order:
         kwargs["order"] = order
     if lib is None:
-        lib = CACHE.DEFAULT_LIB
+        lib = DISPATCHER.default_library
     if lib:
-        lib_func = dispatcher(lib)("asarray")
+        lib_func = DISPATCHER.static_dispatcher(lib).asarray
     else:
-        lib_func = function("asarray")
+        lib_func = DISPATCHER.asarray
     return lib_func(obj, **kwargs)
 
 
-def array(
-    obj: any,
-    dtype: Optional[any] = None,
-    order: Optional[str] = None,
-    lib: Optional[str] = None,
-) -> any:
-    """Construct an array of the specified array library.
-
-    This functions like `numpy.array` but supports returning array
-    types of other registered array libraries.
+def infer_library(obj: any) -> Union[str, None]:
+    """Return the registered array library name of an array object.
 
     Args:
-        obj: An array like input.
-        dtype: Optional. The dtype of the returned array. This value
-               must be supported by the specified array backend.
-        order: Optional. The array order. This value must be supported
-               by the specified array backend.
-        lib: A registered array library name. If None the default
-             array library will be used.
+        obj: an array object.
 
     Returns:
-        array: an array object from the specified array library.
-
-    Raises:
-        DispatchError: If `lib` is None and the input `array` is not an
-                       array type of a registered array library.
+        The array library name if the array type is registered,
+        or None otherwise.
     """
-    kwargs = {}
-    if dtype is not None:
-        kwargs["dtype"] = dtype
-    if order:
-        kwargs["order"] = order
-    if lib is None:
-        if CACHE.DEFAULT_LIB is None:
-            raise DispatchError(
-                "No default array library has been set. Either specify a library using "
-                "the `lib` kwarg or set a default library using `set_default_library`"
-            )
-        lib = CACHE.DEFAULT_LIB
+    return DISPATCHER._infer_library(type(obj))
 
-    lib_func = dispatcher(lib)("array")
-    return lib_func(obj, **kwargs)
+
+def requires_library(lib: str) -> Callable:
+    """Return a function and class decorator for checking a required library is available.
+
+    If the the required library is not in the list of :func:`registered_libs`
+    any decorated function or method will raise an exception when called, and
+    any decorated class will raise an exeption when its ``__init__`` is called.
+
+    Args:
+        lib: the array library name required by class or function.
+
+    Returns:
+        Callable: A decorator that may be used to specify that a function, class,
+                  or class method requires a specific library to be installed.
+    """
+
+    def decorator(obj):
+        """Specify that the decorated object requires a specifc array library."""
+
+        def check_lib(descriptor):
+            if lib not in DISPATCHER.registered_libraries:
+                raise DispatchError(
+                    f"Array library '{lib}' required by {descriptor} "
+                    "is not installed. Please install the optional "
+                    f"library '{lib}'."
+                )
+
+        # Decorate a function or method
+        if isinstance(obj, FunctionType):
+
+            @functools.wraps(obj)
+            def decorated_func(*args, **kwargs):
+                check_lib(f"function {obj}")
+                return obj(*args, **kwargs)
+
+            return decorated_func
+
+        # Decorate a class
+        elif isinstance(obj, type):
+
+            obj_init = obj.__init__
+
+            @functools.wraps(obj_init)
+            def decorated_init(self, *args, **kwargs):
+                check_lib(f"class {obj}")
+                obj_init(self, *args, **kwargs)
+
+            obj.__init__ = decorated_init
+            return obj
+
+        else:
+            raise Exception(f"Cannot decorate object {obj} that is not a class or function.")
+
+    return decorator

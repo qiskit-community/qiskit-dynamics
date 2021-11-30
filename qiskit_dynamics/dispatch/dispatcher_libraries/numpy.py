@@ -13,17 +13,17 @@
 
 try:
     import numpy
-    from qiskit_dynamics.dispatch.register import register_module, register_type
+    from qiskit_dynamics.dispatch.default_dispatcher import default_dispatcher as DISPATCHER
 
     __all__ = []
 
     # Register numpy ndarray
-    register_type(numpy.ndarray)
+    DISPATCHER.register_type(numpy.ndarray)
 
     # Register numpy modules
-    register_module(numpy)
-    register_module(numpy.linalg)
-    register_module(numpy.random)
+    DISPATCHER.register_module(numpy)
+    DISPATCHER.register_module(numpy.linalg)
+    DISPATCHER.register_module(numpy.random)
 
 except ModuleNotFoundError:
     pass
