@@ -16,14 +16,30 @@ from typing import Union, Callable, Optional
 from .exceptions import DispatchError
 from .register import CACHE, register_type
 
-__all__ = ["dispatcher", "dispatch_function", "infer_library"]
+__all__ = ["Dispatcher", "AutoDispatcher", "dispatcher", "function", "infer_library"]
 
 
 class Dispatcher:
+    """Dispatcher for array functions on to a specified array library.
+
+    This class is a wrapper for :func:`dispatcher` which adds attribute
     based access.
+    """
+
+    def __init__(self, lib: Optional[str] = None) -> Callable:
+        """Initialize the dispatcher for the specified library.
 
         Args:
+            lib: An array library name. If None and the default library will be
                 used if one has been set.
+
+        Returns:
+            The function dispatcher for the specified library.
+
+        Raises:
+            DispatchError: if the input library is not registered.
+        """
+        self._dispatcher = dispatcher(lib)
 
     def __call__(self, name: Union[str, Callable]) -> Callable:
         return self._dispatcher(name)
