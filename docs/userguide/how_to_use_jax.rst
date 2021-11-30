@@ -46,11 +46,11 @@ The default backend can be observed via:
 2. How do I write code using dispatch that can be executed with either ``numpy`` or JAX?
 ----------------------------------------------------------------------------------------
 
-The ``dispatch.Array`` class wraps both ``numpy`` and ``jax.numpy``
+The ``Array`` class wraps both ``numpy`` and ``jax.numpy``
 arrays. The particular type is indicated by the ``backend`` property,
 and ``numpy`` functions called on an ``Array`` will automatically be
 dispatched to ``numpy`` or ``jax.numpy`` based on the ``Array``\ ’s
-backend. See the API documentation for ``qiskit_dynamics.dispatch`` for
+backend. See the API documentation for ``qiskit_dynamics.array`` for
 details.
 
 3. How do I write JAX-transformable functions using the objects and functions in ``qiskit-dynamics``?
@@ -87,13 +87,15 @@ which transforms a JAX-compatible function into optimized code using
 functions built using Qiskit Dynamics can be
 just-in-time compiled, resulting in faster simulation times.
 
-For convenience, the ``dispatch.wrap`` function can be used to transform
+For convenience, the ``wrap`` function can be used to transform
 ``jax.jit`` to also work on functions that have ``Array`` objects as
 inputs and outputs.
 
 .. jupyter-execute::
+    
+    from qiskit_dynamics.array import wrap
 
-    jit = dispatch.wrap(jax.jit, decorator=True)
+    jit = wrap(jax.jit, decorator=True)
 
 Construct a ``Solver`` instance with a model that will be used to solve.
 
@@ -102,7 +104,7 @@ Construct a ``Solver`` instance with a model that will be used to solve.
     import numpy as np
     from qiskit.quantum_info import Operator
     from qiskit_dynamics import Solver, Signal
-    from qiskit_dynamics.dispatch import Array
+    from qiskit_dynamics.array import Array
 
     r = 0.5
     w = 1.
@@ -207,7 +209,7 @@ Wrap ``jax.grad`` in the same way, then differentiate and compile
 
 .. jupyter-execute::
 
-    grad = dispatch.wrap(jax.grad, decorator=True)
+    grad = wrap(jax.grad, decorator=True)
 
     excited_pop_grad = jit(grad(excited_state_pop))
 

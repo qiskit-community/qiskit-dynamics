@@ -19,7 +19,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.models.rotating_frame import RotatingFrame
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 

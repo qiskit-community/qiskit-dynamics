@@ -25,7 +25,7 @@ from qiskit_dynamics.models import (
     RotatingFrame,
 )
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 
 
