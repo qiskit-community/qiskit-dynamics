@@ -15,9 +15,26 @@ import functools
 from types import FunctionType
 from typing import Optional, Callable, Union
 from qiskit.utils import deprecate_arguments
-from .exceptions import DispatchError
 
-from .default_dispatcher import default_dispatcher as DISPATCHER
+from qiskit_dynamics.dispatch.dynamic_dispatcher import DynamicDispatcher
+from qiskit_dynamics.dispatch.exceptions import DispatchError
+from qiskit_dynamics.dispatch.default_dispatcher import DEFAULT_DISPATCHER
+
+
+def default_dispatcher() -> DynamicDispatcher:
+    """Return the default dispatcher.
+
+    .. note ::
+
+        There is only ever 1 instance of the default dispatcher for each library.
+        All calls to this function will return the same :class:`DynamicDispatcher`
+        instance.
+
+    Returns:
+        The default dynamic dispatcher for the module if ``lib`` is None.
+        The default static dispatcher for the specified library other.
+    """
+    return DEFAULT_DISPATCHER
 
 
 def array(
@@ -25,11 +42,15 @@ def array(
     dtype: Optional[any] = None,
     order: Optional[str] = None,
     lib: Optional[str] = None,
+    dispatcher: Optional[DynamicDispatcher] = None,
 ) -> any:
     """Construct an array of the specified array library.
 
-    This functions like `numpy.array` but supports returning array
-    types of other registered array libraries.
+    .. note::
+
+        This functions like `numpy.array` but supports returning array
+        types of other registered array libraries using the supplied
+        :class:`DynamicDispatcher`.
 
     Args:
         obj: An array like input.
@@ -37,8 +58,10 @@ def array(
                must be supported by the specified array backend.
         order: Optional. The array order. This value must be supported
                by the specified array backend.
-        lib: A registered array library name. If None the default
-             array library will be used.
+        lib: A library name for the default_dispatcher. If None the default
+             library of the default dispatcher will be used if set.
+        dispatcher: Optional, a specific dispatcher to use. If None the
+                    :func:`default_dispatcher` will be used.
 
     Returns:
         array: an array object from the specified array library.
@@ -52,16 +75,18 @@ def array(
         kwargs["dtype"] = dtype
     if order:
         kwargs["order"] = order
+    if dispatcher is None:
+        dispatcher = DEFAULT_DISPATCHER
     if lib is None:
-        if DISPATCHER.default_lib is None:
+        if dispatcher.default_lib is None:
             raise DispatchError(
-                "No default array library has been set for built in dispatcher. Either "
-                "specify a library using the `lib` kwarg or set a default library using "
-                " `dispatcher.default_library = lib`"
+                "No default array library has been set for the specified dispatcher. "
+                "Either specify a library using the `lib` kwarg or set a default "
+                "library using `dispatcher.default_library = lib`"
             )
-        lib = DISPATCHER.default_library
+        lib = dispatcher.default_library
 
-    lib_func = DISPATCHER.static_dispatcher(lib).array
+    lib_func = dispatcher.static_dispatcher(lib).array
     return lib_func(obj, **kwargs)
 
 
@@ -71,12 +96,16 @@ def asarray(
     dtype: Optional[any] = None,
     order: Optional[str] = None,
     lib: Optional[str] = None,
+    dispatcher: Optional[DynamicDispatcher] = None,
     backend: Optional[str] = None,  # pylint: disable=unused-argument
 ) -> any:
     """Convert input array to an array of the specified library.
 
-    This functions like `numpy.asarray` but optionally supports
-    casting to other registered array libraries.
+    .. note::
+
+        This functions like `numpy.asarray` but optionally supports
+        casting to other registered array types using the supplied
+        :class:`DynamicDispatcher`.
 
     Args:
         obj: An array like input.
@@ -84,8 +113,10 @@ def asarray(
                must be supported by the specified array backend.
         order: Optional. The array order. This value must be supported
                by the specified array backend.
-        lib: A registered array library name. If None the default
-             array library will be used.
+        lib: Optional, A library name for the default_dispatcher. If None
+             the default library of the default dispatcher will be used if set.
+        dispatcher: Optional, a specific dispatcher to use. If None the
+                    :func:`default_dispatcher` will be used.
         backend: DEPREACTED, use lib kwarg instead.
 
     Returns:
@@ -101,29 +132,35 @@ def asarray(
         kwargs["dtype"] = dtype
     if order:
         kwargs["order"] = order
+    if dispatcher is None:
+        dispatcher = DEFAULT_DISPATCHER
     if lib is None:
-        lib = DISPATCHER.default_library
+        lib = dispatcher.default_library
     if lib:
-        lib_func = DISPATCHER.static_dispatcher(lib).asarray
+        lib_func = dispatcher.static_dispatcher(lib).asarray
     else:
-        lib_func = DISPATCHER.asarray
+        lib_func = dispatcher.asarray
     return lib_func(obj, **kwargs)
 
 
-def infer_library(obj: any) -> Union[str, None]:
+def infer_library(obj: any, dispatcher: Optional[DynamicDispatcher] = None) -> Union[str, None]:
     """Return the registered array library name of an array object.
 
     Args:
         obj: an array object.
+        dispatcher: Optional, a specific dispatcher to use. If None the
+                    :func:`default_dispatcher` will be used.
 
     Returns:
         The array library name if the array type is registered,
         or None otherwise.
     """
-    return DISPATCHER._infer_library(type(obj))
+    if dispatcher is None:
+        dispatcher = DEFAULT_DISPATCHER
+    return dispatcher._infer_library(type(obj))
 
 
-def requires_library(lib: str) -> Callable:
+def requires_library(lib: str, dispatcher: Optional[DynamicDispatcher] = None) -> Callable:
     """Return a function and class decorator for checking a required library is available.
 
     If the the required library is not in the list of :func:`registered_libs`
@@ -132,17 +169,21 @@ def requires_library(lib: str) -> Callable:
 
     Args:
         lib: the array library name required by class or function.
+        dispatcher: Optional, a specific dispatcher to use. If None the
+                    :func:`default_dispatcher` will be used.
 
     Returns:
         Callable: A decorator that may be used to specify that a function, class,
                   or class method requires a specific library to be installed.
     """
+    if dispatcher is None:
+        dispatcher = DEFAULT_DISPATCHER
 
     def decorator(obj):
         """Specify that the decorated object requires a specifc array library."""
 
         def check_lib(descriptor):
-            if lib not in DISPATCHER.registered_libraries:
+            if lib not in dispatcher.registered_libraries:
                 raise DispatchError(
                     f"Array library '{lib}' required by {descriptor} "
                     "is not installed. Please install the optional "

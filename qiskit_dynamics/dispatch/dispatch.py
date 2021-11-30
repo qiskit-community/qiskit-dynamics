@@ -15,7 +15,7 @@
 from typing import Optional, Callable
 from qiskit.utils import deprecate_function
 from .functions import requires_library
-from .default_dispatcher import default_dispatcher as DISPATCHER
+from .default_dispatcher import DEFAULT_DISPATCHER
 
 
 @deprecate_function(
@@ -48,7 +48,7 @@ def default_backend():
 )
 def backend_types():
     """Return tuple of array backend types"""
-    return DISPATCHER.registered_types
+    return DEFAULT_DISPATCHER.registered_types
 
 
 @deprecate_function(
@@ -57,7 +57,7 @@ def backend_types():
 )
 def available_backends():
     """Return a tuple of available array backends"""
-    return DISPATCHER.registered_libraries
+    return DEFAULT_DISPATCHER.registered_libraries
 
 
 @deprecate_function(

@@ -13,4 +13,4 @@
 
 from qiskit_dynamics.dispatch.dynamic_dispatcher import DynamicDispatcher
 
-default_dispatcher = DynamicDispatcher()
+DEFAULT_DISPATCHER = DynamicDispatcher()

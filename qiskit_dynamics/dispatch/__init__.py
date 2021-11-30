@@ -22,21 +22,14 @@ Dispatch Module (:mod:`qiskit_dynamics.dispatch`)
 This module contains a common interface for working with array types from
 multiple array libraries.
 
-Dispatcher Object
-=================
+
+Functions
+=========
 
 .. autosummary::
     :toctree: ../stubs/
 
     default_dispatcher
-
-
-Utility Functions
-=================
-
-.. autosummary::
-    :toctree: ../stubs/
-
     array
     asarray
     infer_library
@@ -49,12 +42,11 @@ Dispatcher Classes
     DynamicDispatcher
     StaticDispatcher
 """
-
-from .default_dispatcher import default_dispatcher
 from .static_dispatcher import StaticDispatcher
 from .dynamic_dispatcher import DynamicDispatcher
 
 from .functions import (
+    default_dispatcher,
     array,
     asarray,
     infer_library,
