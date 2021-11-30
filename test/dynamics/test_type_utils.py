@@ -425,7 +425,7 @@ class Test_to_csr(QiskitDynamicsTestCase):
         self.assertAllCloseSparse(to_csr(sparse_matrices), sparse_matrices)
 
     def test_to_csr_types(self):
-        """Type conversion tests for to_array"""
+        """Type conversion tests for to_csr"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         numpy_ops = np.array(list_of_ops)
         normal_array = Array(np.array(list_of_ops))
@@ -532,7 +532,7 @@ class TestTypeUtilsQutip(QiskitDynamicsTestCase, TestQutipBase):
     """Perform type conversion testing for qutip qobj inputs"""
 
     def test_qutip_conversion(self):
-        """Test qutip type conversion to numeric matrix generally, csr, and array"""
+        """Test qutip type conversion to numeric matrices generally, csr, and array"""
         from qutip import Qobj
 
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
