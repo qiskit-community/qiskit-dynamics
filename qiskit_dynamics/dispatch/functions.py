@@ -18,7 +18,7 @@ from qiskit.utils import deprecate_arguments
 from .exceptions import DispatchError
 
 from .register import is_registered_library, CACHE
-from .dispatcher import dispatch_function, dispatcher
+from .dispatcher import function, dispatcher
 
 __all__ = ["requires_library", "asarray", "array"]
 
@@ -119,7 +119,7 @@ def asarray(
     if lib:
         lib_func = dispatcher(lib)("asarray")
     else:
-        lib_func = dispatch_function("asarray")
+        lib_func = function("asarray")
     return lib_func(obj, **kwargs)
 
 

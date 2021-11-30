@@ -19,6 +19,35 @@ from .register import CACHE, register_type
 __all__ = ["dispatcher", "dispatch_function", "infer_library"]
 
 
+class Dispatcher:
+    based access.
+
+        Args:
+                used if one has been set.
+
+    def __call__(self, name: Union[str, Callable]) -> Callable:
+        return self._dispatcher(name)
+
+    def __getattr__(self, name: str) -> Callable:
+        setattr(self, name, self._dispatcher(name))
+        return getattr(self, name)
+
+
+class AutoDispatcher:
+    """Runtime dispatcher for array functions on an array library.
+
+    This class is a wrapper for :func:`function` which adds attribute
+    based access.
+    """
+
+    def __call__(self, name: Union[str, Callable]) -> Callable:
+        return function(name)
+
+    def __getattr__(self, name: str) -> Callable:
+        setattr(self, name, function(name))
+        return getattr(self, name)
+
+
 def dispatcher(lib: Optional[str] = None) -> Callable:
     """Return the dispatcher for the specified library.
 
@@ -75,24 +104,21 @@ def dispatcher(lib: Optional[str] = None) -> Callable:
     return CACHE.DISPATCHERS[lib]
 
 
-def dispatch_function(func: Union[Callable, str]) -> Callable:
-    """Return an automatically dispatching version of input function.
+def function(name: Union[Callable, str]) -> Callable:
+    """Return an automatically dispatching function of the specified name.
 
     .. note::
 
-        The first argument of the `func` should be an array. The type
-        of this array is used to determine the library for the
+        The first argument of the dispatched function should be an array.
+        The type of this array is used to determine the library for the
         dispatched function.
 
     Args:
-        func: A library function to convert to dispatched function.
-              This functions name will be used for the returned
-              function.
+        name: The name of the function to be dispatched.
 
     Returns:
         The automatically dispatching function.
     """
-    func_name = func if isinstance(func, str) else func.__name__
 
     # Define dispatching wrapper function
     def _function(array, *args, **kwargs):
@@ -103,18 +129,10 @@ def dispatch_function(func: Union[Callable, str]) -> Callable:
                     f"{type(array)} is not a registered type for any registered array libraries."
                 )
             lib = CACHE.DEFAULT_LIB
-        lib_func = dispatcher(lib)(func_name)
+        lib_func = dispatcher(lib)(name)
         return lib_func(array, *args, **kwargs)
 
-    _function.__name__ = func_name
-    _function.__qualname__ = func_name
-
-    if isinstance(func, str):
-        return _function
-
-    # If input is a funcion, wrap the dispatched function
-    # to copy docs and annotations
-    return functools.wraps(func, assigned=["__doc__", "__annotations__"])(_function)
+    return _function
 
 
 def infer_library(array: any) -> Union[str, None]:
