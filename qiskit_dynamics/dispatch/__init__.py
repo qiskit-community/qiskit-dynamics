@@ -42,7 +42,6 @@ Additional Functions
     asarray
     infer_library
     registered_libraries
-    validate_library
     requires_library
 
 Registering Array Libraries
@@ -76,6 +75,8 @@ from .functions import (
 )
 
 from .register import (
+    default_library,
+    set_default_library,
     registered_libraries,
     is_registered_library,
     registered_types,
