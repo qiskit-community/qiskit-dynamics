@@ -25,7 +25,7 @@ register_module(numpy.linalg)
 register_module(numpy.random)
 
 
-@register_function("numpy", "repr")
+@register_function(name="repr", lib="numpy")
 def array_repr(array, prefix="", suffix=""):
     """Wrapper for showing Numpy array in custom class"""
     max_line_width = numpy.get_printoptions()["linewidth"]

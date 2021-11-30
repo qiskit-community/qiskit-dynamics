@@ -126,47 +126,51 @@ def register_module(module: ModuleType, lib: Optional[str] = None):
 
 
 def register_function(
-    lib: str,
-    input_function: Union[str, Callable],
-    return_function: Optional[Callable] = None,
+    func: Optional[Callable] = None,
+    name: Optional[Union[Callable, str]] = None,
+    lib: Optional[str] = None,
 ) -> Optional[Callable]:
     """Register an array function for dispatching.
 
     Args:
-        lib: The name string to identify the array library.
-        input_function: The input function or function name to dispatch on.
-        return_function: Optional, The function to return. If None a function
-                         decorator will be returned that can be applied to
-                         another function.
+        func: The function to dispatch to for the specified array library.
+              If None this will return a decorator to apply to a function.
+        name: Optional, a name for dispatching to this function. If None
+              the name of the input function will be used.
+        lib: Optional, a name string to identify the array library.
+             If None this will be set as the base module name of the
+             arrays module.
 
     Returns:
-        Optionally returns a function decorator to register a function
-        if dispatched_function is None.
+        If func is None returns a decorator for registering a function.
+        Otherwise returns None.
     """
-    decorator = _register_function_decorator(lib, input_function)
-    if return_function is None:
+    decorator = _register_function_decorator(name=name, lib=lib)
+    if func is None:
         return decorator
-    return decorator(return_function)
+    return decorator(func)
 
 
-def _register_function_decorator(lib: str, input_function: Union[str, Callable]) -> Callable:
+def _register_function_decorator(
+    name: Optional[Union[str, Callable]] = None, lib: Optional[str] = None
+) -> Callable:
     """Return a decorator to register a function.
 
     Args:
+        name: the name for dispatching to this function.
         lib: The name string to identify the array library.
-        input_function: The input function or function name to dispatch on.
 
     Returns:
         A function decorator to register a function if dispatched_function
         is None.
     """
-    _register_library(lib)
-
-    if not isinstance(input_function, str):
-        input_function = input_function.__name__
+    if not isinstance(name, str):
+        name = name.__name__
 
     def decorator(func):
-        CACHE.REGISTERED_FUNCTIONS[lib][input_function] = func
+        func_lib = _lib_from_module(func) if lib is None else lib
+        _register_library(func_lib)
+        CACHE.REGISTERED_FUNCTIONS[lib][name] = func
         if lib in CACHE.DISPATCHERS:
             CACHE.DISPATCHERS[lib].cache_clear()
         return func

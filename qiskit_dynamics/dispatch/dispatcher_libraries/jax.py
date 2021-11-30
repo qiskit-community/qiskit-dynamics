@@ -45,7 +45,7 @@ try:
     register_module(jax.numpy.linalg, "jax")
 
     # Register custom functions
-    @register_function("jax", "repr")
+    @register_function(name="repr", lib="jax")
     def array_repr(array, prefix="", suffix=""):
         """Wrapper for showing Numpy array in custom class"""
         if hasattr(array, "_value"):
@@ -54,7 +54,7 @@ try:
 
     # Jax doesn't implement a copy method, so we add one using the
     # jax numpy.array constructor which implicitly copies
-    @register_function("jax", np.copy)
+    @register_function(name=np.copy, lib="jax")
     def _copy(array, order="K"):
         return jax.numpy.array(array, copy=True, order=order)
 
