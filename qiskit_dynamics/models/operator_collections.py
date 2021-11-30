@@ -22,7 +22,7 @@ from scipy.sparse.csr import csr_matrix
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.array import Array, wrap
 from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
 
 try:
@@ -980,7 +980,7 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
                                 hamiltonian_operators cannot evaluate Hamiltonian."""
             )
 
-    @dispatch.wrap
+    @wrap
     def evaluate_rhs(
         self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array
     ) -> Array:
@@ -1329,7 +1329,7 @@ class JAXSparseVectorizedLindbladCollection(
         super().concatenate_operators()
         self._operators = self.convert_to_internal_type(self._operators)
 
-    @dispatch.wrap
+    @wrap
     def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
         return jsparse_matmul(self.evaluate(ham_sig_vals, dis_sig_vals), y)
 
