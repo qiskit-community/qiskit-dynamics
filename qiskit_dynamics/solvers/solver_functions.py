@@ -31,8 +31,8 @@ from qiskit.quantum_info.states.quantum_state import QuantumState
 from qiskit.quantum_info import SuperOp, Operator
 
 from qiskit import QiskitError
-from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import Array, requires_backend
+from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.array import Array
 
 from qiskit_dynamics.models import (
     BaseGeneratorModel,

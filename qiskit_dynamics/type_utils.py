@@ -27,7 +27,8 @@ from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import Array, requires_backend
+from qiskit_dynamics.array import Array
+from qiskit_dynamics.dispatch import requires_backend
 
 try:
     from jax.experimental import sparse as jsparse

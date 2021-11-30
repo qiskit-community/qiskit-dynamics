@@ -23,7 +23,7 @@ from scipy.sparse.linalg import norm as spnorm
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type, to_array
 from .generator_model import (

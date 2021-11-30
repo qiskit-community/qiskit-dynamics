@@ -31,7 +31,7 @@ except ImportError:
 
 from qiskit import QiskitError
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 
 
 class Signal:

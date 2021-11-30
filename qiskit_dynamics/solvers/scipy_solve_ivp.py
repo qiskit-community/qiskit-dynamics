@@ -22,7 +22,7 @@ from scipy.integrate import solve_ivp, OdeSolver
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from ..type_utils import StateTypeConverter
 
 # Supported scipy ODE methods

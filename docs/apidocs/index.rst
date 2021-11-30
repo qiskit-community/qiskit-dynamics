@@ -13,4 +13,5 @@ Qiskit Dynamics API Reference
    models
    signals
    pulse
+   array
    dispatch

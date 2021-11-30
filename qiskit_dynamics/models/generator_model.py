@@ -32,7 +32,7 @@ from qiskit_dynamics.models.operator_collections import (
     JAXSparseOperatorCollection,
 )
 from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from .rotating_frame import RotatingFrame

@@ -22,7 +22,7 @@ from typing import Callable, Union, List
 import numpy as np
 
 from qiskit import QiskitError
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 
 from .signals import Signal, DiscreteSignal
 

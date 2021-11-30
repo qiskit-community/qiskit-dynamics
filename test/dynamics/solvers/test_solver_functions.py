@@ -27,7 +27,7 @@ from scipy.linalg import expm
 from qiskit_dynamics.models import GeneratorModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 

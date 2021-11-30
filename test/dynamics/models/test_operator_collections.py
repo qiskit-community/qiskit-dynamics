@@ -31,7 +31,7 @@ from qiskit_dynamics.models.operator_collections import (
     SparseVectorizedLindbladCollection,
     JAXSparseVectorizedLindbladCollection,
 )
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
