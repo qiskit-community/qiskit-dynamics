@@ -319,7 +319,7 @@ class JAXSparseOperatorCollection(BaseOperatorCollection):
                 y = y.data
             return Array(jsparse_matmul(self.evaluate(signal_values), y))
 
-        raise QiskitError(self.__class__.__name__ + """  cannot evaluate RHS for y.ndim > 3.""")
+        raise QiskitError(self.__class__.__name__ + """  cannot evaluate RHS for y.ndim >= 3.""")
 
 
 class BaseLindbladOperatorCollection(ABC):
