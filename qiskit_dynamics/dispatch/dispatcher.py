@@ -29,6 +29,18 @@ class DispatcherError(Exception):
         return repr(self.msg)
 
 
+class DispatcherCache:
+    """Cache class for dispatcher"""
+
+    def __init__(self, dispatcher, lib=None):
+        self._dispatcher = dispatcher
+        self._lib = lib
+
+    def __getattr__(self, name: str) -> Callable:
+        setattr(self, name, self._dispatcher(name, self._lib))
+        return getattr(self, name)
+
+
 class Dispatcher:
     """Function dispatcher class."""
 
@@ -56,21 +68,26 @@ class Dispatcher:
         # Optional fallback library for dispatching on unregistered types
         self._fallback_lib = None
 
-        # List of dispatched functions which have been dynamically added to the
-        # dispatcher as attributes
-        self._cached_attributes = []
+        # Cache for attribute based access of dispatched functions to
+        # dynamic library
+        self._fn_cache = DispatcherCache(self)
 
     @functools.lru_cache()
-    def __call__(self, name: Union[str, Callable], lib: Optional[str] = None) -> Callable:
-        lib = lib or self._default_lib
+    def __call__(
+        self, name: Union[str, Callable], lib: Optional[Union[str, type]] = None
+    ) -> Callable:
+        if lib is None:
+            lib = self._default_lib
+        else:
+            lib = self._infer_library(lib)
         if lib:
             return self._static_dispatch(lib, name)
         return self._dynamic_dispatch(name)
 
-    def __getattr__(self, name: str) -> Callable:
-        self._cached_attributes.append(name)
-        setattr(self, name, self.__call__(name))
-        return getattr(self, name)
+    @property
+    def fn(self) -> DispatcherCache:  # pylint: disable = invalid-name
+        """Return function cache for attribute based access to dispatcher functions"""
+        return self._fn_cache
 
     def registered_libraries(self) -> Set[str]:
         """Return a set of registered array library names."""
@@ -93,7 +110,8 @@ class Dispatcher:
                 f"Cannot set fallback library, '{lib}' is not a registered array library"
             )
         self._fallback_lib = lib
-        self.cache_clear()
+        self.__call__.cache_clear()
+        self._dynamic_dispatch.cache_clear()
 
     def default_library(self) -> Union[str, None]:
         """Return the default array library or None if no default is set."""
@@ -106,7 +124,7 @@ class Dispatcher:
                 f"Cannot set default library, '{lib}' is not a registered array library"
             )
         self._default_lib = lib
-        self.cache_clear()
+        self.__call__.cache_clear()
 
     def register_function(
         self,
@@ -173,12 +191,10 @@ class Dispatcher:
         self.__call__.cache_clear()
         self._dynamic_dispatch.cache_clear()
         self._static_dispatch.cache_clear()
-        self.infer_library.cache_clear()
+        self._infer_library.cache_clear()
 
-        # Clear cached attributes
-        for name in self._cached_attributes:
-            delattr(self, name)
-        self._cached_attributes = []
+        # Clear DispatcherCache
+        self._fn_cache = DispatcherCache(self)
 
     def _register_library(self, lib: str):
         """Register an array library name.
@@ -199,7 +215,7 @@ class Dispatcher:
             name = name.__name__
 
         # Check if function is already registered
-        if (lib, name) in self._functions:
+        if name in self._functions[lib]:
             return self._functions[lib][name]
 
         # If not registered try and import from registed modules
@@ -221,8 +237,8 @@ class Dispatcher:
         """Return a dynamically dispatching function which infers library from first arg type"""
         # Define dispatching wrapper function
         def _function(array, *args, **kwargs):
-            lib = self.infer_library(type(array))
-            if lib is NotImplemented:
+            lib = self._infer_library(type(array))
+            if lib is None:
                 if self._fallback_lib is None:
                     raise DispatcherError(
                         f"{type(array)} is not a registered type for any"
@@ -234,25 +250,44 @@ class Dispatcher:
 
         return _function
 
-    @functools.lru_cache()
-    def infer_library(self, array_type: type) -> Union[str, None]:
+    def infer_library(self, obj: any) -> Union[str, None]:
         """Return the registered library name of a array object.
 
         Args:
-            array_type: an array type.
+            obj: an array type or instance.
 
         Returns:
             The array library name if the array type is registered,
-            or None otherwise.
+            or NotImplemented otherwise.
         """
-        if array_type in self._types_lib:
-            return self._types_lib[array_type]
+        if not isinstance(obj, (type, str)):
+            obj = type(obj)
+        return self._infer_library(obj)
 
+    @functools.lru_cache()
+    def _infer_library(self, obj: Union[type, str]) -> Union[str, None]:
+        """Return the registered library name of a array object.
+
+        Args:
+            obj: an array type or library name.
+
+        Returns:
+            The array library name if the array type is registered,
+            or NotImplemented otherwise.
+        """
+        if obj in self._libs:
+            return obj
+
+        if obj in self._types_lib:
+            return self._types_lib[obj]
+
+        # Look via subclass
         for key, lib in self._types_lib.items():
-            if issubclass(array_type, key):
-                self._types_lib[array_type] = lib
+            if issubclass(obj, key):
+                self._types_lib[obj] = lib
                 return lib
-        return NotImplemented
+
+        return None
 
     def _register_function_decorator(
         self, name: Optional[Union[str, Callable]] = None, lib: Optional[str] = None

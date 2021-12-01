@@ -11,6 +11,23 @@
 # that they have been altered from the originals.
 """Default dispatcher"""
 
-from qiskit_dynamics.dispatch.dynamic_dispatcher import DynamicDispatcher
+from qiskit_dynamics.dispatch.dispatcher import Dispatcher
+from qiskit_dynamics.dispatch.default_libraries import register_numpy, register_jax
 
-DEFAULT_DISPATCHER = DynamicDispatcher()
+
+def default_dispatcher() -> Dispatcher:
+    """REturn a dispatcher with installed default libraries registered.
+
+    Libraries which will be registered if installed in the current
+    Python environment are
+
+    * Numpy
+    * JAX
+
+    Returns:
+        A dispatcher with installed libraries registered.
+    """
+    dispatcher = Dispatcher()
+    register_numpy(dispatcher)
+    register_jax(dispatcher)
+    return dispatcher
