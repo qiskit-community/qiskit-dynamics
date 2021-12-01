@@ -278,6 +278,8 @@ class Dispatch:
 )
 def set_default_backend(backend: Optional[str] = None):
     """Set the default array backend."""
+    if backend is not None:
+        Dispatch.validate_backend(backend)
     Dispatch.DEFAULT_BACKEND = backend
 
 
