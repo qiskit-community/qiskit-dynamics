@@ -632,9 +632,9 @@ class TestGeneratorModelSparse(QiskitDynamicsTestCase):
     """Sparse-mode specific tests."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+        self.X = Operator.from_label("X").data
+        self.Y = Operator.from_label("Y").data
+        self.Z = Operator.from_label("Z").data
 
     def test_switch_modes_and_evaluate(self):
         """Test construction of a model, switching modes, and evaluating."""
@@ -643,9 +643,8 @@ class TestGeneratorModelSparse(QiskitDynamicsTestCase):
         self.assertAllClose(model(1.0), self.Z + self.X)
 
         model.evaluation_mode = "sparse"
-        output = model(1.0)
-        self.assertTrue(issparse(output))
-        self.assertAllCloseSparse(output, csr_matrix(self.Z + self.X))
+        val = model(1.0)
+        self.validate_generator_eval(val, self.Z + self.X)
 
         model.evaluation_mode = "dense"
         self.assertAllClose(model(1.0), self.Z + self.X)
@@ -659,13 +658,13 @@ class TestGeneratorModelSparse(QiskitDynamicsTestCase):
         # test non-diagonal frame
         model.rotating_frame = self.Z
         expected = expm(1j * self.Z) @ ((1 + 1j) * self.Z + self.X) @ expm(-1j * self.Z)
-        self.assertAllClose(expected, model(1.0))
+        val = model(1.0)
+        self.assertAllClose(val, expected)
 
         # test diagonal frame
         model.rotating_frame = np.array([1.0, -1.0])
         val = model(1.0)
-        self.assertTrue(issparse(val))
-        self.assertAllClose(to_array(val), expected)
+        self.validate_generator_eval(val, expected)
 
     def test_switching_to_sparse_with_frame(self):
         """Test switching to sparse with a frame already set."""
@@ -681,8 +680,44 @@ class TestGeneratorModelSparse(QiskitDynamicsTestCase):
 
         expected = expm(1j * self.Z) @ ((1 + 1j) * self.Z + self.X) @ expm(-1j * self.Z)
         val = model(1.0)
-        self.assertTrue(issparse(val))
-        self.assertAllClose(to_array(val), expected)
+        self.validate_generator_eval(val, expected)
+
+    def validate_generator_eval(self, op, expected):
+        """Validate that op is sparse and agrees with expected."""
+        self.assertTrue(issparse(op))
+        self.assertAllClose(to_array(op), to_array(expected))
+
+
+class TestGeneratorModelSparseJax(TestGeneratorModelSparse, TestJaxBase):
+    """JAX version of sparse model tests."""
+
+    def validate_generator_eval(self, op, expected):
+        """Validate that op is sparse and agrees with expected."""
+        self.assertTrue(type(op).__name__ == "BCOO")
+        self.assertAllClose(to_array(op), to_array(expected))
+
+    def test_jit_grad(self):
+        """Test jitting and gradding."""
+
+        model = GeneratorModel(
+            static_operator=-1j * self.Z,
+            operators=[-1j * self.X],
+            rotating_frame=self.Z,
+            evaluation_mode="sparse",
+        )
+
+        y = np.array([0.0, 1.0])
+
+        def func(a):
+            model_copy = model.copy()
+            model_copy.signals = [Signal(Array(a))]
+            return model_copy(0.232, y)
+
+        jitted_func = self.jit_wrap(func)
+        self.assertAllClose(jitted_func(1.2), func(1.2))
+
+        grad_jit_func = self.jit_grad_wrap(func)
+        grad_jit_func(1.2)
 
 
 class Testtransfer_operator_functions(QiskitDynamicsTestCase):
