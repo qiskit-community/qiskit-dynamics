@@ -496,6 +496,24 @@ class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
         self.assertTrue(type(bcoo).__name__ == "BCOO")
         self.assertAllClose(to_array(list_of_arrays), bcoo.todense())
 
+    def test_to_BCOO_sparse_matrix(self):
+        """Tests for to_BCOO with a single sparse matrix"""
+        op = Operator.from_label("X")
+        spm = csr_matrix(op)
+        ar = Array(op)
+        bcoo = to_BCOO(spm)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(to_array(bcoo), ar)
+
+    def test_to_BCOO_sparse_matrix_list(self):
+        """Tests for to_BCOO with a list of sparse matrices"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        sparse_matrices = [csr_matrix(op) for op in list_of_ops]
+        bcoo = to_BCOO(sparse_matrices)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(to_array(bcoo), list_of_arrays)
+
 
 class Test_to_numeric_matrix_type(QiskitDynamicsTestCase):
     """Test to_numeric_matrix_type"""
