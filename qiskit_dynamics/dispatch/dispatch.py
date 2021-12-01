@@ -14,6 +14,7 @@
 import functools
 from types import FunctionType
 from typing import Optional, Union, Tuple, Callable
+from qiskit.utils import deprecate_function
 from .exceptions import DispatchError
 
 
@@ -271,25 +272,36 @@ class Dispatch:
 
 
 # Public functions
-
-
+@deprecate_function(
+    "The `set_default_backend` function has been depreacted and will be removed "
+    "next release. Use the class method `Array.set_default_backend(backend)` instead."
+)
 def set_default_backend(backend: Optional[str] = None):
     """Set the default array backend."""
-    if backend is not None:
-        Dispatch.validate_backend(backend)
     Dispatch.DEFAULT_BACKEND = backend
 
 
+@deprecate_function(
+    "The `default_backend` function has been depreacted and will be removed next "
+    "release. Use the class method `Array.default_backend()` instead."
+)
 def default_backend():
     """Return the default array backend."""
     return Dispatch.DEFAULT_BACKEND
 
 
+@deprecate_function(
+    "The `backend_types` function has been depreacted and will be removed next release."
+)
 def backend_types():
     """Return tuple of array backend types"""
     return Dispatch.REGISTERED_TYPES
 
 
+@deprecate_function(
+    "The `available_backends` function has been depreacted and will be removed next"
+    "release. Use the class method `Array.available_backends()` instead."
+)
 def available_backends():
     """Return a tuple of available array backends"""
     return Dispatch.REGISTERED_BACKENDS
