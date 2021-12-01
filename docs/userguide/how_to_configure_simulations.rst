@@ -211,7 +211,7 @@ Start off by configuring to use JAX.
 
 .. jupyter-execute::
 
-    from qiskit_dynamics.dispatch import Array
+    from qiskit_dynamics.array import Array
 
     # configure jax to use 64 bit mode
     import jax
