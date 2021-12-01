@@ -21,7 +21,7 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
 
-from qiskit_dynamics.dispatch import requires_library
+from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array
 
 try:
@@ -105,7 +105,7 @@ def scipy_expm_solver(
     )
 
 
-@requires_library("jax")
+@requires_backend("jax")
 def jax_RK4_solver(
     rhs: Callable,
     t_span: Array,
@@ -144,7 +144,7 @@ def jax_RK4_solver(
     )
 
 
-@requires_library("jax")
+@requires_backend("jax")
 def jax_RK4_parallel_solver(
     generator: Callable,
     t_span: Array,
@@ -186,7 +186,7 @@ def jax_RK4_parallel_solver(
     )
 
 
-@requires_library("jax")
+@requires_backend("jax")
 def jax_expm_solver(
     generator: Callable,
     t_span: Array,
@@ -217,7 +217,7 @@ def jax_expm_solver(
     )
 
 
-@requires_library("jax")
+@requires_backend("jax")
 def jax_expm_parallel_solver(
     generator: Callable,
     t_span: Array,

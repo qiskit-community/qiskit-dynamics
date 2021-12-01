@@ -30,35 +30,22 @@ Functions
     :toctree: ../stubs/
 
     default_dispatcher
-    array
-    asarray
-    infer_library
-    requires_library
 
 
-Dispatcher Classes
-==================
+Classes
+=======
 
-    DynamicDispatcher
-    StaticDispatcher
+.. autosummary::
+    :toctree: ../stubs/
+
+    Dispatcher
+    DispatcherError
 """
-from .static_dispatcher import StaticDispatcher
-from .dynamic_dispatcher import DynamicDispatcher
+from .dispatcher import Dispatcher, DispatcherError
+from .default_dispatcher import default_dispatcher
 
-from .functions import (
-    default_dispatcher,
-    array,
-    asarray,
-    infer_library,
-    requires_library,
-)
-
-# Register built-in supported libraries
-from .dispatcher_libraries import *
 
 # DEPRECATED
-
-# Depreacted dispatch functions
 from .dispatch import (
     set_default_backend,
     default_backend,
@@ -66,8 +53,5 @@ from .dispatch import (
     backend_types,
     requires_backend,
 )
-
-# Deprecated import paths
 from .array import Array
-
 from .wrap import wrap
