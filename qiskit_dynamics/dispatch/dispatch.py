@@ -348,7 +348,7 @@ def requires_backend(backend: str) -> Callable:
         """Specify that the decorated object requires a specifc Array backend."""
 
         def check_backend(descriptor):
-            if backend not in available_backends():
+            if backend not in Dispatch.REGISTERED_BACKENDS:
                 raise DispatchError(
                     f"Array backend '{backend}' required by {descriptor} "
                     "is not installed. Please install the optional "

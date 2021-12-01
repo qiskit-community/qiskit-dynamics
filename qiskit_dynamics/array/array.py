@@ -14,7 +14,7 @@
 import copy
 from functools import wraps
 from types import BuiltinMethodType, MethodType
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, Set
 from numbers import Number
 
 import numpy
@@ -106,6 +106,23 @@ class Array(NDArrayOperatorsMixin):
         Dispatch.validate_backend(value)
         self._data = asarray(self._data, backend=value)
         self._backend = value
+
+    @classmethod
+    def set_default_backend(cls, backend: Union[str, None]):
+        """Set the default array backend."""
+        if backend is not None:
+            Dispatch.validate_backend(backend)
+        Dispatch.DEFAULT_BACKEND = backend
+
+    @classmethod
+    def default_backend(cls) -> str:
+        """Return the default array backend."""
+        return Dispatch.DEFAULT_BACKEND
+
+    @classmethod
+    def available_backends(cls) -> Set[str]:
+        """Return a tuple of available array backends"""
+        return Dispatch.REGISTERED_BACKENDS
 
     def __repr__(self):
         prefix = "Array("

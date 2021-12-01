@@ -13,3 +13,11 @@
 
 from .numpy import *
 from .jax import *
+
+# Set default backend if only 1 is available
+from ..dispatch import Dispatch
+
+if len(Dispatch.REGISTERED_BACKENDS) == 1:
+    Dispatch.DEFAULT_BACKEND = Dispatch.REGISTERED_BACKENDS[0]
+
+__all__ = []

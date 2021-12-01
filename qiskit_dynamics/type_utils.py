@@ -26,7 +26,6 @@ from scipy.sparse import identity as sparse_identity
 from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics import dispatch
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch import requires_backend
 
@@ -371,7 +370,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
         return op
 
     if isinstance(op, np.ndarray) and op.dtype != "O":
-        if dispatch.default_backend() in [None, "numpy"]:
+        if Array.default_backend() in [None, "numpy"]:
             return op
         else:
             return Array(op)
