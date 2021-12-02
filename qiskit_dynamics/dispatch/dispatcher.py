@@ -35,14 +35,35 @@ class DispatcherCache:
     def __init__(self, dispatcher, lib=None):
         self._dispatcher = dispatcher
         self._lib = lib
+        self._cached = []
 
     def __getattr__(self, name: str) -> Callable:
-        setattr(self, name, self._dispatcher(name, self._lib))
+        func = self._dispatcher(name, self._lib)
+        self._cached.append(name)
+        setattr(self, name, func)
         return getattr(self, name)
+
+    def cache_clear(self):
+        """Clear cached function atttributes."""
+        for name in self._cached:
+            delattr(self, name)
+        self._cached = []
 
 
 class Dispatcher:
     """Function dispatcher class."""
+
+    __slots__ = [
+        "_libs",
+        "_types_lib",
+        "_types",
+        "_functions",
+        "_modules",
+        "_default_lib",
+        "_fallback_lib",
+        "_fn_cache",
+        "_lib_cache",
+    ]
 
     def __init__(self):
         """Initialize a function dispatcher"""
@@ -71,15 +92,13 @@ class Dispatcher:
         # Cache for attribute based access of dispatched functions to
         # dynamic library
         self._fn_cache = DispatcherCache(self)
+        self._lib_cache = {}
 
     @functools.lru_cache()
     def __call__(
         self, name: Union[str, Callable], lib: Optional[Union[str, type]] = None
     ) -> Callable:
-        if lib is None:
-            lib = self._default_lib
-        else:
-            lib = self._infer_library(lib)
+        lib = self._infer_library(lib)
         if lib:
             return self._static_dispatch(lib, name)
         return self._dynamic_dispatch(name)
@@ -88,6 +107,28 @@ class Dispatcher:
     def fn(self) -> DispatcherCache:  # pylint: disable = invalid-name
         """Return function cache for attribute based access to dispatcher functions"""
         return self._fn_cache
+
+    @functools.lru_cache()
+    def lib(self, lib: Optional[Union[str, type]] = None) -> DispatcherCache:
+        """Return function cache for specific library.
+
+        Args:
+            lib: A dispatcher library. If None the default library
+                 will be be return if one is set.
+
+        Returns:
+            The DispatcherCache for the specified library.
+
+        Raises:
+            DispatcherError: If ``lib=None`` and no :meth:`default_library`
+                             has been set.
+        """
+        lib = self._infer_library(lib)
+        if lib:
+            return self._lib_cache[lib]
+        raise DispatcherError(
+            f"Unrecognized dispatcher library '{lib}'. Registered libraries are {self._libs}"
+        )
 
     def registered_libraries(self) -> Set[str]:
         """Return a set of registered array library names."""
@@ -189,12 +230,15 @@ class Dispatcher:
         """Clear cached dispatched calls."""
         # Clear LRU cached functions
         self.__call__.cache_clear()
+        self.lib.cache_clear()
         self._dynamic_dispatch.cache_clear()
         self._static_dispatch.cache_clear()
         self._infer_library.cache_clear()
 
         # Clear DispatcherCache
-        self._fn_cache = DispatcherCache(self)
+        self._fn_cache.cache_clear()
+        for cache in self._lib_cache.values():
+            cache.cache_clear()
 
     def _register_library(self, lib: str):
         """Register an array library name.
@@ -206,6 +250,7 @@ class Dispatcher:
             self._libs.add(lib)
             self._functions[lib] = {}
             self._modules[lib] = []
+            self._lib_cache[lib] = DispatcherCache(self, lib)
 
     @functools.lru_cache()
     def _static_dispatch(self, lib: str, name: Union[str, Callable]) -> Callable:
@@ -260,12 +305,12 @@ class Dispatcher:
             The array library name if the array type is registered,
             or NotImplemented otherwise.
         """
-        if not isinstance(obj, (type, str)):
+        if obj and not isinstance(obj, (type, str)):
             obj = type(obj)
         return self._infer_library(obj)
 
     @functools.lru_cache()
-    def _infer_library(self, obj: Union[type, str]) -> Union[str, None]:
+    def _infer_library(self, obj: Optional[Union[type, str]] = None) -> Union[str, None]:
         """Return the registered library name of a array object.
 
         Args:
@@ -275,6 +320,11 @@ class Dispatcher:
             The array library name if the array type is registered,
             or NotImplemented otherwise.
         """
+        if obj is None:
+            if self._default_lib:
+                return self._default_lib
+            return None
+
         if obj in self._libs:
             return obj
 
