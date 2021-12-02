@@ -152,6 +152,7 @@ class Dispatcher:
             )
         self._fallback_lib = lib
         self.__call__.cache_clear()
+        self._infer_library.cache_clear()
         self._dynamic_dispatch.cache_clear()
 
     def default_library(self) -> Union[str, None]:
@@ -166,6 +167,7 @@ class Dispatcher:
             )
         self._default_lib = lib
         self.__call__.cache_clear()
+        self._infer_library.cache_clear()
 
     def register_function(
         self,
