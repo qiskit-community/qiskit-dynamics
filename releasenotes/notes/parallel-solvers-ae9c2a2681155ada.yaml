@@ -4,5 +4,5 @@ feature:
     Adds JAX fixed-step solvers implemented with parallelized commands. Solvers are
     available through :func:`~qiskit_dynamics.solvers.solver_functions.solve_lmde`
     and hence through calls to :meth:`~qiskit_dynamics.solvers.solver_classes.Solver.solve`.
-    Parallelized options are `'jax_RK4_parallel'` and `'jax_expm_parallel'`. These solvers
+    Parallelized options are ``'jax_RK4_parallel'`` and ``'jax_expm_parallel'``. These solvers
     are only recommended for use with GPU.
