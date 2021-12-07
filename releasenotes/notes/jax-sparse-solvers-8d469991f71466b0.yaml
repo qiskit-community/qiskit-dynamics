@@ -1,0 +1,15 @@
+---
+feature:
+  - |
+    Adds JAX sparse evaluation mode to models and
+    :class:`~qiskit_dynamics.solvers.solver_classes.Solver`.
+    This mode can be enabled by setting the ``evaluation_mode`` to
+    ``'sparse'`` while ``dispatch.default_backend() == 'jax'``.
+    This evaluation mode is only recommended for use on CPU unless
+    the arrays are extremely sparse.
+  - |
+    Adds additional fixed-step solvers implemented with JAX. New solvers are
+    ``'jax_RK4'``, available through :func:`~qiskit_dynamics.solvers.solver_functions.solve_ode`
+    and parallelized solvers ``'jax_RK4_parallel'`` and ``'jax_expm_parallel'`` available
+    via :func:`~qiskit_dynamics.solvers.solver_functions.solve_lmde`. The parallelized solvers
+    are only recommended for use with GPU.
