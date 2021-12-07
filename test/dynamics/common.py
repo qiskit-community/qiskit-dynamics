@@ -25,7 +25,6 @@ try:
 except ImportError:
     pass
 
-from qiskit_dynamics import dispatch
 from qiskit_dynamics.array import Array, wrap
 
 
@@ -72,12 +71,12 @@ class TestJaxBase(unittest.TestCase):
         except Exception as err:
             raise unittest.SkipTest("Skipping jax tests.") from err
 
-        dispatch.set_default_backend("jax")
+        Array.set_default_backend("jax")
 
     @classmethod
     def tearDownClass(cls):
         """Set numpy back to the default backend."""
-        dispatch.set_default_backend("numpy")
+        Array.set_default_backend("numpy")
 
     def jit_wrap(self, func_to_test: Callable) -> Callable:
         """Wraps and jits func_to_test.
