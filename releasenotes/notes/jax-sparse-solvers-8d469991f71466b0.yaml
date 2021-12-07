@@ -4,7 +4,7 @@ feature:
     Adds JAX sparse evaluation mode to models and
     :class:`~qiskit_dynamics.solvers.solver_classes.Solver`.
     This mode can be enabled by setting the ``evaluation_mode`` to
-    ``'sparse'`` while ``dispatch.default_backend() == 'jax'``.
+    ``'sparse'`` while `:meth:`~qiskit_dynamics.array.Array.default_backend` is set to ``'jax'``
     This evaluation mode is only recommended for use on CPU unless
     the arrays are extremely sparse.
   - |
