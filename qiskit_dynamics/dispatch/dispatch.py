@@ -14,6 +14,7 @@
 import functools
 from types import FunctionType
 from typing import Optional, Union, Tuple, Callable
+from qiskit.utils import deprecate_function
 from .exceptions import DispatchError
 
 
@@ -271,8 +272,10 @@ class Dispatch:
 
 
 # Public functions
-
-
+@deprecate_function(
+    "The `set_default_backend` function has been deprecated and will be removed "
+    "next release. Use the class method `Array.set_default_backend(backend)` instead."
+)
 def set_default_backend(backend: Optional[str] = None):
     """Set the default array backend."""
     if backend is not None:
@@ -280,16 +283,27 @@ def set_default_backend(backend: Optional[str] = None):
     Dispatch.DEFAULT_BACKEND = backend
 
 
+@deprecate_function(
+    "The `default_backend` function has been deprecated and will be removed next "
+    "release. Use the class method `Array.default_backend()` instead."
+)
 def default_backend():
     """Return the default array backend."""
     return Dispatch.DEFAULT_BACKEND
 
 
+@deprecate_function(
+    "The `backend_types` function has been deprecated and will be removed next release."
+)
 def backend_types():
     """Return tuple of array backend types"""
     return Dispatch.REGISTERED_TYPES
 
 
+@deprecate_function(
+    "The `available_backends` function has been deprecated and will be removed next"
+    "release. Use the class method `Array.available_backends()` instead."
+)
 def available_backends():
     """Return a tuple of available array backends"""
     return Dispatch.REGISTERED_BACKENDS
@@ -348,7 +362,7 @@ def requires_backend(backend: str) -> Callable:
         """Specify that the decorated object requires a specifc Array backend."""
 
         def check_backend(descriptor):
-            if backend not in available_backends():
+            if backend not in Dispatch.REGISTERED_BACKENDS:
                 raise DispatchError(
                     f"Array backend '{backend}' required by {descriptor} "
                     "is not installed. Please install the optional "

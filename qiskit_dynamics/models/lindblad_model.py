@@ -21,7 +21,6 @@ from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics import dispatch
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from qiskit_dynamics.signals import Signal, SignalList
@@ -655,7 +654,7 @@ def construct_lindblad_operator_collection(
 
     # raise warning if sparse mode set with JAX not on cpu
     if (
-        dispatch.default_backend() == "jax"
+        Array.default_backend() == "jax"
         and "sparse" in evaluation_mode
         and jax.default_backend() != "cpu"
     ):
@@ -667,14 +666,14 @@ def construct_lindblad_operator_collection(
     if evaluation_mode == "dense":
         CollectionClass = DenseLindbladCollection
     elif evaluation_mode == "sparse":
-        if dispatch.default_backend() == "jax":
+        if Array.default_backend() == "jax":
             CollectionClass = JAXSparseLindbladCollection
         else:
             CollectionClass = SparseLindbladCollection
     elif evaluation_mode == "dense_vectorized":
         CollectionClass = DenseVectorizedLindbladCollection
     elif evaluation_mode == "sparse_vectorized":
-        if dispatch.default_backend() == "jax":
+        if Array.default_backend() == "jax":
             CollectionClass = JAXSparseVectorizedLindbladCollection
         else:
             CollectionClass = SparseVectorizedLindbladCollection
