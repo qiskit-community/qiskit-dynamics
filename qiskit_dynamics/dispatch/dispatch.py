@@ -293,7 +293,7 @@ def default_backend():
 
 
 @deprecate_function(
-    "The `backend_types` function has been depreacted and will be removed next release."
+    "The `backend_types` function has been deprecated and will be removed next release."
 )
 def backend_types():
     """Return tuple of array backend types"""
