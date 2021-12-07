@@ -154,7 +154,7 @@ Next we show how to perform a simulation with the rotating wave approximation (R
 by setting the ``rwa_cutoff_freq`` argument at ``Solver`` instantiation, and show
 how it results in further speed ups at the expense of solution accuracy. See the API
 documentation for the :meth:`~qiskit_dynamics.models.rotating_wave_approximation` function
-for specific details about the rotating wave approximation (RWA).
+for specific details about the RWA.
 
 Construct a solver for the same problem, now specifying an RWA cutoff frequency:
 
