@@ -9,7 +9,7 @@ feature:
     the arrays are extremely sparse.
   - |
     Adds additional fixed-step solvers implemented with JAX. New solvers are
-    ``'jax_RK4'``, available through :func:`~qiskit_dynamics.solvers.solver_functions.solve_ode`
+    ``'jax_RK4'``, available through :func:`qiskit_dynamics.solve_ode`
     and parallelized solvers ``'jax_RK4_parallel'`` and ``'jax_expm_parallel'`` available
     via :func:`~qiskit_dynamics.solvers.solver_functions.solve_lmde`. The parallelized solvers
     are only recommended for use with GPU.
