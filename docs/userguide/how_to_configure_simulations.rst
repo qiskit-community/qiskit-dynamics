@@ -1,9 +1,12 @@
 How-to customize simulations using model transformations and evaluation modes
 =============================================================================
 
-Qiskit Dynamics provides model transformations and different numerical methods
-for evaluating models that can be used to customize how a simulation is done,
-with the potential to decrease overall simulation time.
+Qiskit Dynamics provides various options for configuring simulations
+that can impact solver performance. These options include choosing between
+dense and sparse array representations, different differential equation
+solvers, and model transformations that modify the definition of the problem.
+Depending on the specifics of the problem, different configurations can
+yield better performance.
 
 Here we walk through some of these options, covering:
 
@@ -128,8 +131,8 @@ Based on the fidelity, we see that the two simulations are numerically equivalen
 with reasonable accuracy based on our specified tolerances.
 
 The discrepancy in solving times can be understood by examining the number of
-RHS evaluations when solving in each instance. The number of RHS evaluations for
-the first simulation (not in the rotating frame) was:
+right-hand side (RHS) evaluations when solving the differential equation in each instance.
+The number of RHS evaluations for the first simulation (not in the rotating frame) was:
 
 .. jupyter-execute::
 
@@ -220,9 +223,8 @@ Start off by configuring to use JAX.
     # tell JAX we are using CPU
     jax.config.update('jax_platform_name', 'cpu')
 
-    # import dispatch and set default backend
-    from qiskit_dynamics import dispatch
-    dispatch.set_default_backend('jax')
+    # set default backend
+    Array.set_default_backend('jax')
 
 Reconstruct the model pieces at a much larger dimension, to observe the
 benefits of using sparse arrays. Furthermore, set up the initial state to
