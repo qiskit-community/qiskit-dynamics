@@ -29,26 +29,12 @@ Dispatch Functions
 .. autosummary::
     :toctree: ../stubs/
 
-    set_default_backend
-    default_backend
-    available_backends
-    backend_types
     asarray
     requires_backend
 """
 
-# Import Array
-from .array import Array
-
-# Import wrapper function
-from .wrap import wrap
-
 # Import dispatch utilities
 from .dispatch import (
-    set_default_backend,
-    default_backend,
-    available_backends,
-    backend_types,
     asarray,
     requires_backend,
 )
@@ -56,6 +42,13 @@ from .dispatch import (
 # Register backends
 from .backends import *
 
-# If only one backend is available, set it as the default
-if len(available_backends()) == 1:
-    set_default_backend(available_backends()[0])
+
+# DEPRECATED imports
+from .dispatch import (
+    set_default_backend,
+    default_backend,
+    available_backends,
+    backend_types,
+)
+from .array import Array
+from .wrap import wrap

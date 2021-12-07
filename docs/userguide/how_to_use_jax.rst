@@ -5,7 +5,7 @@ How-to use JAX with ``qiskit-dynamics``
 
 JAX enables just-in-time compilation, automatic differentation, and GPU
 execution. JAX is integrated into ``qiskit-dynamics`` via the
-``dispatch`` submodule, which allows most parts of the package to be
+``Array`` class, which allows most parts of the package to be
 executed with either ``numpy`` or ``jax.numpy``.
 
 This guide addresses the following topics:
@@ -20,7 +20,7 @@ This guide addresses the following topics:
 1. How do I configure dynamics to run with JAX?
 -----------------------------------------------
 
-The ``dispatch`` submodule provides a means of controlling whether array
+The ``Array`` class provides a means of controlling whether array
 operations are performed using ``numpy`` or ``jax.numpy``. In many
 cases, the “default backend” is used to determine which of the two
 options is used.
@@ -34,19 +34,19 @@ options is used.
     # tell JAX we are using CPU
     jax.config.update('jax_platform_name', 'cpu')
 
-    # import dispatch and set default backend
-    from qiskit_dynamics import dispatch
-    dispatch.set_default_backend('jax')
+    # import Array and set default backend
+    from qiskit_dynamics.array import Array
+    Array.set_default_backend('jax')
 
 The default backend can be observed via:
 
 .. jupyter-execute::
 
-    dispatch.default_backend()
+    Array.default_backend()
 
 
-2. How do I write code using dispatch that can be executed with either ``numpy`` or JAX?
-----------------------------------------------------------------------------------------
+2. How do I write code using Array that can be executed with either ``numpy`` or JAX?
+-------------------------------------------------------------------------------------
 
 The ``Array`` class wraps both ``numpy`` and ``jax.numpy``
 arrays. The particular type is indicated by the ``backend`` property,
@@ -67,7 +67,7 @@ JAX-transformable functions must be:
   - Pure, in the sense that they have no side-effects.
 
 The previous section shows how to handle the first two points using
-``dispatch`` and ``Array``. The last point further restricts the type of
+``Array``. The last point further restricts the type of
 code that can be safely transformed. Qiskit Dynamics uses various objects which
 can be updated by setting properties (models, solvers). If a function to
 be transformed requires updating an already-constructed object of this
