@@ -301,7 +301,7 @@ def backend_types():
 
 
 @deprecate_function(
-    "The `available_backends` function has been depreacted and will be removed next"
+    "The `available_backends` function has been deprecated and will be removed next"
     "release. Use the class method `Array.available_backends()` instead."
 )
 def available_backends():
