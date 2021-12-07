@@ -284,7 +284,7 @@ def set_default_backend(backend: Optional[str] = None):
 
 
 @deprecate_function(
-    "The `default_backend` function has been depreacted and will be removed next "
+    "The `default_backend` function has been deprecated and will be removed next "
     "release. Use the class method `Array.default_backend()` instead."
 )
 def default_backend():
