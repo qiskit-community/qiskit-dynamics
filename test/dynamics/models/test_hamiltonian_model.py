@@ -24,6 +24,7 @@ from qiskit_dynamics.models import HamiltonianModel
 from qiskit_dynamics.models.hamiltonian_model import is_hermitian
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.type_utils import to_BCOO, to_csr
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -42,7 +43,7 @@ class TestHamiltonianModelValidation(QiskitDynamicsTestCase):
     def test_operators_csr_not_hermitian(self):
         """Test raising error if operators are not Hermitian."""
 
-        operators = [csr_matrix([[0.0, 1.0], [0.0, 0.0]])]
+        operators = self.to_sparse([[[0.0, 1.0], [0.0, 0.0]]])
 
         with self.assertRaises(QiskitError) as qe:
             HamiltonianModel(operators=operators)
@@ -66,6 +67,18 @@ class TestHamiltonianModelValidation(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(ham_model(1.0), -1j * np.array([[0.0, 1.0], [0.0, 0.0]]))
+
+    def to_sparse(self, ops):
+        """Conversion of an operator or list of operators to the correct
+        sparse format for this class."""
+        return to_csr(ops)
+
+
+class TestHamiltonianModelValidationJax(TestHamiltonianModelValidation, TestJaxBase):
+    """Test HamiltonianModel validation with JAX backend."""
+
+    def to_sparse(self, ops):
+        return to_BCOO(ops)
 
 
 class TestHamiltonianModel(QiskitDynamicsTestCase):
@@ -283,10 +296,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
 
 class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
-    """Jax version of TestHamiltonianModel tests.
-
-    Note: This class has contains more tests due to inheritance.
-    """
+    """Jax version of TestHamiltonianModel tests."""
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable.
@@ -359,3 +369,14 @@ class Testis_hermitian(QiskitDynamicsTestCase):
                 [csr_matrix([[0.0, 1j], [-1j, 0.0]]), csr_matrix([[0.0, 1.0], [1.0, 0.0]])]
             )
         )
+
+
+class Testis_hermitianBCOO(QiskitDynamicsTestCase, TestJaxBase):
+    """Test is_hermitian for jax BCOO case."""
+
+    def test_2d_cases(self):
+        """Test BCOO 2d cases."""
+        self.assertTrue(is_hermitian(to_BCOO([[1.0, 0.0], [0.0, 1.0]])))
+        self.assertFalse(is_hermitian(to_BCOO([[0.0, 1.0], [0.0, 0.0]])))
+        self.assertFalse(is_hermitian(to_BCOO([[0.0, 1j], [0.0, 0.0]])))
+        self.assertTrue(is_hermitian(to_BCOO([[0.0, 1j], [-1j, 0.0]])))

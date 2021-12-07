@@ -20,6 +20,7 @@ from qiskit.quantum_info.operators import Operator
 from scipy.sparse.csr import csr_matrix
 from qiskit_dynamics.models.rotating_frame import RotatingFrame
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.type_utils import to_BCOO, to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -538,7 +539,6 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
     def test_state_transformations_no_frame_array_type(self):
         """Test frame transformations with no frame."""
 
-        # rotating_frame = RotatingFrame(Array(np.zeros(2)))
         rotating_frame = RotatingFrame(None)
 
         t = 0.123
@@ -558,6 +558,51 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
         self.assertTrue(isinstance(out, Array))
+
+
+class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
+    """Test correct handling of JAX BCOO arrays in relevant functions."""
+
+    def test_conjugate_and_add_BCOO(self):
+        """Test _conjugate_and_add with operator being BCOO."""
+
+        rotating_frame = RotatingFrame(np.array([1.0, -1.0]))
+
+        t = 0.123
+        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
+        op_to_add = to_BCOO(np.array([[0.0, -0.11j], [0.0, 1.0]]))
+        out = rotating_frame._conjugate_and_add(t, op, op_to_add)
+        self.assertTrue(type(out).__name__ == "BCOO")
+
+        self.assertAllClose(
+            to_array(out), rotating_frame._conjugate_and_add(t, to_array(op), to_array(op_to_add))
+        )
+
+    def test_operator_into_frame_basis(self):
+        """Test operator_into_frame_basis with operator being BCOO, for
+        frame specified as full matrix.
+        """
+
+        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
+
+        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
+        output = rotating_frame.operator_into_frame_basis(op)
+        expected = rotating_frame.operator_into_frame_basis(to_array(op))
+
+        self.assertAllClose(output, expected)
+
+    def test_operator_out_of_frame_basis(self):
+        """Test operator_out_of_frame_basis with operator being BCOO, for
+        frame specified as full matrix.
+        """
+
+        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
+
+        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
+        output = rotating_frame.operator_out_of_frame_basis(op)
+        expected = rotating_frame.operator_out_of_frame_basis(to_array(op))
+
+        self.assertAllClose(output, expected)
 
 
 class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
