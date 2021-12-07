@@ -227,7 +227,7 @@ Start off by configuring to use JAX.
 Reconstruct the model pieces at a much larger dimension, to observe the
 benefits of using sparse arrays. Furthermore, set up the initial state to
 be a single column vector, to
-further highlights the benefits of the sparse representation.
+further highlight the benefits of the sparse representation.
 
 .. jupyter-execute::
 
