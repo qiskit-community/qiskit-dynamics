@@ -273,7 +273,7 @@ class Dispatch:
 
 # Public functions
 @deprecate_function(
-    "The `set_default_backend` function has been depreacted and will be removed "
+    "The `set_default_backend` function has been deprecated and will be removed "
     "next release. Use the class method `Array.set_default_backend(backend)` instead."
 )
 def set_default_backend(backend: Optional[str] = None):
