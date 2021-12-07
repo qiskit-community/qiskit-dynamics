@@ -1,5 +1,5 @@
 ---
-feature:
+features:
   - |
     Adds JAX sparse evaluation mode to models and
     :class:`qiskit_dynamics.Solver`.
