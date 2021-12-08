@@ -419,9 +419,7 @@ class LindbladModel(BaseGeneratorModel):
             density matrix by left-multiplication. Allows for direct evaluate generator.
          * 'sparse': Like dense, but matrices stored in sparse format. If the default Array backend
             is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
-            :class:`csr_matrix` sparse type. Note that reverse mode automatic differentiation
-            does not work in sparse mode when default backend is JAX, use forward mode instead.
-            Note that JAX sparse mode is only recommended for use on CPU.
+            :class:`csr_matrix` sparse type.
          * `sparse_vectorized`: Like dense_vectorized, but matrices stored in sparse format.
             If the default Array backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
             :class:`csr_matrix` sparse type. Note that
