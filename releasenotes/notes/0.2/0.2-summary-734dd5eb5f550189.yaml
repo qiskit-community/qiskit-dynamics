@@ -1,4 +1,7 @@
 ---
+prelude: >
+    The Qiskit Dynamics 0.2 release adds support for sparse JAX arrays when building
+    solvers and models, and adds new fixed-step and parallelized JAX solvers.
 features:
   - |
     Adds JAX sparse evaluation mode to models and
