@@ -417,13 +417,13 @@ class LindbladModel(BaseGeneratorModel):
          * 'dense_vectorized': Stores the Hamiltonian and dissipator
             terms as :math:`(dim^2,dim^2)` matrices that acts on a vectorized
             density matrix by left-multiplication. Allows for direct evaluate generator.
-         * 'sparse': Like dense, but matrices stored in sparse format. If the default backend
+         * 'sparse': Like dense, but matrices stored in sparse format. If the default Array backend
             is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
             :class:`csr_matrix` sparse type. Note that reverse mode automatic differentiation
             does not work in sparse mode when default backend is JAX, use forward mode instead.
             Note that JAX sparse mode is only recommended for use on CPU.
          * `sparse_vectorized`: Like dense_vectorized, but matrices stored in sparse format.
-            If the default backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
+            If the default Array backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
             :class:`csr_matrix` sparse type. Note that
             JAX sparse mode is only recommended for use on CPU.
         """

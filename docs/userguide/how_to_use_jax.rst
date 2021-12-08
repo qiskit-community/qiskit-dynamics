@@ -1,3 +1,5 @@
+.. _how-to use jax:
+
 How-to use JAX with ``qiskit-dynamics``
 =======================================
 
