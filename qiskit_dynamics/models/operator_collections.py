@@ -36,6 +36,7 @@ try:
 
     def jsparse_linear_combo(coeffs, mats):
         """Method for computing a linear combination of sparse arrays."""
+        #pylint: disable=unexpected-keyword-arg
         return jsparse_sum(jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats, axis=0)
 
     # sparse version of computing A @ X @ B
