@@ -1,0 +1,61 @@
+---
+prelude: >
+    Replace this text with content to appear at the top of the section for this
+    release. All of the prelude content is merged together and then rendered
+    separately from the items listed in other parts of the file, so the text
+    needs to be worded so that both the prelude and the other items make sense
+    when read independently. This may mean repeating some details. Not every
+    release note requires a prelude. Usually only notes describing major
+    features or adding release theme details should have a prelude.
+features:
+  - |
+    Adds JAX sparse evaluation mode to models and
+    :class:`qiskit_dynamics.Solver`.
+    This mode can be enabled by setting the ``evaluation_mode`` to
+    ``'sparse'`` while :meth:`~qiskit_dynamics.array.Array.default_backend` is set to ``'jax'``
+    This evaluation mode is only recommended for use on CPU unless
+    the arrays are extremely sparse.
+  - |
+    Adds additional fixed-step solvers implemented with JAX. New solvers are
+    ``'jax_RK4'``, available through :func:`qiskit_dynamics.solve_ode`
+    and parallelized solvers ``'jax_RK4_parallel'`` and ``'jax_expm_parallel'`` available
+    via :func:`qiskit_dynamics.solve_lmde`. The parallelized solvers
+    are only recommended for use with GPU.
+  - |
+    Adds new :class:`~qiskit_dynamics.array.Array` class methods
+    :meth:`~qiskit_dynamics.array.Array.default_backend`,
+    :meth:`~qiskit_dynamics.array.Array.set_default_backend`,
+    :meth:`~qiskit_dynamics.array.Array.available_backends` which implement
+    the functionality of the previous methods of the same name from the
+    dispatch module.
+upgrade:
+  - |
+    The :class:`~qiskit_dynamics.array.Array` class and
+    :func:`~qiskit_dynamics.array.wrap` function have been moved from the
+    :mod:`qiskit_dynamics.dispatch` module to a separate
+    :mod:`qiskit_dynamics.array` module to separate the ``Array`` class
+    from the underlying dispatch system it uses internally.
+deprecations:
+  - |
+    The :func:`qiskit_dynamics.dispatch.default_backend` function has been
+    deprecated and will be removed in 0.3.0 release. It has been replaced by
+    the :meth:`qiskit_dynamics.array.Array.default_backend` class method.
+  - |
+    The :func:`qiskit_dynamics.dispatch.set_default_backend` function has been
+    deprecated and will be removed in 0.3.0 release. It has been replaced by
+    the :meth:`qiskit_dynamics.array.Array.set_default_backend` class method.
+  - |
+    The :func:`qiskit_dynamics.dispatch.available_backends` function has been
+    deprecatedand will be removed in 0.3.0 release. It has been replaced by
+    the :meth:`qiskit_dynamics.array.Array.available_backends` class method.
+  - |
+    The :func:`qiskit_dynamics.dispatch.backend_types` function has been
+    deprecated as it is no longer needed.
+  - |
+    Importing the :class:`~qiskit_dynamics.array.Array` class for the
+    :mod:`qiskit_dynamics.dispatch` module has been deprecated. It should now
+    be imported from the :mod:`qiskit_dynamics.array` module instead.
+  - |
+    Importing the :class:`~qiskit_dynamics.array.wrap` function for the
+    :mod:`qiskit_dynamics.dispatch` module has been deprecated. It should now
+    be imported from the :mod:`qiskit_dynamics.array` module instead.
