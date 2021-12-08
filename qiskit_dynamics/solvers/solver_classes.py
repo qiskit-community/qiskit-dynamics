@@ -349,7 +349,10 @@ def initial_state_converter(
 
 
 def final_state_converter(obj: Any, cls: Optional[Type] = None) -> Any:
-    """Convert final state Array to custom class.
+    """Convert final state Array to custom class. If ``cls`` is not ``None``,
+    will explicitly convert ``obj`` into a ``numpy.array`` before wrapping,
+    under the assumption that ``cls`` will be a ``qiskit.quantum_info`` type,
+    which only support ``numpy.array``s.
 
     Args:
         obj: final state Array.
@@ -361,7 +364,4 @@ def final_state_converter(obj: Any, cls: Optional[Type] = None) -> Any:
     if cls is None:
         return obj
 
-    if issubclass(cls, (BaseOperator, QuantumState)) and isinstance(obj, Array):
-        return cls(obj.data)
-
-    return cls(obj)
+    return cls(np.array(obj))
