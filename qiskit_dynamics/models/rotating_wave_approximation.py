@@ -198,6 +198,7 @@ def rotating_wave_approximation(
         if cur_static_dis is not None:
             rwa_static_dis = []
             for op in cur_static_dis:
+                op = Array(op)
                 rwa_op = op * (abs(frame_freqs) < cutoff_freq).astype(int)
                 rwa_op = model.rotating_frame.operator_out_of_frame_basis(rwa_op)
                 rwa_static_dis.append(rwa_op)

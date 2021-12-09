@@ -657,26 +657,6 @@ class TestLindbladModelSparse(TestLindbladModel):
 class TestLindbladModelJAXSparse(TestLindbladModelSparse, TestLindbladModelJax):
     """JAX sparse-mode tests."""
 
-    def test_gradable_funcs(self):
-        """Override base class to test forward mode differentiability,
-        as current implementation only allows for this.
-        """
-
-        from jax import jacfwd, jit
-
-        def func_to_grad(t, y):
-            t = Array(t).data
-            y = Array(y).data
-            return Array(self.basic_lindblad.evaluate_rhs(t, y)).data
-
-        jacfwd_func = jit(jacfwd(func_to_grad))
-        jacfwd_func(1.0, np.array([[0.2, 0.4], [0.6, 0.8]]))
-
-        # set rotating frame after construction and re-grad the function
-        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-        jacfwd_func = jit(jacfwd(func_to_grad))
-        jacfwd_func(1.0, np.array([[0.2, 0.4], [0.6, 0.8]]))
-
 
 class TestLindbladModelDenseVectorized(TestLindbladModel):
     """Test class for dense vectorized mode operation of LindbladModel."""
