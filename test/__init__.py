@@ -11,5 +11,5 @@
 # that they have been altered from the originals.
 
 """
-Qiskit ode tests
+Qiskit Dynamics tests
 """

@@ -25,6 +25,11 @@ from qiskit_dynamics.dispatch import Array
 #from .string_model_parser_old.string_model_parser import HamiltonianParser
 from .string_model_parser_object import HamiltonianParser
 
+
+# valid channel string characters
+channel_chars = ['U', 'D', 'M', 'u', 'd', 'm']
+
+
 def parse_hamiltonian_dict(
     hamiltonian_dict: dict, subsystem_list: Optional[List[int]] = None
 ) -> Tuple[Array, Array, List[str]]:
@@ -144,10 +149,11 @@ def parse_hamiltonian_dict(
     channels = []
     for _, ham_str in system:
         chan_idx = None
-        if 'U' in ham_str:
-            chan_idx = ham_str.index('U')
-        elif 'D' in ham_str:
-            chan_idx = ham_str.index('D')
+
+        for c in channel_chars:
+            if c in ham_str:
+                chan_idx = ham_str.index(c)
+                break
 
         if chan_idx is None:
             channels.append(None)
@@ -177,6 +183,7 @@ def parse_hamiltonian_dict(
     # Merge terms based on channel
     ###################################################################################################
 
+    # All channels in the reduced list are set to lower case
     static_hamiltonian = None
     hamiltonian_operators = []
     reduced_channels = []
@@ -189,6 +196,7 @@ def parse_hamiltonian_dict(
             else:
                 static_hamiltonian += op
         else:
+            channel = channel.lower()
             if channel in reduced_channels:
                 hamiltonian_operators[reduced_channels.index(channel)] += op
             else:

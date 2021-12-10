@@ -140,7 +140,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
 
         self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * self.X])
-        self.assertTrue(channels == ['D0'])
+        self.assertTrue(channels == ['d0'])
 
     def test_simple_single_q_system_repeat_entries(self):
         """Test a basic system."""
@@ -156,7 +156,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
 
         self.assertAllClose(static_ham, 2 * 2.1 * np.pi * self.Z)
         self.assertAllClose(to_array(ham_ops), [2 * 0.02 * np.pi * self.X])
-        self.assertTrue(channels == ['D0'])
+        self.assertTrue(channels == ['d0'])
 
     def test_simple_two_q_system(self):
         """Test a two qubit system."""
@@ -175,7 +175,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         ident = np.eye(2)
         self.assertAllClose(static_ham, 2.1 * np.pi * np.kron(ident, self.Z) + 2.0 * np.pi * np.kron(self.Z, ident) + 0.02 * np.pi * np.kron(self.Y, self.X))
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * np.kron(ident, self.X), 0.03 * np.pi * np.kron(self.X, ident)])
-        self.assertTrue(channels == ['D0', 'D1'])
+        self.assertTrue(channels == ['d0', 'd1'])
 
     def test_single_oscillator_system(self):
         """Test single oscillator system."""
@@ -192,7 +192,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
 
         self.assertAllClose(static_ham, 2.1 * np.pi * self.N - 0.33 * np.pi * self.N * self.N)
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
-        self.assertTrue(channels == ['D0'])
+        self.assertTrue(channels == ['d0'])
 
 
     def test_two_oscillator_system(self):
@@ -220,7 +220,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
                                         - 0.33 * np.pi * np.kron(self.N * self.N, ident)
                                         + 0.02 * np.pi * np.kron(-1j * (self.a - self.adag), self.a + self.adag))
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * np.kron(ident, self.a + self.adag), 0.03 * np.pi * np.kron(self.a + self.adag, ident)])
-        self.assertTrue(channels == ['D0', 'D1'])
+        self.assertTrue(channels == ['d0', 'd1'])
 
 
     def test_single_q_high_dim(self):
@@ -240,4 +240,4 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         ##############################################################################################
         self.assertAllClose(static_ham, 2.1 * np.pi * (np.eye(4) - 2 * self.N))
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
-        self.assertTrue(channels == ['D0'])
+        self.assertTrue(channels == ['d0'])
