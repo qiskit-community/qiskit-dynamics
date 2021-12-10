@@ -1,9 +1,11 @@
+.. _how-to use jax:
+
 How-to use JAX with ``qiskit-dynamics``
 =======================================
 
 JAX enables just-in-time compilation, automatic differentation, and GPU
 execution. JAX is integrated into ``qiskit-dynamics`` via the
-``dispatch`` submodule, which allows most parts of the package to be
+``Array`` class, which allows most parts of the package to be
 executed with either ``numpy`` or ``jax.numpy``.
 
 This guide addresses the following topics:
@@ -18,7 +20,7 @@ This guide addresses the following topics:
 1. How do I configure dynamics to run with JAX?
 -----------------------------------------------
 
-The ``dispatch`` submodule provides a means of controlling whether array
+The ``Array`` class provides a means of controlling whether array
 operations are performed using ``numpy`` or ``jax.numpy``. In many
 cases, the “default backend” is used to determine which of the two
 options is used.
@@ -32,25 +34,25 @@ options is used.
     # tell JAX we are using CPU
     jax.config.update('jax_platform_name', 'cpu')
 
-    # import dispatch and set default backend
-    from qiskit_dynamics import dispatch
-    dispatch.set_default_backend('jax')
+    # import Array and set default backend
+    from qiskit_dynamics.array import Array
+    Array.set_default_backend('jax')
 
 The default backend can be observed via:
 
 .. jupyter-execute::
 
-    dispatch.default_backend()
+    Array.default_backend()
 
 
-2. How do I write code using dispatch that can be executed with either ``numpy`` or JAX?
-----------------------------------------------------------------------------------------
+2. How do I write code using Array that can be executed with either ``numpy`` or JAX?
+-------------------------------------------------------------------------------------
 
-The ``dispatch.Array`` class wraps both ``numpy`` and ``jax.numpy``
+The ``Array`` class wraps both ``numpy`` and ``jax.numpy``
 arrays. The particular type is indicated by the ``backend`` property,
 and ``numpy`` functions called on an ``Array`` will automatically be
 dispatched to ``numpy`` or ``jax.numpy`` based on the ``Array``\ ’s
-backend. See the API documentation for ``qiskit_dynamics.dispatch`` for
+backend. See the API documentation for ``qiskit_dynamics.array`` for
 details.
 
 3. How do I write JAX-transformable functions using the objects and functions in ``qiskit-dynamics``?
@@ -65,7 +67,7 @@ JAX-transformable functions must be:
   - Pure, in the sense that they have no side-effects.
 
 The previous section shows how to handle the first two points using
-``dispatch`` and ``Array``. The last point further restricts the type of
+``Array``. The last point further restricts the type of
 code that can be safely transformed. Qiskit Dynamics uses various objects which
 can be updated by setting properties (models, solvers). If a function to
 be transformed requires updating an already-constructed object of this
@@ -87,13 +89,15 @@ which transforms a JAX-compatible function into optimized code using
 functions built using Qiskit Dynamics can be
 just-in-time compiled, resulting in faster simulation times.
 
-For convenience, the ``dispatch.wrap`` function can be used to transform
+For convenience, the ``wrap`` function can be used to transform
 ``jax.jit`` to also work on functions that have ``Array`` objects as
 inputs and outputs.
 
 .. jupyter-execute::
+    
+    from qiskit_dynamics.array import wrap
 
-    jit = dispatch.wrap(jax.jit, decorator=True)
+    jit = wrap(jax.jit, decorator=True)
 
 Construct a ``Solver`` instance with a model that will be used to solve.
 
@@ -102,7 +106,7 @@ Construct a ``Solver`` instance with a model that will be used to solve.
     import numpy as np
     from qiskit.quantum_info import Operator
     from qiskit_dynamics import Solver, Signal
-    from qiskit_dynamics.dispatch import Array
+    from qiskit_dynamics.array import Array
 
     r = 0.5
     w = 1.
@@ -207,7 +211,7 @@ Wrap ``jax.grad`` in the same way, then differentiate and compile
 
 .. jupyter-execute::
 
-    grad = dispatch.wrap(jax.grad, decorator=True)
+    grad = wrap(jax.grad, decorator=True)
 
     excited_pop_grad = jit(grad(excited_state_pop))
 
@@ -225,7 +229,7 @@ Subsequent runs of the function reveal the execution time once compiled.
     %timeit excited_pop_grad(1.).block_until_ready()
 
 
-4. Pitfalls when using JAX with dynamics
+4. Pitfalls when using JAX with Dynamics
 ----------------------------------------
 
 4.1 JAX must be set as the default backend before building any objects in Qiskit Dynamics
@@ -239,9 +243,13 @@ the operators in a model or ``Solver`` instance will be wrapped in an
 ``Array`` whose backend is the current default backend, and changing the
 default backend after building the object won’t change this.
 
-4.2 Dynamics does not currently support JAX sparse types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2 Running Dynamics with JAX on CPU vs GPU
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sparse evaluation modes for models and solvers cannot be used when JAX
-is the default backend. Setting a sparse evaluation mode when JAX is the
-default backend will result in an error.
+Certain JAX-based features in Dynamics are primarily recommended for use only with CPU
+or only with GPU. In such cases, a warning is raised if non-recommended hardware is used,
+however users are not prevented from configuring Dynamics and JAX in whatever way they choose.
+
+Instances of such features are:
+  * Setting ``evaluation_mode='sparse'`` for solvers and models is only recommended for use on CPU.
+  * Parallel fixed step solver options in ``solve_lmde`` are recommended only for use on GPU.

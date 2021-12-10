@@ -21,8 +21,29 @@ from scipy.sparse.csr import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
-from qiskit_dynamics.dispatch import Array
-from qiskit_dynamics.type_utils import to_array, to_csr, vec_commutator, vec_dissipator
+from qiskit_dynamics.array import Array, wrap
+from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
+
+try:
+    import jax.numpy as jnp
+    from jax.experimental import sparse as jsparse
+
+    # sparse versions of jax.numpy operations
+    jsparse_sum = jsparse.sparsify(jnp.sum)
+    jsparse_matmul = jsparse.sparsify(jnp.matmul)
+    jsparse_add = jsparse.sparsify(jnp.add)
+    jsparse_subtract = jsparse.sparsify(jnp.subtract)
+
+    def jsparse_linear_combo(coeffs, mats):
+        """Method for computing a linear combination of sparse arrays."""
+        # pylint: disable=unexpected-keyword-arg
+        return jsparse_sum(jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats, axis=0)
+
+    # sparse version of computing A @ X @ B
+    jsparse_triple_product = jsparse.sparsify(lambda A, X, B: A @ X @ B)
+
+except ImportError:
+    pass
 
 
 class BaseOperatorCollection(ABC):
@@ -245,6 +266,61 @@ class SparseOperatorCollection(BaseOperatorCollection):
             )
 
         raise QiskitError(self.__class__.__name__ + """  cannot evaluate RHS for y.ndim > 3.""")
+
+
+class JAXSparseOperatorCollection(BaseOperatorCollection):
+    """Jax version of SparseOperatorCollection built on jax.experimental.sparse.BCOO."""
+
+    @property
+    def static_operator(self) -> "BCOO":
+        return self._static_operator
+
+    @static_operator.setter
+    def static_operator(self, new_static_operator: Union["BCOO", None]):
+        self._static_operator = to_BCOO(new_static_operator)
+
+    @property
+    def operators(self) -> Union["BCOO", None]:
+        return self._operators
+
+    @operators.setter
+    def operators(self, new_operators: Union["BCOO", None]):
+        self._operators = to_BCOO(new_operators)
+
+    def evaluate(self, signal_values: Union[Array, None]) -> "BCOO":
+        r"""Jax sparse version of ``DenseOperatorCollection.evaluate``.
+
+        Args:
+            signal_values: Coefficients :math:`c_j`.
+
+        Returns:
+            Generator as sparse jax array.
+
+        Raises:
+            QiskitError: If collection cannot be evaluated.
+        """
+        if signal_values is not None and isinstance(signal_values, Array):
+            signal_values = signal_values.data
+
+        if self._static_operator is not None and self._operators is not None:
+            return jsparse_linear_combo(signal_values, self._operators) + self._static_operator
+        elif self._static_operator is None and self._operators is not None:
+            return jsparse_linear_combo(signal_values, self._operators)
+        elif self.static_operator is not None:
+            return self._static_operator
+        raise QiskitError(
+            self.__class__.__name__
+            + """ with None for both static_operator and
+                            operators cannot be evaluated."""
+        )
+
+    def evaluate_rhs(self, signal_values: Union[Array, None], y: Array) -> Array:
+        if y.ndim < 3:
+            if isinstance(y, Array):
+                y = y.data
+            return Array(jsparse_matmul(self.evaluate(signal_values), y))
+
+        raise QiskitError(self.__class__.__name__ + """  cannot evaluate RHS for y.ndim >= 3.""")
 
 
 class BaseLindbladOperatorCollection(ABC):
@@ -801,6 +877,209 @@ class SparseLindbladCollection(DenseLindbladCollection):
         return out
 
 
+class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
+    r"""Object for computing the right hand side of the Lindblad equation
+    with using jax.experimental.sparse.BCOO arrays.
+    """
+
+    @property
+    def static_hamiltonian(self) -> "BCOO":
+        return self._static_hamiltonian
+
+    @static_hamiltonian.setter
+    def static_hamiltonian(self, new_static_hamiltonian: Union["BCOO", None]):
+        self._static_hamiltonian = to_BCOO(new_static_hamiltonian)
+
+    @property
+    def hamiltonian_operators(self) -> Union["BCOO", None]:
+        return self._hamiltonian_operators
+
+    @hamiltonian_operators.setter
+    def hamiltonian_operators(self, new_hamiltonian_operators: Union["BCOO", None]):
+        self._hamiltonian_operators = to_BCOO(new_hamiltonian_operators)
+
+    @property
+    def static_dissipators(self) -> Union["BCOO", None]:
+        return self._static_dissipators
+
+    @static_dissipators.setter
+    def static_dissipators(self, new_static_dissipators: Union["BCOO", None]):
+        """Operators constructed using dense operations."""
+        self._static_dissipators = to_array(new_static_dissipators)
+        if self._static_dissipators is not None:
+            self._static_dissipators_adj = np.conjugate(
+                np.transpose(self._static_dissipators, [0, 2, 1])
+            ).copy()
+            self._static_dissipators_product_sum = -0.5 * np.sum(
+                np.matmul(self._static_dissipators_adj, self._static_dissipators), axis=0
+            )
+            self._static_dissipators = jsparse.BCOO.fromdense(
+                self._static_dissipators.data, n_batch=1
+            )
+            self._static_dissipators_adj = jsparse.BCOO.fromdense(
+                self._static_dissipators_adj.data, n_batch=1
+            )
+            self._static_dissipators_product_sum = jsparse.BCOO.fromdense(
+                self._static_dissipators_product_sum.data
+            )
+
+    @property
+    def dissipator_operators(self) -> Union["BCOO", None]:
+        return self._dissipator_operators
+
+    @dissipator_operators.setter
+    def dissipator_operators(self, new_dissipator_operators: Union["BCOO", None]):
+        """Operators constructed using dense operations."""
+        self._dissipator_operators = to_array(new_dissipator_operators)
+        if self._dissipator_operators is not None:
+            self._dissipator_operators_adj = np.conjugate(
+                np.transpose(self._dissipator_operators, [0, 2, 1])
+            ).copy()
+            self._dissipator_products = np.matmul(
+                self._dissipator_operators_adj, self._dissipator_operators
+            )
+            self._dissipator_operators = jsparse.BCOO.fromdense(
+                self._dissipator_operators.data, n_batch=1
+            )
+            self._dissipator_operators_adj = jsparse.BCOO.fromdense(
+                self._dissipator_operators_adj.data, n_batch=1
+            )
+            self._dissipator_products = -0.5 * jsparse.BCOO.fromdense(
+                self._dissipator_products.data, n_batch=1
+            )
+
+    def evaluate(self, ham_sig_vals: Array, dis_sig_vals: Array) -> Array:
+        raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
+
+    def evaluate_hamiltonian(self, ham_sig_vals: Union["BCOO", None]) -> "BCOO":
+        r"""Compute the Hamiltonian.
+
+        Args:
+            ham_sig_vals: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+        Returns:
+            Hamiltonian matrix.
+        Raises:
+            QiskitError: If collection not sufficiently specified.
+        """
+        if isinstance(ham_sig_vals, Array):
+            ham_sig_vals = ham_sig_vals.data
+
+        if self._static_hamiltonian is not None and self._hamiltonian_operators is not None:
+            return (
+                jsparse_linear_combo(ham_sig_vals, self._hamiltonian_operators)
+                + self._static_hamiltonian
+            )
+        elif self._static_hamiltonian is None and self._hamiltonian_operators is not None:
+            return jsparse_linear_combo(ham_sig_vals, self._hamiltonian_operators)
+        elif self._static_hamiltonian is not None:
+            return self._static_hamiltonian
+        else:
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with None for both static_hamiltonian and
+                                hamiltonian_operators cannot evaluate Hamiltonian."""
+            )
+
+    @wrap
+    def evaluate_rhs(
+        self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Array
+    ) -> Array:
+        r"""Evaluates Lindblad equation RHS given a pair of signal values
+        for the hamiltonian terms and the dissipator terms. Expresses
+        the RHS of the Lindblad equation as :math:`(A+B)y + y(A-B) + C`, where
+            .. math::
+            A = (-1/2)*\sum_jD_j^\dagger D_j + (-1/2)*\sum_j\gamma_j(t) L_j^\dagger L_j,
+
+            B = -iH,
+
+            C = \sum_j \gamma_j(t) L_j y L_j^\dagger.
+
+        Args:
+            ham_sig_vals: hamiltonian coefficient values, :math:`s_j(t)`.
+            dis_sig_vals: dissipator signal values, :math:`\gamma_j(t)`.
+            y: density matrix as (n,n) Array representing the state at time :math:`t`.
+        Returns:
+            RHS of Lindblad equation
+            .. math::
+                -i[H,y] + \sum_j\gamma_j(t)(L_j y L_j^\dagger - (1/2) * {L_j^\daggerL_j,y}).
+        Raises:
+            QiskitError: If operator collection is underspecified.
+        """
+
+        hamiltonian_matrix = None
+        if self._static_hamiltonian is not None or self._hamiltonian_operators is not None:
+            hamiltonian_matrix = -1j * self.evaluate_hamiltonian(ham_sig_vals)  # B matrix
+
+        # if dissipators present (includes both hamiltonian is None and is not None)
+        if self._dissipator_operators is not None or self._static_dissipators is not None:
+
+            # A matrix
+            if self._static_dissipators is None:
+                dissipators_matrix = jsparse_linear_combo(dis_sig_vals, self._dissipator_products)
+            elif self._dissipator_operators is None:
+                dissipators_matrix = self._static_dissipators_product_sum
+            else:
+                dissipators_matrix = self._static_dissipators_product_sum + jsparse_linear_combo(
+                    dis_sig_vals, self._dissipator_products
+                )
+
+            if hamiltonian_matrix is not None:
+                left_mult_contribution = jsparse_matmul(hamiltonian_matrix + dissipators_matrix, y)
+                right_mult_contribution = jsparse_matmul(
+                    y, dissipators_matrix + (-1 * hamiltonian_matrix)
+                )
+            else:
+                left_mult_contribution = jsparse_matmul(dissipators_matrix, y)
+                right_mult_contribution = jsparse_matmul(y, dissipators_matrix)
+
+            if len(y.shape) == 3:
+                # Must do array broadcasting and transposition to ensure vectorization works
+                y = jnp.broadcast_to(y, (1, y.shape[0], y.shape[1], y.shape[2])).transpose(
+                    [1, 0, 2, 3]
+                )
+            if self._static_dissipators is None:
+                both_mult_contribution = jnp.tensordot(
+                    dis_sig_vals,
+                    jsparse_triple_product(
+                        self._dissipator_operators, y, self._dissipator_operators_adj
+                    ),
+                    axes=(-1, -3),
+                )
+            elif self._dissipator_operators is None:
+                both_mult_contribution = jnp.sum(
+                    jsparse_triple_product(
+                        self._static_dissipators, y, self._static_dissipators_adj
+                    ),
+                    axis=-3,
+                )
+            else:
+                both_mult_contribution = jnp.sum(
+                    jsparse_triple_product(
+                        self._static_dissipators, y, self._static_dissipators_adj
+                    ),
+                    axis=-3,
+                ) + jnp.tensordot(
+                    dis_sig_vals,
+                    jsparse_triple_product(
+                        self._dissipator_operators, y, self._dissipator_operators_adj
+                    ),
+                    axes=(-1, -3),
+                )
+
+            out = left_mult_contribution + right_mult_contribution + both_mult_contribution
+
+            return out
+        # if just hamiltonian
+        elif hamiltonian_matrix is not None:
+            return jsparse_matmul(hamiltonian_matrix, y) - jsparse_matmul(y, hamiltonian_matrix)
+        else:
+            raise QiskitError(
+                """JAXSparseLindbladCollection with None for static_hamiltonian,
+                                 hamiltonian_operators, static_dissipators, and
+                                 dissipator_operators, cannot evaluate rhs."""
+            )
+
+
 class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOperatorCollection):
     """Base class for Vectorized Lindblad collections.
 
@@ -1015,6 +1294,44 @@ class SparseVectorizedLindbladCollection(
     @property
     def evaluation_class(self):
         return SparseOperatorCollection
+
+
+class JAXSparseVectorizedLindbladCollection(
+    BaseVectorizedLindbladCollection, JAXSparseLindbladCollection, JAXSparseOperatorCollection
+):
+    r"""Vectorized version of JAXSparseLindbladCollection.
+
+    Utilizes BaseVectorizedLindbladCollection for property handling, JAXSparseLindbladCollection
+    for evaluate_hamiltonian, and JAXSparseOperatorCollection for static_operator and operator
+    property handling.
+    """
+
+    def convert_to_internal_type(self, obj: any) -> "BCOO":
+        return to_BCOO(obj)
+
+    @property
+    def evaluation_class(self):
+        return JAXSparseOperatorCollection
+
+    def concatenate_static_operators(self):
+        """Override base class to convert to BCOO again at the end. The vectorization operations
+        are not implemented for BCOO type, so they automatically get converted to Arrays,
+        and hence need to be converted back.
+        """
+        super().concatenate_static_operators()
+        self._static_operator = self.convert_to_internal_type(self._static_operator)
+
+    def concatenate_operators(self):
+        """Override base class to convert to BCOO again at the end. The vectorization operations
+        are not implemented for BCOO type, so they automatically get converted to Arrays,
+        and hence need to be converted back.
+        """
+        super().concatenate_operators()
+        self._operators = self.convert_to_internal_type(self._operators)
+
+    @wrap
+    def evaluate_rhs(self, ham_sig_vals: Array, dis_sig_vals: Array, y: Array) -> Array:
+        return jsparse_matmul(self.evaluate(ham_sig_vals, dis_sig_vals), y)
 
 
 def package_density_matrices(y: Array) -> Array:

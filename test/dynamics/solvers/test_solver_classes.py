@@ -22,7 +22,7 @@ from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
 
 from qiskit_dynamics import Solver
 from qiskit_dynamics.signals import Signal
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase

@@ -20,7 +20,7 @@ the following steps:
 -----------------------
 
 First, set JAX to operate in 64-bit mode, and set JAX as the default
-backend using ``qiskit-dynamics.dispatch`` for performing array operations.
+backend using ``Array`` for performing array operations.
 This is necessary to enable automatic differentiation of the Qiskit Dynamics code
 in this tutorial. See the user guide entry on using JAX
 for a more detailed explanation of why this step is necessary.
@@ -33,8 +33,8 @@ for a more detailed explanation of why this step is necessary.
     # tell JAX we are using CPU
     jax.config.update('jax_platform_name', 'cpu')
 
-    from qiskit_dynamics import dispatch
-    dispatch.set_default_backend('jax')
+    from qiskit_dynamics.array import Array
+    Array.set_default_backend('jax')
 
 2. Setup the solver
 -------------------
@@ -111,7 +111,7 @@ example of one.
 .. jupyter-execute::
 
     from qiskit_dynamics import DiscreteSignal
-    from qiskit_dynamics.dispatch import Array
+    from qiskit_dynamics.array import Array
     from qiskit_dynamics.signals import Convolution
 
     # define convolution filter

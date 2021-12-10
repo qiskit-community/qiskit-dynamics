@@ -10,6 +10,7 @@ Qiskit Dynamics User Guide
    :maxdepth: 2
 
    how_to_use_jax.rst
+   how_to_configure_simulations.rst
 
 
 .. Hiding - Indices and tables

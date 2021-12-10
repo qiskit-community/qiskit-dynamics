@@ -17,6 +17,7 @@ Generator models module.
 
 from abc import ABC, abstractmethod
 from typing import Tuple, Union, List, Optional
+from warnings import warn
 from copy import copy
 import numpy as np
 from scipy.sparse.csr import csr_matrix
@@ -28,11 +29,17 @@ from qiskit_dynamics.models.operator_collections import (
     BaseOperatorCollection,
     DenseOperatorCollection,
     SparseOperatorCollection,
+    JAXSparseOperatorCollection,
 )
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from .rotating_frame import RotatingFrame
+
+try:
+    import jax
+except ImportError:
+    pass
 
 
 class BaseGeneratorModel(ABC):
@@ -166,11 +173,9 @@ class GeneratorModel(BaseGeneratorModel):
             rotating_frame: Rotating frame operator.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                 frame operator is diagonalized.
-            evaluation_mode: Evaluation mode to use. See ``GeneratorModel.evaluation_mode``
-                for more details. Supported options are:
-
-                 * 'dense' (DenseOperatorCollection)
-                 * 'sparse' (SparseOperatorCollection)
+            evaluation_mode: Evaluation mode to use.  Supported options are
+                ``'dense'`` and ``'sparse'``. Call ``help(GeneratorModel.evaluation_mode)``
+                for more details.
         Raises:
             QiskitError: If model not sufficiently specified.
         """
@@ -212,8 +217,10 @@ class GeneratorModel(BaseGeneratorModel):
         Available options:
 
          * 'dense': Stores/evaluates operators using dense Arrays.
-         * 'sparse': stores/evaluates operators using scipy :class:`csr_matrix`
-            types. Not compatible with JAX.
+         * 'sparse': Stores/evaluates operators using sparse matrices. If
+           the default Array backend is JAX, implemented with JAX BCOO arrays,
+           otherwise uses scipy :class:`csr_matrix` sparse type. Note that
+           JAX sparse mode is only recommended for use on CPU.
         """
         return self._evaluation_mode
 
@@ -287,7 +294,11 @@ class GeneratorModel(BaseGeneratorModel):
                 raise QiskitError("Signals specified in unaccepted format.")
 
             # verify signal length is same as operators
-            if len(signals) != len(self.operators):
+            if isinstance(self.operators, list):
+                len_operators = len(self.operators)
+            else:
+                len_operators = self.operators.shape[0]
+            if len(signals) != len_operators:
                 raise QiskitError("Signals needs to have the same length as operators.")
 
             self._signals = signals
@@ -430,22 +441,19 @@ class GeneratorModel(BaseGeneratorModel):
         else:
             sig_vals = self._signals.__call__(time)
 
-        # Evaluated in frame basis, but without rotations e^{\pm Ft}
-        op_combo = self._operator_collection(sig_vals)
-
         if self.rotating_frame is not None:
             # First, compute e^{tF}y as a pre-rotation in the frame basis
             out = self.rotating_frame.state_out_of_frame(
                 time, y, y_in_frame_basis=self._in_frame_basis, return_in_frame_basis=True
             )
             # Then, compute the product Ae^{tF}y
-            out = op_combo @ out
+            out = self._operator_collection(sig_vals, out)
             # Finally, we have the full operator e^{-tF}Ae^{tF}y
             out = self.rotating_frame.state_into_frame(
                 time, out, y_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
             )
         else:
-            return op_combo @ y
+            return self._operator_collection(sig_vals, y)
 
         return out
 
@@ -575,6 +583,15 @@ def construct_operator_collection(
 
     if evaluation_mode == "dense":
         return DenseOperatorCollection(static_operator=static_operator, operators=operators)
+    if evaluation_mode == "sparse" and Array.default_backend() == "jax":
+        # warn that sparse mode when using JAX is primarily recommended for use on CPU
+        if jax.default_backend() != "cpu":
+            warn(
+                """Using sparse mode with JAX is primarily recommended for use on CPU.""",
+                stacklevel=2,
+            )
+
+        return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
     if evaluation_mode == "sparse":
         return SparseOperatorCollection(static_operator=static_operator, operators=operators)
 

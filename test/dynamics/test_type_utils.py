@@ -18,7 +18,7 @@ import numpy as np
 from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators.operator import Operator
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import (
     convert_state,
     type_spec_from_instance,
@@ -27,10 +27,16 @@ from qiskit_dynamics.type_utils import (
     vec_commutator,
     to_array,
     to_csr,
+    to_BCOO,
     to_numeric_matrix_type,
 )
 
 from .common import QiskitDynamicsTestCase, TestJaxBase, TestQutipBase
+
+try:
+    from jax.experimental import sparse as jsparse
+except ImportError:
+    pass
 
 
 class TestStateTypeConverter(QiskitDynamicsTestCase):
@@ -271,6 +277,10 @@ class Testvec_commutator_dissipator(QiskitDynamicsTestCase):
 class Test_to_array(QiskitDynamicsTestCase):
     """Tests for to_array."""
 
+    def test_None_to_None(self):
+        """Test that None input returns None."""
+        self.assertTrue(to_array(None) is None)
+
     def test_to_array_Operator(self):
         """Tests for to_array with a single operator"""
         op = Operator.from_label("X")
@@ -355,9 +365,21 @@ class Test_to_array_Jax(Test_to_array, TestJaxBase):
         assert isinstance(to_array(single_op), Array)
         assert isinstance(to_array(list_of_arrays), Array)
 
+    def test_to_array_BCOO(self):
+        """Convert BCOO type to array."""
+
+        bcoo = jsparse.BCOO.fromdense(np.array([[0.0, 1.0], [1.0, 0.0]]))
+        out = to_array(bcoo)
+        self.assertTrue(isinstance(out, Array))
+        self.assertAllClose(out, np.array([[0.0, 1.0], [1.0, 0.0]]))
+
 
 class Test_to_csr(QiskitDynamicsTestCase):
     """Tests for to_csr."""
+
+    def test_None_to_None(self):
+        """Test that None input returns None."""
+        self.assertTrue(to_csr(None) is None)
 
     def test_to_csr_Operator(self):
         """Tests for to_csr with a single operator"""
@@ -403,7 +425,7 @@ class Test_to_csr(QiskitDynamicsTestCase):
         self.assertAllCloseSparse(to_csr(sparse_matrices), sparse_matrices)
 
     def test_to_csr_types(self):
-        """Type conversion tests for to_array"""
+        """Type conversion tests for to_csr"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         numpy_ops = np.array(list_of_ops)
         normal_array = Array(np.array(list_of_ops))
@@ -420,6 +442,77 @@ class Test_to_csr(QiskitDynamicsTestCase):
         assert isinstance(to_csr(list_of_arrays[0]), csr_matrix)
         assert isinstance(to_csr(sparse_matrices), Iterable)
         assert isinstance(to_csr(sparse_matrices)[0], csr_matrix)
+
+
+class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
+    """Test the to_BCOO function."""
+
+    def test_None_to_None(self):
+        """Test that None input returns None."""
+        self.assertTrue(to_BCOO(None) is None)
+
+    def test_to_BCOO_Operator(self):
+        """Tests for to_BCOO with a single operator"""
+        op = Operator.from_label("X")
+        bcoo_op = to_BCOO(op)
+        self.assertAllClose(Array(bcoo_op.todense()), Array([[0, 1], [1, 0]]))
+        self.assertTrue(type(bcoo_op).__name__ == "BCOO")
+
+    def test_to_BCOO_nparray(self):
+        """Tests for to_BCOO with a single numpy array"""
+        ndarray = np.array([[0, 1], [1, 0]])
+        bcoo = to_BCOO(ndarray)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(to_array(ndarray), ndarray)
+
+    def test_to_array_Array(self):
+        """Tests for to_BCOO from a qiskit Array"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        bcoo = to_BCOO(list_of_ops)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(bcoo.todense(), Array(list_of_ops))
+
+    def test_to_BCOO_Operator_list(self):
+        """Tests for to_BCOO with a list of operators"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        op_arr = [Operator.from_label(s) for s in "XYZ"]
+        bcoo = to_BCOO(op_arr)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(bcoo.todense(), Array(list_of_ops))
+
+    def test_to_BCOO_nparray_list(self):
+        """Tests for to_BCOO with a list of numpy arrays"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        ndarray_list = [np.array(op) for op in list_of_ops]
+        bcoo = to_BCOO(ndarray_list)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(to_array(ndarray_list), bcoo.todense())
+
+    def test_to_BCOO_list_of_arrays(self):
+        """Tests for to_BCOO with a list of numpy arrays"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        bcoo = to_BCOO(list_of_arrays)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(to_array(list_of_arrays), bcoo.todense())
+
+    def test_to_BCOO_sparse_matrix(self):
+        """Tests for to_BCOO with a single sparse matrix"""
+        op = Operator.from_label("X")
+        spm = csr_matrix(op)
+        ar = Array(op)
+        bcoo = to_BCOO(spm)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(to_array(bcoo), ar)
+
+    def test_to_BCOO_sparse_matrix_list(self):
+        """Tests for to_BCOO with a list of sparse matrices"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        list_of_arrays = [Array(op) for op in list_of_ops]
+        sparse_matrices = [csr_matrix(op) for op in list_of_ops]
+        bcoo = to_BCOO(sparse_matrices)
+        self.assertTrue(type(bcoo).__name__ == "BCOO")
+        self.assertAllClose(to_array(bcoo), list_of_arrays)
 
 
 class Test_to_numeric_matrix_type(QiskitDynamicsTestCase):
@@ -441,11 +534,23 @@ class Test_to_numeric_matrix_type(QiskitDynamicsTestCase):
             )
 
 
+class Test_to_numeric_matrix_type_Jax(QiskitDynamicsTestCase, TestJaxBase):
+    """Test to_numeric_matrix_type"""
+
+    def test_to_numeric_matrix_type(self):
+        """Tests for to_numeric_matrix_type"""
+        list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
+        bcoo = jsparse.BCOO.fromdense(to_array(list_of_ops))
+        bcoo2 = to_numeric_matrix_type(bcoo)
+        self.assertTrue(type(bcoo2).__name__ == "BCOO")
+        self.assertAllClose(bcoo.todense(), bcoo2.todense())
+
+
 class TestTypeUtilsQutip(QiskitDynamicsTestCase, TestQutipBase):
     """Perform type conversion testing for qutip qobj inputs"""
 
     def test_qutip_conversion(self):
-        """Test qutip type conversion to numeric matrix generally, csr, and array"""
+        """Test qutip type conversion to numeric matrices generally, csr, and array"""
         from qutip import Qobj
 
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]

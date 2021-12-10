@@ -16,20 +16,62 @@ Custom fixed step solvers.
 """
 
 from typing import Callable, Optional, Union, Tuple, List
+from warnings import warn
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
 
-from qiskit_dynamics.dispatch import requires_backend, Array
+from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.array import Array
 
 try:
+    import jax
+    from jax import vmap
     import jax.numpy as jnp
-    from jax.lax import scan, cond
+    from jax.lax import scan, cond, associative_scan
     from jax.scipy.linalg import expm as jexpm
 except ImportError:
     pass
 
 from .solver_utils import merge_t_args, trim_t_results
+
+
+def RK4_solver(
+    rhs: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Fixed step RK4 solver.
+
+    Args:
+        rhs: Callable, either a generator rhs
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    div6 = 1.0 / 6
+
+    def take_step(rhs_func, t, y, h):
+        h2 = 0.5 * h
+        t_plus_h2 = t + h2
+
+        k1 = rhs_func(t, y)
+        k2 = rhs_func(t_plus_h2, y + h2 * k1)
+        k3 = rhs_func(t_plus_h2, y + h2 * k2)
+        k4 = rhs_func(t + h, y + h * k3)
+
+        return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
+
+    return fixed_step_solver_template(
+        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
 
 
 def scipy_expm_solver(
@@ -44,7 +86,7 @@ def scipy_expm_solver(
     size no larger than ``max_dt``.
 
     Args:
-        generator: Callable, either a generator rhs
+        generator: Generator for the LMDE.
         t_span: Interval to solve over.
         y0: Initial state.
         max_dt: Maximum step size.
@@ -64,6 +106,87 @@ def scipy_expm_solver(
 
 
 @requires_backend("jax")
+def jax_RK4_solver(
+    rhs: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """JAX version of RK4_solver.
+
+    Args:
+        rhs: Callable, either a generator rhs
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    div6 = 1.0 / 6
+
+    def take_step(rhs_func, t, y, h):
+        h2 = 0.5 * h
+        t_plus_h2 = t + h2
+
+        k1 = rhs_func(t, y)
+        k2 = rhs_func(t_plus_h2, y + h2 * k1)
+        k3 = rhs_func(t_plus_h2, y + h2 * k2)
+        k4 = rhs_func(t + h, y + h * k3)
+
+        return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
+
+    return fixed_step_solver_template_jax(
+        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
+@requires_backend("jax")
+def jax_RK4_parallel_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Parallel version of jax_RK4_solver specialized to LMDEs.
+
+    Args:
+        generator: Generator of the LMDE.
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    dim = y0.shape[-1]
+    ident = jnp.eye(dim, dtype=complex)
+
+    div6 = 1.0 / 6
+
+    def take_step(generator, t, h):
+        h2 = 0.5 * h
+        gh2 = generator(t + h2)
+
+        k1 = generator(t)
+        k2 = gh2 @ (ident + h2 * k1)
+        k3 = gh2 @ (ident + h2 * k2)
+        k4 = generator(t + h) @ (ident + h * k3)
+
+        return ident + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
+
+    return fixed_step_lmde_solver_parallel_template_jax(
+        take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
+@requires_backend("jax")
 def jax_expm_solver(
     generator: Callable,
     t_span: Array,
@@ -75,7 +198,7 @@ def jax_expm_solver(
     Solves the specified problem by taking steps of size no larger than ``max_dt``.
 
     Args:
-        generator: Callable, either a generator rhs
+        generator: Generator for the LMDE.
         t_span: Interval to solve over.
         y0: Initial state.
         max_dt: Maximum step size.
@@ -91,6 +214,25 @@ def jax_expm_solver(
 
     return fixed_step_solver_template_jax(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
+@requires_backend("jax")
+def jax_expm_parallel_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Parallel version of jax_expm_solver implemented with JAX parallel operations."""
+
+    def take_step(generator, t, h):
+        eval_time = t + 0.5 * h
+        return jexpm(generator(eval_time) * h)
+
+    return fixed_step_lmde_solver_parallel_template_jax(
+        take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
@@ -182,7 +324,7 @@ def fixed_step_solver_template_jax(
     def wrapped_rhs_func(*args):
         return Array(rhs_func(*args), backend="jax").data
 
-    y0 = Array(y0, backend="jax").data
+    y0 = Array(y0).data
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
 
@@ -220,6 +362,99 @@ def fixed_step_solver_template_jax(
     return trim_t_results(results, t_span, t_eval)
 
 
+def fixed_step_lmde_solver_parallel_template_jax(
+    take_step: Callable,
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Parallelized and LMDE specific version of fixed_step_solver_template_jax.
+
+    Assuming the structure of an LMDE:
+    * Computes all propagators over each individual time-step in parallel using ``jax.vmap``.
+    * Computes all propagators from t_span[0] to each intermediate time point in parallel
+      using ``jax.lax.associative_scan``.
+    * Applies results to y0 and extracts the desired time points from ``t_eval``.
+
+    The above logic is slightly varied to save some operations is ``y0`` is square.
+
+    The signature of ``take_step`` is assumed to be:
+        - generator: A generator :math:`G(t)`.
+        - t: The current time.
+        - h: The size of the step to take.
+
+    It returns:
+        - y: The state of the DE at time t + h.
+
+    Note that this differs slightly from the other template functions, in that
+    ``take_step`` does not take take in ``y``, the state at time ``t``. The
+    parallelization procedure described above uses the initial state being the identity
+    matrix for each time step, and thus it is unnecessary to supply this to ``take_step``.
+
+    Args:
+        take_step: Fixed step integration rule.
+        generator: Generator for the LMDE.
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    # warn the user that the parallel solver will be very slow if run on a cpu
+    if jax.default_backend() == "cpu":
+        warn(
+            """JAX parallel solvers will likely run slower on CPUs than non-parallel solvers.
+            To make use of their capabilities it is recommended to use a GPU.""",
+            stacklevel=2,
+        )
+
+    # ensure the output of rhs_func is a raw array
+    def wrapped_generator(*args):
+        return Array(generator(*args), backend="jax").data
+
+    y0 = Array(y0).data
+
+    t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
+
+    # set up time information for computing propagators in parallel
+    all_times = []  # all stepping points
+    all_h = []  # step sizes for each point above
+    t_list_locations = [0]  # ordered list of locations in all_times that are in t_list
+    for t, h, n_steps in zip(t_list, h_list, n_steps_list):
+        all_times = np.append(all_times, t + h * np.arange(n_steps))
+        all_h = np.append(all_h, h * np.ones(n_steps))
+        t_list_locations = np.append(t_list_locations, [t_list_locations[-1] + n_steps])
+
+    # compute propagators over each time step in parallel
+    step_propagators = vmap(lambda t, h: take_step(wrapped_generator, t, h))(all_times, all_h)
+
+    # multiply propagators together in parallel
+    ys = None
+    reverse_mul = lambda A, B: jnp.matmul(B, A)
+    if y0.ndim == 2 and y0.shape[0] == y0.shape[1]:
+        # if square, append y0 as the first step propagator, scan, and extract
+        intermediate_props = associative_scan(
+            reverse_mul, jnp.append(jnp.array([y0]), step_propagators, axis=0), axis=0
+        )
+        ys = intermediate_props[t_list_locations]
+    else:
+        # if not square, scan propagators, extract relevant time points, multiply by y0,
+        # then prepend y0
+        intermediate_props = associative_scan(reverse_mul, step_propagators, axis=0)
+        # intermediate_props doesn't include t0, so shift t_list_locations when extracting
+        intermediate_y = intermediate_props[t_list_locations[1:] - 1] @ y0
+        ys = jnp.append(jnp.array([y0]), intermediate_y, axis=0)
+
+    results = OdeResult(t=t_list, y=Array(ys, backend="jax"))
+
+    return trim_t_results(results, t_span, t_eval)
+
+
 def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[Array, Array, Array]:
     """Merge ``t_span`` and ``t_eval``, and determine the number of time steps and
     and step sizes (no larger than ``max_dt``) required to fixed-step integrate between
@@ -246,13 +481,12 @@ def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[A
     n_steps_list = np.abs(delta_t_list / max_dt).astype(int)
 
     # correct potential rounding errors
-    # pylint: disable=consider-using-enumerate
-    for k in range(len(n_steps_list)):
-        if n_steps_list[k] == 0:
-            n_steps_list[k] = 1
+    for idx, (delta_t, n_steps) in enumerate(zip(delta_t_list, n_steps_list)):
+        if n_steps == 0:
+            n_steps_list[idx] = 1
         # absolute value to handle backwards integration
-        if np.abs(delta_t_list[k] / n_steps_list[k]) > max_dt:
-            n_steps_list[k] = n_steps_list[k] + 1
+        elif np.abs(delta_t / n_steps) / max_dt > 1 + 1e-15:
+            n_steps_list[idx] = n_steps + 1
 
     # step size in each interval
     h_list = np.array(delta_t_list / n_steps_list)

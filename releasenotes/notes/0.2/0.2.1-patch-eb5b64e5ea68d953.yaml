@@ -1,0 +1,9 @@
+---
+upgrade:
+  - |
+    Increased minimum jax and jaxlib versions for better sparse support, enabling
+    reverse mode automatic differentiation of :class:`qiskit_dynamics.models.LindbladModel`.
+fixes:
+  - |
+    Fixes a bug where simulations could raise an error using JAX solvers for
+    Statevector and DensityMatrix initial states.
