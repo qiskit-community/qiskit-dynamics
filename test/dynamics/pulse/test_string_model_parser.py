@@ -143,9 +143,27 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         self.assertTrue(channels == ['d0'])
 
     def test_simple_single_q_system_repeat_entries(self):
-        """Test a basic system."""
+        """Test merging of terms with same channel or no channel."""
         ham_dict = {
                     'h_str': ['v*np.pi*Z0', '0.02*np.pi*X0||D0', 'v*np.pi*Z0', '0.02*np.pi*X0||D0'],
+                    'qub': {
+                        '0': 2
+                    },
+                    'vars': {'v': 2.1}
+                }
+
+        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
+
+        self.assertAllClose(static_ham, 2 * 2.1 * np.pi * self.Z)
+        self.assertAllClose(to_array(ham_ops), [2 * 0.02 * np.pi * self.X])
+        self.assertTrue(channels == ['d0'])
+
+    def test_simple_single_q_system_repeat_entries_different_case(self):
+        """Test merging of terms with same channel or no channel,
+        with upper and lower case.
+        """
+        ham_dict = {
+                    'h_str': ['v*np.pi*Z0', '0.02*np.pi*X0||D0', 'v*np.pi*Z0', '0.02*np.pi*X0||d0'],
                     'qub': {
                         '0': 2
                     },
@@ -176,6 +194,27 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         self.assertAllClose(static_ham, 2.1 * np.pi * np.kron(ident, self.Z) + 2.0 * np.pi * np.kron(self.Z, ident) + 0.02 * np.pi * np.kron(self.Y, self.X))
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * np.kron(ident, self.X), 0.03 * np.pi * np.kron(self.X, ident)])
         self.assertTrue(channels == ['d0', 'd1'])
+
+
+    def test_simple_two_q_system_measurement_channel(self):
+        """Test a two qubit system with a measurement-labelled channel."""
+
+        ham_dict = {
+                    'h_str': ['v0*np.pi*Z0', 'v1*np.pi*Z1', 'j*np.pi*X0*Y1', '0.03*np.pi*X1||M1', '0.02*np.pi*X0||D0'],
+                    'qub': {
+                        '0': 2,
+                        '1': 2
+                    },
+                    'vars': {'v0': 2.1, 'v1': 2.0, 'j': 0.02}
+                }
+
+        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
+
+        ident = np.eye(2)
+        self.assertAllClose(static_ham, 2.1 * np.pi * np.kron(ident, self.Z) + 2.0 * np.pi * np.kron(self.Z, ident) + 0.02 * np.pi * np.kron(self.Y, self.X))
+        self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * np.kron(ident, self.X), 0.03 * np.pi * np.kron(self.X, ident)])
+        self.assertTrue(channels == ['d0', 'm1'])
+
 
     def test_single_oscillator_system(self):
         """Test single oscillator system."""

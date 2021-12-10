@@ -26,7 +26,7 @@ from qiskit_dynamics.dispatch import Array
 from .string_model_parser_object import HamiltonianParser
 
 
-# valid channel string characters
+# valid channel characters
 channel_chars = ['U', 'D', 'M', 'u', 'd', 'm']
 
 
@@ -75,6 +75,11 @@ def parse_hamiltonian_dict(
     been possible in the Aer pulse simulator. For now though we will enforce this limitation,
     have it be actually documented, and then maybe expand on it later.
 
+    Update to the above:
+    - Accepted channel characters are now: ['D', 'U', 'M', 'd', 'u', 'm'].
+      String rep stuff seems to assume upper case, but pulse itself gives channel names as lower
+      case, so it makes sense to suppor this.
+
 
     The output merges all static terms, or terms with the same channel, into a single
     matrix. It returns these with the channel names, which have been sorted in lexicographic
@@ -89,7 +94,8 @@ def parse_hamiltonian_dict(
     Returns:
         Concrete Array representation of model: An Array for the static hamiltonian,
         an Array for the list of operators with time-dependent coefficients, and a list
-        of channel names giving the time-dependent coefficients.
+        of channel names giving the time-dependent coefficients. Channel names are given
+        in lower case in alignment with channel names in pulse.
     """
 
     # raise errors for invalid hamiltonian_dict
@@ -236,7 +242,9 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
     # verify that terms in h_str contain at most a single channel label, and that it
     # is the only thing appearing after ||
     for term in hamiltonian_dict["h_str"]:
-        channel_count = term.count("D") + term.count("U")
+        channel_count = 0
+        for c in channel_chars:
+            channel_count += term.count(c)
         # verify at most one channel appears
         if channel_count > 1:
             raise QiskitError(
@@ -254,12 +262,12 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
                 )
             )
 
-        # ensure formatted as aa||Dxx or aa||Uxx where aa specifies an operator and
-        # xx is a string of digits
+        # ensure formatted as aa||Cxx
         elif channel_count == 1:
             malformed_text = """Term '{}' does not conform to required string format.
-                                Channels 'D' or 'U' may only be specified in the format
-                                'aa||Dxx' or 'aa||Uxx', where 'aa' specifies an operator
+                                Channels may only be specified in the format
+                                'aa||Cxx', where 'aa' specifies an operator,
+                                C is a valid channel character,
                                 and 'xx' is a string of digits.""".format(
                 term
             )
@@ -269,7 +277,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
                 # make sure after || is either U or D followed by a string of digits
                 divider_idx = term.index("||")
                 if (
-                    (term[divider_idx + 2] not in ["D", "U"])
+                    (term[divider_idx + 2] not in channel_chars)
                     or (len(term) == divider_idx + 3)
                     or any([not a.isdigit() for a in term[divider_idx + 3 :]])
                 ):
