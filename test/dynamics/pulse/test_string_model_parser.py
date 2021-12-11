@@ -261,7 +261,6 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * np.kron(ident, self.a + self.adag), 0.03 * np.pi * np.kron(self.a + self.adag, ident)])
         self.assertTrue(channels == ['d0', 'd1'])
 
-
     def test_single_q_high_dim(self):
         """Test single q system but higher dim."""
         ham_dict = {
@@ -280,3 +279,63 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         self.assertAllClose(static_ham, 2.1 * np.pi * (np.eye(4) - 2 * self.N))
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
         self.assertTrue(channels == ['d0'])
+
+    def test_5q_hamiltonian_reduced(self):
+        """Test case for complicated Hamiltonian with reductions."""
+        ham_dict = {"h_str": ["_SUM[i,0,4,wq{i}/2*(I{i}-Z{i})]",
+                              "_SUM[i,0,4,delta{i}/2*O{i}*O{i}]",
+                              "_SUM[i,0,4,-delta{i}/2*O{i}]",
+                              "_SUM[i,0,4,omegad{i}*X{i}||D{i}]",
+                              "jq1q2*Sp1*Sm2",
+                              "jq1q2*Sm1*Sp2",
+                              "jq3q4*Sp3*Sm4",
+                              "jq3q4*Sm3*Sp4",
+                              "jq0q1*Sp0*Sm1",
+                              "jq0q1*Sm0*Sp1",
+                              "jq2q3*Sp2*Sm3",
+                              "jq2q3*Sm2*Sp3",
+                              "omegad1*X0||U0",
+                              "omegad0*X1||U1",
+                              "omegad2*X1||U2",
+                              "omegad1*X2||U3",
+                              "omegad3*X2||U4",
+                              "omegad4*X3||U6",
+                              "omegad2*X3||U5",
+                              "omegad3*X4||U7"],
+                        "qub": {"0": 4, "1": 4, "2": 4, "3": 4, "4": 4},
+                        "vars": {"delta0": -2.111793476400394, "delta1": -2.0894421352015744,
+                                 "delta2": -2.1179183671068604, "delta3": -2.0410045431261215,
+                                 "delta4": -2.1119885565086776, "jq0q1": 0.010495754104003914,
+                                 "jq1q2": 0.010781715511200012, "jq2q3": 0.008920779377814226,
+                                 "jq3q4": 0.008985191651087791, "omegad0": 0.9715458990879812,
+                                 "omegad1": 0.9803812537440838, "omegad2": 0.9494756077681784,
+                                 "omegad3": 0.9763998543087951, "omegad4": 0.9829308019780478,
+                                 "wq0": 32.517894442809514, "wq1": 33.0948996120196,
+                                 "wq2": 31.74518096417169, "wq3": 30.51062025552735,
+                                 "wq4": 32.16082685025662}}
+
+        subsystem_list = [0, 1]
+        id = np.eye(4, dtype=complex)
+        id2 = np.eye(16, dtype=complex)
+        X = self.a + self.adag
+        X0 = np.kron(id, X)
+        X1 = np.kron(X, id)
+        N0 = np.kron(id, self.N)
+        N1 = np.kron(self.N, id)
+
+        w0 = ham_dict['vars']['wq0']
+        w1 = ham_dict['vars']['wq1']
+        delta0 = ham_dict['vars']['delta0']
+        delta1 = ham_dict['vars']['delta1']
+        j01 = ham_dict['vars']['jq0q1']
+        omegad0 = ham_dict['vars']['omegad0']
+        omegad1 = ham_dict['vars']['omegad1']
+        static_ham_expected = (w0 * N0 + delta0 * (N0 @ N0 - N0) + w1 * N1 + delta1 * (N1 @ N1 - N1)
+                     + j01 * (np.kron(self.a, self.adag) + np.kron(self.adag, self.a)))
+        ham_ops_expected = np.array([omegad0 * X0, omegad1 * X1, omegad1 * X0, omegad0 * X1])
+        channels_expected = ['d0', 'd1', 'u0', 'u1']
+
+        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
+        self.assertAllClose(static_ham, static_ham_expected)
+        self.assertAllClose(ham_ops, ham_ops_expected)
+        self.assertTrue(channels = channels_expected)

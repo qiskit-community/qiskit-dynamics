@@ -27,7 +27,7 @@ from .string_model_parser_object import HamiltonianParser
 
 
 # valid channel characters
-channel_chars = ['U', 'D', 'M', 'u', 'd', 'm']
+CHANNEL_CHARS = ['U', 'D', 'M', 'u', 'd', 'm']
 
 
 def parse_hamiltonian_dict(
@@ -156,7 +156,7 @@ def parse_hamiltonian_dict(
     for _, ham_str in system:
         chan_idx = None
 
-        for c in channel_chars:
+        for c in CHANNEL_CHARS:
             if c in ham_str:
                 chan_idx = ham_str.index(c)
                 break
@@ -243,7 +243,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
     # is the only thing appearing after ||
     for term in hamiltonian_dict["h_str"]:
         channel_count = 0
-        for c in channel_chars:
+        for c in CHANNEL_CHARS:
             channel_count += term.count(c)
         # verify at most one channel appears
         if channel_count > 1:
@@ -277,7 +277,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
                 # make sure after || is either U or D followed by a string of digits
                 divider_idx = term.index("||")
                 if (
-                    (term[divider_idx + 2] not in channel_chars)
+                    (term[divider_idx + 2] not in CHANNEL_CHARS)
                     or (len(term) == divider_idx + 3)
                     or any([not a.isdigit() for a in term[divider_idx + 3 :]])
                 ):
