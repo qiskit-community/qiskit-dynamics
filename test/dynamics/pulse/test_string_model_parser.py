@@ -53,30 +53,23 @@ class TestHamiltonianPreParseExceptions(QiskitDynamicsTestCase):
             hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
-    def test_too_few_vertical_bars(self):
-        """Test that too few vertical bars raises error."""
-
-        with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0 * D0"], "qub": {0: 2}})
-        self.assertTrue("does not conform" in str(qe.exception))
-
     def test_multiple_channel_error(self):
         """Test multiple channels raises error."""
 
         with self.assertRaises(QiskitError) as qe:
             hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||D0*D1"], "qub": {0: 2}})
-        self.assertTrue("more than one channel label" in str(qe.exception))
+        self.assertTrue("does not conform" in str(qe.exception))
 
     def test_divider_no_channel(self):
         """Test that divider with no channel raises error."""
 
         with self.assertRaises(QiskitError) as qe:
             hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||"], "qub": {0: 2}})
-        self.assertTrue("Operator-channel divider" in str(qe.exception))
+        self.assertTrue("does not conform" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
             hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|"], "qub": {0: 2}})
-        self.assertTrue("Operator-channel divider" in str(qe.exception))
+        self.assertTrue("does not conform" in str(qe.exception))
 
     def test_non_digit_after_channel(self):
         """Test that everything after the D or U is an int."""
@@ -314,7 +307,6 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
                                  "wq2": 31.74518096417169, "wq3": 30.51062025552735,
                                  "wq4": 32.16082685025662}}
 
-        subsystem_list = [0, 1]
         id = np.eye(4, dtype=complex)
         id2 = np.eye(16, dtype=complex)
         X = self.a + self.adag
@@ -323,6 +315,8 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         N0 = np.kron(id, self.N)
         N1 = np.kron(self.N, id)
 
+        # test case for subsystems [0, 1]
+
         w0 = ham_dict['vars']['wq0']
         w1 = ham_dict['vars']['wq1']
         delta0 = ham_dict['vars']['delta0']
@@ -330,12 +324,46 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         j01 = ham_dict['vars']['jq0q1']
         omegad0 = ham_dict['vars']['omegad0']
         omegad1 = ham_dict['vars']['omegad1']
-        static_ham_expected = (w0 * N0 + delta0 * (N0 @ N0 - N0) + w1 * N1 + delta1 * (N1 @ N1 - N1)
-                     + j01 * (np.kron(self.a, self.adag) + np.kron(self.adag, self.a)))
-        ham_ops_expected = np.array([omegad0 * X0, omegad1 * X1, omegad1 * X0, omegad0 * X1])
-        channels_expected = ['d0', 'd1', 'u0', 'u1']
+        omegad2 = ham_dict['vars']['omegad2']
+        static_ham_expected = (
+            w0 * N0 + 0.5 * delta0 * (N0 @ N0 - N0)
+            + w1 * N1 + 0.5 * delta1 * (N1 @ N1 - N1)
+            + j01 * (np.kron(self.a, self.adag) + np.kron(self.adag, self.a))
+        )
+        ham_ops_expected = np.array([omegad0 * X0,
+                                     omegad1 * X1,
+                                     omegad1 * X0,
+                                     omegad0 * X1,
+                                     omegad2 * X1])
+        channels_expected = ['d0', 'd1', 'u0', 'u1', 'u2']
 
-        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict, subsystem_list=[0, 1])
         self.assertAllClose(static_ham, static_ham_expected)
         self.assertAllClose(ham_ops, ham_ops_expected)
-        self.assertTrue(channels = channels_expected)
+        self.assertTrue(channels == channels_expected)
+
+        # test case for subsystems [3, 4]
+        w3 = ham_dict['vars']['wq3']
+        w4 = ham_dict['vars']['wq4']
+        delta3 = ham_dict['vars']['delta3']
+        delta4 = ham_dict['vars']['delta4']
+        j34 = ham_dict['vars']['jq3q4']
+        omegad3 = ham_dict['vars']['omegad3']
+        omegad4 = ham_dict['vars']['omegad4']
+        omegad2 = ham_dict['vars']['omegad2']
+        static_ham_expected = (
+            w3 * N0 + 0.5 * delta3 * (N0 @ N0 - N0)
+            + w4 * N1 + 0.5 * delta4 * (N1 @ N1 - N1)
+            + j34 * (np.kron(self.a, self.adag) + np.kron(self.adag, self.a))
+        )
+        ham_ops_expected = np.array([omegad3 * X0,
+                                     omegad4 * X1,
+                                     omegad2 * X0,
+                                     omegad4 * X0,
+                                     omegad3 * X1])
+        channels_expected = ['d3', 'd4', 'u5', 'u6', 'u7']
+
+        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict, subsystem_list=[3, 4])
+        self.assertAllClose(static_ham, static_ham_expected)
+        self.assertAllClose(ham_ops, ham_ops_expected)
+        self.assertTrue(channels == channels_expected)

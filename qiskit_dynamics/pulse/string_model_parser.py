@@ -152,14 +152,18 @@ def parse_hamiltonian_dict(
     # extract which channels are associated with which Hamiltonian terms
     # This code assumes there is at most one channel appearing in each term, and that it
     # appears at the end.
+
     channels = []
     for _, ham_str in system:
         chan_idx = None
 
         for c in CHANNEL_CHARS:
+            # if c in ham_str, and all characters after are digits, treat
+            # as channel
             if c in ham_str:
-                chan_idx = ham_str.index(c)
-                break
+                if all([a.isdigit() for a in ham_str[ham_str.index(c) + 1:]]):
+                    chan_idx = ham_str.index(c)
+                    break
 
         if chan_idx is None:
             channels.append(None)
@@ -239,46 +243,43 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
     if hamiltonian_dict.get("osc", {}) != {}:
         raise QiskitError("Oscillator-type systems are not supported.")
 
-    # verify that terms in h_str contain at most a single channel label, and that it
-    # is the only thing appearing after ||
+    # verify that if terms in h_str have the divider ||, then the channels are
+    # in the valid format
     for term in hamiltonian_dict["h_str"]:
-        channel_count = 0
-        for c in CHANNEL_CHARS:
-            channel_count += term.count(c)
-        # verify at most one channel appears
-        if channel_count > 1:
-            raise QiskitError(
-                """Hamiltonian term '{}' contains more than one channel label.
-                                 Hamiltonian terms can only contain one channel label.""".format(
-                    term
-                )
-            )
+        malformed_text = """Term '{}' does not conform to required string format.
+                            Channels may only be specified in the format
+                            'aa||Cxx', where 'aa' specifies an operator,
+                            C is a valid channel character,
+                            and 'xx' is a string of digits.""".format(
+            term
+        )
 
-        # if no channels ensure doesn't contain divider ||
-        elif channel_count == 0 and term.count("|") > 0:
-            raise QiskitError(
-                """Operator-channel divider '||' appears in term '{}' with no channels specified.""".format(
-                    term
-                )
-            )
+        # if two vertical bars used together, check if channels in correct format
+        if term.count("|") == 2 and term.count("||") == 1:
+            # get the string reserved for channel
+            channel_str = term[term.index('||') + 2:]
 
-        # ensure formatted as aa||Cxx
-        elif channel_count == 1:
-            malformed_text = """Term '{}' does not conform to required string format.
-                                Channels may only be specified in the format
-                                'aa||Cxx', where 'aa' specifies an operator,
-                                C is a valid channel character,
-                                and 'xx' is a string of digits.""".format(
-                term
-            )
-            if term.count("||") != 1 or term.count("|") > 2:
+            # if channel string is empty
+            if len(channel_str) == 0:
                 raise QiskitError(malformed_text)
-            else:
-                # make sure after || is either U or D followed by a string of digits
-                divider_idx = term.index("||")
-                if (
-                    (term[divider_idx + 2] not in CHANNEL_CHARS)
-                    or (len(term) == divider_idx + 3)
-                    or any([not a.isdigit() for a in term[divider_idx + 3 :]])
-                ):
+
+            # if first entry in channel string isn't a valid channel character
+            if channel_str[0] not in CHANNEL_CHARS:
+                raise QiskitError(malformed_text)
+
+            # if channel string doesn't contain anything other than channel character
+            if len(channel_str[1:]) == 0:
+                raise QiskitError(malformed_text)
+
+            # Verify either that: all remaining characters are digits, or starts and ends with {},
+            # with outer bracket ] for a _SUM[]
+            if channel_str[-1] == ']':
+                if not channel_str[1] == '{' and channel_str[-2] == '}':
                     raise QiskitError(malformed_text)
+            else:
+                if any([not c.isdigit() for c in channel_str[1:]]):
+                    raise QiskitError(malformed_text)
+
+        # if bars present but not in correct format, raise error
+        elif term.count('|') != 0:
+            raise QiskitError(malformed_text)
