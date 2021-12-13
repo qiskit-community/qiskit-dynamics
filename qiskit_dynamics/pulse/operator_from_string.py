@@ -17,8 +17,11 @@
 
 import numpy as np
 
+from qiskit import QiskitError
+
+
 def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: dict) -> np.ndarray:
-    """Generates an dense operator acting on a single subsystem, tensoring identities for remaining
+    r"""Generates an dense operator acting on a single subsystem, tensoring identities for remaining
     subsystems.
 
     The single system operator is specified via a string in ``op_label``,
@@ -61,8 +64,9 @@ def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: di
     out = single_operator_from_string(op_label, subsystem_dims[subsystem_index])
 
     # sort subsystem labels and dimensions
-    sorted_subsystem_keys, sorted_subsystem_dims = zip(*sorted(zip(subsystem_dims.keys(),
-                                                                   subsystem_dims.values())))
+    sorted_subsystem_keys, sorted_subsystem_dims = zip(
+        *sorted(zip(subsystem_dims.keys(), subsystem_dims.values()))
+    )
 
     # get subsystem location in ordered list
     subsystem_location = sorted_subsystem_keys.index(subsystem_index)
@@ -74,39 +78,47 @@ def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: di
 
     # tensor identity on left if subsystem_index not the last subsystem
     if subsystem_location + 1 != len(sorted_subsystem_keys):
-        total_dim = np.prod(sorted_subsystem_dims[(subsystem_location + 1):])
+        total_dim = np.prod(sorted_subsystem_dims[(subsystem_location + 1) :])
         out = np.kron(ident(total_dim), out)
 
     return out
+
 
 # functions for generating individual operators
 def a(dim: int) -> np.ndarray:
     """Annihilation operator."""
     return np.diag(np.sqrt(np.arange(1, dim, dtype=complex)), 1)
 
+
 def adag(dim: int) -> np.ndarray:
     """Creation operator."""
     return a(dim).conj().transpose()
+
 
 def N(dim: int) -> np.ndarray:
     """Number operator."""
     return np.diag(np.arange(dim, dtype=complex))
 
+
 def X(dim: int) -> np.ndarray:
     """Generalized X operator, written in terms of raising and lowering operators."""
     return a(dim) + adag(dim)
+
 
 def Y(dim: int) -> np.ndarray:
     """Generalized Y operator, written in terms of raising and lowering operators."""
     return -1j * (a(dim) - adag(dim))
 
+
 def Z(dim: int) -> np.ndarray:
     """Generalized Z operator, written as id - 2 * N."""
     return ident(dim) - 2 * N(dim)
 
+
 def ident(dim: int) -> np.ndarray:
     """Identity operator."""
     return np.eye(dim, dtype=complex)
+
 
 def single_operator_from_string(op_label: str, dim: int) -> np.ndarray:
     """Generate a single operator from a string.
@@ -120,13 +132,17 @@ def single_operator_from_string(op_label: str, dim: int) -> np.ndarray:
 
     Returns:
         np.ndarray
+
+    Raises:
+        QiskitError: If op_label doesn't correspond to a known operator.
     """
 
     op_func = __operdict.get(op_label, None)
     if op_func is None:
-        raise QiskitError('String {} does not correspond to a known operator.'.format(op_label))
+        raise QiskitError("String {} does not correspond to a known operator.".format(op_label))
 
     return op_func(dim)
+
 
 # operator names
 __operdict = {
@@ -140,12 +156,13 @@ __operdict = {
     "C": adag,
     "N": N,
     "O": N,
-    "I": ident
+    "I": ident,
 }
+
 
 def dag(op: np.ndarray) -> np.ndarray:
     """Apply dagger."""
-    return np.conjugate(np.transpose(opr))
+    return np.conjugate(np.transpose(op))
 
 
 def apply_func(name: str, op: np.ndarray) -> np.ndarray:

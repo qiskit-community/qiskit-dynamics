@@ -9,6 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
 Functionality for importing qiskit.pulse model string representation.
@@ -17,17 +18,18 @@ Functionality for importing qiskit.pulse model string representation.
 from typing import Tuple, List, Optional
 from collections import OrderedDict
 
+# required for calls to exec
+# pylint: disable=unused-import
 import numpy as np
 
 from qiskit import QiskitError
 from qiskit_dynamics.dispatch import Array
 
-#from .string_model_parser_old.string_model_parser import HamiltonianParser
 from .string_model_parser_object import HamiltonianParser
 
 
 # valid channel characters
-CHANNEL_CHARS = ['U', 'D', 'M', 'u', 'd', 'm']
+CHANNEL_CHARS = ["U", "D", "M", "u", "d", "m"]
 
 
 def parse_hamiltonian_dict(
@@ -137,9 +139,7 @@ def parse_hamiltonian_dict(
     ##################################################################################################
 
     # Parse the Hamiltonian
-    system = HamiltonianParser(
-        h_str=hamiltonian_dict["h_str"], subsystem_dims=subsystem_dims
-    )
+    system = HamiltonianParser(h_str=hamiltonian_dict["h_str"], subsystem_dims=subsystem_dims)
     system.parse(subsystem_list)
     system = system.compiled
 
@@ -161,7 +161,7 @@ def parse_hamiltonian_dict(
             # if c in ham_str, and all characters after are digits, treat
             # as channel
             if c in ham_str:
-                if all([a.isdigit() for a in ham_str[ham_str.index(c) + 1:]]):
+                if all(a.isdigit() for a in ham_str[ham_str.index(c) + 1 :]):
                     chan_idx = ham_str.index(c)
                     break
 
@@ -185,7 +185,7 @@ def parse_hamiltonian_dict(
 
     evaluated_ops = []
     for op, coeff in system:
-        loc = {}
+        # pylint: disable=exec-used
         exec("evaluated_coeff = %s" % coeff, globals(), local_vars)
         evaluated_ops.append(local_vars["evaluated_coeff"] * op)
 
@@ -215,7 +215,9 @@ def parse_hamiltonian_dict(
 
     # sort channels/operators according to channel ordering
     if len(reduced_channels) > 0:
-        reduced_channels, hamiltonian_operators = zip(*sorted(zip(reduced_channels, hamiltonian_operators)))
+        reduced_channels, hamiltonian_operators = zip(
+            *sorted(zip(reduced_channels, hamiltonian_operators))
+        )
 
     return static_hamiltonian, list(hamiltonian_operators), list(reduced_channels)
 
@@ -225,7 +227,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
     hamiltonian dict specification.
 
     Parameters:
-        hamiltonian: Dictionary specification of hamiltonian.
+        hamiltonian_dict: Dictionary specification of hamiltonian.
     Returns:
     Raises:
         QiskitError: If some part of the Hamiltonian dictionary is unsupported or invalid.
@@ -257,7 +259,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
         # if two vertical bars used together, check if channels in correct format
         if term.count("|") == 2 and term.count("||") == 1:
             # get the string reserved for channel
-            channel_str = term[term.index('||') + 2:]
+            channel_str = term[term.index("||") + 2 :]
 
             # if channel string is empty
             if len(channel_str) == 0:
@@ -273,13 +275,13 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
 
             # Verify either that: all remaining characters are digits, or starts and ends with {},
             # with outer bracket ] for a _SUM[]
-            if channel_str[-1] == ']':
-                if not channel_str[1] == '{' and channel_str[-2] == '}':
+            if channel_str[-1] == "]":
+                if not channel_str[1] == "{" and channel_str[-2] == "}":
                     raise QiskitError(malformed_text)
             else:
-                if any([not c.isdigit() for c in channel_str[1:]]):
+                if any(not c.isdigit() for c in channel_str[1:]):
                     raise QiskitError(malformed_text)
 
         # if bars present but not in correct format, raise error
-        elif term.count('|') != 0:
+        elif term.count("|") != 0:
             raise QiskitError(malformed_text)
