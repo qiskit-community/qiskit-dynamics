@@ -20,8 +20,7 @@ import copy
 from collections import namedtuple, OrderedDict
 import numpy as np
 from qiskit.quantum_info import Operator
-from .string_model_parser_old.apply_str_func_to_qobj import apply_func
-from .operator_from_string import operator_from_string
+from .operator_from_string import operator_from_string, apply_func
 
 
 Token = namedtuple("Token", ("type", "name"))

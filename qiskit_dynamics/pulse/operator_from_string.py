@@ -142,3 +142,16 @@ __operdict = {
     "O": N,
     "I": ident
 }
+
+def dag(op: np.ndarray) -> np.ndarray:
+    """Apply dagger."""
+    return np.conjugate(np.transpose(opr))
+
+
+def apply_func(name: str, op: np.ndarray) -> np.ndarray:
+    """Apply function of given name, or do nothing if func not found"""
+    return __funcdict.get(name, lambda x: x)(op)
+
+
+# pylint: disable=invalid-name
+__funcdict = {"dag": dag}
