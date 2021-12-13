@@ -343,6 +343,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         self.assertTrue(channels == channels_expected)
 
         # test case for subsystems [3, 4]
+        
         w3 = ham_dict['vars']['wq3']
         w4 = ham_dict['vars']['wq4']
         delta3 = ham_dict['vars']['delta3']

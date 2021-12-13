@@ -21,7 +21,6 @@ from collections import namedtuple, OrderedDict
 import numpy as np
 from qiskit.quantum_info import Operator
 from .string_model_parser_old.apply_str_func_to_qobj import apply_func
-from .string_model_parser_old.operator_from_string import gen_oper
 from .operator_from_string import operator_from_string
 
 
@@ -187,7 +186,7 @@ class HamiltonianParser:
                             idx = int(p.group("idx"))
                             name = "P"
                             lvs = int(p.group("ket")), int(p.group("bra"))
-                            opr = gen_oper(name, idx, self.dim_osc, self.dim_qub, lvs)
+                            opr = operator_from_string(name, idx, self.subsystem_dims)
                             self.__str2qopr[p.group()] = opr
                     elif key in ["Func", "Ext"]:
                         _name = p.group("name")
@@ -307,7 +306,7 @@ class NoiseParser:
     these configurations are combined in the same dictionary
     """
 
-    def __init__(self, noise_dict, dim_osc, dim_qub):
+    def __init__(self, noise_dict, subsystem_dims):
         """Create new quantum operator generator
 
         Parameters:
@@ -317,8 +316,7 @@ class NoiseParser:
         """
         self.noise_osc = noise_dict.get("oscillator", {"n_th": {}, "coupling": {}})
         self.noise_qub = noise_dict.get("qubit", {})
-        self.dim_osc = dim_osc
-        self.dim_qub = dim_qub
+        self.subsystem_dims = subsystem_dims
         self.__c_list = []
 
     @property
@@ -334,7 +332,7 @@ class NoiseParser:
                 # TODO: support noise in multi-dimensional system
                 # TODO: support noise with math operation
                 if opname in ["X", "Y", "Z", "Sp", "Sm"]:
-                    opr = gen_oper(opname, int(index), self.dim_osc, self.dim_qub)
+                    opr = operator_from_string(name, idx, self.subsystem_dims)
                 else:
                     raise Exception("Unsupported noise operator %s is given" % opname)
                 self.__c_list.append(np.sqrt(coef) * opr)
@@ -344,7 +342,7 @@ class NoiseParser:
         for (n_ii, n_coef), (c_ii, c_coef) in zip(ndic.items(), cdic.items()):
             if n_ii == c_ii:
                 if c_coef > 0:
-                    opr = gen_oper("A", int(n_ii), self.dim_osc, self.dim_qub)
+                    opr = operator_from_string('A', int(n_ii), self.subsystem_dims)
                     if n_coef:
                         self.__c_list.append(np.sqrt(c_coef * (1 + n_coef)) * opr)
                         self.__c_list.append(np.sqrt(c_coef * n_coef) * opr.dag())
