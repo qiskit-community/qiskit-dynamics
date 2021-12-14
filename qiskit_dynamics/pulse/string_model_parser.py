@@ -23,7 +23,6 @@ from collections import OrderedDict
 import numpy as np
 
 from qiskit import QiskitError
-from qiskit_dynamics.dispatch import Array
 
 from .string_model_parser_object import HamiltonianParser
 
@@ -34,7 +33,7 @@ CHANNEL_CHARS = ["U", "D", "M", "u", "d", "m"]
 
 def parse_hamiltonian_dict(
     hamiltonian_dict: dict, subsystem_list: Optional[List[int]] = None
-) -> Tuple[Array, Array, List[str]]:
+) -> Tuple[np.ndarray, np.ndarray, List[str]]:
     """Convert Hamiltonian string representation into concrete operators
     and an ordered list of channels corresponding to the operators.
 
@@ -224,6 +223,28 @@ def parse_hamiltonian_dict(
         )
 
     return static_hamiltonian, list(hamiltonian_operators), list(reduced_channels)
+
+
+def parse_noise_dict(
+    noise_dict: List[dict], subsystem_list: Optional[List[int]] = None
+) -> List[np.ndarray]:
+    """What format for this?
+
+    For now let's imagine, it's the same but instead of 'h_str' we have 'noise_str'
+    which is a list of lists, each specifying a different operator.
+    """
+
+    static_dissipators = []
+    for str_list in noise_dict['noise_str']:
+        temp_dict = {'h_str': str_list, 'qub': noise_dict['qub'], 'vars': noise_dict.get('vars', {})}
+
+        static_diss, _, channels = parse_hamiltonian_dict(temp_dict, subsystem_list)
+        if channels != []:
+            raise QiskitError('Channels are not supported in noise dictionaries.')
+
+        static_dissipators.append(static_diss)
+
+    return static_dissipators
 
 
 def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
