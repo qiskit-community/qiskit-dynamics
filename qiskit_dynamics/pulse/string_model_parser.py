@@ -85,6 +85,7 @@ def parse_hamiltonian_dict(
     Further update to the above:
     - It also accepts strings of the form '_SUM[i, lb, ub, aa||C{i}]', where now
       aa is an operator string which may contain R{i} for 'R' a valid operator character
+    - Can also do things like 'dag(xx)' where xx is a valid operator string
 
     The output merges all static terms, or terms with the same channel, into a single
     matrix. It returns these with the channel names, which have been sorted in lexicographic
@@ -248,8 +249,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
     if hamiltonian_dict.get("osc", {}) != {}:
         raise QiskitError("Oscillator-type systems are not supported.")
 
-    # verify that if terms in h_str have the divider ||, then the channels are
-    # in the valid format
+    # verify that if terms in h_str have the divider ||, then the channels are in the valid format
     for term in hamiltonian_dict["h_str"]:
         malformed_text = """Term '{}' does not conform to required string format.
                             Channels may only be specified in the format

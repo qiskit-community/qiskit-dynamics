@@ -284,6 +284,17 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
         self.assertTrue(channels == ["d0"])
 
+    def test_dagger(self):
+        """Test correct parsing of dagger."""
+        ham_dict = {
+            "h_str": ["v*np.pi*dag(A0)"],
+            "qub": {"0": 4},
+            "vars": {"v": 2.1},
+        }
+
+        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
+        self.assertAllClose(static_ham, 2.1 * np.pi * self.adag)
+
     def test_5q_hamiltonian_reduced(self):
         """Test case for complicated Hamiltonian with reductions."""
         ham_dict = {
