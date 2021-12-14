@@ -82,6 +82,9 @@ def parse_hamiltonian_dict(
       String rep stuff seems to assume upper case, but pulse itself gives channel names as lower
       case, so it makes sense to suppor this.
 
+    Further update to the above:
+    - It also accepts strings of the form '_SUM[i, lb, ub, aa||C{i}]', where now
+      aa is an operator string which may contain R{i} for 'R' a valid operator character
 
     The output merges all static terms, or terms with the same channel, into a single
     matrix. It returns these with the channel names, which have been sorted in lexicographic
@@ -269,16 +272,29 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
             if channel_str[0] not in CHANNEL_CHARS:
                 raise QiskitError(malformed_text)
 
-            # if channel string doesn't contain anything other than channel character
-            if len(channel_str[1:]) == 0:
-                raise QiskitError(malformed_text)
+            # Verify either that: all remaining characters are digits, or,
+            # if term starts with _SUM[ and ends with ], all remaining characters
+            # are either digits, or starts and ends with {}
+            if term[-1] == "]" and len(term) > 5 and term[:5] == '_SUM[':
+                # drop the closing ]
+                channel_str = channel_str[:-1]
 
-            # Verify either that: all remaining characters are digits, or starts and ends with {},
-            # with outer bracket ] for a _SUM[]
-            if channel_str[-1] == "]":
-                if not channel_str[1] == "{" and channel_str[-2] == "}":
+                # if channel string doesn't contain anything other than channel character
+                if len(channel_str) == 1:
+                    raise QiskitError(malformed_text)
+
+                # if starts with opening bracket, verify that it ends with closing bracket
+                if channel_str[1] == "{":
+                    if not channel_str[-1] == '}':
+                        raise QiskitError(malformed_text)
+                # otherwise verify that the remainder of terms are only contains digits
+                elif any(not c.isdigit() for c in channel_str[1:]):
                     raise QiskitError(malformed_text)
             else:
+                # if channel string doesn't contain anything other than channel character
+                if len(channel_str) == 1:
+                    raise QiskitError(malformed_text)
+
                 if any(not c.isdigit() for c in channel_str[1:]):
                     raise QiskitError(malformed_text)
 
