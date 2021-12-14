@@ -230,7 +230,7 @@ def parse_noise_dict(
 ) -> List[np.ndarray]:
     """What format for this?
 
-    For now let's imagine, it's the same but instead of 'h_str' we have 'noise_str'
+    For now let's try: it's the same but instead of 'h_str' we have 'noise_str'
     which is a list of lists, each specifying a different operator.
     """
 

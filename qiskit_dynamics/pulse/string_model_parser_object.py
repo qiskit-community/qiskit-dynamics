@@ -24,7 +24,7 @@ from .operator_from_string import operator_from_string, apply_func
 
 Token = namedtuple("Token", ("type", "name"))
 
-ham_elements = OrderedDict(
+str_elements = OrderedDict(
     QubOpr=re.compile(r"(?P<opr>O|Sp|Sm|X|Y|Z|I)(?P<idx>[0-9]+)"),
     PrjOpr=re.compile(r"P(?P<idx>[0-9]+),(?P<ket>[0-9]+),(?P<bra>[0-9]+)"),
     CavOpr=re.compile(r"(?P<opr>A|C|N)(?P<idx>[0-9]+)"),
@@ -163,7 +163,7 @@ class HamiltonianParser:
         token_list = []
         prev = "none"
         while any(_op_str):
-            for key, parser in ham_elements.items():
+            for key, parser in str_elements.items():
                 p = parser.match(_op_str)
                 if p:
                     # find quantum operators
