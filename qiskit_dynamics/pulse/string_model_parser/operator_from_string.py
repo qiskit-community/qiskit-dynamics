@@ -21,7 +21,7 @@ from qiskit import QiskitError
 
 
 def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: dict) -> np.ndarray:
-    r"""Generates an dense operator acting on a single subsystem, tensoring
+    r"""Generates a dense operator acting on a single subsystem, tensoring
     identities for remaining subsystems.
 
     The single system operator is specified via a string in ``op_label``,

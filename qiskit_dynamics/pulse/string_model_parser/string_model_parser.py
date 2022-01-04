@@ -87,6 +87,46 @@ def parse_hamiltonian_dict(
           operators acting on subsystem ``i``.
         - ``S{i}`` is the specification of a channel indexed by ``i``.
 
+
+    For example, the following ``hamiltonian_dict`` specifies a single
+    transmon with 4 levels:
+
+    .. code-block:: python
+
+        hamiltonian_dict = {
+            "h_str": ["v*np.pi*O0", "alpha*np.pi*O0*O0", "r*np.pi*X0||D0"],
+            "qub": {"0": 4},
+            "vars": {"v": 2.1, "alpha": -0.33, "r": 0.02},
+        }
+
+    The following example specifies a two transmon system, with single system terms specified
+    using the summation format:
+
+    .. code-block:: python
+
+        hamiltonian_dict = {
+            "h_str": [
+                "_SUM[i,0,1,wq{i}/2*(I{i}-Z{i})]",
+                "_SUM[i,0,1,delta{i}/2*O{i}*O{i}]",
+                "_SUM[i,0,1,-delta{i}/2*O{i}]",
+                "_SUM[i,0,1,omegad{i}*X{i}||D{i}]",
+                "jq0q1*Sp0*Sm1",
+                "jq0q1*Sm0*Sp1",
+                "omegad1*X0||U0",
+                "omegad0*X1||U1"
+            ],
+            "qub": {"0": 4, "1": 4},
+            "vars": {
+                "delta0": -2.111793476400394,
+                "delta1": -2.0894421352015744,
+                "jq0q1": 0.010495754104003914,
+                "omegad0": 0.9715458990879812,
+                "omegad1": 0.9803812537440838,
+                "wq0": 32.517894442809514,
+                "wq1": 33.0948996120196,
+            },
+        }
+
     Args:
         hamiltonian_dict: Pulse backend Hamiltonian dictionary.
         subsystem_list: List of subsystems to include in the model. If ``None`` all are kept.

@@ -11,5 +11,5 @@
 # that they have been altered from the originals.
 
 """
-pulse integration module tests
+Pulse integration module tests.
 """
