@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2021.
+# (C) Copyright IBM 2022.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,8 +21,8 @@ from qiskit import QiskitError
 
 
 def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: dict) -> np.ndarray:
-    r"""Generates an dense operator acting on a single subsystem, tensoring identities for remaining
-    subsystems.
+    r"""Generates an dense operator acting on a single subsystem, tensoring
+    identities for remaining subsystems.
 
     The single system operator is specified via a string in ``op_label``,
     the list of subsystems and their corresponding dimensions are specified in the

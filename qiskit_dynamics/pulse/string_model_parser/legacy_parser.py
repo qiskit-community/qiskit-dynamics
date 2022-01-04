@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019, 2020, 2021.
+# (C) Copyright IBM 2018, 2019, 2020, 2021, 2022.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,19 +13,18 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Parser for the string specification of Hamiltonians and noise models"""
+"""Legacy code for parsing operator strings."""
 
 import re
 import copy
 from collections import namedtuple, OrderedDict
-import numpy as np
 from .operator_from_string import operator_from_string, apply_func
 
 
-def parser_function(h_str, subsystem_dims, subsystem_list):
+def legacy_parser(operator_str, subsystem_dims, subsystem_list):
     """Function wrapper for legacy parsing object."""
 
-    system = HamiltonianParser(h_str=h_str, subsystem_dims=subsystem_dims)
+    system = HamiltonianParser(h_str=operator_str, subsystem_dims=subsystem_dims)
     system.parse(subsystem_list)
 
     return system.compiled
@@ -48,7 +47,6 @@ str_elements = OrderedDict(
 )
 
 
-
 class HamiltonianParser:
     """Legacy object for parsing string specifications of Hamiltonians."""
 
@@ -67,11 +65,11 @@ class HamiltonianParser:
 
     @property
     def compiled(self):
-        """Return Hamiltonian in OpenPulse handler format"""
+        """Return Hamiltonian terms."""
         return self.__tc_hams + self.__td_hams
 
     def parse(self, qubit_list=None):
-        """Parse and generate quantum class object"""
+        """Parse and generate Hamiltonian terms."""
         self.__td_hams = []
         self.__tc_hams = []
 
@@ -261,7 +259,7 @@ class HamiltonianParser:
         return queue
 
     def _token2qobj(self, tokens):
-        """Generate quantum class object from tokens"""
+        """Generate Hamiltonian term from tokens."""
         stack = []
         for token in tokens:
             if token.type in ["QubOpr", "PrjOpr", "CavOpr"]:

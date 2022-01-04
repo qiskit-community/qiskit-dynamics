@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2021.
+# (C) Copyright IBM 2022.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -24,7 +24,7 @@ import numpy as np
 
 from qiskit import QiskitError
 
-from .string_model_parser_object import parser_function
+from .legacy_parser import legacy_parser
 
 
 # valid channel characters
@@ -34,85 +34,71 @@ CHANNEL_CHARS = ["U", "D", "M", "u", "d", "m"]
 def parse_hamiltonian_dict(
     hamiltonian_dict: dict, subsystem_list: Optional[List[int]] = None
 ) -> Tuple[np.ndarray, np.ndarray, List[str]]:
-    """Convert Hamiltonian string representation into concrete operators
-    and an ordered list of channels corresponding to the operators.
+    r"""Convert Pulse backend Hamiltonian dictionary into concrete array format
+    with an ordered list of corresponding channels.
 
-    hamiltonian_dict needs to have keys:
-        - 'h_str': List strings giving terms in the Hamiltonian.
-        - 'qub': Dictionary giving subsystem dimensions. Keys are subsystem labels,
-                 values are their dimensions.
-        - 'vars': Dictionary with variables appearing in the terms in the h_str dict,
-                  keys are strings giving the variables, values are the values of the variables.
+    The Pulse backend Hamiltonian dictionary, ``hamiltonian_dict``, must have the
+    following keys:
+        - ``'h_str'``: List of Hamiltonian terms in string format (see below).
+        - ``'qub'``: Dictionary giving subsystem dimensions. Keys are subsystem labels,
+          values are their dimensions.
+        - ``'vars'``: Dictionary with variables appearing in the terms in the ``h_str`` list,
+          keys are strings giving the variables, values are the values of the variables.
 
-    Operators in h_str are specified with capital letters, and their interpretation depends
-    on the dimension of the subsystem.
+    The optional argument ``subsystem_list`` specifies a subset of subsystems to keep when parsing.
+    If ``None``, all subsystems are kept. If ``subsystem_list`` is specified, then terms
+    including subsystems not in the list will be ignored.
 
-    Pauli operators are represented with capital X, Y, Z. If the dimension of the subsystem is
-    2, then these are the standard pauli operators. If dim > 2, then we have the associations:
-        - X = a + adagger
-        - Y = -1j * (a - adagger)
-        - Z = (identity - 2 * N)
+    Entires in the list ``hamiltonian_dict['h_str']`` must be formated as a product of
+    constants (either numerical constants or variables in ``hamiltonian_dict['vars'].keys()``)
+    with operators. Operators are indicated with a capital letters followed by an integer
+    indicating the subsystem the operator acts on. Accepted operator strings are:
+        - `'X'`: If the target subsystem is two dimensional, the
+          Pauli :math:`X` operator, and if greater than two dimensional, returns
+          :math:`a + a^\dagger`, where :math:`a` and :math:`a^\dagger` are the
+          annihiliation and creation operators, respectively.
+        - `'Y'`: If the target subsystem is two dimensional, the
+          Pauli :math:`Y` operator, and if greater than two dimensional, returns
+          :math:`-i(a - a^\dagger)`, where :math:`a` and :math:`a^\dagger` are the
+          annihiliation and creation operators, respectively.
+        - `'Z'`: If the target subsystem is two dimensional, the
+          Pauli :math:`Z` operator, and if greater than two dimensional, returns
+          :math:`I - 2 * N`, where :math:`N` is the number operator.
+        - `'a'`, `'A'`, or `'Sm'`: If two dimensional, the sigma minus operator, and if greater,
+          generalizes to the operator.
+        - `'C'`, or `'Sp'`: If two dimensional, sigma plus operator, and if greater,
+          generalizes to the creation operator.
+        - `'N'`, or `'O'`: The number operator.
+        - `'I'`: The identity operator.
 
-    ##################################################################################################
-    # Do we want the above definition of Z? It orders the energy of the states in reverse order,
-    # might be confusing.
-    ##################################################################################################
+    In addition to the above, a term in ``hamiltonian_dict['h_str']`` can be associated with
+    a channel by ending it with a string of the form ``'||Sxx'``, where ``S`` is a valid channel
+    label, and ``'xx'`` is an integer. Accepted channel labels are:
+        - ``'D'`` or ``'d'`` for drive channels.
+        - ``'U'`` or ``'u'`` for control channels.
+        - ``'M'`` or ``'m'`` for measurement channels.
 
-    For oscillator type operators:
-       - O is the number operator for some reason
-       - Can we do adagger?
-
-
-    Also Sp, Sm - check out operator_from_string.
-    N is going to the identity for some reason? Need to look into this.
-
-
-    Channels:
-    I've modified the parser so that it will only accept/understand channel specs of the form:
-    'aa||Dxx' or 'aa||Uxx', where 'aa' is a valid specification of an operator,
-    and 'xx' is a string consisting only of numbers. This format must be obeyed, if not an
-    error will be raised (or should be raised, if I've written it correctly). Note that this
-    explicitly excludes the possibility of having multiple channels appear, which may have
-    been possible in the Aer pulse simulator. For now though we will enforce this limitation,
-    have it be actually documented, and then maybe expand on it later.
-
-    Update to the above:
-    - Accepted channel characters are now: ['D', 'U', 'M', 'd', 'u', 'm'].
-      String rep stuff seems to assume upper case, but pulse itself gives channel names as lower
-      case, so it makes sense to suppor this.
-
-    Further update to the above:
-    - It also accepts strings of the form '_SUM[i, lb, ub, aa||C{i}]', where now
-      aa is an operator string which may contain R{i} for 'R' a valid operator character
-    - Can also do things like 'dag(xx)' where xx is a valid operator string
-
-    The output merges all static terms, or terms with the same channel, into a single
-    matrix. It returns these with the channel names, which have been sorted in lexicographic
-    order (and hte matrices corresponding to those channels are set in the same order).
+    Finally, summations of terms of the above form can be indicated in
+    ``hamiltonian_dict['h_str']`` via strings with syntax ``'_SUM[i, lb, ub, aa||S{i}]'``,
+    where
+        - ``i`` is the summation variable.
+        - ``lb`` and ``ub`` are the simuation endpoints (inclusive).
+        - ``aa`` is a valid operator string, possibly including the string ``{i}`` to indicate
+          operators acting on subsystem ``i``.
+        - ``S{i}`` is the specification of a channel indexed by ``i``.
 
     Args:
-        hamiltonian_dict: Dictionary representation of Hamiltonian.
-                            ********************************************************************************
-                            document this - what's required, what's unsupported?
-        subsystem_list: List of qubits to include in the model. If ``None`` all are kept.
+        hamiltonian_dict: Pulse backend Hamiltonian dictionary.
+        subsystem_list: List of subsystems to include in the model. If ``None`` all are kept.
 
     Returns:
-        Concrete Array representation of model: An Array for the static hamiltonian,
-        an Array for the list of operators with time-dependent coefficients, and a list
-        of channel names giving the time-dependent coefficients. Channel names are given
-        in lower case in alignment with channel names in pulse.
+        Tuple: Model converted into concrete arrays - the static Hamiltonian,
+        a list of Hamiltonians corresponding to different channels, and a list of
+        channel labels corresponding to the list of time-dependent Hamiltonians.
     """
 
     # raise errors for invalid hamiltonian_dict
-    ######################################################################################################
-    # Should we leave these as is or change them?
-    #####################################################################################################
     hamiltonian_pre_parse_exceptions(hamiltonian_dict)
-
-    ###########################################################
-    # construct intermediate representation, where operators are
-    # constructed but coefficients are still in string format
-    ###########################################################
 
     # get variables
     variables = OrderedDict()
@@ -135,27 +121,15 @@ def parse_hamiltonian_dict(
     else:
         subsystem_dims = {}
 
-    # Get oscillator subspace dimensions
-    ##################################################################################################
-    # We don't support this, should we drop it? Need to see to what extent
-    # this is required by the HamiltonianParser object
-    ##################################################################################################
-
     # Parse the Hamiltonian
-    system = parser_function(h_str=hamiltonian_dict["h_str"],
-                             subsystem_dims=subsystem_dims,
-                             subsystem_list=subsystem_list)
+    system = legacy_parser(
+        operator_str=hamiltonian_dict["h_str"],
+        subsystem_dims=subsystem_dims,
+        subsystem_list=subsystem_list,
+    )
 
-    ########################################################################################################
-    # Next, extract the channels from the system
-    # One issue is this does allow for channel expressions like D0 * D0
-    # Not sure if we should allow or care about this?
-    ########################################################################################################
-
-    # extract which channels are associated with which Hamiltonian terms
-    # This code assumes there is at most one channel appearing in each term, and that it
-    # appears at the end.
-
+    # Extract which channels are associated with which Hamiltonian terms.
+    # Assumes one channel appearing in each term appearing at the end.
     channels = []
     for _, ham_str in system:
         chan_idx = None
@@ -173,16 +147,7 @@ def parse_hamiltonian_dict(
         else:
             channels.append(ham_str[chan_idx:])
 
-    ####################################################################################################
-    # Try to evaluate the coefficients
-    # should this be done in some separate function to protect variable names?
-    # any way around this exec stuff? What if they set a variable to the name of a variable in
-    # this function?
-    ####################################################################################################
-
-    # this seems like it works
-    # set up variables to use in exec computation: set channels to 1 and
-    # include variables
+    # evaluate coefficients
     local_vars = {chan: 1.0 for chan in set(channels) if chan is not None}
     local_vars.update(variables)
 
@@ -192,11 +157,7 @@ def parse_hamiltonian_dict(
         exec("evaluated_coeff = %s" % coeff, globals(), local_vars)
         evaluated_ops.append(local_vars["evaluated_coeff"] * op)
 
-    ###################################################################################################
-    # Merge terms based on channel
-    ###################################################################################################
-
-    # All channels in the reduced list are set to lower case
+    # merge terms based on channel
     static_hamiltonian = None
     hamiltonian_operators = []
     reduced_channels = []
@@ -274,7 +235,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
             # Verify either that: all remaining characters are digits, or,
             # if term starts with _SUM[ and ends with ], all remaining characters
             # are either digits, or starts and ends with {}
-            if term[-1] == "]" and len(term) > 5 and term[:5] == '_SUM[':
+            if term[-1] == "]" and len(term) > 5 and term[:5] == "_SUM[":
                 # drop the closing ]
                 channel_str = channel_str[:-1]
 
@@ -284,7 +245,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
 
                 # if starts with opening bracket, verify that it ends with closing bracket
                 if channel_str[1] == "{":
-                    if not channel_str[-1] == '}':
+                    if not channel_str[-1] == "}":
                         raise QiskitError(malformed_text)
                 # otherwise verify that the remainder of terms are only contains digits
                 elif any(not c.isdigit() for c in channel_str[1:]):

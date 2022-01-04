@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2021.
+# (C) Copyright IBM 2022.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -20,10 +20,11 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 
+from qiskit_dynamics.pulse import parse_hamiltonian_dict
 from qiskit_dynamics.pulse.string_model_parser.string_model_parser import (
     hamiltonian_pre_parse_exceptions,
-    parse_hamiltonian_dict,
 )
+
 from qiskit_dynamics.type_utils import to_array
 
 from ..common import QiskitDynamicsTestCase
@@ -292,7 +293,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels = parse_hamiltonian_dict(ham_dict)
+        static_ham, _, _ = parse_hamiltonian_dict(ham_dict)
         self.assertAllClose(static_ham, 2.1 * np.pi * self.adag)
 
     def test_5q_hamiltonian_reduced(self):
