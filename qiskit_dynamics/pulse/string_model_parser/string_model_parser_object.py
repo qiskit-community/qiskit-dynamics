@@ -22,6 +22,15 @@ import numpy as np
 from .operator_from_string import operator_from_string, apply_func
 
 
+def parser_function(h_str, subsystem_dims, subsystem_list):
+    """Function wrapper for legacy parsing object."""
+
+    system = HamiltonianParser(h_str=h_str, subsystem_dims=subsystem_dims)
+    system.parse(subsystem_list)
+
+    return system.compiled
+
+
 Token = namedtuple("Token", ("type", "name"))
 
 str_elements = OrderedDict(
@@ -39,8 +48,9 @@ str_elements = OrderedDict(
 )
 
 
+
 class HamiltonianParser:
-    """Generate QuTip hamiltonian object from string"""
+    """Legacy object for parsing string specifications of Hamiltonians."""
 
     def __init__(self, h_str, subsystem_dims):
         """Create new quantum operator generator

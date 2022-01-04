@@ -78,3 +78,4 @@ Qiskit Pulse
 """
 
 from .pulse_to_signals import InstructionToSignals
+from .string_model_parser.string_model_parser import parse_hamiltonian_dict

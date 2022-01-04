@@ -24,7 +24,7 @@ import numpy as np
 
 from qiskit import QiskitError
 
-from .string_model_parser_object import HamiltonianParser
+from .string_model_parser_object import parser_function
 
 
 # valid channel characters
@@ -142,9 +142,9 @@ def parse_hamiltonian_dict(
     ##################################################################################################
 
     # Parse the Hamiltonian
-    system = HamiltonianParser(h_str=hamiltonian_dict["h_str"], subsystem_dims=subsystem_dims)
-    system.parse(subsystem_list)
-    system = system.compiled
+    system = parser_function(h_str=hamiltonian_dict["h_str"],
+                             subsystem_dims=subsystem_dims,
+                             subsystem_list=subsystem_list)
 
     ########################################################################################################
     # Next, extract the channels from the system
@@ -223,28 +223,6 @@ def parse_hamiltonian_dict(
         )
 
     return static_hamiltonian, list(hamiltonian_operators), list(reduced_channels)
-
-
-def parse_noise_dict(
-    noise_dict: List[dict], subsystem_list: Optional[List[int]] = None
-) -> List[np.ndarray]:
-    """What format for this?
-
-    For now let's try: it's the same but instead of 'h_str' we have 'noise_str'
-    which is a list of lists, each specifying a different operator.
-    """
-
-    static_dissipators = []
-    for str_list in noise_dict['noise_str']:
-        temp_dict = {'h_str': str_list, 'qub': noise_dict['qub'], 'vars': noise_dict.get('vars', {})}
-
-        static_diss, _, channels = parse_hamiltonian_dict(temp_dict, subsystem_list)
-        if channels != []:
-            raise QiskitError('Channels are not supported in noise dictionaries.')
-
-        static_dissipators.append(static_diss)
-
-    return static_dissipators
 
 
 def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):

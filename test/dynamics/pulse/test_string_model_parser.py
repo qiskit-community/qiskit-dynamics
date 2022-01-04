@@ -20,7 +20,7 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 
-from qiskit_dynamics.pulse.string_model_parser import (
+from qiskit_dynamics.pulse.string_model_parser.string_model_parser import (
     hamiltonian_pre_parse_exceptions,
     parse_hamiltonian_dict,
 )
