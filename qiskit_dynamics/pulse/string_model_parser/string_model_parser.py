@@ -39,11 +39,12 @@ def parse_hamiltonian_dict(
 
     The Pulse backend Hamiltonian dictionary, ``hamiltonian_dict``, must have the
     following keys:
-        - ``'h_str'``: List of Hamiltonian terms in string format (see below).
-        - ``'qub'``: Dictionary giving subsystem dimensions. Keys are subsystem labels,
-          values are their dimensions.
-        - ``'vars'``: Dictionary with variables appearing in the terms in the ``h_str`` list,
-          keys are strings giving the variables, values are the values of the variables.
+
+    * ``'h_str'``: List of Hamiltonian terms in string format (see below).
+    * ``'qub'``: Dictionary giving subsystem dimensions. Keys are subsystem labels,
+      values are their dimensions.
+    * ``'vars'``: Dictionary with variables appearing in the terms in the ``h_str`` list,
+      keys are strings giving the variables, values are the values of the variables.
 
     The optional argument ``subsystem_list`` specifies a subset of subsystems to keep when parsing.
     If ``None``, all subsystems are kept. If ``subsystem_list`` is specified, then terms
@@ -53,39 +54,42 @@ def parse_hamiltonian_dict(
     constants (either numerical constants or variables in ``hamiltonian_dict['vars'].keys()``)
     with operators. Operators are indicated with a capital letters followed by an integer
     indicating the subsystem the operator acts on. Accepted operator strings are:
-        - `'X'`: If the target subsystem is two dimensional, the
-          Pauli :math:`X` operator, and if greater than two dimensional, returns
-          :math:`a + a^\dagger`, where :math:`a` and :math:`a^\dagger` are the
-          annihiliation and creation operators, respectively.
-        - `'Y'`: If the target subsystem is two dimensional, the
-          Pauli :math:`Y` operator, and if greater than two dimensional, returns
-          :math:`-i(a - a^\dagger)`, where :math:`a` and :math:`a^\dagger` are the
-          annihiliation and creation operators, respectively.
-        - `'Z'`: If the target subsystem is two dimensional, the
-          Pauli :math:`Z` operator, and if greater than two dimensional, returns
-          :math:`I - 2 * N`, where :math:`N` is the number operator.
-        - `'a'`, `'A'`, or `'Sm'`: If two dimensional, the sigma minus operator, and if greater,
-          generalizes to the operator.
-        - `'C'`, or `'Sp'`: If two dimensional, sigma plus operator, and if greater,
-          generalizes to the creation operator.
-        - `'N'`, or `'O'`: The number operator.
-        - `'I'`: The identity operator.
+
+    * ``'X'``: If the target subsystem is two dimensional, the
+      Pauli :math:`X` operator, and if greater than two dimensional, returns
+      :math:`a + a^\dagger`, where :math:`a` and :math:`a^\dagger` are the
+      annihiliation and creation operators, respectively.
+    * ``'Y'``: If the target subsystem is two dimensional, the
+      Pauli :math:`Y` operator, and if greater than two dimensional, returns
+      :math:`-i(a - a^\dagger)`, where :math:`a` and :math:`a^\dagger` are the
+      annihiliation and creation operators, respectively.
+    * ``'Z'``: If the target subsystem is two dimensional, the
+      Pauli :math:`Z` operator, and if greater than two dimensional, returns
+      :math:`I - 2 * N`, where :math:`N` is the number operator.
+    * ``'a'``, ``'A'``, or ``'Sm'``: If two dimensional, the sigma minus operator, and if greater,
+      generalizes to the operator.
+    * ``'C'``, or ``'Sp'``: If two dimensional, sigma plus operator, and if greater,
+      generalizes to the creation operator.
+    * ``'N'``, or ``'O'``: The number operator.
+    * ``'I'``: The identity operator.
 
     In addition to the above, a term in ``hamiltonian_dict['h_str']`` can be associated with
     a channel by ending it with a string of the form ``'||Sxx'``, where ``S`` is a valid channel
     label, and ``'xx'`` is an integer. Accepted channel labels are:
-        - ``'D'`` or ``'d'`` for drive channels.
-        - ``'U'`` or ``'u'`` for control channels.
-        - ``'M'`` or ``'m'`` for measurement channels.
+
+    * ``'D'`` or ``'d'`` for drive channels.
+    * ``'U'`` or ``'u'`` for control channels.
+    * ``'M'`` or ``'m'`` for measurement channels.
 
     Finally, summations of terms of the above form can be indicated in
     ``hamiltonian_dict['h_str']`` via strings with syntax ``'_SUM[i, lb, ub, aa||S{i}]'``,
-    where
-        - ``i`` is the summation variable.
-        - ``lb`` and ``ub`` are the simuation endpoints (inclusive).
-        - ``aa`` is a valid operator string, possibly including the string ``{i}`` to indicate
-          operators acting on subsystem ``i``.
-        - ``S{i}`` is the specification of a channel indexed by ``i``.
+    where:
+
+    * ``i`` is the summation variable.
+    * ``lb`` and ``ub`` are the simuation endpoints (inclusive).
+    * ``aa`` is a valid operator string, possibly including the string ``{i}`` to indicate
+      operators acting on subsystem ``i``.
+    * ``S{i}`` is the specification of a channel indexed by ``i``.
 
 
     For example, the following ``hamiltonian_dict`` specifies a single

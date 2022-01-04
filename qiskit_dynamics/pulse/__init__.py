@@ -75,6 +75,7 @@ Qiskit Pulse
    :toctree: ../stubs/
 
    InstructionToSignals
+   parse_hamiltonian_dict
 """
 
 from .pulse_to_signals import InstructionToSignals
