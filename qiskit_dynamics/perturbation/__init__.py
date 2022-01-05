@@ -13,16 +13,32 @@
 # that they have been altered from the originals.
 
 r"""
-==================================================================
-Perturbation Theory (:mod:`qiskit_dynamics_internal.perturbation`)
-==================================================================
+=========================================================
+Perturbation Theory (:mod:`qiskit_dynamics.perturbation`)
+=========================================================
 
-Perturbation theory tools.
+.. currentmodule:: qiskit_dynamics.perturbation
+
+This module contains tools for computing and utilizing perturbation theory terms.
+
+Power series utilities
+======================
+
+.. autosummary::
+    :toctree: ../stubs/
+
+    MatrixPolynomial
+
+Perturbation theory computation
+===============================
 
 .. autosummary::
     :toctree: ../stubs/
 
     solve_lmde_perturbation
+    PerturbationResults
 """
 
+from .power_series_utils import MatrixPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
+from .perturbation_results import PerturbationResults
