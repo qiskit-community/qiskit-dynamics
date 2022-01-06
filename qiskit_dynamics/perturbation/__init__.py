@@ -112,7 +112,7 @@ with :math:`\tilde{A}_I(t) = V(t_0, t)^\dagger A_I(t)V(t_0, t)`.
 
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` may be used to compute
-terms in either the symmetric Dyson series or symmetric Magnus expansion [5].
+terms in either the symmetric Dyson series or symmetric Magnus expansion [forthcoming].
 Denoting :math:`U(t_0, t_f, c_1, \dots, c_r)` the solution of the LMDE with generator
 :math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the symmetric Dyson series
 directly expands the solution as a power series in the :math:`c_1, \dots, c_r`:
@@ -131,11 +131,12 @@ time-averaged generator:
             \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t_0, t_f),
 
 which satisfies :math:`U(t_0, t_f, c_1, \dots, c_r) = \exp(\Omega(t_0, t_f, c_1, \dots, c_r))`
-under certain conditions [2, 3].
+under certain conditions :cite:p:`magnus_exponential_1954,blanes_magnus_2009`.
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
 list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`. It may also
-be used to compute Dyson-like integrals using the algorithm in [4]. Results are returned in a
+be used to compute Dyson-like integrals using the algorithm in :cite:t:`haas_engineering_2019`.
+Results are returned in a
 :class:`PerturbationResults` objects which is a data container with some functionality for
 indexing and accessing specific perturbation terms. See the function documentation for details.
 
@@ -146,20 +147,7 @@ Perturbative Solvers
 Perturbative solvers!
 
 
-References
-==========
-
-This is a test. Why isn't this rendering as a legitimate section?
-
-1. F. Dyson, *The radiation theories of Tomonaga, Schwinger, and Feynman*,
-   Phys. Rev. 75, 486-502
-2. W. Magnus, *On the exponential solution of differential equations*
-   *for a linear operator*, Commun. Pure Appl. Math. 7, 649-73
-3. S. Blanes, F. Casas, J. Oteo, J. Ros, *The Magnus expansion and some*
-   *of its applications*, Phys. Rep. 470, 151-238
-4. H. Haas, D. Puzzuoli, F. Zhang, D. Cory, *Engineering Effective Hamiltonians*,
-   New J. Phys. 21, 103011 (2019).
-5. Forthcoming
+.. bibliography::
 
 Perturbation module API
 =======================

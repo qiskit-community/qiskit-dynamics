@@ -8,5 +8,6 @@ jupyter-sphinx
 pygments>=2.4
 reno>=3.4.0
 nbsphinx
+sphinxcontrib-bibtex
 qutip
 matplotlib>=3.3.0

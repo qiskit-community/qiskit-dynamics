@@ -38,6 +38,7 @@ extensions = [
     'sphinx_autodoc_typehints',
     'reno.sphinxext',
     'nbsphinx',
+    'sphinxcontrib.bibtex'
 ]
 templates_path = ['_templates']
 numfig = True
@@ -48,6 +49,8 @@ language = None
 pygments_style = 'colorful'
 add_module_names = False
 modindex_common_prefix = ['qiskit_dynamics.']
+bibtex_default_style = 'unsrt'
+bibtex_bibfiles = ['refs.bib']
 
 # html theme options
 html_theme = 'qiskit_sphinx_theme'
