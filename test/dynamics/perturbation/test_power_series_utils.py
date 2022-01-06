@@ -17,14 +17,12 @@ import numpy as np
 
 from qiskit_dynamics.perturbation.power_series_utils import (
     MatrixPolynomial,
-    get_monomial_compute_function,
-    get_monomial_compute_function_jax,
     clean_index_multisets,
     get_complete_index_multisets,
     submultisets_and_complements,
     is_submultiset,
     multiset_complement,
-    submultiset_filter
+    submultiset_filter,
 )
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -48,16 +46,26 @@ class TestMatrixPolynomial(QiskitDynamicsTestCase):
 
         mp = MatrixPolynomial(coeffs, monomial_multisets)
 
-        c = np.array([3., 4.])
+        c = np.array([3.0, 4.0])
         output = mp(c)
-        expected = (c[0] * coeffs[0] + c[1] * coeffs[1] + c[0] * c[0] * coeffs[2]
-                    + c[0] * c[1] * coeffs[3] + c[1] * c[1] * coeffs[4])
+        expected = (
+            c[0] * coeffs[0]
+            + c[1] * coeffs[1]
+            + c[0] * c[0] * coeffs[2]
+            + c[0] * c[1] * coeffs[3]
+            + c[1] * c[1] * coeffs[4]
+        )
         self.assertAllClose(expected, output)
 
         c = np.array([3.2123, 4.1])
         output = mp(c)
-        expected = (c[0] * coeffs[0] + c[1] * coeffs[1] + c[0] * c[0] * coeffs[2]
-                    + c[0] * c[1] * coeffs[3] + c[1] * c[1] * coeffs[4])
+        expected = (
+            c[0] * coeffs[0]
+            + c[1] * coeffs[1]
+            + c[0] * c[0] * coeffs[2]
+            + c[0] * c[1] * coeffs[3]
+            + c[1] * c[1] * coeffs[4]
+        )
         self.assertAllClose(expected, output)
 
     def test_compute_monomials_simple_case(self):
@@ -73,8 +81,9 @@ class TestMatrixPolynomial(QiskitDynamicsTestCase):
         mp = MatrixPolynomial(coeffs, multiset_list)
 
         output_monomials = mp.compute_monomials(c)
-        expected_monomials = np.array([c[0], c[1], c[0] * c[0],
-                                       c[0] * c[1], c[1] * c[1], c[0] * c[0] * c[0]])
+        expected_monomials = np.array(
+            [c[0], c[1], c[0] * c[0], c[0] * c[1], c[1] * c[1], c[0] * c[0] * c[0]]
+        )
         self.assertAllClose(output_monomials, expected_monomials)
 
     def test_compute_monomials_skipped_variable(self):
@@ -90,16 +99,38 @@ class TestMatrixPolynomial(QiskitDynamicsTestCase):
         mp = MatrixPolynomial(coeffs, multiset_list)
 
         output_monomials = mp.compute_monomials(c)
-        expected_monomials = np.array([c[0], c[2], c[0] * c[0], c[0] * c[2], c[2] * c[2],
-                                       c[0] * c[0] * c[0], c[0] * c[0] * c[2]])
+        expected_monomials = np.array(
+            [
+                c[0],
+                c[2],
+                c[0] * c[0],
+                c[0] * c[2],
+                c[2] * c[2],
+                c[0] * c[0] * c[0],
+                c[0] * c[0] * c[2],
+            ]
+        )
         self.assertAllClose(output_monomials, expected_monomials)
 
     def test_compute_monomials_medium_case(self):
         """Test compute_monomials medium complexity test case."""
-        multiset_list = [[0], [1], [2],
-                         [0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2],
-                         [0, 0, 0], [0, 0, 1], [0, 1, 2], [2, 2, 2],
-                         [0, 0, 0, 1], [2, 2, 2, 2]]
+        multiset_list = [
+            [0],
+            [1],
+            [2],
+            [0, 0],
+            [0, 1],
+            [0, 2],
+            [1, 1],
+            [1, 2],
+            [2, 2],
+            [0, 0, 0],
+            [0, 0, 1],
+            [0, 1, 2],
+            [2, 2, 2],
+            [0, 0, 0, 1],
+            [2, 2, 2, 2],
+        ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
 
@@ -109,21 +140,47 @@ class TestMatrixPolynomial(QiskitDynamicsTestCase):
         mp = MatrixPolynomial(coeffs, multiset_list)
 
         output_monomials = mp.compute_monomials(c)
-        expected_monomials = np.array([c[0], c[1], c[2],
-                                       c[0] * c[0], c[0] * c[1], c[0] * c[2], c[1] * c[1],
-                                       c[1] * c[2], c[2] * c[2],
-                                       c[0] * c[0] * c[0], c[0] * c[0] * c[1], c[0] * c[1] * c[2],
-                                       c[2] * c[2] * c[2],
-                                       c[0] * c[0] * c[0] * c[1], c[2] * c[2] * c[2] * c[2]])
+        expected_monomials = np.array(
+            [
+                c[0],
+                c[1],
+                c[2],
+                c[0] * c[0],
+                c[0] * c[1],
+                c[0] * c[2],
+                c[1] * c[1],
+                c[1] * c[2],
+                c[2] * c[2],
+                c[0] * c[0] * c[0],
+                c[0] * c[0] * c[1],
+                c[0] * c[1] * c[2],
+                c[2] * c[2] * c[2],
+                c[0] * c[0] * c[0] * c[1],
+                c[2] * c[2] * c[2] * c[2],
+            ]
+        )
         self.assertAllClose(output_monomials, expected_monomials)
 
     def test_compute_monomials_vectorized(self):
         """Test vectorized evaluation."""
 
-        multiset_list = [[0], [1], [2],
-                         [0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2],
-                         [0, 0, 0], [0, 0, 1], [0, 1, 2], [2, 2, 2],
-                         [0, 0, 0, 1], [2, 2, 2, 2]]
+        multiset_list = [
+            [0],
+            [1],
+            [2],
+            [0, 0],
+            [0, 1],
+            [0, 2],
+            [1, 1],
+            [1, 2],
+            [2, 2],
+            [0, 0, 0],
+            [0, 0, 1],
+            [0, 1, 2],
+            [2, 2, 2],
+            [0, 0, 0, 1],
+            [2, 2, 2, 2],
+        ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
 
@@ -133,12 +190,25 @@ class TestMatrixPolynomial(QiskitDynamicsTestCase):
         mp = MatrixPolynomial(coeffs, multiset_list)
 
         output_monomials = mp.compute_monomials(c)
-        expected_monomials = np.array([c[0], c[1], c[2],
-                                       c[0] * c[0], c[0] * c[1], c[0] * c[2], c[1] * c[1],
-                                       c[1] * c[2], c[2] * c[2],
-                                       c[0] * c[0] * c[0], c[0] * c[0] * c[1], c[0] * c[1] * c[2],
-                                       c[2] * c[2] * c[2],
-                                       c[0] * c[0] * c[0] * c[1], c[2] * c[2] * c[2] * c[2]])
+        expected_monomials = np.array(
+            [
+                c[0],
+                c[1],
+                c[2],
+                c[0] * c[0],
+                c[0] * c[1],
+                c[0] * c[2],
+                c[1] * c[1],
+                c[1] * c[2],
+                c[2] * c[2],
+                c[0] * c[0] * c[0],
+                c[0] * c[0] * c[1],
+                c[0] * c[1] * c[2],
+                c[2] * c[2] * c[2],
+                c[0] * c[0] * c[0] * c[1],
+                c[2] * c[2] * c[2] * c[2],
+            ]
+        )
         self.assertAllClose(output_monomials, expected_monomials)
 
     def test_compute_monomials_only_first_order_terms(self):
@@ -149,7 +219,7 @@ class TestMatrixPolynomial(QiskitDynamicsTestCase):
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
         mp = MatrixPolynomial(coeffs, multiset_list)
 
-        c = np.array([3., 2.])
+        c = np.array([3.0, 2.0])
         self.assertAllClose(mp.compute_monomials(c), c)
 
     def test_compute_monomials_incomplete_list(self):
@@ -160,8 +230,8 @@ class TestMatrixPolynomial(QiskitDynamicsTestCase):
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
         mp = MatrixPolynomial(coeffs, multiset_list)
 
-        c = np.array([3., 2., 4.])
-        self.assertAllClose(mp.compute_monomials(c), np.array([16., 3., 8.]))
+        c = np.array([3.0, 2.0, 4.0])
+        self.assertAllClose(mp.compute_monomials(c), np.array([16.0, 3.0, 8.0]))
 
 
 class TestMatrixPolynomialJax(TestMatrixPolynomial, TestJaxBase):
@@ -192,15 +262,14 @@ class TestMatrixPolynomialJax(TestMatrixPolynomial, TestJaxBase):
 
         monomial_function_jit_grad = jit(grad(lambda c: mp.compute_monomials(c).sum()))
 
-        c = np.array([2., 3.])
-        expected = np.array([1. + 0. + 4. + 3. + 0., 0. + 1. + 0. + 2. + 6.])
+        c = np.array([2.0, 3.0])
+        expected = np.array([1.0 + 0.0 + 4.0 + 3.0 + 0.0, 0.0 + 1.0 + 0.0 + 2.0 + 6.0])
 
         self.assertAllClose(expected, monomial_function_jit_grad(c))
 
 
 class TestMultisetIndexConstruction(QiskitDynamicsTestCase):
-    """Test cases for construction of index multisets.
-    """
+    """Test cases for construction of index multisets."""
 
     def test_clean_index_multisets(self):
         """Test clean_index_multisets."""
@@ -336,10 +405,17 @@ class TestMultisetFunctions(QiskitDynamicsTestCase):
 
         multiset = [0, 0, 1, 1, 2]
         subsets, complements = submultisets_and_complements(multiset, 3)
-        expected_subsets = [[0], [1], [2],
-                            [0, 0], [0, 1], [0, 2], [1, 1], [1, 2]]
-        expected_complements = [[0, 1, 1, 2], [0, 0, 1, 2], [0, 0, 1, 1],
-                                [1, 1, 2], [0, 1, 2], [0, 1, 1], [0, 0, 2], [0, 0, 1]]
+        expected_subsets = [[0], [1], [2], [0, 0], [0, 1], [0, 2], [1, 1], [1, 2]]
+        expected_complements = [
+            [0, 1, 1, 2],
+            [0, 0, 1, 2],
+            [0, 0, 1, 1],
+            [1, 1, 2],
+            [0, 1, 2],
+            [0, 1, 1],
+            [0, 0, 2],
+            [0, 0, 1],
+        ]
         self.assertStrictListEquality(subsets, expected_subsets)
         self.assertStrictListEquality(complements, expected_complements)
 
@@ -382,9 +458,12 @@ class TestMultisetFunctions(QiskitDynamicsTestCase):
 
         multiset_list = [[0, 0, 1], [0, 0, 2]]
         self.assertTrue(submultiset_filter([[0], [1], [0, 2]], multiset_list) == [[0], [1], [0, 2]])
-        self.assertTrue(submultiset_filter([[0, 0], [1], [0, 2]], multiset_list) == [[0, 0], [1], [0, 2]])
-        self.assertTrue(submultiset_filter([[0, 0, 0], [1], [0, 2]], multiset_list) == [[1], [0, 2]])
-
+        self.assertTrue(
+            submultiset_filter([[0, 0], [1], [0, 2]], multiset_list) == [[0, 0], [1], [0, 2]]
+        )
+        self.assertTrue(
+            submultiset_filter([[0, 0, 0], [1], [0, 2]], multiset_list) == [[1], [0, 2]]
+        )
 
     def assertStrictListEquality(self, list_a, list_b):
         """Assert two lists are exactly the same."""

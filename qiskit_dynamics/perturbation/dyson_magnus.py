@@ -54,7 +54,7 @@ from .power_series_utils import (
     submultisets_and_complements,
     is_submultiset,
     multiset_complement,
-    submultiset_filter
+    submultiset_filter,
 )
 
 from .perturbation_results import PerturbationResults
@@ -120,7 +120,14 @@ def solve_lmde_dyson(
     else:
         complete_term_list = get_complete_dyson_indices(dyson_terms)
 
-    dyson_rhs = setup_dyson_rhs(generator, A_list, complete_term_list, mat_dim, symmetric=symmetric, A_list_indices=A_list_indices)
+    dyson_rhs = setup_dyson_rhs(
+        generator,
+        A_list,
+        complete_term_list,
+        mat_dim,
+        symmetric=symmetric,
+        A_list_indices=A_list_indices,
+    )
 
     # initial state
     y0 = np.append(
@@ -274,7 +281,9 @@ def solve_lmde_dyson_jax(
     else:
         complete_term_list = get_complete_dyson_indices(dyson_terms)
 
-    dyson_rhs = setup_dyson_rhs_jax(generator, A_list, complete_term_list, symmetric=symmetric, A_list_indices=A_list_indices)
+    dyson_rhs = setup_dyson_rhs_jax(
+        generator, A_list, complete_term_list, symmetric=symmetric, A_list_indices=A_list_indices
+    )
 
     # initial state
     y0 = jnp.append(
@@ -393,7 +402,9 @@ def setup_dyson_rhs(
         if A_list_indices is None:
             A_list_indices = [[idx] for idx in range(len(A_list))]
         reduced_A_list_indices = submultiset_filter(A_list_indices, oc_dyson_indices)
-        A_list_evaluation_order = [0] + [A_list_indices.index(multiset) + 1 for multiset in reduced_A_list_indices]
+        A_list_evaluation_order = [0] + [
+            A_list_indices.index(multiset) + 1 for multiset in reduced_A_list_indices
+        ]
         lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_A_list_indices)
     else:
         generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
@@ -452,7 +463,9 @@ def setup_dyson_rhs_jax(
         if A_list_indices is None:
             A_list_indices = [[idx] for idx in range(len(A_list))]
         reduced_A_list_indices = submultiset_filter(A_list_indices, oc_dyson_indices)
-        A_list_evaluation_order = [0] + [A_list_indices.index(multiset) + 1 for multiset in reduced_A_list_indices]
+        A_list_evaluation_order = [0] + [
+            A_list_indices.index(multiset) + 1 for multiset in reduced_A_list_indices
+        ]
         lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_A_list_indices)
     else:
         generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
@@ -493,8 +506,7 @@ def required_dyson_generator_indices(complete_dyson_indices: List) -> List:
     return generator_indices
 
 
-def get_dyson_lmult_rule(complete_dyson_indices: List,
-                         generator_indices: List) -> List:
+def get_dyson_lmult_rule(complete_dyson_indices: List, generator_indices: List) -> List:
     """Construct custom product rules, in the format required by ``custom_product``,
     for a given set of Dyson terms.
 
@@ -749,7 +761,9 @@ def q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
         # need to consider all possible sub-multisets of the symmetric index
         # in q_term
         products = []
-        submultisets, complements = submultisets_and_complements(sym_index, len(sym_index) - (q_term_order - 1) + 1)
+        submultisets, complements = submultisets_and_complements(
+            sym_index, len(sym_index) - (q_term_order - 1) + 1
+        )
 
         for subset, complement in zip(submultisets, complements):
             product = [
@@ -790,8 +804,9 @@ def get_q_term_list(complete_index_multisets: List) -> List:
     return q_terms
 
 
-def get_symmetric_dyson_lmult_rule(complete_index_multisets: List,
-                                   A_list_indices: Optional[List[List]] = None) -> List:
+def get_symmetric_dyson_lmult_rule(
+    complete_index_multisets: List, A_list_indices: Optional[List[List]] = None
+) -> List:
     """Given a complete list of index multisets, return
     the lmult rule in the format required for ``CustomProduct``.
     Note, the generator :math:`G(t)` is encoded as index ``-1``, as

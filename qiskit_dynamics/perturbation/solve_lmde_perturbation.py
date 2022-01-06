@@ -232,8 +232,10 @@ def solve_lmde_perturbation(
 
     # clean and validate A_list_indices
     if A_list_indices is not None:
-        if perturbation_method=='dyson':
-            raise QiskitError("A_list_indices argument not usable with perturbation_method='dyson'.")
+        if perturbation_method == "dyson":
+            raise QiskitError(
+                "A_list_indices argument not usable with perturbation_method='dyson'."
+            )
 
         # validate A_list_indices
         A_list_len = len(A_list_indices)
@@ -243,12 +245,10 @@ def solve_lmde_perturbation(
     else:
         A_list_indices = [[idx] for idx in range(len(A_list))]
 
-
     # merge perturbation_order and perturbation_terms args
     perturbation_terms = merge_perturbation_order_terms(
         perturbation_order, perturbation_terms, A_list_indices, "symmetric" in perturbation_method
     )
-
 
     if perturbation_method in ["dyson", "symmetric_dyson"]:
         symmetric = perturbation_method == "symmetric_dyson"
@@ -336,9 +336,7 @@ def merge_perturbation_order_terms(
                 map(list, combinations_with_replacement(unique_indices, perturbation_order))
             )
         else:
-            up_to_order_terms = list(
-                map(list, product(unique_indices, repeat=perturbation_order))
-            )
+            up_to_order_terms = list(map(list, product(unique_indices, repeat=perturbation_order)))
         perturbation_terms = perturbation_terms + up_to_order_terms
 
     return perturbation_terms

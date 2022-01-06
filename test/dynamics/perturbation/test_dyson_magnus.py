@@ -444,7 +444,7 @@ class TestDysonIndicesAndProduct(QiskitDynamicsTestCase):
             (np.ones(2), np.array([[-1, 0], [1, -1]])),
             (np.ones(2), np.array([[-1, 1], [0, 0]])),
             (np.ones(2), np.array([[-1, 2], [0, 1]])),
-            (np.ones(2), np.array([[-1, 3], [0, 2]]))
+            (np.ones(2), np.array([[-1, 3], [0, 2]])),
         ]
         expected = expected_lmult_rule
         output = get_dyson_lmult_rule(complete_dyson_term_list, [0, 1])
@@ -611,12 +611,13 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
 
         self._test_get_symmetric_dyson_lmult_rule(term_list, expected_lmult_rule)
 
-    def _test_get_symmetric_dyson_lmult_rule(self,
-                                             complete_symmetric_dyson_term_list,
-                                             expected,
-                                             A_list_indices=None):
+    def _test_get_symmetric_dyson_lmult_rule(
+        self, complete_symmetric_dyson_term_list, expected, A_list_indices=None
+    ):
         """Run a test case for _get_symmetric_dyson_mult_rules."""
-        lmult_rule = get_symmetric_dyson_lmult_rule(complete_symmetric_dyson_term_list, A_list_indices)
+        lmult_rule = get_symmetric_dyson_lmult_rule(
+            complete_symmetric_dyson_term_list, A_list_indices
+        )
 
         self.assertMultRulesEqual(lmult_rule, expected)
 

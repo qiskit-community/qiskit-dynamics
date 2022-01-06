@@ -14,15 +14,15 @@
 r"""
 Module for for power series/polynomial computation and manipulation.
 
-Note: This module represents a multiset as a list, and uses the term "index multiset"
-to refer to a list of ints.
+Note that within this file, 'multiset' always refers to a multiset of
+integers, which is always represented as a list of integers.
 """
-
-import numpy as np
 
 from typing import List, Optional, Callable, Tuple
 from copy import deepcopy
 from itertools import combinations
+
+import numpy as np
 
 from qiskit_dynamics.array import Array
 
@@ -33,35 +33,46 @@ except ImportError:
 
 
 class MatrixPolynomial:
-    r"""Class representing a matrix-valued multivariable polynomial, i.e. a function of the
-    form:
+    r"""A polynomial with matrix-valued coefficients.
+
+    This class represents a multi-variable function of the form:
 
     .. math::
-        f(c_1, \dots, c_r) = M_0 + \sum_{I} c_I M_I,
+        f(c_1, \dots, c_r) = M_0 + \sum_{I \in S} c_I M_I,
 
-    where in the above each :math:`I` is a multiset of indices, for :math:`I=(i_1, \dots, i_k)`
-    :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, the :math:`M_I` are matrices,
-    and the sum is implicitly only over the non-zero :math:`M_I` supplied by the user.
+    where in the above:
+
+        - :math:`S` is a finite set of index multisets,
+        - For a given index multiset :math:`I=(i_1, \dots, i_k)`,
+          :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, and
+        - The :math:`M_I` are matrices specified as arrays.
+
+    At instantiation, the user specifies :math:`S` as a list of index multisets,
+    :math:`M_I` as list of matrices (specified as a 3d array) whose first index has
+    corresponding ordering with the list specifying :math:`S`, and can optionally
+    specify the constant term :math:`M_0`.
     """
 
-    def __init__(self,
-                 matrix_coefficients: Array,
-                 monomial_multisets: List[List[int]],
-                 constant_term: Optional[Array] = None):
+    def __init__(
+        self,
+        matrix_coefficients: Array,
+        monomial_multisets: List[List[int]],
+        constant_term: Optional[Array] = None,
+    ):
         """Construct a multivariable matrix polynomial.
 
         Args:
-            matrix_coefficients: A 3d `Array` representing a list of matrix coefficients.
-            monomial_multisets: A list of multisets of the same length as `matrix_coefficients`
+            matrix_coefficients: A 3d array representing a list of matrix coefficients.
+            monomial_multisets: A list of multisets of the same length as ``matrix_coefficients``
                                 indicating the monomial coefficient for each corresponding
-                                `matrix_coefficient`.
-            constant_term: A 2d `Array` representing the constant term of the polynomial.
+                                ``matrix_coefficient``.
+            constant_term: A 2d array representing the constant term of the polynomial.
         """
 
         self._monomial_multisets = monomial_multisets
 
         # If operating in jax mode, wrap in Arrays
-        if Array(matrix_coefficients).backend == 'jax':
+        if Array(matrix_coefficients).backend == "jax":
             self._matrix_coefficients = Array(matrix_coefficients)
 
             if constant_term is not None:
@@ -80,41 +91,59 @@ class MatrixPolynomial:
             self._compute_monomials = get_monomial_compute_function(monomial_multisets)
 
     @property
-    def monomial_multisets(self):
+    def monomial_multisets(self) -> List:
         """The monomial multisets corresponding to non-constant terms."""
         return self._monomial_multisets
 
     @property
-    def matrix_coefficients(self):
+    def matrix_coefficients(self) -> Array:
         """The matrix coefficients for non-constant terms."""
         return self._matrix_coefficients
 
     @property
-    def constant_term(self):
+    def constant_term(self) -> Array:
         """The constant term."""
         return self._constant_term
 
     def compute_monomials(self, c: Array) -> Array:
-        """Vectorized computation of all monomial terms in self.monomial_multisets."""
+        """Vectorized computation of all monomial terms specified by ``self.monomial_multisets``.
+
+        Args:
+            c: Array of variables.
+        Returns:
+            Array of all monomial terms ordered according to ``self.monomial_multisets``.
+        """
         return self._compute_monomials(c)
 
-    def conj(self):
+    def conj(self) -> "MatrixPolynomial":
         """Polynomial attained by conjugating all coefficients."""
-        return MatrixPolynomial(matrix_coefficients=np.conj(self._matrix_coefficients),
-                                monomial_multisets=self._monomial_multisets)
+        return MatrixPolynomial(
+            matrix_coefficients=np.conj(self._matrix_coefficients),
+            monomial_multisets=self._monomial_multisets,
+        )
 
-    def transpose(self):
+    def transpose(self) -> "MatrixPolynomial":
         """Polynomial attained by transposing all coefficients."""
-        return MatrixPolynomial(matrix_coefficients=self._matrix_coefficients.transpose((0, 2, 1)),
-                                monomial_multisets=self._monomial_multisets)
+        return MatrixPolynomial(
+            matrix_coefficients=self._matrix_coefficients.transpose((0, 2, 1)),
+            monomial_multisets=self._monomial_multisets,
+        )
 
-    def adjoint(self):
+    def adjoint(self) -> "MatrixPolynomial":
         """Polynomial attained by taking the adjoint of all coefficients."""
-        return MatrixPolynomial(matrix_coefficients=np.conj(self._matrix_coefficients.transpose((0, 2, 1))),
-                                monomial_multisets=self._monomial_multisets)
+        return MatrixPolynomial(
+            matrix_coefficients=np.conj(self._matrix_coefficients.transpose((0, 2, 1))),
+            monomial_multisets=self._monomial_multisets,
+        )
 
-    def __call__(self, c):
-        """Evaluate the polynomial."""
+    def __call__(self, c: Array) -> Array:
+        """Evaluate the polynomial.
+
+        Args:
+            c: Array of variables.
+        Returns:
+            Value of the polynomial at c.
+        """
         monomials = self._compute_monomials(c)
         return self._constant_term + np.tensordot(self._matrix_coefficients, monomials, axes=(0, 0))
 
@@ -143,21 +172,31 @@ def get_monomial_compute_function(multiset_list: List) -> Callable:
     """
     complete_multiset_list = get_complete_index_multisets(multiset_list)
 
-    first_order_terms, first_order_range, left_indices, right_indices, update_ranges = get_recursive_monomial_rule(complete_multiset_list)
+    (
+        first_order_terms,
+        first_order_range,
+        left_indices,
+        right_indices,
+        update_ranges,
+    ) = get_recursive_monomial_rule(complete_multiset_list)
 
     multiset_len = len(complete_multiset_list)
 
-    location_list = np.array([complete_multiset_list.index(multiset) for multiset in multiset_list], dtype=int)
+    location_list = np.array(
+        [complete_multiset_list.index(multiset) for multiset in multiset_list], dtype=int
+    )
 
     def monomial_function(c):
         shape = [multiset_len] + list(c.shape[1:])
         mono_vec = np.empty(shape=shape, dtype=complex)
-        mono_vec[first_order_range[0]:first_order_range[1]] = c[first_order_terms]
+        mono_vec[first_order_range[0] : first_order_range[1]] = c[first_order_terms]
 
-        for left_index, right_index, update_range in zip(left_indices,
-                                                         right_indices,
-                                                         update_ranges):
-            mono_vec[update_range[0]:update_range[1]] = mono_vec[left_index] * mono_vec[right_index]
+        for left_index, right_index, update_range in zip(
+            left_indices, right_indices, update_ranges
+        ):
+            mono_vec[update_range[0] : update_range[1]] = (
+                mono_vec[left_index] * mono_vec[right_index]
+            )
 
         return mono_vec[location_list]
 
@@ -165,13 +204,16 @@ def get_monomial_compute_function(multiset_list: List) -> Callable:
 
 
 def get_monomial_compute_function_jax(multiset_list: List) -> Callable:
-    """Jax version of get_monomial_compute_function."""
+    """JAX version of get_monomial_compute_function."""
 
     complete_multiset_list = get_complete_index_multisets(multiset_list)
 
-    first_order_terms, _, left_indices, right_indices, _ = get_recursive_monomial_rule(complete_multiset_list)
-    multiset_len = len(complete_multiset_list)
-    location_list = np.array([complete_multiset_list.index(multiset) for multiset in multiset_list], dtype=int)
+    first_order_terms, _, left_indices, right_indices, _ = get_recursive_monomial_rule(
+        complete_multiset_list
+    )
+    location_list = np.array(
+        [complete_multiset_list.index(multiset) for multiset in multiset_list], dtype=int
+    )
 
     # initial function sets up required first order terms
     def monomial_function_init(c):
@@ -189,6 +231,7 @@ def get_monomial_compute_function_jax(multiset_list: List) -> Callable:
     def compose_functions(f, g):
         def new_func(x):
             return g(f(x))
+
         return new_func
 
     # recursively compose updates with monomial_function
@@ -274,7 +317,6 @@ def get_recursive_monomial_rule(multiset_list: List) -> Tuple:
         update_ranges.append([current_idx, next_idx])
         current_idx = next_idx
 
-
     return first_order_terms, first_order_range, left_indices, right_indices, update_ranges
 
 
@@ -335,7 +377,7 @@ def clean_index_multisets(index_multisets: List) -> List:
     order, and eliminate any duplicates.
 
     Args:
-        symmetric_indices: List of index multisets.
+        index_multisets: List of index multisets.
 
     Returns:
         List
@@ -352,8 +394,9 @@ def clean_index_multisets(index_multisets: List) -> List:
     return ordered_unique_terms
 
 
-def submultisets_and_complements(index_multiset: List[int],
-                                 subset_bound: Optional[int] = None) -> List:
+def submultisets_and_complements(
+    index_multiset: List[int], subset_bound: Optional[int] = None
+) -> List:
     """Given a multiset of indices specified as a list if ints, compute a pair of lists
     containing all submultisets and their corresponding complements.
 
@@ -373,7 +416,7 @@ def submultisets_and_complements(index_multiset: List[int],
         subset_bound = len(index_multiset)
 
     submultisets = []
-    complements =[]
+    complements = []
 
     for k in range(1, subset_bound):
         location_subsets = combinations(range(len(index_multiset)), k)
@@ -408,7 +451,7 @@ def is_submultiset(A: List[int], B: List[int]) -> bool:
 
 
 def multiset_complement(A: List[int], B: List[int]) -> bool:
-    """Compute the multiset complement B\A, where A and B are specified as lists of ints."""
+    r"""Compute the multiset complement B\A, where A and B are specified as lists of ints."""
 
     # get the unique elements of B
     B_set = list(set(B))

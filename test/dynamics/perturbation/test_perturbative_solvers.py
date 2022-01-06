@@ -26,7 +26,7 @@ from qiskit_dynamics.perturbation.perturbative_solvers import (
     signal_envelope_DCT,
     signal_list_envelope_DCT,
     evaluate_cheb_series,
-    evaluate_cheb_series_jax
+    evaluate_cheb_series_jax,
 )
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -48,8 +48,8 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
     def test_construct_DCT(self):
         """Verify consistency with numpy functions."""
 
-        domain = [1., 4.5]
-        f = lambda t: 1. + t**2 + t**3
+        domain = [1.0, 4.5]
+        f = lambda t: 1.0 + t ** 2 + t ** 3
 
         expected = Chebyshev.interpolate(f, deg=2)
         M, x_vals = construct_DCT(degree=2)
@@ -65,12 +65,11 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t0 + dt, t0 + 2 * dt]
         int2 = [t0 + 2 * dt, t0 + 3 * dt]
 
-
-        f = lambda t: 1. + t**2 + t**3 + np.sin(Array(3.123) * t)
+        f = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
         multi_int_coeffs = multi_interval_DCT(f, degree=4, t0=t0, dt=dt, n_intervals=3)
 
         # force to resolve to numpy arrays for comparison to numpy functions
-        f = lambda t: 1. + t**2 + t**3 + np.sin(3.123 * t)
+        f = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
 
         # check correctness over each interval
         expected = Chebyshev.interpolate(f, deg=4, domain=int0)
@@ -95,21 +94,18 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f = lambda t: 1. + t**2 + t**3 + np.sin(Array(3.123) * t)
-        carrier_freq = 1.
+        f = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        carrier_freq = 1.0
         reference_freq = 0.23
         signal = Signal(f, carrier_freq)
-        env_dct = signal_envelope_DCT(signal,
-                                      reference_freq=reference_freq,
-                                      degree=5,
-                                      t0=t0,
-                                      dt=dt,
-                                      n_intervals=3)
+        env_dct = signal_envelope_DCT(
+            signal, reference_freq=reference_freq, degree=5, t0=t0, dt=dt, n_intervals=3
+        )
 
         # construct pure numpy comparison function
-        f = lambda t: 1. + t**2 + t**3 + np.sin(3.123 * t)
+        f = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
         carrier_phase_arg = 1j * 2 * np.pi * carrier_freq
-        ref_phase_arg =  -1j * 2 * np.pi * reference_freq
+        ref_phase_arg = -1j * 2 * np.pi * reference_freq
         final_phase_shift = np.exp(-ref_phase_arg * np.array([t0, t1, t2]))
         shifted_env = lambda t: f(t) * np.exp((carrier_phase_arg + ref_phase_arg) * t)
 
@@ -137,32 +133,34 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1. + t**2 + t**3 + np.sin(Array(3.123) * t)
-        carrier_freq1 = 1.
+        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
-        carrier_freq2 = 2.
+        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(Array(3.123) * t)
+        carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
 
-        list_dct = signal_list_envelope_DCT([signal1, signal2],
-                                            [reference_freq1, reference_freq2],
-                                            degrees=[3, 4],
-                                            t0=t0,
-                                            dt=dt,
-                                            n_intervals=3)
+        list_dct = signal_list_envelope_DCT(
+            [signal1, signal2],
+            [reference_freq1, reference_freq2],
+            degrees=[3, 4],
+            t0=t0,
+            dt=dt,
+            n_intervals=3,
+        )
 
-        f1 = lambda t: 1. + t**2 + t**3 + np.sin(3.123 * t)
+        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
         carrier_phase_arg1 = 1j * 2 * np.pi * carrier_freq1
-        ref_phase_arg1 =  -1j * 2 * np.pi * reference_freq1
+        ref_phase_arg1 = -1j * 2 * np.pi * reference_freq1
         final_phase_shift1 = np.exp(-ref_phase_arg1 * np.array([t0, t1, t2]))
         shifted_env1 = lambda t: f1(t) * np.exp((carrier_phase_arg1 + ref_phase_arg1) * t)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(3.123 * t)
+        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(3.123 * t)
         carrier_phase_arg2 = 1j * 2 * np.pi * carrier_freq2
-        ref_phase_arg2 =  -1j * 2 * np.pi * reference_freq2
+        ref_phase_arg2 = -1j * 2 * np.pi * reference_freq2
         final_phase_shift2 = np.exp(-ref_phase_arg2 * np.array([t0, t1, t2]))
         shifted_env2 = lambda t: f2(t) * np.exp((carrier_phase_arg2 + ref_phase_arg2) * t)
 
@@ -213,33 +211,35 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1. + t**2 + t**3 + np.sin(Array(3.123) * t)
-        carrier_freq1 = 1.
+        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
-        carrier_freq2 = 2.
+        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(Array(3.123) * t)
+        carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
 
-        list_dct = signal_list_envelope_DCT([signal1, signal2],
-                                            [reference_freq1, reference_freq2],
-                                            degrees=[3, 4],
-                                            t0=t0,
-                                            dt=dt,
-                                            n_intervals=3,
-                                            include_imag=[False, True])
+        list_dct = signal_list_envelope_DCT(
+            [signal1, signal2],
+            [reference_freq1, reference_freq2],
+            degrees=[3, 4],
+            t0=t0,
+            dt=dt,
+            n_intervals=3,
+            include_imag=[False, True],
+        )
 
-        f1 = lambda t: 1. + t**2 + t**3 + np.sin(3.123 * t)
+        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
         carrier_phase_arg1 = 1j * 2 * np.pi * carrier_freq1
-        ref_phase_arg1 =  -1j * 2 * np.pi * reference_freq1
+        ref_phase_arg1 = -1j * 2 * np.pi * reference_freq1
         final_phase_shift1 = np.exp(-ref_phase_arg1 * np.array([t0, t1, t2]))
         shifted_env1 = lambda t: f1(t) * np.exp((carrier_phase_arg1 + ref_phase_arg1) * t)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(3.123 * t)
+        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(3.123 * t)
         carrier_phase_arg2 = 1j * 2 * np.pi * carrier_freq2
-        ref_phase_arg2 =  -1j * 2 * np.pi * reference_freq2
+        ref_phase_arg2 = -1j * 2 * np.pi * reference_freq2
         final_phase_shift2 = np.exp(-ref_phase_arg2 * np.array([t0, t1, t2]))
         shifted_env2 = lambda t: f2(t) * np.exp((carrier_phase_arg2 + ref_phase_arg2) * t)
 
@@ -290,33 +290,35 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1. + t**2 + t**3 + np.sin(Array(3.123) * t)
-        carrier_freq1 = 1.
+        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
-        carrier_freq2 = 2.
+        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(Array(3.123) * t)
+        carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
 
-        list_dct = signal_list_envelope_DCT([signal1, signal2],
-                                            [reference_freq1, reference_freq2],
-                                            degrees=[3, 4],
-                                            t0=t0,
-                                            dt=dt,
-                                            n_intervals=3,
-                                            include_imag=[True, False])
+        list_dct = signal_list_envelope_DCT(
+            [signal1, signal2],
+            [reference_freq1, reference_freq2],
+            degrees=[3, 4],
+            t0=t0,
+            dt=dt,
+            n_intervals=3,
+            include_imag=[True, False],
+        )
 
-        f1 = lambda t: 1. + t**2 + t**3 + np.sin(3.123 * t)
+        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
         carrier_phase_arg1 = 1j * 2 * np.pi * carrier_freq1
-        ref_phase_arg1 =  -1j * 2 * np.pi * reference_freq1
+        ref_phase_arg1 = -1j * 2 * np.pi * reference_freq1
         final_phase_shift1 = np.exp(-ref_phase_arg1 * np.array([t0, t1, t2]))
         shifted_env1 = lambda t: f1(t) * np.exp((carrier_phase_arg1 + ref_phase_arg1) * t)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(3.123 * t)
+        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(3.123 * t)
         carrier_phase_arg2 = 1j * 2 * np.pi * carrier_freq2
-        ref_phase_arg2 =  -1j * 2 * np.pi * reference_freq2
+        ref_phase_arg2 = -1j * 2 * np.pi * reference_freq2
         final_phase_shift2 = np.exp(-ref_phase_arg2 * np.array([t0, t1, t2]))
         shifted_env2 = lambda t: f2(t) * np.exp((carrier_phase_arg2 + ref_phase_arg2) * t)
 
@@ -357,7 +359,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
 
         coeffs = np.array([0.231, 1.1])
         x = np.array([0.2, 0.4, 1.5])
-        domain = [0., 4.]
+        domain = [0.0, 4.0]
 
         expected = Chebyshev(coef=coeffs, domain=domain)(x)
         output = self.cheb_eval_func(x, coeffs, domain)
@@ -367,9 +369,9 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
     def test_evaluate_cheb_series_case2(self):
         """Test Chebyshev evaluation function, higher order case."""
 
-        coeffs = np.array([0.231, 1.1, 2.1, 3.])
+        coeffs = np.array([0.231, 1.1, 2.1, 3.0])
         x = np.array([0.2, 0.4, 1.5])
-        domain = [0., 4.]
+        domain = [0.0, 4.0]
 
         expected = Chebyshev(coef=coeffs, domain=domain)(x)
         output = self.cheb_eval_func(x, coeffs, domain)
@@ -379,9 +381,9 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
     def test_evaluate_cheb_series_case3(self):
         """Test Chebyshev evaluation function, non-vectorized."""
 
-        coeffs = np.array([0.231, 1.1, 2.1, 3.])
+        coeffs = np.array([0.231, 1.1, 2.1, 3.0])
         x = 0.4
-        domain = [0., 4.]
+        domain = [0.0, 4.0]
 
         expected = Chebyshev(coef=coeffs, domain=domain)(x)
         output = self.cheb_eval_func(x, coeffs, domain)
@@ -400,8 +402,8 @@ class TestChebyshevFunctionsJax(TestChebyshevFunctions, TestJaxBase):
     def test_evaluate_cheb_series_jit(self):
         """Test jitting of evaluate_cheb_series_jax."""
 
-        coeffs = np.array([0.231, 1.1, 2.1, 3.])
-        domain = [0., 4.]
+        coeffs = np.array([0.231, 1.1, 2.1, 3.0])
+        domain = [0.0, 4.0]
 
         jit_func = jit(lambda x: self.cheb_eval_func(x, coeffs, domain))
 
@@ -414,8 +416,8 @@ class TestChebyshevFunctionsJax(TestChebyshevFunctions, TestJaxBase):
     def test_evaluate_cheb_series_jit_grad(self):
         """Test jitting of grad of evaluate_cheb_series_jax."""
 
-        coeffs = np.array([0.231, 1.1, 2.1, 3.])
-        domain = [0., 4.]
+        coeffs = np.array([0.231, 1.1, 2.1, 3.0])
+        domain = [0.0, 4.0]
 
         jit_grad_func = jit(grad(lambda x: self.cheb_eval_func(x, coeffs, domain).sum()))
 
@@ -427,19 +429,16 @@ class TestChebyshevFunctionsJax(TestChebyshevFunctions, TestJaxBase):
         """Test jitting and grad through a DCT."""
 
         def func(a):
-            sig = Signal(lambda t: a * t, carrier_freq=1.)
-            return signal_list_envelope_DCT([sig],
-                                            reference_freqs=[1.],
-                                            degrees=[2],
-                                            t0=0.,
-                                            dt=0.5,
-                                            n_intervals=3).data
+            sig = Signal(lambda t: a * t, carrier_freq=1.0)
+            return signal_list_envelope_DCT(
+                [sig], reference_freqs=[1.0], degrees=[2], t0=0.0, dt=0.5, n_intervals=3
+            ).data
 
         jit_func = jit(func)
-        output = jit_func(1.)
+        output = jit_func(1.0)
 
         def func2(a):
             return func(a).sum()
 
         jit_grad_func = jit(grad(func2))
-        output = jit_grad_func(1.)
+        output = jit_grad_func(1.0)

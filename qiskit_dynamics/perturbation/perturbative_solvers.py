@@ -31,8 +31,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
 from qiskit_dynamics.signals import Signal
-from qiskit_dynamics.perturbation import solve_lmde_perturbation
-from qiskit_dynamics.perturbation.power_series_utils import MatrixPolynomial
+from qiskit_dynamics.perturbation import solve_lmde_perturbation, MatrixPolynomial
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array
 
@@ -51,18 +50,20 @@ class PerturbativeSolver:
     """initial attempt at class-based interface so that the components of the pre-computation
     and set up stuff can be individually inspected."""
 
-    def __init__(self,
-                 generator_decomposition: List[Operator],
-                 frame_operator: Operator,
-                 dt: float,
-                 carrier_freqs: Array,
-                 signal_polynomial_degrees: List[int],
-                 signal_is_real: Optional[List[bool]] = None,
-                 perturbation_method: Optional[str] = 'dyson',
-                 perturbation_order: Optional[int] = None,
-                 perturbation_terms: Optional[List] = None,
-                 method: Optional[str] = None,
-                 **kwargs):
+    def __init__(
+        self,
+        generator_decomposition: List[Operator],
+        frame_operator: Operator,
+        dt: float,
+        carrier_freqs: Array,
+        signal_polynomial_degrees: List[int],
+        signal_is_real: Optional[List[bool]] = None,
+        perturbation_method: Optional[str] = "dyson",
+        perturbation_order: Optional[int] = None,
+        perturbation_terms: Optional[List] = None,
+        method: Optional[str] = None,
+        **kwargs,
+    ):
         """Compile perturbative solver, either Dyson series or Magnus expansion based.
         Warning: These methods are highly specialized and require manual tuning of the
         parameters to the problem at hand.
@@ -108,12 +109,14 @@ class PerturbativeSolver:
 
         self._perturbation_method = perturbation_method
 
-        if perturbation_method == 'dyson':
-            perturbation_method = 'symmetric_dyson'
-        elif perturbation_method == 'magnus':
-            perturbation_method = 'symmetric_magnus'
+        if perturbation_method == "dyson":
+            perturbation_method = "symmetric_dyson"
+        elif perturbation_method == "magnus":
+            perturbation_method = "symmetric_magnus"
         else:
-            raise QiskitError("compile_perturbative_solver only accepts method 'dyson' or 'magnus'.")
+            raise QiskitError(
+                "compile_perturbative_solver only accepts method 'dyson' or 'magnus'."
+            )
 
         # determine which terms to include imaginary part
         # explain this better
@@ -122,33 +125,32 @@ class PerturbativeSolver:
 
         # construct signal approximation function
         def collective_dct(signal_list, t0, n_steps):
-            return signal_list_envelope_DCT(signal_list,
-                                            reference_freqs=carrier_freqs,
-                                            degrees=signal_polynomial_degrees,
-                                            t0=t0,
-                                            dt=dt,
-                                            n_intervals=n_steps,
-                                            include_imag=include_imag)
+            return signal_list_envelope_DCT(
+                signal_list,
+                reference_freqs=carrier_freqs,
+                degrees=signal_polynomial_degrees,
+                t0=t0,
+                dt=dt,
+                n_intervals=n_steps,
+                include_imag=include_imag,
+            )
+
         self._signal_approximation = collective_dct
 
         A_list = None
         # set jax-logic dependent components
-        if dispatch.default_backend() == 'jax':
+        if dispatch.default_backend() == "jax":
             # compute perturbative terms
-            A_list = construct_cheb_A_list_jax(generator_decomposition,
-                                               signal_polynomial_degrees,
-                                               carrier_freqs,
-                                               dt,
-                                               include_imag)
-            method = method or 'jax_odeint'
+            A_list = construct_cheb_A_list_jax(
+                generator_decomposition, signal_polynomial_degrees, carrier_freqs, dt, include_imag
+            )
+            method = method or "jax_odeint"
             self._Udt = jexpm(dt * frame_operator)
         else:
-            A_list = construct_cheb_A_list(generator_decomposition,
-                                           signal_polynomial_degrees,
-                                           carrier_freqs,
-                                           dt,
-                                           include_imag)
-            method = method or 'DOP853'
+            A_list = construct_cheb_A_list(
+                generator_decomposition, signal_polynomial_degrees, carrier_freqs, dt, include_imag
+            )
+            method = method or "DOP853"
             self._Udt = expm(dt * frame_operator)
 
         self._dt = dt
@@ -156,24 +158,30 @@ class PerturbativeSolver:
 
         # compute perturbative terms
         # dyson_in_frame only has effect on Dyson case
-        results = solve_lmde_perturbation(A_list=A_list,
-                                          t_span=[0, dt],
-                                          perturbation_method=perturbation_method,
-                                          perturbation_order=perturbation_order,
-                                          perturbation_terms=perturbation_terms,
-                                          dyson_in_frame=False,
-                                          generator=lambda t: frame_operator,
-                                          method=method,
-                                          **kwargs)
+        results = solve_lmde_perturbation(
+            A_list=A_list,
+            t_span=[0, dt],
+            perturbation_method=perturbation_method,
+            perturbation_order=perturbation_order,
+            perturbation_terms=perturbation_terms,
+            dyson_in_frame=False,
+            generator=lambda t: frame_operator,
+            method=method,
+            **kwargs,
+        )
         self._precomputation_results = results
 
-        if self.perturbation_method == 'dyson':
-            self._perturbation_polynomial = MatrixPolynomial(matrix_coefficients=results.perturbation_results.perturbation_terms[:, -1],
-                                                  monomial_multisets=results.perturbation_results.term_labels,
-                                                  constant_term=self.Udt)
-        elif self.perturbation_method == 'magnus':
-            self._perturbation_polynomial = MatrixPolynomial(matrix_coefficients=results.perturbation_results.perturbation_terms[:, -1],
-                                                  monomial_multisets=results.perturbation_results.term_labels)
+        if self.perturbation_method == "dyson":
+            self._perturbation_polynomial = MatrixPolynomial(
+                matrix_coefficients=results.perturbation_results.perturbation_terms[:, -1],
+                monomial_multisets=results.perturbation_results.term_labels,
+                constant_term=self.Udt,
+            )
+        elif self.perturbation_method == "magnus":
+            self._perturbation_polynomial = MatrixPolynomial(
+                matrix_coefficients=results.perturbation_results.perturbation_terms[:, -1],
+                monomial_multisets=results.perturbation_results.term_labels,
+            )
 
     @property
     def perturbation_method(self):
@@ -214,16 +222,18 @@ class PerturbativeSolver:
         Note: for jax, n_steps cannot be compiled over (I don't think) as it involves changing
         internal array shapes. Maybe something to look into.
         """
-        if dispatch.default_backend() == 'jax':
+        if dispatch.default_backend() == "jax":
 
             # setup single step function
             single_step = None
-            if 'dyson' in self.perturbation_method:
+            if "dyson" in self.perturbation_method:
+
                 def single_step_dyson(coeffs):
                     return self.perturbation_polynomial(coeffs).data
 
                 single_step = single_step_dyson
-            elif 'magnus' in self.perturbation_method:
+            elif "magnus" in self.perturbation_method:
+
                 def single_step_magnus(coeffs):
                     return self.Udt @ jexpm(self.perturbation_polynomial(coeffs).data)
 
@@ -244,12 +254,14 @@ class PerturbativeSolver:
         else:
             # setup single step function
             single_step = None
-            if 'dyson' in self.perturbation_method:
+            if "dyson" in self.perturbation_method:
+
                 def single_step_dyson(y, coeffs):
                     return self.perturbation_polynomial(coeffs) @ y
 
                 single_step = single_step_dyson
-            elif 'magnus' in self.perturbation_method:
+            elif "magnus" in self.perturbation_method:
+
                 def single_step_magnus(y, coeffs):
                     return self.Udt @ expm(self.perturbation_polynomial(coeffs)) @ y
 
@@ -310,7 +322,9 @@ def construct_cheb_A_list(generator_decomp, polynomial_degrees, carrier_freqs, d
     return A_list
 
 
-def construct_cheb_A_list_jax(generator_decomp, polynomial_degrees, carrier_freqs, dt, include_imag):
+def construct_cheb_A_list_jax(
+    generator_decomp, polynomial_degrees, carrier_freqs, dt, include_imag
+):
     """Construct perturbative decomposition functions
 
     Explain this!!!
@@ -321,6 +335,7 @@ def construct_cheb_A_list_jax(generator_decomp, polynomial_degrees, carrier_freq
     # compute perturbation terms
     def get_cheb_func(deg):
         c = jnp.array([0] * deg + [1], dtype=float)
+
         def cheb_func(t):
             return evaluate_cheb_series_jax(t, c, domain=[0, dt])
 
@@ -359,7 +374,9 @@ def construct_cheb_A_list_jax(generator_decomp, polynomial_degrees, carrier_freq
     return A_list
 
 
-def evaluate_cheb_series(x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = [-1, 1]) -> Union[float, np.ndarray]:
+def evaluate_cheb_series(
+    x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = [-1, 1]
+) -> Union[float, np.ndarray]:
     """Evaluate a Chebyshev series on a given domain. This calls
     ``numpy.polynomial.chebyshev.chebval`` but on a stretched domain.
 
@@ -375,7 +392,9 @@ def evaluate_cheb_series(x: Union[float, np.ndarray], c: np.ndarray, domain: Opt
     return chebval(x, c)
 
 
-def evaluate_cheb_series_jax(x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = [-1, 1]) -> Union[float, np.ndarray]:
+def evaluate_cheb_series_jax(
+    x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = [-1, 1]
+) -> Union[float, np.ndarray]:
     """Evaluate Chebyshev series on a on a given domain using JAX looping logic.
     This follows the same algorithm as ``numpy.polynomial.chebyshev.chebval``
     but uses JAX looping logic.
@@ -413,13 +432,15 @@ def evaluate_cheb_series_jax(x: Union[float, np.ndarray], c: np.ndarray, domain:
     return c0 + c1 * x
 
 
-def signal_list_envelope_DCT(signal_list: List[Signal],
-                             reference_freqs: Array,
-                             degrees: List[int],
-                             t0: float,
-                             dt: float,
-                             n_intervals: int,
-                             include_imag: Optional[List] = None) -> Array:
+def signal_list_envelope_DCT(
+    signal_list: List[Signal],
+    reference_freqs: Array,
+    degrees: List[int],
+    t0: float,
+    dt: float,
+    n_intervals: int,
+    include_imag: Optional[List] = None,
+) -> Array:
     """Compute envelope DCT on a list of signals, and compile results into a single list,
     separating real and imaginary.
 
@@ -430,7 +451,9 @@ def signal_list_envelope_DCT(signal_list: List[Signal],
     if include_imag is None:
         include_imag = [True] * len(signal_list)
 
-    envelope_DCT = lambda sig, freq, degree: signal_envelope_DCT(sig, freq, degree, t0, dt, n_intervals)
+    envelope_DCT = lambda sig, freq, degree: signal_envelope_DCT(
+        sig, freq, degree, t0, dt, n_intervals
+    )
 
     # initialize coefficient array with first signal
     coeffs = Array(envelope_DCT(signal_list[0], reference_freqs[0], degrees[0]))
@@ -439,7 +462,9 @@ def signal_list_envelope_DCT(signal_list: List[Signal],
     else:
         coeffs = coeffs.real
 
-    for sig, freq, deg, inc_imag in zip(signal_list[1:], reference_freqs[1:], degrees[1:], include_imag[1:]):
+    for sig, freq, deg, inc_imag in zip(
+        signal_list[1:], reference_freqs[1:], degrees[1:], include_imag[1:]
+    ):
         new_coeffs = Array(envelope_DCT(sig, freq, deg))
 
         coeffs = np.append(coeffs, new_coeffs.real, axis=0)
@@ -449,12 +474,9 @@ def signal_list_envelope_DCT(signal_list: List[Signal],
     return coeffs
 
 
-def signal_envelope_DCT(signal: Signal,
-                        reference_freq: float,
-                        degree: int,
-                        t0: float,
-                        dt: float,
-                        n_intervals: int) -> Array:
+def signal_envelope_DCT(
+    signal: Signal, reference_freq: float, degree: int, t0: float, dt: float, n_intervals: int
+) -> Array:
     """Perform multi-interval DCT on the envelope of a Signal relative to a reference frequency.
     I.e. This is equivalent to shifting the frequency of the signal to the reference frequency,
     and performing the multi-interval DCT on the resultant envelope.
@@ -478,7 +500,9 @@ def signal_envelope_DCT(signal: Signal,
     def shifted_env(t):
         return signal.complex_value(t) * np.exp(phase_arg * t)
 
-    return multi_interval_DCT(shifted_env, degree, t0, dt, n_intervals) * np.expand_dims(final_phase_shift, axis=0)
+    return multi_interval_DCT(shifted_env, degree, t0, dt, n_intervals) * np.expand_dims(
+        final_phase_shift, axis=0
+    )
 
 
 def multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_intervals: int) -> Array:
