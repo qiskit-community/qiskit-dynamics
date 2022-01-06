@@ -423,7 +423,6 @@ class TestDysonIndicesAndProduct(QiskitDynamicsTestCase):
             (np.ones(2), np.array([[-1, 8], [2, 4]])),
             (np.ones(2), np.array([[-1, 9], [2, 5]])),
         ]
-        expected = expected_lmult_rule
         output = get_dyson_lmult_rule(complete_dyson_term_list, [0, 1, 2])
         self.assertMultRulesEqual(output, expected_lmult_rule)
 
@@ -446,7 +445,6 @@ class TestDysonIndicesAndProduct(QiskitDynamicsTestCase):
             (np.ones(2), np.array([[-1, 2], [0, 1]])),
             (np.ones(2), np.array([[-1, 3], [0, 2]])),
         ]
-        expected = expected_lmult_rule
         output = get_dyson_lmult_rule(complete_dyson_term_list, [0, 1])
         self.assertMultRulesEqual(output, expected_lmult_rule)
 

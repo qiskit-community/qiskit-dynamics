@@ -21,8 +21,8 @@ lists of arrays :math:`A = (A_i)` and :math:`B = (B_i)` of the form:
     (A \times B)_i = \sum_{jk} a_{ijk}A_jB_k,
 
 where :math:`a_{ijk}` is an array of complex scalars. In the above, the
-product :math:`A_jB_k` is normally thought of as a matrix product,
-e.g. if :math:`A` and :math:`B` are 3d arrays, the functionality here
+product :math:`A_jB_k` is normally thought of as a matrix product
+(e.g. if :math:`A` and :math:`B` are 3d arrays), however the functionality here
 works for any arrays with at least 3 dimensions for which the last
 2 dimensions are square.
 
@@ -73,7 +73,9 @@ def compile_custom_dot_rule(
     linear_combo_len: Optional[int] = None,
 ) -> Tuple[np.array, np.array]:
     """Compile the list of unique products and linear combinations required
-    to implement a custom dot. See module doc string for formatting details.
+    to implement a custom dot.
+
+    See file doc string for formatting details.
 
     Args:
         multiplication_rule: Custom multiplication rule in the sparse format in the
@@ -190,7 +192,7 @@ def custom_dot(
 
 
 def unique_products_jax(A: np.array, B: np.array, unique_mult_pairs: np.array) -> np.array:
-    """Jax version of a single loop step of :meth:`linear_combos`."""
+    """JAX version of a single loop step of :meth:`linear_combos`."""
     # vectorized append identity and 0 to A and B
     big_ident = jnp.broadcast_to(jnp.eye(A.shape[-1], dtype=complex), (1,) + A.shape[1:])
     big_zeros = jnp.broadcast_to(jnp.zeros(A.shape[-1], dtype=complex), (1,) + A.shape[1:])
@@ -205,7 +207,7 @@ def unique_products_jax(A: np.array, B: np.array, unique_mult_pairs: np.array) -
 def single_linear_combo_jax(
     unique_mults: np.array, single_combo_rule: Tuple[np.array, np.array]
 ) -> np.array:
-    """Jax version of :meth:`unique_products`."""
+    """JAX version of :meth:`unique_products`."""
     coeffs, indices = single_combo_rule
     return jnp.tensordot(coeffs, unique_mults[indices], axes=1)
 
