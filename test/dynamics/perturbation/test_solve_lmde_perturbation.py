@@ -66,9 +66,10 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
     """Test helper function merge_perturbation_order_terms."""
 
     def test_order(self):
+        """Test specifying terms up to a given order."""
+
         A_list_indices = [[0], [1], [2]]
 
-        """Test specifying terms up to a given order."""
         output = merge_perturbation_order_terms(
             perturbation_order=3,
             perturbation_terms=None,
@@ -133,6 +134,8 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
         self.assertTrue(output == expected)
 
     def test_order_symmetric_skipped_terms(self):
+        """Test handling of 'missing' indices."""
+
         A_list_indices = [[0], [2], [3]]
 
         output = merge_perturbation_order_terms(
@@ -324,7 +327,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T8 = T * T7
         T9 = T * T8
         T10 = T * T9
-        T11 = T * T10
 
         expected_D1 = np.array([[T2 / 2, 0], [0, T3 / 3]], dtype=complex)
         expected_D01 = np.array([[0, T5 / 15], [T5 / 10, 0]], dtype=complex)

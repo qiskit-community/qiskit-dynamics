@@ -315,10 +315,23 @@ def merge_perturbation_order_terms(
 ) -> List:
     """Combine ``perturbation_order`` and ``perturbation_terms`` into a single
     explicit list of perturbation terms to compute. It is assumed that at least
-    one of the two arguments is in correct format. Also, this function only generates
-    the minimal list required to induce the computation of all terms. E.g. for order=3,
-    it is enough to specify all third order terms, as terms of lower order
-    will automatically be added when the complete list is generated later.
+    one of the two arguments is in correct format.
+
+    Note that this function generates a minimal list of term labels sufficient to
+    generate all required terms when the list is 'completed'. E.g. for order=3,
+    it is sufficient here to only return all third order terms, as ``solve_lmde_perturbation``
+    will 'complete' this list and add all lower order terms required for computing
+    the specified third order terms.
+
+    Args:
+        perturbation_order: Order of expansion to compute all terms up to.
+        perturbation_terms: Specific individual terms requested to compute.
+        A_list_indices: Labels for perturbations.
+        symmetric: Whether or not the perturbation terms represent symmetric or non-symmetric
+                   expansions.
+    Returns:
+        List of perturbation terms to compute based on merging of perturbation_order and
+        perturbation_terms.
     """
 
     # determine unique indices in A_list_indices

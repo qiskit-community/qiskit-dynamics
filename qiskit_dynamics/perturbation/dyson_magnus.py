@@ -228,7 +228,7 @@ def solve_lmde_dyson_jax(
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
-    """Jax version of ``solve_lmde_dyson``.
+    """JAX version of ``solve_lmde_dyson``.
     See documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
@@ -327,7 +327,7 @@ def solve_lmde_symmetric_magnus_jax(
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
-    """Jax version of ``solve_lmde_symmetric_magnus``.
+    """JAX version of ``solve_lmde_symmetric_magnus``.
     See documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
@@ -439,7 +439,7 @@ def setup_dyson_rhs_jax(
     symmetric: Optional[bool] = False,
     A_list_indices: Optional[List[List]] = None,
 ) -> Callable:
-    """Jax version of setup_dyson_rhs_jax. Note that this version does not require
+    """JAX version of setup_dyson_rhs. Note that this version does not require
     the ``mat_dim`` argument.
 
     Args:
@@ -629,7 +629,7 @@ def symmetric_magnus_from_dyson(
 def symmetric_magnus_from_dyson_jax(
     complete_index_multisets: List, symmetric_dyson_terms: np.array
 ) -> np.array:
-    """Jax version of symmetric_magnus_from_dyson."""
+    """JAX version of symmetric_magnus_from_dyson."""
 
     ordered_q_terms = get_q_term_list(complete_index_multisets)
     start_idx, magnus_indices, stacked_q_update_rules = q_recursive_compiled_rules(ordered_q_terms)

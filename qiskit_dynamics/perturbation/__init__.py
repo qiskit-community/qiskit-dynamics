@@ -69,7 +69,73 @@ used for representing and evaluating truncated power series.
 Time dependent perturbation theory
 ==================================
 
-Dyson and Magnus!
+The function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`
+computes various time-dependent perturbation theory terms in the context of linear
+matrix differential equations (LMDEs). Using the power series notation of the previous section,
+the general setting supported by this function involves LMDE generators with power
+series decompositions of the form:
+
+.. math::
+
+    G(t, c_1, \dots, c_r) = G_0(t) + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I(t),
+
+where
+
+    - :math:`G_0(t)` is the unperturbed generator,
+    - The :math:`A_I(t)` give the time-dependent operator form of the perturbations, and
+    - The expansion parameters :math:`c_1, \dots, c_r` are viewed as the perturbation parameters.
+
+.. note::
+
+    The above is written as an infinite power series, but of course, in practice,
+    the function assumes only a finite number of the :math:`A_I(t)` are specified as being
+    non-zero.
+
+:func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` enables computation of a
+finite number of power series decomposition coefficients of either the solution itself,
+or of a time-averaged generator *in the toggling frame of the unperturbed generator* :math:`G_0(t)`.
+Denoting :math:`V(t_0, t)` the solution of the LMDE with generator :math:`G_0(t)`
+over the interval :math:`[t_0, t]`, the generator :math:`G` in the toggling frame of :math:`G_0(t)`
+is given by:
+
+.. math::
+
+    \tilde{G}(t, c_1, \dots, c_r) =
+            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \tilde{A}_I(t),
+
+with :math:`\tilde{A}_I(t) = V(t_0, t)^\dagger A_I(t)V(t_0, t)`.
+
+Denoting :math:`U(t_0, t_f, c_1, \dots, c_r)` the solution of the LMDE with generator
+:math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the Dyson series provides a means of
+expanding :math:`U(t_0, t_f, c_1, \dots, c_r)` in 'powers' of :math:`\tilde{G}`, and similarly
+the Magnus expansion provides an expansion for a matrix :math:`\Omega(t_0, t_f, c_1, \dots, c_r)`
+satisfying :math:`U(t_0, t_f, c_1, \dots, c_r) = \exp(\Omega(t_0, t_f, c_1, \dots, c_r))`,
+also in 'powers' of :math:`\tilde{G}`. By further expanding :math:`\tilde{G}` into its
+power series decomposition and combining terms in the Dyson and Magnus expansions
+according to the perturbation parameters, the symmetric Dyson series gives:
+
+.. math::
+
+    U(t_0, t_f, c_1, \dots, c_r) =
+            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{D}_I(t_0, t_f)
+
+
+and similarly, the symmetric Magnus expansion gives:
+
+.. math::
+
+    \Omega(t_0, t_f, c_1, \dots, c_r) =
+            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t_0, t_f)
+
+
+Given specification of the functions :math:`G_0(t)` and the non-zero perturbation terms
+:math:`A_I(t)` specified as python callables,
+:func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
+list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`. It may also
+be used to compute Dyson-like integrals using the algorithm in []. See the function doc string
+for details.
+
+
 
 Power series utilities
 ======================
