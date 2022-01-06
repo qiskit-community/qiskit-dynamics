@@ -19,15 +19,16 @@ Perturbation Theory (:mod:`qiskit_dynamics.perturbation`)
 
 .. currentmodule:: qiskit_dynamics.perturbation
 
-This module contains tools for computing and utilizing perturbation theory terms.
+Tools for computing and utilizing time-dependent perturbation theory terms.
+This module-level documentation outlines mathematical notation and data-structure conventions
+needed to understand the functions and classes contained herein.
+
 
 Power series
 ============
 
-As parts of this module deal with perturbation theory theory expansions as
-power series, it is necessary to choose both mathematical notation and
-data-structure representations of power series to work with throughout.
-The chosen conventions are outlined here.
+Perturbative expansions are typically expressed as power series decompositions,
+and we outline here the conventions used to represent power series in this module.
 
 .. note::
 
@@ -51,7 +52,7 @@ are given by the multiset :math:`I`. Some example usages of this notation are:
     - :math:`c_{(1, 1)} = c_1^2`, and
     - :math:`c_{(1, 2, 2, 3)} = c_1 c_2^2 c_3`.
 
-With this notation, we concisely represent a power series in :math:`r` variables as:
+With this notation, we represent a power series in :math:`r` variables as:
 
 .. math::
 
@@ -60,10 +61,14 @@ With this notation, we concisely represent a power series in :math:`r` variables
 where :math:`M_0` is the constant term, and the :math:`M_I` are the matrix-valued power-series
 coefficients.
 
-Within this module, index multisets are represented as lists of integers, with the canonical
-representation of an index multiset assumed to be sorted.
-The class :class:`~qiskit_dynamics.perturbation.MatrixPolynomial` is
-used for representing and evaluating truncated power series.
+.. note::
+
+    Throughout this module, index multisets are represented as lists of integers,
+    with the canonical representation of an index multiset assumed to be sorted in non-decreasing
+    order.
+
+The :class:`~qiskit_dynamics.perturbation.MatrixPolynomial` class represents a matrix-valued
+multivariable polynomial (i.e. a truncated power series), with methods for evaluation.
 
 
 Time dependent perturbation theory
@@ -105,56 +110,70 @@ is given by:
 
 with :math:`\tilde{A}_I(t) = V(t_0, t)^\dagger A_I(t)V(t_0, t)`.
 
+
+:func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` may be used to compute
+terms in either the symmetric Dyson series or symmetric Magnus expansion [5].
 Denoting :math:`U(t_0, t_f, c_1, \dots, c_r)` the solution of the LMDE with generator
-:math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the Dyson series provides a means of
-expanding :math:`U(t_0, t_f, c_1, \dots, c_r)` in 'powers' of :math:`\tilde{G}`, and similarly
-the Magnus expansion provides an expansion for a matrix :math:`\Omega(t_0, t_f, c_1, \dots, c_r)`
-satisfying :math:`U(t_0, t_f, c_1, \dots, c_r) = \exp(\Omega(t_0, t_f, c_1, \dots, c_r))`,
-also in 'powers' of :math:`\tilde{G}`. By further expanding :math:`\tilde{G}` into its
-power series decomposition and combining terms in the Dyson and Magnus expansions
-according to the perturbation parameters, the symmetric Dyson series gives:
+:math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the symmetric Dyson series
+directly expands the solution as a power series in the :math:`c_1, \dots, c_r`:
 
 .. math::
 
     U(t_0, t_f, c_1, \dots, c_r) =
-            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{D}_I(t_0, t_f)
+            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{D}_I(t_0, t_f).
 
-
-and similarly, the symmetric Magnus expansion gives:
+The symmetric Magnus expansion similarly gives a power series decomposition of the
+time-averaged generator:
 
 .. math::
 
     \Omega(t_0, t_f, c_1, \dots, c_r) =
-            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t_0, t_f)
+            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t_0, t_f),
 
+which satisfies :math:`U(t_0, t_f, c_1, \dots, c_r) = \exp(\Omega(t_0, t_f, c_1, \dots, c_r))`
+under certain conditions [2, 3].
 
-Given specification of the functions :math:`G_0(t)` and the non-zero perturbation terms
-:math:`A_I(t)` specified as python callables,
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
 list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`. It may also
-be used to compute Dyson-like integrals using the algorithm in []. See the function doc string
-for details.
+be used to compute Dyson-like integrals using the algorithm in [4]. Results are returned in a
+:class:`PerturbationResults` objects which is a data container with some functionality for
+indexing and accessing specific perturbation terms. See the function documentation for details.
 
 
+Perturbative Solvers
+====================
 
-Power series utilities
-======================
+Perturbative solvers!
+
+
+References
+==========
+
+This is a test. Why isn't this rendering as a legitimate section?
+
+1. F. Dyson, *The radiation theories of Tomonaga, Schwinger, and Feynman*,
+   Phys. Rev. 75, 486-502
+2. W. Magnus, *On the exponential solution of differential equations*
+   *for a linear operator*, Commun. Pure Appl. Math. 7, 649-73
+3. S. Blanes, F. Casas, J. Oteo, J. Ros, *The Magnus expansion and some*
+   *of its applications*, Phys. Rep. 470, 151-238
+4. H. Haas, D. Puzzuoli, F. Zhang, D. Cory, *Engineering Effective Hamiltonians*,
+   New J. Phys. 21, 103011 (2019).
+5. Forthcoming
+
+Perturbation module API
+=======================
 
 .. autosummary::
     :toctree: ../stubs/
 
     MatrixPolynomial
-
-Perturbation theory computation
-===============================
-
-.. autosummary::
-    :toctree: ../stubs/
-
     solve_lmde_perturbation
     PerturbationResults
+    PerturbativeSolver
 """
 
 from .power_series_utils import MatrixPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
 from .perturbation_results import PerturbationResults
+from .perturbative_solvers import PerturbativeSolver

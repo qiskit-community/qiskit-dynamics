@@ -42,7 +42,7 @@ class MatrixPolynomial:
 
     where in the above:
 
-        - :math:`S` is a finite set of index multisets,
+        - :math:`S` is a finite set of index multisets indicating non-zero monomial terms,
         - For a given index multiset :math:`I=(i_1, \dots, i_k)`,
           :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, and
         - The :math:`M_I` are matrices specified as arrays.
@@ -50,7 +50,7 @@ class MatrixPolynomial:
     At instantiation, the user specifies :math:`S` as a list of index multisets,
     :math:`M_I` as list of matrices (specified as a 3d array) whose first index has
     corresponding ordering with the list specifying :math:`S`, and can optionally
-    specify the constant term :math:`M_0`.
+    specify a constant term :math:`M_0`.
     """
 
     def __init__(
@@ -106,7 +106,8 @@ class MatrixPolynomial:
         return self._constant_term
 
     def compute_monomials(self, c: Array) -> Array:
-        """Vectorized computation of all monomial terms specified by ``self.monomial_multisets``.
+        """Vectorized computation of all scalar monomial terms in the polynomial as specified by
+        ``self.monomial_multisets``.
 
         Args:
             c: Array of variables.
@@ -116,21 +117,21 @@ class MatrixPolynomial:
         return self._compute_monomials(c)
 
     def conj(self) -> "MatrixPolynomial":
-        """Polynomial attained by conjugating all coefficients."""
+        """Returns polynomial attained by conjugating all coefficients."""
         return MatrixPolynomial(
             matrix_coefficients=np.conj(self._matrix_coefficients),
             monomial_multisets=self._monomial_multisets,
         )
 
     def transpose(self) -> "MatrixPolynomial":
-        """Polynomial attained by transposing all coefficients."""
+        """Returns polynomial attained by transposing all coefficients."""
         return MatrixPolynomial(
             matrix_coefficients=self._matrix_coefficients.transpose((0, 2, 1)),
             monomial_multisets=self._monomial_multisets,
         )
 
     def adjoint(self) -> "MatrixPolynomial":
-        """Polynomial attained by taking the adjoint of all coefficients."""
+        """Returns polynomial attained by taking the adjoint of all coefficients."""
         return MatrixPolynomial(
             matrix_coefficients=np.conj(self._matrix_coefficients.transpose((0, 2, 1))),
             monomial_multisets=self._monomial_multisets,
