@@ -54,7 +54,7 @@ def solve_lmde_perturbation(
     t_span: Array,
     expansion_method: str,
     expansion_order: Optional[int] = None,
-    expansion_terms: Optional[List[int]] = None,
+    expansion_indices: Optional[List[int]] = None,
     perturbation_indices: Optional[List[List[int]]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
@@ -75,7 +75,7 @@ def solve_lmde_perturbation(
                 A_{i_1}(t_1) \dots A_{i_k}(t_k).
 
     A list of specific integrals to compute can be specified as lists of ``int`` s via the
-    ``expansion_terms`` argument. Alternatively, the ``expansion_order`` argument
+    ``expansion_indices`` argument. Alternatively, the ``expansion_order`` argument
     may be used to compute all terms up to a given order. Both arguments can be used
     simultaneously to specify computation of all terms up to a given order, along with
     some other higher order terms.
@@ -88,7 +88,7 @@ def solve_lmde_perturbation(
                 \int_{T_0}^{t_{k-1}}dt_k A_{\sigma_1}(t_1) \dots A_{\sigma_k}(t_k)
 
     where :math:`S(I)` is the set of all permutations of :math:`I`. The ``expansion_order``
-    and ``expansion_terms`` arguments behave similarly to the
+    and ``expansion_indices`` arguments behave similarly to the
     ``expansion_method == 'dyson'`` case, however due to the symmetrization in the above
     definition, the index lists :math:`I` are treated as multisets rather than ordered lists.
     E.g. the index lists ``[0, 1]`` and ``[1, 0]`` define the same integral above.
@@ -103,7 +103,7 @@ def solve_lmde_perturbation(
     can be used to augment the meaning of the terms in ``perturbations``. If ``perturbation_indices`` is
     used, it must satisfy ``len(perturbation_indices) == len(perturbations)``, and each entry of
     ``perturbation_indices`` must be a list of ``int``s representing multisets of indices, formatted
-    in the same manner as required by ``expansion_terms`` in the symmetric case. If this
+    in the same manner as required by ``expansion_indices`` in the symmetric case. If this
     is used, then in the Dyson case, the results object,
     for a list of indices :math:`I = (i_1, \dots, i_k)`,
     will contain the integral
@@ -158,7 +158,7 @@ def solve_lmde_perturbation(
 
         - ``expansion_method``: Method as specified by the user.
         - ``term_labels``: Index labels for all computed perturbation terms.
-        - ``expansion_terms``: A 4d array storing all computed terms. The first axis indexes
+        - ``expansion_indices``: A 4d array storing all computed terms. The first axis indexes
                                   the perturbation terms in the same ordering as ``term_labels``,
                                   and the second axis indexes the perturbation terms evaluated
                                   at the times in ``results.t`` in the same manner as
@@ -166,7 +166,7 @@ def solve_lmde_perturbation(
 
     Additionally, to retrieve the term with a given label, the ``PerturbationResults`` object
     can be subscripted, e.g. the results for the computation for the term with indices
-    ``[0, 1]`` is retrievable via ``results.expansion_terms[[0, 1]]``.
+    ``[0, 1]`` is retrievable via ``results.expansion_indices[[0, 1]]``.
 
     References:
         1. F. Dyson, *The radiation theories of Tomonaga, Schwinger, and Feynman*,
@@ -185,11 +185,11 @@ def solve_lmde_perturbation(
         expansion_method: Either ``'dyson'``, ``'symmetric_dyson'``, or ``'symmetric_magnus'``.
         expansion_order: Order of perturbation terms to compute up to. Specifying this
                             argument results in computation of all terms up to the given order.
-                            Can be used in conjunction with ``expansion_terms``.
-        expansion_terms: Specific perturbation terms to compute. If both ``expansion_order``
-                            and ``expansion_terms`` are specified, then all terms up to
+                            Can be used in conjunction with ``expansion_indices``.
+        expansion_indices: Specific perturbation terms to compute. If both ``expansion_order``
+                            and ``expansion_indices`` are specified, then all terms up to
                             ``expansion_order`` are computed, along with the additional terms
-                            specified in ``expansion_terms``.
+                            specified in ``expansion_indices``.
         perturbation_indices: Optional description of power series terms specified by perturbations. To only
                         be used with ``'symmetric_dyson'`` and ``'symmetric_magnus'`` methods.
         generator: Optional frame generator.
@@ -206,13 +206,13 @@ def solve_lmde_perturbation(
 
     Raises:
         QiskitError: If problem with inputs, either ``expansion_method`` is unsupported,
-                     or both of ``expansion_order`` and ``expansion_terms`` unspecified.
+                     or both of ``expansion_order`` and ``expansion_indices`` unspecified.
     """
 
-    if (expansion_order is None) and (expansion_terms is None):
+    if (expansion_order is None) and (expansion_indices is None):
         raise QiskitError(
             """Must specify one of expansion_order or
-                          expansion_terms when calling solve_lmde_perturbation."""
+                          expansion_indices when calling solve_lmde_perturbation."""
         )
 
     if y0 is not None:
@@ -245,9 +245,9 @@ def solve_lmde_perturbation(
     else:
         perturbation_indices = [[idx] for idx in range(len(perturbations))]
 
-    # merge expansion_order and expansion_terms args
-    expansion_terms = merge_expansion_order_terms(
-        expansion_order, expansion_terms, perturbation_indices, "symmetric" in expansion_method
+    # merge expansion_order and expansion_indices args
+    expansion_indices = merge_expansion_order_indices(
+        expansion_order, expansion_indices, perturbation_indices, "symmetric" in expansion_method
     )
 
     if expansion_method in ["dyson", "symmetric_dyson"]:
@@ -256,7 +256,7 @@ def solve_lmde_perturbation(
             return solve_lmde_dyson(
                 perturbations=perturbations,
                 t_span=t_span,
-                dyson_terms=expansion_terms,
+                dyson_terms=expansion_indices,
                 perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
@@ -270,7 +270,7 @@ def solve_lmde_perturbation(
             return solve_lmde_dyson_jax(
                 perturbations=perturbations,
                 t_span=t_span,
-                dyson_terms=expansion_terms,
+                dyson_terms=expansion_indices,
                 perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
@@ -285,7 +285,7 @@ def solve_lmde_perturbation(
             return solve_lmde_symmetric_magnus(
                 perturbations=perturbations,
                 t_span=t_span,
-                magnus_terms=expansion_terms,
+                magnus_terms=expansion_indices,
                 perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
@@ -297,7 +297,7 @@ def solve_lmde_perturbation(
             return solve_lmde_symmetric_magnus_jax(
                 perturbations=perturbations,
                 t_span=t_span,
-                magnus_terms=expansion_terms,
+                magnus_terms=expansion_indices,
                 perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
@@ -310,10 +310,10 @@ def solve_lmde_perturbation(
     raise QiskitError("expansion_method " + str(expansion_method) + " not supported.")
 
 
-def merge_expansion_order_terms(
-    expansion_order: int, expansion_terms: List, perturbation_indices: List[int], symmetric: bool
+def merge_expansion_order_indices(
+    expansion_order: int, expansion_indices: List, perturbation_indices: List[int], symmetric: bool
 ) -> List:
-    """Combine ``expansion_order`` and ``expansion_terms`` into a single
+    """Combine ``expansion_order`` and ``expansion_indices`` into a single
     explicit list of perturbation terms to compute. It is assumed that at least
     one of the two arguments is in correct format.
 
@@ -325,13 +325,13 @@ def merge_expansion_order_terms(
 
     Args:
         expansion_order: Order of expansion to compute all terms up to.
-        expansion_terms: Specific individual terms requested to compute.
+        expansion_indices: Specific individual terms requested to compute.
         perturbation_indices: Labels for perturbations.
         symmetric: Whether or not the perturbation terms represent symmetric or non-symmetric
                    expansions.
     Returns:
         List of perturbation terms to compute based on merging of expansion_order and
-        expansion_terms.
+        expansion_indices.
     """
 
     # determine unique indices in perturbation_indices
@@ -341,7 +341,7 @@ def merge_expansion_order_terms(
             if idx not in unique_indices:
                 unique_indices.append(idx)
 
-    expansion_terms = expansion_terms or []
+    expansion_indices = expansion_indices or []
     if expansion_order is not None:
         up_to_order_terms = None
         if symmetric:
@@ -350,6 +350,6 @@ def merge_expansion_order_terms(
             )
         else:
             up_to_order_terms = list(map(list, product(unique_indices, repeat=expansion_order)))
-        expansion_terms = expansion_terms + up_to_order_terms
+        expansion_indices = expansion_indices + up_to_order_terms
 
-    return expansion_terms
+    return expansion_indices

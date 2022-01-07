@@ -153,7 +153,7 @@ def solve_lmde_dyson(
 
     results.perturbation_results = PerturbationResults(
         expansion_method=expansion_method,
-        term_labels=complete_term_list,
+        expansion_indices=complete_term_list,
         expansion_terms=Array(dyson_terms),
         sort_requested_labels=sort_requested_labels,
     )
@@ -207,7 +207,7 @@ def solve_lmde_symmetric_magnus(
 
     # compute Magnus terms from Dyson and update the results
     sym_magnus_terms = symmetric_magnus_from_dyson(
-        results.perturbation_results.term_labels, results.perturbation_results.expansion_terms
+        results.perturbation_results.expansion_indices, results.perturbation_results.expansion_terms
     )
     results.perturbation_results.expansion_method = "symmetric_magnus"
     results.perturbation_results.expansion_terms = Array(sym_magnus_terms)
@@ -308,7 +308,7 @@ def solve_lmde_dyson_jax(
 
     results.perturbation_results = PerturbationResults(
         expansion_method=expansion_method,
-        term_labels=complete_term_list,
+        expansion_indices=complete_term_list,
         expansion_terms=Array(dyson_terms, backend="jax"),
         sort_requested_labels=sort_requested_labels,
     )
@@ -363,7 +363,7 @@ def solve_lmde_symmetric_magnus_jax(
     # symmetric magnus terms
     dyson_terms = results.perturbation_results.expansion_terms.data
     sym_magnus_terms = symmetric_magnus_from_dyson_jax(
-        results.perturbation_results.term_labels, dyson_terms
+        results.perturbation_results.expansion_indices, dyson_terms
     )
     results.perturbation_results.expansion_method = "symmetric_magnus"
     results.perturbation_results.expansion_terms = Array(sym_magnus_terms, backend="jax")

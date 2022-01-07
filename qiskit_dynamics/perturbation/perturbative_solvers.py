@@ -174,13 +174,13 @@ class PerturbativeSolver:
         if self.expansion_method == "dyson":
             self._perturbation_polynomial = MatrixPolynomial(
                 matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
-                monomial_multisets=results.perturbation_results.term_labels,
+                monomial_multisets=results.perturbation_results.expansion_indices,
                 constant_term=self.Udt,
             )
         elif self.expansion_method == "magnus":
             self._perturbation_polynomial = MatrixPolynomial(
                 matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
-                monomial_multisets=results.perturbation_results.term_labels,
+                monomial_multisets=results.perturbation_results.expansion_indices,
             )
 
     @property
