@@ -51,6 +51,8 @@ add_module_names = False
 modindex_common_prefix = ['qiskit_dynamics.']
 bibtex_default_style = 'unsrt'
 bibtex_bibfiles = ['refs.bib']
+bibtex_bibliography_header = ".. rubric:: References"
+bibtex_footbibliography_header = bibtex_bibliography_header
 
 # html theme options
 html_theme = 'qiskit_sphinx_theme'

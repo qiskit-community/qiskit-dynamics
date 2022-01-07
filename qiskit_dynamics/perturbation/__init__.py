@@ -19,16 +19,17 @@ Perturbation Theory (:mod:`qiskit_dynamics.perturbation`)
 
 .. currentmodule:: qiskit_dynamics.perturbation
 
-Tools for computing and utilizing time-dependent perturbation theory terms.
-This module-level documentation outlines mathematical notation and data-structure conventions
-needed to understand the functions and classes contained herein.
+This module contains tools for computing and utilizing time-dependent perturbation theory terms.
+Due to the advanced nature of this topic, the documentation below outlines the
+mathematical notation and data-structure conventions of the module, and also gives
+a detailed overview of the purposes of the user-facing components.
 
 
 Power series
 ============
 
 Perturbative expansions are typically expressed as power series decompositions,
-and we outline here the conventions used to represent power series in this module.
+and the conventions for representing power series in this module are detailed here.
 
 .. note::
 
@@ -63,7 +64,7 @@ coefficients.
 
 .. note::
 
-    Throughout this module, index multisets are represented as lists of integers,
+    Throughout this module, index multisets are represented as a ``List`` of ``int``\s,
     with the canonical representation of an index multiset assumed to be sorted in non-decreasing
     order.
 
@@ -75,10 +76,11 @@ Time dependent perturbation theory
 ==================================
 
 The function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`
-computes various time-dependent perturbation theory terms in the context of linear
-matrix differential equations (LMDEs). Using the power series notation of the previous section,
-the general setting supported by this function involves LMDE generators with power
-series decompositions of the form:
+computes various time-dependent perturbation theory terms related to the Dyson series
+:cite:p:`dyson_radiation_1949` and Magnus expansion :cite:p:`magnus_exponential_1954`,
+used in matrix differential equations (LMDEs). Using the power series notation of the
+previous section, the general setting supported by this function involves LMDE generators
+with power series decompositions of the form:
 
 .. math::
 
@@ -98,7 +100,8 @@ where
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` enables computation of a
 finite number of power series decomposition coefficients of either the solution itself,
-or of a time-averaged generator *in the toggling frame of the unperturbed generator* :math:`G_0(t)`.
+or of a time-averaged generator *in the toggling frame of the unperturbed generator* :math:`G_0(t)`
+:cite:p:`evans_timedependent_1967,haeberlen_1968`.
 Denoting :math:`V(t_0, t)` the solution of the LMDE with generator :math:`G_0(t)`
 over the interval :math:`[t_0, t]`, the generator :math:`G` in the toggling frame of :math:`G_0(t)`
 is given by:
@@ -112,7 +115,8 @@ with :math:`\tilde{A}_I(t) = V(t_0, t)^\dagger A_I(t)V(t_0, t)`.
 
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` may be used to compute
-terms in either the symmetric Dyson series or symmetric Magnus expansion [forthcoming].
+terms in either the symmetric Dyson series or symmetric Magnus expansion
+[forthcoming].
 Denoting :math:`U(t_0, t_f, c_1, \dots, c_r)` the solution of the LMDE with generator
 :math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the symmetric Dyson series
 directly expands the solution as a power series in the :math:`c_1, \dots, c_r`:
@@ -134,17 +138,57 @@ which satisfies :math:`U(t_0, t_f, c_1, \dots, c_r) = \exp(\Omega(t_0, t_f, c_1,
 under certain conditions :cite:p:`magnus_exponential_1954,blanes_magnus_2009`.
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
-list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`. It may also
-be used to compute Dyson-like integrals using the algorithm in :cite:t:`haas_engineering_2019`.
-Results are returned in a
+list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`
+using the algorithm in [forthcoming]. It may also be used to compute Dyson-like
+integrals using the algorithm in :cite:t:`haas_engineering_2019`. Results are returned in a
 :class:`PerturbationResults` objects which is a data container with some functionality for
-indexing and accessing specific perturbation terms. See the function documentation for details.
+indexing and accessing specific perturbation terms. See the function documentation for further
+details.
 
 
 Perturbative Solvers
 ====================
 
-Perturbative solvers!
+The :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` class provides two
+solvers built using the symmetric Dyson and Magnus expansions, as outlined in [forthcoming].
+
+.. note::
+
+    The principles and core ideas of the methods were outlined in the Dyson-based *Dysolve*
+    algorithm given in :cite:t:`shillito_fast_2020`, however the Magnus version and
+    specific algorithms and framing of the problem are as given in [forthcoming].
+
+The methods are specialized to LMDEs whose generators are decomposed as:
+
+.. math::
+
+    G(t) = G_0 + \sum_j Re[f_j(t)e^{i2\pi\nu_jt}]G_j,
+
+and take time steps of a pre-defined fixed size :math:`\Delta t` by either computing
+a truncated symmetric Dyson series, or taking the exponential of a truncated
+symmetric Magnus expansion.
+
+The details of these methods are technical and can be found in the class documentation for
+:class:`~qiskit_dynamics.perturbation.PerturbativeSolver`, however a broad overview
+of the benefits and trade-offs of the methods are:
+
+    - The methods have many parameters that currently need to be hand-tuned for solution
+      accuracy, including a fixed step size :math:`\Delta t`.
+    - Along with the method parameters, all details of the generator model
+      except for the envelopes :math:`f_j` are fixed *at instantiation* of a
+      :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` instance.
+    - Instantiating a :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` instance
+      involves a substantial 'compilation' step, in which either symmetric Dyson or
+      symmetric Magnus terms are pre-computed according to the details of the model and
+      method parameters.
+    - Once compiled, the solver can be used to solve for arbitrary envelopes :math:`f_j`
+      and intervals of the form :math:`[t_0, t_0 + k \Delta t]`.
+
+Once compiled, individual runs of the solvers have been demonstrated
+to show substantial speed advantage over traditional methods :cite:p:`shillito_fast_2020`
+[forthcoming]. Hence, they are of use in contexts in which a large number of simulations
+of the same model for different envelopes :math:`f_j` are required,
+e.g. in complex pulse optimizations.
 
 
 .. bibliography::
