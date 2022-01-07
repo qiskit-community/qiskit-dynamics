@@ -65,7 +65,7 @@ class MatrixPolynomial:
             matrix_coefficients: A 3d array representing a list of matrix coefficients.
             monomial_multisets: A list of multisets of the same length as ``matrix_coefficients``
                                 indicating the monomial coefficient for each corresponding
-                                ``matrix_coefficient``.
+                                ``matrix_coefficients``.
             constant_term: A 2d array representing the constant term of the polynomial.
         """
 
