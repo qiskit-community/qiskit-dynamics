@@ -40,21 +40,21 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "not supported"):
             # give a valid order argument
             solve_lmde_perturbation(
-                A_list=[], t_span=[], perturbation_method="whoops", perturbation_order=1
+                perturbations=[], t_span=[], perturbation_method="whoops", perturbation_order=1
             )
 
     def test_no_terms_specified(self):
         """Test error when neither perturbation_order or perturbation_terms are specified."""
 
         with self.assertRaisesRegex(QiskitError, "specify one of"):
-            solve_lmde_perturbation(A_list=[], t_span=[], perturbation_method="dyson")
+            solve_lmde_perturbation(perturbations=[], t_span=[], perturbation_method="dyson")
 
     def test_non_square_y0(self):
         """Test error when y0 is non-square."""
 
         with self.assertRaisesRegex(QiskitError, "square"):
             solve_lmde_perturbation(
-                A_list=[],
+                perturbations=[],
                 t_span=[],
                 perturbation_method="dyson",
                 perturbation_order=1,
@@ -68,12 +68,12 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
     def test_order(self):
         """Test specifying terms up to a given order."""
 
-        A_list_indices = [[0], [1], [2]]
+        perturbation_indices = [[0], [1], [2]]
 
         output = merge_perturbation_order_terms(
             perturbation_order=3,
             perturbation_terms=None,
-            A_list_indices=A_list_indices,
+            perturbation_indices=perturbation_indices,
             symmetric=False,
         )
         expected = [
@@ -110,12 +110,12 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
 
     def test_order_symmetric(self):
         """Test specifying terms up to a given order."""
-        A_list_indices = [[0], [1], [2]]
+        perturbation_indices = [[0], [1], [2]]
 
         output = merge_perturbation_order_terms(
             perturbation_order=3,
             perturbation_terms=None,
-            A_list_indices=A_list_indices,
+            perturbation_indices=perturbation_indices,
             symmetric=True,
         )
         expected = [
@@ -136,12 +136,12 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
     def test_order_symmetric_skipped_terms(self):
         """Test handling of 'missing' indices."""
 
-        A_list_indices = [[0], [2], [3]]
+        perturbation_indices = [[0], [2], [3]]
 
         output = merge_perturbation_order_terms(
             perturbation_order=3,
             perturbation_terms=None,
-            A_list_indices=A_list_indices,
+            perturbation_indices=perturbation_indices,
             symmetric=True,
         )
         expected = [
@@ -176,11 +176,11 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
             [0, 2],
         ]
 
-        A_list_indices = [[0], [1], [2]]
+        perturbation_indices = [[0], [1], [2]]
         output = merge_perturbation_order_terms(
             perturbation_order=None,
             perturbation_terms=input_terms,
-            A_list_indices=A_list_indices,
+            perturbation_indices=perturbation_indices,
             symmetric=True,
         )
         self.assertTrue(output == input_terms)
@@ -190,11 +190,11 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
         are specified."""
 
         extra_terms = [[0, 0, 0], [0, 1, 2]]
-        A_list_indices = [[0], [1], [2]]
+        perturbation_indices = [[0], [1], [2]]
         output = merge_perturbation_order_terms(
             perturbation_order=2,
             perturbation_terms=extra_terms,
-            A_list_indices=A_list_indices,
+            perturbation_indices=perturbation_indices,
             symmetric=True,
         )
 
@@ -206,11 +206,11 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
         are specified, with terms skipped"""
 
         extra_terms = [[0, 0, 0], [0, 1, 2]]
-        A_list_indices = [[0], [2], [3]]
+        perturbation_indices = [[0], [2], [3]]
         output = merge_perturbation_order_terms(
             perturbation_order=2,
             perturbation_terms=extra_terms,
-            A_list_indices=A_list_indices,
+            perturbation_indices=perturbation_indices,
             symmetric=True,
         )
 
@@ -242,7 +242,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = np.pi * 1.2341
 
         results = solve_lmde_perturbation(
-            A_list=[A0, A1],
+            perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
@@ -307,7 +307,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = np.pi * 1.2341
 
         results = solve_lmde_perturbation(
-            A_list=[A0, A1],
+            perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
@@ -362,7 +362,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = 1.1 / v
 
         results = solve_lmde_perturbation(
-            A_list=[A0, A1],
+            perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
@@ -497,7 +497,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = np.pi * 1.2341
 
         results = solve_lmde_perturbation(
-            A_list=[A0, A1],
+            perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
@@ -574,7 +574,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = np.pi * 1.2341
 
         results = solve_lmde_perturbation(
-            A_list=[A0, A1],
+            perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
             perturbation_method="symmetric_magnus",
@@ -664,7 +664,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = 1.1 / v
 
         results = solve_lmde_perturbation(
-            A_list=[A0, A1],
+            perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
             perturbation_method="symmetric_dyson",
@@ -783,7 +783,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = 1.1 / v
 
         results = solve_lmde_perturbation(
-            A_list=[A0, A1],
+            perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
@@ -864,7 +864,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = np.pi * 1.2341 / 3
 
         results_dyson = solve_lmde_perturbation(
-            A_list=[A0, A1, A00, A01, A11],
+            perturbations=[A0, A1, A00, A01, A11],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
@@ -876,7 +876,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         results_sym_dyson = solve_lmde_perturbation(
-            A_list=[A0, A1, A00, A01, A11],
+            perturbations=[A0, A1, A00, A01, A11],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
@@ -888,9 +888,9 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         results_sym_dyson_ps = solve_lmde_perturbation(
-            A_list=[A0, A1, A00, A01, A11],
+            perturbations=[A0, A1, A00, A01, A11],
             t_span=[0, T],
-            A_list_indices=[[0], [1], [0, 0], [0, 1], [1, 1]],
+            perturbation_indices=[[0], [1], [0, 0], [0, 1], [1, 1]],
             generator=generator,
             y0=np.eye(2, dtype=complex),
             perturbation_method="symmetric_dyson",
@@ -995,7 +995,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = np.pi * 1.2341 / 3
 
         results_sym_dyson = solve_lmde_perturbation(
-            A_list=[A0, A1, A2, A00, A01],
+            perturbations=[A0, A1, A2, A00, A01],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(d, dtype=complex),
@@ -1007,9 +1007,9 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         results_sym_dyson_ps = solve_lmde_perturbation(
-            A_list=[A0, A1, A2, A00, A01],
+            perturbations=[A0, A1, A2, A00, A01],
             t_span=[0, T],
-            A_list_indices=[[0], [1], [2], [0, 0], [0, 1]],
+            perturbation_indices=[[0], [1], [2], [0, 0], [0, 1]],
             generator=generator,
             y0=np.eye(d, dtype=complex),
             perturbation_method="symmetric_dyson",
@@ -1055,7 +1055,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = np.pi * 1.2341 / 3
 
         results_sym_magnus = solve_lmde_perturbation(
-            A_list=[A0, A1, A00, A01, A11],
+            perturbations=[A0, A1, A00, A01, A11],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
@@ -1067,9 +1067,9 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         results_sym_magnus_ps = solve_lmde_perturbation(
-            A_list=[A0, A1, A00, A01, A11],
+            perturbations=[A0, A1, A00, A01, A11],
             t_span=[0, T],
-            A_list_indices=[[0], [1], [0, 0], [0, 1], [1, 1]],
+            perturbation_indices=[[0], [1], [0, 0], [0, 1], [1, 1]],
             generator=generator,
             y0=np.eye(2, dtype=complex),
             perturbation_method="symmetric_magnus",
@@ -1150,7 +1150,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T = np.pi * 1.2341 / 3
 
         results_sym_magnus = solve_lmde_perturbation(
-            A_list=[A0, A1, A2, A00, A01],
+            perturbations=[A0, A1, A2, A00, A01],
             t_span=[0, T],
             generator=generator,
             y0=np.eye(d, dtype=complex),
@@ -1162,9 +1162,9 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         results_sym_magnus_ps = solve_lmde_perturbation(
-            A_list=[A0, A1, A2, A00, A01],
+            perturbations=[A0, A1, A2, A00, A01],
             t_span=[0, T],
-            A_list_indices=[[0], [1], [2], [0, 0], [0, 1]],
+            perturbation_indices=[[0], [1], [2], [0, 0], [0, 1]],
             generator=generator,
             y0=np.eye(d, dtype=complex),
             perturbation_method="symmetric_magnus",
@@ -1203,7 +1203,7 @@ class Testsolve_lmde_perturbation_jax(Testsolve_lmde_perturbation, TestJaxBase):
 
         def func(a, t):
             results = solve_lmde_perturbation(
-                A_list=[lambda t: A0(a, t)],
+                perturbations=[lambda t: A0(a, t)],
                 t_span=[0, T],
                 generator=generator,
                 y0=np.eye(2, dtype=complex),
@@ -1246,7 +1246,7 @@ class Testsolve_lmde_perturbation_jax(Testsolve_lmde_perturbation, TestJaxBase):
 
         def func(a, t):
             results = solve_lmde_perturbation(
-                A_list=[lambda t: A0(a, t), A1],
+                perturbations=[lambda t: A0(a, t), A1],
                 t_span=[0, T],
                 generator=generator,
                 y0=np.eye(2, dtype=complex),

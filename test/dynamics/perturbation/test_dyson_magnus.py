@@ -503,7 +503,7 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         """
 
         complete_symmetric_dyson_terms = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
-        A_list_indices = [[0], [1], [0, 1], [1, 1]]
+        perturbation_indices = [[0], [1], [0, 1], [1, 1]]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -514,7 +514,7 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         ]
 
         self._test_get_symmetric_dyson_lmult_rule(
-            complete_symmetric_dyson_terms, expected_lmult_rule, A_list_indices=A_list_indices
+            complete_symmetric_dyson_terms, expected_lmult_rule, perturbation_indices=perturbation_indices
         )
 
     def test_get_symmetric_dyson_lmult_rule_power_series_case2(self):
@@ -523,7 +523,7 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         """
 
         complete_symmetric_dyson_terms = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
-        A_list_indices = [[0], [1], [2], [0, 1]]
+        perturbation_indices = [[0], [1], [2], [0, 1]]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -534,7 +534,7 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         ]
 
         self._test_get_symmetric_dyson_lmult_rule(
-            complete_symmetric_dyson_terms, expected_lmult_rule, A_list_indices=A_list_indices
+            complete_symmetric_dyson_terms, expected_lmult_rule, perturbation_indices=perturbation_indices
         )
 
     def test_get_symmetric_dyson_lmult_rule_case1(self):
@@ -610,11 +610,11 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         self._test_get_symmetric_dyson_lmult_rule(term_list, expected_lmult_rule)
 
     def _test_get_symmetric_dyson_lmult_rule(
-        self, complete_symmetric_dyson_term_list, expected, A_list_indices=None
+        self, complete_symmetric_dyson_term_list, expected, perturbation_indices=None
     ):
         """Run a test case for _get_symmetric_dyson_mult_rules."""
         lmult_rule = get_symmetric_dyson_lmult_rule(
-            complete_symmetric_dyson_term_list, A_list_indices
+            complete_symmetric_dyson_term_list, perturbation_indices
         )
 
         self.assertMultRulesEqual(lmult_rule, expected)

@@ -50,12 +50,12 @@ except ImportError:
 
 
 def solve_lmde_perturbation(
-    A_list: List[Callable],
+    perturbations: List[Callable],
     t_span: Array,
     perturbation_method: str,
     perturbation_order: Optional[int] = None,
     perturbation_terms: Optional[List] = None,
-    A_list_indices: Optional[List[List[int]]] = None,
+    perturbation_indices: Optional[List[List[int]]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
@@ -99,10 +99,10 @@ def solve_lmde_perturbation(
     same as that of the ``'symmetric_dyson'`` case.
 
     For both ``perturbation_method == 'symmetric_dyson'`` and
-    ``perturbation_method == 'symmetric_magnus'`` cases, the optional argument ``A_list_indices``
-    can be used to augment the meaning of the terms in ``A_list``. If ``A_list_indices`` is
-    used, it must satisfy ``len(A_list_indices) == len(A_list)``, and each entry of
-    ``A_list_indices`` must be a list of ``int``s representing multisets of indices, formatted
+    ``perturbation_method == 'symmetric_magnus'`` cases, the optional argument ``perturbation_indices``
+    can be used to augment the meaning of the terms in ``perturbations``. If ``perturbation_indices`` is
+    used, it must satisfy ``len(perturbation_indices) == len(perturbations)``, and each entry of
+    ``perturbation_indices`` must be a list of ``int``s representing multisets of indices, formatted
     in the same manner as required by ``perturbation_terms`` in the symmetric case. If this
     is used, then in the Dyson case, the results object,
     for a list of indices :math:`I = (i_1, \dots, i_k)`,
@@ -180,7 +180,7 @@ def solve_lmde_perturbation(
         5. Forthcoming
 
     Args:
-        A_list: List of matrix-valued callables.
+        perturbations: List of matrix-valued callables.
         t_span: Integration bounds.
         perturbation_method: Either ``'dyson'``, ``'symmetric_dyson'``, or ``'symmetric_magnus'``.
         perturbation_order: Order of perturbation terms to compute up to. Specifying this
@@ -190,7 +190,7 @@ def solve_lmde_perturbation(
                             and ``perturbation_terms`` are specified, then all terms up to
                             ``perturbation_order`` are computed, along with the additional terms
                             specified in ``perturbation_terms``.
-        A_list_indices: Optional description of power series terms specified by A_list. To only
+        perturbation_indices: Optional description of power series terms specified by perturbations. To only
                         be used with ``'symmetric_dyson'`` and ``'symmetric_magnus'`` methods.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
@@ -221,7 +221,7 @@ def solve_lmde_perturbation(
 
     # determine whether to use jax looping logic
     use_jax = True
-    for A_func in A_list:
+    for A_func in perturbations:
         if Array(A_func(t_span[0])).backend != "jax":
             use_jax = False
             break
@@ -230,34 +230,34 @@ def solve_lmde_perturbation(
         if Array(generator(t_span[0])).backend != "jax":
             use_jax = False
 
-    # clean and validate A_list_indices
-    if A_list_indices is not None:
+    # clean and validate perturbation_indices
+    if perturbation_indices is not None:
         if perturbation_method == "dyson":
             raise QiskitError(
-                "A_list_indices argument not usable with perturbation_method='dyson'."
+                "perturbation_indices argument not usable with perturbation_method='dyson'."
             )
 
-        # validate A_list_indices
-        A_list_len = len(A_list_indices)
-        A_list_indices = clean_index_multisets(A_list_indices)
-        if len(A_list_indices) != A_list_len:
-            raise QiskitError("A_list_indices argument contains duplicates as multisets.")
+        # validate perturbation_indices
+        perturbations_len = len(perturbation_indices)
+        perturbation_indices = clean_index_multisets(perturbation_indices)
+        if len(perturbation_indices) != perturbations_len:
+            raise QiskitError("perturbation_indices argument contains duplicates as multisets.")
     else:
-        A_list_indices = [[idx] for idx in range(len(A_list))]
+        perturbation_indices = [[idx] for idx in range(len(perturbations))]
 
     # merge perturbation_order and perturbation_terms args
     perturbation_terms = merge_perturbation_order_terms(
-        perturbation_order, perturbation_terms, A_list_indices, "symmetric" in perturbation_method
+        perturbation_order, perturbation_terms, perturbation_indices, "symmetric" in perturbation_method
     )
 
     if perturbation_method in ["dyson", "symmetric_dyson"]:
         symmetric = perturbation_method == "symmetric_dyson"
         if not use_jax:
             return solve_lmde_dyson(
-                A_list=A_list,
+                perturbations=perturbations,
                 t_span=t_span,
                 dyson_terms=perturbation_terms,
-                A_list_indices=A_list_indices,
+                perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
                 dyson_in_frame=dyson_in_frame,
@@ -268,10 +268,10 @@ def solve_lmde_perturbation(
             )
         else:
             return solve_lmde_dyson_jax(
-                A_list=A_list,
+                perturbations=perturbations,
                 t_span=t_span,
                 dyson_terms=perturbation_terms,
-                A_list_indices=A_list_indices,
+                perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
                 dyson_in_frame=dyson_in_frame,
@@ -283,10 +283,10 @@ def solve_lmde_perturbation(
     elif perturbation_method == "symmetric_magnus":
         if not use_jax:
             return solve_lmde_symmetric_magnus(
-                A_list=A_list,
+                perturbations=perturbations,
                 t_span=t_span,
                 magnus_terms=perturbation_terms,
-                A_list_indices=A_list_indices,
+                perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
                 method=method,
@@ -295,10 +295,10 @@ def solve_lmde_perturbation(
             )
         else:
             return solve_lmde_symmetric_magnus_jax(
-                A_list=A_list,
+                perturbations=perturbations,
                 t_span=t_span,
                 magnus_terms=perturbation_terms,
-                A_list_indices=A_list_indices,
+                perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
                 method=method,
@@ -311,7 +311,7 @@ def solve_lmde_perturbation(
 
 
 def merge_perturbation_order_terms(
-    perturbation_order: int, perturbation_terms: List, A_list_indices: List[int], symmetric: bool
+    perturbation_order: int, perturbation_terms: List, perturbation_indices: List[int], symmetric: bool
 ) -> List:
     """Combine ``perturbation_order`` and ``perturbation_terms`` into a single
     explicit list of perturbation terms to compute. It is assumed that at least
@@ -326,7 +326,7 @@ def merge_perturbation_order_terms(
     Args:
         perturbation_order: Order of expansion to compute all terms up to.
         perturbation_terms: Specific individual terms requested to compute.
-        A_list_indices: Labels for perturbations.
+        perturbation_indices: Labels for perturbations.
         symmetric: Whether or not the perturbation terms represent symmetric or non-symmetric
                    expansions.
     Returns:
@@ -334,9 +334,9 @@ def merge_perturbation_order_terms(
         perturbation_terms.
     """
 
-    # determine unique indices in A_list_indices
+    # determine unique indices in perturbation_indices
     unique_indices = []
-    for multiset in A_list_indices:
+    for multiset in perturbation_indices:
         for idx in multiset:
             if idx not in unique_indices:
                 unique_indices.append(idx)

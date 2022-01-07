@@ -66,10 +66,10 @@ except ImportError:
 
 
 def solve_lmde_dyson(
-    A_list: List[Callable],
+    perturbations: List[Callable],
     t_span: Array,
     dyson_terms: List,
-    A_list_indices: Optional[List[List]] = None,
+    perturbation_indices: Optional[List[List]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
@@ -82,10 +82,10 @@ def solve_lmde_dyson(
     See documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
-        A_list: List of callable matrix functions to appear in Dyson terms.
+        perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         dyson_terms: Terms to compute.
-        A_list_indices: Ordering/specification of the elements of A_list. Only used
+        perturbation_indices: Ordering/specification of the elements of perturbations. Only used
                         for symmetric==True.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
@@ -99,7 +99,7 @@ def solve_lmde_dyson(
     Returns:
         OdeResult
     """
-    mat_dim = A_list[0](t_span[0]).shape[0]
+    mat_dim = perturbations[0](t_span[0]).shape[0]
 
     if generator is None:
         # pylint: disable=unused-argument
@@ -120,11 +120,11 @@ def solve_lmde_dyson(
 
     dyson_rhs = setup_dyson_rhs(
         generator,
-        A_list,
+        perturbations,
         complete_term_list,
         mat_dim,
         symmetric=symmetric,
-        A_list_indices=A_list_indices,
+        perturbation_indices=perturbation_indices,
     )
 
     # initial state
@@ -162,10 +162,10 @@ def solve_lmde_dyson(
 
 
 def solve_lmde_symmetric_magnus(
-    A_list: List[Callable],
+    perturbations: List[Callable],
     t_span: Array,
     magnus_terms: List,
-    A_list_indices: Optional[List[List]] = None,
+    perturbation_indices: Optional[List[List]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     method: Optional[str] = "DOP853",
@@ -176,10 +176,10 @@ def solve_lmde_symmetric_magnus(
     See documentaiton for :meth:`solve_lmde_perturbation`.
 
     Args:
-        A_list: List of callable matrix functions to appear in Dyson terms.
+        perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         magnus_terms: Terms to compute.
-        A_list_indices: Ordering/specification of the elements of A_list.
+        perturbation_indices: Ordering/specification of the elements of perturbations.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
         method: Integration method.
@@ -192,10 +192,10 @@ def solve_lmde_symmetric_magnus(
 
     # first compute Dyson terms
     results = solve_lmde_dyson(
-        A_list,
+        perturbations,
         t_span,
         dyson_terms=magnus_terms,
-        A_list_indices=A_list_indices,
+        perturbation_indices=perturbation_indices,
         generator=generator,
         y0=y0,
         dyson_in_frame=True,
@@ -216,10 +216,10 @@ def solve_lmde_symmetric_magnus(
 
 
 def solve_lmde_dyson_jax(
-    A_list: List[Callable],
+    perturbations: List[Callable],
     t_span: Array,
     dyson_terms: List,
-    A_list_indices: List[List],
+    perturbation_indices: List[List],
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
@@ -232,10 +232,10 @@ def solve_lmde_dyson_jax(
     See documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
-        A_list: List of callable matrix functions to appear in Dyson terms.
+        perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         dyson_terms: Terms to compute.
-        A_list_indices: Ordering/specification of the elements of A_list. Only used if
+        perturbation_indices: Ordering/specification of the elements of perturbations. Only used if
                         symmetric==True.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
@@ -250,7 +250,7 @@ def solve_lmde_dyson_jax(
         OdeResult
     """
 
-    mat_dim = A_list[0](t_span[0]).shape[0]
+    mat_dim = perturbations[0](t_span[0]).shape[0]
 
     if generator is None:
         # pylint: disable=unused-argument
@@ -262,7 +262,7 @@ def solve_lmde_dyson_jax(
     if y0 is None:
         y0 = jnp.eye(mat_dim, dtype=complex)
 
-    # ensure A_list and generator to return raw jax arrays
+    # ensure perturbations and generator to return raw jax arrays
     def func_transform(f):
         def new_func(t):
             return Array(f(t), backend="jax").data
@@ -270,7 +270,7 @@ def solve_lmde_dyson_jax(
         return new_func
 
     generator = func_transform(generator)
-    A_list = [func_transform(a_func) for a_func in A_list]
+    perturbations = [func_transform(a_func) for a_func in perturbations]
 
     # construct term list an RHS based on whether symmetric or not
     complete_term_list = None
@@ -280,7 +280,7 @@ def solve_lmde_dyson_jax(
         complete_term_list = get_complete_dyson_indices(dyson_terms)
 
     dyson_rhs = setup_dyson_rhs_jax(
-        generator, A_list, complete_term_list, symmetric=symmetric, A_list_indices=A_list_indices
+        generator, perturbations, complete_term_list, symmetric=symmetric, perturbation_indices=perturbation_indices
     )
 
     # initial state
@@ -317,10 +317,10 @@ def solve_lmde_dyson_jax(
 
 
 def solve_lmde_symmetric_magnus_jax(
-    A_list: List[Callable],
+    perturbations: List[Callable],
     t_span: Array,
     magnus_terms: List,
-    A_list_indices: Optional[List[List]] = None,
+    perturbation_indices: Optional[List[List]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     method: Optional[str] = "DOP853",
@@ -331,10 +331,10 @@ def solve_lmde_symmetric_magnus_jax(
     See documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
-        A_list: List of callable matrix functions to appear in Dyson terms.
+        perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         magnus_terms: Terms to compute.
-        A_list_indices: Ordering/specification of the elements of A_list.
+        perturbation_indices: Ordering/specification of the elements of perturbations.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
         method: Integration method.
@@ -347,10 +347,10 @@ def solve_lmde_symmetric_magnus_jax(
 
     # first compute Dyson terms
     results = solve_lmde_dyson_jax(
-        A_list,
+        perturbations,
         t_span,
         dyson_terms=magnus_terms,
-        A_list_indices=A_list_indices,
+        perturbation_indices=perturbation_indices,
         generator=generator,
         y0=y0,
         dyson_in_frame=True,
@@ -373,40 +373,40 @@ def solve_lmde_symmetric_magnus_jax(
 
 def setup_dyson_rhs(
     generator: Callable,
-    A_list: List[Callable],
+    perturbations: List[Callable],
     oc_dyson_indices: List,
     mat_dim: int,
     symmetric: Optional[bool] = False,
-    A_list_indices: Optional[List[List]] = None,
+    perturbation_indices: Optional[List[List]] = None,
 ) -> Callable:
     """Construct the RHS function for propagating Dyson terms.
 
     Args:
         generator: The frame generator G.
-        A_list: List of matrix functions appearing in Dyson terms.
+        perturbations: List of matrix functions appearing in Dyson terms.
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
-        mat_dim: Dimension of outputs of generator and functions in A_list.
+        mat_dim: Dimension of outputs of generator and functions in perturbations.
         symmetric: Whether the computation is for Dyson or symmetric Dyson terms.
-        A_list_indices: List of lists specifying index information for A_list. Only used when
+        perturbation_indices: List of lists specifying index information for perturbations. Only used when
                         symmetric==True.
 
     Returns:
         Callable
     """
     lmult_rule = None
-    A_list_evaluation_order = None
+    perturbations_evaluation_order = None
     if symmetric:
-        # filter members of A_list required for given list of dyson terms
-        if A_list_indices is None:
-            A_list_indices = [[idx] for idx in range(len(A_list))]
-        reduced_A_list_indices = submultiset_filter(A_list_indices, oc_dyson_indices)
-        A_list_evaluation_order = [0] + [
-            A_list_indices.index(multiset) + 1 for multiset in reduced_A_list_indices
+        # filter members of perturbations required for given list of dyson terms
+        if perturbation_indices is None:
+            perturbation_indices = [[idx] for idx in range(len(perturbations))]
+        reduced_perturbation_indices = submultiset_filter(perturbation_indices, oc_dyson_indices)
+        perturbations_evaluation_order = [0] + [
+            perturbation_indices.index(multiset) + 1 for multiset in reduced_perturbation_indices
         ]
-        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_A_list_indices)
+        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_indices)
     else:
         generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
-        A_list_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
+        perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
         lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
 
     compiled_lmult_rule = compile_custom_dot_rule(lmult_rule, index_offset=1)
@@ -415,13 +415,13 @@ def setup_dyson_rhs(
     def custom_lmult(A, B):
         return custom_dot(A, B, compiled_lmult_rule)
 
-    a_list_evaluate_len = len(A_list_evaluation_order)
-    new_list = [generator] + A_list
+    perturbations_evaluate_len = len(perturbations_evaluation_order)
+    new_list = [generator] + perturbations
 
     def gen_evaluator(t):
-        mat = np.empty((a_list_evaluate_len, mat_dim, mat_dim), dtype=complex)
+        mat = np.empty((perturbations_evaluate_len, mat_dim, mat_dim), dtype=complex)
 
-        for idx, a_idx in enumerate(A_list_evaluation_order):
+        for idx, a_idx in enumerate(perturbations_evaluation_order):
             mat[idx] = new_list[a_idx](t)
 
         return mat
@@ -434,20 +434,20 @@ def setup_dyson_rhs(
 
 def setup_dyson_rhs_jax(
     generator: Callable,
-    A_list: List[Callable],
+    perturbations: List[Callable],
     oc_dyson_indices: List,
     symmetric: Optional[bool] = False,
-    A_list_indices: Optional[List[List]] = None,
+    perturbation_indices: Optional[List[List]] = None,
 ) -> Callable:
     """JAX version of setup_dyson_rhs. Note that this version does not require
     the ``mat_dim`` argument.
 
     Args:
         generator: The frame generator G.
-        A_list: List of matrix functions appearing in Dyson terms.
+        perturbations: List of matrix functions appearing in Dyson terms.
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
         symmetric: Whether the computation is for Dyson or symmetric Dyson terms.
-        A_list_indices: List of lists specifying index information for A_list. Only used when
+        perturbation_indices: List of lists specifying index information for perturbations. Only used when
                         symmetric==True.
 
     Returns:
@@ -455,19 +455,19 @@ def setup_dyson_rhs_jax(
     """
 
     lmult_rule = None
-    A_list_evaluation_order = None
+    perturbations_evaluation_order = None
     if symmetric:
-        # filter members of A_list required for given list of dyson terms
-        if A_list_indices is None:
-            A_list_indices = [[idx] for idx in range(len(A_list))]
-        reduced_A_list_indices = submultiset_filter(A_list_indices, oc_dyson_indices)
-        A_list_evaluation_order = [0] + [
-            A_list_indices.index(multiset) + 1 for multiset in reduced_A_list_indices
+        # filter members of perturbations required for given list of dyson terms
+        if perturbation_indices is None:
+            perturbation_indices = [[idx] for idx in range(len(perturbations))]
+        reduced_perturbation_indices = submultiset_filter(perturbation_indices, oc_dyson_indices)
+        perturbations_evaluation_order = [0] + [
+            perturbation_indices.index(multiset) + 1 for multiset in reduced_perturbation_indices
         ]
-        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_A_list_indices)
+        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_indices)
     else:
         generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
-        A_list_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
+        perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
         lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
 
     compiled_lmult_rule = compile_custom_dot_rule(lmult_rule, index_offset=1)
@@ -476,9 +476,9 @@ def setup_dyson_rhs_jax(
     def custom_lmult(A, B):
         return custom_dot_jax(A, B, compiled_lmult_rule)
 
-    A_list_evaluation_order = jnp.array(A_list_evaluation_order, dtype=int)
+    perturbations_evaluation_order = jnp.array(perturbations_evaluation_order, dtype=int)
 
-    new_list = [generator] + A_list
+    new_list = [generator] + perturbations
 
     def single_eval(idx, t):
         return switch(idx, new_list, t)
@@ -486,7 +486,7 @@ def setup_dyson_rhs_jax(
     multiple_eval = vmap(single_eval, in_axes=(0, None))
 
     def dyson_rhs(t, y):
-        return custom_lmult(multiple_eval(A_list_evaluation_order, t), y)
+        return custom_lmult(multiple_eval(perturbations_evaluation_order, t), y)
 
     return dyson_rhs
 
@@ -511,7 +511,7 @@ def get_dyson_lmult_rule(complete_dyson_indices: List, generator_indices: List) 
     Assumption: the supplied list is complete, i.e. if a term depends on other
     terms, then the terms it depends on are also in the list.
 
-    Convention: G(t) is given the index -1 to preserve the indexing of A_list.
+    Convention: G(t) is given the index -1 to preserve the indexing of perturbations.
 
     Args:
         complete_dyson_indices: Complete list of Dyson terms.
@@ -803,7 +803,7 @@ def get_q_term_list(complete_index_multisets: List) -> List:
 
 
 def get_symmetric_dyson_lmult_rule(
-    complete_index_multisets: List, A_list_indices: Optional[List[List]] = None
+    complete_index_multisets: List, perturbation_indices: Optional[List[List]] = None
 ) -> List:
     """Given a complete list of index multisets, return
     the lmult rule in the format required for ``CustomProduct``.
@@ -815,19 +815,19 @@ def get_symmetric_dyson_lmult_rule(
 
     Args:
         complete_index_multisets: List of complete symmetric indices.
-        A_list_indices: List of index multisets describing A_list.
+        perturbation_indices: List of index multisets describing perturbations.
 
     Returns:
         List: Left multiplication rule description.
     """
 
-    # If A_list_indices is not specified, use the elements of complete_index_multisets
+    # If perturbation_indices is not specified, use the elements of complete_index_multisets
     # of length 1
-    if A_list_indices is None:
-        A_list_indices = []
+    if perturbation_indices is None:
+        perturbation_indices = []
         for entry in complete_index_multisets:
             if len(entry) == 1:
-                A_list_indices.append(entry)
+                perturbation_indices.append(entry)
             else:
                 break
 
@@ -842,7 +842,7 @@ def get_symmetric_dyson_lmult_rule(
             # self multiplied by base generator
             lmult_indices = [[-1, term_idx]]
 
-            for l_idx, l_term in enumerate(A_list_indices):
+            for l_idx, l_term in enumerate(perturbation_indices):
                 if is_submultiset(l_term, term):
                     if len(l_term) == len(term):
                         lmult_indices.append([l_idx, -1])
