@@ -61,7 +61,7 @@ class PerturbativeSolver:
         expansion_method: Optional[str] = "dyson",
         expansion_order: Optional[int] = None,
         expansion_terms: Optional[List] = None,
-        method: Optional[str] = None,
+        integration_method: Optional[str] = None,
         **kwargs,
     ):
         """Compile perturbative solver, either Dyson series or Magnus expansion based.
@@ -103,7 +103,7 @@ class PerturbativeSolver:
                                 and ``expansion_terms`` are specified, then all terms up to
                                 ``expansion_order`` are computed, along with the additional terms
                                 specified in ``expansion_terms``.
-            method: Solver method to use when computing perturbation terms.
+            integration_method: Solver method to use when computing perturbation terms.
             kwargs: Additional arguments to pass to the solver when computing perturbation terms.
         """
 
@@ -115,7 +115,7 @@ class PerturbativeSolver:
             expansion_method = "symmetric_magnus"
         else:
             raise QiskitError(
-                "compile_perturbative_solver only accepts method 'dyson' or 'magnus'."
+                "PerturbativeSolver only accepts expansion_method 'dyson' or 'magnus'."
             )
 
         # determine which terms to include imaginary part
@@ -144,13 +144,13 @@ class PerturbativeSolver:
             A_list = construct_cheb_A_list_jax(
                 generator_decomposition, signal_polynomial_degrees, carrier_freqs, dt, include_imag
             )
-            method = method or "jax_odeint"
+            integration_method = integration_method or "jax_odeint"
             self._Udt = jexpm(dt * frame_operator)
         else:
             A_list = construct_cheb_A_list(
                 generator_decomposition, signal_polynomial_degrees, carrier_freqs, dt, include_imag
             )
-            method = method or "DOP853"
+            integration_method = integration_method or "DOP853"
             self._Udt = expm(dt * frame_operator)
 
         self._dt = dt
@@ -166,7 +166,7 @@ class PerturbativeSolver:
             expansion_terms=expansion_terms,
             dyson_in_frame=False,
             generator=lambda t: frame_operator,
-            method=method,
+            integration_method=integration_method,
             **kwargs,
         )
         self._precomputation_results = results

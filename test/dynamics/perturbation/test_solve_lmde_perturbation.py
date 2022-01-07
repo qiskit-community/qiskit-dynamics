@@ -222,7 +222,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
     """Test cases for perturbation theory computation."""
 
     def setUp(self):
-        self.method = "DOP853"
+        self.integration_method = "DOP853"
 
     def test_dyson_analytic_case1(self):
         """Analytic test of computing dyson terms.
@@ -248,7 +248,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(2, dtype=complex),
             expansion_method="dyson",
             expansion_terms=[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -313,7 +313,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(2, dtype=complex),
             expansion_method="dyson",
             expansion_terms=[[0, 0, 0, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -378,7 +378,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
                 [0, 1, 0],
                 [1, 0, 0],
             ],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -504,7 +504,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             expansion_method="symmetric_dyson",
             expansion_order=2,
             expansion_terms=[[0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -588,7 +588,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
                 [0, 0, 0, 1],
                 [0, 0, 1, 1],
             ],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -669,7 +669,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             generator=generator,
             expansion_method="symmetric_dyson",
             expansion_order=3,
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -790,7 +790,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             expansion_method="symmetric_magnus",
             expansion_order=2,
             expansion_terms=[[0, 0, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -870,7 +870,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(2, dtype=complex),
             expansion_method="dyson",
             expansion_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 0], [1, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -882,7 +882,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(2, dtype=complex),
             expansion_method="symmetric_dyson",
             expansion_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -895,7 +895,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(2, dtype=complex),
             expansion_method="symmetric_dyson",
             expansion_terms=[[0], [1], [0, 0], [0, 1], [1, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -1001,7 +1001,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(d, dtype=complex),
             expansion_method="symmetric_dyson",
             expansion_terms=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -1014,7 +1014,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(d, dtype=complex),
             expansion_method="symmetric_dyson",
             expansion_terms=[[0, 0, 1, 2]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -1061,7 +1061,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(2, dtype=complex),
             expansion_method="symmetric_magnus",
             expansion_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -1074,7 +1074,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(2, dtype=complex),
             expansion_method="symmetric_magnus",
             expansion_terms=[[0], [1], [0, 0], [0, 1], [1, 1]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -1156,7 +1156,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(d, dtype=complex),
             expansion_method="symmetric_magnus",
             expansion_terms=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -1169,7 +1169,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             y0=np.eye(d, dtype=complex),
             expansion_method="symmetric_magnus",
             expansion_terms=[[0, 0, 1, 2]],
-            method=self.method,
+            integration_method=self.integration_method,
             atol=1e-13,
             rtol=1e-13,
         )
@@ -1188,7 +1188,7 @@ class Testsolve_lmde_perturbation_jax(Testsolve_lmde_perturbation, TestJaxBase):
     """Test cases for jax perturbation theory computation."""
 
     def setUp(self):
-        self.method = "jax_odeint"
+        self.integration_method = "jax_odeint"
 
     def test_jit_grad_dyson(self):
         """Test that we can jit and grad a dyson computation."""
@@ -1209,7 +1209,7 @@ class Testsolve_lmde_perturbation_jax(Testsolve_lmde_perturbation, TestJaxBase):
                 y0=np.eye(2, dtype=complex),
                 expansion_method="dyson",
                 expansion_terms=[[0]],
-                method=self.method,
+                integration_method=self.integration_method,
                 atol=1e-13,
                 rtol=1e-13,
             )
@@ -1252,7 +1252,7 @@ class Testsolve_lmde_perturbation_jax(Testsolve_lmde_perturbation, TestJaxBase):
                 y0=np.eye(2, dtype=complex),
                 expansion_method="symmetric_magnus",
                 expansion_terms=[[0, 1]],
-                method=self.method,
+                integration_method=self.integration_method,
                 atol=1e-13,
                 rtol=1e-13,
             )

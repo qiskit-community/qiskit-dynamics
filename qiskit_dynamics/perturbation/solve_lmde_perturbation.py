@@ -54,12 +54,12 @@ def solve_lmde_perturbation(
     t_span: Array,
     expansion_method: str,
     expansion_order: Optional[int] = None,
-    expansion_terms: Optional[List] = None,
+    expansion_terms: Optional[List[int]] = None,
     perturbation_indices: Optional[List[List[int]]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
-    method: Optional[str] = "DOP853",
+    integration_method: Optional[str] = "DOP853",
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
@@ -197,7 +197,7 @@ def solve_lmde_perturbation(
         dyson_in_frame: For ``expansion_method`` ``'dyson'`` or ``'symmetric_dyson'``,
                         whether or not to remove the frame transformation pre-factor from the
                         Dyson terms.
-        method: Integration method to use.
+        integration_method: Integration method to use.
         t_eval: Points at which to evaluate the system.
         kwargs: Additional arguments to pass to solver method used to compute terms.
 
@@ -262,7 +262,7 @@ def solve_lmde_perturbation(
                 y0=y0,
                 dyson_in_frame=dyson_in_frame,
                 symmetric=symmetric,
-                method=method,
+                integration_method=integration_method,
                 t_eval=t_eval,
                 **kwargs,
             )
@@ -276,7 +276,7 @@ def solve_lmde_perturbation(
                 y0=y0,
                 dyson_in_frame=dyson_in_frame,
                 symmetric=symmetric,
-                method=method,
+                integration_method=integration_method,
                 t_eval=t_eval,
                 **kwargs,
             )
@@ -289,7 +289,7 @@ def solve_lmde_perturbation(
                 perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
-                method=method,
+                integration_method=integration_method,
                 t_eval=t_eval,
                 **kwargs,
             )
@@ -301,7 +301,7 @@ def solve_lmde_perturbation(
                 perturbation_indices=perturbation_indices,
                 generator=generator,
                 y0=y0,
-                method=method,
+                integration_method=integration_method,
                 t_eval=t_eval,
                 **kwargs,
             )

@@ -74,7 +74,7 @@ def solve_lmde_dyson(
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
     symmetric: Optional[bool] = False,
-    method: Optional[str] = "DOP853",
+    integration_method: Optional[str] = "DOP853",
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
@@ -92,7 +92,7 @@ def solve_lmde_dyson(
         dyson_in_frame: Whether to return the Dyson terms in the frame of the
                         the frame generator.
         symmetric: Compute either symmetric or regular Dyson terms.
-        method: Integration method.
+        integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
         kwargs: Additional arguments to pass to the solver.
 
@@ -134,7 +134,7 @@ def solve_lmde_dyson(
         axis=0,
     )
 
-    results = solve_ode(rhs=dyson_rhs, t_span=t_span, y0=y0, method=method, t_eval=t_eval, **kwargs)
+    results = solve_ode(rhs=dyson_rhs, t_span=t_span, y0=y0, method=integration_method, t_eval=t_eval, **kwargs)
 
     # extract Dyson terms and the solution to the base LMDE
     results.y = results.y.transpose((1, 0, 2, 3))
@@ -168,7 +168,7 @@ def solve_lmde_symmetric_magnus(
     perturbation_indices: Optional[List[List]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
-    method: Optional[str] = "DOP853",
+    integration_method: Optional[str] = "DOP853",
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
@@ -182,7 +182,7 @@ def solve_lmde_symmetric_magnus(
         perturbation_indices: Ordering/specification of the elements of perturbations.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
-        method: Integration method.
+        integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
         kwargs: Additional arguments to pass to the solver.
 
@@ -200,7 +200,7 @@ def solve_lmde_symmetric_magnus(
         y0=y0,
         dyson_in_frame=True,
         symmetric=True,
-        method=method,
+        integration_method=integration_method,
         t_eval=t_eval,
         **kwargs,
     )
@@ -224,7 +224,7 @@ def solve_lmde_dyson_jax(
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
     symmetric: Optional[bool] = False,
-    method: Optional[str] = "jax_odeint",
+    integration_method: Optional[str] = "jax_odeint",
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
@@ -242,7 +242,7 @@ def solve_lmde_dyson_jax(
         dyson_in_frame: Whether to return the Dyson terms in the frame of the
                         the frame generator.
         symmetric: Compute either symmetric or regular Dyson terms.
-        method: Integration method.
+        integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
         kwargs: Additional arguments to pass to the solver.
 
@@ -290,7 +290,7 @@ def solve_lmde_dyson_jax(
         axis=0,
     )
 
-    results = solve_ode(rhs=dyson_rhs, t_span=t_span, y0=y0, method=method, t_eval=t_eval, **kwargs)
+    results = solve_ode(rhs=dyson_rhs, t_span=t_span, y0=y0, method=integration_method, t_eval=t_eval, **kwargs)
 
     # extract Dyson terms and the solution to the base LMDE
     results.y = results.y.transpose((1, 0, 2, 3))
@@ -323,7 +323,7 @@ def solve_lmde_symmetric_magnus_jax(
     perturbation_indices: Optional[List[List]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
-    method: Optional[str] = "DOP853",
+    integration_method: Optional[str] = "DOP853",
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
@@ -337,7 +337,7 @@ def solve_lmde_symmetric_magnus_jax(
         perturbation_indices: Ordering/specification of the elements of perturbations.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
-        method: Integration method.
+        integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
         kwargs: Additional arguments to pass to the solver.
 
@@ -355,7 +355,7 @@ def solve_lmde_symmetric_magnus_jax(
         y0=y0,
         dyson_in_frame=True,
         symmetric=True,
-        method=method,
+        integration_method=integration_method,
         t_eval=t_eval,
         **kwargs,
     )
