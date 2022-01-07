@@ -28,7 +28,7 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
 
         results = PerturbationResults(
             expansion_method="dyson",
-            expansion_indices=[[0], [1], [0, 1]],
+            expansion_labels=[[0], [1], [0, 1]],
             expansion_terms=Array([5, 6, 7]),
             sort_requested_labels=False,
         )
@@ -40,7 +40,7 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
 
         results = PerturbationResults(
             expansion_method="dyson",
-            expansion_indices=[[0], [1], [0, 1]],
+            expansion_labels=[[0], [1], [0, 1]],
             expansion_terms=Array([5, 6, 7]),
             sort_requested_labels=True,
         )
@@ -52,7 +52,7 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
 
         results = PerturbationResults(
             expansion_method="dyson",
-            expansion_indices=[[0], [1], [0, 1]],
+            expansion_labels=[[0], [1], [0, 1]],
             expansion_terms=Array([5, 6, 7]),
             sort_requested_labels=False,
         )

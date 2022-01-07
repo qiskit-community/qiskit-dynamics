@@ -69,7 +69,7 @@ def solve_lmde_dyson(
     perturbations: List[Callable],
     t_span: Array,
     dyson_terms: List,
-    perturbation_indices: Optional[List[List]] = None,
+    perturbation_labels: Optional[List[List]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
@@ -85,7 +85,7 @@ def solve_lmde_dyson(
         perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         dyson_terms: Terms to compute.
-        perturbation_indices: Ordering/specification of the elements of perturbations. Only used
+        perturbation_labels: Ordering/specification of the elements of perturbations. Only used
                         for symmetric==True.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
@@ -124,7 +124,7 @@ def solve_lmde_dyson(
         complete_term_list,
         mat_dim,
         symmetric=symmetric,
-        perturbation_indices=perturbation_indices,
+        perturbation_labels=perturbation_labels,
     )
 
     # initial state
@@ -153,7 +153,7 @@ def solve_lmde_dyson(
 
     results.perturbation_results = PerturbationResults(
         expansion_method=expansion_method,
-        expansion_indices=complete_term_list,
+        expansion_labels=complete_term_list,
         expansion_terms=Array(dyson_terms),
         sort_requested_labels=sort_requested_labels,
     )
@@ -165,7 +165,7 @@ def solve_lmde_symmetric_magnus(
     perturbations: List[Callable],
     t_span: Array,
     magnus_terms: List,
-    perturbation_indices: Optional[List[List]] = None,
+    perturbation_labels: Optional[List[List]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     integration_method: Optional[str] = "DOP853",
@@ -179,7 +179,7 @@ def solve_lmde_symmetric_magnus(
         perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         magnus_terms: Terms to compute.
-        perturbation_indices: Ordering/specification of the elements of perturbations.
+        perturbation_labels: Ordering/specification of the elements of perturbations.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
         integration_method: Integration method.
@@ -195,7 +195,7 @@ def solve_lmde_symmetric_magnus(
         perturbations,
         t_span,
         dyson_terms=magnus_terms,
-        perturbation_indices=perturbation_indices,
+        perturbation_labels=perturbation_labels,
         generator=generator,
         y0=y0,
         dyson_in_frame=True,
@@ -207,7 +207,7 @@ def solve_lmde_symmetric_magnus(
 
     # compute Magnus terms from Dyson and update the results
     sym_magnus_terms = symmetric_magnus_from_dyson(
-        results.perturbation_results.expansion_indices, results.perturbation_results.expansion_terms
+        results.perturbation_results.expansion_labels, results.perturbation_results.expansion_terms
     )
     results.perturbation_results.expansion_method = "symmetric_magnus"
     results.perturbation_results.expansion_terms = Array(sym_magnus_terms)
@@ -219,7 +219,7 @@ def solve_lmde_dyson_jax(
     perturbations: List[Callable],
     t_span: Array,
     dyson_terms: List,
-    perturbation_indices: List[List],
+    perturbation_labels: List[List],
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
@@ -235,7 +235,7 @@ def solve_lmde_dyson_jax(
         perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         dyson_terms: Terms to compute.
-        perturbation_indices: Ordering/specification of the elements of perturbations. Only used if
+        perturbation_labels: Ordering/specification of the elements of perturbations. Only used if
                         symmetric==True.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
@@ -280,7 +280,7 @@ def solve_lmde_dyson_jax(
         complete_term_list = get_complete_dyson_indices(dyson_terms)
 
     dyson_rhs = setup_dyson_rhs_jax(
-        generator, perturbations, complete_term_list, symmetric=symmetric, perturbation_indices=perturbation_indices
+        generator, perturbations, complete_term_list, symmetric=symmetric, perturbation_labels=perturbation_labels
     )
 
     # initial state
@@ -308,7 +308,7 @@ def solve_lmde_dyson_jax(
 
     results.perturbation_results = PerturbationResults(
         expansion_method=expansion_method,
-        expansion_indices=complete_term_list,
+        expansion_labels=complete_term_list,
         expansion_terms=Array(dyson_terms, backend="jax"),
         sort_requested_labels=sort_requested_labels,
     )
@@ -320,7 +320,7 @@ def solve_lmde_symmetric_magnus_jax(
     perturbations: List[Callable],
     t_span: Array,
     magnus_terms: List,
-    perturbation_indices: Optional[List[List]] = None,
+    perturbation_labels: Optional[List[List]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     integration_method: Optional[str] = "DOP853",
@@ -334,7 +334,7 @@ def solve_lmde_symmetric_magnus_jax(
         perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         magnus_terms: Terms to compute.
-        perturbation_indices: Ordering/specification of the elements of perturbations.
+        perturbation_labels: Ordering/specification of the elements of perturbations.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
         integration_method: Integration method.
@@ -350,7 +350,7 @@ def solve_lmde_symmetric_magnus_jax(
         perturbations,
         t_span,
         dyson_terms=magnus_terms,
-        perturbation_indices=perturbation_indices,
+        perturbation_labels=perturbation_labels,
         generator=generator,
         y0=y0,
         dyson_in_frame=True,
@@ -363,7 +363,7 @@ def solve_lmde_symmetric_magnus_jax(
     # symmetric magnus terms
     dyson_terms = results.perturbation_results.expansion_terms.data
     sym_magnus_terms = symmetric_magnus_from_dyson_jax(
-        results.perturbation_results.expansion_indices, dyson_terms
+        results.perturbation_results.expansion_labels, dyson_terms
     )
     results.perturbation_results.expansion_method = "symmetric_magnus"
     results.perturbation_results.expansion_terms = Array(sym_magnus_terms, backend="jax")
@@ -377,7 +377,7 @@ def setup_dyson_rhs(
     oc_dyson_indices: List,
     mat_dim: int,
     symmetric: Optional[bool] = False,
-    perturbation_indices: Optional[List[List]] = None,
+    perturbation_labels: Optional[List[List]] = None,
 ) -> Callable:
     """Construct the RHS function for propagating Dyson terms.
 
@@ -387,7 +387,7 @@ def setup_dyson_rhs(
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
         mat_dim: Dimension of outputs of generator and functions in perturbations.
         symmetric: Whether the computation is for Dyson or symmetric Dyson terms.
-        perturbation_indices: List of lists specifying index information for perturbations. Only used when
+        perturbation_labels: List of lists specifying index information for perturbations. Only used when
                         symmetric==True.
 
     Returns:
@@ -397,13 +397,13 @@ def setup_dyson_rhs(
     perturbations_evaluation_order = None
     if symmetric:
         # filter members of perturbations required for given list of dyson terms
-        if perturbation_indices is None:
-            perturbation_indices = [[idx] for idx in range(len(perturbations))]
-        reduced_perturbation_indices = submultiset_filter(perturbation_indices, oc_dyson_indices)
+        if perturbation_labels is None:
+            perturbation_labels = [[idx] for idx in range(len(perturbations))]
+        reduced_perturbation_labels = submultiset_filter(perturbation_labels, oc_dyson_indices)
         perturbations_evaluation_order = [0] + [
-            perturbation_indices.index(multiset) + 1 for multiset in reduced_perturbation_indices
+            perturbation_labels.index(multiset) + 1 for multiset in reduced_perturbation_labels
         ]
-        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_indices)
+        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_labels)
     else:
         generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
         perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
@@ -437,7 +437,7 @@ def setup_dyson_rhs_jax(
     perturbations: List[Callable],
     oc_dyson_indices: List,
     symmetric: Optional[bool] = False,
-    perturbation_indices: Optional[List[List]] = None,
+    perturbation_labels: Optional[List[List]] = None,
 ) -> Callable:
     """JAX version of setup_dyson_rhs. Note that this version does not require
     the ``mat_dim`` argument.
@@ -447,7 +447,7 @@ def setup_dyson_rhs_jax(
         perturbations: List of matrix functions appearing in Dyson terms.
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
         symmetric: Whether the computation is for Dyson or symmetric Dyson terms.
-        perturbation_indices: List of lists specifying index information for perturbations. Only used when
+        perturbation_labels: List of lists specifying index information for perturbations. Only used when
                         symmetric==True.
 
     Returns:
@@ -458,13 +458,13 @@ def setup_dyson_rhs_jax(
     perturbations_evaluation_order = None
     if symmetric:
         # filter members of perturbations required for given list of dyson terms
-        if perturbation_indices is None:
-            perturbation_indices = [[idx] for idx in range(len(perturbations))]
-        reduced_perturbation_indices = submultiset_filter(perturbation_indices, oc_dyson_indices)
+        if perturbation_labels is None:
+            perturbation_labels = [[idx] for idx in range(len(perturbations))]
+        reduced_perturbation_labels = submultiset_filter(perturbation_labels, oc_dyson_indices)
         perturbations_evaluation_order = [0] + [
-            perturbation_indices.index(multiset) + 1 for multiset in reduced_perturbation_indices
+            perturbation_labels.index(multiset) + 1 for multiset in reduced_perturbation_labels
         ]
-        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_indices)
+        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_labels)
     else:
         generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
         perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
@@ -803,7 +803,7 @@ def get_q_term_list(complete_index_multisets: List) -> List:
 
 
 def get_symmetric_dyson_lmult_rule(
-    complete_index_multisets: List, perturbation_indices: Optional[List[List]] = None
+    complete_index_multisets: List, perturbation_labels: Optional[List[List]] = None
 ) -> List:
     """Given a complete list of index multisets, return
     the lmult rule in the format required for ``CustomProduct``.
@@ -815,19 +815,19 @@ def get_symmetric_dyson_lmult_rule(
 
     Args:
         complete_index_multisets: List of complete symmetric indices.
-        perturbation_indices: List of index multisets describing perturbations.
+        perturbation_labels: List of index multisets describing perturbations.
 
     Returns:
         List: Left multiplication rule description.
     """
 
-    # If perturbation_indices is not specified, use the elements of complete_index_multisets
+    # If perturbation_labels is not specified, use the elements of complete_index_multisets
     # of length 1
-    if perturbation_indices is None:
-        perturbation_indices = []
+    if perturbation_labels is None:
+        perturbation_labels = []
         for entry in complete_index_multisets:
             if len(entry) == 1:
-                perturbation_indices.append(entry)
+                perturbation_labels.append(entry)
             else:
                 break
 
@@ -842,7 +842,7 @@ def get_symmetric_dyson_lmult_rule(
             # self multiplied by base generator
             lmult_indices = [[-1, term_idx]]
 
-            for l_idx, l_term in enumerate(perturbation_indices):
+            for l_idx, l_term in enumerate(perturbation_labels):
                 if is_submultiset(l_term, term):
                     if len(l_term) == len(term):
                         lmult_indices.append([l_idx, -1])
