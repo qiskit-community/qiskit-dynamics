@@ -30,30 +30,30 @@ class PerturbationResults:
 
     def __init__(
         self,
-        perturbation_method: str,
+        expansion_method: str,
         term_labels: List,
-        perturbation_terms: Array,
+        expansion_terms: Array,
         sort_requested_labels: Optional[bool] = False,
     ):
         """Initialize.
 
         Args:
-            perturbation_method: The perturbation method used for the results, e.g. ``'dyson'``.
+            expansion_method: The perturbation method used for the results, e.g. ``'dyson'``.
             term_labels: A list of labels for the stored terms.
-            perturbation_terms: A 4d array storing the results. The first axis specifies a term,
+            expansion_terms: A 4d array storing the results. The first axis specifies a term,
                                 with the same ordering as in ``term_labels``. The second axis
                                 specifies a time that the given term is evaluated at, and the
                                 last two axes are the terms themselves.
             sort_requested_labels: Whether to try to sort labels when terms are retrieved
                                    via subscripting.
         """
-        self.perturbation_method = perturbation_method
+        self.expansion_method = expansion_method
         self.term_labels = term_labels
-        self.perturbation_terms = perturbation_terms
+        self.expansion_terms = expansion_terms
         self.sort_requested_labels = sort_requested_labels
 
     def __getitem__(self, label: any) -> Array:
-        """Return the entry of ``self.perturbation_terms`` at the index at which
+        """Return the entry of ``self.expansion_terms`` at the index at which
         ``label`` is stored in ``term_labels``. If ``self.sort_labels == True``,
         ``label`` is assumed to be a list and is sorted before attempting to index
         ``term_labels``.
@@ -74,6 +74,6 @@ class PerturbationResults:
 
         if label in self.term_labels:
             idx = self.term_labels.index(label)
-            return Array(self.perturbation_terms[idx], backend=self.perturbation_terms.backend)
+            return Array(self.expansion_terms[idx], backend=self.expansion_terms.backend)
 
         raise QiskitError("label is not present in term_labels.")

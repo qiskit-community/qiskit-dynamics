@@ -58,9 +58,9 @@ class PerturbativeSolver:
         carrier_freqs: Array,
         signal_polynomial_degrees: List[int],
         signal_is_real: Optional[List[bool]] = None,
-        perturbation_method: Optional[str] = "dyson",
-        perturbation_order: Optional[int] = None,
-        perturbation_terms: Optional[List] = None,
+        expansion_method: Optional[str] = "dyson",
+        expansion_order: Optional[int] = None,
+        expansion_terms: Optional[List] = None,
         method: Optional[str] = None,
         **kwargs,
     ):
@@ -68,8 +68,8 @@ class PerturbativeSolver:
         Warning: These methods are highly specialized and require manual tuning of the
         parameters to the problem at hand.
 
-        If ``perturbation_method=='dyson'``, the Dyson-based Dysolve
-        algorithm of [1] is compiled, and if ``perturbation_method=='magnus'``,
+        If ``expansion_method=='dyson'``, the Dyson-based Dysolve
+        algorithm of [1] is compiled, and if ``expansion_method=='magnus'``,
         the equivalent Magnus-based version described in [2] is used. In either
         case, the specific details of the algorithms and the notation used here are
         as in [2].
@@ -95,24 +95,24 @@ class PerturbativeSolver:
             signal_polynomial_degrees: Approximation degrees for each signal over the interval [0, dt].
             signal_is_real: Optional List of booleans specifying whether to keep the imaginary part
                             for each signal in the generator decomposition.
-            perturbation_method: Either dyson or magnus.
-            perturbation_order: Order of perturbation terms to compute up to. Specifying this
+            expansion_method: Either dyson or magnus.
+            expansion_order: Order of perturbation terms to compute up to. Specifying this
                                 argument results in computation of all terms up to the given order.
-                                Can be used in conjunction with ``perturbation_terms``.
-            perturbation_terms: Specific perturbation terms to compute. If both ``perturbation_order``
-                                and ``perturbation_terms`` are specified, then all terms up to
-                                ``perturbation_order`` are computed, along with the additional terms
-                                specified in ``perturbation_terms``.
+                                Can be used in conjunction with ``expansion_terms``.
+            expansion_terms: Specific perturbation terms to compute. If both ``expansion_order``
+                                and ``expansion_terms`` are specified, then all terms up to
+                                ``expansion_order`` are computed, along with the additional terms
+                                specified in ``expansion_terms``.
             method: Solver method to use when computing perturbation terms.
             kwargs: Additional arguments to pass to the solver when computing perturbation terms.
         """
 
-        self._perturbation_method = perturbation_method
+        self._expansion_method = expansion_method
 
-        if perturbation_method == "dyson":
-            perturbation_method = "symmetric_dyson"
-        elif perturbation_method == "magnus":
-            perturbation_method = "symmetric_magnus"
+        if expansion_method == "dyson":
+            expansion_method = "symmetric_dyson"
+        elif expansion_method == "magnus":
+            expansion_method = "symmetric_magnus"
         else:
             raise QiskitError(
                 "compile_perturbative_solver only accepts method 'dyson' or 'magnus'."
@@ -161,9 +161,9 @@ class PerturbativeSolver:
         results = solve_lmde_perturbation(
             A_list=A_list,
             t_span=[0, dt],
-            perturbation_method=perturbation_method,
-            perturbation_order=perturbation_order,
-            perturbation_terms=perturbation_terms,
+            expansion_method=expansion_method,
+            expansion_order=expansion_order,
+            expansion_terms=expansion_terms,
             dyson_in_frame=False,
             generator=lambda t: frame_operator,
             method=method,
@@ -171,22 +171,22 @@ class PerturbativeSolver:
         )
         self._precomputation_results = results
 
-        if self.perturbation_method == "dyson":
+        if self.expansion_method == "dyson":
             self._perturbation_polynomial = MatrixPolynomial(
-                matrix_coefficients=results.perturbation_results.perturbation_terms[:, -1],
+                matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
                 monomial_multisets=results.perturbation_results.term_labels,
                 constant_term=self.Udt,
             )
-        elif self.perturbation_method == "magnus":
+        elif self.expansion_method == "magnus":
             self._perturbation_polynomial = MatrixPolynomial(
-                matrix_coefficients=results.perturbation_results.perturbation_terms[:, -1],
+                matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
                 monomial_multisets=results.perturbation_results.term_labels,
             )
 
     @property
-    def perturbation_method(self):
+    def expansion_method(self):
         """Perturbation method used in solver."""
-        return self._perturbation_method
+        return self._expansion_method
 
     @property
     def precomputation_results(self):
@@ -226,13 +226,13 @@ class PerturbativeSolver:
 
             # setup single step function
             single_step = None
-            if "dyson" in self.perturbation_method:
+            if "dyson" in self.expansion_method:
 
                 def single_step_dyson(coeffs):
                     return self.perturbation_polynomial(coeffs).data
 
                 single_step = single_step_dyson
-            elif "magnus" in self.perturbation_method:
+            elif "magnus" in self.expansion_method:
 
                 def single_step_magnus(coeffs):
                     return self.Udt @ jexpm(self.perturbation_polynomial(coeffs).data)
@@ -254,13 +254,13 @@ class PerturbativeSolver:
         else:
             # setup single step function
             single_step = None
-            if "dyson" in self.perturbation_method:
+            if "dyson" in self.expansion_method:
 
                 def single_step_dyson(y, coeffs):
                     return self.perturbation_polynomial(coeffs) @ y
 
                 single_step = single_step_dyson
-            elif "magnus" in self.perturbation_method:
+            elif "magnus" in self.expansion_method:
 
                 def single_step_magnus(y, coeffs):
                     return self.Udt @ expm(self.perturbation_polynomial(coeffs)) @ y

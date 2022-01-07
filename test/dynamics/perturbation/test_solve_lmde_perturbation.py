@@ -20,7 +20,7 @@ from qiskit import QiskitError
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation.solve_lmde_perturbation import (
     solve_lmde_perturbation,
-    merge_perturbation_order_terms,
+    merge_expansion_order_terms,
 )
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -40,14 +40,14 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "not supported"):
             # give a valid order argument
             solve_lmde_perturbation(
-                perturbations=[], t_span=[], perturbation_method="whoops", perturbation_order=1
+                perturbations=[], t_span=[], expansion_method="whoops", expansion_order=1
             )
 
     def test_no_terms_specified(self):
-        """Test error when neither perturbation_order or perturbation_terms are specified."""
+        """Test error when neither expansion_order or expansion_terms are specified."""
 
         with self.assertRaisesRegex(QiskitError, "specify one of"):
-            solve_lmde_perturbation(perturbations=[], t_span=[], perturbation_method="dyson")
+            solve_lmde_perturbation(perturbations=[], t_span=[], expansion_method="dyson")
 
     def test_non_square_y0(self):
         """Test error when y0 is non-square."""
@@ -56,23 +56,23 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
             solve_lmde_perturbation(
                 perturbations=[],
                 t_span=[],
-                perturbation_method="dyson",
-                perturbation_order=1,
+                expansion_method="dyson",
+                expansion_order=1,
                 y0=np.array([1.0, 0.0]),
             )
 
 
-class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
-    """Test helper function merge_perturbation_order_terms."""
+class Testmerge_expansion_order_terms(QiskitDynamicsTestCase):
+    """Test helper function merge_expansion_order_terms."""
 
     def test_order(self):
         """Test specifying terms up to a given order."""
 
         perturbation_indices = [[0], [1], [2]]
 
-        output = merge_perturbation_order_terms(
-            perturbation_order=3,
-            perturbation_terms=None,
+        output = merge_expansion_order_terms(
+            expansion_order=3,
+            expansion_terms=None,
             perturbation_indices=perturbation_indices,
             symmetric=False,
         )
@@ -112,9 +112,9 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
         """Test specifying terms up to a given order."""
         perturbation_indices = [[0], [1], [2]]
 
-        output = merge_perturbation_order_terms(
-            perturbation_order=3,
-            perturbation_terms=None,
+        output = merge_expansion_order_terms(
+            expansion_order=3,
+            expansion_terms=None,
             perturbation_indices=perturbation_indices,
             symmetric=True,
         )
@@ -138,9 +138,9 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
 
         perturbation_indices = [[0], [2], [3]]
 
-        output = merge_perturbation_order_terms(
-            perturbation_order=3,
-            perturbation_terms=None,
+        output = merge_expansion_order_terms(
+            expansion_order=3,
+            expansion_terms=None,
             perturbation_indices=perturbation_indices,
             symmetric=True,
         )
@@ -160,8 +160,8 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
         self.assertTrue(output == expected)
 
     def test_terms_with_no_order(self):
-        """Test that nothing happens if perturbation_terms is specified
-        while perturbation_order is not."""
+        """Test that nothing happens if expansion_terms is specified
+        while expansion_order is not."""
 
         input_terms = [
             [0, 0, 0],
@@ -177,23 +177,23 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
         ]
 
         perturbation_indices = [[0], [1], [2]]
-        output = merge_perturbation_order_terms(
-            perturbation_order=None,
-            perturbation_terms=input_terms,
+        output = merge_expansion_order_terms(
+            expansion_order=None,
+            expansion_terms=input_terms,
             perturbation_indices=perturbation_indices,
             symmetric=True,
         )
         self.assertTrue(output == input_terms)
 
     def test_merge(self):
-        """Test for when both perturbation_terms and perturbation_order
+        """Test for when both expansion_terms and expansion_order
         are specified."""
 
         extra_terms = [[0, 0, 0], [0, 1, 2]]
         perturbation_indices = [[0], [1], [2]]
-        output = merge_perturbation_order_terms(
-            perturbation_order=2,
-            perturbation_terms=extra_terms,
+        output = merge_expansion_order_terms(
+            expansion_order=2,
+            expansion_terms=extra_terms,
             perturbation_indices=perturbation_indices,
             symmetric=True,
         )
@@ -202,14 +202,14 @@ class Testmerge_perturbation_order_terms(QiskitDynamicsTestCase):
         self.assertTrue(output == expected)
 
     def test_merge_symmetric_skipped_terms(self):
-        """Test for when both perturbation_terms and perturbation_order
+        """Test for when both expansion_terms and expansion_order
         are specified, with terms skipped"""
 
         extra_terms = [[0, 0, 0], [0, 1, 2]]
         perturbation_indices = [[0], [2], [3]]
-        output = merge_perturbation_order_terms(
-            perturbation_order=2,
-            perturbation_terms=extra_terms,
+        output = merge_expansion_order_terms(
+            expansion_order=2,
+            expansion_terms=extra_terms,
             perturbation_indices=perturbation_indices,
             symmetric=True,
         )
@@ -246,8 +246,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="dyson",
-            perturbation_terms=[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1]],
+            expansion_method="dyson",
+            expansion_terms=[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -311,8 +311,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="dyson",
-            perturbation_terms=[[0, 0, 0, 1]],
+            expansion_method="dyson",
+            expansion_terms=[[0, 0, 0, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -366,8 +366,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="dyson",
-            perturbation_terms=[
+            expansion_method="dyson",
+            expansion_terms=[
                 [0],
                 [1],
                 [0, 0],
@@ -501,9 +501,9 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="symmetric_dyson",
-            perturbation_order=2,
-            perturbation_terms=[[0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 1]],
+            expansion_method="symmetric_dyson",
+            expansion_order=2,
+            expansion_terms=[[0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -577,8 +577,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            perturbation_method="symmetric_magnus",
-            perturbation_terms=[
+            expansion_method="symmetric_magnus",
+            expansion_terms=[
                 [0],
                 [1],
                 [0, 0],
@@ -667,8 +667,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            perturbation_method="symmetric_dyson",
-            perturbation_order=3,
+            expansion_method="symmetric_dyson",
+            expansion_order=3,
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -787,9 +787,9 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="symmetric_magnus",
-            perturbation_order=2,
-            perturbation_terms=[[0, 0, 1]],
+            expansion_method="symmetric_magnus",
+            expansion_order=2,
+            expansion_terms=[[0, 0, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -868,8 +868,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="dyson",
-            perturbation_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 0], [1, 1]],
+            expansion_method="dyson",
+            expansion_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 0], [1, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -880,8 +880,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="symmetric_dyson",
-            perturbation_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
+            expansion_method="symmetric_dyson",
+            expansion_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -893,8 +893,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbation_indices=[[0], [1], [0, 0], [0, 1], [1, 1]],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="symmetric_dyson",
-            perturbation_terms=[[0], [1], [0, 0], [0, 1], [1, 1]],
+            expansion_method="symmetric_dyson",
+            expansion_terms=[[0], [1], [0, 0], [0, 1], [1, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -999,8 +999,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(d, dtype=complex),
-            perturbation_method="symmetric_dyson",
-            perturbation_terms=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
+            expansion_method="symmetric_dyson",
+            expansion_terms=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -1012,8 +1012,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbation_indices=[[0], [1], [2], [0, 0], [0, 1]],
             generator=generator,
             y0=np.eye(d, dtype=complex),
-            perturbation_method="symmetric_dyson",
-            perturbation_terms=[[0, 0, 1, 2]],
+            expansion_method="symmetric_dyson",
+            expansion_terms=[[0, 0, 1, 2]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -1059,8 +1059,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="symmetric_magnus",
-            perturbation_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
+            expansion_method="symmetric_magnus",
+            expansion_terms=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -1072,8 +1072,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbation_indices=[[0], [1], [0, 0], [0, 1], [1, 1]],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            perturbation_method="symmetric_magnus",
-            perturbation_terms=[[0], [1], [0, 0], [0, 1], [1, 1]],
+            expansion_method="symmetric_magnus",
+            expansion_terms=[[0], [1], [0, 0], [0, 1], [1, 1]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -1154,8 +1154,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(d, dtype=complex),
-            perturbation_method="symmetric_magnus",
-            perturbation_terms=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
+            expansion_method="symmetric_magnus",
+            expansion_terms=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -1167,8 +1167,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbation_indices=[[0], [1], [2], [0, 0], [0, 1]],
             generator=generator,
             y0=np.eye(d, dtype=complex),
-            perturbation_method="symmetric_magnus",
-            perturbation_terms=[[0, 0, 1, 2]],
+            expansion_method="symmetric_magnus",
+            expansion_terms=[[0, 0, 1, 2]],
             method=self.method,
             atol=1e-13,
             rtol=1e-13,
@@ -1207,8 +1207,8 @@ class Testsolve_lmde_perturbation_jax(Testsolve_lmde_perturbation, TestJaxBase):
                 t_span=[0, T],
                 generator=generator,
                 y0=np.eye(2, dtype=complex),
-                perturbation_method="dyson",
-                perturbation_terms=[[0]],
+                expansion_method="dyson",
+                expansion_terms=[[0]],
                 method=self.method,
                 atol=1e-13,
                 rtol=1e-13,
@@ -1250,8 +1250,8 @@ class Testsolve_lmde_perturbation_jax(Testsolve_lmde_perturbation, TestJaxBase):
                 t_span=[0, T],
                 generator=generator,
                 y0=np.eye(2, dtype=complex),
-                perturbation_method="symmetric_magnus",
-                perturbation_terms=[[0, 1]],
+                expansion_method="symmetric_magnus",
+                expansion_terms=[[0, 1]],
                 method=self.method,
                 atol=1e-13,
                 rtol=1e-13,

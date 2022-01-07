@@ -145,16 +145,16 @@ def solve_lmde_dyson(
         for idx, dyson_term in enumerate(dyson_terms):
             dyson_terms[idx] = np.linalg.solve(results.y, dyson_term)
 
-    perturbation_method = "dyson"
+    expansion_method = "dyson"
     sort_requested_labels = False
     if symmetric:
-        perturbation_method = "symmetric_dyson"
+        expansion_method = "symmetric_dyson"
         sort_requested_labels = True
 
     results.perturbation_results = PerturbationResults(
-        perturbation_method=perturbation_method,
+        expansion_method=expansion_method,
         term_labels=complete_term_list,
-        perturbation_terms=Array(dyson_terms),
+        expansion_terms=Array(dyson_terms),
         sort_requested_labels=sort_requested_labels,
     )
 
@@ -207,10 +207,10 @@ def solve_lmde_symmetric_magnus(
 
     # compute Magnus terms from Dyson and update the results
     sym_magnus_terms = symmetric_magnus_from_dyson(
-        results.perturbation_results.term_labels, results.perturbation_results.perturbation_terms
+        results.perturbation_results.term_labels, results.perturbation_results.expansion_terms
     )
-    results.perturbation_results.perturbation_method = "symmetric_magnus"
-    results.perturbation_results.perturbation_terms = Array(sym_magnus_terms)
+    results.perturbation_results.expansion_method = "symmetric_magnus"
+    results.perturbation_results.expansion_terms = Array(sym_magnus_terms)
 
     return results
 
@@ -300,16 +300,16 @@ def solve_lmde_dyson_jax(
     if dyson_in_frame:
         dyson_terms = vmap(lambda x: jnp.linalg.solve(results.y, x))(dyson_terms)
 
-    perturbation_method = "dyson"
+    expansion_method = "dyson"
     sort_requested_labels = False
     if symmetric:
-        perturbation_method = "symmetric_dyson"
+        expansion_method = "symmetric_dyson"
         sort_requested_labels = True
 
     results.perturbation_results = PerturbationResults(
-        perturbation_method=perturbation_method,
+        expansion_method=expansion_method,
         term_labels=complete_term_list,
-        perturbation_terms=Array(dyson_terms, backend="jax"),
+        expansion_terms=Array(dyson_terms, backend="jax"),
         sort_requested_labels=sort_requested_labels,
     )
 
@@ -361,12 +361,12 @@ def solve_lmde_symmetric_magnus_jax(
     )
     # compute Magnus terms from Dyson and update the results to contain
     # symmetric magnus terms
-    dyson_terms = results.perturbation_results.perturbation_terms.data
+    dyson_terms = results.perturbation_results.expansion_terms.data
     sym_magnus_terms = symmetric_magnus_from_dyson_jax(
         results.perturbation_results.term_labels, dyson_terms
     )
-    results.perturbation_results.perturbation_method = "symmetric_magnus"
-    results.perturbation_results.perturbation_terms = Array(sym_magnus_terms, backend="jax")
+    results.perturbation_results.expansion_method = "symmetric_magnus"
+    results.perturbation_results.expansion_terms = Array(sym_magnus_terms, backend="jax")
 
     return results
 
