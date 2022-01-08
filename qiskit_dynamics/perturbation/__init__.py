@@ -193,9 +193,6 @@ of the same model for different envelopes :math:`f_j` are required,
 e.g. in complex pulse optimizations.
 
 
-.. footbibliography::
-
-
 Perturbation module API
 =======================
 
@@ -206,6 +203,8 @@ Perturbation module API
     solve_lmde_perturbation
     PerturbationResults
     PerturbativeSolver
+
+.. footbibliography::
 """
 
 from .power_series_utils import MatrixPolynomial

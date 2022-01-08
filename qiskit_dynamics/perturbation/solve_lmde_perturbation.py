@@ -132,6 +132,16 @@ def solve_lmde_perturbation(
           is performed in the toggling frame of ``generator``.
         - ``y0`` again is the initial state of the LMDE given by ``generator``.
 
+    .. note::
+
+        The ``dyson_in_frame`` argument is used for both the ``'dyson'``
+        and ``'symmetric_dyson'`` expansion methods. If ``True``, the results are
+        returned as above. If ``False``, the returned expansion terms will include
+        a pre-factor of :math:`V(t_0, t)`, e.g. :math:`V(t_0, t)\mathcal{D}_I(t_0, t)`
+        in the case of a symmetric Dyson term. If the ``'symmetric_magnus'`` method is
+        used, ``dyson_in_frame`` has no effect on the output.
+
+
     Regardless of the value of ``expansion_method``, results are returned in an
     ``OdeResult`` instance in the same manner as :func:`~qiskit_dynamics.solvers.solve_ode`.
     The result object stores the results of the LMDE for ``generator`` and ``y0``
@@ -151,8 +161,6 @@ def solve_lmde_perturbation(
     :class:`~qiskit_dynamics.perturbation.PerturbationResults` instance
     can be subscripted, e.g. the results for the computation for the term with indices
     ``[0, 1]`` is retrievable via ``results.perturbation_results[[0, 1]]``.
-
-    .. footbibliography::
 
     Args:
         perturbations: List of matrix-valued callables.
@@ -183,6 +191,8 @@ def solve_lmde_perturbation(
     Raises:
         QiskitError: If problem with inputs, either ``expansion_method`` is unsupported,
                      or both of ``expansion_order`` and ``expansion_labels`` unspecified.
+
+    .. footbibliography::
     """
 
     if (expansion_order is None) and (expansion_labels is None):
