@@ -514,7 +514,9 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         ]
 
         self._test_get_symmetric_dyson_lmult_rule(
-            complete_symmetric_dyson_terms, expected_lmult_rule, perturbation_labels=perturbation_labels
+            complete_symmetric_dyson_terms,
+            expected_lmult_rule,
+            perturbation_labels=perturbation_labels,
         )
 
     def test_get_symmetric_dyson_lmult_rule_power_series_case2(self):
@@ -534,7 +536,9 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         ]
 
         self._test_get_symmetric_dyson_lmult_rule(
-            complete_symmetric_dyson_terms, expected_lmult_rule, perturbation_labels=perturbation_labels
+            complete_symmetric_dyson_terms,
+            expected_lmult_rule,
+            perturbation_labels=perturbation_labels,
         )
 
     def test_get_symmetric_dyson_lmult_rule_case1(self):

@@ -186,7 +186,9 @@ def solve_lmde_perturbation(
         kwargs: Additional arguments to pass to ode integration method used to compute terms.
 
     Returns:
-        OdeResult: Results object.
+        OdeResult: Results object containing standard ODE results for LMDE given by ``generator``
+        and ``y0``, with additional ``perturbation_results`` attribute containing the
+        requested perturbation theory terms.
 
     Raises:
         QiskitError: If problem with inputs, either ``expansion_method`` is unsupported,

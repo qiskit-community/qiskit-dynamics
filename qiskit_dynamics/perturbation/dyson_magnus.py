@@ -134,7 +134,9 @@ def solve_lmde_dyson(
         axis=0,
     )
 
-    results = solve_ode(rhs=dyson_rhs, t_span=t_span, y0=y0, method=integration_method, t_eval=t_eval, **kwargs)
+    results = solve_ode(
+        rhs=dyson_rhs, t_span=t_span, y0=y0, method=integration_method, t_eval=t_eval, **kwargs
+    )
 
     # extract Dyson terms and the solution to the base LMDE
     results.y = results.y.transpose((1, 0, 2, 3))
@@ -280,7 +282,11 @@ def solve_lmde_dyson_jax(
         complete_term_list = get_complete_dyson_indices(dyson_terms)
 
     dyson_rhs = setup_dyson_rhs_jax(
-        generator, perturbations, complete_term_list, symmetric=symmetric, perturbation_labels=perturbation_labels
+        generator,
+        perturbations,
+        complete_term_list,
+        symmetric=symmetric,
+        perturbation_labels=perturbation_labels,
     )
 
     # initial state
@@ -290,7 +296,9 @@ def solve_lmde_dyson_jax(
         axis=0,
     )
 
-    results = solve_ode(rhs=dyson_rhs, t_span=t_span, y0=y0, method=integration_method, t_eval=t_eval, **kwargs)
+    results = solve_ode(
+        rhs=dyson_rhs, t_span=t_span, y0=y0, method=integration_method, t_eval=t_eval, **kwargs
+    )
 
     # extract Dyson terms and the solution to the base LMDE
     results.y = results.y.transpose((1, 0, 2, 3))
@@ -387,8 +395,8 @@ def setup_dyson_rhs(
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
         mat_dim: Dimension of outputs of generator and functions in perturbations.
         symmetric: Whether the computation is for Dyson or symmetric Dyson terms.
-        perturbation_labels: List of lists specifying index information for perturbations. Only used when
-                        symmetric==True.
+        perturbation_labels: List of lists specifying index information for perturbations.
+                             Only used when symmetric==True.
 
     Returns:
         Callable
@@ -447,8 +455,8 @@ def setup_dyson_rhs_jax(
         perturbations: List of matrix functions appearing in Dyson terms.
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
         symmetric: Whether the computation is for Dyson or symmetric Dyson terms.
-        perturbation_labels: List of lists specifying index information for perturbations. Only used when
-                        symmetric==True.
+        perturbation_labels: List of lists specifying index information for perturbations.
+                             Only used when symmetric==True.
 
     Returns:
         Callable
