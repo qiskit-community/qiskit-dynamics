@@ -72,12 +72,14 @@ The :class:`~qiskit_dynamics.perturbation.MatrixPolynomial` class represents a m
 multivariable polynomial (i.e. a truncated power series), with methods for evaluation.
 
 
+.. _td perturbation theory:
+
 Time dependent perturbation theory
 ==================================
 
 The function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`
 computes various time-dependent perturbation theory terms related to the Dyson series
-:cite:p:`dyson_radiation_1949` and Magnus expansion :cite:p:`magnus_exponential_1954`,
+[:footcite:`dyson_radiation_1949`] and Magnus expansion [:footcite:p:`magnus_exponential_1954`],
 used in matrix differential equations (LMDEs). Using the power series notation of the
 previous section, the general setting supported by this function involves LMDE generators
 with power series decompositions of the form:
@@ -101,7 +103,7 @@ where
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` enables computation of a
 finite number of power series decomposition coefficients of either the solution itself,
 or of a time-averaged generator *in the toggling frame of the unperturbed generator* :math:`G_0(t)`
-:cite:p:`evans_timedependent_1967,haeberlen_1968`.
+[:footcite:`evans_timedependent_1967`, :footcite:`haeberlen_1968`].
 Denoting :math:`V(t_0, t)` the solution of the LMDE with generator :math:`G_0(t)`
 over the interval :math:`[t_0, t]`, the generator :math:`G` in the toggling frame of :math:`G_0(t)`
 is given by:
@@ -135,12 +137,12 @@ time-averaged generator:
             \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t_0, t_f),
 
 which satisfies :math:`U(t_0, t_f, c_1, \dots, c_r) = \exp(\Omega(t_0, t_f, c_1, \dots, c_r))`
-under certain conditions :cite:p:`magnus_exponential_1954,blanes_magnus_2009`.
+under certain conditions [:footcite:`magnus_exponential_1954`, :footcite:`blanes_magnus_2009`].
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
 list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`
 using the algorithm in [forthcoming]. It may also be used to compute Dyson-like
-integrals using the algorithm in :cite:t:`haas_engineering_2019`. Results are returned in a
+integrals using the algorithm in [:footcite:`haas_engineering_2019`]. Results are returned in a
 :class:`PerturbationResults` objects which is a data container with some functionality for
 indexing and accessing specific perturbation terms. See the function documentation for further
 details.
@@ -155,7 +157,7 @@ solvers built using the symmetric Dyson and Magnus expansions, as outlined in [f
 .. note::
 
     The principles and core ideas of the methods were outlined in the Dyson-based *Dysolve*
-    algorithm given in :cite:t:`shillito_fast_2020`, however the Magnus version and
+    algorithm given in [:footcite:p:`shillito_fast_2020`], however the Magnus version and
     specific algorithms and framing of the problem are as given in [forthcoming].
 
 The methods are specialized to LMDEs whose generators are decomposed as:
@@ -185,13 +187,14 @@ of the benefits and trade-offs of the methods are:
       and intervals of the form :math:`[t_0, t_0 + k \Delta t]`.
 
 Once compiled, individual runs of the solvers have been demonstrated
-to show substantial speed advantage over traditional methods :cite:p:`shillito_fast_2020`
+to show substantial speed advantage over traditional methods [:footcite:`shillito_fast_2020`]
 [forthcoming]. Hence, they are of use in contexts in which a large number of simulations
 of the same model for different envelopes :math:`f_j` are required,
 e.g. in complex pulse optimizations.
 
 
-.. bibliography::
+.. footbibliography::
+
 
 Perturbation module API
 =======================

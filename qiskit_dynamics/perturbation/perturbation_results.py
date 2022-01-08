@@ -23,6 +23,7 @@ from qiskit_dynamics.array import Array
 
 class PerturbationResults:
     """Storage container for results of perturbation theory computation.
+
     All terms are stored in a single array, with individual terms being retrievable via
     subscript-style access of this class using the label of the terms, which are stored
     in the attribute ``expansion_labels``.
@@ -41,9 +42,9 @@ class PerturbationResults:
             expansion_method: The perturbation method used for the results, e.g. ``'dyson'``.
             expansion_labels: A list of labels for the stored terms.
             expansion_terms: A 4d array storing the results. The first axis specifies a term,
-                                with the same ordering as in ``expansion_labels``. The second axis
-                                specifies a time that the given term is evaluated at, and the
-                                last two axes are the terms themselves.
+                             with the same ordering as in ``expansion_labels``. The second axis
+                             specifies a time that the given term is evaluated at, and the
+                             last two axes are the terms themselves.
             sort_requested_labels: Whether to try to sort labels when terms are retrieved
                                    via subscripting.
         """
@@ -53,7 +54,9 @@ class PerturbationResults:
         self.sort_requested_labels = sort_requested_labels
 
     def __getitem__(self, label: any) -> Array:
-        """Return the entry of ``self.expansion_terms`` at the index at which
+        """Return the expansion term with a given label.
+
+        Return the entry of ``self.expansion_terms`` at the index at which
         ``label`` is stored in ``expansion_labels``. If ``self.sort_labels == True``,
         ``label`` is assumed to be a list and is sorted before attempting to index
         ``expansion_labels``.

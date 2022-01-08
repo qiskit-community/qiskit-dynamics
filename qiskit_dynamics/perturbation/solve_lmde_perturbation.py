@@ -63,143 +63,119 @@ def solve_lmde_perturbation(
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
-    r"""Given a list of matrix functions :math:`A_0(t), \dots, A_{r-1}(t)`, compute
-    either Dyson series [1], symmetric Dyson series [5], or symmetric Magnus expansion [2,3,5]
-    terms. Which expansion is used is controlled by the ``expansion_method`` argument.
+    r"""Compute time-dependent perturbation theory terms for an LMDE.
 
-    If ``expansion_method == 'dyson'``, for a list of indices :math:`i_1, \dots, i_k`
-    this function computes nested integrals of the form
+    This function computes symmetric Dyson or Magnus expansion terms
+    via the algorithm in [forthcoming], or Dyson-like terms via the algorithm in
+    [:footcite:`haas_engineering_2019`]. Which expansion is used is controlled by
+    the ``expansion_method`` argument, which impacts the interpretation of
+    several of the function arguments (described below).
+
+    Regardless of ``expansion_method``, the main computation is performed by
+    solving a differential equation, utilizing :func:`~qiskit_dynamics.solvers.solve_ode`,
+    and as such several of the function arguments are direct inputs into this function:
+
+        - ``integration_method`` is the ODE method used (passed as ``method``
+          to :func:`~qiskit_dynamics.solvers.solve_ode`),
+        - ``t_span`` is the integration interval, and
+        - ``t_eval`` is an optional set of points to evaluate the perturbation terms at.
+        - ``kwargs`` are passed directly to :func:`~qiskit_dynamics.solvers.solve_ode`, enabling
+          passing through of tolerance or step size arguments.
+
+
+    If ``expansion_method == 'symmetric_dyson'`` or ``expansion_method == 'symmetric_magnus'``,
+    the computation is performed as described in the
+    :ref:`time-dependent perturbation theory section <td perturbation theory>`
+    of the perturbation API doc. In this case:
+
+        - ``perturbations`` gives a list of the :math:`A_I` functions as callables.
+        - ``perturbation_labels`` is an optional list specifying the labels for the terms in
+          ``perturbations`` in the form of the index multiset subscripts, given as lists of
+          ``int``\s. If not specified, the labels are assumed to be
+          ``[[0], ..., [len(`perturbations`) - 1]]``.
+        - ``expansion_order`` specifies that all symmetric expansion terms up to a given
+          order are to be computed.
+        - ``expansion_labels`` allows specification of specific terms to be computed, by
+          specifying index multisets (as lists of ``int``\s). Both of ``expansion_order``
+          and ``expansion_labels`` are optional, however at least one must be specified.
+          If both are specified, then all terms up to ``expansion_order`` will be computed,
+          along with any additional specific terms given by ``expansion_labels``.
+        - ``generator`` is the unperturbed generator, and the computation is performed
+          in the toggling frame of this generator.
+        - ``y0`` is the initial state for the LMDE given by the unperturbed generator.
+
+
+    If ``expansion_method == 'dyson'``, the setup is different. In this case,
+    for a list of matrix-valued functions :math:`A_0(t), \dots, A_{r-1}(t)`,
+    this function computes integrals of the form
 
     .. math::
-        \int_{T_0}^{T_F} dt_1 \int_{T_0}^{t_1} dt_2 \dots \int_{T_0}^{t_{k-1}}dt_k
-                A_{i_1}(t_1) \dots A_{i_k}(t_k).
+        \int_{t_0}^{t_F} dt_1 \int_{t_0}^{t_1} dt_2 \dots \int_{t_0}^{t_{k-1}}dt_k
+                \tilde{A}_{i_1}(t_1) \dots \tilde{A}_{i_k}(t_k),
 
-    A list of specific integrals to compute can be specified as lists of ``int`` s via the
-    ``expansion_labels`` argument. Alternatively, the ``expansion_order`` argument
-    may be used to compute all terms up to a given order. Both arguments can be used
-    simultaneously to specify computation of all terms up to a given order, along with
-    some other higher order terms.
+    for lists of integers :math:`[i_1, \dots, i_k]`, and similar to the symmetric case,
+    :math:`\tilde{A}_j(t) = V(t_0, t)^\dagger A_j(t)V(t_0, t)`, i.e. the computation
+    is performed in the toggling frame specified by ``generator``.
 
-    If ``expansion_method == 'symmetric_dyson'``, for a list of indices,
-    :math:`I = (i_1, \dots, i_k)`, this function computes the expression
+        - ``perturbations`` gives the list of matrix functions as callables
+          :math:`A_0(t), \dots, A_{r-1}(t)`.
+        - ``perturbation_labels`` is not used in this mode.
+        - ``expansion_order`` specifies that all possible integrals of the above form
+          should be computed up to a given order
+          (i.e. integrals up to a given order with all possible orderings of the
+          :math:`A_0(t), \dots, A_{r-1}(t)`).
+        - ``expansion_labels`` allows for specification of specific terms to be computed.
+          In this case, a term is specified by a list of ``int``\s, where the length
+          of the list is the order of the integral, and the :math:`A_0(t), \dots, A_{r-1}(t)`
+          appear in the integral in the order given by the list.
+        - ``generator`` serves the same function as in the symmetric case - the computation
+          is performed in the toggling frame of ``generator``.
+        - ``y0`` again is the initial state of the LMDE given by ``generator``.
 
-    .. math::
-        \sum_{\sigma \in S(I)} \int_{T_0}^{T_F} dt_1 \int_{T_0}^{t_1} dt_2 \dots
-                \int_{T_0}^{t_{k-1}}dt_k A_{\sigma_1}(t_1) \dots A_{\sigma_k}(t_k)
-
-    where :math:`S(I)` is the set of all permutations of :math:`I`. The ``expansion_order``
-    and ``expansion_labels`` arguments behave similarly to the
-    ``expansion_method == 'dyson'`` case, however due to the symmetrization in the above
-    definition, the index lists :math:`I` are treated as multisets rather than ordered lists.
-    E.g. the index lists ``[0, 1]`` and ``[1, 0]`` define the same integral above.
-    As such we choose a canonical ordering of these lists to be non-decreasing.
-
-    If ``expansion_method == 'symmetric_magnus'``, this functions computes the
-    implicitly defined symmetric Magnus terms in [5]. The handling of index lists is the
-    same as that of the ``'symmetric_dyson'`` case.
-
-    For both ``expansion_method == 'symmetric_dyson'`` and
-    ``expansion_method == 'symmetric_magnus'`` cases, the optional argument ``perturbation_labels``
-    can be used to augment the meaning of the terms in ``perturbations``. If ``perturbation_labels`` is
-    used, it must satisfy ``len(perturbation_labels) == len(perturbations)``, and each entry of
-    ``perturbation_labels`` must be a list of ``int``s representing multisets of indices, formatted
-    in the same manner as required by ``expansion_labels`` in the symmetric case. If this
-    is used, then in the Dyson case, the results object,
-    for a list of indices :math:`I = (i_1, \dots, i_k)`,
-    will contain the integral
-
-    .. math::
-        \sum_{m=1}^{|I|}\sum_{(I_1, \dots, I_m) \in P_m(I)}
-        \int_{T_0}^{T_F} dt_1 \int_{T_0}^{t_1} dt_2 \dots
-                \int_{T_0}^{t_{m-1}}dt_m A_{I_1}(t_1) \dots A_{I_m}(t_m)
-
-    where :math:`P_m(I)` is the set of ordered partitions of the multiset :math:`I`. As described
-    in [5], this computation corresponds to computing a power series decomposition of
-    the truncated Dyson series, given a polynomial decomposition of a generator. The
-    symmetric Magnus case is analagous.
-
-    Notes on computational methods:
-
-        - The computational methods of [4, 5] are based on constructing a single large
-          differential equation to compute all requested terms simultaneously. In this
-          construction, a given term requires computation of a collection of lower order
-          terms. For example, computing the 3rd order Dyson term for index list
-          ``[0, 0, 0]`` requires also computing the 2nd order term ``[0, 0]`` and the
-          1st order term ``[0]``. As such, even if only the single term ``[0, 0, 0]``
-          is requested, the output of this function will contain the results of the
-          computations as if the user had specified ``[[0], [0, 0], [0, 0, 0]]``.
-        - As the core computation is performed via solving a differential equation,
-          this function sets up the RHS function, then passes this to
-          :meth:`~qiskit_dynamics.solve.solve_ode`. As such, all optional arguments and
-          methods of :meth:`~qiskit_dynamics.solve.solve_ode` can be passed
-          to this function.
-
-    More generally, this function accepts the optional specification of an LMDE
-    :math:`\dot{y}(t) = G(t)y(t)`, where :math:`G(t)` is passed via the ``generator``
-    argument, and the initial condition via ``y0`` (which must be square). If these
-    arguments are passed, this LMDE will be simultaneously solved with the
-    perturbation terms, and will modify the perturbation calculations to compute
-    the terms for :math:`\tilde{A}_i(t) = U^{-1}(t) A_i(t) U(t)`. That is, the
-    perturbation theory terms will be computed in the time-dependent frame of :math:`G(t)`.
-    Further notes on ``generator`` and ``y0``:
-
-        - ``generator`` defaults to the constant 0 matrix, and ``y0`` defaults the identity.
-        - For ``'dyson'`` and ``'symmetric_dyson'`` computations, the computational
-          method actually returns the above quoted matrices with a prefactor of :math:`U(t)`,
-          which needs to be removed. Setting the optional argument ``dyson_in_frame=False``
-          skips this removal step.
-
-    Results are returned in an ``OdeResult`` in the same manner as
-    :meth:`~qiskit_dynamics.solve.solve_ode`. The result object stores the results
-    of the LMDE for ``generator`` and ``y0`` in the ``y`` attribute as in
-    :meth:`~qiskit_dynamics.solve.solve_ode` before, and the perturbation
-    results are in the ``perturbation_results`` attribute storing a
-    ``PerturbationResults`` object, which is a data container with attributes:
+    Regardless of the value of ``expansion_method``, results are returned in an
+    ``OdeResult`` instance in the same manner as :func:`~qiskit_dynamics.solvers.solve_ode`.
+    The result object stores the results of the LMDE for ``generator`` and ``y0``
+    in the ``y`` attribute as in :func:`~qiskit_dynamics.solvers.solve_ode` before,
+    and the perturbation results are in the ``perturbation_results`` attribute storing a
+    :class:`~qiskit_dynamics.perturbation.PerturbationResults` object, which is a
+    data container with attributes:
 
         - ``expansion_method``: Method as specified by the user.
-        - ``term_labels``: Index labels for all computed perturbation terms.
-        - ``expansion_labels``: A 4d array storing all computed terms. The first axis indexes
-                                  the perturbation terms in the same ordering as ``term_labels``,
-                                  and the second axis indexes the perturbation terms evaluated
-                                  at the times in ``results.t`` in the same manner as
-                                  ``results.y``.
+        - ``expansion_labels``: Index labels for all computed perturbation terms.
+        - ``expansion_terms``: A 4d array storing all computed terms. The first axis indexes
+          the expansion terms in the same ordering as ``expansion_labels``,
+          and the second axis indexes the perturbation terms evaluated
+          at the times in ``results.t`` in the same manner as ``results.y``.
 
-    Additionally, to retrieve the term with a given label, the ``PerturbationResults`` object
+    Additionally, to retrieve the term with a given label, a
+    :class:`~qiskit_dynamics.perturbation.PerturbationResults` instance
     can be subscripted, e.g. the results for the computation for the term with indices
-    ``[0, 1]`` is retrievable via ``results.expansion_labels[[0, 1]]``.
+    ``[0, 1]`` is retrievable via ``results.perturbation_results[[0, 1]]``.
 
-    References:
-        1. F. Dyson, *The radiation theories of Tomonaga, Schwinger, and Feynman*,
-           Phys. Rev. 75, 486-502
-        2. W. Magnus, *On the exponential solution of differential equations*
-           *for a linear operator*, Commun. Pure Appl. Math. 7, 649-73
-        3. S. Blanes, F. Casas, J. Oteo, J. Ros, *The Magnus expansion and some*
-           *of its applications*, Phys. Rep. 470, 151-238
-        4. H. Haas, D. Puzzuoli, F. Zhang, D. Cory, *Engineering Effective Hamiltonians*,
-           New J. Phys. 21, 103011 (2019).
-        5. Forthcoming
+    .. footbibliography::
 
     Args:
         perturbations: List of matrix-valued callables.
         t_span: Integration bounds.
-        expansion_method: Either ``'dyson'``, ``'symmetric_dyson'``, or ``'symmetric_magnus'``.
+        expansion_method: Either ``'symmetric_dyson'``, ``'symmetric_magnus'``, or ``'dyson'``.
         expansion_order: Order of perturbation terms to compute up to. Specifying this
-                            argument results in computation of all terms up to the given order.
-                            Can be used in conjunction with ``expansion_labels``.
+                         argument results in computation of all terms up to the given order.
+                         Can be used in conjunction with ``expansion_labels``.
         expansion_labels: Specific perturbation terms to compute. If both ``expansion_order``
-                            and ``expansion_labels`` are specified, then all terms up to
-                            ``expansion_order`` are computed, along with the additional terms
-                            specified in ``expansion_labels``.
-        perturbation_labels: Optional description of power series terms specified by perturbations. To only
-                        be used with ``'symmetric_dyson'`` and ``'symmetric_magnus'`` methods.
-        generator: Optional frame generator.
-        y0: Optional initial state for frame generator LMDE.
+                          and ``expansion_labels`` are specified, then all terms up to
+                          ``expansion_order`` are computed, along with the additional terms
+                          specified in ``expansion_labels``.
+        perturbation_labels: Optional description of power series terms specified by
+                             ``perturbations``. To only be used with ``'symmetric_dyson'``
+                             and ``'symmetric_magnus'`` methods.
+        generator: Optional frame generator. Defaults to 0.
+        y0: Optional initial state for frame generator LMDE. Defaults to the identity matrix.
         dyson_in_frame: For ``expansion_method`` ``'dyson'`` or ``'symmetric_dyson'``,
                         whether or not to remove the frame transformation pre-factor from the
                         Dyson terms.
         integration_method: Integration method to use.
         t_eval: Points at which to evaluate the system.
-        kwargs: Additional arguments to pass to solver method used to compute terms.
+        kwargs: Additional arguments to pass to ode integration method used to compute terms.
 
     Returns:
         OdeResult: Results object.
