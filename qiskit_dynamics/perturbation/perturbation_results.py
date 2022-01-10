@@ -16,42 +16,41 @@ Class for storing results of perturbation theory computations.
 
 from typing import List, Optional
 from copy import copy
+from dataclasses import dataclass
 
 from qiskit import QiskitError
 from qiskit_dynamics.array import Array
 
 
+@dataclass
 class PerturbationResults:
     """Storage container for results of perturbation theory computation.
 
-    All terms are stored in a single array, with individual terms being retrievable via
-    subscript-style access of this class using the label of the terms, which are stored
-    in the attribute ``expansion_labels``.
+    Attributes are:
+
+        - ``expansion_method``: Which perturbative expansion the terms correspond to.
+        - ``expansion_labels``: A list of labels for the stored expanion terms.
+        - ``expansion_terms``: A single array containing all expansion terms, whose first
+          index is assumed to have corresponding ordering with ``expansion_labels``.
+        - ``sort_requested_labels``: When indexing the class (see below), whether or not
+          to sort the requested label before looking it up in ``expansion_labels``.
+
+    Aside storing the above, this class can be subscripted to retrieve an entry of
+    ``expansion_terms`` at the location at which a given ``label`` appears in
+    ``expansion_labels``. E.g. the perturbation term with label ``[0, 1, 2]``
+    can be retrieved from an instance named ``perturbation_results`` via:
+
+    .. code:: python
+
+        perturbation_results[[0, 1, 2
+
+    .. automethod:: __getitem__
     """
 
-    def __init__(
-        self,
-        expansion_method: str,
-        expansion_labels: List,
-        expansion_terms: Array,
-        sort_requested_labels: Optional[bool] = False,
-    ):
-        """Initialize.
-
-        Args:
-            expansion_method: The perturbation method used for the results, e.g. ``'dyson'``.
-            expansion_labels: A list of labels for the stored terms.
-            expansion_terms: A 4d array storing the results. The first axis specifies a term,
-                             with the same ordering as in ``expansion_labels``. The second axis
-                             specifies a time that the given term is evaluated at, and the
-                             last two axes are the terms themselves.
-            sort_requested_labels: Whether to try to sort labels when terms are retrieved
-                                   via subscripting.
-        """
-        self.expansion_method = expansion_method
-        self.expansion_labels = expansion_labels
-        self.expansion_terms = expansion_terms
-        self.sort_requested_labels = sort_requested_labels
+    expansion_method: str
+    expansion_labels: List
+    expansion_terms: Array
+    sort_requested_labels: Optional[bool] = False
 
     def __getitem__(self, label: any) -> Array:
         """Return the expansion term with a given label.
