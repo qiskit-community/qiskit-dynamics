@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 r"""
-Module for perturbation-based solvers: Dysolve, introduced in [1], and the analagous
+Perturbation-based solvers: Dysolve, introduced in [1], and the analagous
 Magnus-based version Magsolve, as described in [2].
 
 References:
@@ -47,8 +47,54 @@ except ImportError:
 
 
 class PerturbativeSolver:
-    """initial attempt at class-based interface so that the components of the pre-computation
-    and set up stuff can be individually inspected."""
+    r"""Perturbative solvers based on the Dyson series and Magnus expansion.
+
+    This class exposes two specialized LMDE solvers based on the Dyson series
+    and Magnus expansion as presented in [forthcoming], with the Dyson-based solver,
+    being a variant of the *Dysolve* algorithm introduced in
+    [:footcite:p:`shillito_fast_2020`].
+
+    These solvers apply to generators with a decomposition:
+
+    .. math::
+
+        G(t) = G_0 + \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]G_j,
+
+    and solve the LMDE in the rotating frame of :math:`G_0`, i.e. they solve the LMDE
+    with generator:
+
+    .. math::
+
+        \tilde{G}(t) = \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]\tilde{G}_j(t),
+
+    with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`.
+
+    The solvers are *fixed-step*, and solve over each step by computing either a
+    truncated Dyson-series expansion or a truncated Magnus expansion followed by matrix
+    exponentiation. While this in itself is an expensive procedure, due to the structure of
+    the problem, by fixing at instantiation:
+
+        - The step size :math:`\Delta t`,
+        - The operator structure :math:`G_0`, :math:`G_i`,
+        - The reference frequencies :math:`\nu_j`,
+        - Approximation schemes for the envelopes :math:`f_j` over each time step (see below),
+        - Expansion method and terms used in the truncation,
+
+    the most expensive elements computing the Dyson or Magnus expansions can be pre-computed
+    in a way *independent* of the start time, number of time steps, or envelopes :math:`f_j(t)`.
+
+    After a 'compilation' or 'pre-computation' step at instantiation of the object,
+    the system can be solved repeatedly for different lists of envelopes
+    :math:`f_1(t), \dots, f_s(t)` by calling the :meth:`solve` method with the
+    initial time ``t0``, number of time-steps ``n_steps``, and the list of envelopes
+    specified as :class:`~qiskit_dynamics.signals.Signal` objects.
+
+    Over each time-step, the signal envelopes are approximated using a discrete Chebyshev
+    transform, whose order is given by ``chebyshev_orders``.
+
+
+    .. footbibliography::
+    """
 
     def __init__(
         self,
@@ -56,45 +102,22 @@ class PerturbativeSolver:
         frame_operator: Operator,
         dt: float,
         carrier_freqs: Array,
-        signal_polynomial_degrees: List[int],
-        signal_is_real: Optional[List[bool]] = None,
+        chebyshev_orders: List[int],
         expansion_method: Optional[str] = "dyson",
         expansion_order: Optional[int] = None,
         expansion_terms: Optional[List] = None,
         integration_method: Optional[str] = None,
         **kwargs,
     ):
-        """Compile perturbative solver, either Dyson series or Magnus expansion based.
-        Warning: These methods are highly specialized and require manual tuning of the
-        parameters to the problem at hand.
-
-        If ``expansion_method=='dyson'``, the Dyson-based Dysolve
-        algorithm of [1] is compiled, and if ``expansion_method=='magnus'``,
-        the equivalent Magnus-based version described in [2] is used. In either
-        case, the specific details of the algorithms and the notation used here are
-        as in [2].
-
-        Dysolve, and the equivalent Magnus version, are solvers specialized to
-        LMDEs whose :class:`Signal` coefficients contain fast carrier frequences.
-        These solvers are fixed step methods requiring a pre-computation step:
-        a variety of parameters must be chosen, including a step size ``dt``.
-        Given these parameters, the elements of the solver are compiled to these
-        specifications, at which point the solver can be called with arbitrary envelopes
-        to solve over a series of time steps of size ``dt``.
-
-        References:
-            1. R. Shillito, J. Gross, A. Di Paolo, E. Genois, and A. Blais,
-               *Fast and differentiable simulation of driven quantum systems*, arXiv:2012.09282
-            2. Forthcoming
+        """Initialize.
 
         Args:
-            generator_decomposition: List of constant operators specifying the decomposition.
-            frame_operator: Frame to perform the computation in.
+            generator_decomposition: List of constant operators specifying the operators with
+                                     signal coefficients.
+            frame_operator: Frame operator to perform the computation in.
             dt: Fixed step size to compile to.
             carrier_freqs: Carrier frequencies of the signals in the generator decomposition.
-            signal_polynomial_degrees: Approximation degrees for each signal over the interval [0, dt].
-            signal_is_real: Optional List of booleans specifying whether to keep the imaginary part
-                            for each signal in the generator decomposition.
+            chebyshev_orders: Approximation degrees for each signal over the interval [0, dt].
             expansion_method: Either dyson or magnus.
             expansion_order: Order of perturbation terms to compute up to. Specifying this
                                 argument results in computation of all terms up to the given order.
@@ -128,7 +151,7 @@ class PerturbativeSolver:
             return signal_list_envelope_DCT(
                 signal_list,
                 reference_freqs=carrier_freqs,
-                degrees=signal_polynomial_degrees,
+                degrees=chebyshev_orders,
                 t0=t0,
                 dt=dt,
                 n_intervals=n_steps,
@@ -142,13 +165,13 @@ class PerturbativeSolver:
         if dispatch.default_backend() == "jax":
             # compute perturbative terms
             A_list = construct_cheb_A_list_jax(
-                generator_decomposition, signal_polynomial_degrees, carrier_freqs, dt, include_imag
+                generator_decomposition, chebyshev_orders, carrier_freqs, dt, include_imag
             )
             integration_method = integration_method or "jax_odeint"
             self._Udt = jexpm(dt * frame_operator)
         else:
             A_list = construct_cheb_A_list(
-                generator_decomposition, signal_polynomial_degrees, carrier_freqs, dt, include_imag
+                generator_decomposition, chebyshev_orders, carrier_freqs, dt, include_imag
             )
             integration_method = integration_method or "DOP853"
             self._Udt = expm(dt * frame_operator)

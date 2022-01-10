@@ -170,28 +170,6 @@ and take time steps of a pre-defined fixed size :math:`\Delta t` by either compu
 a truncated symmetric Dyson series, or taking the exponential of a truncated
 symmetric Magnus expansion.
 
-The details of these methods are technical and can be found in the class documentation for
-:class:`~qiskit_dynamics.perturbation.PerturbativeSolver`, however a broad overview
-of the benefits and trade-offs of the methods are:
-
-    - The methods have many parameters that currently need to be hand-tuned for solution
-      accuracy, including a fixed step size :math:`\Delta t`.
-    - Along with the method parameters, all details of the generator model
-      except for the envelopes :math:`f_j` are fixed *at instantiation* of a
-      :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` instance.
-    - Instantiating a :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` instance
-      involves a substantial 'compilation' step, in which either symmetric Dyson or
-      symmetric Magnus terms are pre-computed according to the details of the model and
-      method parameters.
-    - Once compiled, the solver can be used to solve for arbitrary envelopes :math:`f_j`
-      and intervals of the form :math:`[t_0, t_0 + k \Delta t]`.
-
-Once compiled, individual runs of the solvers have been demonstrated
-to show substantial speed advantage over traditional methods [:footcite:`shillito_fast_2020`]
-[forthcoming]. Hence, they are of use in contexts in which a large number of simulations
-of the same model for different envelopes :math:`f_j` are required,
-e.g. in complex pulse optimizations.
-
 
 Perturbation module API
 =======================
