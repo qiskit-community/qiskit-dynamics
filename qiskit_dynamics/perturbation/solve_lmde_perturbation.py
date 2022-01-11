@@ -207,17 +207,6 @@ def solve_lmde_perturbation(
         if len(y0.shape) != 2 or y0.shape[0] != y0.shape[1]:
             raise QiskitError("""If used, optional arg y0 must be a square 2d array.""")
 
-    # determine whether to use jax looping logic
-    use_jax = True
-    for A_func in perturbations:
-        if Array(A_func(t_span[0])).backend != "jax":
-            use_jax = False
-            break
-
-    if use_jax and generator is not None:
-        if Array(generator(t_span[0])).backend != "jax":
-            use_jax = False
-
     # clean and validate perturbation_labels
     if perturbation_labels is not None:
         if expansion_method == "dyson":
@@ -240,7 +229,7 @@ def solve_lmde_perturbation(
 
     if expansion_method in ["dyson", "symmetric_dyson"]:
         symmetric = expansion_method == "symmetric_dyson"
-        if not use_jax:
+        if not Array.default_backend() == "jax":
             return solve_lmde_dyson(
                 perturbations=perturbations,
                 t_span=t_span,
@@ -269,7 +258,7 @@ def solve_lmde_perturbation(
                 **kwargs,
             )
     elif expansion_method == "symmetric_magnus":
-        if not use_jax:
+        if not Array.default_backend() == "jax":
             return solve_lmde_symmetric_magnus(
                 perturbations=perturbations,
                 t_span=t_span,

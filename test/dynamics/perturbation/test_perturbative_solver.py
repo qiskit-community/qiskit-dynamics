@@ -43,10 +43,10 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
     @classmethod
     def setUpClass(cls):
         """Set up class."""
-        cls.build_objects(cls)
+        cls.build_testing_objects(cls)
 
     @staticmethod
-    def build_objects(obj, integration_method="DOP853"):
+    def build_testing_objects(obj, integration_method="DOP853"):
         """Set up simple model parameters and solution to be used in multiple tests."""
 
         r = 0.2
@@ -138,7 +138,7 @@ class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
         # calls TestJaxBase setUpClass
         super().setUpClass()
         # builds common objects
-        TestPerturbativeSolver.build_objects(cls, integration_method="jax_odeint")
+        TestPerturbativeSolver.build_testing_objects(cls, integration_method="jax_odeint")
 
     def test_simple_dyson_solve_grad_jit(self):
         """Test jitting and gradding of dyson solve."""

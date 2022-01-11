@@ -72,7 +72,7 @@ class MatrixPolynomial:
         self._monomial_multisets = monomial_multisets
 
         # If operating in jax mode, wrap in Arrays
-        if Array(matrix_coefficients).backend == "jax":
+        if Array.default_backend() == "jax":
             self._matrix_coefficients = Array(matrix_coefficients)
 
             if constant_term is not None:
