@@ -58,30 +58,27 @@ class PerturbativeSolver:
 
         \tilde{G}(t) = \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]\tilde{G}_j(t),
 
-    with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`.
+    with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`. The solvers are *fixed-step*,
+    and solve over each step by computing either a truncated Dyson-series expansion or a
+    truncated Magnus expansion followed by matrix exponentiation.
 
-    The solvers are *fixed-step*, and solve over each step by computing either a
-    truncated Dyson-series expansion or a truncated Magnus expansion followed by matrix
-    exponentiation. While this in itself is an expensive procedure, due to the structure of
-    the problem, by fixing at instantiation:
+    At instantiation, the following parameters are fixed:
 
         - The step size :math:`\Delta t`,
         - The operator structure :math:`G_0`, :math:`G_i`,
         - The reference frequencies :math:`\nu_j`,
-        - Approximation schemes for the envelopes :math:`f_j` over each time step (see below),
-        - Expansion method and terms used in the truncation,
+        - Approximation schemes for the envelopes :math:`f_j` over each time step (see below), and
+        - Perturbative expansion method and terms used in the truncation.
 
-    the most expensive elements computing the Dyson or Magnus expansions can be pre-computed
-    in a way *independent* of the start time, number of time steps, or envelopes :math:`f_j(t)`.
-
-    After a 'compilation' or 'pre-computation' step at instantiation of the object,
-    the system can be solved repeatedly for different lists of envelopes
+    These parameters define the details of the perturbative expansions used, and
+    a 'compilation' or 'pre-computation' step computing these terms occurs at instantiation.
+    Once instantiated, the LMDE can be solved repeatedly for different lists of envelopes
     :math:`f_1(t), \dots, f_s(t)` by calling the :meth:`solve` method with the
-    initial time ``t0``, number of time-steps ``n_steps``, and the list of envelopes
-    specified as :class:`~qiskit_dynamics.signals.Signal` objects.
+    initial time ``t0``, number of time-steps ``n_steps`` of size :math:`\Delta t`,
+    and the list of envelopes specified as :class:`~qiskit_dynamics.signals.Signal` objects.
 
-    Over each time-step, the signal envelopes are approximated using a discrete Chebyshev
-    transform, whose order is given by ``chebyshev_orders``.
+    When solving, over each time-step, the signal envelopes are approximated using a
+    discrete Chebyshev transform, whose orders for each signal is given by ``chebyshev_orders``.
 
 
     .. footbibliography::
@@ -224,14 +221,32 @@ class PerturbativeSolver:
         """Matrix polynomial object for evaluating the perturbation series."""
         return self._perturbation_polynomial
 
-    def signal_approximation(self, signals, t0, n_steps):
-        """Signal approximation function"""
+    def signal_approximation(self, signals: List[Signal], t0: float, n_steps: int) -> np.ndarray:
+        """Approximate a list of signals over a series of intervals according to the Chebyshev
+        time-step and Chebyshev approximation structure set at instantiation.
+
+        Args:
+            signals: List of Signals to approximate.
+            t0: Start time.
+            n_steps: Number of time steps to approximate over.
+
+        Returns:
+            np.ndarray: The Chebyshev coefficients of each signal over each time-step.
+            The first dimension indexes the signals, and the second the time-step.
+        """
         return self._signal_approximation(signals, t0, n_steps)
 
-    def solve(self, signals, y0, t0, n_steps):
-        """Solve for a list of signals, dt, and n_steps.
-        Note: for jax, n_steps cannot be compiled over (I don't think) as it involves changing
-        internal array shapes. Maybe something to look into.
+    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+        """Solve for a list of signals, initial state, initial time, and number of steps.
+
+        Args:
+            signals: List of signals.
+            y0: Initial state at time t0.
+            t0: Initial time.
+            n_steps: Number of time steps to solve for.
+
+        Returns:
+            np.ndarray: State after n_steps.
         """
         if Array.default_backend() == "jax":
 

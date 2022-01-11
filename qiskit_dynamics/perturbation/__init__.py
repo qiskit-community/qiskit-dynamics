@@ -33,7 +33,7 @@ and the conventions for representing power series in this module are detailed he
 
 .. note::
 
-    The power series are always assumed to be *matrix-valued* power-series of complex variables -
+    The power series here are typically *matrix-valued* power-series of complex variables -
     i.e. the coefficients are matrices, and the variables are complex scalars.
 
 Mathematically, we represent a matrix-valued power-series using an
