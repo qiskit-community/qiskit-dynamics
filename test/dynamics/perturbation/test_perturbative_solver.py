@@ -17,10 +17,11 @@ import numpy as np
 from numpy.polynomial.chebyshev import Chebyshev
 
 from qiskit import QiskitError
-from qiskit_dynamics.signals import Signal
+from qiskit_dynamics import Signal, Solver
 from qiskit_dynamics.array import Array
 
-from qiskit_dynamics.perturbation.perturbative_solvers import (
+from qiskit_dynamics.perturbation.perturbative_solver import (
+    PerturbativeSolver,
     construct_DCT,
     multi_interval_DCT,
     signal_envelope_DCT,
@@ -35,6 +36,97 @@ try:
     from jax import jit, grad
 except ImportError:
     pass
+
+
+class TestPerturbativeSolver(QiskitDynamicsTestCase):
+    """Tests for perturbative solver."""
+
+    def setUp(self):
+        """Set up simple model parameters and solution to be used in multiple tests."""
+
+        r = 0.2
+
+        def gaussian(amp, sig, t0, t):
+            return amp * np.exp( -(t - t0)**2 / (2 * sig**2) )
+
+        # specifications for generating envelope
+        amp = 1. # amplitude
+        sig = 0.399128/r #sigma
+        t0 = 3.5*sig # center of Gaussian
+        T = 7*sig # end of signal
+
+        # Function to define gaussian envelope, using gaussian wave function
+        gaussian_envelope = lambda t: gaussian(Array(amp), Array(sig), Array(t0), Array(t))
+
+        self.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.)
+
+        self.dt = 0.025
+        self.n_steps = int(T // self.dt) // 3
+
+        self.hamiltonian_operators = 2 * np.pi * r * np.array([[[0., 1.], [1., 0.]]]) / 2
+        self.static_hamiltonian = 2 * np.pi * 5. * np.array([[1., 0.], [0., -1.]]) / 2
+
+
+        reg_solver = Solver(static_hamiltonian=self.static_hamiltonian,
+                            hamiltonian_operators=self.hamiltonian_operators,
+                            rotating_frame=self.static_hamiltonian,
+                            hamiltonian_signals=[self.gauss_signal])
+
+        self.simple_yf = reg_solver.solve(t_span=[0., self.dt * self.n_steps],
+                                          y0=np.eye(2, dtype=complex),
+                                          atol=1e-12,
+                                          rtol=1e-12).y[-1]
+
+    def test_dyson_solver(self):
+        """Test dyson solver on a simple qubit model."""
+
+        dyson_solver = PerturbativeSolver(operators=-1j * self.hamiltonian_operators,
+                                          frame_operator=-1j * self.static_hamiltonian,
+                                          dt=self.dt,
+                                          carrier_freqs=[5.],
+                                          chebyshev_orders=[1],
+                                          expansion_method='dyson',
+                                          expansion_order=6,
+                                          atol=1e-10,
+                                          rtol=1e-10)
+
+        dyson_yf = dyson_solver.solve(signals=[self.gauss_signal],
+                                      y0=np.eye(2, dtype=complex),
+                                      t0=0.,
+                                      n_steps=self.n_steps)
+
+        self.assertAllClose(dyson_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
+
+
+    def test_magnus_solver(self):
+        """Test magnus solver on a simple qubit model."""
+
+        magnus_solver = PerturbativeSolver(operators=-1j * self.hamiltonian_operators,
+                                          frame_operator=-1j * self.static_hamiltonian,
+                                          dt=self.dt,
+                                          carrier_freqs=[5.],
+                                          chebyshev_orders=[1],
+                                          expansion_method='magnus',
+                                          expansion_order=3,
+                                          atol=1e-10,
+                                          rtol=1e-10)
+
+        magnus_yf = magnus_solver.solve(signals=[self.gauss_signal],
+                                      y0=np.eye(2, dtype=complex),
+                                      t0=0.,
+                                      n_steps=self.n_steps)
+
+        self.assertAllClose(magnus_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
+
+
+
+
+
+
+class TestPerturbativeSolverJAX(TestPerturbativeSolver, TestJaxBase):
+    """Tests for perturbative solver operating in JAX mode."""
+
+
 
 
 class TestChebyshevFunctions(QiskitDynamicsTestCase):
@@ -381,7 +473,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
     def test_evaluate_cheb_series_case3(self):
         """Test Chebyshev evaluation function, non-vectorized."""
 
-        coeffs = np.array([0.231, 1.1, 2.1, 3.0])
+        coeffs = np.array([0.231, 1.1, 2.1, 3.0, 5.1, 2.2])
         x = 0.4
         domain = [0.0, 4.0]
 

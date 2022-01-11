@@ -12,13 +12,7 @@
 # pylint: disable=invalid-name
 
 r"""
-Perturbation-based solvers: Dysolve, introduced in [1], and the analagous
-Magnus-based version Magsolve, as described in [2].
-
-References:
-    1. R. Shillito, J. Gross, A. Di Paolo, E. Genois, and A. Blais,
-       *Fast and differentiable simulation of driven quantum systems*, arXiv:2012.09282
-    2. Forthcoming
+Perturbation theory-based solvers.
 """
 
 from typing import Optional, Tuple, Callable, List, Union
@@ -49,7 +43,7 @@ except ImportError:
 class PerturbativeSolver:
     r"""Perturbative solvers based on the Dyson series and Magnus expansion.
 
-    This class exposes two specialized LMDE solvers based on the Dyson series
+    This class implements two specialized LMDE solvers based on the Dyson series
     and Magnus expansion as presented in [forthcoming], with the Dyson-based solver,
     being a variant of the *Dysolve* algorithm introduced in
     [:footcite:p:`shillito_fast_2020`].
@@ -98,21 +92,21 @@ class PerturbativeSolver:
 
     def __init__(
         self,
-        generator_decomposition: List[Operator],
+        operators: List[Operator],
         frame_operator: Operator,
         dt: float,
         carrier_freqs: Array,
         chebyshev_orders: List[int],
         expansion_method: Optional[str] = "dyson",
         expansion_order: Optional[int] = None,
-        expansion_terms: Optional[List] = None,
+        expansion_labels: Optional[List] = None,
         integration_method: Optional[str] = None,
         **kwargs,
     ):
         """Initialize.
 
         Args:
-            generator_decomposition: List of constant operators specifying the operators with
+            operators: List of constant operators specifying the operators with
                                      signal coefficients.
             frame_operator: Frame operator to perform the computation in.
             dt: Fixed step size to compile to.
@@ -122,11 +116,11 @@ class PerturbativeSolver:
             expansion_order: Order of perturbation terms to compute up to. Specifying this
                                 argument results in computation of all terms up to the given order.
                                 Can be used in conjunction with ``expansion_terms``.
-            expansion_terms: Specific perturbation terms to compute. If both ``expansion_order``
+            expansion_labels: Specific perturbation terms to compute. If both ``expansion_order``
                                 and ``expansion_terms`` are specified, then all terms up to
                                 ``expansion_order`` are computed, along with the additional terms
                                 specified in ``expansion_terms``.
-            integration_method: Solver method to use when computing perturbation terms.
+            integration_method: ODE solver method to use when computing perturbation terms.
             kwargs: Additional arguments to pass to the solver when computing perturbation terms.
         """
 
@@ -144,7 +138,7 @@ class PerturbativeSolver:
         # determine which terms to include imaginary part
         # explain this better
         # for now just keep everything
-        include_imag = [True] * len(generator_decomposition)
+        include_imag = [True] * len(operators)
 
         # construct signal approximation function
         def collective_dct(signal_list, t0, n_steps):
@@ -160,18 +154,18 @@ class PerturbativeSolver:
 
         self._signal_approximation = collective_dct
 
-        A_list = None
+        perturbations = None
         # set jax-logic dependent components
-        if dispatch.default_backend() == "jax":
+        if Array.default_backend() == "jax":
             # compute perturbative terms
-            A_list = construct_cheb_A_list_jax(
-                generator_decomposition, chebyshev_orders, carrier_freqs, dt, include_imag
+            perturbations = construct_cheb_perturbations_jax(
+                operators, chebyshev_orders, carrier_freqs, dt, include_imag
             )
             integration_method = integration_method or "jax_odeint"
             self._Udt = jexpm(dt * frame_operator)
         else:
-            A_list = construct_cheb_A_list(
-                generator_decomposition, chebyshev_orders, carrier_freqs, dt, include_imag
+            perturbations = construct_cheb_perturbations(
+                operators, chebyshev_orders, carrier_freqs, dt, include_imag
             )
             integration_method = integration_method or "DOP853"
             self._Udt = expm(dt * frame_operator)
@@ -182,11 +176,11 @@ class PerturbativeSolver:
         # compute perturbative terms
         # dyson_in_frame only has effect on Dyson case
         results = solve_lmde_perturbation(
-            A_list=A_list,
+            perturbations=perturbations,
             t_span=[0, dt],
             expansion_method=expansion_method,
             expansion_order=expansion_order,
-            expansion_terms=expansion_terms,
+            expansion_labels=expansion_labels,
             dyson_in_frame=False,
             generator=lambda t: frame_operator,
             integration_method=integration_method,
@@ -245,7 +239,7 @@ class PerturbativeSolver:
         Note: for jax, n_steps cannot be compiled over (I don't think) as it involves changing
         internal array shapes. Maybe something to look into.
         """
-        if dispatch.default_backend() == "jax":
+        if Array.default_backend() == "jax":
 
             # setup single step function
             single_step = None
@@ -302,7 +296,7 @@ class PerturbativeSolver:
             return Uf @ y
 
 
-def construct_cheb_A_list(generator_decomp, polynomial_degrees, carrier_freqs, dt, include_imag):
+def construct_cheb_perturbations(generator_decomp, polynomial_degrees, carrier_freqs, dt, include_imag):
     """Construct perturbative decomposition functions
 
     Explain this!!!
@@ -330,22 +324,22 @@ def construct_cheb_A_list(generator_decomp, polynomial_degrees, carrier_freqs, d
 
         return cheb_func_op
 
-    A_list = []
+    perturbations = []
     for deg, op, freq in zip(polynomial_degrees, generator_decomp, carrier_freqs):
         # construct cosine terms
         for k in range(deg + 1):
             # construct cheb function of appropriate degree
-            A_list.append(get_cheb_func_cos_op(k, freq, op))
+            perturbations.append(get_cheb_func_cos_op(k, freq, op))
 
         # construct sine terms
         for k in range(deg + 1):
             # construct cheb function of appropriate degree
-            A_list.append(get_cheb_func_sin_op(k, freq, op))
+            perturbations.append(get_cheb_func_sin_op(k, freq, op))
 
-    return A_list
+    return perturbations
 
 
-def construct_cheb_A_list_jax(
+def construct_cheb_perturbations_jax(
     generator_decomp, polynomial_degrees, carrier_freqs, dt, include_imag
 ):
     """Construct perturbative decomposition functions
@@ -382,19 +376,19 @@ def construct_cheb_A_list_jax(
 
         return cheb_func_op
 
-    A_list = []
+    perturbations = []
     for deg, op, freq in zip(polynomial_degrees, generator_decomp, carrier_freqs):
         # construct cosine terms
         for k in range(deg + 1):
             # construct cheb function of appropriate degree
-            A_list.append(get_cheb_func_cos_op(k, freq, op))
+            perturbations.append(get_cheb_func_cos_op(k, freq, op))
 
         # construct sine terms
         for k in range(deg + 1):
             # construct cheb function of appropriate degree
-            A_list.append(get_cheb_func_sin_op(k, freq, op))
+            perturbations.append(get_cheb_func_sin_op(k, freq, op))
 
-    return A_list
+    return perturbations
 
 
 def evaluate_cheb_series(
@@ -467,8 +461,18 @@ def signal_list_envelope_DCT(
     """Compute envelope DCT on a list of signals, and compile results into a single list,
     separating real and imaginary.
 
-    I've tried to write this to work with both jax and numpy. For JAX stuff, everything is
-    assumed static except for signal_list.
+    Args:
+        signal_list: List of signals whose envelopes the DCT will be performed on.
+        reference_freqs: Reference frequencies for defining the envelopes.
+        degrees: List of Chebyshev degrees for doing the approximation (one for each signal).
+        t0: Start time.
+        dt: Time step size.
+        n_intervals: Number of Intervals.
+        include_imag: Whether or not to include the imaginary components of the envelopes. Defaults
+                      to ``True`` for all.
+
+    Returns:
+        Discrete Chebyshev transform of the envelopes with reference frequencies.
     """
 
     if include_imag is None:

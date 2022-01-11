@@ -188,4 +188,4 @@ Perturbation module API
 from .power_series_utils import MatrixPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
 from .perturbation_results import PerturbationResults
-from .perturbative_solvers import PerturbativeSolver
+from .perturbative_solver import PerturbativeSolver
