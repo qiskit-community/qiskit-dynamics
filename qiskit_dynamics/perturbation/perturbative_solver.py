@@ -122,6 +122,9 @@ class PerturbativeSolver:
                                 specified in ``expansion_terms``.
             integration_method: ODE solver method to use when computing perturbation terms.
             kwargs: Additional arguments to pass to the solver when computing perturbation terms.
+
+        Raises:
+            QiskitError if invalid expansion_method passed.
         """
 
         self._expansion_method = expansion_method
@@ -135,11 +138,6 @@ class PerturbativeSolver:
                 "PerturbativeSolver only accepts expansion_method 'dyson' or 'magnus'."
             )
 
-        # determine which terms to include imaginary part
-        # explain this better
-        # for now just keep everything
-        include_imag = [True] * len(operators)
-
         # construct signal approximation function
         def collective_dct(signal_list, t0, n_steps):
             return signal_list_envelope_DCT(
@@ -149,7 +147,6 @@ class PerturbativeSolver:
                 t0=t0,
                 dt=dt,
                 n_intervals=n_steps,
-                include_imag=include_imag,
             )
 
         self._signal_approximation = collective_dct
@@ -159,13 +156,13 @@ class PerturbativeSolver:
         if Array.default_backend() == "jax":
             # compute perturbative terms
             perturbations = construct_cheb_perturbations_jax(
-                operators, chebyshev_orders, carrier_freqs, dt, include_imag
+                operators, chebyshev_orders, carrier_freqs, dt
             )
             integration_method = integration_method or "jax_odeint"
             self._Udt = jexpm(dt * frame_operator)
         else:
             perturbations = construct_cheb_perturbations(
-                operators, chebyshev_orders, carrier_freqs, dt, include_imag
+                operators, chebyshev_orders, carrier_freqs, dt
             )
             integration_method = integration_method or "DOP853"
             self._Udt = expm(dt * frame_operator)
@@ -296,12 +293,31 @@ class PerturbativeSolver:
             return Uf @ y
 
 
-def construct_cheb_perturbations(generator_decomp, polynomial_degrees, carrier_freqs, dt, include_imag):
-    """Construct perturbative decomposition functions
+def construct_cheb_perturbations(
+    operators: np.ndarray, chebyshev_orders: List[int], carrier_freqs: np.ndarray, dt: float
+) -> List[Callable]:
+    r"""Helper function for constructing perturbation terms in the expansions used by
+    PerturbativeSolver.
 
-    Explain this!!!
+    Constructs a list of operator-valued functions of the form:
 
-    To do: handle include_imag argument!!!
+    .. math::
+        \cos(2 \pi \nu_j t)T_m(t) G_j\textnormal{, and } \sin(-2 \pi \nu_j t)T_m(t) G_j,
+
+    where :math:`\nu_j` and :math:`G_j` are carrier frequency and operator pairs specified in
+    ``operators`` and ``carrier_freqs``, and :math:`m \in [0, \dots, r]` where :math:`r`
+    is the corresponding integer in ``chebyshev_orders``. The output list is ordered according
+    to the lexicographic ordering of the tuples :math:`(j, m)`, with all cosine terms given
+    before sine terms.
+
+    Args:
+        operators: List of operators.
+        chebyshev_orders: List of chebyshev orders for each operator.
+        carrier_freqs: List of frequencies for each operator.
+        dt: Interval over which the chebyshev polynomials are defined.
+
+    Returns:
+        List of operator-valued functions as described above.
     """
 
     # compute perturbation terms
@@ -325,7 +341,7 @@ def construct_cheb_perturbations(generator_decomp, polynomial_degrees, carrier_f
         return cheb_func_op
 
     perturbations = []
-    for deg, op, freq in zip(polynomial_degrees, generator_decomp, carrier_freqs):
+    for deg, op, freq in zip(chebyshev_orders, operators, carrier_freqs):
         # construct cosine terms
         for k in range(deg + 1):
             # construct cheb function of appropriate degree
@@ -339,15 +355,8 @@ def construct_cheb_perturbations(generator_decomp, polynomial_degrees, carrier_f
     return perturbations
 
 
-def construct_cheb_perturbations_jax(
-    generator_decomp, polynomial_degrees, carrier_freqs, dt, include_imag
-):
-    """Construct perturbative decomposition functions
-
-    Explain this!!!
-
-    To do: handle include_imag argument!!!
-    """
+def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs, dt):
+    """JAX version of construct_cheb_perturbations."""
 
     # compute perturbation terms
     def get_cheb_func(deg):
@@ -377,7 +386,7 @@ def construct_cheb_perturbations_jax(
         return cheb_func_op
 
     perturbations = []
-    for deg, op, freq in zip(polynomial_degrees, generator_decomp, carrier_freqs):
+    for deg, op, freq in zip(chebyshev_orders, operators, carrier_freqs):
         # construct cosine terms
         for k in range(deg + 1):
             # construct cheb function of appropriate degree
