@@ -41,7 +41,12 @@ except ImportError:
 class TestPerturbativeSolver(QiskitDynamicsTestCase):
     """Tests for perturbative solver."""
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        cls.build_objects(cls)
+
+    @staticmethod
+    def build_objects(cls, integration_method='DOP853'):
         """Set up simple model parameters and solution to be used in multiple tests."""
 
         r = 0.2
@@ -58,39 +63,52 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         # Function to define gaussian envelope, using gaussian wave function
         gaussian_envelope = lambda t: gaussian(Array(amp), Array(sig), Array(t0), Array(t))
 
-        self.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.)
+        cls.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.)
 
-        self.dt = 0.025
-        self.n_steps = int(T // self.dt) // 3
+        cls.dt = 0.025
+        cls.n_steps = int(T // cls.dt) // 3
 
-        self.hamiltonian_operators = 2 * np.pi * r * np.array([[[0., 1.], [1., 0.]]]) / 2
-        self.static_hamiltonian = 2 * np.pi * 5. * np.array([[1., 0.], [0., -1.]]) / 2
+        cls.hamiltonian_operators = 2 * np.pi * r * np.array([[[0., 1.], [1., 0.]]]) / 2
+        cls.static_hamiltonian = 2 * np.pi * 5. * np.array([[1., 0.], [0., -1.]]) / 2
 
 
-        reg_solver = Solver(static_hamiltonian=self.static_hamiltonian,
-                            hamiltonian_operators=self.hamiltonian_operators,
-                            rotating_frame=self.static_hamiltonian,
-                            hamiltonian_signals=[self.gauss_signal])
+        reg_solver = Solver(static_hamiltonian=cls.static_hamiltonian,
+                            hamiltonian_operators=cls.hamiltonian_operators,
+                            rotating_frame=cls.static_hamiltonian,
+                            hamiltonian_signals=[cls.gauss_signal])
 
-        self.simple_yf = reg_solver.solve(t_span=[0., self.dt * self.n_steps],
+        cls.simple_yf = reg_solver.solve(t_span=[0., cls.dt * cls.n_steps],
                                           y0=np.eye(2, dtype=complex),
+                                          method=integration_method,
                                           atol=1e-12,
                                           rtol=1e-12).y[-1]
 
-    def test_dyson_solver(self):
-        """Test dyson solver on a simple qubit model."""
-
-        dyson_solver = PerturbativeSolver(operators=-1j * self.hamiltonian_operators,
-                                          frame_operator=-1j * self.static_hamiltonian,
-                                          dt=self.dt,
+        cls.simple_dyson_solver = PerturbativeSolver(operators=-1j * cls.hamiltonian_operators,
+                                          frame_operator=-1j * cls.static_hamiltonian,
+                                          dt=cls.dt,
                                           carrier_freqs=[5.],
                                           chebyshev_orders=[1],
                                           expansion_method='dyson',
                                           expansion_order=6,
+                                          integration_method=integration_method,
+                                          atol=1e-10,
+                                          rtol=1e-10)
+        cls.simple_magnus_solver = PerturbativeSolver(operators=-1j * cls.hamiltonian_operators,
+                                          frame_operator=-1j * cls.static_hamiltonian,
+                                          dt=cls.dt,
+                                          carrier_freqs=[5.],
+                                          chebyshev_orders=[1],
+                                          expansion_method='magnus',
+                                          expansion_order=3,
+                                          integration_method=integration_method,
                                           atol=1e-10,
                                           rtol=1e-10)
 
-        dyson_yf = dyson_solver.solve(signals=[self.gauss_signal],
+
+    def test_dyson_solver(self):
+        """Test dyson solver on a simple qubit model."""
+
+        dyson_yf = self.simple_dyson_solver.solve(signals=[self.gauss_signal],
                                       y0=np.eye(2, dtype=complex),
                                       t0=0.,
                                       n_steps=self.n_steps)
@@ -101,17 +119,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
     def test_magnus_solver(self):
         """Test magnus solver on a simple qubit model."""
 
-        magnus_solver = PerturbativeSolver(operators=-1j * self.hamiltonian_operators,
-                                          frame_operator=-1j * self.static_hamiltonian,
-                                          dt=self.dt,
-                                          carrier_freqs=[5.],
-                                          chebyshev_orders=[1],
-                                          expansion_method='magnus',
-                                          expansion_order=3,
-                                          atol=1e-10,
-                                          rtol=1e-10)
-
-        magnus_yf = magnus_solver.solve(signals=[self.gauss_signal],
+        magnus_yf = self.simple_magnus_solver.solve(signals=[self.gauss_signal],
                                       y0=np.eye(2, dtype=complex),
                                       t0=0.,
                                       n_steps=self.n_steps)
@@ -119,13 +127,49 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         self.assertAllClose(magnus_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
 
 
-
-
-
-
-class TestPerturbativeSolverJAX(TestPerturbativeSolver, TestJaxBase):
+class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
     """Tests for perturbative solver operating in JAX mode."""
 
+    @classmethod
+    def setUpClass(cls):
+        # calls TestJaxBase setUpClass
+        super().setUpClass()
+        # builds common objects
+        TestPerturbativeSolver.build_objects(cls, integration_method='jax_odeint')
+
+
+    def test_simple_dyson_solve_grad_jit(self):
+        """Test jitting and gradding of dyson solve."""
+
+        def func(c):
+            dyson_yf = self.simple_dyson_solver.solve(signals=[Signal(Array(c), carrier_freq=5.)],
+                                          y0=np.eye(2, dtype=complex),
+                                          t0=0.,
+                                          n_steps=self.n_steps)
+            return dyson_yf
+
+        jitted_func = self.jit_wrap(func)
+        self.assertAllClose(func(1.), jitted_func(1.))
+
+        jit_grad_func = self.jit_grad_wrap(func)
+        jit_grad_func(1.)
+
+
+    def test_simple_magnus_solve_jit_grad(self):
+        """Test jitting of and gradding of magnus solve."""
+
+        def func(c):
+            dyson_yf = self.simple_magnus_solver.solve(signals=[Signal(Array(c), carrier_freq=5.)],
+                                          y0=np.eye(2, dtype=complex),
+                                          t0=0.,
+                                          n_steps=self.n_steps)
+            return dyson_yf
+
+        jitted_func = self.jit_wrap(func)
+        self.assertAllClose(func(1.), jitted_func(1.))
+
+        jit_grad_func = self.jit_grad_wrap(func)
+        jit_grad_func(1.)
 
 
 

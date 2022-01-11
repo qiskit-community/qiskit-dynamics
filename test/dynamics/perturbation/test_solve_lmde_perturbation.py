@@ -1184,7 +1184,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
 
-class Testsolve_lmde_perturbation_jax(Testsolve_lmde_perturbation, TestJaxBase):
+class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
     """Test cases for jax perturbation theory computation."""
 
     def setUp(self):
