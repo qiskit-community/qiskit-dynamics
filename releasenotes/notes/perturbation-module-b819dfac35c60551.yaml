@@ -1,0 +1,15 @@
+---
+prelude: >
+    Adds perturbation theory sub module for computing and utilizing time-dependent perturbation
+    theory terms.
+features:
+  - |
+    Adds function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` for computing
+    time-dependent perturbation theory terms for linear matrix differential equations.
+  - |
+    Adds class :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` for perturbation
+    theory-based linear matrix differential equation solvers.
+  - |
+    Adds class :class:`~qiskit_dynamics.perturbation.MatrixPolynomial` for representing
+    and evaluating matrix-valued polynomials of complex variables. The primary intended use
+    is for utilizing results of :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`.
