@@ -26,10 +26,7 @@ from qiskit.quantum_info import Operator
 
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics.perturbation import solve_lmde_perturbation, MatrixPolynomial
-from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array
-
-from qiskit_dynamics import dispatch
 
 try:
     import jax.numpy as jnp
@@ -124,7 +121,7 @@ class PerturbativeSolver:
             kwargs: Additional arguments to pass to the solver when computing perturbation terms.
 
         Raises:
-            QiskitError if invalid expansion_method passed.
+            QiskitError: if invalid expansion_method passed.
         """
 
         self._expansion_method = expansion_method
@@ -320,7 +317,7 @@ def construct_cheb_perturbations(
         List of operator-valued functions as described above.
     """
 
-    # compute perturbation terms
+    # define functions for constructing perturbations
     def cheb_func(t, deg):
         return evaluate_cheb_series(t, [0] * deg + [1], domain=[0, dt])
 
@@ -340,6 +337,7 @@ def construct_cheb_perturbations(
 
         return cheb_func_op
 
+    # iterate through and construct perturbations list
     perturbations = []
     for deg, op, freq in zip(chebyshev_orders, operators, carrier_freqs):
         # construct cosine terms
@@ -358,7 +356,7 @@ def construct_cheb_perturbations(
 def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs, dt):
     """JAX version of construct_cheb_perturbations."""
 
-    # compute perturbation terms
+    # define functions for constructing perturbations list
     def get_cheb_func(deg):
         c = jnp.array([0] * deg + [1], dtype=float)
 
@@ -385,6 +383,7 @@ def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs,
 
         return cheb_func_op
 
+    # iterate through and construct perturbations list
     perturbations = []
     for deg, op, freq in zip(chebyshev_orders, operators, carrier_freqs):
         # construct cosine terms
@@ -401,25 +400,27 @@ def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs,
 
 
 def evaluate_cheb_series(
-    x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = [-1, 1]
+    x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = None
 ) -> Union[float, np.ndarray]:
-    """Evaluate a Chebyshev series on a given domain. This calls
-    ``numpy.polynomial.chebyshev.chebval`` but on a stretched domain.
+    """Evaluate a Chebyshev series on a given domain.
+
+    This calls ``numpy.polynomial.chebyshev.chebval`` but on a stretched domain.
 
     Args:
         x: Array of x values to evaluate the Chebyshev series on.
         c: Array of Chebyshev coefficients.
+        domain: Domain over which the the Chebyshev series is defined. Defaults to [-1, 1].
 
     Returns:
         array: Chebyshev series evaluated on x.
-
     """
+    domain = domain or [-1, 1]
     x = (2 * x - domain[1] - domain[0]) / (domain[1] - domain[0])
     return chebval(x, c)
 
 
 def evaluate_cheb_series_jax(
-    x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = [-1, 1]
+    x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = None
 ) -> Union[float, np.ndarray]:
     """Evaluate Chebyshev series on a on a given domain using JAX looping logic.
     This follows the same algorithm as ``numpy.polynomial.chebyshev.chebval``
@@ -428,10 +429,12 @@ def evaluate_cheb_series_jax(
     Args:
         x: Array of x values to evaluate the Chebyshev series on.
         c: Array of Chebyshev coefficients.
+        domain: Domain over which the the Chebyshev series is defined. Defaults to [-1, 1].
 
     Returns:
         array: Chebyshev series evaluated on x.
     """
+    domain = domain or [-1, 1]
 
     x = (2 * x - domain[1] - domain[0]) / (domain[1] - domain[0])
 
@@ -518,7 +521,7 @@ def signal_envelope_DCT(
     and performing the multi-interval DCT on the resultant envelope.
 
     Args:
-        sig: Signal to approximate.
+        signal: Signal to approximate.
         reference_freq: Reference frequency to shift the signal frequency to.
         degree: Degree of Chebyshev approximation.
         t0: Start time.
@@ -571,7 +574,7 @@ def multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_interva
     return dct_mat @ f(x_vals)
 
 
-def construct_DCT(degree: int, domain: Optional[List] = [-1, 1]) -> Tuple:
+def construct_DCT(degree: int, domain: Optional[List] = None) -> Tuple:
     """Construct the matrix and evaluation points for performing the Discrete Chebyshev
     Transform (DCT) over an interval specified by ``domain``. This utilizes code from
     :mod:`numpy.polynomial.chebyshev.chebinterpolate`, but modified to allow for interval
@@ -583,11 +586,12 @@ def construct_DCT(degree: int, domain: Optional[List] = [-1, 1]) -> Tuple:
 
     Args:
         degree: Degree of Chebyshev approximation.
-        domain: Interval of approximation.
+        domain: Interval of approximation. Defaults to [-1, 1].
 
     Returns:
         Tuple: Pair of arrays for performing the DCT.
     """
+    domain = domain or [-1, 1]
     order = degree + 1
 
     xcheb = chebpts1(order)

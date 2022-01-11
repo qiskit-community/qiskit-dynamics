@@ -9,14 +9,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=unused-argument, invalid-name
+# pylint: disable=invalid-name, no-member
 
-"""Tests for perturbative_solvers.py"""
+"""Tests for perturbative_solver.py"""
 
 import numpy as np
 from numpy.polynomial.chebyshev import Chebyshev
 
-from qiskit import QiskitError
 from qiskit_dynamics import Signal, Solver
 from qiskit_dynamics.array import Array
 
@@ -43,10 +42,11 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
 
     @classmethod
     def setUpClass(cls):
+        """Set up class."""
         cls.build_objects(cls)
 
     @staticmethod
-    def build_objects(cls, integration_method="DOP853"):
+    def build_objects(obj, integration_method="DOP853"):
         """Set up simple model parameters and solution to be used in multiple tests."""
 
         r = 0.2
@@ -63,33 +63,33 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         # Function to define gaussian envelope, using gaussian wave function
         gaussian_envelope = lambda t: gaussian(Array(amp), Array(sig), Array(t0), Array(t))
 
-        cls.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.0)
+        obj.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.0)
 
-        cls.dt = 0.025
-        cls.n_steps = int(T // cls.dt) // 3
+        obj.dt = 0.025
+        obj.n_steps = int(T // obj.dt) // 3
 
-        cls.hamiltonian_operators = 2 * np.pi * r * np.array([[[0.0, 1.0], [1.0, 0.0]]]) / 2
-        cls.static_hamiltonian = 2 * np.pi * 5.0 * np.array([[1.0, 0.0], [0.0, -1.0]]) / 2
+        obj.hamiltonian_operators = 2 * np.pi * r * np.array([[[0.0, 1.0], [1.0, 0.0]]]) / 2
+        obj.static_hamiltonian = 2 * np.pi * 5.0 * np.array([[1.0, 0.0], [0.0, -1.0]]) / 2
 
         reg_solver = Solver(
-            static_hamiltonian=cls.static_hamiltonian,
-            hamiltonian_operators=cls.hamiltonian_operators,
-            rotating_frame=cls.static_hamiltonian,
-            hamiltonian_signals=[cls.gauss_signal],
+            static_hamiltonian=obj.static_hamiltonian,
+            hamiltonian_operators=obj.hamiltonian_operators,
+            rotating_frame=obj.static_hamiltonian,
+            hamiltonian_signals=[obj.gauss_signal],
         )
 
-        cls.simple_yf = reg_solver.solve(
-            t_span=[0.0, cls.dt * cls.n_steps],
+        obj.simple_yf = reg_solver.solve(
+            t_span=[0.0, obj.dt * obj.n_steps],
             y0=np.eye(2, dtype=complex),
             method=integration_method,
             atol=1e-12,
             rtol=1e-12,
         ).y[-1]
 
-        cls.simple_dyson_solver = PerturbativeSolver(
-            operators=-1j * cls.hamiltonian_operators,
-            frame_operator=-1j * cls.static_hamiltonian,
-            dt=cls.dt,
+        obj.simple_dyson_solver = PerturbativeSolver(
+            operators=-1j * obj.hamiltonian_operators,
+            frame_operator=-1j * obj.static_hamiltonian,
+            dt=obj.dt,
             carrier_freqs=[5.0],
             chebyshev_orders=[1],
             expansion_method="dyson",
@@ -98,10 +98,10 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             atol=1e-10,
             rtol=1e-10,
         )
-        cls.simple_magnus_solver = PerturbativeSolver(
-            operators=-1j * cls.hamiltonian_operators,
-            frame_operator=-1j * cls.static_hamiltonian,
-            dt=cls.dt,
+        obj.simple_magnus_solver = PerturbativeSolver(
+            operators=-1j * obj.hamiltonian_operators,
+            frame_operator=-1j * obj.static_hamiltonian,
+            dt=obj.dt,
             carrier_freqs=[5.0],
             chebyshev_orders=[1],
             expansion_method="magnus",
