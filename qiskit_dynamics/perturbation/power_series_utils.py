@@ -285,7 +285,7 @@ def get_recursive_monomial_rule(multiset_list: List) -> Tuple:
 
     # if current_left is still -1, then only first order terms exist
     if current_left == -1:
-        return first_order_terms, [0, len(first_order_terms)], [], [], []
+        return np.array(first_order_terms), [0, len(first_order_terms)], [], [], []
 
     # proceed assuming at least one term above first order exists
     # append the last one
@@ -318,7 +318,7 @@ def get_recursive_monomial_rule(multiset_list: List) -> Tuple:
         update_ranges.append([current_idx, next_idx])
         current_idx = next_idx
 
-    return first_order_terms, first_order_range, left_indices, right_indices, update_ranges
+    return np.array(first_order_terms), first_order_range, np.array(left_indices), right_indices, update_ranges
 
 
 def get_complete_index_multisets(index_multisets: List) -> List:
