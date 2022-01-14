@@ -33,7 +33,7 @@ CHANNEL_CHARS = ["U", "D", "M", "u", "d", "m"]
 
 def parse_hamiltonian_dict(
     hamiltonian_dict: dict, subsystem_list: Optional[List[int]] = None
-) -> Tuple[np.ndarray, np.ndarray, List[str]]:
+) -> Tuple[np.ndarray, np.ndarray, List[str], dict]:
     r"""Convert Pulse backend Hamiltonian dictionary into concrete array format
     with an ordered list of corresponding channels.
 
@@ -137,8 +137,9 @@ def parse_hamiltonian_dict(
 
     Returns:
         Tuple: Model converted into concrete arrays - the static Hamiltonian,
-        a list of Hamiltonians corresponding to different channels, and a list of
-        channel labels corresponding to the list of time-dependent Hamiltonians.
+        a list of Hamiltonians corresponding to different channels, a list of
+        channel labels corresponding to the list of time-dependent Hamiltonians,
+        and a dictionary with subsystem dimensions whose keys are the subsystem labels.
     """
 
     # raise errors for invalid hamiltonian_dict
@@ -150,20 +151,17 @@ def parse_hamiltonian_dict(
         variables = OrderedDict(hamiltonian_dict["vars"])
 
     # Get qubit subspace dimensions
-    if "qub" in hamiltonian_dict:
-        if subsystem_list is None:
-            subsystem_list = [int(qubit) for qubit in hamiltonian_dict["qub"]]
-        else:
-            # if user supplied, make a copy and sort it
-            subsystem_list = subsystem_list.copy()
-            subsystem_list.sort()
-
-        # force keys in hamiltonian['qub'] to be ints
-        qub_dict = {int(key): val for key, val in hamiltonian_dict["qub"].items()}
-
-        subsystem_dims = {int(qubit): qub_dict[int(qubit)] for qubit in subsystem_list}
+    if subsystem_list is None:
+        subsystem_list = [int(qubit) for qubit in hamiltonian_dict["qub"]]
     else:
-        subsystem_dims = {}
+        # if user supplied, make a copy and sort it
+        subsystem_list = subsystem_list.copy()
+        subsystem_list.sort()
+
+    # force keys in hamiltonian['qub'] to be ints
+    qub_dict = {int(key): val for key, val in hamiltonian_dict["qub"].items()}
+
+    subsystem_dims = {int(qubit): qub_dict[int(qubit)] for qubit in subsystem_list}
 
     # Parse the Hamiltonian
     system = legacy_parser(
@@ -227,7 +225,7 @@ def parse_hamiltonian_dict(
             *sorted(zip(reduced_channels, hamiltonian_operators))
         )
 
-    return static_hamiltonian, list(hamiltonian_operators), list(reduced_channels)
+    return static_hamiltonian, list(hamiltonian_operators), list(reduced_channels), subsystem_dims
 
 
 def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
