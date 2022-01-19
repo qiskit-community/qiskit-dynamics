@@ -14,7 +14,7 @@
 Pulse schedule to Signals converter.
 """
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional
 import numpy as np
 
 from qiskit.pulse import (
@@ -35,11 +35,22 @@ class InstructionToSignals:
 
     The :class:`InstructionsToSignals` class converts a pulse schedule to a list
     of signals that can be given to a model. This conversion is done by calling
-    the :meth:`get_signals` method on a schedule.
+    the :meth:`get_signals` method on a schedule. The converter can be initialized
+    with the optional arguments ``carriers`` and ``channels``. These arguments
+    change the returned signals of :meth:`get_signals`. When ``channels`` is given
+    then only the signals specified by name in ``channels`` are returned. If both
+    `` carriers`` and ``channels`` are given then they must have the same length.
+    Furthermore, it is understood that the channel named :code:`channels[idx]` has
+    a carrier frequency given by :code:`carriers[idx]`. Additionally, if the user
+    specifies ``carriers`` without specifying ``channels`` then the length of
+    ``carriers`` must be as long as the number of channels in the schedule.
     """
 
     def __init__(
-        self, dt: float, carriers: List[float] = None, channels: Optional[List[str]] = None
+        self,
+        dt: float,
+        carriers: Optional[Dict[str, float]] = None,
+        channels: Optional[List[str]] = None,
     ):
         """Initialize pulse schedule to signals converter.
 
