@@ -30,8 +30,7 @@ except ImportError:
     pass
 
 from qiskit import QiskitError
-from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 
 
 class Signal:
@@ -106,7 +105,7 @@ class Signal:
             else:
                 self._envelope = lambda t: envelope * np.ones_like(t)
         elif callable(envelope):
-            if dispatch.default_backend() == "jax":
+            if Array.default_backend() == "jax":
                 self._envelope = lambda t: Array(envelope(t))
             else:
                 self._envelope = envelope
@@ -569,7 +568,7 @@ class SignalSum(SignalCollection, Signal):
         SignalCollection.__init__(self, components)
 
         # set up routine for evaluating envelopes if jax
-        if dispatch.default_backend() == "jax":
+        if Array.default_backend() == "jax":
             jax_arraylist_eval = array_funclist_evaluate([sig.envelope for sig in self.components])
 
             def envelope(t):
@@ -594,7 +593,7 @@ class SignalSum(SignalCollection, Signal):
 
     def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
         """Return the sum of the complex values of each component."""
-        if dispatch.default_backend() == "jax":
+        if Array.default_backend() == "jax":
             t = Array(t)
         exp_phases = np.exp(np.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
         return np.sum(self.envelope(t) * exp_phases, axis=-1)
@@ -812,7 +811,7 @@ class SignalList(SignalCollection):
         super().__init__(signal_list)
 
         # setup complex value and full signal evaluation
-        if dispatch.default_backend() == "jax":
+        if Array.default_backend() == "jax":
             self._eval_complex_value = array_funclist_evaluate(
                 [sig.complex_value for sig in self.components]
             )

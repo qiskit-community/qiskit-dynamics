@@ -21,7 +21,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics import solve_lmde
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 
 from .common import TestJaxBase
 

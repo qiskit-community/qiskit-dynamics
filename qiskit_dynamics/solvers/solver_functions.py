@@ -31,8 +31,8 @@ from qiskit.quantum_info.states.quantum_state import QuantumState
 from qiskit.quantum_info import SuperOp, Operator
 
 from qiskit import QiskitError
-from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import Array, requires_backend
+from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.array import Array
 
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
@@ -201,12 +201,12 @@ def solve_lmde(
       sub-intervals no larger than ``max_dt``, and solve over each sub-interval via
       matrix exponentiation of the generator sampled at the midpoint.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
-      behaviour.
+      behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
       parallel operations. I.e. all matrix-exponentials for taking a single step are computed
       in parallel using ``jax.vmap``, and are subsequently multiplied together in parallel
       using ``jax.lax.associative_scan``. This method is only recommended for use with GPU
-      execution.
+      execution. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_RK4_parallel'``: 4th order Runge-Kutta fixed step solver. Under the assumption
       of the structure of an LMDE, utilizes the same parallelization approach as
       ``'jax_expm_parallel'``, however the single step rule is the standard 4th order
@@ -274,6 +274,8 @@ def solve_lmde(
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
+        if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
+            raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
         results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm_parallel":
         results = jax_expm_parallel_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
