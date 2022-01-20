@@ -46,6 +46,7 @@ model expressions, such as :math:`t \mapsto H(t)` or :math:`t,y \mapsto -iH(t)y`
 case of a Hamiltonian, and with similar functionality for
 :class:`~qiskit_dynamics.models.LindbladModel`.
 
+.. _Rotating frames:
 
 Rotating frames
 ===============
@@ -93,6 +94,7 @@ This transformation is implemented in
 :meth:`~qiskit_dynamics.models.rotating_wave_approximation`, see its documentation for
 details.
 
+.. _evaluation modes:
 
 Numerical methods and evaluation modes
 ======================================

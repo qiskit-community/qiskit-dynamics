@@ -34,3 +34,4 @@ from . import models
 from . import signals
 from . import pulse
 from . import dispatch
+from . import array

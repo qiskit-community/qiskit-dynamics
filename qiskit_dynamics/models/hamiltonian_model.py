@@ -23,9 +23,9 @@ from scipy.sparse.linalg import norm as spnorm
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_numeric_matrix_type
+from qiskit_dynamics.type_utils import to_numeric_matrix_type, to_array
 from .generator_model import (
     GeneratorModel,
     transfer_static_operator_between_frames,
@@ -87,10 +87,9 @@ class HamiltonianModel(GeneratorModel):
                             the antihermitian matrix F = -iH.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                             frame operator is diagonalized.
-            evaluation_mode: Evaluation mode to use. Supported options are:
-                                - 'dense' (DenseOperatorCollection)
-                                - 'sparse' (SparseOperatorCollection)
-                                See ``GeneratorModel.evaluation_mode`` for more details.
+            evaluation_mode: Evaluation mode to use. Supported options are ``'dense'`` and
+                             ``'sparse'``. Call ``help(HamiltonianModel.evaluation_mode)`` for more
+                             details.
             validate: If True check input operators are Hermitian.
 
         Raises:
@@ -161,7 +160,7 @@ class HamiltonianModel(GeneratorModel):
 
 
 def is_hermitian(
-    operators: Union[Array, csr_matrix, List[csr_matrix]], tol: Optional[float] = 1e-10
+    operators: Union[Array, csr_matrix, List[csr_matrix], "BCOO"], tol: Optional[float] = 1e-10
 ) -> bool:
     """Validate that operators are Hermitian.
 
@@ -188,5 +187,8 @@ def is_hermitian(
         return spnorm(operators - operators.conj().transpose()) < tol
     elif isinstance(operators, list) and issparse(operators[0]):
         return all(spnorm(op - op.conj().transpose()) < tol for op in operators)
+    elif type(operators).__name__ == "BCOO":
+        # fall back on array case for BCOO
+        return is_hermitian(to_array(operators))
 
     raise QiskitError("is_hermitian got an unexpected type.")

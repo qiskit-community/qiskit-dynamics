@@ -26,8 +26,13 @@ from scipy.sparse import identity as sparse_identity
 from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics import dispatch
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
+from qiskit_dynamics.dispatch import requires_backend
+
+try:
+    from jax.experimental import sparse as jsparse
+except ImportError:
+    pass
 
 
 class StateTypeConverter:
@@ -365,7 +370,7 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
         return op
 
     if isinstance(op, np.ndarray) and op.dtype != "O":
-        if dispatch.default_backend() in [None, "numpy"]:
+        if Array.default_backend() in [None, "numpy"]:
             return op
         else:
             return Array(op)
@@ -375,6 +380,9 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
 
     if issparse(op):
         return Array(op.toarray())
+
+    if type(op).__name__ == "BCOO":
+        return Array(op.todense())
 
     if isinstance(op, Iterable) and not no_iter:
         op = Array([to_array(sub_op, no_iter=True) for sub_op in op])
@@ -422,6 +430,28 @@ def to_csr(
         return csr_matrix(op)
 
 
+@requires_backend("jax")
+def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "BCOO"]) -> "BCOO":
+    """Convert input op or list of ops to a jax BCOO sparse array.
+
+    Calls ``to_array`` to handle general conversion to a numpy or jax array, then
+    builds the BCOO sparse array from the result.
+
+    Args:
+        op: Operator or list of operators to convert.
+
+    Returns:
+        BCOO: BCOO sparse version of the operator.
+    """
+    if op is None:
+        return op
+
+    if type(op).__name__ == "BCOO":
+        return op
+
+    return jsparse.BCOO.fromdense(to_array(op).data)
+
+
 def to_numeric_matrix_type(
     op: Union[Operator, Array, spmatrix, List[Operator], List[Array], List[spmatrix]]
 ):
@@ -448,6 +478,8 @@ def to_numeric_matrix_type(
     elif isinstance(op, Array):
         return op
     elif isinstance(op, spmatrix):
+        return op
+    elif type(op).__name__ == "BCOO":
         return op
     elif isinstance(op, Operator):
         return to_array(op)

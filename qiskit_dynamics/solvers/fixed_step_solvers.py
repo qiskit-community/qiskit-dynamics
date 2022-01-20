@@ -21,7 +21,8 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
 
-from qiskit_dynamics.dispatch import requires_backend, Array
+from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.array import Array
 
 try:
     import jax

@@ -18,7 +18,7 @@ Tests for signals.
 import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
-from qiskit_dynamics.dispatch import Array
+from qiskit_dynamics.array import Array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 

@@ -21,7 +21,7 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
-from qiskit_dynamics.models import HamiltonianModel, LindbladModel
+from qiskit_dynamics.models import GeneratorModel, HamiltonianModel, LindbladModel
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.solvers.solver_functions import (
@@ -68,6 +68,21 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
             solve_lmde(lambda t: t, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
 
         self.assertTrue("not supported" in str(qe.exception))
+
+    def test_jax_expm_sparse_mode(self):
+        """Verify an error gets raised if the jax expm solver is attempted to be used
+        in sparse mode."""
+
+        model = GeneratorModel(
+            static_operator=np.array([[0.0, 1.0], [1.0, 0.0]]), evaluation_mode="sparse"
+        )
+
+        with self.assertRaises(QiskitError) as qe:
+            solve_lmde(
+                model, t_span=[0.0, 1.0], y0=np.array([1.0, 1.0]), method="jax_expm", max_dt=0.1
+            )
+
+        self.assertTrue("jax_expm cannot be used" in str(qe.exception))
 
 
 class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
