@@ -42,7 +42,7 @@ class PerturbationResults:
 
     .. code:: python
 
-        perturbation_results[[0, 1, 2
+        perturbation_results[[0, 1, 2]]
 
     .. automethod:: __getitem__
     """
