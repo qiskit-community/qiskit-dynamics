@@ -89,7 +89,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched = Schedule(name="Schedule")
         sched += Play(Gaussian(duration=20, amp=0.5, sigma=4), DriveChannel(0))
 
-        converter = InstructionToSignals(dt=0.222, carriers=[5.5e9])
+        converter = InstructionToSignals(dt=0.222, carriers={"d0":5.5e9})
         signals = converter.get_signals(sched)
 
         self.assertEqual(signals[0].carrier_freq, 5.5e9)
@@ -103,7 +103,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched += ShiftFrequency(1.0, DriveChannel(0))
         sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
 
-        converter = InstructionToSignals(dt=0.222, carriers=[5.0])
+        converter = InstructionToSignals(dt=0.222, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
 
         for idx in range(10):
@@ -116,7 +116,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched += SetFrequency(4.0, DriveChannel(0))
         sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
 
-        converter = InstructionToSignals(dt=0.222, carriers=[5.0])
+        converter = InstructionToSignals(dt=0.222, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
 
         for idx in range(10):
@@ -129,7 +129,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         schedule |= Play(Waveform(np.ones(10)), DriveChannel(0))
         schedule += Play(Constant(20, 1), DriveChannel(1))
 
-        converter = InstructionToSignals(dt=0.1, carriers=[2.0, 3.0])
+        converter = InstructionToSignals(dt=0.1, carriers={"d0": 2.0, "d1": 3.0})
 
         signals = converter.get_signals(schedule)
 
@@ -171,11 +171,11 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
 
     @unpack
     @data(
-        ([5.0, 5.1, 5.0, 5.1], ["d0", "d2", "u0", "u1"]),
-        ([5.0, 5.1, 5.0, 5.1], ["m0", "m1", "m2", "m3"]),
-        ([5.0, 5.1, 5.0, 5.1], ["m0", "m1", "d0", "d1"]),
-        ([5.0], ["d1"]),
-        ([5.0], ["d123"]),
+        ({"d0": 5.0, "d2": 5.1, "u0": 5.0, "u1": 5.1}, ["d0", "d2", "u0", "u1"]),
+        ({"m0": 5.0, "m1": 5.1, "m2": 5.0, "m3": 5.1}, ["m0", "m1", "m2", "m3"]),
+        ({"m0": 5.0, "m1": 5.1, "d0": 5.0, "d1": 5.1}, ["m0", "m1", "d0", "d1"]),
+        ({"d1": 5.0}, ["d1"]),
+        ({"d123": 5.0}, ["d123"]),
     )
     def test_channel_combinations(self, carriers, channels):
         """Test that we can filter out channels in the right order and number."""
@@ -191,18 +191,9 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
     def test_empty_signal(self):
         """Test that requesting a channel that is not in the schedule gives and empty signal."""
 
-        converter = InstructionToSignals(dt=0.222, carriers=[1.0], channels=["d123"])
+        converter = InstructionToSignals(dt=0.222, carriers={"d123": 1.0}, channels=["d123"])
 
         signals = converter.get_signals(self._schedule)
 
         self.assertEqual(len(signals), 1)
         self.assertEqual(signals[0].duration, 0)
-
-    def test_malformed_input_args(self):
-        """Test that we get errors if the carriers and channels do not match."""
-
-        with self.assertRaises(QiskitError):
-            InstructionToSignals(dt=1, carriers=[1], channels=["d0", "d1"])
-
-        with self.assertRaises(QiskitError):
-            InstructionToSignals(dt=1, carriers=[1, 2], channels=["d0"])

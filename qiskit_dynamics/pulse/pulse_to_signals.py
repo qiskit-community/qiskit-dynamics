@@ -26,7 +26,6 @@ from qiskit.pulse import (
     SetFrequency,
     Waveform,
 )
-from qiskit import QiskitError
 from qiskit_dynamics.signals import DiscreteSignal
 
 
@@ -38,12 +37,11 @@ class InstructionToSignals:
     the :meth:`get_signals` method on a schedule. The converter can be initialized
     with the optional arguments ``carriers`` and ``channels``. These arguments
     change the returned signals of :meth:`get_signals`. When ``channels`` is given
-    then only the signals specified by name in ``channels`` are returned. If both
-    `` carriers`` and ``channels`` are given then they must have the same length.
-    Furthermore, it is understood that the channel named :code:`channels[idx]` has
-    a carrier frequency given by :code:`carriers[idx]`. Additionally, if the user
-    specifies ``carriers`` without specifying ``channels`` then the length of
-    ``carriers`` must be as long as the number of channels in the schedule.
+    then only the signals specified by name in ``channels`` are returned. The
+    ``carriers`` dictionary allows the user to specify the carrier frequency of
+    the channels. Here, the keys are the channel name, e.g. ``d12`` for drive channel
+    number 12, and the values are the corresponding frequency. If a channel is not
+    present in ``carriers`` it is assumed that the carrier frequency is zero.
     """
 
     def __init__(
@@ -58,38 +56,18 @@ class InstructionToSignals:
             dt: length of the samples. This is required by the converter as pulse
                 schedule are specified in units of dt and typically do not carry the
                 value of dt with them.
-            carriers: a list of carrier frequencies. If it is not None there
-                must be at least as many carrier frequencies as there are
-                channels in the schedules that will be converted.
+            carriers: a dict of carrier frequencies. The keys are the names of the channels
+                and the values are the corresponding carrier frequency.
             channels: A list of channels that the :meth:`get_signals` method should return.
                 This argument will cause :meth:`get_signals` to return the signals in the
                 same order as the channels. Channels present in the schedule but absent
                 from channels will not be included in the returned object. If None is given
                 (the default) then all channels present in the pulse schedule are returned.
-
-        Raises:
-            QiskitError: If the number of channels and carriers does not match when both are given.
         """
 
         self._dt = dt
         self._channels = channels
-        self._carriers = {}
-
-        # If both are given we tie them together in a dict to ensure consistency.
-        if channels is not None and carriers is not None:
-            if len(channels) != len(carriers):
-                raise QiskitError(
-                    "The number of required channels and carries does not match: "
-                    f"len({channels}) != len({carriers})."
-                )
-
-            for idx, chan in enumerate(channels):
-                self._carriers[chan] = carriers[idx]
-
-        # If only carriers is given we map using the index of the carriers.
-        elif channels is None and carriers is not None:
-            for idx, carrier in enumerate(carriers):
-                self._carriers[idx] = carrier
+        self._carriers = carriers or {}
 
     def get_signals(self, schedule: Schedule) -> List[DiscreteSignal]:
         """
@@ -103,24 +81,13 @@ class InstructionToSignals:
             qiskit.QiskitError: if not enough frequencies supplied
         """
 
-        if self._channels is None:
-            if self._carriers and len(self._carriers) < len(schedule.channels):
-                raise QiskitError("Not enough carrier frequencies supplied.")
-
         signals, phases, frequency_shifts = {}, {}, {}
 
         for idx, chan in enumerate(schedule.channels):
-            if self._carriers and not self._channels:
-                carrier_freq = self._carriers[idx]
-            elif self._carriers and self._channels:
-                carrier_freq = self._carriers.get(chan.name, 0.0)
-            else:
-                carrier_freq = 0.0
-
             phases[chan.name] = 0.0
             frequency_shifts[chan.name] = 0.0
             signals[chan.name] = DiscreteSignal(
-                samples=[], dt=self._dt, name=chan.name, carrier_freq=carrier_freq
+                samples=[], dt=self._dt, name=chan.name, carrier_freq=self._carriers.get(chan.name, 0.0)
             )
 
         for start_sample, inst in schedule.instructions:
