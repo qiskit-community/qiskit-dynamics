@@ -89,7 +89,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched = Schedule(name="Schedule")
         sched += Play(Gaussian(duration=20, amp=0.5, sigma=4), DriveChannel(0))
 
-        converter = InstructionToSignals(dt=0.222, carriers={"d0":5.5e9})
+        converter = InstructionToSignals(dt=0.222, carriers={"d0": 5.5e9})
         signals = converter.get_signals(sched)
 
         self.assertEqual(signals[0].carrier_freq, 5.5e9)

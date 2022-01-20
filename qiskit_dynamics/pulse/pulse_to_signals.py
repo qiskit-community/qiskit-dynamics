@@ -87,7 +87,10 @@ class InstructionToSignals:
             phases[chan.name] = 0.0
             frequency_shifts[chan.name] = 0.0
             signals[chan.name] = DiscreteSignal(
-                samples=[], dt=self._dt, name=chan.name, carrier_freq=self._carriers.get(chan.name, 0.0)
+                samples=[],
+                dt=self._dt,
+                name=chan.name,
+                carrier_freq=self._carriers.get(chan.name, 0.0),
             )
 
         for start_sample, inst in schedule.instructions:
