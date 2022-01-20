@@ -78,14 +78,14 @@ class InstructionToSignals:
         """
         Args:
             schedule: The schedule to represent in terms of signals. Instances of
-            :class:`ScheduleBlock` must first be converted to :class:`Schedule`
-            using the :meth:`block_to_schedule` in Qiskit pulse.
+                :class:`ScheduleBlock` must first be converted to :class:`Schedule`
+                using the :meth:`block_to_schedule` in Qiskit pulse.
 
         Returns:
             a list of piecewise constant signals.
 
         Raises:
-            qiskit.QiskitError: if not enough frequencies supplied
+            qiskit.QiskitError: if not enough frequencies supplied.
         """
 
         signals, phases, frequency_shifts = {}, {}, {}
