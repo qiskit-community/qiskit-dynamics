@@ -34,7 +34,12 @@ class InstructionToSignals:
 
     The :class:`InstructionsToSignals` class converts a pulse schedule to a list
     of signals that can be given to a model. This conversion is done by calling
-    the :meth:`get_signals` method on a schedule. The converter can be initialized
+    the :meth:`get_signals` method on a schedule. The converter applies to instances
+    of :class:`Schedule`. Instances of :class:`ScheduleBlock` must first be
+    converted to :class:`Schedule` using the :meth:`block_to_schedule` in
+    Qiskit pulse.
+
+    The converter can be initialized
     with the optional arguments ``carriers`` and ``channels``. These arguments
     change the returned signals of :meth:`get_signals`. When ``channels`` is given
     then only the signals specified by name in ``channels`` are returned. The
@@ -72,7 +77,9 @@ class InstructionToSignals:
     def get_signals(self, schedule: Schedule) -> List[DiscreteSignal]:
         """
         Args:
-            schedule: The schedule to represent in terms of signals.
+            schedule: The schedule to represent in terms of signals. Instances of
+            :class:`ScheduleBlock` must first be converted to :class:`Schedule`
+            using the :meth:`block_to_schedule` in Qiskit pulse.
 
         Returns:
             a list of piecewise constant signals.

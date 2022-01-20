@@ -33,7 +33,6 @@ from qiskit.pulse import (
     Waveform,
 )
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
-from qiskit.exceptions import QiskitError
 
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.signals import DiscreteSignal
