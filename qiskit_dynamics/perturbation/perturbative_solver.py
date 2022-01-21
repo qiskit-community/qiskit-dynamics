@@ -24,9 +24,10 @@ from scipy.linalg import expm
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
-from qiskit_dynamics.signals import Signal
+from qiskit_dynamics import Signal, RotatingFrame
 from qiskit_dynamics.perturbation import solve_lmde_perturbation, MatrixPolynomial
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.type_utils import to_array
 
 try:
     import jax.numpy as jnp
@@ -145,23 +146,31 @@ class PerturbativeSolver:
 
         self._signal_approximation = collective_dct
 
+        rotating_frame = RotatingFrame(frame_operator)
+        operators = to_array(operators)
+        self._Udt = Array(rotating_frame.state_out_of_frame(dt, np.eye(operators[0].shape[0], dtype=complex))).data
+
         perturbations = None
         # set jax-logic dependent components
         if Array.default_backend() == "jax":
             # compute perturbative terms
             perturbations = construct_cheb_perturbations_jax(
-                operators, chebyshev_orders, carrier_freqs, dt
+                operators, chebyshev_orders, carrier_freqs, dt, rotating_frame
             )
             integration_method = integration_method or "jax_odeint"
-            self._Udt = jexpm(dt * frame_operator)
+            #self._Udt = jexpm(dt * frame_operator)
         else:
             perturbations = construct_cheb_perturbations(
-                operators, chebyshev_orders, carrier_freqs, dt
+                operators, chebyshev_orders, carrier_freqs, dt, rotating_frame
             )
             integration_method = integration_method or "DOP853"
-            self._Udt = expm(dt * frame_operator)
+            #self._Udt = expm(dt * frame_operator)
 
         self._dt = dt
+        ###################################################################################################
+        # Change this to store rotating frame
+        ###################################################################################################
+
         self._frame_operator = frame_operator
 
         # compute perturbative terms
@@ -173,13 +182,14 @@ class PerturbativeSolver:
             expansion_order=expansion_order,
             expansion_labels=expansion_labels,
             dyson_in_frame=False,
-            generator=lambda t: frame_operator,
+            #generator=lambda t: frame_operator,
             integration_method=integration_method,
             **kwargs,
         )
         self._precomputation_results = results
 
         if self.expansion_method == "dyson":
+            self._precomputation_results.perturbation_results.expansion_terms = Array(self.Udt) @ self._precomputation_results.perturbation_results.expansion_terms
             self._perturbation_polynomial = MatrixPolynomial(
                 matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
                 monomial_multisets=results.perturbation_results.expansion_labels,
@@ -306,7 +316,7 @@ class PerturbativeSolver:
 
 
 def construct_cheb_perturbations(
-    operators: np.ndarray, chebyshev_orders: List[int], carrier_freqs: np.ndarray, dt: float
+    operators: np.ndarray, chebyshev_orders: List[int], carrier_freqs: np.ndarray, dt: float, rotating_frame: RotatingFrame
 ) -> List[Callable]:
     r"""Helper function for constructing perturbation terms in the expansions used by
     PerturbativeSolver.
@@ -340,7 +350,8 @@ def construct_cheb_perturbations(
         rad_freq = 2 * np.pi * freq
 
         def cheb_func_op(t):
-            return cheb_func(t, deg) * np.cos(rad_freq * t) * op
+            op_in_frame = rotating_frame.operator_into_frame(t, op)
+            return cheb_func(t, deg) * np.cos(rad_freq * t) * op_in_frame
 
         return cheb_func_op
 
@@ -348,7 +359,8 @@ def construct_cheb_perturbations(
         rad_freq = 2 * np.pi * freq
 
         def cheb_func_op(t):
-            return cheb_func(t, deg) * np.sin(-rad_freq * t) * op
+            op_in_frame = rotating_frame.operator_into_frame(t, op)
+            return cheb_func(t, deg) * np.sin(-rad_freq * t) * op_in_frame
 
         return cheb_func_op
 
@@ -368,7 +380,7 @@ def construct_cheb_perturbations(
     return perturbations
 
 
-def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs, dt):
+def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs, dt, rotating_frame):
     """JAX version of construct_cheb_perturbations."""
 
     # define functions for constructing perturbations list
@@ -385,7 +397,8 @@ def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs,
         cheb_func = get_cheb_func(deg)
 
         def cheb_func_op(t):
-            return cheb_func(t) * jnp.cos(rad_freq * t) * op
+            op_in_frame = rotating_frame.operator_into_frame(t, op).data
+            return cheb_func(t) * jnp.cos(rad_freq * t) * op_in_frame
 
         return cheb_func_op
 
@@ -394,7 +407,8 @@ def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs,
         cheb_func = get_cheb_func(deg)
 
         def cheb_func_op(t):
-            return cheb_func(t) * jnp.sin(-rad_freq * t) * op
+            op_in_frame = rotating_frame.operator_into_frame(t, op).data
+            return cheb_func(t) * jnp.sin(-rad_freq * t) * op_in_frame
 
         return cheb_func_op
 
