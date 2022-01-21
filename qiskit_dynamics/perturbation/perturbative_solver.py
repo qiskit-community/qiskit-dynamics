@@ -189,6 +189,7 @@ class PerturbativeSolver:
         self._precomputation_results = results
 
         if self.expansion_method == "dyson":
+            # if Dyson multiply by single step frame transformation
             self._precomputation_results.perturbation_results.expansion_terms = Array(self.Udt) @ self._precomputation_results.perturbation_results.expansion_terms
             self._perturbation_polynomial = MatrixPolynomial(
                 matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
