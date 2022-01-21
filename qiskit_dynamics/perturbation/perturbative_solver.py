@@ -88,7 +88,7 @@ class PerturbativeSolver:
     def __init__(
         self,
         operators: List[Operator],
-        frame_operator: Operator,
+        rotating_frame: Union[Array, Operator, RotatingFrame, None],
         dt: float,
         carrier_freqs: Array,
         chebyshev_orders: List[int],
@@ -103,7 +103,8 @@ class PerturbativeSolver:
         Args:
             operators: List of constant operators specifying the operators with
                                      signal coefficients.
-            frame_operator: Frame operator to perform the computation in.
+            rotating_frame: Rotating frame to setup the solver in.
+                            Must be Hermitian or anti-Hermitian.
             dt: Fixed step size to compile to.
             carrier_freqs: Carrier frequencies of the signals in the generator decomposition.
             chebyshev_orders: Approximation degrees for each signal over the interval [0, dt].
@@ -146,43 +147,36 @@ class PerturbativeSolver:
 
         self._signal_approximation = collective_dct
 
-        rotating_frame = RotatingFrame(frame_operator)
+        # setup rotating frame and single time-step frame change operator
+        self._rotating_frame = RotatingFrame(rotating_frame)
         operators = to_array(operators)
-        self._Udt = Array(rotating_frame.state_out_of_frame(dt, np.eye(operators[0].shape[0], dtype=complex))).data
+        self._Udt = Array(
+            self.rotating_frame.state_out_of_frame(dt, np.eye(operators[0].shape[0], dtype=complex))
+        ).data
 
         perturbations = None
         # set jax-logic dependent components
         if Array.default_backend() == "jax":
             # compute perturbative terms
             perturbations = construct_cheb_perturbations_jax(
-                operators, chebyshev_orders, carrier_freqs, dt, rotating_frame
+                operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame
             )
             integration_method = integration_method or "jax_odeint"
-            #self._Udt = jexpm(dt * frame_operator)
         else:
             perturbations = construct_cheb_perturbations(
-                operators, chebyshev_orders, carrier_freqs, dt, rotating_frame
+                operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame
             )
             integration_method = integration_method or "DOP853"
-            #self._Udt = expm(dt * frame_operator)
 
         self._dt = dt
-        ###################################################################################################
-        # Change this to store rotating frame
-        ###################################################################################################
-
-        self._frame_operator = frame_operator
 
         # compute perturbative terms
-        # dyson_in_frame only has effect on Dyson case
         results = solve_lmde_perturbation(
             perturbations=perturbations,
             t_span=[0, dt],
             expansion_method=expansion_method,
             expansion_order=expansion_order,
             expansion_labels=expansion_labels,
-            dyson_in_frame=False,
-            #generator=lambda t: frame_operator,
             integration_method=integration_method,
             **kwargs,
         )
@@ -190,7 +184,9 @@ class PerturbativeSolver:
 
         if self.expansion_method == "dyson":
             # if Dyson multiply by single step frame transformation
-            self._precomputation_results.perturbation_results.expansion_terms = Array(self.Udt) @ self._precomputation_results.perturbation_results.expansion_terms
+            self._precomputation_results.perturbation_results.expansion_terms = (
+                Array(self.Udt) @ self._precomputation_results.perturbation_results.expansion_terms
+            )
             self._perturbation_polynomial = MatrixPolynomial(
                 matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
                 monomial_multisets=results.perturbation_results.expansion_labels,
@@ -223,9 +219,9 @@ class PerturbativeSolver:
         return self._Udt
 
     @property
-    def frame_operator(self):
-        """Frame operator."""
-        return self._frame_operator
+    def rotating_frame(self):
+        """Rotating frame."""
+        return self._rotating_frame
 
     @property
     def perturbation_polynomial(self) -> MatrixPolynomial:
@@ -276,8 +272,12 @@ class PerturbativeSolver:
 
                 single_step = single_step_magnus
 
-            U0 = jexpm(t0 * self.frame_operator)
-            Uf = jexpm(-(t0 + n_steps * self.dt) * self.frame_operator)
+            U0 = self.rotating_frame.state_out_of_frame(
+                t0, jnp.eye(self.Udt.shape[0], dtype=complex)
+            ).data
+            Uf = self.rotating_frame.state_into_frame(
+                t0 + n_steps * self.dt, jnp.eye(U0.shape[0], dtype=complex)
+            ).data
 
             sig_cheb_coeffs = self.signal_approximation(signals, t0, n_steps).data
 
@@ -304,8 +304,12 @@ class PerturbativeSolver:
 
                 single_step = single_step_magnus
 
-            U0 = expm(t0 * self.frame_operator)
-            Uf = expm(-(t0 + n_steps * self.dt) * self.frame_operator)
+            U0 = self.rotating_frame.state_out_of_frame(
+                t0, np.eye(self.Udt.shape[0], dtype=complex)
+            )
+            Uf = self.rotating_frame.state_into_frame(
+                t0 + n_steps * self.dt, np.eye(U0.shape[0], dtype=complex)
+            )
 
             sig_cheb_coeffs = self.signal_approximation(signals, t0, n_steps)
 
@@ -317,7 +321,11 @@ class PerturbativeSolver:
 
 
 def construct_cheb_perturbations(
-    operators: np.ndarray, chebyshev_orders: List[int], carrier_freqs: np.ndarray, dt: float, rotating_frame: RotatingFrame
+    operators: np.ndarray,
+    chebyshev_orders: List[int],
+    carrier_freqs: np.ndarray,
+    dt: float,
+    rotating_frame: RotatingFrame,
 ) -> List[Callable]:
     r"""Helper function for constructing perturbation terms in the expansions used by
     PerturbativeSolver.
@@ -338,6 +346,7 @@ def construct_cheb_perturbations(
         chebyshev_orders: List of chebyshev orders for each operator.
         carrier_freqs: List of frequencies for each operator.
         dt: Interval over which the chebyshev polynomials are defined.
+        rotating_frame: Frame the operators are in.
 
     Returns:
         List of operator-valued functions as described above.
@@ -381,7 +390,9 @@ def construct_cheb_perturbations(
     return perturbations
 
 
-def construct_cheb_perturbations_jax(operators, chebyshev_orders, carrier_freqs, dt, rotating_frame):
+def construct_cheb_perturbations_jax(
+    operators, chebyshev_orders, carrier_freqs, dt, rotating_frame
+):
     """JAX version of construct_cheb_perturbations."""
 
     # define functions for constructing perturbations list

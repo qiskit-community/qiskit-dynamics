@@ -88,7 +88,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
 
         obj.simple_dyson_solver = PerturbativeSolver(
             operators=-1j * obj.hamiltonian_operators,
-            frame_operator=-1j * obj.static_hamiltonian,
+            rotating_frame=-1j * obj.static_hamiltonian,
             dt=obj.dt,
             carrier_freqs=[5.0],
             chebyshev_orders=[1],
@@ -100,7 +100,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         )
         obj.simple_magnus_solver = PerturbativeSolver(
             operators=-1j * obj.hamiltonian_operators,
-            frame_operator=-1j * obj.static_hamiltonian,
+            rotating_frame=-1j * obj.static_hamiltonian,
             dt=obj.dt,
             carrier_freqs=[5.0],
             chebyshev_orders=[1],
