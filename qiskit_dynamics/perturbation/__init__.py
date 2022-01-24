@@ -186,6 +186,7 @@ Perturbation module API
 """
 
 from .multiset import Multiset
+from .array_polynomial import ArrayPolynomial
 from .power_series_utils import MatrixPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
 from .perturbation_results import PerturbationResults
