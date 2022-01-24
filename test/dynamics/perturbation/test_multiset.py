@@ -17,7 +17,7 @@ import numpy as np
 from qiskit import QiskitError
 
 from qiskit_dynamics.perturbation import Multiset
-from qiskit_dynamics.perturbation.multiset import submultiset_filter
+from qiskit_dynamics.perturbation.multiset import submultiset_filter, clean_multisets, get_all_submultisets
 
 from ..common import QiskitDynamicsTestCase
 
@@ -45,13 +45,12 @@ class TestMultiset(QiskitDynamicsTestCase):
     def test_issubmultiset(self):
         """Test issubmultiset method."""
         B = Multiset({0: 2, 1: 1})
-        self.assertFalse(Multiset({2: 1}) <= B)
-        self.assertFalse(Multiset({0: 3}) <= B)
-        self.assertTrue(B >= Multiset({0: 1}))
-        self.assertTrue(Multiset({0: 1, 1: 1}) <= B)
-        self.assertTrue(Multiset({0: 2}) <= B)
-        self.assertTrue(B <= B)
-        self.assertTrue(B >= B)
+        self.assertFalse(Multiset({2: 1}).issubmultiset(B))
+        self.assertFalse(Multiset({0: 3}).issubmultiset(B))
+        self.assertTrue(Multiset({0: 1}).issubmultiset(B))
+        self.assertTrue(Multiset({0: 1, 1: 1}).issubmultiset(B))
+        self.assertTrue(Multiset({0: 2}).issubmultiset(B))
+        self.assertTrue(B.issubmultiset(B))
 
     def test_difference(self):
         """Test difference method."""
@@ -122,6 +121,14 @@ class TestMultiset(QiskitDynamicsTestCase):
         self.assertTrue(l_terms == expected_l_terms)
         self.assertTrue(r_terms == expected_r_terms)
 
+    def test_lt(self):
+        """Test less than."""
+        self.assertTrue(Multiset({0: 2}) < Multiset({1: 2}))
+        self.assertTrue(Multiset({0: 2}) < Multiset({0: 2, 1: 2}))
+        self.assertFalse(Multiset({0: 2}) < Multiset({0: 2}))
+        self.assertFalse(Multiset({0: 2, 1: 2}) < Multiset({0: 2}))
+        self.assertFalse(Multiset({1: 2}) < Multiset({0: 2}))
+
 
 class TestMultisetFunctions(QiskitDynamicsTestCase):
     """Test cases for multiset helper functions."""
@@ -142,126 +149,80 @@ class TestMultisetFunctions(QiskitDynamicsTestCase):
             submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates[1:]
         )
 
-
-'''
-class TestMultisetIndexConstruction(QiskitDynamicsTestCase):
-    """Test cases for construction of index multisets."""
-
-    def test_clean_index_multisets(self):
-        """Test clean_index_multisets."""
-        output = clean_index_multisets([[0], [1, 0], [0, 1, 0], [0, 0, 1]])
-        expected = [[0], [0, 1], [0, 0, 1]]
+    def test_clean_multisets(self):
+        """Test clean_multisets."""
+        output = clean_multisets([Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({0: 2, 1: 1}), Multiset({0: 2, 1: 1})])
+        expected = [Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({0: 2, 1: 1})]
         self.assertTrue(output == expected)
 
-        output = clean_index_multisets([[1, 2, 3], [0, 1], [3, 2, 1], [0]])
-        expected = [[1, 2, 3], [0, 1], [0]]
+        output = clean_multisets([Multiset({1: 1, 2: 1, 3: 1}), Multiset({0: 1, 1: 1}), Multiset({1: 1, 2: 1, 3: 1}), Multiset({0: 1})])
+        expected = [Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({1: 1, 2: 1, 3: 1})]
         self.assertTrue(output == expected)
 
-    def test_get_complete_index_multisets_terms_case1(self):
-        """Test get_complete_index_multisets case 1."""
+    def test_get_all_submultisets_case1(self):
+        """Test get_all_submultisets case 1."""
 
-        dyson_terms = [[2, 2, 0, 1], [1, 2]]
-        expected = [
-            [0],
-            [1],
-            [2],
-            [0, 1],
-            [0, 2],
-            [1, 2],
-            [2, 2],
-            [0, 1, 2],
-            [0, 2, 2],
-            [1, 2, 2],
-            [0, 1, 2, 2],
-        ]
+        multisets = [Multiset({2: 2, 0: 1, 1: 1}), Multiset({1: 1, 2: 1})]
+        expected = [Multiset({0: 1}),
+                    Multiset({1: 1}),
+                    Multiset({2: 1}),
+                    Multiset({0: 1, 1: 1}),
+                    Multiset({0: 1, 2: 1}),
+                    Multiset({1: 1, 2: 1}),
+                    Multiset({2: 2}),
+                    Multiset({0: 1, 1: 1, 2: 1}),
+                    Multiset({0: 1, 2: 2}),
+                    Multiset({1: 1, 2: 2}),
+                    Multiset({0: 1, 1: 1, 2: 2})]
+        output = get_all_submultisets(multisets)
+        self.assertTrue(expected == output)
 
-        self._test_get_complete_index_multisets(dyson_terms, expected)
+    def test_get_all_submultisets_case2(self):
+        """Test get_all_submultisets case 2."""
 
-    def test_get_complete_index_multisets_case2(self):
-        """Test get_complete_index_multisets case 2."""
+        multisets = [Multiset({2: 2, 0: 1, 3: 1}), Multiset({1: 1, 2: 1}), Multiset({0: 1}), Multiset({0: 1, 2: 2, 3: 1})]
+        expected = [Multiset({0: 1}),
+                    Multiset({1: 1}),
+                    Multiset({2: 1}),
+                    Multiset({3: 1}),
+                    Multiset({0: 1, 2: 1}),
+                    Multiset({0: 1, 3: 1}),
+                    Multiset({1: 1, 2: 1}),
+                    Multiset({2: 2}),
+                    Multiset({2: 1, 3: 1}),
+                    Multiset({0: 1, 2: 2}),
+                    Multiset({0: 1, 2: 1, 3: 1}),
+                    Multiset({2: 2, 3: 1}),
+                    Multiset({0: 1, 2: 2, 3: 1})]
+        output = get_all_submultisets(multisets)
+        self.assertTrue(expected == output)
 
-        dyson_terms = [[2, 2, 0, 3], [1, 2], [0], [0, 2, 2, 3]]
-        expected = [
-            [0],
-            [1],
-            [2],
-            [3],
-            [0, 2],
-            [0, 3],
-            [1, 2],
-            [2, 2],
-            [2, 3],
-            [0, 2, 2],
-            [0, 2, 3],
-            [2, 2, 3],
-            [0, 2, 2, 3],
-        ]
+    def test_get_all_submultisets_case3(self):
+        """Test get_all_submultisets case 3."""
 
-        self._test_get_complete_index_multisets(dyson_terms, expected)
-
-    def test_get_complete_index_multisets_case3(self):
-        """Test get_complete_index_multisets case 3."""
-
-        dyson_terms = [[0, 2, 1, 1, 3]]
-        expected = [
-            [0],
-            [1],
-            [2],
-            [3],
-            [0, 1],
-            [0, 2],
-            [0, 3],
-            [1, 1],
-            [1, 2],
-            [1, 3],
-            [2, 3],
-            [0, 1, 1],
-            [0, 1, 2],
-            [0, 1, 3],
-            [0, 2, 3],
-            [1, 1, 2],
-            [1, 1, 3],
-            [1, 2, 3],
-            [0, 1, 1, 2],
-            [0, 1, 1, 3],
-            [0, 1, 2, 3],
-            [1, 1, 2, 3],
-            [0, 1, 1, 2, 3],
-        ]
-
-        self._test_get_complete_index_multisets(dyson_terms, expected)
-
-    def _test_get_complete_index_multisets(self, symmetric_indices, expected):
-        """Run test case for _full_ordered_dyson_term_list."""
-        output = get_complete_index_multisets(symmetric_indices)
-
-        self.assertListEquality(expected, output)
-        self.assertIncreasingLen(output)
-
-    def assertIncreasingLen(self, term_list):
-        """Assert [len(x) for x in term_list] is increasing."""
-        self.assertTrue(np.all(np.diff([len(x) for x in term_list]) >= 0))
-
-    def assertListEquality(self, list_a, list_b):
-        """Assert two lists have the same elements."""
-        self.assertTrue(len(list_a) == len(list_b))
-
-        for item in list_a:
-            self.assertTrue(item in list_b)
-
-
-class TestMultisetFunctions(QiskitDynamicsTestCase):
-    """Test cases for multiset helper fucntions."""
-
-
-
-
-
-
-    def assertStrictListEquality(self, list_a, list_b):
-        """Assert two lists are exactly the same."""
-
-        self.assertTrue(len(list_a) == len(list_b))
-        for item_a, item_b in zip(list_a, list_b):
-            self.assertTrue(item_a == item_b)
-'''
+        multisets = [Multiset({0: 1, 1: 2, 2: 1, 3: 1})]
+        expected = [Multiset({0: 1}),
+                    Multiset({1: 1}),
+                    Multiset({2: 1}),
+                    Multiset({3: 1}),
+                    Multiset({0: 1, 1: 1}),
+                    Multiset({0: 1, 2: 1}),
+                    Multiset({0: 1, 3: 1}),
+                    Multiset({1: 2}),
+                    Multiset({1: 1, 2: 1}),
+                    Multiset({1: 1, 3: 1}),
+                    Multiset({2: 1, 3: 1}),
+                    Multiset({0: 1, 1: 2}),
+                    Multiset({0: 1, 1: 1, 2: 1}),
+                    Multiset({0: 1, 1: 1, 3: 1}),
+                    Multiset({0: 1, 2: 1, 3: 1}),
+                    Multiset({1: 2, 2: 1}),
+                    Multiset({1: 2, 3: 1}),
+                    Multiset({1: 1, 2: 1, 3: 1}),
+                    Multiset({0: 1, 1: 2, 2: 1}),
+                    Multiset({0: 1, 1: 2, 3: 1}),
+                    Multiset({0: 1, 1: 1, 2: 1, 3: 1}),
+                    Multiset({1: 2, 2: 1, 3: 1}),
+                    Multiset({0: 1, 1: 2, 2: 1, 3: 1})]
+        output = get_all_submultisets(multisets)
+        self.assertTrue(expected == output)
