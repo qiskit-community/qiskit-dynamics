@@ -190,7 +190,20 @@ class Testmerge_expansion_order_indices(QiskitDynamicsTestCase):
             perturbation_labels=perturbation_labels,
             symmetric=True,
         )
-        self.assertTrue(output == input_terms)
+        expected = [
+            [0, 1],
+            [0, 2],
+            [0, 0, 0],
+            [0, 0, 1],
+            [0, 0, 2],
+            [0, 1, 1],
+            [0, 1, 2],
+            [1, 1, 2],
+            [1, 2, 2],
+            [2, 2, 2],
+        ]
+        expected = [Multiset.from_list(label) for label in expected]
+        self.assertTrue(output == expected)
 
     def test_merge(self):
         """Test for when both expansion_labels and expansion_order
