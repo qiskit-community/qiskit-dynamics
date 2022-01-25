@@ -177,7 +177,8 @@ Perturbation module API
 .. autosummary::
     :toctree: ../stubs/
 
-    MatrixPolynomial
+    Multiset
+    ArrayPolynomial
     solve_lmde_perturbation
     PerturbationResults
     PerturbativeSolver
@@ -187,7 +188,6 @@ Perturbation module API
 
 from .multiset import Multiset
 from .array_polynomial import ArrayPolynomial
-from .power_series_utils import MatrixPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
 from .perturbation_results import PerturbationResults
 from .perturbative_solver import PerturbativeSolver
