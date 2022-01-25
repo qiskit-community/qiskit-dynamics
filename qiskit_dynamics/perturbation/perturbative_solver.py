@@ -25,7 +25,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
 from qiskit_dynamics import Signal, RotatingFrame
-from qiskit_dynamics.perturbation import solve_lmde_perturbation, MatrixPolynomial
+from qiskit_dynamics.perturbation import solve_lmde_perturbation, ArrayPolynomial
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 
@@ -187,14 +187,14 @@ class PerturbativeSolver:
             self._precomputation_results.perturbation_results.expansion_terms = (
                 Array(self.Udt) @ self._precomputation_results.perturbation_results.expansion_terms
             )
-            self._perturbation_polynomial = MatrixPolynomial(
-                matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
+            self._perturbation_polynomial = ArrayPolynomial(
+                array_coefficients=results.perturbation_results.expansion_terms[:, -1],
                 monomial_multisets=results.perturbation_results.expansion_labels,
                 constant_term=self.Udt,
             )
         elif self.expansion_method == "magnus":
-            self._perturbation_polynomial = MatrixPolynomial(
-                matrix_coefficients=results.perturbation_results.expansion_terms[:, -1],
+            self._perturbation_polynomial = ArrayPolynomial(
+                array_coefficients=results.perturbation_results.expansion_terms[:, -1],
                 monomial_multisets=results.perturbation_results.expansion_labels,
             )
 
@@ -224,7 +224,7 @@ class PerturbativeSolver:
         return self._rotating_frame
 
     @property
-    def perturbation_polynomial(self) -> MatrixPolynomial:
+    def perturbation_polynomial(self) -> ArrayPolynomial:
         """Matrix polynomial object for evaluating the perturbation series."""
         return self._perturbation_polynomial
 

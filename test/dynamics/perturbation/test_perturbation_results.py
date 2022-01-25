@@ -15,6 +15,7 @@
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.perturbation import Multiset
 from qiskit_dynamics.perturbation.perturbation_results import PerturbationResults
 
 from ..common import QiskitDynamicsTestCase
@@ -30,7 +31,6 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
             expansion_method="dyson",
             expansion_labels=[[0], [1], [0, 1]],
             expansion_terms=Array([5, 6, 7]),
-            sort_requested_labels=False,
         )
 
         self.assertTrue(results[[1]] == Array(6))
@@ -39,10 +39,9 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
         """Test that subscripting via __getitem__ works."""
 
         results = PerturbationResults(
-            expansion_method="dyson",
-            expansion_labels=[[0], [1], [0, 1]],
+            expansion_method="symmetric_dyson",
+            expansion_labels=[Multiset.from_list([0]), Multiset.from_list([1]), Multiset.from_list([0, 1])],
             expansion_terms=Array([5, 6, 7]),
-            sort_requested_labels=True,
         )
 
         self.assertTrue(results[[1, 0]] == Array(7))
@@ -54,7 +53,6 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
             expansion_method="dyson",
             expansion_labels=[[0], [1], [0, 1]],
             expansion_terms=Array([5, 6, 7]),
-            sort_requested_labels=False,
         )
 
         with self.assertRaises(QiskitError):
