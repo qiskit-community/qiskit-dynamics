@@ -14,12 +14,13 @@ r"""
 Class for storing results of perturbation theory computations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union
 from copy import copy
 from dataclasses import dataclass
 
 from qiskit import QiskitError
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.perturbation import Multiset
 
 
 @dataclass
@@ -32,8 +33,6 @@ class PerturbationResults:
         - ``expansion_labels``: A list of labels for the stored expanion terms.
         - ``expansion_terms``: A single array containing all expansion terms, whose first
           index is assumed to have corresponding ordering with ``expansion_labels``.
-        - ``sort_requested_labels``: When indexing the class (see below), whether or not
-          to sort the requested label before looking it up in ``expansion_labels``.
 
     Aside storing the above, this class can be subscripted to retrieve an entry of
     ``expansion_terms`` at the location at which a given ``label`` appears in
@@ -50,9 +49,8 @@ class PerturbationResults:
     expansion_method: str
     expansion_labels: List
     expansion_terms: Array
-    sort_requested_labels: Optional[bool] = False
 
-    def __getitem__(self, label: any) -> Array:
+    def __getitem__(self, label: Union[list, Multiset]) -> Array:
         """Return the expansion term with a given label.
 
         Return the entry of ``self.expansion_terms`` at the index at which
@@ -70,9 +68,11 @@ class PerturbationResults:
             QiskitError: If ``label`` is not in ``expansion_labels``.
         """
 
-        if self.sort_requested_labels:
-            label = copy(label)
-            label.sort()
+        if 'symmetric' in self.expansion_method:
+            if isinstance(label, list):
+                label = Multiset.from_list(label)
+            elif isinstance(label, dict):
+                label = Multiset(label)
 
         if label in self.expansion_labels:
             idx = self.expansion_labels.index(label)

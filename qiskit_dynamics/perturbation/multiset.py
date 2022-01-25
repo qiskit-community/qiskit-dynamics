@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 from itertools import combinations
 from collections import OrderedDict
 
@@ -29,6 +29,12 @@ class Multiset:
 
         validate_counts_dict(counts_dict)
         self._counts_dict = canonicalize_counts_dict(counts_dict)
+
+    @classmethod
+    def from_list(self, multiset_as_list: List[int]) -> 'Multiset':
+        """Construct a multiset from a list of indices."""
+        keys = set(multiset_as_list)
+        return Multiset({key: multiset_as_list.count(key) for key in keys})
 
     @property
     def counts_dict(self) -> OrderedDict[int, int]:
@@ -66,6 +72,15 @@ class Multiset:
 
         return Multiset(new_dict)
 
+    def as_list(self) -> List[int]:
+        """Return multiset in an ordered list format."""
+        self_list = []
+        for key, value in self.counts_dict.items():
+            self_list += [key] * value
+
+        return self_list
+
+
     def issubmultiset(self, other: 'Multiset') -> bool:
         """Check if self is a submultiset of other."""
 
@@ -93,10 +108,7 @@ class Multiset:
         if submultiset_bound is None or submultiset_bound > len(self):
             submultiset_bound = len(self)
 
-        # convert self to a list representation
-        self_list = []
-        for key, value in self.counts_dict.items():
-            self_list += [key] * value
+        self_list = self.as_list()
 
         submultisets = []
         complements = []
@@ -120,8 +132,8 @@ class Multiset:
         keys = self.counts_dict.keys()
 
         # convert back to proper dict representation
-        formatted_submultisets = [Multiset({key: submultiset.count(key) for key in keys}) for submultiset in submultisets]
-        formatted_complements = [Multiset({key: complement.count(key) for key in keys}) for complement in complements]
+        formatted_submultisets = [Multiset.from_list(submultiset) for submultiset in submultisets]
+        formatted_complements = [Multiset.from_list(complement) for complement in complements]
 
         return formatted_submultisets, formatted_complements
 
@@ -225,7 +237,7 @@ def submultiset_filter(multiset_candidates: List[Multiset], multiset_list: List[
     return filtered_multisets
 
 
-def clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
+def clean_multisets(multisets: List[Union[Multiset, dict, list]]) -> List[Multiset]:
     """Given a list of multisets, put them in order of non-decreasing length and
     remove duplicates.
 
@@ -237,6 +249,11 @@ def clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
 
     unique_multisets = []
     for multiset in multisets:
+        if isinstance(multiset, list):
+            multiset = Multiset.from_list(multiset)
+        elif isinstance(multiset, dict):
+            multiset = Multiset(multiset)
+
         if multiset not in unique_multisets:
             unique_multisets.append(multiset)
 

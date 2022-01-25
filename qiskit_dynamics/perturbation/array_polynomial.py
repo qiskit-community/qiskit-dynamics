@@ -246,15 +246,7 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
     current_len = 2
 
     # convert multisets to list representation
-    multisets_as_lists = []
-    for multiset in complete_multisets:
-        new_list = []
-        for key, value in multiset.counts_dict.items():
-            new_list += [key] * value
-
-        multisets_as_lists.append(new_list)
-
-    complete_multisets = multisets_as_lists
+    complete_multisets = [multiset.as_list() for multiset in complete_multisets]
 
     for multiset in complete_multisets:
         if len(multiset) == 1:

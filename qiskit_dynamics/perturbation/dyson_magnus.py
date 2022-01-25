@@ -29,7 +29,7 @@ References:
     5. Forthcoming
 """
 
-from typing import Optional, List, Callable, Tuple
+from typing import Optional, List, Callable, Tuple, Union
 
 import numpy as np
 from scipy.special import factorial
@@ -46,14 +46,7 @@ from qiskit_dynamics.perturbation.custom_dot import (
     custom_dot_jax,
 )
 
-from .power_series_utils import (
-    get_complete_index_multisets,
-    clean_index_multisets,
-    submultisets_and_complements,
-    is_submultiset,
-    multiset_complement,
-    submultiset_filter,
-)
+from qiskit_dynamics.perturbation.multiset import Multiset, get_all_submultisets, submultiset_filter
 
 from .perturbation_results import PerturbationResults
 
@@ -114,7 +107,7 @@ def solve_lmde_dyson(
     # construct term list an RHS based on whether symmetric or not
     complete_term_list = None
     if symmetric:
-        complete_term_list = get_complete_index_multisets(dyson_terms)
+        complete_term_list = get_all_submultisets(dyson_terms)
     else:
         complete_term_list = get_complete_dyson_indices(dyson_terms)
 
@@ -148,16 +141,13 @@ def solve_lmde_dyson(
             dyson_terms[idx] = np.linalg.solve(results.y, dyson_term)
 
     expansion_method = "dyson"
-    sort_requested_labels = False
     if symmetric:
         expansion_method = "symmetric_dyson"
-        sort_requested_labels = True
 
     results.perturbation_results = PerturbationResults(
         expansion_method=expansion_method,
         expansion_labels=complete_term_list,
         expansion_terms=Array(dyson_terms),
-        sort_requested_labels=sort_requested_labels,
     )
 
     return results
@@ -277,7 +267,7 @@ def solve_lmde_dyson_jax(
     # construct term list an RHS based on whether symmetric or not
     complete_term_list = None
     if symmetric:
-        complete_term_list = get_complete_index_multisets(dyson_terms)
+        complete_term_list = get_all_submultisets(dyson_terms)
     else:
         complete_term_list = get_complete_dyson_indices(dyson_terms)
 
@@ -309,16 +299,13 @@ def solve_lmde_dyson_jax(
         dyson_terms = vmap(lambda x: jnp.linalg.solve(results.y, x))(dyson_terms)
 
     expansion_method = "dyson"
-    sort_requested_labels = False
     if symmetric:
         expansion_method = "symmetric_dyson"
-        sort_requested_labels = True
 
     results.perturbation_results = PerturbationResults(
         expansion_method=expansion_method,
         expansion_labels=complete_term_list,
         expansion_terms=Array(dyson_terms, backend="jax"),
-        sort_requested_labels=sort_requested_labels,
     )
 
     return results
@@ -767,9 +754,7 @@ def q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
         # need to consider all possible sub-multisets of the symmetric index
         # in q_term
         products = []
-        submultisets, complements = submultisets_and_complements(
-            sym_index, len(sym_index) - (q_term_order - 1) + 1
-        )
+        submultisets, complements = sym_index.submultisets_and_complements(len(sym_index) - (q_term_order - 1) + 1)
 
         for subset, complement in zip(submultisets, complements):
             product = [
@@ -811,7 +796,7 @@ def get_q_term_list(complete_index_multisets: List) -> List:
 
 
 def get_symmetric_dyson_lmult_rule(
-    complete_index_multisets: List, perturbation_labels: Optional[List[List]] = None
+    complete_index_multisets: List[Multiset], perturbation_labels: Optional[List[Multiset]] = None
 ) -> List:
     """Given a complete list of index multisets, return
     the lmult rule in the format required for ``CustomProduct``.
@@ -819,10 +804,10 @@ def get_symmetric_dyson_lmult_rule(
     it will be prepended to the list of A matrices.
 
     While not required within the logic of this function, the input
-    should be canonically ordered according to ``get_complete_index_multisets``.
+    should be canonically ordered according to ``get_all_submultisets``.
 
     Args:
-        complete_index_multisets: List of complete symmetric indices.
+        complete_index_multisets: List of complete multisets.
         perturbation_labels: List of index multisets describing perturbations.
 
     Returns:
@@ -851,11 +836,11 @@ def get_symmetric_dyson_lmult_rule(
             lmult_indices = [[-1, term_idx]]
 
             for l_idx, l_term in enumerate(perturbation_labels):
-                if is_submultiset(l_term, term):
+                if l_term.issubmultiset(term):
                     if len(l_term) == len(term):
                         lmult_indices.append([l_idx, -1])
                     else:
-                        r_term = multiset_complement(l_term, term)
+                        r_term = term.difference(l_term)
                         r_idx = complete_index_multisets.index(r_term)
                         lmult_indices.append([l_idx, r_idx])
 

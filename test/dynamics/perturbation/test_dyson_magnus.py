@@ -15,6 +15,7 @@
 
 import numpy as np
 
+from qiskit_dynamics.perturbation import Multiset
 from qiskit_dynamics.perturbation.dyson_magnus import (
     get_symmetric_dyson_lmult_rule,
     get_complete_dyson_indices,
@@ -43,7 +44,7 @@ class TestSymmetricMagnusFromDyson(QiskitDynamicsTestCase):
     def test_symmetric_magnus_from_dyson_case1(self):
         """Case 1: a single base index to high order."""
 
-        oc_symmetric_indices = [[0], [0, 0], [0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0]]
+        oc_symmetric_indices = [Multiset({0: k}) for k in range(1, 6)]
 
         # random dyson terms
         rng = np.random.default_rng(9381)
@@ -90,7 +91,8 @@ class TestSymmetricMagnusFromDyson(QiskitDynamicsTestCase):
     def test_symmetric_magnus_from_dyson_case2(self):
         """Case 2: two base indices."""
 
-        oc_symmetric_indices = [[0], [1], [0, 0], [0, 1], [1, 1], [0, 0, 1]]
+        oc_symmetric_indices = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 2}),
+                                Multiset({0: 1, 1: 1}), Multiset({1: 2}), Multiset({0: 2, 1: 1})]
 
         # random dyson terms
         rng = np.random.default_rng(12412)
@@ -123,7 +125,8 @@ class TestSymmetricMagnusFromDyson(QiskitDynamicsTestCase):
     def test_symmetric_magnus_from_dyson_case3(self):
         """Case 3: missing intermediate indices."""
 
-        oc_symmetric_indices = [[0], [2], [0, 0], [0, 2], [0, 0, 2]]
+        oc_symmetric_indices = [Multiset({0: 1}), Multiset({2: 1}), Multiset({0: 2}),
+                                Multiset({0: 1, 2: 1}), Multiset({0: 2, 2: 1})]
 
         # random dyson terms
         rng = np.random.default_rng(12398)
@@ -154,7 +157,7 @@ class TestSymmetricMagnusFromDyson(QiskitDynamicsTestCase):
     def test_symmetric_magnus_from_dyson_1st_order(self):
         """Test special handling when only first order terms are present."""
 
-        oc_symmetric_indices = [[0], [2]]
+        oc_symmetric_indices = [Multiset({0: 1}), Multiset({2: 1})]
 
         # random dyson terms
         rng = np.random.default_rng(12398)
@@ -169,7 +172,8 @@ class TestSymmetricMagnusFromDyson(QiskitDynamicsTestCase):
         the dyson terms and magnus terms are defined as a 3d array.
         """
 
-        oc_symmetric_indices = [[0], [2], [0, 0], [0, 2], [0, 0, 2]]
+        oc_symmetric_indices = [Multiset({0: 1}), Multiset({2: 1}), Multiset({0: 2}),
+                                Multiset({0: 1, 2: 1}), Multiset({0: 2, 2: 1})]
 
         # random dyson terms
         rng = np.random.default_rng(12398)
@@ -206,7 +210,8 @@ class TestSymmetricMagnusFromDysonJax(TestSymmetricMagnusFromDyson, TestJaxBase)
     def test_magnus_from_dyson_jit(self):
         """Test that the function works with jitting."""
 
-        oc_symmetric_indices = [[0], [2], [0, 0], [0, 2], [0, 0, 2]]
+        oc_symmetric_indices = [Multiset({0: 1}), Multiset({2: 1}), Multiset({0: 2}),
+                                Multiset({0: 1, 2: 1}), Multiset({0: 2, 2: 1})]
 
         # random dyson terms
         rng = np.random.default_rng(12398)
@@ -247,8 +252,9 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
         """Test q_term list construction case 1."""
 
         oc_symmetric_indices = [[0], [1], [0, 1]]
+        oc_symmetric_indices = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 1, 1: 1})]
         output = get_q_term_list(oc_symmetric_indices)
-        expected = [([0], 1), ([1], 1), ([0, 1], 2), ([0, 1], 1)]
+        expected = [(Multiset({0: 1}), 1), (Multiset({1: 1}), 1), (Multiset({0: 1, 1: 1}), 2), (Multiset({0: 1, 1: 1}), 1)]
 
         self.assertTrue(output == expected)
 
@@ -256,22 +262,23 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
         """Test q_term list construction case 2."""
 
         oc_symmetric_indices = [[0], [1], [2], [0, 1], [0, 2], [1, 1], [1, 2], [1, 1, 2]]
+        oc_symmetric_indices = [Multiset.from_list(multiset) for multiset in oc_symmetric_indices]
         output = get_q_term_list(oc_symmetric_indices)
         expected = [
-            ([0], 1),
-            ([1], 1),
-            ([2], 1),
-            ([0, 1], 2),
-            ([0, 1], 1),
-            ([0, 2], 2),
-            ([0, 2], 1),
-            ([1, 1], 2),
-            ([1, 1], 1),
-            ([1, 2], 2),
-            ([1, 2], 1),
-            ([1, 1, 2], 3),
-            ([1, 1, 2], 2),
-            ([1, 1, 2], 1),
+            (Multiset.from_list([0]), 1),
+            (Multiset.from_list([1]), 1),
+            (Multiset.from_list([2]), 1),
+            (Multiset.from_list([0, 1]), 2),
+            (Multiset.from_list([0, 1]), 1),
+            (Multiset.from_list([0, 2]), 2),
+            (Multiset.from_list([0, 2]), 1),
+            (Multiset.from_list([1, 1]), 2),
+            (Multiset.from_list([1, 1]), 1),
+            (Multiset.from_list([1, 2]), 2),
+            (Multiset.from_list([1, 2]), 1),
+            (Multiset.from_list([1, 1, 2]), 3),
+            (Multiset.from_list([1, 1, 2]), 2),
+            (Multiset.from_list([1, 1, 2]), 1),
         ]
 
         self.assertTrue(output == expected)
@@ -279,13 +286,14 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
     def test_q_product_rule_case1(self):
         """Test construction of the q_product_rule."""
         oc_q_terms = [([0], 1), ([1], 1), ([0, 1], 2), ([0, 1], 1)]
+        oc_q_terms = [(Multiset.from_list(x), y) for (x,y) in oc_q_terms]
 
-        q_term = ([0, 1], 2)
+        q_term = (Multiset.from_list([0, 1]), 2)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [(np.array([1.0, 1.0]), np.array([[0, 1], [1, 0]]))]
         self.assertMultRulesEqual(output, expected)
 
-        q_term = ([0, 1], 1)
+        q_term = (Multiset.from_list([0, 1]), 1)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [(np.array([1.0, -0.5]), np.array([[-1, 3], [-1, 2]]))]
         self.assertMultRulesEqual(output, expected)
@@ -306,20 +314,21 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
             ([0, 1, 2], 2),
             ([0, 1, 2], 1),
         ]
+        oc_q_terms = [(Multiset.from_list(x), y) for (x,y) in oc_q_terms]
 
-        q_term = ([0, 1, 2], 3)
+        q_term = (Multiset.from_list([0, 1, 2]), 3)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [(np.array([1.0, 1.0, 1.0]), np.array([[0, 7], [1, 5], [2, 3]]))]
         self.assertMultRulesEqual(output, expected)
 
-        q_term = ([0, 1, 2], 2)
+        q_term = (Multiset.from_list([0, 1, 2]), 2)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [
             (np.ones(6, dtype=float), np.array([[0, 8], [1, 6], [2, 4], [4, 2], [6, 1], [8, 0]]))
         ]
         self.assertMultRulesEqual(output, expected)
 
-        q_term = ([0, 1, 2], 1)
+        q_term = (Multiset.from_list([0, 1, 2]), 1)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [
             (np.array([1.0, -(1.0 / 2), -(1.0 / 6)]), np.array([[-1, 11], [-1, 10], [-1, 9]]))
@@ -502,8 +511,10 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         decomposition case 1.
         """
 
-        complete_symmetric_dyson_terms = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
         perturbation_labels = [[0], [1], [0, 1], [1, 1]]
+        perturbation_labels = [Multiset.from_list(label) for label in perturbation_labels]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -514,7 +525,7 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         ]
 
         self._test_get_symmetric_dyson_lmult_rule(
-            complete_symmetric_dyson_terms,
+            expansion_labels,
             expected_lmult_rule,
             perturbation_labels=perturbation_labels,
         )
@@ -524,8 +535,10 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         decomposition case 2.
         """
 
-        complete_symmetric_dyson_terms = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
         perturbation_labels = [[0], [1], [2], [0, 1]]
+        perturbation_labels = [Multiset.from_list(label) for label in perturbation_labels]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -536,14 +549,15 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         ]
 
         self._test_get_symmetric_dyson_lmult_rule(
-            complete_symmetric_dyson_terms,
+            expansion_labels,
             expected_lmult_rule,
             perturbation_labels=perturbation_labels,
         )
 
     def test_get_symmetric_dyson_lmult_rule_case1(self):
         """Test _get_symmetric_dyson_lmult_rule case 1."""
-        complete_symmetric_dyson_terms = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -554,12 +568,12 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
         ]
 
         self._test_get_symmetric_dyson_lmult_rule(
-            complete_symmetric_dyson_terms, expected_lmult_rule
+            expansion_labels, expected_lmult_rule
         )
 
     def test_get_symmetric_dyson_lmult_rule_case2(self):
         """Test _get_symmetric_dyson_lmult_rule case 2."""
-        term_list = [
+        expansion_labels = [
             [0],
             [1],
             [2],
@@ -584,6 +598,7 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
             [1, 1, 2, 3],
             [0, 1, 1, 2, 3],
         ]
+        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -611,7 +626,7 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
             (np.ones(5, dtype=float), np.array([[-1, 22], [0, 21], [1, 20], [2, 19], [3, 18]])),
         ]
 
-        self._test_get_symmetric_dyson_lmult_rule(term_list, expected_lmult_rule)
+        self._test_get_symmetric_dyson_lmult_rule(expansion_labels, expected_lmult_rule)
 
     def _test_get_symmetric_dyson_lmult_rule(
         self, complete_symmetric_dyson_term_list, expected, perturbation_labels=None

@@ -17,7 +17,7 @@ r"""
 Compute perturbation theory terms for an LMDE.
 """
 
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Union
 from itertools import combinations_with_replacement, product
 
 # pylint: disable=unused-import
@@ -27,12 +27,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics import solve_ode
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation.power_series_utils import clean_index_multisets
-from qiskit_dynamics.perturbation.custom_dot import (
-    compile_custom_dot_rule,
-    custom_dot,
-    custom_dot_jax,
-)
+from qiskit_dynamics.perturbation.multiset import Multiset, clean_multisets
 
 from qiskit_dynamics.perturbation.dyson_magnus import (
     solve_lmde_dyson,
@@ -216,11 +211,14 @@ def solve_lmde_perturbation(
 
         # validate perturbation_labels
         perturbations_len = len(perturbation_labels)
-        perturbation_labels = clean_index_multisets(perturbation_labels)
+        perturbation_labels = clean_multisets(perturbation_labels)
         if len(perturbation_labels) != perturbations_len:
             raise QiskitError("perturbation_labels argument contains duplicates as multisets.")
     else:
-        perturbation_labels = [[idx] for idx in range(len(perturbations))]
+        if 'symmetric' in expansion_method:
+            perturbation_labels = [Multiset({idx: 1}) for idx in range(len(perturbations))]
+        else:
+            perturbation_labels = [[k] for k in range(len(perturbations))]
 
     # merge expansion_order and expansion_labels args
     expansion_labels = merge_expansion_order_indices(
@@ -288,7 +286,7 @@ def solve_lmde_perturbation(
 
 
 def merge_expansion_order_indices(
-    expansion_order: int, expansion_labels: List, perturbation_labels: List[int], symmetric: bool
+    expansion_order: int, expansion_labels: Union[List[Multiset], List[int], None], perturbation_labels: List[Multiset], symmetric: bool
 ) -> List:
     """Combine ``expansion_order`` and ``expansion_labels`` into a single
     explicit list of perturbation terms to compute. It is assumed that at least
@@ -311,6 +309,13 @@ def merge_expansion_order_indices(
         expansion_labels.
     """
 
+    if symmetric:
+        # convert to list representation for calculation
+        if expansion_labels is not None:
+            expansion_labels = clean_multisets(expansion_labels)
+            expansion_labels = [label.as_list() for label in expansion_labels]
+        perturbation_labels = [label.as_list() for label in perturbation_labels]
+
     # determine unique indices in perturbation_labels
     unique_indices = []
     for multiset in perturbation_labels:
@@ -328,5 +333,8 @@ def merge_expansion_order_indices(
         else:
             up_to_order_terms = list(map(list, product(unique_indices, repeat=expansion_order)))
         expansion_labels = expansion_labels + up_to_order_terms
+
+    if symmetric:
+        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
 
     return expansion_labels
