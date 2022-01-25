@@ -12,7 +12,7 @@
 
 """Multiset classes and functions."""
 
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional, Union, Dict
 from itertools import combinations
 from collections import OrderedDict
 
@@ -61,7 +61,7 @@ class Multiset:
     sorted list with repeated entries.
     """
 
-    def __init__(self, counts_dict: dict[int, int]):
+    def __init__(self, counts_dict: Dict[int, int]):
         """Construct a multiset from a dictionary of counts.
 
         Args:
@@ -242,7 +242,7 @@ def validate_counts_dict(counts_dict: dict):
             raise QiskitError("counts_dict values must be non-negative integers.")
 
 
-def canonicalize_counts_dict(counts_dict: dict[int, int]) -> OrderedDict[int, int]:
+def canonicalize_counts_dict(counts_dict: Dict[int, int]) -> OrderedDict[int, int]:
     """Delete empty parts of the counts dict, and return as an OrderedDict sorted by keys.
 
     Args:
