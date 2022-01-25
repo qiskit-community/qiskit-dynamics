@@ -15,8 +15,6 @@ Array polynomial.
 """
 
 from typing import List, Optional, Callable, Tuple
-from copy import deepcopy
-from itertools import combinations
 
 import numpy as np
 
@@ -141,7 +139,7 @@ def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
     order terms.
 
     Args:
-        complete_multisets: list of multisets.
+        multisets: list of multisets.
 
     Returns:
         Callable: Vectorized function for computing monomials.
@@ -179,6 +177,7 @@ def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
     return monomial_function
 
 
+# pylint: disable=invalid-name
 def get_monomial_compute_function_jax(multisets: List) -> Callable:
     """JAX version of get_monomial_compute_function."""
 

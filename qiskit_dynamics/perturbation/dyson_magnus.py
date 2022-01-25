@@ -29,7 +29,7 @@ References:
     5. Forthcoming
 """
 
-from typing import Optional, List, Callable, Tuple, Union
+from typing import Optional, List, Callable, Tuple
 
 import numpy as np
 from scipy.special import factorial
@@ -754,7 +754,9 @@ def q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
         # need to consider all possible sub-multisets of the symmetric index
         # in q_term
         products = []
-        submultisets, complements = sym_index.submultisets_and_complements(len(sym_index) - (q_term_order - 1) + 1)
+        submultisets, complements = sym_index.submultisets_and_complements(
+            len(sym_index) - (q_term_order - 1) + 1
+        )
 
         for subset, complement in zip(submultisets, complements):
             product = [

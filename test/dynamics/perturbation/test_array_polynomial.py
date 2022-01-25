@@ -34,11 +34,13 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
 
         rng = np.random.default_rng(18471)
         coeffs = rng.uniform(low=-1, high=1, size=(5, 10, 10))
-        monomial_multisets = [Multiset({0: 1}),
-                              Multiset({1: 1}),
-                              Multiset({0: 2}),
-                              Multiset({0: 1, 1: 1}),
-                              Multiset({1: 2})]
+        monomial_multisets = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({1: 2}),
+        ]
 
         ap = ArrayPolynomial(coeffs, monomial_multisets)
 
@@ -67,12 +69,14 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
     def test_compute_monomials_simple_case(self):
         """Simple test case for compute_monomials."""
 
-        multiset_list = [Multiset({0: 1}),
-                              Multiset({1: 1}),
-                              Multiset({0: 2}),
-                              Multiset({0: 1, 1: 1}),
-                              Multiset({1: 2}),
-                              Multiset({0: 3})]
+        multiset_list = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({1: 2}),
+            Multiset({0: 3}),
+        ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
 
@@ -90,13 +94,15 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
     def test_compute_monomials_skipped_variable(self):
         """Test compute monomials case with skipped variable."""
 
-        multiset_list = [Multiset({0: 1}),
-                         Multiset({2: 1}),
-                         Multiset({0: 2}),
-                         Multiset({0: 1, 2: 1}),
-                         Multiset({2: 2}),
-                         Multiset({0: 3}),
-                         Multiset({0: 2, 2: 1})]
+        multiset_list = [
+            Multiset({0: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({2: 2}),
+            Multiset({0: 3}),
+            Multiset({0: 2, 2: 1}),
+        ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
 
@@ -121,21 +127,23 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
 
     def test_compute_monomials_medium_case(self):
         """Test compute_monomials medium complexity test case."""
-        multiset_list = [Multiset({0: 1}),
-                         Multiset({1: 1}),
-                         Multiset({2: 1}),
-                         Multiset({0: 2}),
-                         Multiset({0: 1, 1: 1}),
-                         Multiset({0: 1, 2: 1}),
-                         Multiset({1: 2}),
-                         Multiset({1: 1, 2: 1}),
-                         Multiset({2: 2}),
-                         Multiset({0: 3}),
-                         Multiset({0: 2, 1: 1}),
-                         Multiset({0: 1, 1: 1, 2: 1}),
-                         Multiset({2: 3}),
-                         Multiset({0: 3, 1: 1}),
-                         Multiset({2: 4})]
+        multiset_list = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({1: 2}),
+            Multiset({1: 1, 2: 1}),
+            Multiset({2: 2}),
+            Multiset({0: 3}),
+            Multiset({0: 2, 1: 1}),
+            Multiset({0: 1, 1: 1, 2: 1}),
+            Multiset({2: 3}),
+            Multiset({0: 3, 1: 1}),
+            Multiset({2: 4}),
+        ]
 
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
@@ -169,21 +177,23 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
 
     def test_compute_monomials_vectorized(self):
         """Test vectorized evaluation."""
-        multiset_list = [Multiset({0: 1}),
-                         Multiset({1: 1}),
-                         Multiset({2: 1}),
-                         Multiset({0: 2}),
-                         Multiset({0: 1, 1: 1}),
-                         Multiset({0: 1, 2: 1}),
-                         Multiset({1: 2}),
-                         Multiset({1: 1, 2: 1}),
-                         Multiset({2: 2}),
-                         Multiset({0: 3}),
-                         Multiset({0: 2, 1: 1}),
-                         Multiset({0: 1, 1: 1, 2: 1}),
-                         Multiset({2: 3}),
-                         Multiset({0: 3, 1: 1}),
-                         Multiset({2: 4})]
+        multiset_list = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({1: 2}),
+            Multiset({1: 1, 2: 1}),
+            Multiset({2: 2}),
+            Multiset({0: 3}),
+            Multiset({0: 2, 1: 1}),
+            Multiset({0: 1, 1: 1, 2: 1}),
+            Multiset({2: 3}),
+            Multiset({0: 3, 1: 1}),
+            Multiset({2: 4}),
+        ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
 
@@ -243,8 +253,14 @@ class TestArrayPolynomialJax(TestArrayPolynomial, TestJaxBase):
     def test_jit_compute_monomials(self):
         """Test jitting works."""
 
-        multiset_list = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 2}),
-                         Multiset({0: 1, 1: 1}), Multiset({1: 2}), Multiset({0: 3})]
+        multiset_list = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({1: 2}),
+            Multiset({0: 3}),
+        ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
         mp = ArrayPolynomial(coeffs, multiset_list)
@@ -259,8 +275,13 @@ class TestArrayPolynomialJax(TestArrayPolynomial, TestJaxBase):
     def test_compute_monomials_grad(self):
         """Test grad works."""
 
-        multiset_list = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 2}),
-                         Multiset({0: 1, 1: 1}), Multiset({1: 2})]
+        multiset_list = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({1: 2}),
+        ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
         mp = ArrayPolynomial(coeffs, multiset_list)

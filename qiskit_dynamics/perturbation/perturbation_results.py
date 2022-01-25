@@ -14,8 +14,7 @@ r"""
 Class for storing results of perturbation theory computations.
 """
 
-from typing import List, Optional, Union
-from copy import copy
+from typing import List, Union
 from dataclasses import dataclass
 
 from qiskit import QiskitError
@@ -68,7 +67,7 @@ class PerturbationResults:
             QiskitError: If ``label`` is not in ``expansion_labels``.
         """
 
-        if 'symmetric' in self.expansion_method:
+        if "symmetric" in self.expansion_method:
             if isinstance(label, list):
                 label = Multiset.from_list(label)
             elif isinstance(label, dict):

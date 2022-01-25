@@ -10,11 +10,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Multiset classes and functions."""
+
 from typing import List, Tuple, Optional, Union
 from itertools import combinations
 from collections import OrderedDict
 
 from qiskit import QiskitError
+
 
 class Multiset:
     """A multiset whose elements are integers."""
@@ -31,7 +34,7 @@ class Multiset:
         self._counts_dict = canonicalize_counts_dict(counts_dict)
 
     @classmethod
-    def from_list(self, multiset_as_list: List[int]) -> 'Multiset':
+    def from_list(cls, multiset_as_list: List[int]) -> "Multiset":
         """Construct a multiset from a list of indices."""
         keys = set(multiset_as_list)
         return Multiset({key: multiset_as_list.count(key) for key in keys})
@@ -49,7 +52,7 @@ class Multiset:
         """Get the count of an element in self."""
         return self.counts_dict.get(element, 0)
 
-    def union(self, other: 'Multiset') -> 'Multiset':
+    def union(self, other: "Multiset") -> "Multiset":
         """Multiset union of self with other."""
 
         unique_elements = self.unique().union(other.unique())
@@ -60,7 +63,7 @@ class Multiset:
 
         return Multiset(new_dict)
 
-    def difference(self, other: 'Multiset') -> 'Multiset':
+    def difference(self, other: "Multiset") -> "Multiset":
         """Multiset difference of other from self."""
         unique_elements = self.unique()
 
@@ -80,8 +83,7 @@ class Multiset:
 
         return self_list
 
-
-    def issubmultiset(self, other: 'Multiset') -> bool:
+    def issubmultiset(self, other: "Multiset") -> bool:
         """Check if self is a submultiset of other."""
 
         for elem in self.unique():
@@ -90,7 +92,9 @@ class Multiset:
 
         return True
 
-    def submultisets_and_complements(self, submultiset_bound: Optional[int] = None) -> Tuple[List['Multiset'], List['Multiset']]:
+    def submultisets_and_complements(
+        self, submultiset_bound: Optional[int] = None
+    ) -> Tuple[List["Multiset"], List["Multiset"]]:
         """Return a pair of lists giving all submultisets of size smaller than
         submultiset_bound, and corresponding complements.
 
@@ -129,27 +133,25 @@ class Multiset:
                     submultisets.append(subset)
                     complements.append(complement)
 
-        keys = self.counts_dict.keys()
-
         # convert back to proper dict representation
         formatted_submultisets = [Multiset.from_list(submultiset) for submultiset in submultisets]
         formatted_complements = [Multiset.from_list(complement) for complement in complements]
 
         return formatted_submultisets, formatted_complements
 
-    def __eq__(self, other: 'Multiset') -> bool:
+    def __eq__(self, other: "Multiset") -> bool:
         """Check if other == self."""
         return self.counts_dict == other.counts_dict
 
-    def __add__(self, other: 'Multiset') -> 'Multiset':
+    def __add__(self, other: "Multiset") -> "Multiset":
         """Dunder method for union."""
         return self.union(other)
 
-    def __sub__(self, other: 'Multiset') -> 'Multiset':
+    def __sub__(self, other: "Multiset") -> "Multiset":
         """Dunder method for difference."""
         return self.difference(other)
 
-    def __lt__(self, other: 'Multiset') -> bool:
+    def __lt__(self, other: "Multiset") -> bool:
         """Implements an ordering on multisets."""
         if len(self) < len(other):
             return True
@@ -177,10 +179,10 @@ class Multiset:
         return sum(self.counts_dict.values())
 
     def __str__(self) -> str:
-        return 'Multiset({})'.format(str(dict(self.counts_dict)))
+        return "Multiset({})".format(str(dict(self.counts_dict)))
 
     def __repr__(self) -> str:
-        return 'Multiset({})'.format(str(self.counts_dict))
+        return "Multiset({})".format(str(self.counts_dict))
 
 
 def validate_counts_dict(counts_dict: dict):
@@ -195,10 +197,10 @@ def validate_counts_dict(counts_dict: dict):
 
     for key, val in counts_dict.items():
         if not isinstance(key, int) or not isinstance(val, int):
-            raise QiskitError('counts_dict keys and values must be integers.')
+            raise QiskitError("counts_dict keys and values must be integers.")
 
         if val < 0:
-            raise QiskitError('counts_dict values must be non-negative integers.')
+            raise QiskitError("counts_dict values must be non-negative integers.")
 
 
 def canonicalize_counts_dict(counts_dict: dict[int, int]) -> OrderedDict[int, int]:
@@ -222,7 +224,9 @@ def canonicalize_counts_dict(counts_dict: dict[int, int]) -> OrderedDict[int, in
     return new_dict
 
 
-def submultiset_filter(multiset_candidates: List[Multiset], multiset_list: List[Multiset]) -> List[Multiset]:
+def submultiset_filter(
+    multiset_candidates: List[Multiset], multiset_list: List[Multiset]
+) -> List[Multiset]:
     """Filter the list of multiset_candidates based on whether they are a
     submultiset of an element in multiset_list.
     """

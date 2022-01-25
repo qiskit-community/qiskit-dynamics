@@ -210,7 +210,11 @@ class Testmerge_expansion_order_indices(QiskitDynamicsTestCase):
         are specified."""
 
         extra_terms = [Multiset({0: 3}), Multiset({0: 1, 1: 1, 2: 1})]
-        perturbation_labels = [Multiset.from_list([0]), Multiset.from_list([1]), Multiset.from_list([2])]
+        perturbation_labels = [
+            Multiset.from_list([0]),
+            Multiset.from_list([1]),
+            Multiset.from_list([2]),
+        ]
         output = merge_expansion_order_indices(
             expansion_order=2,
             expansion_labels=extra_terms,
@@ -227,7 +231,11 @@ class Testmerge_expansion_order_indices(QiskitDynamicsTestCase):
         are specified, with terms skipped"""
 
         extra_terms = [Multiset({0: 3}), Multiset({0: 1, 1: 1, 2: 1})]
-        perturbation_labels = [Multiset.from_list([0]), Multiset.from_list([2]), Multiset.from_list([3])]
+        perturbation_labels = [
+            Multiset.from_list([0]),
+            Multiset.from_list([2]),
+            Multiset.from_list([3]),
+        ]
         output = merge_expansion_order_indices(
             expansion_order=2,
             expansion_labels=extra_terms,

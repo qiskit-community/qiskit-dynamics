@@ -215,7 +215,7 @@ def solve_lmde_perturbation(
         if len(perturbation_labels) != perturbations_len:
             raise QiskitError("perturbation_labels argument contains duplicates as multisets.")
     else:
-        if 'symmetric' in expansion_method:
+        if "symmetric" in expansion_method:
             perturbation_labels = [Multiset({idx: 1}) for idx in range(len(perturbations))]
         else:
             perturbation_labels = [[k] for k in range(len(perturbations))]
@@ -286,7 +286,10 @@ def solve_lmde_perturbation(
 
 
 def merge_expansion_order_indices(
-    expansion_order: int, expansion_labels: Union[List[Multiset], List[int], None], perturbation_labels: List[Multiset], symmetric: bool
+    expansion_order: int,
+    expansion_labels: Union[List[Multiset], List[int], None],
+    perturbation_labels: List[Multiset],
+    symmetric: bool,
 ) -> List:
     """Combine ``expansion_order`` and ``expansion_labels`` into a single
     explicit list of perturbation terms to compute. It is assumed that at least

@@ -91,8 +91,14 @@ class TestSymmetricMagnusFromDyson(QiskitDynamicsTestCase):
     def test_symmetric_magnus_from_dyson_case2(self):
         """Case 2: two base indices."""
 
-        oc_symmetric_indices = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 2}),
-                                Multiset({0: 1, 1: 1}), Multiset({1: 2}), Multiset({0: 2, 1: 1})]
+        oc_symmetric_indices = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({1: 2}),
+            Multiset({0: 2, 1: 1}),
+        ]
 
         # random dyson terms
         rng = np.random.default_rng(12412)
@@ -125,8 +131,13 @@ class TestSymmetricMagnusFromDyson(QiskitDynamicsTestCase):
     def test_symmetric_magnus_from_dyson_case3(self):
         """Case 3: missing intermediate indices."""
 
-        oc_symmetric_indices = [Multiset({0: 1}), Multiset({2: 1}), Multiset({0: 2}),
-                                Multiset({0: 1, 2: 1}), Multiset({0: 2, 2: 1})]
+        oc_symmetric_indices = [
+            Multiset({0: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({0: 2, 2: 1}),
+        ]
 
         # random dyson terms
         rng = np.random.default_rng(12398)
@@ -172,8 +183,13 @@ class TestSymmetricMagnusFromDyson(QiskitDynamicsTestCase):
         the dyson terms and magnus terms are defined as a 3d array.
         """
 
-        oc_symmetric_indices = [Multiset({0: 1}), Multiset({2: 1}), Multiset({0: 2}),
-                                Multiset({0: 1, 2: 1}), Multiset({0: 2, 2: 1})]
+        oc_symmetric_indices = [
+            Multiset({0: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({0: 2, 2: 1}),
+        ]
 
         # random dyson terms
         rng = np.random.default_rng(12398)
@@ -210,8 +226,13 @@ class TestSymmetricMagnusFromDysonJax(TestSymmetricMagnusFromDyson, TestJaxBase)
     def test_magnus_from_dyson_jit(self):
         """Test that the function works with jitting."""
 
-        oc_symmetric_indices = [Multiset({0: 1}), Multiset({2: 1}), Multiset({0: 2}),
-                                Multiset({0: 1, 2: 1}), Multiset({0: 2, 2: 1})]
+        oc_symmetric_indices = [
+            Multiset({0: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({0: 2, 2: 1}),
+        ]
 
         # random dyson terms
         rng = np.random.default_rng(12398)
@@ -254,7 +275,12 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
         oc_symmetric_indices = [[0], [1], [0, 1]]
         oc_symmetric_indices = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 1, 1: 1})]
         output = get_q_term_list(oc_symmetric_indices)
-        expected = [(Multiset({0: 1}), 1), (Multiset({1: 1}), 1), (Multiset({0: 1, 1: 1}), 2), (Multiset({0: 1, 1: 1}), 1)]
+        expected = [
+            (Multiset({0: 1}), 1),
+            (Multiset({1: 1}), 1),
+            (Multiset({0: 1, 1: 1}), 2),
+            (Multiset({0: 1, 1: 1}), 1),
+        ]
 
         self.assertTrue(output == expected)
 
@@ -286,7 +312,7 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
     def test_q_product_rule_case1(self):
         """Test construction of the q_product_rule."""
         oc_q_terms = [([0], 1), ([1], 1), ([0, 1], 2), ([0, 1], 1)]
-        oc_q_terms = [(Multiset.from_list(x), y) for (x,y) in oc_q_terms]
+        oc_q_terms = [(Multiset.from_list(x), y) for (x, y) in oc_q_terms]
 
         q_term = (Multiset.from_list([0, 1]), 2)
         output = q_product_rule(q_term, oc_q_terms)
@@ -314,7 +340,7 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
             ([0, 1, 2], 2),
             ([0, 1, 2], 1),
         ]
-        oc_q_terms = [(Multiset.from_list(x), y) for (x,y) in oc_q_terms]
+        oc_q_terms = [(Multiset.from_list(x), y) for (x, y) in oc_q_terms]
 
         q_term = (Multiset.from_list([0, 1, 2]), 3)
         output = q_product_rule(q_term, oc_q_terms)
@@ -567,9 +593,7 @@ class TestSymmetricDysonProduct(QiskitDynamicsTestCase):
             (np.ones(3, dtype=float), np.array([[-1, 4], [0, 3], [1, 2]])),
         ]
 
-        self._test_get_symmetric_dyson_lmult_rule(
-            expansion_labels, expected_lmult_rule
-        )
+        self._test_get_symmetric_dyson_lmult_rule(expansion_labels, expected_lmult_rule)
 
     def test_get_symmetric_dyson_lmult_rule_case2(self):
         """Test _get_symmetric_dyson_lmult_rule case 2."""

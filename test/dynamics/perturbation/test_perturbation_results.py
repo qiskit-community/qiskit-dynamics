@@ -40,7 +40,11 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
 
         results = PerturbationResults(
             expansion_method="symmetric_dyson",
-            expansion_labels=[Multiset.from_list([0]), Multiset.from_list([1]), Multiset.from_list([0, 1])],
+            expansion_labels=[
+                Multiset.from_list([0]),
+                Multiset.from_list([1]),
+                Multiset.from_list([0, 1]),
+            ],
             expansion_terms=Array([5, 6, 7]),
         )
 

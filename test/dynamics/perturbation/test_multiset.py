@@ -9,15 +9,18 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """Tests Multiset."""
-
-import numpy as np
 
 from qiskit import QiskitError
 
 from qiskit_dynamics.perturbation import Multiset
-from qiskit_dynamics.perturbation.multiset import submultiset_filter, clean_multisets, get_all_submultisets
+from qiskit_dynamics.perturbation.multiset import (
+    submultiset_filter,
+    clean_multisets,
+    get_all_submultisets,
+)
 
 from ..common import QiskitDynamicsTestCase
 
@@ -29,12 +32,12 @@ class TestMultiset(QiskitDynamicsTestCase):
         """Test that non-integer types, and negative counts, raise errors."""
 
         with self.assertRaises(QiskitError) as qe:
-            Multiset({'a': 1})
-        self.assertTrue('must be integers' in str(qe.exception))
+            Multiset({"a": 1})
+        self.assertTrue("must be integers" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
             Multiset({0: 1, 1: -1})
-        self.assertTrue('non-negative' in str(qe.exception))
+        self.assertTrue("non-negative" in str(qe.exception))
 
     def test_eq(self):
         """Test __eq__."""
@@ -57,9 +60,9 @@ class TestMultiset(QiskitDynamicsTestCase):
         B = Multiset({0: 2, 1: 1, 2: 2})
 
         self.assertTrue((B - Multiset({0: 1})) == Multiset({0: 1, 1: 1, 2: 2}))
-        self.assertTrue((B - Multiset({0: 3})) == Multiset({1:1, 2: 2}))
-        self.assertTrue((B - Multiset({0: 1, 1: 1, 2: 1})) == Multiset({0:1, 2: 1}))
-        self.assertTrue((B - Multiset({0: 1, 2: 1, 1: 1})) == Multiset({0:1, 2: 1}))
+        self.assertTrue((B - Multiset({0: 3})) == Multiset({1: 1, 2: 2}))
+        self.assertTrue((B - Multiset({0: 1, 1: 1, 2: 1})) == Multiset({0: 1, 2: 1}))
+        self.assertTrue((B - Multiset({0: 1, 2: 1, 1: 1})) == Multiset({0: 1, 2: 1}))
         self.assertTrue((B - Multiset({3: 1})) == B)
 
     def test_submultisets_and_complements_full_cases(self):
@@ -67,21 +70,48 @@ class TestMultiset(QiskitDynamicsTestCase):
 
         multiset = Multiset({0: 3})
         subsets, complements = multiset.submultisets_and_complements()
-        expected_subsets, expected_complements = [Multiset({0: 1}), Multiset({0: 2})], [Multiset({0: 2}), Multiset({0: 1})]
+        expected_subsets, expected_complements = [Multiset({0: 1}), Multiset({0: 2})], [
+            Multiset({0: 2}),
+            Multiset({0: 1}),
+        ]
         self.assertTrue(subsets == expected_subsets)
         self.assertTrue(complements == expected_complements)
 
         multiset = Multiset({0: 2, 1: 1})
         subsets, complements = multiset.submultisets_and_complements()
-        expected_subsets = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 2}), Multiset({0: 1, 1: 1})]
-        expected_complements = [Multiset({0: 1, 1: 1}), Multiset({0: 2}), Multiset({1: 1}), Multiset({0: 1})]
+        expected_subsets = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+        ]
+        expected_complements = [
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 2}),
+            Multiset({1: 1}),
+            Multiset({0: 1}),
+        ]
         self.assertTrue(subsets == expected_subsets)
         self.assertTrue(complements == expected_complements)
 
         multiset = Multiset({0: 1, 1: 1, 2: 1})
         subsets, complements = multiset.submultisets_and_complements()
-        expected_subsets = [Multiset({0: 1}), Multiset({1: 1}), Multiset({2: 1}), Multiset({0: 1, 1: 1}), Multiset({0: 1, 2: 1}), Multiset({1: 1, 2: 1})]
-        expected_complements = [Multiset({1: 1, 2: 1}), Multiset({0: 1, 2: 1}), Multiset({0: 1, 1: 1}), Multiset({2: 1}), Multiset({1: 1}), Multiset({0: 1})]
+        expected_subsets = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({1: 1, 2: 1}),
+        ]
+        expected_complements = [
+            Multiset({1: 1, 2: 1}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({2: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 1}),
+        ]
         self.assertTrue(subsets == expected_subsets)
         self.assertTrue(complements == expected_complements)
 
@@ -90,17 +120,26 @@ class TestMultiset(QiskitDynamicsTestCase):
 
         multiset = Multiset({0: 2, 1: 2, 2: 1})
         subsets, complements = multiset.submultisets_and_complements(3)
-        expected_subsets = [Multiset({0: 1}), Multiset({1: 1}), Multiset({2: 1}),
-                            Multiset({0: 2}), Multiset({0: 1, 1: 1}), Multiset({0: 1, 2: 1}),
-                            Multiset({1: 2}), Multiset({1: 1, 2: 1})]
-        expected_complements = [Multiset({0: 1, 1: 2, 2: 1}),
-                                Multiset({0: 2, 1: 1, 2: 1}),
-                                Multiset({0: 2, 1: 2}),
-                                Multiset({1: 2, 2: 1}),
-                                Multiset({0: 1, 1: 1, 2: 1}),
-                                Multiset({0: 1, 1: 2}),
-                                Multiset({0: 2, 2: 1}),
-                                Multiset({0: 2, 1: 1})]
+        expected_subsets = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({1: 2}),
+            Multiset({1: 1, 2: 1}),
+        ]
+        expected_complements = [
+            Multiset({0: 1, 1: 2, 2: 1}),
+            Multiset({0: 2, 1: 1, 2: 1}),
+            Multiset({0: 2, 1: 2}),
+            Multiset({1: 2, 2: 1}),
+            Multiset({0: 1, 1: 1, 2: 1}),
+            Multiset({0: 1, 1: 2}),
+            Multiset({0: 2, 2: 1}),
+            Multiset({0: 2, 1: 1}),
+        ]
         self.assertTrue(subsets == expected_subsets)
         self.assertTrue(complements == expected_complements)
 
@@ -117,7 +156,11 @@ class TestMultiset(QiskitDynamicsTestCase):
         multiset = Multiset({0: 2, 1: 1, 2: 1})
         l_terms, r_terms = multiset.submultisets_and_complements(2)
         expected_l_terms = [Multiset({0: 1}), Multiset({1: 1}), Multiset({2: 1})]
-        expected_r_terms = [Multiset({0: 1, 1: 1, 2: 1}), Multiset({0: 2, 2: 1}), Multiset({0: 2, 1: 1})]
+        expected_r_terms = [
+            Multiset({0: 1, 1: 1, 2: 1}),
+            Multiset({0: 2, 2: 1}),
+            Multiset({0: 2, 1: 1}),
+        ]
         self.assertTrue(l_terms == expected_l_terms)
         self.assertTrue(r_terms == expected_r_terms)
 
@@ -136,13 +179,17 @@ class TestMultisetFunctions(QiskitDynamicsTestCase):
     def test_submultiset_filter(self):
         """Test submultiset_filter utility function."""
 
-        multiset_list = [Multiset({0: 2, 1:1}), Multiset({0: 2, 2:1})]
+        multiset_list = [Multiset({0: 2, 1: 1}), Multiset({0: 2, 2: 1})]
 
         multiset_candidates = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 1, 2: 1})]
-        self.assertTrue(submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates)
+        self.assertTrue(
+            submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates
+        )
 
         multiset_candidates = [Multiset({0: 2}), Multiset({1: 1}), Multiset({0: 1, 2: 1})]
-        self.assertTrue(submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates)
+        self.assertTrue(
+            submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates
+        )
 
         multiset_candidates = [Multiset({0: 3}), Multiset({1: 1}), Multiset({0: 1, 2: 1})]
         self.assertTrue(
@@ -151,11 +198,25 @@ class TestMultisetFunctions(QiskitDynamicsTestCase):
 
     def test_clean_multisets(self):
         """Test clean_multisets."""
-        output = clean_multisets([Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({0: 2, 1: 1}), Multiset({0: 2, 1: 1})])
+        output = clean_multisets(
+            [
+                Multiset({0: 1}),
+                Multiset({0: 1, 1: 1}),
+                Multiset({0: 2, 1: 1}),
+                Multiset({0: 2, 1: 1}),
+            ]
+        )
         expected = [Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({0: 2, 1: 1})]
         self.assertTrue(output == expected)
 
-        output = clean_multisets([Multiset({1: 1, 2: 1, 3: 1}), Multiset({0: 1, 1: 1}), Multiset({1: 1, 2: 1, 3: 1}), Multiset({0: 1})])
+        output = clean_multisets(
+            [
+                Multiset({1: 1, 2: 1, 3: 1}),
+                Multiset({0: 1, 1: 1}),
+                Multiset({1: 1, 2: 1, 3: 1}),
+                Multiset({0: 1}),
+            ]
+        )
         expected = [Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({1: 1, 2: 1, 3: 1})]
         self.assertTrue(output == expected)
 
@@ -163,37 +224,46 @@ class TestMultisetFunctions(QiskitDynamicsTestCase):
         """Test get_all_submultisets case 1."""
 
         multisets = [Multiset({2: 2, 0: 1, 1: 1}), Multiset({1: 1, 2: 1})]
-        expected = [Multiset({0: 1}),
-                    Multiset({1: 1}),
-                    Multiset({2: 1}),
-                    Multiset({0: 1, 1: 1}),
-                    Multiset({0: 1, 2: 1}),
-                    Multiset({1: 1, 2: 1}),
-                    Multiset({2: 2}),
-                    Multiset({0: 1, 1: 1, 2: 1}),
-                    Multiset({0: 1, 2: 2}),
-                    Multiset({1: 1, 2: 2}),
-                    Multiset({0: 1, 1: 1, 2: 2})]
+        expected = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({2: 1}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({1: 1, 2: 1}),
+            Multiset({2: 2}),
+            Multiset({0: 1, 1: 1, 2: 1}),
+            Multiset({0: 1, 2: 2}),
+            Multiset({1: 1, 2: 2}),
+            Multiset({0: 1, 1: 1, 2: 2}),
+        ]
         output = get_all_submultisets(multisets)
         self.assertTrue(expected == output)
 
     def test_get_all_submultisets_case2(self):
         """Test get_all_submultisets case 2."""
 
-        multisets = [Multiset({2: 2, 0: 1, 3: 1}), Multiset({1: 1, 2: 1}), Multiset({0: 1}), Multiset({0: 1, 2: 2, 3: 1})]
-        expected = [Multiset({0: 1}),
-                    Multiset({1: 1}),
-                    Multiset({2: 1}),
-                    Multiset({3: 1}),
-                    Multiset({0: 1, 2: 1}),
-                    Multiset({0: 1, 3: 1}),
-                    Multiset({1: 1, 2: 1}),
-                    Multiset({2: 2}),
-                    Multiset({2: 1, 3: 1}),
-                    Multiset({0: 1, 2: 2}),
-                    Multiset({0: 1, 2: 1, 3: 1}),
-                    Multiset({2: 2, 3: 1}),
-                    Multiset({0: 1, 2: 2, 3: 1})]
+        multisets = [
+            Multiset({2: 2, 0: 1, 3: 1}),
+            Multiset({1: 1, 2: 1}),
+            Multiset({0: 1}),
+            Multiset({0: 1, 2: 2, 3: 1}),
+        ]
+        expected = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({2: 1}),
+            Multiset({3: 1}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({0: 1, 3: 1}),
+            Multiset({1: 1, 2: 1}),
+            Multiset({2: 2}),
+            Multiset({2: 1, 3: 1}),
+            Multiset({0: 1, 2: 2}),
+            Multiset({0: 1, 2: 1, 3: 1}),
+            Multiset({2: 2, 3: 1}),
+            Multiset({0: 1, 2: 2, 3: 1}),
+        ]
         output = get_all_submultisets(multisets)
         self.assertTrue(expected == output)
 
@@ -201,28 +271,30 @@ class TestMultisetFunctions(QiskitDynamicsTestCase):
         """Test get_all_submultisets case 3."""
 
         multisets = [Multiset({0: 1, 1: 2, 2: 1, 3: 1})]
-        expected = [Multiset({0: 1}),
-                    Multiset({1: 1}),
-                    Multiset({2: 1}),
-                    Multiset({3: 1}),
-                    Multiset({0: 1, 1: 1}),
-                    Multiset({0: 1, 2: 1}),
-                    Multiset({0: 1, 3: 1}),
-                    Multiset({1: 2}),
-                    Multiset({1: 1, 2: 1}),
-                    Multiset({1: 1, 3: 1}),
-                    Multiset({2: 1, 3: 1}),
-                    Multiset({0: 1, 1: 2}),
-                    Multiset({0: 1, 1: 1, 2: 1}),
-                    Multiset({0: 1, 1: 1, 3: 1}),
-                    Multiset({0: 1, 2: 1, 3: 1}),
-                    Multiset({1: 2, 2: 1}),
-                    Multiset({1: 2, 3: 1}),
-                    Multiset({1: 1, 2: 1, 3: 1}),
-                    Multiset({0: 1, 1: 2, 2: 1}),
-                    Multiset({0: 1, 1: 2, 3: 1}),
-                    Multiset({0: 1, 1: 1, 2: 1, 3: 1}),
-                    Multiset({1: 2, 2: 1, 3: 1}),
-                    Multiset({0: 1, 1: 2, 2: 1, 3: 1})]
+        expected = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({2: 1}),
+            Multiset({3: 1}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 1, 2: 1}),
+            Multiset({0: 1, 3: 1}),
+            Multiset({1: 2}),
+            Multiset({1: 1, 2: 1}),
+            Multiset({1: 1, 3: 1}),
+            Multiset({2: 1, 3: 1}),
+            Multiset({0: 1, 1: 2}),
+            Multiset({0: 1, 1: 1, 2: 1}),
+            Multiset({0: 1, 1: 1, 3: 1}),
+            Multiset({0: 1, 2: 1, 3: 1}),
+            Multiset({1: 2, 2: 1}),
+            Multiset({1: 2, 3: 1}),
+            Multiset({1: 1, 2: 1, 3: 1}),
+            Multiset({0: 1, 1: 2, 2: 1}),
+            Multiset({0: 1, 1: 2, 3: 1}),
+            Multiset({0: 1, 1: 1, 2: 1, 3: 1}),
+            Multiset({1: 2, 2: 1, 3: 1}),
+            Multiset({0: 1, 1: 2, 2: 1, 3: 1}),
+        ]
         output = get_all_submultisets(multisets)
         self.assertTrue(expected == output)
