@@ -35,19 +35,20 @@ class ArrayPolynomial:
     This class represents a multi-variable function of the form:
 
     .. math::
-        f(c_1, \dots, c_r) = M_0 + \sum_{I \in S} c_I M_I,
+        f(c_1, \dots, c_r) = A_0 + \sum_{I \in S} c_I A_I,
 
     where in the above:
 
         - :math:`S` is a finite set of index multisets indicating non-zero monomial terms,
         - For a given index multiset :math:`I=(i_1, \dots, i_k)`,
           :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, and
-        - The :math:`M_I` are arrays of the same shape, indexed by the first dimension.
+        - The :math:`A_I` are arrays of the same shape, indexed by the first dimension.
 
-    At instantiation, the user specifies :math:`S` as a list of index multisets,
-    :math:`M_I` as list of arrays (specified as a >1d array) whose first index has
+    At instantiation, the user specifies :math:`S` as a list of
+    :class:`~qiskit_dynamics.perturbation.multiset.Multiset` instances,
+    :math:`A_I` as list of arrays (specified as a >=1d array) whose first index has
     corresponding ordering with the list specifying :math:`S`, and can optionally
-    specify a constant term :math:`M_0`.
+    specify a constant term :math:`A_0`.
     """
 
     def __init__(

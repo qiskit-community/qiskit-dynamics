@@ -29,7 +29,7 @@ References:
     5. Forthcoming
 """
 
-from typing import Optional, List, Callable, Tuple
+from typing import Optional, List, Callable, Tuple, Union
 
 import numpy as np
 from scipy.special import factorial
@@ -61,8 +61,8 @@ except ImportError:
 def solve_lmde_dyson(
     perturbations: List[Callable],
     t_span: Array,
-    dyson_terms: List,
-    perturbation_labels: Optional[List[List]] = None,
+    dyson_terms: Union[List[List[int]], List[Multiset]],
+    perturbation_labels: Optional[Union[List[List], List[Multiset]]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
@@ -156,8 +156,8 @@ def solve_lmde_dyson(
 def solve_lmde_symmetric_magnus(
     perturbations: List[Callable],
     t_span: Array,
-    magnus_terms: List,
-    perturbation_labels: Optional[List[List]] = None,
+    magnus_terms: List[Multiset],
+    perturbation_labels: Optional[List[Multiset]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     integration_method: Optional[str] = "DOP853",
@@ -210,8 +210,8 @@ def solve_lmde_symmetric_magnus(
 def solve_lmde_dyson_jax(
     perturbations: List[Callable],
     t_span: Array,
-    dyson_terms: List,
-    perturbation_labels: List[List],
+    dyson_terms: Union[List[List[int]], List[Multiset]],
+    perturbation_labels: Optional[Union[List[List], List[Multiset]]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
@@ -314,8 +314,8 @@ def solve_lmde_dyson_jax(
 def solve_lmde_symmetric_magnus_jax(
     perturbations: List[Callable],
     t_span: Array,
-    magnus_terms: List,
-    perturbation_labels: Optional[List[List]] = None,
+    magnus_terms: List[Multiset],
+    perturbation_labels: Optional[List[Multiset]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     integration_method: Optional[str] = "DOP853",
@@ -369,10 +369,10 @@ def solve_lmde_symmetric_magnus_jax(
 def setup_dyson_rhs(
     generator: Callable,
     perturbations: List[Callable],
-    oc_dyson_indices: List,
+    oc_dyson_indices: List[Multiset],
     mat_dim: int,
     symmetric: Optional[bool] = False,
-    perturbation_labels: Optional[List[List]] = None,
+    perturbation_labels: Optional[List[Multiset]] = None,
 ) -> Callable:
     """Construct the RHS function for propagating Dyson terms.
 
@@ -430,9 +430,9 @@ def setup_dyson_rhs(
 def setup_dyson_rhs_jax(
     generator: Callable,
     perturbations: List[Callable],
-    oc_dyson_indices: List,
+    oc_dyson_indices: List[Multiset],
     symmetric: Optional[bool] = False,
-    perturbation_labels: Optional[List[List]] = None,
+    perturbation_labels: Optional[List[Multiset]] = None,
 ) -> Callable:
     """JAX version of setup_dyson_rhs. Note that this version does not require
     the ``mat_dim`` argument.
@@ -499,7 +499,9 @@ def required_dyson_generator_indices(complete_dyson_indices: List) -> List:
     return generator_indices
 
 
-def get_dyson_lmult_rule(complete_dyson_indices: List, generator_indices: List) -> List:
+def get_dyson_lmult_rule(
+    complete_dyson_indices: List[List[int]], generator_indices: List[List[int]]
+) -> List:
     """Construct custom product rules, in the format required by ``custom_product``,
     for a given set of Dyson terms.
 
@@ -541,7 +543,7 @@ def get_dyson_lmult_rule(complete_dyson_indices: List, generator_indices: List) 
     return lmult_rule
 
 
-def get_complete_dyson_indices(dyson_terms: List) -> List:
+def get_complete_dyson_indices(dyson_terms: List[List[int]]) -> List[List[int]]:
     """Given a list of Dyson terms to compute specified as lists of indices,
     recursively construct all other Dyson terms that need to be computed,
     returned as a list, ordered by increasing Dyson order, and
@@ -583,7 +585,7 @@ def get_complete_dyson_indices(dyson_terms: List) -> List:
 
 
 def symmetric_magnus_from_dyson(
-    complete_index_multisets: List, symmetric_dyson_terms: np.array
+    complete_index_multisets: List[Multiset], symmetric_dyson_terms: np.array
 ) -> np.array:
     """Compute symmetric magnus terms from symmetric dyson terms using the recursion
     relation presented in [5]. The term "Q Matrices" in helper functions refers to
@@ -622,7 +624,7 @@ def symmetric_magnus_from_dyson(
 
 
 def symmetric_magnus_from_dyson_jax(
-    complete_index_multisets: List, symmetric_dyson_terms: np.array
+    complete_index_multisets: List[Multiset], symmetric_dyson_terms: np.array
 ) -> np.array:
     """JAX version of symmetric_magnus_from_dyson."""
 
@@ -770,7 +772,7 @@ def q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
         return [(coeffs, np.array(products))]
 
 
-def get_q_term_list(complete_index_multisets: List) -> List:
+def get_q_term_list(complete_index_multisets: List[Multiset]) -> List:
     """Construct a specification of the recursive Q matrices
     required to compute all Magnus terms specified by
     ``complete_index_multisets``. Each Q matrix is specified as

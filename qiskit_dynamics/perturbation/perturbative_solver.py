@@ -25,7 +25,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
 from qiskit_dynamics import Signal, RotatingFrame
-from qiskit_dynamics.perturbation import solve_lmde_perturbation, ArrayPolynomial
+from qiskit_dynamics.perturbation import solve_lmde_perturbation, ArrayPolynomial, Multiset
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 
@@ -65,11 +65,12 @@ class PerturbativeSolver:
 
     At instantiation, the following parameters are fixed:
 
-        - The step size :math:`\Delta t`,
-        - The operator structure :math:`G_0`, :math:`G_i`,
-        - The reference frequencies :math:`\nu_j`,
-        - Approximation schemes for the envelopes :math:`f_j` over each time step (see below), and
-        - Perturbative expansion method and terms used in the truncation.
+    - The step size :math:`\Delta t`,
+    - The operator structure :math:`G_0`, :math:`G_i`,
+    - The reference frequencies :math:`\nu_j`,
+    - Approximation schemes for the envelopes :math:`f_j` over each time step (see below), and
+    - Perturbative expansion method and terms used in the truncation. Note that terms must
+      be given as either ``Multiset`` instances or compatible types.
 
     These parameters define the details of the perturbative expansions used, and
     a 'compilation' or 'pre-computation' step computing these terms occurs at instantiation.
@@ -94,7 +95,7 @@ class PerturbativeSolver:
         chebyshev_orders: List[int],
         expansion_method: Optional[str] = "dyson",
         expansion_order: Optional[int] = None,
-        expansion_labels: Optional[List] = None,
+        expansion_labels: Optional[List[Multiset]] = None,
         integration_method: Optional[str] = None,
         **kwargs,
     ):

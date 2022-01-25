@@ -20,14 +20,53 @@ from qiskit import QiskitError
 
 
 class Multiset:
-    """A multiset whose elements are integers."""
+    """A multiset whose elements are integers.
+
+    Represents multiset of integers, which is an unordered collection of integers with
+    repeated entries allowed. Contains methods similar to ``set`` for checking
+    if one ``Multiset`` is a submultiset of another, performing ``union`` and ``difference``,
+    etc.
+
+    A ``Multiset`` can be instantiated using a ``dict`` whose keys are the elements of the
+    multiset, and whose values are the counts, e.g.
+
+    .. code-block:: python
+
+        Multiset({1: 3, 0: 2})
+
+    represents a multiset with ``3`` copies of ``1``, and ``2`` copies of ``0``.
+
+    Alternatively, a ``Multiset`` may be instantiated from a list of integers that explicitly
+    contains repeated entries. For example, the following code creates the same multiset as
+    above:
+
+    .. code-block:: python
+
+        Multiset.from_list([0, 0, 0, 1, 1])
+
+    Note that, internally, the contents of the multiset are stored using an ``OrderedDict``,
+    ordered in terms of increasing keys. While a multiset is inherently unordered,
+    having a standard ordering can aid in algorithms.
+
+    This class also implements a partial order on multisets. It holds that
+    ``multiset1 < multiset2`` if either:
+
+    - ``len(multset1) < len(multiset2)``, or
+    - Iterating through the ordered unique elements in ``multiset1.union(multiset2)``,
+      one of the elements satisfies ``multiset1.count(element) < multiset2.count(element)``
+      after all preceding elements satisfy ``multiset1.count(element) == multiset2.count(element)``.
+
+    This ordering corresponds to sorting multisets by size, and within a given size,
+    ordering according to lexicographic ordering when the multiset is represented as a
+    sorted list with repeated entries.
+    """
 
     def __init__(self, counts_dict: dict[int, int]):
         """Construct a multiset from a dictionary of counts.
 
         Args:
-            entries: Dictionary of counts, with keys giving the entries of
-                     the multiset.
+            counts_dict: Dictionary of counts, with keys giving the entries of
+                         the multiset.
         """
 
         validate_counts_dict(counts_dict)
@@ -224,6 +263,22 @@ def canonicalize_counts_dict(counts_dict: dict[int, int]) -> OrderedDict[int, in
     return new_dict
 
 
+# pylint: disable=invalid-name
+def to_Multiset(x: Union[Multiset, List[int], dict]) -> Multiset:
+    """Convert x to a Multiset if possible."""
+
+    if isinstance(x, Multiset):
+        return x
+
+    if isinstance(x, list):
+        return Multiset.from_list(x)
+
+    if isinstance(x, dict):
+        return Multiset(x)
+
+    raise QiskitError("input is not a valid Multiset specification.")
+
+
 def submultiset_filter(
     multiset_candidates: List[Multiset], multiset_list: List[Multiset]
 ) -> List[Multiset]:
@@ -253,10 +308,7 @@ def clean_multisets(multisets: List[Union[Multiset, dict, list]]) -> List[Multis
 
     unique_multisets = []
     for multiset in multisets:
-        if isinstance(multiset, list):
-            multiset = Multiset.from_list(multiset)
-        elif isinstance(multiset, dict):
-            multiset = Multiset(multiset)
+        multiset = to_Multiset(multiset)
 
         if multiset not in unique_multisets:
             unique_multisets.append(multiset)

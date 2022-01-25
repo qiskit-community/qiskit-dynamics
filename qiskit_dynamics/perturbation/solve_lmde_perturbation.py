@@ -49,8 +49,8 @@ def solve_lmde_perturbation(
     t_span: Array,
     expansion_method: str,
     expansion_order: Optional[int] = None,
-    expansion_labels: Optional[List[int]] = None,
-    perturbation_labels: Optional[List[List[int]]] = None,
+    expansion_labels: Optional[List[Multiset]] = None,
+    perturbation_labels: Optional[List[Multiset]] = None,
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
@@ -85,13 +85,15 @@ def solve_lmde_perturbation(
 
         - ``perturbations`` gives a list of the :math:`A_I` functions as callables.
         - ``perturbation_labels`` is an optional list specifying the labels for the terms in
-          ``perturbations`` in the form of the index multiset subscripts, given as lists of
-          ``int``\s. If not specified, the labels are assumed to be
-          ``[[0], ..., [len(`perturbations`) - 1]]``.
+          ``perturbations`` in the form of
+          :class:`~qiskit_dynamics.perturbation.multiset.Multiset`\s.
+          If not specified, the labels are assumed to be
+          ``[Multiset({0: 1}), ..., Multiset({len(perturbations) - 1: 1})]``.
         - ``expansion_order`` specifies that all symmetric expansion terms up to a given
           order are to be computed.
         - ``expansion_labels`` allows specification of specific terms to be computed, by
-          specifying index multisets (as lists of ``int``\s). Both of ``expansion_order``
+          specifying :class:`~qiskit_dynamics.perturbation.Multiset`\s.
+          Both of ``expansion_order``
           and ``expansion_labels`` are optional, however at least one must be specified.
           If both are specified, then all terms up to ``expansion_order`` will be computed,
           along with any additional specific terms given by ``expansion_labels``.
@@ -146,7 +148,10 @@ def solve_lmde_perturbation(
     data container with attributes:
 
         - ``expansion_method``: Method as specified by the user.
-        - ``expansion_labels``: Index labels for all computed perturbation terms.
+        - ``expansion_labels``: Index labels for all computed perturbation terms. In the case of
+          a symmetric expansion, the labels are
+          :class:`~qiskit_dynamics.perturbation.multiset.Multiset` instances, and in the
+          non-symmetric case are lists of ``int``\s.
         - ``expansion_terms``: A 4d array storing all computed terms. The first axis indexes
           the expansion terms in the same ordering as ``expansion_labels``,
           and the second axis indexes the perturbation terms evaluated

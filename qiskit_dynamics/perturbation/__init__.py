@@ -25,21 +25,16 @@ mathematical notation and data-structure conventions of the module, and also giv
 a detailed overview of the purposes of the user-facing components.
 
 
-Power series
-============
+Multisets and power series
+==========================
 
 Perturbative expansions are typically expressed as power series decompositions,
-and the conventions for representing power series in this module are detailed here.
+and the conventions for representing array-valued power series in this module are detailed here.
 
-.. note::
-
-    The power series here are typically *matrix-valued* power-series of complex variables -
-    i.e. the coefficients are matrices, and the variables are complex scalars.
-
-Mathematically, we represent a matrix-valued power-series using an
-*index multiset* notation. Let :math:`\mathcal{I}_k(r)` represent the set of multisets of
+Mathematically, we represent an array-valued power-series using a
+*multiset* notation. Let :math:`\mathcal{I}_k(r)` represent the set of multisets of
 size :math:`k` whose elements are drawn from :math:`\{1, \dots, r\}`. Furthermore, given
-:math:`r` scalars :math:`c_1, \dots, c_r`, and an index multiset :math:`I \in \mathcal{I}_k(r)`,
+:math:`r` scalars :math:`c_1, \dots, c_r`, and a multiset :math:`I \in \mathcal{I}_k(r)`,
 with elements :math:`I = (i_1, \dots, i_k)`, denote
 
 .. math::
@@ -57,19 +52,14 @@ With this notation, we represent a power series in :math:`r` variables as:
 
 .. math::
 
-    f(c_1, \dots, c_r) = M_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I M_I,
+    f(c_1, \dots, c_r) = A_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I,
 
-where :math:`M_0` is the constant term, and the :math:`M_I` are the matrix-valued power-series
+where :math:`A_0` is the constant term, and the :math:`A_I` are the array-valued power-series
 coefficients.
 
-.. note::
-
-    Throughout this module, index multisets are represented as a ``List`` of ``int``\s,
-    with the canonical representation of an index multiset assumed to be sorted in non-decreasing
-    order.
-
-The :class:`~qiskit_dynamics.perturbation.MatrixPolynomial` class represents a matrix-valued
-multivariable polynomial (i.e. a truncated power series), with methods for evaluation.
+The :class:`~qiskit_dynamics.perturbation.Multiset` class represents a multiset of indices,
+and :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` represents an array-valued
+multivariable polynomial (i.e. a truncated power series).
 
 
 .. _td perturbation theory:

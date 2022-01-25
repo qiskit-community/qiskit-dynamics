@@ -19,7 +19,7 @@ from dataclasses import dataclass
 
 from qiskit import QiskitError
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation import Multiset
+from qiskit_dynamics.perturbation.multiset import Multiset, to_Multiset
 
 
 @dataclass
@@ -46,16 +46,14 @@ class PerturbationResults:
     """
 
     expansion_method: str
-    expansion_labels: List
+    expansion_labels: Union[List[List[int]], List[Multiset]]
     expansion_terms: Array
 
     def __getitem__(self, label: Union[list, Multiset]) -> Array:
         """Return the expansion term with a given label.
 
         Return the entry of ``self.expansion_terms`` at the index at which
-        ``label`` is stored in ``expansion_labels``. If ``self.sort_labels == True``,
-        ``label`` is assumed to be a list and is sorted before attempting to index
-        ``expansion_labels``.
+        ``label`` is stored in ``expansion_labels``.
 
         Args:
             label: Label.
@@ -68,10 +66,7 @@ class PerturbationResults:
         """
 
         if "symmetric" in self.expansion_method:
-            if isinstance(label, list):
-                label = Multiset.from_list(label)
-            elif isinstance(label, dict):
-                label = Multiset(label)
+            label = to_Multiset(label)
 
         if label in self.expansion_labels:
             idx = self.expansion_labels.index(label)
