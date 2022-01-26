@@ -79,7 +79,7 @@ class Multiset:
         return Multiset({key: multiset_as_list.count(key) for key in keys})
 
     @property
-    def counts_dict(self) -> OrderedDict[int, int]:
+    def counts_dict(self) -> 'OrderedDict[int, int]':
         """Counts dictionary storing element counts."""
         return self._counts_dict
 
@@ -242,7 +242,7 @@ def validate_counts_dict(counts_dict: dict):
             raise QiskitError("counts_dict values must be non-negative integers.")
 
 
-def canonicalize_counts_dict(counts_dict: Dict[int, int]) -> OrderedDict[int, int]:
+def canonicalize_counts_dict(counts_dict: Dict[int, int]) -> 'OrderedDict[int, int]':
     """Delete empty parts of the counts dict, and return as an OrderedDict sorted by keys.
 
     Args:
