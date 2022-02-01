@@ -15,14 +15,45 @@
 
 import numpy as np
 
+from qiskit import QiskitError
+
 from qiskit_dynamics.perturbation import schrieffer_wolff, Multiset
 from qiskit_dynamics.perturbation.schrieffer_wolff import solve_commutator_projection, commutator
 
 from ..common import QiskitDynamicsTestCase
 
 
+class Testschrieffer_wolff_validation(QiskitDynamicsTestCase):
+    """Test validation checks for schrieffer_wolff."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Construct reusable operators."""
+        cls.X = np.array([[0., 1.,], [1., 0.]])
+        cls.Z = np.array([[1., 0.,], [0., -1.]])
+        cls.P = np.array([[0., 1.], [0., 0.]])
+
+    def test_H0_non_diagonal(self):
+        """Test detection of non-diagonal."""
+
+        with self.assertRaisesRegex(QiskitError, "diagonal"):
+            schrieffer_wolff(self.P, perturbations=[self.Z], expansion_order=1)
+
+    def test_H0_non_hermitian(self):
+        """Test detection of diagonal but non-hermitian."""
+
+        with self.assertRaisesRegex(QiskitError, "Hermitian"):
+            schrieffer_wolff(1j * self.Z, perturbations=[self.Z], expansion_order=1)
+
+    def test_perturbation_non_hermitian(self):
+        """Test perturbations being non-Hermitian."""
+
+        with self.assertRaisesRegex(QiskitError, "Hermitian"):
+            schrieffer_wolff(self.Z, perturbations=[1j * self.Z], expansion_order=1)
+
+
 class Testschrieffer_wolff(QiskitDynamicsTestCase):
-    """Test schrieffer_wolff_recursive_construction function."""
+    """Test schrieffer_wolff function."""
 
     def test_simple_case(self):
         """Test a simple case with one perturbation using Pauli operators."""

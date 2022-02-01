@@ -19,6 +19,8 @@ from typing import List, Optional
 import numpy as np
 from scipy.linalg import solve_sylvester
 
+from qiskit import QiskitError
+
 from qiskit_dynamics.perturbation import ArrayPolynomial, Multiset
 from qiskit_dynamics.perturbation.multiset import get_all_submultisets
 from qiskit_dynamics.perturbation.solve_lmde_perturbation import merge_expansion_order_indices
@@ -56,11 +58,28 @@ def schrieffer_wolff(
         - Should we rename H0 to Hd given the usage of 0 as an index?
     """
 
+    # validate H0 is diagonal and hermitian
+    if H0.ndim == 1:
+        H0 = np.diag(H0)
+
+    if np.max(np.abs(np.diag(np.diag(H0)).real - H0)) > tol:
+        raise QiskitError("H0 must be a diagonal Hermitian matrix.")
+
+    # validate H0 is non-degenerate
+    for idx1 in range(H0.shape[-1]):
+        for idx2 in range(idx1 + 1, H0.shape[-1]):
+            if np.abs(H0[idx1, idx1] - H0[idx2, idx2]) < tol:
+                raise QiskitError("The eigenvalues of H0 must be non-degenerate.")
+
+    # validate perturbations are Hermitian
+    for perturbation in perturbations:
+        if np.max(np.abs(perturbation.conj().transpose() - perturbation)) > tol:
+            raise QiskitError("Perturbations must be Hermitian.")
+
     ##################################################################################################
     # To do: add validation. For validating the expansion_order/labels args we could
     # move the validation for both solve_lmde_perturbation and this function into
     # merge_expansion_order_indices (and maybe also move this function into multiset.py)
-    # Also: validate that H0 is diagonal
     ##################################################################################################
 
     perturbations = np.array(perturbations)
