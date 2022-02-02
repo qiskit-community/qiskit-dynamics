@@ -31,17 +31,92 @@ except ImportError:
 class TestArrayPolynomial(QiskitDynamicsTestCase):
     """Test the ArrayPolynomial class."""
 
+    def setUp(self):
+        """Set up typical polynomials including edge cases."""
+
+        self.constant_0d = ArrayPolynomial(constant_term=3.0)
+        self.constant_22d = ArrayPolynomial(constant_term=np.eye(2))
+        self.non_constant_0d = ArrayPolynomial(
+            array_coefficients=np.array([1.0, 2.0, 3.0]), monomial_multisets=[[0], [1], [2]]
+        )
+        self.non_constant_32d = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 3, 2),
+            monomial_multisets=[[0], [1], [2]],
+            constant_term=np.array([[0.0, 1.0], [1.0, 0.0], [-1.0, -1.0]]),
+        )
+        self.non_constant_complex = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_multisets=[[0], [1], [2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+
     def test_validation_error_no_ops(self):
         """Test validation error when no information specified."""
 
         with self.assertRaisesRegex(QiskitError, "At least one"):
             ArrayPolynomial()
 
-    def test_only_constant_term(self):
-        """Test constant term."""
+    def test_trace_validation(self):
+        """Test attempting to trace an AP with ndim < 2 raises an error."""
 
-        poly = ArrayPolynomial(constant_term=3.)
-        self.assertAllClose(poly(), 3.)
+        with self.assertRaisesRegex(QiskitError, "at least 2."):
+            self.non_constant_0d.trace()
+
+    def test_only_constant_term(self):
+        """Test construction and evaluation with only a constant term."""
+
+        self.assertAllClose(self.constant_0d(), 3.0)
+
+    def test_shape(self):
+        """Test shape property."""
+        self.assertTrue(self.constant_22d.shape == (2, 2))
+        self.assertTrue(self.non_constant_0d.shape == tuple())
+        self.assertTrue(self.non_constant_32d.shape == (3, 2))
+
+    def test_ndim(self):
+        """Test ndim."""
+        self.assertTrue(self.constant_22d.ndim == 2)
+        self.assertTrue(self.non_constant_0d.ndim == 0)
+        self.assertTrue(self.non_constant_32d.ndim == 2)
+
+    def test_transpose(self):
+        """Test transpose."""
+        trans = self.constant_0d.transpose()
+        self.assertAllClose(trans.constant_term, 3.0)
+        self.assertTrue(trans.array_coefficients is None)
+        self.assertTrue(trans.monomial_multisets == self.constant_0d.monomial_multisets)
+
+        trans = self.non_constant_32d.transpose()
+        self.assertAllClose(trans.constant_term, self.non_constant_32d.constant_term.transpose())
+        self.assertAllClose(
+            trans.array_coefficients, self.non_constant_32d.array_coefficients.transpose((0, 2, 1))
+        )
+        self.assertTrue(trans.monomial_multisets == self.non_constant_32d.monomial_multisets)
+
+    def test_conj(self):
+        """Test conj."""
+        conj = self.constant_0d.conj()
+        self.assertAllClose(conj.constant_term, 3.0)
+        self.assertTrue(conj.array_coefficients is None)
+        self.assertTrue(conj.monomial_multisets == self.constant_0d.monomial_multisets)
+
+        conj = self.non_constant_complex.conj()
+        self.assertAllClose(conj.constant_term, self.non_constant_complex.constant_term.conj())
+        self.assertAllClose(
+            conj.array_coefficients, self.non_constant_complex.array_coefficients.conj()
+        )
+        self.assertTrue(conj.monomial_multisets == self.non_constant_complex.monomial_multisets)
+
+    def test_trace(self):
+        """Test trace."""
+        poly_trace = self.non_constant_32d.trace()
+
+        self.assertAllClose(poly_trace.constant_term, self.non_constant_32d.constant_term.trace())
+        self.assertAllClose(
+            poly_trace.array_coefficients,
+            self.non_constant_32d.array_coefficients.trace(axis1=1, axis2=2),
+        )
+        self.assertTrue(poly_trace.monomial_multisets == self.non_constant_32d.monomial_multisets)
 
     def test_call_simple_case(self):
         """Typical expected usage case."""
