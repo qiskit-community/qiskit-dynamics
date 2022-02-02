@@ -18,8 +18,9 @@ from typing import List, Optional, Callable, Tuple
 
 import numpy as np
 
-from qiskit_dynamics.array import Array
+from qiskit import QiskitError
 
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation import Multiset
 from qiskit_dynamics.perturbation.multiset import get_all_submultisets
 
@@ -53,8 +54,8 @@ class ArrayPolynomial:
 
     def __init__(
         self,
-        array_coefficients: Array,
-        monomial_multisets: List[Multiset],
+        array_coefficients: Optional[Array] = None,
+        monomial_multisets: Optional[List[Multiset]] = None,
         constant_term: Optional[Array] = None,
     ):
         """Construct a multivariable matrix polynomial.
@@ -65,13 +66,23 @@ class ArrayPolynomial:
                                 indicating the monomial coefficient for each corresponding
                                 ``matrix_coefficients``.
             constant_term: An array representing the constant term of the polynomial.
+        Raises:
+            QiskitError: If insufficient information is supplied to define an ArrayPolynomial.
         """
+
+        if array_coefficients is None and constant_term is None:
+            raise QiskitError("""At least one of array_coefficients and
+                                    constant_term must be specified.""")
 
         self._monomial_multisets = monomial_multisets
 
         # If operating in jax mode, wrap in Arrays
         if Array.default_backend() == "jax":
-            self._array_coefficients = Array(array_coefficients)
+
+            if array_coefficients is not None:
+                self._array_coefficients = Array(array_coefficients)
+            else:
+                self._array_coefficients = None
 
             if constant_term is not None:
                 constant_term = Array(constant_term)
@@ -84,8 +95,11 @@ class ArrayPolynomial:
             if constant_term is None:
                 constant_term = np.zeros_like(array_coefficients[0])
 
-            self._array_coefficients = array_coefficients
-            self._constant_term = constant_term
+            if array_coefficients is not None:
+                self._array_coefficients = np.array(array_coefficients)
+            else:
+                self._array_coefficients = None
+            self._constant_term = np.array(constant_term)
             self._compute_monomials = get_monomial_compute_function(monomial_multisets)
 
     @property
@@ -114,7 +128,7 @@ class ArrayPolynomial:
         """
         return self._compute_monomials(c)
 
-    def __call__(self, c: Array) -> Array:
+    def __call__(self, c: Optional[Array] = None) -> Array:
         """Evaluate the polynomial.
 
         Args:
@@ -122,8 +136,12 @@ class ArrayPolynomial:
         Returns:
             Value of the polynomial at c.
         """
-        monomials = self._compute_monomials(c)
-        return self._constant_term + np.tensordot(self._array_coefficients, monomials, axes=(0, 0))
+
+        if self._array_coefficients is not None:
+            monomials = self._compute_monomials(c)
+            return self._constant_term + np.tensordot(self._array_coefficients, monomials, axes=(0, 0))
+        else:
+            return self.constant_term
 
 
 def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
@@ -145,6 +163,9 @@ def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
     Returns:
         Callable: Vectorized function for computing monomials.
     """
+    if multisets is None or len(multisets) == 0:
+        return lambda c: None
+
     complete_multiset_list = get_all_submultisets(multisets)
 
     (
@@ -181,6 +202,9 @@ def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
 # pylint: disable=invalid-name
 def get_monomial_compute_function_jax(multisets: List) -> Callable:
     """JAX version of get_monomial_compute_function."""
+
+    if multisets is None or len(multisets) == 0:
+        return lambda c: None
 
     complete_multiset_list = get_all_submultisets(multisets)
 

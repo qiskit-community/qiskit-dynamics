@@ -15,6 +15,8 @@
 
 import numpy as np
 
+from qiskit import QiskitError
+
 from qiskit_dynamics.perturbation import Multiset, ArrayPolynomial
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -28,6 +30,18 @@ except ImportError:
 
 class TestArrayPolynomial(QiskitDynamicsTestCase):
     """Test the ArrayPolynomial class."""
+
+    def test_validation_error_no_ops(self):
+        """Test validation error when no information specified."""
+
+        with self.assertRaisesRegex(QiskitError, "At least one"):
+            ArrayPolynomial()
+
+    def test_only_constant_term(self):
+        """Test constant term."""
+
+        poly = ArrayPolynomial(constant_term=3.)
+        self.assertAllClose(poly(), 3.)
 
     def test_call_simple_case(self):
         """Typical expected usage case."""
