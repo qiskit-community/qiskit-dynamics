@@ -83,9 +83,6 @@ class InstructionToSignals:
 
         Returns:
             a list of piecewise constant signals.
-
-        Raises:
-            qiskit.QiskitError: if not enough frequencies supplied.
         """
 
         signals, phases, frequency_shifts = {}, {}, {}
