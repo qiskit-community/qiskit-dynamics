@@ -105,7 +105,9 @@ def schrieffer_wolff(
 
         [H_0, S_I] = \Delta(H_0 + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)}))
 
-    where :math:`\Delta` is the projection onto matrices with zero diagonal.
+    where :math:`\Delta` is the projection onto matrices with zero diagonal, and each
+    successive order of the :math:`A_I^{(m)}` and :math:`B_I^{(m)}` is computed
+    using the recursion relation above. 
 
     Args:
         H0: Diagonal Hamiltonian, assumed and validated to be non-degenerate.

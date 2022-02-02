@@ -170,6 +170,7 @@ Perturbation module API
     Multiset
     ArrayPolynomial
     solve_lmde_perturbation
+    schrieffer_wolff
     PerturbationResults
     PerturbativeSolver
 
