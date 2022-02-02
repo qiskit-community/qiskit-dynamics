@@ -19,10 +19,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation.multiset import Multiset
-from qiskit_dynamics.perturbation.solve_lmde_perturbation import (
-    solve_lmde_perturbation,
-    merge_expansion_order_indices,
-)
+from qiskit_dynamics.perturbation.solve_lmde_perturbation import solve_lmde_perturbation
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -47,7 +44,7 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
     def test_no_terms_specified(self):
         """Test error when neither expansion_order or expansion_labels are specified."""
 
-        with self.assertRaisesRegex(QiskitError, "specify one of"):
+        with self.assertRaisesRegex(QiskitError, "At least one"):
             solve_lmde_perturbation(perturbations=[], t_span=[], expansion_method="dyson")
 
     def test_non_square_y0(self):
@@ -61,191 +58,6 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
                 expansion_order=1,
                 y0=np.array([1.0, 0.0]),
             )
-
-
-class Testmerge_expansion_order_indices(QiskitDynamicsTestCase):
-    """Test helper function merge_expansion_order_indices."""
-
-    def test_order(self):
-        """Test specifying terms up to a given order."""
-
-        perturbation_labels = [[0], [1], [2]]
-
-        output = merge_expansion_order_indices(
-            expansion_order=3,
-            expansion_labels=None,
-            perturbation_labels=perturbation_labels,
-            symmetric=False,
-        )
-        expected = [
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 0, 2],
-            [0, 1, 0],
-            [0, 1, 1],
-            [0, 1, 2],
-            [0, 2, 0],
-            [0, 2, 1],
-            [0, 2, 2],
-            [1, 0, 0],
-            [1, 0, 1],
-            [1, 0, 2],
-            [1, 1, 0],
-            [1, 1, 1],
-            [1, 1, 2],
-            [1, 2, 0],
-            [1, 2, 1],
-            [1, 2, 2],
-            [2, 0, 0],
-            [2, 0, 1],
-            [2, 0, 2],
-            [2, 1, 0],
-            [2, 1, 1],
-            [2, 1, 2],
-            [2, 2, 0],
-            [2, 2, 1],
-            [2, 2, 2],
-        ]
-
-        self.assertTrue(output == expected)
-
-    def test_order_symmetric(self):
-        """Test specifying terms up to a given order."""
-        perturbation_labels = [[0], [1], [2]]
-        perturbation_labels = [Multiset.from_list(label) for label in perturbation_labels]
-
-        output = merge_expansion_order_indices(
-            expansion_order=3,
-            expansion_labels=None,
-            perturbation_labels=perturbation_labels,
-            symmetric=True,
-        )
-        expected = [
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 0, 2],
-            [0, 1, 1],
-            [0, 1, 2],
-            [0, 2, 2],
-            [1, 1, 1],
-            [1, 1, 2],
-            [1, 2, 2],
-            [2, 2, 2],
-        ]
-        expected = [Multiset.from_list(label) for label in expected]
-
-        self.assertTrue(output == expected)
-
-    def test_order_symmetric_skipped_terms(self):
-        """Test handling of 'missing' indices."""
-
-        perturbation_labels = [[0], [2], [3]]
-        perturbation_labels = [Multiset.from_list(label) for label in perturbation_labels]
-
-        output = merge_expansion_order_indices(
-            expansion_order=3,
-            expansion_labels=None,
-            perturbation_labels=perturbation_labels,
-            symmetric=True,
-        )
-        expected = [
-            [0, 0, 0],
-            [0, 0, 2],
-            [0, 0, 3],
-            [0, 2, 2],
-            [0, 2, 3],
-            [0, 3, 3],
-            [2, 2, 2],
-            [2, 2, 3],
-            [2, 3, 3],
-            [3, 3, 3],
-        ]
-        expected = [Multiset.from_list(label) for label in expected]
-
-        self.assertTrue(output == expected)
-
-    def test_terms_with_no_order(self):
-        """Test that nothing happens if expansion_labels is specified
-        while expansion_order is not."""
-
-        input_terms = [
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 0, 2],
-            [0, 1, 1],
-            [0, 1, 2],
-            [1, 1, 2],
-            [1, 2, 2],
-            [2, 2, 2],
-            [1, 0],
-            [0, 2],
-        ]
-        input_terms = [Multiset.from_list(label) for label in input_terms]
-
-        perturbation_labels = [[0], [1], [2]]
-        perturbation_labels = [Multiset.from_list(label) for label in perturbation_labels]
-        output = merge_expansion_order_indices(
-            expansion_order=None,
-            expansion_labels=input_terms,
-            perturbation_labels=perturbation_labels,
-            symmetric=True,
-        )
-        expected = [
-            [0, 1],
-            [0, 2],
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 0, 2],
-            [0, 1, 1],
-            [0, 1, 2],
-            [1, 1, 2],
-            [1, 2, 2],
-            [2, 2, 2],
-        ]
-        expected = [Multiset.from_list(label) for label in expected]
-        self.assertTrue(output == expected)
-
-    def test_merge(self):
-        """Test for when both expansion_labels and expansion_order
-        are specified."""
-
-        extra_terms = [Multiset({0: 3}), Multiset({0: 1, 1: 1, 2: 1})]
-        perturbation_labels = [
-            Multiset.from_list([0]),
-            Multiset.from_list([1]),
-            Multiset.from_list([2]),
-        ]
-        output = merge_expansion_order_indices(
-            expansion_order=2,
-            expansion_labels=extra_terms,
-            perturbation_labels=perturbation_labels,
-            symmetric=True,
-        )
-
-        expected = [[0, 0, 0], [0, 1, 2], [0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]]
-        expected = [Multiset.from_list(label) for label in expected]
-        self.assertTrue(output == expected)
-
-    def test_merge_symmetric_skipped_terms(self):
-        """Test for when both expansion_labels and expansion_order
-        are specified, with terms skipped"""
-
-        extra_terms = [Multiset({0: 3}), Multiset({0: 1, 1: 1, 2: 1})]
-        perturbation_labels = [
-            Multiset.from_list([0]),
-            Multiset.from_list([2]),
-            Multiset.from_list([3]),
-        ]
-        output = merge_expansion_order_indices(
-            expansion_order=2,
-            expansion_labels=extra_terms,
-            perturbation_labels=perturbation_labels,
-            symmetric=True,
-        )
-
-        expected = [[0, 0, 0], [0, 1, 2], [0, 0], [0, 2], [0, 3], [2, 2], [2, 3], [3, 3]]
-        expected = [Multiset.from_list(label) for label in expected]
-        self.assertTrue(output == expected)
 
 
 class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):

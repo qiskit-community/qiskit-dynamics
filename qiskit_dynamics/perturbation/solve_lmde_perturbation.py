@@ -28,6 +28,7 @@ from qiskit import QiskitError
 from qiskit_dynamics import solve_ode
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation.multiset import Multiset, clean_multisets
+from qiskit_dynamics.perturbation.perturbation_utils import merge_multiset_expansion_order_labels, merge_list_expansion_order_labels
 
 from qiskit_dynamics.perturbation.dyson_magnus import (
     solve_lmde_dyson,
@@ -197,38 +198,41 @@ def solve_lmde_perturbation(
     .. footbibliography::
     """
 
-    if (expansion_order is None) and (expansion_labels is None):
-        raise QiskitError(
-            """Must specify one of expansion_order or
-                          expansion_labels when calling solve_lmde_perturbation."""
-        )
-
+    # validation checks
     if y0 is not None:
         if len(y0.shape) != 2 or y0.shape[0] != y0.shape[1]:
             raise QiskitError("""If used, optional arg y0 must be a square 2d array.""")
 
-    # clean and validate perturbation_labels
-    if perturbation_labels is not None:
-        if expansion_method == "dyson":
-            raise QiskitError(
-                "perturbation_labels argument not usable with expansion_method='dyson'."
-            )
+    if perturbation_labels is not None and expansion_method == "dyson":
+        raise QiskitError(
+            "perturbation_labels argument not usable with expansion_method='dyson'."
+        )
 
-        # validate perturbation_labels
-        perturbations_len = len(perturbation_labels)
-        perturbation_labels = clean_multisets(perturbation_labels)
-        if len(perturbation_labels) != perturbations_len:
-            raise QiskitError("perturbation_labels argument contains duplicates as multisets.")
-    else:
-        if "symmetric" in expansion_method:
+
+    # clean and validate perturbation_labels, and setup expansion terms to compute
+    if expansion_method in ['symmetric_dyson', 'symmetric_magnus']:
+
+        if perturbation_labels is None:
             perturbation_labels = [Multiset({idx: 1}) for idx in range(len(perturbations))]
         else:
-            perturbation_labels = [[k] for k in range(len(perturbations))]
+            # validate perturbation_labels
+            perturbations_len = len(perturbation_labels)
+            perturbation_labels = clean_multisets(perturbation_labels)
+            if len(perturbation_labels) != perturbations_len:
+                raise QiskitError("perturbation_labels argument contains duplicates as multisets.")
 
-    # merge expansion_order and expansion_labels args
-    expansion_labels = merge_expansion_order_indices(
-        expansion_order, expansion_labels, perturbation_labels, "symmetric" in expansion_method
-    )
+        expansion_labels = merge_multiset_expansion_order_labels(
+            perturbation_labels=perturbation_labels,
+            expansion_order=expansion_order,
+            expansion_labels=expansion_labels
+        )
+    elif expansion_method in ['dyson']:
+        expansion_labels = merge_list_expansion_order_labels(
+            perturbation_num=len(perturbations),
+            expansion_order=expansion_order,
+            expansion_labels=expansion_labels
+        )
+
 
     if expansion_method in ["dyson", "symmetric_dyson"]:
         symmetric = expansion_method == "symmetric_dyson"
@@ -288,61 +292,3 @@ def solve_lmde_perturbation(
 
     # raise error if none apply
     raise QiskitError("expansion_method " + str(expansion_method) + " not supported.")
-
-
-def merge_expansion_order_indices(
-    expansion_order: int,
-    expansion_labels: Union[List[Multiset], List[int], None],
-    perturbation_labels: List[Multiset],
-    symmetric: bool,
-) -> List:
-    """Combine ``expansion_order`` and ``expansion_labels`` into a single
-    explicit list of perturbation terms to compute. It is assumed that at least
-    one of the two arguments is in correct format.
-
-    Note that this function generates a minimal list of term labels sufficient to
-    generate all required terms when the list is 'completed'. E.g. for order=3,
-    it is sufficient here to only return all third order terms, as ``solve_lmde_perturbation``
-    will 'complete' this list and add all lower order terms required for computing
-    the specified third order terms.
-
-    Args:
-        expansion_order: Order of expansion to compute all terms up to.
-        expansion_labels: Specific individual terms requested to compute.
-        perturbation_labels: Labels for perturbations.
-        symmetric: Whether or not the perturbation terms represent symmetric or non-symmetric
-                   expansions.
-    Returns:
-        List of perturbation terms to compute based on merging of expansion_order and
-        expansion_labels.
-    """
-
-    if symmetric:
-        # convert to list representation for calculation
-        if expansion_labels is not None:
-            expansion_labels = clean_multisets(expansion_labels)
-            expansion_labels = [label.as_list() for label in expansion_labels]
-        perturbation_labels = [label.as_list() for label in perturbation_labels]
-
-    # determine unique indices in perturbation_labels
-    unique_indices = []
-    for multiset in perturbation_labels:
-        for idx in multiset:
-            if idx not in unique_indices:
-                unique_indices.append(idx)
-
-    expansion_labels = expansion_labels or []
-    if expansion_order is not None:
-        up_to_order_terms = None
-        if symmetric:
-            up_to_order_terms = list(
-                map(list, combinations_with_replacement(unique_indices, expansion_order))
-            )
-        else:
-            up_to_order_terms = list(map(list, product(unique_indices, repeat=expansion_order)))
-        expansion_labels = expansion_labels + up_to_order_terms
-
-    if symmetric:
-        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
-
-    return expansion_labels

@@ -23,7 +23,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.perturbation import ArrayPolynomial, Multiset
 from qiskit_dynamics.perturbation.multiset import get_all_submultisets
-from qiskit_dynamics.perturbation.solve_lmde_perturbation import merge_expansion_order_indices
+from qiskit_dynamics.perturbation.perturbation_utils import merge_multiset_expansion_order_labels
 
 
 def schrieffer_wolff(
@@ -89,8 +89,10 @@ def schrieffer_wolff(
         perturbation_labels = [Multiset({k: 1}) for k in range(len(perturbations))]
 
     # get all requested terms in the expansion
-    expansion_labels = merge_expansion_order_indices(
-        expansion_order, expansion_labels, perturbation_labels, symmetric=True
+    expansion_labels = merge_multiset_expansion_order_labels(
+        perturbation_labels=perturbation_labels,
+        expansion_order=expansion_order,
+        expansion_labels=expansion_labels,
     )
     expansion_labels = get_all_submultisets(expansion_labels)
 

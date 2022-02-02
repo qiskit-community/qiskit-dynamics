@@ -45,6 +45,16 @@ class Testschrieffer_wolff_validation(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "Hermitian"):
             schrieffer_wolff(1j * self.Z, perturbations=[self.Z], expansion_order=1)
 
+    def test_H0_degenerate(self):
+        """Test detection of degenerate H0."""
+
+        with self.assertRaisesRegex(QiskitError, "degenerate"):
+            schrieffer_wolff(np.eye(2), perturbations=[self.Z], expansion_order=1)
+
+        # test for non-adjacent degeneracies
+        with self.assertRaisesRegex(QiskitError, "degenerate"):
+            schrieffer_wolff(np.diag([1, 0, 1]), perturbations=[np.diag([1, 0, 1])], expansion_order=1)
+
     def test_perturbation_non_hermitian(self):
         """Test perturbations being non-Hermitian."""
 

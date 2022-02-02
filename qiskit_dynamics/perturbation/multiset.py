@@ -313,7 +313,7 @@ def clean_multisets(multisets: List[Union[Multiset, dict, list]]) -> List[Multis
         if multiset not in unique_multisets:
             unique_multisets.append(multiset)
 
-    unique_multisets.sort(key=len)
+    unique_multisets.sort()
 
     return unique_multisets
 
