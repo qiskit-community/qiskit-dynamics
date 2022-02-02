@@ -9,6 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
 Schrieffer-Wolff perturbation computation.
@@ -34,28 +35,91 @@ def schrieffer_wolff(
     perturbation_labels: Optional[List[Multiset]] = None,
     tol: Optional[float] = 1e-15,
 ) -> ArrayPolynomial:
-    """Construct truncated multi-variable Schrieffer-Wolff transformation.
+    r"""Construct truncated multi-variable expansion for the generator of the unitary
+    Schrieffer-Wolff transformation.
 
-    Not sure what the correct output should be but the ``ArrayPolynomial`` will contain
-    all relevant information.
+    Given a multi-variable power series decomposition of a Hamiltonian:
 
-    Also, for now we assume H0 is non-degenerate for initial development, but we
-    should add a "degeneracy_tol" argument for detecting degeneracies when we add this case.
-    More generally we could think about allowing the user to choose the projection,
-    so they could e.g. choose a block-diagonal structure even if there are no degeneracies.
+    .. math::
 
-    Further notes to self:
-        - I wrote this initially thinking it could be vectorized, but I think solve_sylvester
-          only works for 2d arrays. Also I just realized that even if solve_sylvester
-          was vectorized I haven't written the solve_commutator_projection function to
-          be vectorized (due to the conditionals). May want to consider modifying things so
-          that it explicitly works with 2d arrays, otherwise the "vectorized" stuff is just
-          confusing to read
+        H(c) = H_0 + \sum_{I \in S} c_I H_I,
 
-    To do:
-        - Maybe validate that that everything is hermitian, and add an anti-hermitian projection
-        step at the end for the perturbation terms
-        - Should we rename H0 to Hd given the usage of 0 as an index?
+    where:
+
+        - :math:`H_0` is the unperturbed diagonal Hamiltonian, given by argument ``H0``,
+        - :math:`H_I` are the multi-variable perturbations, given by the argument
+          ``perturbations``, and
+        - :math:`S` are the perturbation indices specified as
+          :class:`~qiskit_dynamics.perturbation.multiset.Multiset`\s, and given
+          in the argument ``perturbation_labels``,
+
+    this function produces a truncated power series decomposition for the generator of the
+    associated Schrieffer-Wolff transformation, where:
+
+        - The expansion terms computed are specified by a combination of ``expansion_order``
+          and ``expansion_labels``. All terms up to order ``expansion_order`` are computed,
+          along with any additional terms given by ``expansion_labels``.
+
+    The generator of the Schrieffer-Wolff transformation as a function of the perturbation
+    variables, :math:`S(c)`, is defined implicitly as an anti-Hermitian operator for which
+
+    .. math::
+
+        e^{S(c)}H(c)e^{-S(c)}
+
+    is diagonal. Expanding :math:`S(c)` in a perturbative expansion about :math:`c=0`:
+
+    .. math::
+
+        S(c) = \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I S_I,
+
+    (where the constant term is taken to be :math:`0` as :math:`H(0) = H_0`
+    is assumed already diagonal), we can expand the following using the BCH formula
+    and collect terms in the coefficients :math:`c_I`:
+
+    .. math::
+
+        e^{S(c)}H(c)e^{-S(c)} = H_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)}
+             c_I \left(H_0 + [S_I, H0] + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)})\right),
+
+    where the :math:`A_I^{(m)}` and :math:`B_I^{(m)}` are defined recursively via
+
+    .. math::
+
+        A_I^{(m)} = \frac{1}{m} \sum_{J \subsetneq I, |J| \leq |I| - m + 1}
+            [S_J, A_{I \setminus J}^{(m-1)}]
+
+    and
+
+    .. math::
+
+        B_I^{(m)} = \frac{1}{(m-1)} \sum_{J \subsetneq I, |J| \leq |I| - m + 1}
+            [S_J, B_{I \setminus J}^{(m-1)}],
+
+    with base cases :math:`A_I^{(1)} = [S_I, H_0]` and :math:`B_I^{(1)} = H_I`.
+
+    This function recursively computes the desired :math:`S_I` at successive orders, where
+    each :math:`S_I` is constructed by solving
+
+    .. math::
+
+        [H_0, S_I] = \Delta(H_0 + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)}))
+
+    where :math:`\Delta` is the projection onto matrices with zero diagonal.
+
+    Args:
+        H0: Diagonal Hamiltonian, assumed and validated to be non-degenerate.
+        perturbations: Perturbation terms.
+        expansion_order: Expansion order to compute to.
+        expansion_labels: Expansion labels to compute.
+        perturbation_labels: Labels for perturbation terms in the form of multisets.
+        tol: Tolerance for validation and for determining if matrix entries are 0.
+    Returns:
+        ArrayPolynomial object containing the perturbative Shrieffer-Wolff coefficients.
+    Raises:
+        QiskitError: If any assumptions of the function are not met: H0 is diagonal, real,
+        and non-degenerate, the perturbations are Hermitian, and at least one of
+        expansion_order or expansion_labels is specified.
     """
 
     # validate H0 is diagonal and hermitian
@@ -76,15 +140,7 @@ def schrieffer_wolff(
         if np.max(np.abs(perturbation.conj().transpose() - perturbation)) > tol:
             raise QiskitError("Perturbations must be Hermitian.")
 
-    ##################################################################################################
-    # To do: add validation. For validating the expansion_order/labels args we could
-    # move the validation for both solve_lmde_perturbation and this function into
-    # merge_expansion_order_indices (and maybe also move this function into multiset.py)
-    ##################################################################################################
-
-    perturbations = np.array(perturbations)
-    mat_shape = perturbations[0].shape
-
+    # setup labels for perturbations and expansion terms
     if perturbation_labels is None:
         perturbation_labels = [Multiset({k: 1}) for k in range(len(perturbations))]
 
@@ -102,34 +158,35 @@ def schrieffer_wolff(
         for k in range(len(label), 0, -1):
             recursive_labels.append((label, k))
 
-    # initialize arrays used to store results
-    recursive_A = np.zeros((len(recursive_labels),) + mat_shape, dtype=complex)
-    recursive_B = np.zeros((len(recursive_labels),) + mat_shape, dtype=complex)
+    # setup results arrays
+    perturbations = np.array(perturbations)
+    mat_shape = perturbations[0].shape
+
+    storage_shape = (len(recursive_labels),) + mat_shape
+    recursive_A = np.zeros(storage_shape, dtype=complex)
+    recursive_B = np.zeros(storage_shape, dtype=complex)
     expansion_terms = np.zeros((len(expansion_labels),) + mat_shape, dtype=complex)
 
-    # right hand side storage
-    rhs_mat = None
-
     # recursively compute all matrices
+    current_rhs = None
+    current_expansion_idx = None
     for (recursive_idx, (expansion_label, commutator_order)) in enumerate(recursive_labels):
-        expansion_idx = expansion_labels.index(expansion_label)
 
         # initialize rhs matrix at first occurence of current expansion_label
         if commutator_order == len(expansion_label):
-            rhs_mat = np.zeros(mat_shape, dtype=complex)
+            current_expansion_idx = expansion_labels.index(expansion_label)
+            current_rhs = np.zeros(mat_shape, dtype=complex)
 
-        # if commutator_order == 1, all terms required to determine term for current
-        # expansion_label are computed, so solve for the term and initialize
-        # base cases of recursive matrices that depend on it
         if commutator_order == 1:
+            # if commutator_order == 1, solve expansion_term and initialize next layer of recursion
             if expansion_label in perturbation_labels:
-                rhs_mat = rhs_mat + perturbations[expansion_idx]
-                recursive_B[recursive_idx] = perturbations[expansion_idx]
-            # solve for expansion term
-            expansion_terms[expansion_idx] = solve_commutator_projection(H0, rhs_mat, tol=tol)
+                current_rhs += perturbations[current_expansion_idx]
+                recursive_B[recursive_idx] = perturbations[current_expansion_idx]
 
-            # initialize recursive_A base case
-            recursive_A[recursive_idx] = commutator(expansion_terms[expansion_idx], H0)
+            expansion_terms[current_expansion_idx] = solve_commutator_projection(
+                H0, current_rhs, tol=tol
+            )
+            recursive_A[recursive_idx] = commutator(expansion_terms[current_expansion_idx], H0)
         else:
             # get all 2-fold partitions, bounding the submultisets to have size
             # <= len(expansion_label) - (commutator_order - 1)
@@ -144,7 +201,7 @@ def schrieffer_wolff(
 
             recursive_A[recursive_idx] = recursive_A[recursive_idx] / commutator_order
             recursive_B[recursive_idx] = recursive_B[recursive_idx] / (commutator_order - 1)
-            rhs_mat = rhs_mat + recursive_A[recursive_idx] + recursive_B[recursive_idx]
+            current_rhs += recursive_A[recursive_idx] + recursive_B[recursive_idx]
 
     # project onto anti-hermitian matrices
     expansion_terms = 0.5 * (expansion_terms - expansion_terms.conj().transpose((0, 2, 1)))
@@ -152,7 +209,9 @@ def schrieffer_wolff(
     return ArrayPolynomial(array_coefficients=expansion_terms, monomial_multisets=expansion_labels)
 
 
-def solve_commutator_projection(A: np.ndarray, B: np.ndarray, tol: Optional[float] = 1e-15) -> np.ndarray:
+def solve_commutator_projection(
+    A: np.ndarray, B: np.ndarray, tol: Optional[float] = 1e-15
+) -> np.ndarray:
     """Solve [A, X] = OD(B) assuming A is diagonal, where OD is the projection onto
     off-diagonal matrices.
 

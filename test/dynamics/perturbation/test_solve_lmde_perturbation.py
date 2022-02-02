@@ -18,7 +18,6 @@ import numpy as np
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation.multiset import Multiset
 from qiskit_dynamics.perturbation.solve_lmde_perturbation import solve_lmde_perturbation
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase

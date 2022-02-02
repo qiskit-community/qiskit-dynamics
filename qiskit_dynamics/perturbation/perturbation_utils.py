@@ -9,13 +9,14 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
 Utility functions for perturbation module.
 """
 
-from typing import List, Optional, Callable, Union
-from itertools import combinations_with_replacement, product
+from typing import List, Optional, Union
+from itertools import product
 
 from qiskit import QiskitError
 
@@ -25,7 +26,8 @@ from qiskit_dynamics.perturbation.multiset import Multiset, clean_multisets, to_
 def merge_multiset_expansion_order_labels(
     perturbation_labels: Union[List[int], List[Multiset]],
     expansion_order: Optional[int] = None,
-    expansion_labels: Optional[List[Multiset]] = None) -> List[Multiset]:
+    expansion_labels: Optional[List[Multiset]] = None,
+) -> List[Multiset]:
     """Helper function for merging expansion_order and expansion_labels arguments
     in the multiset case for functions that require specifying expansion terms to compute.
 
@@ -79,7 +81,7 @@ def merge_multiset_expansion_order_labels(
     # create all such multisets
     output_multisets = []
     for multiset_count in all_multiset_counts:
-        output_multisets.append(Multiset({key: val for key, val in zip(unique_labels, multiset_count)}))
+        output_multisets.append(Multiset(dict(zip(unique_labels, multiset_count))))
 
     if expansion_labels is not None:
         output_multisets = output_multisets + expansion_labels
@@ -90,7 +92,7 @@ def merge_multiset_expansion_order_labels(
 def merge_list_expansion_order_labels(
     perturbation_num: int,
     expansion_order: Optional[int] = None,
-    expansion_labels: Optional[List[List[int]]] = None
+    expansion_labels: Optional[List[List[int]]] = None,
 ) -> List[int]:
     """Helper function for merging expansion_order and expansion_labels arguments
     in the list case for functions that require specifying expansion terms to compute.
@@ -136,7 +138,7 @@ def merge_list_expansion_order_labels(
     return output_lists
 
 
-def ordered_partitions(n: int, length: int):
+def ordered_partitions(n: int, length: int) -> List[List[int]]:
     """Return the ordered integer partitions of n of a given length, including zeros.
 
     Args:

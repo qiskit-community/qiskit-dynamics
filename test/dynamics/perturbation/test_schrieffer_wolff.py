@@ -29,9 +29,25 @@ class Testschrieffer_wolff_validation(QiskitDynamicsTestCase):
     @classmethod
     def setUpClass(cls):
         """Construct reusable operators."""
-        cls.X = np.array([[0., 1.,], [1., 0.]])
-        cls.Z = np.array([[1., 0.,], [0., -1.]])
-        cls.P = np.array([[0., 1.], [0., 0.]])
+        cls.X = np.array(
+            [
+                [
+                    0.0,
+                    1.0,
+                ],
+                [1.0, 0.0],
+            ]
+        )
+        cls.Z = np.array(
+            [
+                [
+                    1.0,
+                    0.0,
+                ],
+                [0.0, -1.0],
+            ]
+        )
+        cls.P = np.array([[0.0, 1.0], [0.0, 0.0]])
 
     def test_H0_non_diagonal(self):
         """Test detection of non-diagonal."""
@@ -53,7 +69,9 @@ class Testschrieffer_wolff_validation(QiskitDynamicsTestCase):
 
         # test for non-adjacent degeneracies
         with self.assertRaisesRegex(QiskitError, "degenerate"):
-            schrieffer_wolff(np.diag([1, 0, 1]), perturbations=[np.diag([1, 0, 1])], expansion_order=1)
+            schrieffer_wolff(
+                np.diag([1, 0, 1]), perturbations=[np.diag([1, 0, 1])], expansion_order=1
+            )
 
     def test_perturbation_non_hermitian(self):
         """Test perturbations being non-Hermitian."""
@@ -199,7 +217,6 @@ class Testschrieffer_wolff(QiskitDynamicsTestCase):
         """Test with higher dimensional matrices and multiple perturbations."""
 
         rng = np.random.default_rng(30493)
-        num_terms = 3
         dim = 5
         b = 1.0  # bound on size of random terms
 

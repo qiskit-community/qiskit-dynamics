@@ -13,12 +13,14 @@
 
 """Tests for perturbation_utils.py."""
 
-import numpy as np
-
 from qiskit import QiskitError
 
 from qiskit_dynamics.perturbation import Multiset
-from qiskit_dynamics.perturbation.perturbation_utils import ordered_partitions, merge_multiset_expansion_order_labels, merge_list_expansion_order_labels
+from qiskit_dynamics.perturbation.perturbation_utils import (
+    ordered_partitions,
+    merge_multiset_expansion_order_labels,
+    merge_list_expansion_order_labels,
+)
 
 from ..common import QiskitDynamicsTestCase
 
@@ -31,9 +33,7 @@ class Testmerge_multiset_expansion_order_labels(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "At least one"):
             merge_multiset_expansion_order_labels(
-                perturbation_labels=[[0]],
-                expansion_order=None,
-                expansion_labels=None
+                perturbation_labels=[[0]], expansion_order=None, expansion_labels=None
             )
 
     def test_order(self):
@@ -183,18 +183,14 @@ class Testmerge_list_expansion_order_labels(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "At least one"):
             merge_list_expansion_order_labels(
-                perturbation_num=3,
-                expansion_order=None,
-                expansion_labels=None
+                perturbation_num=3, expansion_order=None, expansion_labels=None
             )
 
     def test_order_only(self):
         """Test specifying terms up to a given order."""
 
         output = merge_list_expansion_order_labels(
-            perturbation_num=3,
-            expansion_order=3,
-            expansion_labels=None
+            perturbation_num=3, expansion_order=3, expansion_labels=None
         )
         expected = [
             [0, 0, 0],
@@ -232,9 +228,7 @@ class Testmerge_list_expansion_order_labels(QiskitDynamicsTestCase):
         """Test case for when only expansion_labels is specified."""
 
         output = merge_list_expansion_order_labels(
-            perturbation_num=3,
-            expansion_order=None,
-            expansion_labels=[[0, 1]]
+            perturbation_num=3, expansion_order=None, expansion_labels=[[0, 1]]
         )
         self.assertTrue([[0, 1]] == output)
 
@@ -244,7 +238,7 @@ class Testmerge_list_expansion_order_labels(QiskitDynamicsTestCase):
         output = merge_list_expansion_order_labels(
             perturbation_num=3,
             expansion_order=3,
-            expansion_labels=[[0, 0, 0, 1], [1, 0, 0, 0], [0, 0, 0]]
+            expansion_labels=[[0, 0, 0, 1], [1, 0, 0, 0], [0, 0, 0]],
         )
         expected = [
             [0, 0, 0],
@@ -275,10 +269,11 @@ class Testmerge_list_expansion_order_labels(QiskitDynamicsTestCase):
             [2, 2, 1],
             [2, 2, 2],
             [0, 0, 0, 1],
-            [1, 0, 0, 0]
+            [1, 0, 0, 0],
         ]
 
         self.assertTrue(output == expected)
+
 
 class Testordered_partitions(QiskitDynamicsTestCase):
     """Tests for ordered_partitions function."""
@@ -298,9 +293,21 @@ class Testordered_partitions(QiskitDynamicsTestCase):
     def test_case_3(self):
         """Test case 3."""
         output = ordered_partitions(4, 3)
-        expected = [[0, 0, 4], [0, 1, 3], [0, 2, 2], [0, 3, 1], [0, 4, 0],
-                    [1, 0, 3], [1, 1, 2], [1, 2, 1], [1, 3, 0],
-                    [2, 0, 2], [2, 1, 1], [2, 2, 0],
-                    [3, 0, 1], [3, 1, 0],
-                    [4, 0, 0]]
+        expected = [
+            [0, 0, 4],
+            [0, 1, 3],
+            [0, 2, 2],
+            [0, 3, 1],
+            [0, 4, 0],
+            [1, 0, 3],
+            [1, 1, 2],
+            [1, 2, 1],
+            [1, 3, 0],
+            [2, 0, 2],
+            [2, 1, 1],
+            [2, 2, 0],
+            [3, 0, 1],
+            [3, 1, 0],
+            [4, 0, 0],
+        ]
         self.assertTrue(output == expected)

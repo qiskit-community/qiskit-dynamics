@@ -17,8 +17,7 @@ r"""
 Compute perturbation theory terms for an LMDE.
 """
 
-from typing import List, Optional, Callable, Union
-from itertools import combinations_with_replacement, product
+from typing import List, Optional, Callable
 
 # pylint: disable=unused-import
 from scipy.integrate._ivp.ivp import OdeResult
@@ -28,7 +27,10 @@ from qiskit import QiskitError
 from qiskit_dynamics import solve_ode
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation.multiset import Multiset, clean_multisets
-from qiskit_dynamics.perturbation.perturbation_utils import merge_multiset_expansion_order_labels, merge_list_expansion_order_labels
+from qiskit_dynamics.perturbation.perturbation_utils import (
+    merge_multiset_expansion_order_labels,
+    merge_list_expansion_order_labels,
+)
 
 from qiskit_dynamics.perturbation.dyson_magnus import (
     solve_lmde_dyson,
@@ -204,13 +206,10 @@ def solve_lmde_perturbation(
             raise QiskitError("""If used, optional arg y0 must be a square 2d array.""")
 
     if perturbation_labels is not None and expansion_method == "dyson":
-        raise QiskitError(
-            "perturbation_labels argument not usable with expansion_method='dyson'."
-        )
-
+        raise QiskitError("perturbation_labels argument not usable with expansion_method='dyson'.")
 
     # clean and validate perturbation_labels, and setup expansion terms to compute
-    if expansion_method in ['symmetric_dyson', 'symmetric_magnus']:
+    if expansion_method in ["symmetric_dyson", "symmetric_magnus"]:
 
         if perturbation_labels is None:
             perturbation_labels = [Multiset({idx: 1}) for idx in range(len(perturbations))]
@@ -224,15 +223,14 @@ def solve_lmde_perturbation(
         expansion_labels = merge_multiset_expansion_order_labels(
             perturbation_labels=perturbation_labels,
             expansion_order=expansion_order,
-            expansion_labels=expansion_labels
+            expansion_labels=expansion_labels,
         )
-    elif expansion_method in ['dyson']:
+    elif expansion_method in ["dyson"]:
         expansion_labels = merge_list_expansion_order_labels(
             perturbation_num=len(perturbations),
             expansion_order=expansion_order,
-            expansion_labels=expansion_labels
+            expansion_labels=expansion_labels,
         )
-
 
     if expansion_method in ["dyson", "symmetric_dyson"]:
         symmetric = expansion_method == "symmetric_dyson"
