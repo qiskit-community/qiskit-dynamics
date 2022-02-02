@@ -107,7 +107,7 @@ def schrieffer_wolff(
 
     where :math:`\Delta` is the projection onto matrices with zero diagonal, and each
     successive order of the :math:`A_I^{(m)}` and :math:`B_I^{(m)}` is computed
-    using the recursion relation above. 
+    using the recursion relation above.
 
     Args:
         H0: Diagonal Hamiltonian, assumed and validated to be non-degenerate.
