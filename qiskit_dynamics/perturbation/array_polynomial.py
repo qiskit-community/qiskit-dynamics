@@ -433,3 +433,35 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
         right_indices,
         update_ranges,
     )
+
+
+def array_polynomial_distributive_binary_op(binary_op: Callable,
+                                            ap1: ArrayPolynomial,
+                                            ap2: ArrayPolynomial,
+                                            order_bound: Optional[int] = np.inf,
+                                            multiset_bounds: Optional[List[Multiset]] = None) -> ArrayPolynomial:
+    """Perform a binary operation between two ArrayPolynomials that is distributive
+    over addition, e.g. multiplication.
+
+    Assumed to be vectorized?
+    """
+    pass
+
+def array_polynomial_associative_binary_op(binary_op: Callable,
+                                           ap1: ArrayPolynomial,
+                                           ap2: ArrayPolynomial,
+                                           order_bound: Optional[int] = np.inf,
+                                           multiset_bounds: Optional[List[Multiset]] = None) -> ArrayPolynomial:
+    """Perform an associative operation between two ArrayPolynomials, e.g. multiplication.
+
+    Assumed to be vectorized?
+    """
+    pass
+
+def multiset_is_bounded(multiset: Multiset, order: Optional[int] = np.inf, multiset_bounds: Optional[List[Multiset]] = None) -> bool:
+    """Check that either multiset has size bounded by order, or is a subset of any of the elements
+    in multiset_bounds.
+    """
+    if multiset_bounds is None:
+        return len(multiset) <= order
+    return len(multiset) <= order or any(multiset.issubmultiset(bound) for bound in multiset_bounds)

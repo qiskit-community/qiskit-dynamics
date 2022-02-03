@@ -71,7 +71,7 @@ def merge_multiset_expansion_order_labels(
         if isinstance(perturbation_label, int):
             unique_labels = unique_labels.union({perturbation_label})
         else:
-            unique_labels = unique_labels.union(to_Multiset(perturbation_label).unique())
+            unique_labels = unique_labels.union(to_Multiset(perturbation_label).elements)
     unique_labels = list(unique_labels)
     unique_labels.sort()
 

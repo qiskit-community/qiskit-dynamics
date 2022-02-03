@@ -71,6 +71,7 @@ class Multiset:
 
         validate_counts_dict(counts_dict)
         self._counts_dict = canonicalize_counts_dict(counts_dict)
+        self._elements = set(self._counts_dict.keys())
 
     @classmethod
     def from_list(cls, multiset_as_list: List[int]) -> "Multiset":
@@ -83,9 +84,10 @@ class Multiset:
         """Counts dictionary storing element counts."""
         return self._counts_dict
 
-    def unique(self) -> set:
+    @property
+    def elements(self) -> set:
         """Return the unique elements of self as a set."""
-        return set(self.counts_dict.keys())
+        return self._elements
 
     def count(self, element: int) -> int:
         """Get the count of an element in self."""
@@ -94,7 +96,7 @@ class Multiset:
     def union(self, other: "Multiset") -> "Multiset":
         """Multiset union of self with other."""
 
-        unique_elements = self.unique().union(other.unique())
+        unique_elements = self.elements.union(other.elements)
 
         new_dict = {}
         for elem in unique_elements:
@@ -104,7 +106,7 @@ class Multiset:
 
     def difference(self, other: "Multiset") -> "Multiset":
         """Multiset difference of other from self."""
-        unique_elements = self.unique()
+        unique_elements = self.elements
 
         new_dict = {}
         for elem in unique_elements:
@@ -125,11 +127,33 @@ class Multiset:
     def issubmultiset(self, other: "Multiset") -> bool:
         """Check if self is a submultiset of other."""
 
-        for elem in self.unique():
+        for elem in self.elements:
             if self.count(elem) > other.count(elem):
                 return False
 
         return True
+
+    def relabel(self, label_mapping: Optional[Dict[int, int]] = None) -> 'Multiset':
+        """Return a Multiset via relabeling.
+
+        The relabeling is given by label_mapping, a dict whose keys correspond to the integer
+        entries in self, and whose values are the new labels.
+
+        Need to validate that:
+            label mapping is 1 to 1
+        """
+
+        if label_mapping is None:
+            label_mapping = {}
+
+        # pad out label mapping with unmapped elements
+        label_mapping = {key: label_mapping.get(key, key) for key in self.elements}
+
+        # validate that label_mapping is one-to-one
+        if len(set(label_mapping.values())) < len(label_mapping):
+            raise QiskitError("label_mapping must imply a 1-1 mapping of elements.")
+
+        return Multiset({label_mapping[key]: self.count(key) for key in self.elements})
 
     def submultisets_and_complements(
         self, submultiset_bound: Optional[int] = None
@@ -198,7 +222,7 @@ class Multiset:
         if len(other) < len(self):
             return False
 
-        unique_entries = list(self.unique().union(other.unique()))
+        unique_entries = list(self.elements.union(other.elements))
         unique_entries.sort()
 
         for element in unique_entries:
