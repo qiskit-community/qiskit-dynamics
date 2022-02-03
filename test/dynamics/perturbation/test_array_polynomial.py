@@ -28,6 +28,73 @@ except ImportError:
     pass
 
 
+class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
+    """Test algebraic operations on ArrayPolynomials."""
+
+    def test_addition_validation_error(self):
+        """Test shape broadcasting failure."""
+        ap1 = ArrayPolynomial(
+            array_coefficients=np.random.rand(1, 4, 6) + 1j * np.random.rand(1, 4, 6),
+            monomial_labels=[[0]],
+            constant_term=np.random.rand(4, 6) + 1j * np.random.rand(4, 6),
+        )
+        ap2 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [1], [2, 2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+
+        with self.assertRaisesRegex(QiskitError, "broadcastable"):
+            ap1 + ap2
+
+    def test_addition_simple(self):
+        """Test basic addition."""
+
+        ap1 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [1], [2, 2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+        ap2 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [1], [2, 2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+        result = ap1 + ap2
+
+        self.assertAllClose(
+            result.array_coefficients, ap1.array_coefficients + ap2.array_coefficients
+        )
+        self.assertTrue(result.monomial_labels == ap1.monomial_labels)
+        self.assertAllClose(result.constant_term, ap1.constant_term + ap2.constant_term)
+
+    def test_addition_non_overlapping_labels(self):
+        """Test non-overlapping labels."""
+        ap1 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [1], [2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+        ap2 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [3], [2, 2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+        result = ap1 + ap2
+
+        expected_coefficients = np.array([ap1.array_coefficients[0] + ap2.array_coefficients[0],
+                                          ap1.array_coefficients[1],
+                                          ap1.array_coefficients[2],
+                                          ap2.array_coefficients[1],
+                                          ap2.array_coefficients[2]])
+        expected_monomial_labels = [Multiset.from_list(l) for l in [[0], [1], [2], [3], [2, 2]]]
+        expected_constant_term = ap1.constant_term + ap2.constant_term
+
+        self.assertAllClose(result.array_coefficients, expected_coefficients)
+        self.assertTrue(result.monomial_labels == expected_monomial_labels)
+        self.assertAllClose(result.constant_term, expected_constant_term)
+
+
 class TestArrayPolynomial(QiskitDynamicsTestCase):
     """Test the ArrayPolynomial class."""
 
@@ -52,19 +119,16 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
 
     def test_validation_error_no_ops(self):
         """Test validation error when no information specified."""
-
         with self.assertRaisesRegex(QiskitError, "At least one"):
             ArrayPolynomial()
 
     def test_trace_validation(self):
         """Test attempting to trace an AP with ndim < 2 raises an error."""
-
         with self.assertRaisesRegex(QiskitError, "at least 2."):
             self.non_constant_0d.trace()
 
     def test_only_constant_term(self):
         """Test construction and evaluation with only a constant term."""
-
         self.assertAllClose(self.constant_0d(), 3.0)
 
     def test_shape(self):

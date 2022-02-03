@@ -127,7 +127,7 @@ class Multiset:
 
         return True
 
-    def relabel(self, label_mapping: Optional[Dict[int, int]] = None) -> 'Multiset':
+    def relabel(self, label_mapping: Optional[Dict[int, int]] = None) -> "Multiset":
         """Return a Multiset via relabeling.
 
         The relabeling is given by label_mapping, a dict whose keys correspond to the integer

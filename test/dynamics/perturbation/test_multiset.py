@@ -73,7 +73,6 @@ class TestMultiset(QiskitDynamicsTestCase):
         self.assertTrue((B - Multiset({0: 1, 2: 1, 1: 1})) == Multiset({0: 1, 2: 1}))
         self.assertTrue((B - Multiset({3: 1})) == B)
 
-
     def test_relabel(self):
         """Test relabel."""
         base_multiset = Multiset({0: 2, 1: 1})

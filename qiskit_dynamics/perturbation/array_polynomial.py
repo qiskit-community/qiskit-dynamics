@@ -23,7 +23,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation import Multiset
-from qiskit_dynamics.perturbation.multiset import to_Multiset
+from qiskit_dynamics.perturbation.multiset import to_Multiset, clean_multisets
 from qiskit_dynamics.perturbation.multiset import get_all_submultisets
 
 try:
@@ -79,9 +79,9 @@ class ArrayPolynomial:
             )
 
         if monomial_labels is not None:
-            monomial_labels = [to_Multiset(m) for m in monomial_labels]
-
-        self._monomial_labels = monomial_labels
+            self._monomial_labels = [to_Multiset(m) for m in monomial_labels]
+        else:
+            self._monomial_labels = []
 
         # If operating in jax mode, wrap in Arrays
         if Array.default_backend() == "jax":
@@ -225,6 +225,35 @@ class ArrayPolynomial:
             monomial_labels=copy(self._monomial_labels),
             constant_term=constant_term,
         )
+
+    def add(
+        self,
+        other: Union["ArrayPolynomial", int, float, complex],
+        order_bound: Optional[int] = np.inf,
+        multiset_bounds: Optional[List[Multiset]] = None,
+    ) -> "ArrayPolynomial":
+        """Add two polynomials with controls on the terms to include.
+
+        Args:
+            other: Other to add to self.
+            order_bound: Bound on length of returned terms.
+            multiset_bounds: Multiset bounds.
+        Returns:
+            ArrayPolynomial achieved by adding both self and other.
+        """
+
+        if isinstance(other, (int, float, complex)):
+            other = ArrayPolynomial(constant_term=other)
+
+        return array_polynomial_addition(self, other, order_bound, multiset_bounds)
+
+    def __add__(self, other: Union["ArrayPolynomial", int, float, complex]) -> "ArrayPolynomial":
+        """Add."""
+        return self.add(other)
+
+    def __radd__(self, other: Union["ArrayPolynomial", int, float, complex]) -> "ArrayPolynomial":
+        """Right add."""
+        return self.add(other)
 
     def __call__(self, c: Optional[Array] = None) -> Array:
         """Evaluate the polynomial.
@@ -434,11 +463,13 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
     )
 
 
-def array_polynomial_distributive_binary_op(binary_op: Callable,
-                                            ap1: ArrayPolynomial,
-                                            ap2: ArrayPolynomial,
-                                            order_bound: Optional[int] = np.inf,
-                                            multiset_bounds: Optional[List[Multiset]] = None) -> ArrayPolynomial:
+def array_polynomial_distributive_binary_op(
+    binary_op: Callable,
+    ap1: ArrayPolynomial,
+    ap2: ArrayPolynomial,
+    order_bound: Optional[int] = np.inf,
+    multiset_bounds: Optional[List[Multiset]] = None,
+) -> ArrayPolynomial:
     """Perform a binary operation between two ArrayPolynomials that is distributive
     over addition, e.g. multiplication.
 
@@ -446,18 +477,79 @@ def array_polynomial_distributive_binary_op(binary_op: Callable,
     """
     pass
 
-def array_polynomial_addition(ap1: ArrayPolynomial,
-                              ap2: ArrayPolynomial,
-                              order_bound: Optional[int] = np.inf,
-                              multiset_bounds: Optional[List[Multiset]] = None) -> ArrayPolynomial:
+
+def array_polynomial_addition(
+    ap1: ArrayPolynomial,
+    ap2: ArrayPolynomial,
+    order_bound: Optional[int] = np.inf,
+    multiset_bounds: Optional[List[Multiset]] = None,
+) -> ArrayPolynomial:
     """Add two ArrayPolynomials."""
-    # construct list of admissable multisets
+
+    for a, b in zip(ap1.shape[::-1], ap2.shape[::-1]):
+        if not (a == 1 or b == 1 or a == b):
+            raise QiskitError(
+                "ArrayPolynomial addition requires shapes be broadcastable to eachother."
+            )
+
+    # construct constant term
+    new_constant_term = None
+    if ap1.constant_term is not None and ap2.constant_term is not None:
+        new_constant_term = ap1.constant_term + ap2.constant_term
+    elif ap1.constant_term is not None:
+        new_constant_term = ap2.constant_term
+    elif ap2.constant_term is not None:
+        new_constant_term = ap1.constant_term
+
+    # construct list of admissable multisets and sort into canonical order
+    new_multisets = []
+    for multiset in ap1.monomial_labels + ap2.monomial_labels:
+        if (
+            multiset_is_bounded(multiset, order_bound, multiset_bounds)
+            and multiset not in new_multisets
+        ):
+            new_multisets.append(multiset)
+    new_multisets.sort()
+
+    # construct index order mapping for each polynomial
+    idx1 = []
+    idx2 = []
+    for multiset in new_multisets:
+        if multiset in ap1.monomial_labels:
+            idx1.append(ap1.monomial_labels.index(multiset))
+        else:
+            idx1.append(-1)
+
+        if multiset in ap2.monomial_labels:
+            idx2.append(ap2.monomial_labels.index(multiset))
+        else:
+            idx2.append(-1)
+
+    idx1 = np.array(idx1)
+    idx2 = np.array(idx2)
+
+    # append zero to the coefficient arrays
+    array_coefficients1 = np.zeros((1,) + ap1.shape, dtype=complex)
+    array_coefficients2 = np.zeros((1,) + ap1.shape, dtype=complex)
+    if ap1.array_coefficients is not None:
+        array_coefficients1 = np.append(ap1.array_coefficients, array_coefficients1, axis=0)
+    if ap2.array_coefficients is not None:
+        array_coefficients2 = np.append(ap2.array_coefficients, array_coefficients2, axis=0)
+
+    new_coefficients = array_coefficients1[idx1] + array_coefficients2[idx2]
+
+    return ArrayPolynomial(
+        array_coefficients=new_coefficients,
+        monomial_labels=new_multisets,
+        constant_term=new_constant_term,
+    )
 
 
-
-    pass
-
-def multiset_is_bounded(multiset: Multiset, order: Optional[int] = np.inf, multiset_bounds: Optional[List[Multiset]] = None) -> bool:
+def multiset_is_bounded(
+    multiset: Multiset,
+    order: Optional[int] = np.inf,
+    multiset_bounds: Optional[List[Multiset]] = None,
+) -> bool:
     """Check that either multiset has size bounded by order, or is a subset of any of the elements
     in multiset_bounds.
     """
