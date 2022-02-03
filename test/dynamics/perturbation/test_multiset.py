@@ -55,6 +55,14 @@ class TestMultiset(QiskitDynamicsTestCase):
         self.assertTrue(Multiset({0: 2}).issubmultiset(B))
         self.assertTrue(B.issubmultiset(B))
 
+    def test_union(self):
+        """Test union."""
+
+        ms1 = Multiset({0: 2, 1: 1})
+        ms2 = Multiset({0: 2, 2: 1})
+
+        self.assertTrue(ms1.union(ms2) == Multiset({0: 4, 1: 1, 2: 1}))
+
     def test_difference(self):
         """Test difference method."""
         B = Multiset({0: 2, 1: 1, 2: 2})
@@ -64,6 +72,33 @@ class TestMultiset(QiskitDynamicsTestCase):
         self.assertTrue((B - Multiset({0: 1, 1: 1, 2: 1})) == Multiset({0: 1, 2: 1}))
         self.assertTrue((B - Multiset({0: 1, 2: 1, 1: 1})) == Multiset({0: 1, 2: 1}))
         self.assertTrue((B - Multiset({3: 1})) == B)
+
+
+    def test_relabel(self):
+        """Test relabel."""
+        base_multiset = Multiset({0: 2, 1: 1})
+
+        # relabeling one element to one not in the multiset
+        self.assertTrue(Multiset({2: 2, 1: 1}) == base_multiset.relabel({0: 2}))
+
+        # relabeling an element not in the set to another not in the set
+        self.assertTrue(Multiset({0: 2, 1: 1}) == base_multiset.relabel({2: 3}))
+
+        # relabeling all elements
+        self.assertTrue(Multiset({1: 2, 0: 1}) == base_multiset.relabel({0: 1, 1: 0}))
+
+        # empty relabeling
+        self.assertTrue(Multiset({0: 2, 1: 1}) == base_multiset.relabel())
+
+    def test_relabel_validation_errors(self):
+        """Test relabeling validation errors."""
+        base_multiset = Multiset({0: 2, 1: 1})
+
+        with self.assertRaisesRegex(QiskitError, "must imply"):
+            base_multiset.relabel({0: 1})
+
+        with self.assertRaisesRegex(QiskitError, "must imply"):
+            base_multiset.relabel({0: 0, 2: 0})
 
     def test_submultisets_and_complements_full_cases(self):
         """Test a few simple cases."""

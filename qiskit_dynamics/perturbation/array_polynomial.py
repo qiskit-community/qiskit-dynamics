@@ -96,7 +96,6 @@ class ArrayPolynomial:
             else:
                 self._constant_term = None
 
-            self._constant_term = constant_term
             self._compute_monomials = get_monomial_compute_function_jax(self._monomial_multisets)
         else:
             if constant_term is not None:

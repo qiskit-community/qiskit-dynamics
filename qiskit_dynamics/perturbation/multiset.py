@@ -95,14 +95,8 @@ class Multiset:
 
     def union(self, other: "Multiset") -> "Multiset":
         """Multiset union of self with other."""
-
         unique_elements = self.elements.union(other.elements)
-
-        new_dict = {}
-        for elem in unique_elements:
-            new_dict[elem] = self.count(elem) + other.count(elem)
-
-        return Multiset(new_dict)
+        return Multiset({elem: self.count(elem) + other.count(elem) for elem in unique_elements})
 
     def difference(self, other: "Multiset") -> "Multiset":
         """Multiset difference of other from self."""
@@ -147,7 +141,8 @@ class Multiset:
             label_mapping = {}
 
         # pad out label mapping with unmapped elements
-        label_mapping = {key: label_mapping.get(key, key) for key in self.elements}
+        all_elements = self.elements.union(label_mapping.keys())
+        label_mapping = {key: label_mapping.get(key, key) for key in all_elements}
 
         # validate that label_mapping is one-to-one
         if len(set(label_mapping.values())) < len(label_mapping):
