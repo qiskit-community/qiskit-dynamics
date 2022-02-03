@@ -37,16 +37,16 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         self.constant_0d = ArrayPolynomial(constant_term=3.0)
         self.constant_22d = ArrayPolynomial(constant_term=np.eye(2))
         self.non_constant_0d = ArrayPolynomial(
-            array_coefficients=np.array([1.0, 2.0, 3.0]), monomial_multisets=[[0], [1], [2]]
+            array_coefficients=np.array([1.0, 2.0, 3.0]), monomial_labels=[[0], [1], [2]]
         )
         self.non_constant_32d = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 3, 2),
-            monomial_multisets=[[0], [1], [2]],
+            monomial_labels=[[0], [1], [2]],
             constant_term=np.array([[0.0, 1.0], [1.0, 0.0], [-1.0, -1.0]]),
         )
         self.non_constant_complex = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
-            monomial_multisets=[[0], [1], [2]],
+            monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
         )
 
@@ -84,28 +84,28 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         trans = self.constant_0d.transpose()
         self.assertAllClose(trans.constant_term, 3.0)
         self.assertTrue(trans.array_coefficients is None)
-        self.assertTrue(trans.monomial_multisets == self.constant_0d.monomial_multisets)
+        self.assertTrue(trans.monomial_labels == self.constant_0d.monomial_labels)
 
         trans = self.non_constant_32d.transpose()
         self.assertAllClose(trans.constant_term, self.non_constant_32d.constant_term.transpose())
         self.assertAllClose(
             trans.array_coefficients, self.non_constant_32d.array_coefficients.transpose((0, 2, 1))
         )
-        self.assertTrue(trans.monomial_multisets == self.non_constant_32d.monomial_multisets)
+        self.assertTrue(trans.monomial_labels == self.non_constant_32d.monomial_labels)
 
     def test_conj(self):
         """Test conj."""
         conj = self.constant_0d.conj()
         self.assertAllClose(conj.constant_term, 3.0)
         self.assertTrue(conj.array_coefficients is None)
-        self.assertTrue(conj.monomial_multisets == self.constant_0d.monomial_multisets)
+        self.assertTrue(conj.monomial_labels == self.constant_0d.monomial_labels)
 
         conj = self.non_constant_complex.conj()
         self.assertAllClose(conj.constant_term, self.non_constant_complex.constant_term.conj())
         self.assertAllClose(
             conj.array_coefficients, self.non_constant_complex.array_coefficients.conj()
         )
-        self.assertTrue(conj.monomial_multisets == self.non_constant_complex.monomial_multisets)
+        self.assertTrue(conj.monomial_labels == self.non_constant_complex.monomial_labels)
 
     def test_trace(self):
         """Test trace."""
@@ -116,14 +116,14 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
             poly_trace.array_coefficients,
             self.non_constant_32d.array_coefficients.trace(axis1=1, axis2=2),
         )
-        self.assertTrue(poly_trace.monomial_multisets == self.non_constant_32d.monomial_multisets)
+        self.assertTrue(poly_trace.monomial_labels == self.non_constant_32d.monomial_labels)
 
     def test_call_simple_case(self):
         """Typical expected usage case."""
 
         rng = np.random.default_rng(18471)
         coeffs = rng.uniform(low=-1, high=1, size=(5, 10, 10))
-        monomial_multisets = [
+        monomial_labels = [
             Multiset({0: 1}),
             Multiset({1: 1}),
             Multiset({0: 2}),
@@ -131,7 +131,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
             Multiset({1: 2}),
         ]
 
-        ap = ArrayPolynomial(coeffs, monomial_multisets)
+        ap = ArrayPolynomial(coeffs, monomial_labels)
 
         c = np.array([3.0, 4.0])
         output = ap(c)

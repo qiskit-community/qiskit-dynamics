@@ -208,7 +208,7 @@ def schrieffer_wolff(
     # project onto anti-hermitian matrices
     expansion_terms = 0.5 * (expansion_terms - expansion_terms.conj().transpose((0, 2, 1)))
 
-    return ArrayPolynomial(array_coefficients=expansion_terms, monomial_multisets=expansion_labels)
+    return ArrayPolynomial(array_coefficients=expansion_terms, monomial_labels=expansion_labels)
 
 
 def solve_commutator_projection(

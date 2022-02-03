@@ -57,16 +57,16 @@ class ArrayPolynomial:
     def __init__(
         self,
         array_coefficients: Optional[Array] = None,
-        monomial_multisets: Optional[List[Multiset]] = None,
+        monomial_labels: Optional[List[Multiset]] = None,
         constant_term: Optional[Array] = None,
     ):
         """Construct a multivariable matrix polynomial.
 
         Args:
             array_coefficients: A 3d array representing a list of matrix coefficients.
-            monomial_multisets: A list of multisets of the same length as ``matrix_coefficients``
-                                indicating the monomial coefficient for each corresponding
-                                ``matrix_coefficients``.
+            monomial_labels: A list of multisets of the same length as ``matrix_coefficients``
+                             indicating the monomial coefficient for each corresponding
+                             ``matrix_coefficients``.
             constant_term: An array representing the constant term of the polynomial.
         Raises:
             QiskitError: If insufficient information is supplied to define an ArrayPolynomial.
@@ -78,10 +78,10 @@ class ArrayPolynomial:
                                     constant_term must be specified."""
             )
 
-        if monomial_multisets is not None:
-            monomial_multisets = [to_Multiset(m) for m in monomial_multisets]
+        if monomial_labels is not None:
+            monomial_labels = [to_Multiset(m) for m in monomial_labels]
 
-        self._monomial_multisets = monomial_multisets
+        self._monomial_labels = monomial_labels
 
         # If operating in jax mode, wrap in Arrays
         if Array.default_backend() == "jax":
@@ -96,7 +96,7 @@ class ArrayPolynomial:
             else:
                 self._constant_term = None
 
-            self._compute_monomials = get_monomial_compute_function_jax(self._monomial_multisets)
+            self._compute_monomials = get_monomial_compute_function_jax(self._monomial_labels)
         else:
             if constant_term is not None:
                 self._constant_term = np.array(constant_term)
@@ -108,12 +108,12 @@ class ArrayPolynomial:
             else:
                 self._array_coefficients = None
 
-            self._compute_monomials = get_monomial_compute_function(self._monomial_multisets)
+            self._compute_monomials = get_monomial_compute_function(self._monomial_labels)
 
     @property
-    def monomial_multisets(self) -> Union[List, None]:
-        """The monomial multisets corresponding to non-constant terms."""
-        return self._monomial_multisets
+    def monomial_labels(self) -> Union[List, None]:
+        """The monomial labels corresponding to non-constant terms."""
+        return self._monomial_labels
 
     @property
     def array_coefficients(self) -> Union[Array, None]:
@@ -127,12 +127,12 @@ class ArrayPolynomial:
 
     def compute_monomials(self, c: Array) -> Union[Array, None]:
         """Vectorized computation of all scalar monomial terms in the polynomial as specified by
-        ``self.monomial_multisets``.
+        ``self.monomial_labels``.
 
         Args:
             c: Array of variables.
         Returns:
-            Array of all monomial terms ordered according to ``self.monomial_multisets``.
+            Array of all monomial terms ordered according to ``self.monomial_labels``.
         """
         return self._compute_monomials(c)
 
@@ -166,7 +166,7 @@ class ArrayPolynomial:
 
         return ArrayPolynomial(
             array_coefficients=coefficients,
-            monomial_multisets=copy(self._monomial_multisets),
+            monomial_labels=copy(self._monomial_labels),
             constant_term=constant_term,
         )
 
@@ -187,7 +187,7 @@ class ArrayPolynomial:
 
         return ArrayPolynomial(
             array_coefficients=coefficients,
-            monomial_multisets=copy(self._monomial_multisets),
+            monomial_labels=copy(self._monomial_labels),
             constant_term=constant_term,
         )
 
@@ -222,7 +222,7 @@ class ArrayPolynomial:
 
         return ArrayPolynomial(
             array_coefficients=coefficients,
-            monomial_multisets=copy(self._monomial_multisets),
+            monomial_labels=copy(self._monomial_labels),
             constant_term=constant_term,
         )
 
@@ -446,15 +446,15 @@ def array_polynomial_distributive_binary_op(binary_op: Callable,
     """
     pass
 
-def array_polynomial_associative_binary_op(binary_op: Callable,
-                                           ap1: ArrayPolynomial,
-                                           ap2: ArrayPolynomial,
-                                           order_bound: Optional[int] = np.inf,
-                                           multiset_bounds: Optional[List[Multiset]] = None) -> ArrayPolynomial:
-    """Perform an associative operation between two ArrayPolynomials, e.g. multiplication.
+def array_polynomial_addition(ap1: ArrayPolynomial,
+                              ap2: ArrayPolynomial,
+                              order_bound: Optional[int] = np.inf,
+                              multiset_bounds: Optional[List[Multiset]] = None) -> ArrayPolynomial:
+    """Add two ArrayPolynomials."""
+    # construct list of admissable multisets
 
-    Assumed to be vectorized?
-    """
+
+
     pass
 
 def multiset_is_bounded(multiset: Multiset, order: Optional[int] = np.inf, multiset_bounds: Optional[List[Multiset]] = None) -> bool:

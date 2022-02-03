@@ -190,13 +190,13 @@ class PerturbativeSolver:
             )
             self._perturbation_polynomial = ArrayPolynomial(
                 array_coefficients=results.perturbation_results.expansion_terms[:, -1],
-                monomial_multisets=results.perturbation_results.expansion_labels,
+                monomial_labels=results.perturbation_results.expansion_labels,
                 constant_term=self.Udt,
             )
         elif self.expansion_method == "magnus":
             self._perturbation_polynomial = ArrayPolynomial(
                 array_coefficients=results.perturbation_results.expansion_terms[:, -1],
-                monomial_multisets=results.perturbation_results.expansion_labels,
+                monomial_labels=results.perturbation_results.expansion_labels,
             )
 
     @property
