@@ -28,6 +28,11 @@ from ..common import QiskitDynamicsTestCase
 class TestMultiset(QiskitDynamicsTestCase):
     """Tests for Multiset class."""
 
+    def test_empty_multiset(self):
+        """Test empty Multiset."""
+        empty = Multiset({})
+        self.assertTrue(empty.count(2) == 0)
+
     def test_validation(self):
         """Test that non-integer types, and negative counts, raise errors."""
 

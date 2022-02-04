@@ -83,7 +83,7 @@ class Testcustom_dot(QiskitDynamicsTestCase):
         prod20 = A[2] * B[0]
 
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
-        output = self.custom_dot(A, B, self.compiled_rule1, 'mult')
+        output = self.custom_dot(A, B, self.compiled_rule1, "mult")
 
         self.assertAllClose(expected, output)
 
@@ -97,7 +97,7 @@ class Testcustom_dot(QiskitDynamicsTestCase):
         prod00 = A[0] * B[0]
 
         expected = np.array([prod02 + 5 * prod00])
-        output = self.custom_dot(A, B, self.compiled_rule2, 'mult')
+        output = self.custom_dot(A, B, self.compiled_rule2, "mult")
 
         self.assertAllClose(expected, output)
 

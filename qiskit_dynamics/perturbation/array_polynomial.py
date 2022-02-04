@@ -16,6 +16,7 @@ Array polynomial.
 
 from typing import List, Optional, Callable, Tuple, Union
 from copy import copy
+from itertools import product
 
 import numpy as np
 
@@ -23,11 +24,12 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation import Multiset
-from qiskit_dynamics.perturbation.multiset import to_Multiset, clean_multisets
-from qiskit_dynamics.perturbation.multiset import get_all_submultisets
+from qiskit_dynamics.perturbation.multiset import to_Multiset, clean_multisets, get_all_submultisets
+from qiskit_dynamics.perturbation.custom_dot import compile_custom_dot_rule, custom_dot
 
 try:
     import jax.numpy as jnp
+    from qiskit_dynamics.perturbation.custom_dot import custom_dot_jax
 except ImportError:
     pass
 
@@ -252,6 +254,42 @@ class ArrayPolynomial:
             "Only types castable as an ArrayPolynomial can be added to an ArrayPolynomial."
         )
 
+    def matmul(
+        self,
+        other: Union["ArrayPolynomial", np.ndarray],
+        order_bound: Optional[int] = np.inf,
+        multiset_bounds: Optional[List[Multiset]] = None,
+    ) -> "ArrayPolynomial":
+        """Matmul two array polynomials."""
+
+        if isinstance(other, (np.ndarray, Array)):
+            other = ArrayPolynomial(constant_term=other)
+
+        if isinstance(other, ArrayPolynomial):
+            return array_polynomial_mult(self, other, order_bound, multiset_bounds, op="matmul")
+
+        raise QiskitError(
+            "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
+        )
+
+    def mult(
+        self,
+        other: Union["ArrayPolynomial", np.ndarray],
+        order_bound: Optional[int] = np.inf,
+        multiset_bounds: Optional[List[Multiset]] = None,
+    ) -> "ArrayPolynomial":
+        """Entrywise multiplication of two ArrayPolynomials."""
+
+        if isinstance(other, (np.ndarray, Array)):
+            other = ArrayPolynomial(constant_term=other)
+
+        if isinstance(other, ArrayPolynomial):
+            return array_polynomial_mult(self, other, order_bound, multiset_bounds, op="mult")
+
+        raise QiskitError(
+            "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
+        )
+
     def __call__(self, c: Optional[Array] = None) -> Array:
         """Evaluate the polynomial.
 
@@ -460,19 +498,121 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
     )
 
 
-def array_polynomial_distributive_binary_op(
-    binary_op: Callable,
+def array_polynomial_mult(
     ap1: ArrayPolynomial,
     ap2: ArrayPolynomial,
     order_bound: Optional[int] = np.inf,
     multiset_bounds: Optional[List[Multiset]] = None,
+    op: Optional[str] = "matmul",
 ) -> ArrayPolynomial:
-    """Perform a binary operation between two ArrayPolynomials that is distributive
-    over addition, e.g. multiplication.
+    """Multiply two array polynomials, either matmul or entrywise multiplication."""
 
-    Assumed to be vectorized?
-    """
-    pass
+    if (
+        (min(ap1.ndim, ap2.ndim) < 2)
+        or (ap1.shape[-1] != ap2.shape[-1])
+        or (ap1.shape[-2] != ap1.shape[-1])
+        or (ap2.shape[-2] != ap2.shape[-1])
+    ):
+        raise QiskitError(
+            """ArrayPolynomial {} only defined for ndim at least 2
+                and with last two dimensions of each being the same.""".format(
+                op
+            )
+        )
+
+    # determine list of Multisets required for monomial labels, including filtering
+    all_multisets = []
+
+    if ap1.constant_term is not None:
+        for multiset in ap2.monomial_labels:
+            if (
+                multiset_is_bounded(multiset, order_bound, multiset_bounds)
+                and multiset not in all_multisets
+            ):
+                all_multisets.append(multiset)
+    if ap2.constant_term is not None:
+        for multiset in ap1.monomial_labels:
+            if (
+                multiset_is_bounded(multiset, order_bound, multiset_bounds)
+                and multiset not in all_multisets
+            ):
+                all_multisets.append(multiset)
+
+    for I, J in product(ap1.monomial_labels, ap2.monomial_labels):
+        IuJ = I.union(J)
+        if multiset_is_bounded(IuJ, order_bound, multiset_bounds) and IuJ not in all_multisets:
+            all_multisets.append(IuJ)
+
+    all_multisets.sort()
+
+    # setup constant term
+    new_constant_term = None
+    if ap1.constant_term is not None and ap2.constant_term is not None:
+        if op == "matmul":
+            new_constant_term = ap1.constant_term @ ap2.constant_term
+        else:
+            new_constant_term = ap1.constant_term * ap2.constant_term
+
+    # return constant case
+    if all_multisets == []:
+        return ArrayPolynomial(constant_term=new_constant_term)
+
+    # iteratively construct custom multiplication rule,
+    # temporarily treating the constant terms as index -1
+    mult_rule = []
+    for multiset in all_multisets:
+        rule_indices = []
+
+        if multiset in ap1.monomial_labels:
+            idx = ap1.monomial_labels.index(multiset)
+            rule_indices.append([idx, -1])
+
+        if multiset in ap2.monomial_labels:
+            idx = ap2.monomial_labels.index(multiset)
+            rule_indices.append([-1, idx])
+
+        if len(multiset) > 1:
+            for I, J in zip(*multiset.submultisets_and_complements()):
+                if I in ap1.monomial_labels and J in ap2.monomial_labels:
+                    rule_indices.append(
+                        [ap1.monomial_labels.index(I), ap2.monomial_labels.index(J)]
+                    )
+
+        # if non-empty,
+        if rule_indices != []:
+            mult_rule.append((np.ones(len(rule_indices)), np.array(rule_indices)))
+
+    compiled_rule = compile_custom_dot_rule(mult_rule, index_offset=1)
+
+    lmats = None
+    if ap1.constant_term is not None:
+        lmats = np.expand_dims(ap1.constant_term, 0)
+    else:
+        lmats = np.expand_dims(np.zeros_like(ap1.constant_term), 0)
+
+    if ap1.array_coefficients is not None:
+        lmats = np.append(lmats, ap1.array_coefficients, axis=0)
+
+    rmats = None
+    if ap2.constant_term is not None:
+        rmats = np.expand_dims(ap2.constant_term, 0)
+    else:
+        rmats = np.expand_dims(np.zeros_like(ap2.constant_term), 0)
+
+    if ap2.array_coefficients is not None:
+        rmats = np.append(rmats, ap2.array_coefficients, axis=0)
+
+    new_array_coefficients = None
+    if Array(lmats).backend == "jax":
+        new_array_coefficients = custom_dot_jax(lmats, rmats, compiled_rule, op)
+    else:
+        new_array_coefficients = custom_dot(lmats, rmats, compiled_rule, op)
+
+    return ArrayPolynomial(
+        array_coefficients=new_array_coefficients,
+        monomial_labels=all_multisets,
+        constant_term=new_constant_term,
+    )
 
 
 def array_polynomial_addition(

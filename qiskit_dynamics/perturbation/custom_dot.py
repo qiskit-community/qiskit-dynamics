@@ -143,11 +143,15 @@ def compile_custom_dot_rule(
 
     return unique_mult_pairs, linear_combo_rule
 
+
 matmul = lambda A, B: A @ B
 mult = lambda A, B: A * B
-ops = {'matmul': matmul, 'mult': mult}
+ops = {"matmul": matmul, "mult": mult}
 
-def unique_products(A: np.array, B: np.array, unique_mult_pairs: np.array, op: Optional[str] = 'matmul') -> np.array:
+
+def unique_products(
+    A: np.array, B: np.array, unique_mult_pairs: np.array, op: Optional[str] = "matmul"
+) -> np.array:
     """Compute ``A[j] @ B[k]`` for index pairs ``[j, k]`` in ``unique_mult_pairs``."""
     op = ops.get(op)
     M0 = np.zeros_like(A[0])
@@ -183,7 +187,10 @@ def linear_combos(unique_mults: np.array, linear_combo_rule: Tuple[np.array, np.
 
 
 def custom_dot(
-    A: np.array, B: np.array, compiled_custom_product: Tuple[np.array, np.array], op: Optional[str] = 'matmul',
+    A: np.array,
+    B: np.array,
+    compiled_custom_product: Tuple[np.array, np.array],
+    op: Optional[str] = "matmul",
 ) -> np.array:
     """Multiply arrays of dimension at least 3 according to the ``compiled_custom_product``
     rule, output by :meth:`compile_custom_dot_rule`."""
@@ -193,7 +200,9 @@ def custom_dot(
     return np.array(output)
 
 
-def unique_products_jax(A: np.array, B: np.array, unique_mult_pairs: np.array, op: Optional[str] = 'matmul') -> np.array:
+def unique_products_jax(
+    A: np.array, B: np.array, unique_mult_pairs: np.array, op: Optional[str] = "matmul"
+) -> np.array:
     """JAX version of a single loop step of :meth:`linear_combos`."""
     op = ops.get(op)
     # vectorized append identity and 0 to A and B
@@ -222,7 +231,10 @@ except NameError:
 
 
 def custom_dot_jax(
-    A: np.array, B: np.array, compiled_custom_product: Tuple[np.array, np.array], op: Optional[str] = 'matmul'
+    A: np.array,
+    B: np.array,
+    compiled_custom_product: Tuple[np.array, np.array],
+    op: Optional[str] = "matmul",
 ) -> np.array:
     """Jax version of ``custom_dot``."""
 
