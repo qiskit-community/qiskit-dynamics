@@ -18,13 +18,11 @@ The functions in this file support customized dot rules between
 lists of arrays :math:`A = (A_i)` and :math:`B = (B_i)` of the form:
 
 .. math::
-    (A \times B)_i = \sum_{jk} a_{ijk}A_jB_k,
+    (A \times B)_i = \sum_{jk} a_{ijk}A_j \cdot B_k,
 
-where :math:`a_{ijk}` is an array of complex scalars. In the above, the
-product :math:`A_jB_k` is normally thought of as a matrix product
-(e.g. if :math:`A` and :math:`B` are 3d arrays), however the functionality here
-works for any arrays with at least 3 dimensions for which the last
-2 dimensions are square.
+where :math:`a_{ijk}` is an array of complex scalars, and :math:`\cdot` is either
+matrix multiplication or entrywise multiplication. Note that this module works for
+any array shape so long as the last 2 dimensions are square.
 
 Here, we represent the array :math:`a_{ijk}` in a sparse representation,
 passed as the ``multiplication_rule`` argument to the function
@@ -39,7 +37,7 @@ with entries:
     - A 2d-array with each entry being the pair of indices ``[j,k]``.
 :meth:`compile_custom_dot_rule` translates the above specification into:
     - A specification of the unique pairs of required products
-      :math:`A_jB_k` in terms of two arrays giving the left
+      :math:`A_j \cdot B_k` in terms of two arrays giving the left
       indices and the right indices.
     - A 2-tuple of 2d arrays specifying the linear combination of
       unique products to compute the :math:`i^{th}` entry of the
@@ -49,13 +47,13 @@ with entries:
       These arrays are padded with the value ``-1`` to make each
       linear combo the same length.
 Additionally, the index ``-1`` when specifying a product is interpreted
-as the identity matrix.
+as either the identity matrix or the matrix of all ones, when performing
+matrix multiplication or entrywise products respectively.
     - E.g. when specifying a multiplication rule, the pair ``[-1, 2]`` represents
       simply ``B[2]`` and ``[0, -1]`` represents ``A[0]``.
-This enables implicit identities when specifying the custom product.
 """
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Callable
 
 import numpy as np
 
@@ -145,9 +143,13 @@ def compile_custom_dot_rule(
 
     return unique_mult_pairs, linear_combo_rule
 
+matmul = lambda A, B: A @ B
+mult = lambda A, B: A * B
+ops = {'matmul': matmul, 'mult': mult}
 
-def unique_products(A: np.array, B: np.array, unique_mult_pairs: np.array) -> np.array:
+def unique_products(A: np.array, B: np.array, unique_mult_pairs: np.array, op: Optional[str] = 'matmul') -> np.array:
     """Compute ``A[j] @ B[k]`` for index pairs ``[j, k]`` in ``unique_mult_pairs``."""
+    op = ops.get(op)
     M0 = np.zeros_like(A[0])
     unique_mults = np.empty((len(unique_mult_pairs),) + A.shape[1:], dtype=complex)
     for idx, mult_pair in enumerate(unique_mult_pairs):
@@ -158,7 +160,7 @@ def unique_products(A: np.array, B: np.array, unique_mult_pairs: np.array) -> np
         elif mult_pair[1] == -1:
             unique_mults[idx] = A[mult_pair[0]]
         else:
-            unique_mults[idx] = A[mult_pair[0]] @ B[mult_pair[1]]
+            unique_mults[idx] = op(A[mult_pair[0]], B[mult_pair[1]])
 
     return unique_mults
 
@@ -181,18 +183,19 @@ def linear_combos(unique_mults: np.array, linear_combo_rule: Tuple[np.array, np.
 
 
 def custom_dot(
-    A: np.array, B: np.array, compiled_custom_product: Tuple[np.array, np.array]
+    A: np.array, B: np.array, compiled_custom_product: Tuple[np.array, np.array], op: Optional[str] = 'matmul',
 ) -> np.array:
     """Multiply arrays of dimension at least 3 according to the ``compiled_custom_product``
     rule, output by :meth:`compile_custom_dot_rule`."""
     unique_mult_pairs, linear_combo_rule = compiled_custom_product
-    unique_mults = unique_products(A, B, unique_mult_pairs)
+    unique_mults = unique_products(A, B, unique_mult_pairs, op)
     output = linear_combos(unique_mults, linear_combo_rule)
     return np.array(output)
 
 
-def unique_products_jax(A: np.array, B: np.array, unique_mult_pairs: np.array) -> np.array:
+def unique_products_jax(A: np.array, B: np.array, unique_mult_pairs: np.array, op: Optional[str] = 'matmul') -> np.array:
     """JAX version of a single loop step of :meth:`linear_combos`."""
+    op = ops.get(op)
     # vectorized append identity and 0 to A and B
     big_ident = jnp.broadcast_to(jnp.eye(A.shape[-1], dtype=complex), (1,) + A.shape[1:])
     big_zeros = jnp.broadcast_to(jnp.zeros(A.shape[-1], dtype=complex), (1,) + A.shape[1:])
@@ -201,7 +204,7 @@ def unique_products_jax(A: np.array, B: np.array, unique_mult_pairs: np.array) -
     A = jnp.append(A, X, axis=0)
     B = jnp.append(B, X, axis=0)
 
-    return A[unique_mult_pairs[:, 0]] @ B[unique_mult_pairs[:, 1]]
+    return op(A[unique_mult_pairs[:, 0]], B[unique_mult_pairs[:, 1]])
 
 
 def single_linear_combo_jax(
@@ -219,11 +222,11 @@ except NameError:
 
 
 def custom_dot_jax(
-    A: np.array, B: np.array, compiled_custom_product: Tuple[np.array, np.array]
+    A: np.array, B: np.array, compiled_custom_product: Tuple[np.array, np.array], op: Optional[str] = 'matmul'
 ) -> np.array:
     """Jax version of ``custom_dot``."""
 
     unique_mult_pairs, linear_combo_rule = compiled_custom_product
-    unique_mults = unique_products_jax(A, B, unique_mult_pairs)
+    unique_mults = unique_products_jax(A, B, unique_mult_pairs, op)
     output = linear_combos_jax(unique_mults, linear_combo_rule)
     return output

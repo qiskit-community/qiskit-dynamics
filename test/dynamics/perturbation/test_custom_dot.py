@@ -72,6 +72,35 @@ class Testcustom_dot(QiskitDynamicsTestCase):
 
         self.assertAllClose(expected, output)
 
+    def test_dot1_mult(self):
+        """Test correct dot1 operating in multiplication mode."""
+        rng = np.random.default_rng(9381)
+        A = rng.uniform(size=(3, 5, 5))
+        B = rng.uniform(size=(3, 5, 5))
+
+        prod02 = A[0] * B[2]
+        prod11 = A[1] * B[1]
+        prod20 = A[2] * B[0]
+
+        expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
+        output = self.custom_dot(A, B, self.compiled_rule1, 'mult')
+
+        self.assertAllClose(expected, output)
+
+    def test_dot2_mult(self):
+        """Test correct dot2 operating in multiplication mode."""
+        rng = np.random.default_rng(9381)
+        A = rng.uniform(size=(1, 10, 10))
+        B = rng.uniform(size=(3, 10, 10))
+
+        prod02 = A[0] * B[2]
+        prod00 = A[0] * B[0]
+
+        expected = np.array([prod02 + 5 * prod00])
+        output = self.custom_dot(A, B, self.compiled_rule2, 'mult')
+
+        self.assertAllClose(expected, output)
+
     def test_identity(self):
         """Test inclusion of -1 indices to represent identities."""
 
