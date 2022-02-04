@@ -54,6 +54,26 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "broadcastable"):
             ap1.add(ap2)
 
+    def test_addition_only_constant(self):
+        """Addition with constant only ArrayPolynomials."""
+
+        result = ArrayPolynomial(constant_term=1.).add(ArrayPolynomial(constant_term=2.))
+
+        self.assertTrue(result.constant_term == 3.)
+        self.assertTrue(result.monomial_labels == [])
+        self.assertTrue(result.array_coefficients == None)
+
+    def test_addition_only_non_constant(self):
+        """Addition with ArrayPolynomials with no constant part."""
+
+        ap1 = ArrayPolynomial(monomial_labels=[[0]], array_coefficients=np.array([1.]))
+        ap2 = ArrayPolynomial(monomial_labels=[[1]], array_coefficients=np.array([2.]))
+        result = ap1.add(ap2)
+
+        self.assertTrue(result.constant_term == None)
+        self.assertTrue(result.monomial_labels == [Multiset.from_list(x) for x in [[0], [1]]])
+        self.assertAllClose(result.array_coefficients, np.array([1., 2.]))
+
     def test_addition_simple(self):
         """Test basic addition."""
 

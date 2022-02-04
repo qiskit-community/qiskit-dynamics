@@ -498,6 +498,10 @@ def array_polynomial_addition(
     elif ap2.constant_term is not None:
         new_constant_term = ap1.constant_term
 
+    # exit early if both polynomials are constant
+    if ap1.array_coefficients is None and ap2.array_coefficients is None:
+        return ArrayPolynomial(constant_term=new_constant_term)
+
     if multiset_bounds is not None:
         multiset_bounds = [to_Multiset(x) for x in multiset_bounds]
 
@@ -525,6 +529,9 @@ def array_polynomial_addition(
         else:
             idx2.append(-1)
 
+    # if either is empty, pad with single -1, then convert to array
+    idx1 = idx1 or [-1]
+    idx2 = idx2 or [-1]
     idx1 = np.array(idx1)
     idx2 = np.array(idx2)
 
