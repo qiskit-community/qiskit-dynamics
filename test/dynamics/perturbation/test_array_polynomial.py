@@ -257,26 +257,35 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
 
         ap1 = ArrayPolynomial(
             constant_term=np.array([[0.0, 1.0], [1.0, 0.0]]),
-            array_coefficients=np.array([[[1.0, 0.0], [0.0, -1.0]], [[2., 3.], [4., 5.]]]),
+            array_coefficients=np.array([[[1.0, 0.0], [0.0, -1.0]], [[2.0, 3.0], [4.0, 5.0]]]),
             monomial_labels=[[0], [1]],
         )
         ap2 = ArrayPolynomial(
             constant_term=np.array([[0.0, -1j], [1j, 0.0]]),
-            array_coefficients=np.array([[[1.0, 0.0], [0.0, -1j]], [[1., 2.], [3., 4.]]]),
+            array_coefficients=np.array([[[1.0, 0.0], [0.0, -1j]], [[1.0, 2.0], [3.0, 4.0]]]),
             monomial_labels=[[0], [0, 0]],
         )
 
         result = ap1.matmul(ap2)
         expected_constant_term = ap1.constant_term @ ap2.constant_term
-        expected_monomial_labels = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 2}), Multiset({0: 1, 1: 1}), Multiset({0: 3}), Multiset({0: 2, 1: 1})]
+        expected_monomial_labels = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 3}),
+            Multiset({0: 2, 1: 1}),
+        ]
         expected_coefficients = np.array(
             [
-                ap1.constant_term @ ap2.array_coefficients[0] + ap1.array_coefficients[0] @ ap2.constant_term,
+                ap1.constant_term @ ap2.array_coefficients[0]
+                + ap1.array_coefficients[0] @ ap2.constant_term,
                 ap1.array_coefficients[1] @ ap2.constant_term,
-                ap1.array_coefficients[0] @ ap2.array_coefficients[0] + ap1.constant_term @ ap2.array_coefficients[1],
+                ap1.array_coefficients[0] @ ap2.array_coefficients[0]
+                + ap1.constant_term @ ap2.array_coefficients[1],
                 ap1.array_coefficients[1] @ ap2.array_coefficients[0],
                 ap1.array_coefficients[0] @ ap2.array_coefficients[1],
-                ap1.array_coefficients[1] @ ap2.array_coefficients[1]
+                ap1.array_coefficients[1] @ ap2.array_coefficients[1],
             ]
         )
 
