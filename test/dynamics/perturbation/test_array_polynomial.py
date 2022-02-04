@@ -31,7 +31,14 @@ except ImportError:
 class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
     """Test algebraic operations on ArrayPolynomials."""
 
-    def test_addition_validation_error(self):
+    def test_addition_type_error(self):
+        """Test addition type handling error."""
+        ap = ArrayPolynomial(constant_term=np.eye(2))
+
+        with self.assertRaisesRegex(QiskitError, "castable"):
+            ap.add({})
+
+    def test_addition_shape_error(self):
         """Test shape broadcasting failure."""
         ap1 = ArrayPolynomial(
             array_coefficients=np.random.rand(1, 4, 6) + 1j * np.random.rand(1, 4, 6),
@@ -45,7 +52,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         )
 
         with self.assertRaisesRegex(QiskitError, "broadcastable"):
-            ap1 + ap2
+            ap1.add(ap2)
 
     def test_addition_simple(self):
         """Test basic addition."""
@@ -60,7 +67,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [1], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
         )
-        result = ap1 + ap2
+        result = ap1.add(ap2)
 
         self.assertAllClose(
             result.array_coefficients, ap1.array_coefficients + ap2.array_coefficients
@@ -80,19 +87,111 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
         )
-        result = ap1 + ap2
+        result = ap1.add(ap2)
 
-        expected_coefficients = np.array([ap1.array_coefficients[0] + ap2.array_coefficients[0],
-                                          ap1.array_coefficients[1],
-                                          ap1.array_coefficients[2],
-                                          ap2.array_coefficients[1],
-                                          ap2.array_coefficients[2]])
+        expected_coefficients = np.array(
+            [
+                ap1.array_coefficients[0] + ap2.array_coefficients[0],
+                ap1.array_coefficients[1],
+                ap1.array_coefficients[2],
+                ap2.array_coefficients[1],
+                ap2.array_coefficients[2],
+            ]
+        )
         expected_monomial_labels = [Multiset.from_list(l) for l in [[0], [1], [2], [3], [2, 2]]]
         expected_constant_term = ap1.constant_term + ap2.constant_term
 
         self.assertAllClose(result.array_coefficients, expected_coefficients)
         self.assertTrue(result.monomial_labels == expected_monomial_labels)
         self.assertAllClose(result.constant_term, expected_constant_term)
+
+    def test_add_scalar(self):
+        """Test addition of scalar."""
+        ap1 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [1], [2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+
+        result = ap1.add(1.2)
+        self.assertAllClose(result.array_coefficients, ap1.array_coefficients)
+        self.assertTrue(result.monomial_labels == ap1.monomial_labels)
+        self.assertAllClose(result.constant_term, ap1.constant_term + 1.2)
+
+    def test_add_array(self):
+        """Test addition of an array."""
+
+        ap1 = ArrayPolynomial(
+            array_coefficients=np.random.rand(1, 2, 2) + 1j * np.random.rand(1, 2, 2),
+            monomial_labels=[[0]],
+            constant_term=np.random.rand(2, 2) + 1j * np.random.rand(2, 2),
+        )
+
+        result = ap1.add(np.eye(2))
+        self.assertAllClose(result.array_coefficients, ap1.array_coefficients)
+        self.assertTrue(result.monomial_labels == ap1.monomial_labels)
+        self.assertAllClose(result.constant_term, ap1.constant_term + np.eye(2))
+
+    def test_add_order_bound(self):
+        """Test adding with an order bound."""
+
+        ap1 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [1], [2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+        ap2 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [3], [2, 2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+        result = ap1.add(ap2, order_bound=1)
+
+        expected_coefficients = np.array(
+            [
+                ap1.array_coefficients[0] + ap2.array_coefficients[0],
+                ap1.array_coefficients[1],
+                ap1.array_coefficients[2],
+                ap2.array_coefficients[1],
+            ]
+        )
+        expected_monomial_labels = [Multiset.from_list(l) for l in [[0], [1], [2], [3]]]
+        expected_constant_term = ap1.constant_term + ap2.constant_term
+
+        self.assertAllClose(result.array_coefficients, expected_coefficients)
+        self.assertTrue(result.monomial_labels == expected_monomial_labels)
+        self.assertAllClose(result.constant_term, expected_constant_term)
+
+    def test_add_order_and_multiset_bound(self):
+        """Test adding with an order and multiset bound."""
+
+        ap1 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [0, 0, 0], [0, 0, 0, 0]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+        ap2 = ArrayPolynomial(
+            array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
+            monomial_labels=[[0], [3], [2, 2]],
+            constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+        )
+        result = ap1.add(ap2, order_bound=2, multiset_bounds=[[0, 0, 0]])
+
+        expected_coefficients = np.array(
+            [
+                ap1.array_coefficients[0] + ap2.array_coefficients[0],
+                ap2.array_coefficients[1],
+                ap2.array_coefficients[2],
+                ap1.array_coefficients[1],
+            ]
+        )
+        expected_monomial_labels = [Multiset.from_list(l) for l in [[0], [3], [2, 2], [0, 0, 0]]]
+        expected_constant_term = ap1.constant_term + ap2.constant_term
+
+        self.assertAllClose(result.array_coefficients, expected_coefficients)
+        self.assertTrue(result.monomial_labels == expected_monomial_labels)
+        self.assertAllClose(result.constant_term, expected_constant_term)
+
 
 
 class TestArrayPolynomial(QiskitDynamicsTestCase):

@@ -228,7 +228,7 @@ class ArrayPolynomial:
 
     def add(
         self,
-        other: Union["ArrayPolynomial", int, float, complex],
+        other: Union["ArrayPolynomial", int, float, complex, Array],
         order_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
@@ -242,18 +242,15 @@ class ArrayPolynomial:
             ArrayPolynomial achieved by adding both self and other.
         """
 
-        if isinstance(other, (int, float, complex)):
+        if isinstance(other, (int, float, complex, np.ndarray, Array)):
             other = ArrayPolynomial(constant_term=other)
 
-        return array_polynomial_addition(self, other, order_bound, multiset_bounds)
+        if isinstance(other, ArrayPolynomial):
+            return array_polynomial_addition(self, other, order_bound, multiset_bounds)
 
-    def __add__(self, other: Union["ArrayPolynomial", int, float, complex]) -> "ArrayPolynomial":
-        """Add."""
-        return self.add(other)
-
-    def __radd__(self, other: Union["ArrayPolynomial", int, float, complex]) -> "ArrayPolynomial":
-        """Right add."""
-        return self.add(other)
+        raise QiskitError(
+            "Only types castable as an ArrayPolynomial can be added to an ArrayPolynomial."
+        )
 
     def __call__(self, c: Optional[Array] = None) -> Array:
         """Evaluate the polynomial.
@@ -500,6 +497,9 @@ def array_polynomial_addition(
         new_constant_term = ap2.constant_term
     elif ap2.constant_term is not None:
         new_constant_term = ap1.constant_term
+
+    if multiset_bounds is not None:
+        multiset_bounds = [to_Multiset(x) for x in multiset_bounds]
 
     # construct list of admissable multisets and sort into canonical order
     new_multisets = []
