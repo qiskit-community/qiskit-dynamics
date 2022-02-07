@@ -58,16 +58,16 @@ class InstructionToSignals:
         """Initialize pulse schedule to signals converter.
 
         Args:
-            dt: length of the samples. This is required by the converter as pulse
+            dt: Length of the samples. This is required by the converter as pulse
                 schedule are specified in units of dt and typically do not carry the
                 value of dt with them.
-            carriers: a dict of carrier frequencies. The keys are the names of the channels
-                and the values are the corresponding carrier frequency.
+            carriers: A dict of carrier frequencies. The keys are the names of the channels
+                      and the values are the corresponding carrier frequency.
             channels: A list of channels that the :meth:`get_signals` method should return.
-                This argument will cause :meth:`get_signals` to return the signals in the
-                same order as the channels. Channels present in the schedule but absent
-                from channels will not be included in the returned object. If None is given
-                (the default) then all channels present in the pulse schedule are returned.
+                      This argument will cause :meth:`get_signals` to return the signals in the
+                      same order as the channels. Channels present in the schedule but absent
+                      from channels will not be included in the returned object. If None is given
+                      (the default) then all channels present in the pulse schedule are returned.
         """
 
         self._dt = dt
@@ -78,8 +78,8 @@ class InstructionToSignals:
         """
         Args:
             schedule: The schedule to represent in terms of signals. Instances of
-                :class:`ScheduleBlock` must first be converted to :class:`Schedule`
-                using the :meth:`block_to_schedule` in Qiskit pulse.
+                      :class:`ScheduleBlock` must first be converted to :class:`Schedule`
+                      using the :meth:`block_to_schedule` in Qiskit pulse.
 
         Returns:
             a list of piecewise constant signals.
@@ -177,7 +177,7 @@ class InstructionToSignals:
         Args:
             signals: A list of signals for which to create I and Q.
             if_modulation: The intermediate frequency with which the AWG modulates the pulse
-                envelopes.
+                           envelopes.
 
         Returns:
             iq signals: A list of signals which is twice as long as the input list of signals.
