@@ -184,6 +184,8 @@ class ArrayPolynomial:
         if self._array_coefficients is not None:
             if axes is None:
                 axes = tuple(range(1, self.ndim + 1)[::-1])
+            else:
+                axes = tuple(ax + 1 for ax in axes)
             axes = (0,) + axes
             coefficients = np.transpose(self._array_coefficients, axes)
 
@@ -604,7 +606,7 @@ def array_polynomial_mult(
 
     new_array_coefficients = None
     if Array(lmats).backend == "jax":
-        new_array_coefficients = custom_dot_jax(lmats, rmats, compiled_rule, op)
+        new_array_coefficients = custom_dot_jax(lmats.data, rmats.data, compiled_rule, op)
     else:
         new_array_coefficients = custom_dot(lmats, rmats, compiled_rule, op)
 

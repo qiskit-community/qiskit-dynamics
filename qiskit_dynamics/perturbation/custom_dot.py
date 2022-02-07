@@ -204,15 +204,19 @@ def unique_products_jax(
     A: np.array, B: np.array, unique_mult_pairs: np.array, op: Optional[str] = "matmul"
 ) -> np.array:
     """JAX version of a single loop step of :meth:`linear_combos`."""
-    op = ops.get(op)
-    # vectorized append identity and 0 to A and B
-    big_ident = jnp.broadcast_to(jnp.eye(A.shape[-1], dtype=complex), (1,) + A.shape[1:])
+
+    big_ident = None
+    if op == "matmul":
+        big_ident = jnp.broadcast_to(jnp.eye(A.shape[-1], dtype=complex), (1,) + A.shape[1:])
+    else:
+        big_ident = jnp.broadcast_to(jnp.ones(A.shape[-1], dtype=complex), (1,) + A.shape[1:])
     big_zeros = jnp.broadcast_to(jnp.zeros(A.shape[-1], dtype=complex), (1,) + A.shape[1:])
     X = jnp.append(big_zeros, big_ident, axis=0)
 
     A = jnp.append(A, X, axis=0)
     B = jnp.append(B, X, axis=0)
 
+    op = ops.get(op)
     return op(A[unique_mult_pairs[:, 0]], B[unique_mult_pairs[:, 1]])
 
 

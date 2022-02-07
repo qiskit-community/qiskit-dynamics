@@ -17,6 +17,7 @@ import numpy as np
 
 from qiskit import QiskitError
 
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation import Multiset, ArrayPolynomial
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -216,13 +217,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         """Test matmul of two ArrayPolynomials."""
 
         ap1 = ArrayPolynomial(
-            constant_term=np.array([[0.0, 1.0], [1.0, 0.0]]),
-            array_coefficients=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(1, 2, 2),
             monomial_labels=[[0]],
         )
         ap2 = ArrayPolynomial(
-            constant_term=np.array([[0.0, -1j], [1j, 0.0]]),
-            array_coefficients=np.array([[[1.0, 0.0], [0.0, -1j]]]),
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(1, 2, 2),
             monomial_labels=[[0]],
         )
 
@@ -231,9 +232,9 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         expected_monomial_labels = [Multiset({0: 1}), Multiset({0: 2})]
         expected_coefficients = np.array(
             [
-                ap1.constant_term @ ap2.array_coefficients[0]
-                + ap1.array_coefficients[0] @ ap2.constant_term,
-                ap1.array_coefficients[0] @ ap2.array_coefficients[0],
+                ap1.constant_term @ Array(ap2.array_coefficients[0])
+                + Array(ap1.array_coefficients[0]) @ ap2.constant_term,
+                Array(ap1.array_coefficients[0]) @ Array(ap2.array_coefficients[0]),
             ]
         )
 
@@ -244,8 +245,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
     def test_matmul_constant_only(self):
         """Test matmul of two ArrayPolynomials with only constant terms."""
 
-        ap1 = ArrayPolynomial(constant_term=np.array([[0.0, 1.0], [1.0, 0.0]]))
-        ap2 = ArrayPolynomial(constant_term=np.array([[0.0, -1j], [1j, 0.0]]))
+        ap1 = ArrayPolynomial(constant_term=np.random.rand(2, 2))
+        ap2 = ArrayPolynomial(constant_term=np.random.rand(2, 2))
 
         result = ap1.matmul(ap2)
         self.assertAllClose(result.constant_term, ap1.constant_term @ ap2.constant_term)
@@ -256,13 +257,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         """Test matmul of two ArrayPolynomials."""
 
         ap1 = ArrayPolynomial(
-            constant_term=np.array([[0.0, 1.0], [1.0, 0.0]]),
-            array_coefficients=np.array([[[1.0, 0.0], [0.0, -1.0]], [[2.0, 3.0], [4.0, 5.0]]]),
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
         )
         ap2 = ArrayPolynomial(
-            constant_term=np.array([[0.0, -1j], [1j, 0.0]]),
-            array_coefficients=np.array([[[1.0, 0.0], [0.0, -1j]], [[1.0, 2.0], [3.0, 4.0]]]),
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
         )
 
@@ -279,19 +280,158 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         expected_coefficients = np.array(
             [
                 ap1.constant_term @ ap2.array_coefficients[0]
-                + ap1.array_coefficients[0] @ ap2.constant_term,
-                ap1.array_coefficients[1] @ ap2.constant_term,
-                ap1.array_coefficients[0] @ ap2.array_coefficients[0]
+                + Array(ap1.array_coefficients[0]) @ ap2.constant_term,
+                Array(ap1.array_coefficients[1]) @ ap2.constant_term,
+                Array(ap1.array_coefficients[0]) @ ap2.array_coefficients[0]
                 + ap1.constant_term @ ap2.array_coefficients[1],
-                ap1.array_coefficients[1] @ ap2.array_coefficients[0],
-                ap1.array_coefficients[0] @ ap2.array_coefficients[1],
-                ap1.array_coefficients[1] @ ap2.array_coefficients[1],
+                Array(ap1.array_coefficients[1]) @ ap2.array_coefficients[0],
+                Array(ap1.array_coefficients[0]) @ ap2.array_coefficients[1],
+                Array(ap1.array_coefficients[1]) @ ap2.array_coefficients[1],
             ]
         )
 
         self.assertAllClose(result.array_coefficients, expected_coefficients)
         self.assertTrue(result.monomial_labels == expected_monomial_labels)
         self.assertAllClose(result.constant_term, expected_constant_term)
+
+    def test_mult(self):
+        """Test mult of two ArrayPolynomials."""
+
+        ap1 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(1, 2, 2),
+            monomial_labels=[[0]],
+        )
+        ap2 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(1, 2, 2),
+            monomial_labels=[[0]],
+        )
+
+        result = ap1.mult(ap2)
+        expected_constant_term = ap1.constant_term * ap2.constant_term
+        expected_monomial_labels = [Multiset({0: 1}), Multiset({0: 2})]
+        expected_coefficients = np.array(
+            [
+                ap1.constant_term * ap2.array_coefficients[0]
+                + Array(ap1.array_coefficients[0]) * ap2.constant_term,
+                Array(ap1.array_coefficients[0]) * ap2.array_coefficients[0],
+            ]
+        )
+
+        self.assertAllClose(result.array_coefficients, expected_coefficients)
+        self.assertTrue(result.monomial_labels == expected_monomial_labels)
+        self.assertAllClose(result.constant_term, expected_constant_term)
+
+    def test_mult_constant_only(self):
+        """Test mult of two ArrayPolynomials with only constant terms."""
+
+        ap1 = ArrayPolynomial(constant_term=np.random.rand(2, 2))
+        ap2 = ArrayPolynomial(constant_term=np.random.rand(2, 2))
+
+        result = ap1.mult(ap2)
+        self.assertAllClose(result.constant_term, ap1.constant_term * ap2.constant_term)
+        self.assertTrue(result.monomial_labels == [])
+        self.assertTrue(result.array_coefficients is None)
+
+    def test_mult_case2(self):
+        """Test mult of two ArrayPolynomials."""
+
+        ap1 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [1]],
+        )
+        ap2 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [0, 0]],
+        )
+
+        result = ap1.mult(ap2)
+        expected_constant_term = ap1.constant_term * ap2.constant_term
+        expected_monomial_labels = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 3}),
+            Multiset({0: 2, 1: 1}),
+        ]
+        expected_coefficients = np.array(
+            [
+                ap1.constant_term * ap2.array_coefficients[0]
+                + Array(ap1.array_coefficients[0]) * ap2.constant_term,
+                Array(ap1.array_coefficients[1]) * ap2.constant_term,
+                Array(ap1.array_coefficients[0]) * ap2.array_coefficients[0]
+                + ap1.constant_term * ap2.array_coefficients[1],
+                Array(ap1.array_coefficients[1]) * ap2.array_coefficients[0],
+                Array(ap1.array_coefficients[0]) * ap2.array_coefficients[1],
+                Array(ap1.array_coefficients[1]) * ap2.array_coefficients[1],
+            ]
+        )
+
+        self.assertAllClose(result.array_coefficients, expected_coefficients)
+        self.assertTrue(result.monomial_labels == expected_monomial_labels)
+        self.assertAllClose(result.constant_term, expected_constant_term)
+
+
+class TestArrayPolynomialAlgebraJax(TestArrayPolynomialAlgebra, TestJaxBase):
+    """JAX version of TestArrayPolynomialAlgebra."""
+
+    def test_jit_grad_add(self):
+        """Test that construction and addition can be differentiated through."""
+
+        # some random matrices
+        rand1 = np.random.rand(2, 2)
+        rand2 = np.random.rand(2, 2, 2)
+        rand3 = np.random.rand(2, 2)
+        rand4 = np.random.rand(2, 2, 2)
+
+        def func(a, b, c, d, e):
+            ap1 = ArrayPolynomial(
+                constant_term=a * rand1,
+                array_coefficients=b * rand2,
+                monomial_labels=[[0], [1]],
+            )
+            ap2 = ArrayPolynomial(
+                constant_term=c * rand3,
+                array_coefficients=d * rand4,
+                monomial_labels=[[0], [0, 0]],
+            )
+
+            ap3 = ap1.add(ap2)
+            return ap3(e).data.real.sum()
+
+        jit_grad_func = jit(grad(func))
+        jit_grad_func(1., 2., 3., 4., np.array([5., 6.]))
+
+    def test_jit_grad_add(self):
+        """Test that construction and multiplication can be differentiated through."""
+
+        # some random matrices
+        rand1 = np.random.rand(2, 2)
+        rand2 = np.random.rand(2, 2, 2)
+        rand3 = np.random.rand(2, 2)
+        rand4 = np.random.rand(2, 2, 2)
+
+        def func(a, b, c, d, e):
+            ap1 = ArrayPolynomial(
+                constant_term=a * rand1,
+                array_coefficients=b * rand2,
+                monomial_labels=[[0], [1]],
+            )
+            ap2 = ArrayPolynomial(
+                constant_term=c * rand3,
+                array_coefficients=d * rand4,
+                monomial_labels=[[0], [0, 0]],
+            )
+
+            ap3 = ap1.matmul(ap2)
+            return ap3(e).data.real.sum()
+
+        jit_grad_func = jit(grad(func))
+        jit_grad_func(1., 2., 3., 4., np.array([5., 6.]))
 
 
 class TestArrayPolynomial(QiskitDynamicsTestCase):
@@ -350,6 +490,13 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         self.assertTrue(trans.monomial_labels == self.constant_0d.monomial_labels)
 
         trans = self.non_constant_32d.transpose()
+        self.assertAllClose(trans.constant_term, self.non_constant_32d.constant_term.transpose())
+        self.assertAllClose(
+            trans.array_coefficients, self.non_constant_32d.array_coefficients.transpose((0, 2, 1))
+        )
+        self.assertTrue(trans.monomial_labels == self.non_constant_32d.monomial_labels)
+
+        trans = self.non_constant_32d.transpose((1, 0))
         self.assertAllClose(trans.constant_term, self.non_constant_32d.constant_term.transpose())
         self.assertAllClose(
             trans.array_coefficients, self.non_constant_32d.array_coefficients.transpose((0, 2, 1))
