@@ -308,7 +308,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0]],
         )
 
-        result = ap1.mult(ap2)
+        result = ap1.mul(ap2)
         expected_constant_term = ap1.constant_term * ap2.constant_term
         expected_monomial_labels = [Multiset({0: 1}), Multiset({0: 2})]
         expected_coefficients = np.array(
@@ -329,7 +329,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         ap1 = ArrayPolynomial(constant_term=np.random.rand(2, 2))
         ap2 = ArrayPolynomial(constant_term=np.random.rand(2, 2))
 
-        result = ap1.mult(ap2)
+        result = ap1.mul(ap2)
         self.assertAllClose(result.constant_term, ap1.constant_term * ap2.constant_term)
         self.assertTrue(result.monomial_labels == [])
         self.assertTrue(result.array_coefficients is None)
@@ -348,7 +348,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [0, 0]],
         )
 
-        result = ap1.mult(ap2)
+        result = ap1.mul(ap2)
         expected_constant_term = ap1.constant_term * ap2.constant_term
         expected_monomial_labels = [
             Multiset({0: 1}),

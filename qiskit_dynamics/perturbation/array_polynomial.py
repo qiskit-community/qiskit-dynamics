@@ -236,7 +236,7 @@ class ArrayPolynomial:
         order_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
-        """Add two polynomials with controls on the terms to include.
+        """Add two polynomials with bounds on kept terms.
 
         Args:
             other: Other to add to self.
@@ -262,7 +262,15 @@ class ArrayPolynomial:
         order_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
-        """Matmul two array polynomials."""
+        """Matmul self @ other with bounds on kept terms.
+
+        Args:
+            other: Other to add to self.
+            order_bound: Bound on length of returned terms.
+            multiset_bounds: Multiset bounds.
+        Returns:
+            ArrayPolynomial achieved by matmul of self and other.
+        """
 
         if isinstance(other, (np.ndarray, Array)):
             other = ArrayPolynomial(constant_term=other)
@@ -274,19 +282,59 @@ class ArrayPolynomial:
             "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
         )
 
-    def mult(
+    def mul(
         self,
         other: Union["ArrayPolynomial", np.ndarray],
         order_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
-        """Entrywise multiplication of two ArrayPolynomials."""
+        """Entrywise multiplication of two ArrayPolynomials with bounds on kept terms.
+
+        Args:
+            other: Other to add to self.
+            order_bound: Bound on length of returned terms.
+            multiset_bounds: Multiset bounds.
+        Returns:
+            ArrayPolynomial achieved by matmul of self and other.
+        """
 
         if isinstance(other, (np.ndarray, Array)):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
             return array_polynomial_mult(self, other, order_bound, multiset_bounds, op="mult")
+
+        raise QiskitError(
+            "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
+        )
+
+    def __add__(self, other: Union["ArrayPolynomial", int, float, complex, Array]) -> "ArrayPolynomial":
+        """Dunder method for addition of two ArrayPolynomials."""
+        return self.add(other)
+
+    def __radd__(self, other: Union["ArrayPolynomial", int, float, complex, Array]) -> "ArrayPolynomial":
+        """Dunder method for right-addition of two ArrayPolynomials."""
+        return self.add(other)
+
+    def __mul__(self, other: Union["ArrayPolynomial", int, float, complex, Array]) -> "ArrayPolynomial":
+        """Dunder method for entry-wise multiplication."""
+        return self.mul(other)
+
+    def __rmul__(self, other: Union["ArrayPolynomial", int, float, complex, Array]) -> "ArrayPolynomial":
+        """Dunder method for right-multiplication."""
+        return self.mul(other)
+
+    def __matmul__(self, other: Union["ArrayPolynomial", Array]) -> "ArrayPolynomial":
+        """Dunder method for matmul."""
+        return self.matmul(other)
+
+    def __rmatmul__(self, other: Union["ArrayPolynomial", Array]) -> "ArrayPolynomial":
+        """Dunder method for rmatmul."""
+        if isinstance(other, (int, float, complex, Array)):
+            other = ArrayPolynomial(constant_term=other)
+
+        if isinstance(other, ArrayPolynomial):
+            return other.matmul(self)
 
         raise QiskitError(
             "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
