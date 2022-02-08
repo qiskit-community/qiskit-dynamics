@@ -275,7 +275,9 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_distributive_binary_op(self, other, lambda A, B: A @ B, order_bound, multiset_bounds)
+            return array_polynomial_distributive_binary_op(
+                self, other, lambda A, B: A @ B, order_bound, multiset_bounds
+            )
 
         raise QiskitError(
             "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
@@ -301,25 +303,35 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_distributive_binary_op(self, other, lambda A, B: A * B, order_bound, multiset_bounds)
+            return array_polynomial_distributive_binary_op(
+                self, other, lambda A, B: A * B, order_bound, multiset_bounds
+            )
 
         raise QiskitError(
             "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
         )
 
-    def __add__(self, other: Union["ArrayPolynomial", int, float, complex, Array]) -> "ArrayPolynomial":
+    def __add__(
+        self, other: Union["ArrayPolynomial", int, float, complex, Array]
+    ) -> "ArrayPolynomial":
         """Dunder method for addition of two ArrayPolynomials."""
         return self.add(other)
 
-    def __radd__(self, other: Union["ArrayPolynomial", int, float, complex, Array]) -> "ArrayPolynomial":
+    def __radd__(
+        self, other: Union["ArrayPolynomial", int, float, complex, Array]
+    ) -> "ArrayPolynomial":
         """Dunder method for right-addition of two ArrayPolynomials."""
         return self.add(other)
 
-    def __mul__(self, other: Union["ArrayPolynomial", int, float, complex, Array]) -> "ArrayPolynomial":
+    def __mul__(
+        self, other: Union["ArrayPolynomial", int, float, complex, Array]
+    ) -> "ArrayPolynomial":
         """Dunder method for entry-wise multiplication."""
         return self.mul(other)
 
-    def __rmul__(self, other: Union["ArrayPolynomial", int, float, complex, Array]) -> "ArrayPolynomial":
+    def __rmul__(
+        self, other: Union["ArrayPolynomial", int, float, complex, Array]
+    ) -> "ArrayPolynomial":
         """Dunder method for right-multiplication."""
         return self.mul(other)
 
@@ -552,7 +564,7 @@ def array_polynomial_distributive_binary_op(
     ap2: ArrayPolynomial,
     binary_op: Callable,
     order_bound: Optional[int] = np.inf,
-    multiset_bounds: Optional[List[Multiset]] = None
+    multiset_bounds: Optional[List[Multiset]] = None,
 ) -> ArrayPolynomial:
     """Apply a distributive binary op on two array polynomials."""
 
@@ -633,11 +645,13 @@ def array_polynomial_distributive_binary_op(
     if ap2.array_coefficients is not None:
         rmats = np.append(rmats, ap2.array_coefficients, axis=0)
 
-    custom_binary_op = CustomBinaryOp(operation_rule=operation_rule,
-                                      binary_op=binary_op,
-                                      A_shape=lmats[0].shape,
-                                      B_shape=rmats[0].shape,
-                                      index_offset=1)
+    custom_binary_op = CustomBinaryOp(
+        operation_rule=operation_rule,
+        binary_op=binary_op,
+        A_shape=lmats[0].shape,
+        B_shape=rmats[0].shape,
+        index_offset=1,
+    )
     new_array_coefficients = custom_binary_op(lmats, rmats)
 
     return ArrayPolynomial(

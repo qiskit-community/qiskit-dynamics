@@ -18,10 +18,11 @@ import numpy as np
 from qiskit_dynamics.perturbation.custom_binary_op import (
     compile_custom_operation_rule,
     CustomMatmul,
-    CustomMul
+    CustomMul,
 )
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+
 
 class TestCustomMatmul(QiskitDynamicsTestCase):
     """Test CustomMatmul."""
@@ -50,9 +51,9 @@ class TestCustomMatmul(QiskitDynamicsTestCase):
         prod20 = self.binary_op(A[2], B[0])
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
-        custom_op = self.CustomOpClass(operation_rule=self.mult_rule1,
-                                     A_shape=A.shape[1:],
-                                     B_shape=B.shape[1:])
+        custom_op = self.CustomOpClass(
+            operation_rule=self.mult_rule1, A_shape=A.shape[1:], B_shape=B.shape[1:]
+        )
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
@@ -67,9 +68,9 @@ class TestCustomMatmul(QiskitDynamicsTestCase):
         prod00 = self.binary_op(A[0], B[0])
         expected = np.array([prod02 + 5 * prod00])
 
-        custom_op = self.CustomOpClass(operation_rule=self.mult_rule2,
-                                     A_shape=A.shape[1:],
-                                     B_shape=B.shape[1:])
+        custom_op = self.CustomOpClass(
+            operation_rule=self.mult_rule2, A_shape=A.shape[1:], B_shape=B.shape[1:]
+        )
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
@@ -86,16 +87,15 @@ class TestCustomMatmul(QiskitDynamicsTestCase):
         prod20 = self.binary_op(A[2], B[0])
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
-        custom_op = self.CustomOpClass(operation_rule=self.mult_rule1,
-                                     A_shape=A.shape[1:],
-                                     B_shape=B.shape[1:])
+        custom_op = self.CustomOpClass(
+            operation_rule=self.mult_rule1, A_shape=A.shape[1:], B_shape=B.shape[1:]
+        )
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
 
 
 class TestCustomMatmulJAX(TestCustomMatmul, TestJaxBase):
-
     def test_jit_grad(self):
         """Verify jitting and gradding works through CustomMatmul."""
 
@@ -116,7 +116,6 @@ class TestCustomMatmulJAX(TestCustomMatmul, TestJaxBase):
 
 
 class TestCustomMul(TestCustomMatmul):
-
     def setUp(self):
         super().setUp()
         # for inheritance
@@ -125,7 +124,6 @@ class TestCustomMul(TestCustomMatmul):
 
 
 class TestCustomMulJax(TestCustomMul, TestJaxBase):
-
     def test_jit_grad(self):
         """Verify jitting and gradding works through CustomMul."""
 
@@ -196,7 +194,9 @@ class Testcompile_custom_operation_rule(QiskitDynamicsTestCase):
             (np.array([3.0]), np.array([[1, 1]])),
         ]
 
-        compiled_rule = compile_custom_operation_rule(operation_rule, unique_evaluation_len=5, linear_combo_len=6)
+        compiled_rule = compile_custom_operation_rule(
+            operation_rule, unique_evaluation_len=5, linear_combo_len=6
+        )
 
         expected_unique_mults = np.array([[0, 2], [1, 1], [2, 0], [-1, -1], [-1, -1]])
         expected_coeffs = np.array(

@@ -404,7 +404,7 @@ class TestArrayPolynomialAlgebraJax(TestArrayPolynomialAlgebra, TestJaxBase):
             return ap3(e).data.real.sum()
 
         jit_grad_func = jit(grad(func))
-        jit_grad_func(1., 2., 3., 4., np.array([5., 6.]))
+        jit_grad_func(1.0, 2.0, 3.0, 4.0, np.array([5.0, 6.0]))
 
     def test_jit_grad_add(self):
         """Test that construction and multiplication can be differentiated through."""
@@ -431,7 +431,7 @@ class TestArrayPolynomialAlgebraJax(TestArrayPolynomialAlgebra, TestJaxBase):
             return ap3(e).data.real.sum()
 
         jit_grad_func = jit(grad(func))
-        jit_grad_func(1., 2., 3., 4., np.array([5., 6.]))
+        jit_grad_func(1.0, 2.0, 3.0, 4.0, np.array([5.0, 6.0]))
 
 
 class TestArrayPolynomial(QiskitDynamicsTestCase):

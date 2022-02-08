@@ -67,19 +67,27 @@ class CustomBinaryOp:
     to allow the output shape :math:`f(A_j, B_k)` to be pre-determined.
     """
 
-    def __init__(self,
-                 operation_rule: List,
-                 binary_op: Callable,
-                 A_shape: Tuple[int],
-                 B_shape: Tuple[int],
-                 index_offset: Optional[int] = 0,
-                 operation_rule_compiled: Optional[bool] = False,
-                 backend: Optional[str] = None):
+    def __init__(
+        self,
+        operation_rule: List,
+        binary_op: Callable,
+        A_shape: Tuple[int],
+        B_shape: Tuple[int],
+        index_offset: Optional[int] = 0,
+        operation_rule_compiled: Optional[bool] = False,
+        backend: Optional[str] = None,
+    ):
         """Initialize the binary operation.
 
-        Note that in JAX operation mode binary_op is assumed to be vectorized.
-        Note as well that operation_rule_compiled is meant to allow passing of already
-        compiled rules.
+        Args:
+            operation_rule: Rule for the binary op as described in the doc string.
+            binary_op: The binary operation, assumed to be vectorized.
+            A_shape: Shape of the first argument of binary_op.
+            B_shape: Shape of the second argument of binary_op.
+            index_offset: Shift to be added to the indices in operation_rule.
+            operation_rule_compiled: True if the operation_rule already corresponds to a
+                                     rule that has been compiled to the internal representation.
+            backend: Whether to use JAX or other looping logic.
         """
 
         # store binary op and compile rule to internal format for evaluation
@@ -94,54 +102,75 @@ class CustomBinaryOp:
         self._backend = backend or Array.default_backend()
 
         # establish which version of functions to use
-        if self._backend == 'jax':
+        if self._backend == "jax":
             self._compute_unique_evaluations = compute_unique_evaluations_jax
             self._compute_linear_combos = compute_linear_combos_jax
         else:
             self._compute_unique_evaluations = compute_unique_evaluations
             self._compute_linear_combos = compute_linear_combos
 
-
-    def __call__(self, A, B):
-        """Evaluate the binary operation on arrays A, B."""
-        if self._backend == 'jax':
+    def __call__(self, A: np.ndarray, B: np.ndarray) -> np.ndarray:
+        """Evaluate the custom binary operation on arrays A, B."""
+        if self._backend == "jax":
             A = Array(A).data
             B = Array(B).data
 
-        unique_evaluations = self._compute_unique_evaluations(A, B, self._unique_evaluation_pairs, self._binary_op, self._output_shape)
+        unique_evaluations = self._compute_unique_evaluations(
+            A, B, self._unique_evaluation_pairs, self._binary_op, self._output_shape
+        )
         return self._compute_linear_combos(unique_evaluations, self._linear_combo_rule)
 
 
 class CustomMatmul(CustomBinaryOp):
     """Custom matmul multiplication."""
 
-    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], index_offset: Optional[int] = 0, operation_rule_compiled: Optional[bool] = False, backend: Optional[str] = None):
+    def __init__(
+        self,
+        operation_rule: List,
+        A_shape: Tuple[int],
+        B_shape: Tuple[int],
+        index_offset: Optional[int] = 0,
+        operation_rule_compiled: Optional[bool] = False,
+        backend: Optional[str] = None,
+    ):
         """Initialize."""
 
         binary_op = lambda A, B: A @ B
-        super().__init__(operation_rule=operation_rule,
-                         binary_op=binary_op,
-                         A_shape=A_shape,
-                         B_shape=B_shape,
-                         index_offset=index_offset,
-                         operation_rule_compiled=operation_rule_compiled,
-                         backend=backend)
+        super().__init__(
+            operation_rule=operation_rule,
+            binary_op=binary_op,
+            A_shape=A_shape,
+            B_shape=B_shape,
+            index_offset=index_offset,
+            operation_rule_compiled=operation_rule_compiled,
+            backend=backend,
+        )
 
 
 class CustomMul(CustomBinaryOp):
     """Custom mul multiplication."""
 
-    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], index_offset: Optional[int] = 0, operation_rule_compiled: Optional[bool] = False, backend: Optional[str] = None):
+    def __init__(
+        self,
+        operation_rule: List,
+        A_shape: Tuple[int],
+        B_shape: Tuple[int],
+        index_offset: Optional[int] = 0,
+        operation_rule_compiled: Optional[bool] = False,
+        backend: Optional[str] = None,
+    ):
         """Initialize."""
 
         binary_op = lambda A, B: A * B
-        super().__init__(operation_rule=operation_rule,
-                         binary_op=binary_op,
-                         A_shape=A_shape,
-                         B_shape=B_shape,
-                         index_offset=index_offset,
-                         operation_rule_compiled=operation_rule_compiled,
-                         backend=backend)
+        super().__init__(
+            operation_rule=operation_rule,
+            binary_op=binary_op,
+            A_shape=A_shape,
+            B_shape=B_shape,
+            index_offset=index_offset,
+            operation_rule_compiled=operation_rule_compiled,
+            backend=backend,
+        )
 
 
 def compile_custom_operation_rule(
@@ -229,10 +258,9 @@ def compute_unique_evaluations(
     B: np.array,
     unique_evaluation_pairs: np.array,
     binary_op: Callable,
-    output_shape: Tuple[int]
+    output_shape: Tuple[int],
 ) -> np.array:
-    """Compute ``binary_op(A[j], B[k])`` for index pairs ``[j, k]`` in ``unique_evaluation_pairs``.
-    """
+    """Compute ``binary_op(A[j], B[k])`` for index pairs ``[j, k]`` in ``unique_evaluation_pairs``."""
     M0 = np.zeros(output_shape, dtype=complex)
     unique_evaluations = np.empty((len(unique_evaluation_pairs),) + output_shape, dtype=complex)
 
@@ -245,7 +273,9 @@ def compute_unique_evaluations(
     return unique_evaluations
 
 
-def compute_linear_combos(unique_evaluations: np.array, linear_combo_rule: Tuple[np.array, np.array]) -> np.array:
+def compute_linear_combos(
+    unique_evaluations: np.array, linear_combo_rule: Tuple[np.array, np.array]
+) -> np.array:
     r"""Compute linear combinations of the entries in the array ``unique_mults``
     according to ``linear_combo_rule``. The :math:`j^{th}` entry of the output is given by
     :math:`sum_k c[j, k] unique_mults[idx[j, k]]`, where ``linear_combo_rule`` is ``(c, idx)``.
@@ -263,7 +293,11 @@ def compute_linear_combos(unique_evaluations: np.array, linear_combo_rule: Tuple
 
 
 def compute_unique_evaluations_jax(
-    A: np.array, B: np.array, unique_evaluation_pairs: np.array, binary_op: Callable, output_shape: Tuple[int]
+    A: np.array,
+    B: np.array,
+    unique_evaluation_pairs: np.array,
+    binary_op: Callable,
+    output_shape: Tuple[int],
 ) -> np.array:
     """JAX version of a single loop step of :meth:`linear_combos`. Note that in this case
     binary_op is assumed to be vectorized."""
