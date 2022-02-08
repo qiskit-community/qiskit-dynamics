@@ -28,7 +28,7 @@ from .legacy_parser import legacy_parser
 
 
 # valid channel characters
-CHANNEL_CHARS = ["U", "D", "M", "u", "d", "m"]
+CHANNEL_CHARS = ["U", "D", "M", "A" "u", "d", "m", "a"]
 
 
 def parse_hamiltonian_dict(
@@ -80,6 +80,7 @@ def parse_hamiltonian_dict(
     * ``'D'`` or ``'d'`` for drive channels.
     * ``'U'`` or ``'u'`` for control channels.
     * ``'M'`` or ``'m'`` for measurement channels.
+    * ``'A'`` or ``'a'`` for acquire channels.
 
     Finally, summations of terms of the above form can be indicated in
     ``hamiltonian_dict['h_str']`` via strings with syntax ``'_SUM[i, lb, ub, aa||S{i}]'``,
