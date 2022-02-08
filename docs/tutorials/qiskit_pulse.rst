@@ -85,7 +85,7 @@ virtual ``Z`` gate is applied.
 
     plt.rcParams["font.size"] = 16
 
-    converter = InstructionToSignals(dt, carriers=[w])
+    converter = InstructionToSignals(dt, carriers={"d0": w})
 
     signals = converter.get_signals(xp)
     fig, axs = plt.subplots(1, 2, figsize=(14, 4.5))

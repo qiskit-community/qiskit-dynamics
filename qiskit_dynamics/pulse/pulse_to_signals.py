@@ -14,7 +14,7 @@
 Pulse schedule to Signals converter.
 """
 
-from typing import List
+from typing import Dict, List, Optional
 import numpy as np
 
 from qiskit.pulse import (
@@ -25,8 +25,13 @@ from qiskit.pulse import (
     ShiftFrequency,
     SetFrequency,
     Waveform,
+    MeasureChannel,
+    DriveChannel,
+    ControlChannel,
+    AcquireChannel,
 )
 from qiskit import QiskitError
+
 from qiskit_dynamics.signals import DiscreteSignal
 
 
@@ -35,51 +40,70 @@ class InstructionToSignals:
 
     The :class:`InstructionsToSignals` class converts a pulse schedule to a list
     of signals that can be given to a model. This conversion is done by calling
-    the :meth:`get_signals` method on a schedule.
+    the :meth:`get_signals` method on a schedule. The converter applies to instances
+    of :class:`Schedule`. Instances of :class:`ScheduleBlock` must first be
+    converted to :class:`Schedule` using the :meth:`block_to_schedule` in
+    Qiskit pulse.
+
+    The converter can be initialized
+    with the optional arguments ``carriers`` and ``channels``. These arguments
+    change the returned signals of :meth:`get_signals`. When ``channels`` is given
+    then only the signals specified by name in ``channels`` are returned. The
+    ``carriers`` dictionary allows the user to specify the carrier frequency of
+    the channels. Here, the keys are the channel name, e.g. ``d12`` for drive channel
+    number 12, and the values are the corresponding frequency. If a channel is not
+    present in ``carriers`` it is assumed that the carrier frequency is zero.
     """
 
-    def __init__(self, dt: float, carriers: List[float] = None):
+    def __init__(
+        self,
+        dt: float,
+        carriers: Optional[Dict[str, float]] = None,
+        channels: Optional[List[str]] = None,
+    ):
         """Initialize pulse schedule to signals converter.
 
         Args:
-            dt: length of the samples. This is required by the converter as pulse
+            dt: Length of the samples. This is required by the converter as pulse
                 schedule are specified in units of dt and typically do not carry the
                 value of dt with them.
-            carriers: a list of carrier frequencies. If it is not None there
-                must be at least as many carrier frequencies as there are
-                channels in the schedules that will be converted.
+            carriers: A dict of carrier frequencies. The keys are the names of the channels
+                      and the values are the corresponding carrier frequency.
+            channels: A list of channels that the :meth:`get_signals` method should return.
+                      This argument will cause :meth:`get_signals` to return the signals in the
+                      same order as the channels. Channels present in the schedule but absent
+                      from channels will not be included in the returned object. If None is given
+                      (the default) then all channels present in the pulse schedule are returned.
         """
 
         self._dt = dt
-        self._carriers = carriers
+        self._channels = channels
+        self._carriers = carriers or {}
 
     def get_signals(self, schedule: Schedule) -> List[DiscreteSignal]:
         """
         Args:
-            schedule: The schedule to represent in terms of signals.
+            schedule: The schedule to represent in terms of signals. Instances of
+                      :class:`ScheduleBlock` must first be converted to :class:`Schedule`
+                      using the :meth:`block_to_schedule` in Qiskit pulse.
 
         Returns:
             a list of piecewise constant signals.
-
-        Raises:
-            qiskit.QiskitError: if not enough frequencies supplied
         """
-
-        if self._carriers and len(self._carriers) < len(schedule.channels):
-            raise QiskitError("Not enough carrier frequencies supplied.")
 
         signals, phases, frequency_shifts = {}, {}, {}
 
-        for idx, chan in enumerate(schedule.channels):
-            if self._carriers:
-                carrier_freq = self._carriers[idx]
-            else:
-                carrier_freq = 0.0
+        if self._channels is not None:
+            schedule = schedule.filter(channels=[self._get_channel(ch) for ch in self._channels])
 
+        for idx, chan in enumerate(schedule.channels):
             phases[chan.name] = 0.0
             frequency_shifts[chan.name] = 0.0
             signals[chan.name] = DiscreteSignal(
-                samples=[], dt=self._dt, name=chan.name, carrier_freq=carrier_freq
+                samples=[],
+                dt=self._dt,
+                name=chan.name,
+                carrier_freq=self._carriers.get(chan.name, 0.0),
             )
 
         for start_sample, inst in schedule.instructions:
@@ -129,7 +153,19 @@ class InstructionToSignals:
                     samples=np.zeros(max_duration - sig.duration, dtype=complex),
                 )
 
-        return list(signals.values())
+        # filter the channels
+        if self._channels is None:
+            return list(signals.values())
+
+        return_signals = []
+        for chan_name in self._channels:
+            signal = signals.get(
+                chan_name, DiscreteSignal(samples=[], dt=self._dt, name=chan_name, carrier_freq=0.0)
+            )
+
+            return_signals.append(signal)
+
+        return return_signals
 
     @staticmethod
     def get_awg_signals(
@@ -150,7 +186,7 @@ class InstructionToSignals:
         Args:
             signals: A list of signals for which to create I and Q.
             if_modulation: The intermediate frequency with which the AWG modulates the pulse
-                envelopes.
+                           envelopes.
 
         Returns:
             iq signals: A list of signals which is twice as long as the input list of signals.
@@ -184,3 +220,31 @@ class InstructionToSignals:
             new_signals += [sig_i, sig_q]
 
         return new_signals
+
+    def _get_channel(self, channel_name: str):
+        """Return the channel corresponding to the given name."""
+
+        try:
+            prefix = channel_name[0]
+            index = int(channel_name[1:])
+
+            if prefix == "d":
+                return DriveChannel(index)
+
+            if prefix == "m":
+                return MeasureChannel(index)
+
+            if prefix == "u":
+                return ControlChannel(index)
+
+            if prefix == "a":
+                return AcquireChannel(index)
+
+            raise QiskitError(
+                f"Unsupported channel name {channel_name} in {self.__class__.__name__}"
+            )
+
+        except (KeyError, IndexError, ValueError) as error:
+            raise QiskitError(
+                f"Invalid channel name {channel_name} given to {self.__class__.__name__}."
+            ) from error

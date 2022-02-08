@@ -10,4 +10,5 @@ reno>=3.4.0
 nbsphinx
 sphinxcontrib-bibtex
 qutip
+ddt~=1.4.2
 matplotlib>=3.3.0
