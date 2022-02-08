@@ -9,4 +9,5 @@ pygments>=2.4
 reno>=3.4.0
 nbsphinx
 qutip
+ddt~=1.4.2
 matplotlib>=3.3.0
