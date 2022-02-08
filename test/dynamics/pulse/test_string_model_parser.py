@@ -40,6 +40,14 @@ class TestHamiltonianPreParseExceptions(QiskitDynamicsTestCase):
             hamiltonian_pre_parse_exceptions({})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
+        with self.assertRaises(QiskitError) as qe:
+            hamiltonian_pre_parse_exceptions({'h_str': []})
+        self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
+
+        with self.assertRaises(QiskitError) as qe:
+            hamiltonian_pre_parse_exceptions({'h_str': [""]})
+        self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
+
     def test_empty_qub(self):
         """Test qub dict empty raises error."""
 
@@ -52,6 +60,13 @@ class TestHamiltonianPreParseExceptions(QiskitDynamicsTestCase):
 
         with self.assertRaises(QiskitError) as qe:
             hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"], "qub": {0: 2}})
+        self.assertTrue("does not conform" in str(qe.exception))
+
+    def test_single_vertical_bars(self):
+        """Test that too many vertical bars raises error."""
+
+        with self.assertRaises(QiskitError) as qe:
+            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|D0"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_multiple_channel_error(self):

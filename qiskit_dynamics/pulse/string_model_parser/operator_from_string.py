@@ -120,6 +120,22 @@ def ident(dim: int) -> np.ndarray:
     return np.eye(dim, dtype=complex)
 
 
+# operator names
+__operdict = {
+    "X": X,
+    "Y": Y,
+    "Z": Z,
+    "a": a,
+    "A": a,
+    "Sm": a,
+    "Sp": adag,
+    "C": adag,
+    "N": N,
+    "O": N,
+    "I": ident,
+}
+
+
 def single_operator_from_string(op_label: str, dim: int) -> np.ndarray:
     """Generate a single operator from a string.
 
@@ -144,31 +160,15 @@ def single_operator_from_string(op_label: str, dim: int) -> np.ndarray:
     return op_func(dim)
 
 
-# operator names
-__operdict = {
-    "X": X,
-    "Y": Y,
-    "Z": Z,
-    "a": a,
-    "A": a,
-    "Sm": a,
-    "Sp": adag,
-    "C": adag,
-    "N": N,
-    "O": N,
-    "I": ident,
-}
-
-
 def dag(op: np.ndarray) -> np.ndarray:
     """Apply dagger."""
     return np.conjugate(np.transpose(op))
 
 
+# pylint: disable=invalid-name
+__funcdict = {"dag": dag}
+
+
 def apply_func(name: str, op: np.ndarray) -> np.ndarray:
     """Apply function of given name, or do nothing if func not found"""
     return __funcdict.get(name, lambda x: x)(op)
-
-
-# pylint: disable=invalid-name
-__funcdict = {"dag": dag}

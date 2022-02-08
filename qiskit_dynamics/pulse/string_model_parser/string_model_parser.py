@@ -28,7 +28,7 @@ from .legacy_parser import legacy_parser
 
 
 # valid channel characters
-CHANNEL_CHARS = ["U", "D", "M", "A" "u", "d", "m", "a"]
+CHANNEL_CHARS = ["U", "D", "M", "A", "u", "d", "m", "a"]
 
 
 def parse_hamiltonian_dict(
@@ -50,7 +50,7 @@ def parse_hamiltonian_dict(
     If ``None``, all subsystems are kept. If ``subsystem_list`` is specified, then terms
     including subsystems not in the list will be ignored.
 
-    Entires in the list ``hamiltonian_dict['h_str']`` must be formated as a product of
+    Entries in the list ``hamiltonian_dict['h_str']`` must be formatted as a product of
     constants (either numerical constants or variables in ``hamiltonian_dict['vars'].keys()``)
     with operators. Operators are indicated with a capital letters followed by an integer
     indicating the subsystem the operator acts on. Accepted operator strings are:
@@ -290,7 +290,7 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
                 if channel_str[1] == "{":
                     if not channel_str[-1] == "}":
                         raise QiskitError(malformed_text)
-                # otherwise verify that the remainder of terms are only contains digits
+                # otherwise verify that the remainder of terms only contains digits
                 elif any(not c.isdigit() for c in channel_str[1:]):
                     raise QiskitError(malformed_text)
             else:
