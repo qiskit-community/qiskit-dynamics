@@ -25,10 +25,14 @@ from qiskit.pulse import (
     ShiftFrequency,
     SetFrequency,
     Waveform,
+    MeasureChannel,
+    DriveChannel,
+    ControlChannel,
+    AcquireChannel,
 )
-import qiskit.pulse.channels as channels
-from qiskit_dynamics.signals import DiscreteSignal
 from qiskit import QiskitError
+
+from qiskit_dynamics.signals import DiscreteSignal
 
 
 class InstructionToSignals:
@@ -217,7 +221,7 @@ class InstructionToSignals:
 
         return new_signals
 
-    def _get_channel(self, channel_name: str) -> channels.Channel:
+    def _get_channel(self, channel_name: str):
         """Return the channel corresponding to the given name."""
 
         try:
@@ -225,22 +229,22 @@ class InstructionToSignals:
             index = int(channel_name[1:])
 
             if prefix == "d":
-                return channels.DriveChannel(index)
+                return DriveChannel(index)
 
             if prefix == "m":
-                return channels.MeasureChannel(index)
+                return MeasureChannel(index)
 
             if prefix == "u":
-                return channels.ControlChannel(index)
+                return ControlChannel(index)
 
             if prefix == "a":
-                return channels.AcquireChannel(index)
+                return AcquireChannel(index)
 
             raise QiskitError(
                 f"Unsupported channel name {channel_name} in {self.__class__.__name__}"
             )
 
-        except (KeyError, IndexError, ValueError):
+        except (KeyError, IndexError, ValueError) as error:
             raise QiskitError(
                 f"Invalid channel name {channel_name} given to {self.__class__.__name__}."
-            )
+            ) from error
