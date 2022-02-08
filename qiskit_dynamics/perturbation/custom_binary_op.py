@@ -79,7 +79,7 @@ class CustomBinaryOp:
 
         Note that in JAX operation mode binary_op is assumed to be vectorized.
         Note as well that operation_rule_compiled is meant to allow passing of already
-        compiled rules
+        compiled rules.
         """
 
         # store binary op and compile rule to internal format for evaluation
@@ -91,10 +91,10 @@ class CustomBinaryOp:
         # determine output shape
         self._output_shape = self._binary_op(np.zeros(A_shape), np.zeros(B_shape)).shape
 
-        backend = backend or Array.default_backend()
+        self._backend = backend or Array.default_backend()
 
         # establish which version of functions to use
-        if backend == 'jax':
+        if self._backend == 'jax':
             self._compute_unique_evaluations = compute_unique_evaluations_jax
             self._compute_linear_combos = compute_linear_combos_jax
         else:
@@ -104,6 +104,10 @@ class CustomBinaryOp:
 
     def __call__(self, A, B):
         """Evaluate the binary operation on arrays A, B."""
+        if self._backend == 'jax':
+            A = Array(A).data
+            B = Array(B).data
+
         unique_evaluations = self._compute_unique_evaluations(A, B, self._unique_evaluation_pairs, self._binary_op, self._output_shape)
         return self._compute_linear_combos(unique_evaluations, self._linear_combo_rule)
 
@@ -111,7 +115,7 @@ class CustomBinaryOp:
 class CustomMatmul(CustomBinaryOp):
     """Custom matmul multiplication."""
 
-    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], backend: Optional[str] = None):
+    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], operation_rule_compiled: Optional[bool] = False, backend: Optional[str] = None):
         """Initialize."""
 
         binary_op = lambda A, B: A @ B
@@ -119,13 +123,14 @@ class CustomMatmul(CustomBinaryOp):
                          binary_op=binary_op,
                          A_shape=A_shape,
                          B_shape=B_shape,
+                         operation_rule_compiled=operation_rule_compiled,
                          backend=backend)
 
 
 class CustomMul(CustomBinaryOp):
     """Custom mul multiplication."""
 
-    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], backend: Optional[str] = None):
+    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], operation_rule_compiled: Optional[bool] = False, backend: Optional[str] = None):
         """Initialize."""
 
         binary_op = lambda A, B: A * B
@@ -133,6 +138,7 @@ class CustomMul(CustomBinaryOp):
                          binary_op=binary_op,
                          A_shape=A_shape,
                          B_shape=B_shape,
+                         operation_rule_compiled=operation_rule_compiled,
                          backend=backend)
 
 
@@ -154,7 +160,7 @@ def compile_custom_operation_rule(
                       sparse representation of :math:`a_{ijk}`.
         unique_evaluation_len: Integer specifying a minimum length to represent the
                                unique multiplications list. The unique multiplication list
-                               is padded with entries ``[-2, -2]`` to meet the minimum length.
+                               is padded with entries ``[-1, -1]`` to meet the minimum length.
         linear_combo_len: Minimum length for linear combo specification. Coefficients are
                           padded with zeros, and the unique multiplication indices are
                           padded with ``-1``.
@@ -191,7 +197,7 @@ def compile_custom_operation_rule(
     unique_evaluation_pairs = np.array(unique_evaluation_list, dtype=int)
 
     if unique_evaluation_len is not None and unique_evaluation_len > len(unique_evaluation_pairs):
-        padding = -2 * np.ones((unique_evaluation_len - len(unique_evaluation_pairs), 2), dtype=int)
+        padding = -1 * np.ones((unique_evaluation_len - len(unique_evaluation_pairs), 2), dtype=int)
         unique_evaluation_pairs = np.append(unique_evaluation_pairs, padding, axis=0)
 
     # pad linear combo rule with -1 for shorter rules
@@ -227,8 +233,9 @@ def compute_unique_evaluations(
     """
     M0 = np.zeros(output_shape, dtype=complex)
     unique_evaluations = np.empty((len(unique_evaluation_pairs),) + output_shape, dtype=complex)
+
     for idx, eval_pair in enumerate(unique_evaluation_pairs):
-        if eval_pair[0] == -2:
+        if eval_pair[0] == -1:
             unique_evaluations[idx] = M0
         else:
             unique_evaluations[idx] = binary_op(A[eval_pair[0]], B[eval_pair[1]])

@@ -198,7 +198,7 @@ class Testcompile_custom_operation_rule(QiskitDynamicsTestCase):
 
         compiled_rule = compile_custom_operation_rule(operation_rule, unique_evaluation_len=5, linear_combo_len=6)
 
-        expected_unique_mults = np.array([[0, 2], [1, 1], [2, 0], [-2, -2], [-2, -2]])
+        expected_unique_mults = np.array([[0, 2], [1, 1], [2, 0], [-1, -1], [-1, -1]])
         expected_coeffs = np.array(
             [
                 [1.0, 2.0, 3.0, 0.0, 0.0, 0.0],

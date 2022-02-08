@@ -25,11 +25,10 @@ from qiskit import QiskitError
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation import Multiset
 from qiskit_dynamics.perturbation.multiset import to_Multiset, clean_multisets, get_all_submultisets
-from qiskit_dynamics.perturbation.custom_dot import compile_custom_dot_rule, custom_dot
+from qiskit_dynamics.perturbation.custom_binary_op import CustomBinaryOp
 
 try:
     import jax.numpy as jnp
-    from qiskit_dynamics.perturbation.custom_dot import custom_dot_jax
 except ImportError:
     pass
 
@@ -276,7 +275,7 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_mult(self, other, order_bound, multiset_bounds, op="matmul")
+            return array_polynomial_distributive_binary_op(self, other, lambda A, B: A @ B, order_bound, multiset_bounds)
 
         raise QiskitError(
             "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
@@ -302,7 +301,7 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_mult(self, other, order_bound, multiset_bounds, op="mult")
+            return array_polynomial_distributive_binary_op(self, other, lambda A, B: A * B, order_bound, multiset_bounds)
 
         raise QiskitError(
             "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
@@ -548,27 +547,14 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
     )
 
 
-def array_polynomial_mult(
+def array_polynomial_distributive_binary_op(
     ap1: ArrayPolynomial,
     ap2: ArrayPolynomial,
+    binary_op: Callable,
     order_bound: Optional[int] = np.inf,
-    multiset_bounds: Optional[List[Multiset]] = None,
-    op: Optional[str] = "matmul",
+    multiset_bounds: Optional[List[Multiset]] = None
 ) -> ArrayPolynomial:
-    """Multiply two array polynomials, either matmul or entrywise multiplication."""
-
-    if (
-        (min(ap1.ndim, ap2.ndim) < 2)
-        or (ap1.shape[-1] != ap2.shape[-1])
-        or (ap1.shape[-2] != ap1.shape[-1])
-        or (ap2.shape[-2] != ap2.shape[-1])
-    ):
-        raise QiskitError(
-            """ArrayPolynomial {} only defined for ndim at least 2
-                and with last two dimensions of each being the same.""".format(
-                op
-            )
-        )
+    """Apply a distributive binary op on two array polynomials."""
 
     # determine list of Multisets required for monomial labels, including filtering
     all_multisets = []
@@ -598,10 +584,7 @@ def array_polynomial_mult(
     # setup constant term
     new_constant_term = None
     if ap1.constant_term is not None and ap2.constant_term is not None:
-        if op == "matmul":
-            new_constant_term = ap1.constant_term @ ap2.constant_term
-        else:
-            new_constant_term = ap1.constant_term * ap2.constant_term
+        new_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
 
     # return constant case
     if all_multisets == []:
@@ -609,7 +592,7 @@ def array_polynomial_mult(
 
     # iteratively construct custom multiplication rule,
     # temporarily treating the constant terms as index -1
-    mult_rule = []
+    operation_rule = []
     for multiset in all_multisets:
         rule_indices = []
 
@@ -630,9 +613,7 @@ def array_polynomial_mult(
 
         # if non-empty,
         if rule_indices != []:
-            mult_rule.append((np.ones(len(rule_indices)), np.array(rule_indices)))
-
-    compiled_rule = compile_custom_dot_rule(mult_rule, index_offset=1)
+            operation_rule.append((np.ones(len(rule_indices)), np.array(rule_indices)))
 
     lmats = None
     if ap1.constant_term is not None:
@@ -652,11 +633,12 @@ def array_polynomial_mult(
     if ap2.array_coefficients is not None:
         rmats = np.append(rmats, ap2.array_coefficients, axis=0)
 
-    new_array_coefficients = None
-    if Array(lmats).backend == "jax":
-        new_array_coefficients = custom_dot_jax(lmats.data, rmats.data, compiled_rule, op)
-    else:
-        new_array_coefficients = custom_dot(lmats, rmats, compiled_rule, op)
+    custom_binary_op = CustomBinaryOp(operation_rule=operation_rule,
+                                      binary_op=binary_op,
+                                      A_shape=lmats[0].shape,
+                                      B_shape=rmats[0].shape,
+                                      index_offset=1)
+    new_array_coefficients = custom_binary_op(lmats, rmats)
 
     return ArrayPolynomial(
         array_coefficients=new_array_coefficients,
