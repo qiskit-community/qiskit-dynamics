@@ -73,17 +73,21 @@ class CustomBinaryOp:
                  A_shape: Tuple[int],
                  B_shape: Tuple[int],
                  index_offset: Optional[int] = 0,
-                 unique_evaluations_len: Optional[int] = None,
-                 linear_combo_len: Optional[int] = None,
+                 operation_rule_compiled: Optional[bool] = False,
                  backend: Optional[str] = None):
         """Initialize the binary operation.
 
         Note that in JAX operation mode binary_op is assumed to be vectorized.
+        Note as well that operation_rule_compiled is meant to allow passing of already
+        compiled rules
         """
 
         # store binary op and compile rule to internal format for evaluation
         self._binary_op = binary_op
-        self._unique_evaluation_pairs, self._linear_combo_rule = compile_custom_operation_rule(operation_rule, index_offset, unique_evaluations_len, linear_combo_len)
+
+        if not operation_rule_compiled:
+            operation_rule = compile_custom_operation_rule(operation_rule, index_offset)
+        self._unique_evaluation_pairs, self._linear_combo_rule = operation_rule
         # determine output shape
         self._output_shape = self._binary_op(np.zeros(A_shape), np.zeros(B_shape)).shape
 
@@ -96,6 +100,7 @@ class CustomBinaryOp:
         else:
             self._compute_unique_evaluations = compute_unique_evaluations
             self._compute_linear_combos = compute_linear_combos
+
 
     def __call__(self, A, B):
         """Evaluate the binary operation on arrays A, B."""
