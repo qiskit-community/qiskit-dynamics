@@ -40,10 +40,9 @@ from scipy.integrate._ivp.ivp import OdeResult
 from qiskit_dynamics import dispatch, solve_ode
 from qiskit_dynamics.array import Array
 
-from qiskit_dynamics.perturbation.custom_dot import (
-    compile_custom_dot_rule,
-    custom_dot,
-    custom_dot_jax,
+from qiskit_dynamics.perturbation.custom_binary_op import (
+    compile_custom_operation_rule,
+    CustomMatmul
 )
 
 from qiskit_dynamics.perturbation.multiset import Multiset, get_all_submultisets, submultiset_filter
@@ -275,6 +274,7 @@ def solve_lmde_dyson_jax(
         generator,
         perturbations,
         complete_term_list,
+        mat_dim,
         symmetric=symmetric,
         perturbation_labels=perturbation_labels,
     )
@@ -404,11 +404,8 @@ def setup_dyson_rhs(
         perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
         lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
 
-    compiled_lmult_rule = compile_custom_dot_rule(lmult_rule, index_offset=1)
-
-    # set up RHS evaluation
-    def custom_lmult(A, B):
-        return custom_dot(A, B, compiled_lmult_rule)
+    mat_shape = (mat_dim, mat_dim)
+    custom_matmul = CustomMatmul(lmult_rule, A_shape=mat_shape, B_shape=mat_shape, index_offset=1)
 
     perturbations_evaluate_len = len(perturbations_evaluation_order)
     new_list = [generator] + perturbations
@@ -422,7 +419,7 @@ def setup_dyson_rhs(
         return mat
 
     def dyson_rhs(t, y):
-        return custom_lmult(gen_evaluator(t), y)
+        return custom_matmul(gen_evaluator(t), y)
 
     return dyson_rhs
 
@@ -431,11 +428,11 @@ def setup_dyson_rhs_jax(
     generator: Callable,
     perturbations: List[Callable],
     oc_dyson_indices: List[Multiset],
+    mat_dim: int,
     symmetric: Optional[bool] = False,
     perturbation_labels: Optional[List[Multiset]] = None,
 ) -> Callable:
-    """JAX version of setup_dyson_rhs. Note that this version does not require
-    the ``mat_dim`` argument.
+    """JAX version of setup_dyson_rhs.
 
     Args:
         generator: The frame generator G.
@@ -465,11 +462,8 @@ def setup_dyson_rhs_jax(
         perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
         lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
 
-    compiled_lmult_rule = compile_custom_dot_rule(lmult_rule, index_offset=1)
-
-    # set up RHS evaluation
-    def custom_lmult(A, B):
-        return custom_dot_jax(A, B, compiled_lmult_rule)
+    mat_shape = (mat_dim, mat_dim)
+    custom_matmul = CustomMatmul(lmult_rule, A_shape=mat_shape, B_shape=mat_shape, index_offset=1, backend='jax')
 
     perturbations_evaluation_order = jnp.array(perturbations_evaluation_order, dtype=int)
 
@@ -481,7 +475,7 @@ def setup_dyson_rhs_jax(
     multiple_eval = vmap(single_eval, in_axes=(0, None))
 
     def dyson_rhs(t, y):
-        return custom_lmult(multiple_eval(perturbations_evaluation_order, t), y)
+        return custom_matmul(multiple_eval(perturbations_evaluation_order, t), y)
 
     return dyson_rhs
 
@@ -607,8 +601,10 @@ def symmetric_magnus_from_dyson(
         return symmetric_dyson_terms
 
     # initialize array of q matrices with dyson terms
-    q_mat_shape = (len(ordered_q_terms),) + symmetric_dyson_terms.shape[1:]
+    q_mat_shape = (len(ordered_q_terms) + 1,) + symmetric_dyson_terms.shape[1:]
     q_mat = np.zeros(q_mat_shape, dtype=complex)
+    # add an identity at the end
+    q_mat[-1] = np.broadcast_to(np.eye(q_mat.shape[-1], dtype=complex), q_mat.shape[1:])
     q_mat[magnus_indices] = symmetric_dyson_terms
 
     index_list = start_idx + np.arange(len(stacked_q_update_rules[0]))
@@ -618,7 +614,8 @@ def symmetric_magnus_from_dyson(
             stacked_q_update_rules[0][rule_idx],
             (stacked_q_update_rules[1][0][rule_idx], stacked_q_update_rules[1][1][rule_idx]),
         )
-        q_mat[mat_idx] = custom_dot(q_mat, q_mat, compiled_rule)[0]
+        custom_matmul = CustomMatmul(compiled_rule, A_shape=q_mat[0].shape, B_shape=q_mat[0].shape, operation_rule_compiled=True)
+        q_mat[mat_idx] = custom_matmul(q_mat, q_mat)[0]
 
     return q_mat[magnus_indices]
 
@@ -636,16 +633,18 @@ def symmetric_magnus_from_dyson_jax(
         return symmetric_dyson_terms
 
     # initialize array of q matrices with dyson terms
-    q_mat_shape = (len(ordered_q_terms),) + symmetric_dyson_terms.shape[1:]
+    q_mat_shape = (len(ordered_q_terms) + 1,) + symmetric_dyson_terms.shape[1:]
     q_init = jnp.zeros(q_mat_shape, dtype=complex)
     q_init = q_init.at[magnus_indices].set(symmetric_dyson_terms)
+    q_init = q_init.at[-1].set(jnp.broadcast_to(jnp.eye(q_init.shape[-1], dtype=complex), q_init.shape[1:]))
 
     index_list = start_idx + jnp.arange(len(stacked_q_update_rules[0]))
 
     def scan_fun(B, x):
         idx, compiled_rule = x
-        update = custom_dot_jax(B, B, compiled_rule)
-        new_B = B.at[idx].set(update[0])
+        custom_matmul = CustomMatmul(compiled_rule, A_shape=B[0].shape, B_shape=B[0].shape, operation_rule_compiled=True)
+        update = custom_matmul(B, B)[0]
+        new_B = B.at[idx].set(update)
         return new_B, None
 
     q_mats = scan(scan_fun, init=q_init, xs=(index_list, stacked_q_update_rules))[0]
@@ -690,7 +689,7 @@ def q_recursive_compiled_rules(ordered_q_terms: List) -> Tuple[int, np.array, Tu
         rule = q_product_rule(q_term, ordered_q_terms)
         rules.append(rule)
 
-        unique_mults, linear_rule = compile_custom_dot_rule(rule)
+        unique_mults, linear_rule = compile_custom_operation_rule(rule)
 
         max_unique_mults = max(max_unique_mults, len(unique_mults))
         max_linear_rule = max(max_linear_rule, linear_rule[0].shape[1])
@@ -698,8 +697,8 @@ def q_recursive_compiled_rules(ordered_q_terms: List) -> Tuple[int, np.array, Tu
     stacked_unique_mults = []
     stacked_linear_rules = ([], [])
     for rule in rules:
-        unique_mults, linear_rule = compile_custom_dot_rule(
-            rule, unique_mult_len=max_unique_mults, linear_combo_len=max_linear_rule
+        unique_mults, linear_rule = compile_custom_operation_rule(
+            rule, unique_evaluation_len=max_unique_mults, linear_combo_len=max_linear_rule
         )
         stacked_unique_mults.append(unique_mults)
         stacked_linear_rules[0].append(linear_rule[0])
@@ -745,9 +744,9 @@ def q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
         # if the order is 1, it is just a linear combination of lower terms
         coeffs = np.append(1.0, -1 / factorial(range(2, q_term_len + 1), exact=True))
 
-        products = [[-1, q_term_idx]]
+        products = [[len(oc_q_term_list), q_term_idx]]
         for prod_order in range(2, q_term_len + 1):
-            products.append([-1, oc_q_term_list.index((sym_index, prod_order))])
+            products.append([len(oc_q_term_list), oc_q_term_list.index((sym_index, prod_order))])
 
         return [(coeffs, np.array(products))]
     else:

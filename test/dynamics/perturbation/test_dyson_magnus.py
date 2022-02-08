@@ -321,7 +321,7 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
 
         q_term = (Multiset.from_list([0, 1]), 1)
         output = q_product_rule(q_term, oc_q_terms)
-        expected = [(np.array([1.0, -0.5]), np.array([[-1, 3], [-1, 2]]))]
+        expected = [(np.array([1.0, -0.5]), np.array([[4, 3], [4, 2]]))]
         self.assertMultRulesEqual(output, expected)
 
     def test_q_product_rule_case2(self):
@@ -357,7 +357,7 @@ class TestSymmetricMagnusQTerms(QiskitDynamicsTestCase):
         q_term = (Multiset.from_list([0, 1, 2]), 1)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [
-            (np.array([1.0, -(1.0 / 2), -(1.0 / 6)]), np.array([[-1, 11], [-1, 10], [-1, 9]]))
+            (np.array([1.0, -(1.0 / 2), -(1.0 / 6)]), np.array([[12, 11], [12, 10], [12, 9]]))
         ]
         self.assertMultRulesEqual(output, expected)
 

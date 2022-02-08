@@ -115,7 +115,7 @@ class CustomBinaryOp:
 class CustomMatmul(CustomBinaryOp):
     """Custom matmul multiplication."""
 
-    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], operation_rule_compiled: Optional[bool] = False, backend: Optional[str] = None):
+    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], index_offset: Optional[int] = 0, operation_rule_compiled: Optional[bool] = False, backend: Optional[str] = None):
         """Initialize."""
 
         binary_op = lambda A, B: A @ B
@@ -123,6 +123,7 @@ class CustomMatmul(CustomBinaryOp):
                          binary_op=binary_op,
                          A_shape=A_shape,
                          B_shape=B_shape,
+                         index_offset=index_offset,
                          operation_rule_compiled=operation_rule_compiled,
                          backend=backend)
 
@@ -130,7 +131,7 @@ class CustomMatmul(CustomBinaryOp):
 class CustomMul(CustomBinaryOp):
     """Custom mul multiplication."""
 
-    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], operation_rule_compiled: Optional[bool] = False, backend: Optional[str] = None):
+    def __init__(self, operation_rule: List, A_shape: Tuple[int], B_shape: Tuple[int], index_offset: Optional[int] = 0, operation_rule_compiled: Optional[bool] = False, backend: Optional[str] = None):
         """Initialize."""
 
         binary_op = lambda A, B: A * B
@@ -138,6 +139,7 @@ class CustomMul(CustomBinaryOp):
                          binary_op=binary_op,
                          A_shape=A_shape,
                          B_shape=B_shape,
+                         index_offset=index_offset,
                          operation_rule_compiled=operation_rule_compiled,
                          backend=backend)
 
