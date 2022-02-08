@@ -33,6 +33,7 @@ from qiskit.pulse import (
     Waveform,
 )
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
+from qiskit import QiskitError
 
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.signals import DiscreteSignal
@@ -196,3 +197,12 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
 
         self.assertEqual(len(signals), 1)
         self.assertEqual(signals[0].duration, 0)
+
+    @data("123", "s123", "", "d")
+    def test_get_channel_raise(self, channel_name):
+        """Test that getting channel instances works well."""
+
+        converter = InstructionToSignals(dt=0.222)
+
+        with self.assertRaises(QiskitError):
+            converter._get_channel(channel_name)

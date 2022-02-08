@@ -26,7 +26,9 @@ from qiskit.pulse import (
     SetFrequency,
     Waveform,
 )
+import qiskit.pulse.channels as channels
 from qiskit_dynamics.signals import DiscreteSignal
+from qiskit import QiskitError
 
 
 class InstructionToSignals:
@@ -86,6 +88,9 @@ class InstructionToSignals:
         """
 
         signals, phases, frequency_shifts = {}, {}, {}
+
+        if self._channels is not None:
+            schedule = schedule.filter(channels=[self._get_channel(ch) for ch in self._channels])
 
         for idx, chan in enumerate(schedule.channels):
             phases[chan.name] = 0.0
@@ -211,3 +216,31 @@ class InstructionToSignals:
             new_signals += [sig_i, sig_q]
 
         return new_signals
+
+    def _get_channel(self, channel_name: str) -> channels.Channel:
+        """Return the channel corresponding to the given name."""
+
+        try:
+            prefix = channel_name[0]
+            index = int(channel_name[1:])
+
+            if prefix == "d":
+                return channels.DriveChannel(index)
+
+            if prefix == "m":
+                return channels.MeasureChannel(index)
+
+            if prefix == "u":
+                return channels.ControlChannel(index)
+
+            if prefix == "a":
+                return channels.AcquireChannel(index)
+
+            raise QiskitError(
+                f"Unsupported channel name {channel_name} in {self.__class__.__name__}"
+            )
+
+        except (KeyError, IndexError, ValueError):
+            raise QiskitError(
+                f"Invalid channel name {channel_name} given to {self.__class__.__name__}."
+            )
