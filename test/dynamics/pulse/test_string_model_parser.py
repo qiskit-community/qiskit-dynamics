@@ -41,11 +41,11 @@ class TestHamiltonianPreParseExceptions(QiskitDynamicsTestCase):
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({'h_str': []})
+            hamiltonian_pre_parse_exceptions({"h_str": []})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({'h_str': [""]})
+            hamiltonian_pre_parse_exceptions({"h_str": [""]})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
     def test_empty_qub(self):
