@@ -62,8 +62,8 @@ class TestHamiltonianPreParseExceptions(QiskitDynamicsTestCase):
             hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
-    def test_single_vertical_bars(self):
-        """Test that too many vertical bars raises error."""
+    def test_single_vertical_bar(self):
+        """Test that only a single vertical bar raises error."""
 
         with self.assertRaises(QiskitError) as qe:
             hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|D0"], "qub": {0: 2}})
