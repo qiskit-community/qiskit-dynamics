@@ -54,6 +54,7 @@ class ArrayPolynomial:
     corresponding ordering with the list specifying :math:`S`, and can optionally
     specify a constant term :math:`A_0`.
     """
+    __array_priority__ = 20
 
     def __init__(
         self,
@@ -257,7 +258,7 @@ class ArrayPolynomial:
 
     def matmul(
         self,
-        other: Union["ArrayPolynomial", np.ndarray],
+        other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
         order_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
@@ -271,7 +272,7 @@ class ArrayPolynomial:
             ArrayPolynomial achieved by matmul of self and other.
         """
 
-        if isinstance(other, (np.ndarray, Array)):
+        if isinstance(other, (int, float, complex, np.ndarray, Array)):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -280,12 +281,12 @@ class ArrayPolynomial:
             )
 
         raise QiskitError(
-            "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
+            "Type {} not supported by ArrayPolynomial.matmul.".format(type(other))
         )
 
     def mul(
         self,
-        other: Union["ArrayPolynomial", np.ndarray],
+        other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
         order_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
@@ -299,7 +300,7 @@ class ArrayPolynomial:
             ArrayPolynomial achieved by matmul of self and other.
         """
 
-        if isinstance(other, (np.ndarray, Array)):
+        if isinstance(other, (int, float, complex, np.ndarray, Array)):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -308,7 +309,7 @@ class ArrayPolynomial:
             )
 
         raise QiskitError(
-            "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
+            "Type {} not supported by ArrayPolynomial.mul.".format(type(other))
         )
 
     def __add__(
@@ -348,7 +349,7 @@ class ArrayPolynomial:
             return other.matmul(self)
 
         raise QiskitError(
-            "Only ArrayPolynomial or Array types can be multiplied with an ArrayPolynomial."
+            "Type {} not supported by ArrayPolynomial.matmul.".format(type(other))
         )
 
     def __call__(self, c: Optional[Array] = None) -> Array:
@@ -631,7 +632,7 @@ def array_polynomial_distributive_binary_op(
     if ap1.constant_term is not None:
         lmats = np.expand_dims(ap1.constant_term, 0)
     else:
-        lmats = np.expand_dims(np.zeros_like(ap1.constant_term), 0)
+        lmats = np.expand_dims(np.zeros_like(ap1.array_coefficients[0]), 0)
 
     if ap1.array_coefficients is not None:
         lmats = np.append(lmats, ap1.array_coefficients, axis=0)
@@ -640,7 +641,7 @@ def array_polynomial_distributive_binary_op(
     if ap2.constant_term is not None:
         rmats = np.expand_dims(ap2.constant_term, 0)
     else:
-        rmats = np.expand_dims(np.zeros_like(ap2.constant_term), 0)
+        rmats = np.expand_dims(np.zeros_like(ap2.array_coefficients[0]), 0)
 
     if ap2.array_coefficients is not None:
         rmats = np.append(rmats, ap2.array_coefficients, axis=0)
@@ -680,9 +681,9 @@ def array_polynomial_addition(
     if ap1.constant_term is not None and ap2.constant_term is not None:
         new_constant_term = ap1.constant_term + ap2.constant_term
     elif ap1.constant_term is not None:
-        new_constant_term = ap2.constant_term
-    elif ap2.constant_term is not None:
         new_constant_term = ap1.constant_term
+    elif ap2.constant_term is not None:
+        new_constant_term = ap2.constant_term
 
     # exit early if both polynomials are constant
     if ap1.array_coefficients is None and ap2.array_coefficients is None:
