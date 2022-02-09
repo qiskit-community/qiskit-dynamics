@@ -58,18 +58,18 @@ class ArrayPolynomial:
 
     def __init__(
         self,
+        constant_term: Optional[Array] = None,
         array_coefficients: Optional[Array] = None,
         monomial_labels: Optional[List[Multiset]] = None,
-        constant_term: Optional[Array] = None,
     ):
         """Construct a multivariable matrix polynomial.
 
         Args:
+            constant_term: An array representing the constant term of the polynomial.
             array_coefficients: A 3d array representing a list of matrix coefficients.
             monomial_labels: A list of multisets of the same length as ``matrix_coefficients``
                              indicating the monomial coefficient for each corresponding
                              ``matrix_coefficients``.
-            constant_term: An array representing the constant term of the polynomial.
         Raises:
             QiskitError: If insufficient information is supplied to define an ArrayPolynomial.
         """

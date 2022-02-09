@@ -541,7 +541,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
             Multiset({1: 2}),
         ]
 
-        ap = ArrayPolynomial(coeffs, monomial_labels)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=monomial_labels)
 
         c = np.array([3.0, 4.0])
         output = ap(c)
@@ -582,7 +582,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         rng = np.random.default_rng(938122)
         c = rng.uniform(size=(2,))
 
-        ap = ArrayPolynomial(coeffs, multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -608,7 +608,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         rng = np.random.default_rng(22321)
         c = rng.uniform(size=(3,))
 
-        ap = ArrayPolynomial(coeffs, multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -650,7 +650,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         rng = np.random.default_rng(23421)
         c = rng.uniform(size=(3,))
 
-        ap = ArrayPolynomial(coeffs, multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -699,7 +699,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         rng = np.random.default_rng(23421)
         c = rng.uniform(size=(3, 20))
 
-        ap = ArrayPolynomial(coeffs, multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -729,7 +729,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         multiset_list = [Multiset({0: 1}), Multiset({1: 1})]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
-        ap = ArrayPolynomial(coeffs, multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
 
         c = np.array([3.0, 2.0])
         self.assertAllClose(ap.compute_monomials(c), c)
@@ -740,7 +740,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         multiset_list = [Multiset({2: 2}), Multiset({0: 1}), Multiset({1: 1, 2: 1})]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
-        ap = ArrayPolynomial(coeffs, multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
 
         c = np.array([3.0, 2.0, 4.0])
         self.assertAllClose(ap.compute_monomials(c), np.array([16.0, 3.0, 8.0]))
@@ -762,7 +762,7 @@ class TestArrayPolynomialJax(TestArrayPolynomial, TestJaxBase):
         ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
-        mp = ArrayPolynomial(coeffs, multiset_list)
+        mp = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
 
         monomial_function_jit = jit(mp.compute_monomials)
 
@@ -783,7 +783,7 @@ class TestArrayPolynomialJax(TestArrayPolynomial, TestJaxBase):
         ]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
-        mp = ArrayPolynomial(coeffs, multiset_list)
+        mp = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
 
         monomial_function_jit_grad = jit(grad(lambda c: mp.compute_monomials(c).sum()))
 
