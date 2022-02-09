@@ -242,10 +242,7 @@ def compile_custom_operation_rule(
 
 
 def compute_unique_evaluations(
-    A: np.array,
-    B: np.array,
-    unique_evaluation_pairs: np.array,
-    binary_op: Callable
+    A: np.array, B: np.array, unique_evaluation_pairs: np.array, binary_op: Callable
 ) -> np.array:
     """Compute ``binary_op(A[j], B[k])`` for index pairs ``[j, k]`` in ``unique_evaluation_pairs``."""
     # evaluate first pair (assumes not all evaluation pairs are paddings of [-1, -1])
@@ -253,7 +250,9 @@ def compute_unique_evaluations(
     unique_evaluation = binary_op(A[eval_pair[0]], B[eval_pair[1]])
 
     M0 = np.zeros(unique_evaluation.shape, dtype=complex)
-    unique_evaluations = np.empty((len(unique_evaluation_pairs), ) + unique_evaluation.shape, dtype=complex)
+    unique_evaluations = np.empty(
+        (len(unique_evaluation_pairs),) + unique_evaluation.shape, dtype=complex
+    )
     unique_evaluations[0] = unique_evaluation
 
     for idx, eval_pair in enumerate(unique_evaluation_pairs[1:]):

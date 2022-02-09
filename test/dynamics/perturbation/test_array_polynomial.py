@@ -39,6 +39,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         ap = ArrayPolynomial(constant_term=np.eye(2))
 
         with self.assertRaisesRegex(QiskitError, "castable"):
+            # pylint: disable=pointless-statement
             ap + {}
 
     def test_addition_shape_error(self):
@@ -55,6 +56,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         )
 
         with self.assertRaisesRegex(QiskitError, "broadcastable"):
+            # pylint: disable=pointless-statement
             ap1 + ap2
 
     def test_addition_only_constant(self):
@@ -64,7 +66,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
 
         self.assertTrue(result.constant_term == 3.0)
         self.assertTrue(result.monomial_labels == [])
-        self.assertTrue(result.array_coefficients == None)
+        self.assertTrue(result.array_coefficients is None)
 
     def test_addition_only_non_constant(self):
         """Addition with ArrayPolynomials with no constant part."""
@@ -73,7 +75,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         ap2 = ArrayPolynomial(monomial_labels=[[1]], array_coefficients=np.array([2.0]))
         result = ap1 + ap2
 
-        self.assertTrue(result.constant_term == None)
+        self.assertTrue(result.constant_term is None)
         self.assertTrue(result.monomial_labels == [Multiset.from_list(x) for x in [[0], [1]]])
         self.assertAllClose(result.array_coefficients, np.array([1.0, 2.0]))
 
@@ -369,11 +371,14 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertAllClose(output.array_coefficients, expected_array_coefficients)
 
 
+@ddt
 class TestArrayPolynomialAlgebraJAX(TestArrayPolynomialAlgebra, TestJaxBase):
     """JAX version of TestArrayPolynomialAlgebra."""
 
-    def test_jit_grad_add(self):
-        """Test that construction and addition can be differentiated through."""
+    @unpack
+    @data((lambda A, B: A + B,), (lambda A, B: A @ B,), (lambda A, B: A * B,))
+    def test_jit_grad_alg(self, op):
+        """Test that construction and algebraic operations can be differentiated through."""
 
         # some random matrices
         rand1 = np.random.rand(2, 2)
@@ -393,34 +398,7 @@ class TestArrayPolynomialAlgebraJAX(TestArrayPolynomialAlgebra, TestJaxBase):
                 monomial_labels=[[0], [0, 0]],
             )
 
-            ap3 = ap1.add(ap2)
-            return ap3(e).data.real.sum()
-
-        jit_grad_func = jit(grad(func))
-        jit_grad_func(1.0, 2.0, 3.0, 4.0, np.array([5.0, 6.0]))
-
-    def test_jit_grad_add(self):
-        """Test that construction and multiplication can be differentiated through."""
-
-        # some random matrices
-        rand1 = np.random.rand(2, 2)
-        rand2 = np.random.rand(2, 2, 2)
-        rand3 = np.random.rand(2, 2)
-        rand4 = np.random.rand(2, 2, 2)
-
-        def func(a, b, c, d, e):
-            ap1 = ArrayPolynomial(
-                constant_term=a * rand1,
-                array_coefficients=b * rand2,
-                monomial_labels=[[0], [1]],
-            )
-            ap2 = ArrayPolynomial(
-                constant_term=c * rand3,
-                array_coefficients=d * rand4,
-                monomial_labels=[[0], [0, 0]],
-            )
-
-            ap3 = ap1.matmul(ap2)
+            ap3 = op(ap1, ap2)
             return ap3(e).data.real.sum()
 
         jit_grad_func = jit(grad(func))

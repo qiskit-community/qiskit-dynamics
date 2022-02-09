@@ -86,7 +86,7 @@ def solve_lmde_dyson(
         symmetric: Compute either symmetric or regular Dyson terms.
         integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
-        kwargs: Additional arguments to pass to the solver.
+        **kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult
@@ -175,7 +175,7 @@ def solve_lmde_symmetric_magnus(
         y0: Optional initial state for frame generator LMDE.
         integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
-        kwargs: Additional arguments to pass to the solver.
+        **kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult
@@ -235,7 +235,7 @@ def solve_lmde_dyson_jax(
         symmetric: Compute either symmetric or regular Dyson terms.
         integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
-        kwargs: Additional arguments to pass to the solver.
+        **kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult
@@ -274,7 +274,6 @@ def solve_lmde_dyson_jax(
         generator,
         perturbations,
         complete_term_list,
-        mat_dim,
         symmetric=symmetric,
         perturbation_labels=perturbation_labels,
     )
@@ -334,7 +333,7 @@ def solve_lmde_symmetric_magnus_jax(
         y0: Optional initial state for frame generator LMDE.
         integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
-        kwargs: Additional arguments to pass to the solver.
+        **kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult
@@ -404,7 +403,6 @@ def setup_dyson_rhs(
         perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
         lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
 
-    mat_shape = (mat_dim, mat_dim)
     custom_matmul = CustomMatmul(lmult_rule, index_offset=1)
 
     perturbations_evaluate_len = len(perturbations_evaluation_order)
@@ -428,7 +426,6 @@ def setup_dyson_rhs_jax(
     generator: Callable,
     perturbations: List[Callable],
     oc_dyson_indices: List[Multiset],
-    mat_dim: int,
     symmetric: Optional[bool] = False,
     perturbation_labels: Optional[List[Multiset]] = None,
 ) -> Callable:
@@ -462,7 +459,6 @@ def setup_dyson_rhs_jax(
         perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
         lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
 
-    mat_shape = (mat_dim, mat_dim)
     custom_matmul = CustomMatmul(lmult_rule, index_offset=1, backend="jax")
 
     perturbations_evaluation_order = jnp.array(perturbations_evaluation_order, dtype=int)

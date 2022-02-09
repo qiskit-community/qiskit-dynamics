@@ -109,6 +109,8 @@ class TestCustomBinaryOp(QiskitDynamicsTestCase):
         custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
+        self.assertAllClose(expected, output)
+
     def test_mul_unequal_shapes(self):
         """Test custom mul with uneven shapes."""
         binary_op = lambda A, B: A * B
@@ -125,8 +127,11 @@ class TestCustomBinaryOp(QiskitDynamicsTestCase):
         custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
+        self.assertAllClose(expected, output)
+
 
 class TestCustomBinaryOpJAX(TestCustomBinaryOp, TestJaxBase):
+    """JAX version of TestCustomBinaryOp."""
 
     def test_jit_grad_matmul(self):
         """Verify jitting and gradding works through CustomMatmul."""
@@ -138,8 +143,6 @@ class TestCustomBinaryOpJAX(TestCustomBinaryOp, TestJaxBase):
             return custom_matmul(A, B).real.sum()
 
         jit_grad_func = jit(grad(func))
-
-        rng = np.random.default_rng(9381)
 
         A = np.random.rand(3, 5, 5)
         B = np.random.rand(3, 5, 5)
@@ -156,8 +159,6 @@ class TestCustomBinaryOpJAX(TestCustomBinaryOp, TestJaxBase):
             return custom_mul(A, B).real.sum()
 
         jit_grad_func = jit(grad(func))
-
-        rng = np.random.default_rng(9381)
 
         A = np.random.rand(3, 5, 5)
         B = np.random.rand(3, 5, 5)
