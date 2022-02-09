@@ -360,6 +360,15 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertAllClose(output.constant_term, expected_constant_term)
         self.assertAllClose(output.array_coefficients, expected_array_coefficients)
 
+        v = np.random.rand(1, 2)
+
+        output = v @ ap
+        expected_constant_term = v @ ap.constant_term
+        expected_array_coefficients = v @ ap.array_coefficients
+        self.assertAllClose(output.constant_term, expected_constant_term)
+        self.assertAllClose(output.array_coefficients, expected_array_coefficients)
+
+
 class TestArrayPolynomialAlgebraJAX(TestArrayPolynomialAlgebra, TestJaxBase):
     """JAX version of TestArrayPolynomialAlgebra."""
 
