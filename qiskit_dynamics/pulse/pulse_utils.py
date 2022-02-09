@@ -39,6 +39,8 @@ def labels_generator(subsystem_dims, array=False):
         labels = ["".join(lab) for lab in labels]
     return labels
 
+#%%
+
 
 #%%
 def convert_to_dressed(static_ham, subsystem_dims):
@@ -85,19 +87,10 @@ def convert_to_dressed(static_ham, subsystem_dims):
 
 def compute_probabilities(state, dressed_states: dict):
 
-    # return probs_dict
-
-    # How do I compute probabilities of a quantum state:
-    # Given a state a0 and vector state |q0>
-    # <a0|q0>
-    # q0 = vert[0,0,1]
-    # a0 = dressed states?
-    # so for each state in the dressed state, the probability of it is <a0|q0>
     return {
         label: (np.abs(np.inner(dressed_states[label].conj(), state))) ** 2
         for label in dressed_states.keys()
     }
-    # return {label: np.inner(state, dressed_states[label]) for label in dressed_states.keys()}
 
 
 def single_sample(sample, probs):
@@ -107,7 +100,6 @@ def single_sample(sample, probs):
         if sample <= new_val:
             return key
         last_val = new_val
-    # print(new)
     raise Exception(
         "Sample not within probability range, either numpy is broken or the probabilities do not sum to 1"
     )
@@ -119,9 +111,9 @@ def sample_counts(probs, n_shots):
     return results
 
 #%%
-import numpy as np
-#%%
-subsystem_dims = [3]
+# import numpy as np
+# #%%
+# subsystem_dims = [3]
 def generate_ham(subsystem_dims):
     dim = subsystem_dims[0]
     if len(subsystem_dims) > 1:
@@ -223,71 +215,87 @@ def generate_ham(subsystem_dims):
             + J2 * (a1 @ adag2 + adag1 @ a2)
         )
     return H0
-    # Hd0 = 2 * np.pi * (a0 + adag0)
-    # Hd1 = 2 * np.pi * (a1 + adag1)
+#     # Hd0 = 2 * np.pi * (a0 + adag0)
+#     # Hd1 = 2 * np.pi * (a1 + adag1)
 
+# # %%
+# subsystem_dims=[3,3]
+# H0 = generate_ham(subsystem_dims)
+# dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
+
+# q1 = [0, 1/np.sqrt(2), 1/np.sqrt(2)]
+# q2 = [0, 1/np.sqrt(2), 1/np.sqrt(2)]
+# state = np.kron(q1, q2)
+# probs = compute_probabilities(state, dressed_states=dressed_states)
+# samples = sample_counts(probs, 100)
+# samples
+# probs
+# #%%
+# def test1():
+#     subsystem_dims=[3,3]
+#     H0 = generate_ham(subsystem_dims)
+#     dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
+#     q1 = [0, 1/np.sqrt(2), 1/np.sqrt(2)]
+#     q2 = [0, 1/np.sqrt(2), 1/np.sqrt(2)]
+#     state = np.kron(q1, q2)
+#     probs = compute_probabilities(state, dressed_states=dressed_states)
+#     return probs
+# #%%
+# test1()
+#     # assert(probs) 
+# #%%
+# # %%
+# a = [0,1/np.sqrt(2),1/np.sqrt(2)]
+# b = [1,0,0,0]
+# c = [1,0,0,0,0]
+# first = np.kron(a,b)
+# second = np.kron(first, c)
+# first
+# state = second
+# second
+# #%%
+# probs = compute_probabilities(a, dressed_states=dressed_states)
+# samples = sample_counts(probs, 100)
+# samples
+# # %%
+# H0.shape
+
+# # %%
+
+
+# dim = 3
+# evals, estates = np.linalg.eigh(H0)
+# E00, dressed00 = get_dressed_state_and_energy(0, 0, dim, B.transpose())
+# E01, dressed01 = get_dressed_state_and_energy(0, 1, dim, B.transpose())
+# E10, dressed10 = get_dressed_state_and_energy(1, 0, dim, B.transpose())
+# E11, dressed11 = get_dressed_state_and_energy(1, 1, dim, B.transpose())
+
+# assert(np.max(dressed00 - dressed_states['00'] < 1e-12))
+# assert(np.max(dressed01 - dressed_states['01'] < 1e-12))
+# assert(np.max(dressed10 - dressed_states['10'] < 1e-12))
+# assert(np.max(dressed11 - dressed_states['11'] < 1e-12))
+# # %%
+
+# labels = labels_generator(subsystem_dims, array=True)
+# str_labels = labels_generator(subsystem_dims, array=False)
+# for str_label, label in zip(str_labels, labels):
+#     id = np.argmax(np.abs(dressed_states[str_label]))
+#     labels[id]
+#     assert((labels[id] == label))
 # %%
-subsystem_dims=[3,3]
+def dressed_tester(dressed_states, subsystem_dims):
+    print(subsystem_dims)
+    labels = labels_generator(subsystem_dims, array=True)
+    str_labels = labels_generator(subsystem_dims, array=False)
+    for str_label, label in zip(str_labels, labels):
+        id = np.argmax(np.abs(dressed_states[str_label]))
+        labels[id]
+        # self.assertTrue((labels[id] == label))
+
+
+subsystem_dims = [3]
 H0 = generate_ham(subsystem_dims)
 dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
+dressed_tester(dressed_states, subsystem_dims)
 
-q1 = [0, 1/np.sqrt(2), 1/np.sqrt(2)]
-q2 = [0, 1/np.sqrt(2), 1/np.sqrt(2)]
-state = np.kron(q1, q2)
-probs = compute_probabilities(state, dressed_states=dressed_states)
-samples = sample_counts(probs, 100)
-samples
-probs
-#%%
-def test1():
-    subsystem_dims=[3,3]
-    H0 = generate_ham(subsystem_dims)
-    dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
-    q1 = [0, 1/np.sqrt(2), 1/np.sqrt(2)]
-    q2 = [0, 1/np.sqrt(2), 1/np.sqrt(2)]
-    state = np.kron(q1, q2)
-    probs = compute_probabilities(state, dressed_states=dressed_states)
-    return probs
-#%%
-test1()
-    # assert(probs) 
-#%%
-# %%
-a = [0,1/np.sqrt(2),1/np.sqrt(2)]
-b = [1,0,0,0]
-c = [1,0,0,0,0]
-first = np.kron(a,b)
-second = np.kron(first, c)
-first
-state = second
-second
-#%%
-probs = compute_probabilities(a, dressed_states=dressed_states)
-samples = sample_counts(probs, 100)
-samples
-# %%
-H0.shape
-
-# %%
-
-
-dim = 3
-evals, estates = np.linalg.eigh(H0)
-E00, dressed00 = get_dressed_state_and_energy(0, 0, dim, B.transpose())
-E01, dressed01 = get_dressed_state_and_energy(0, 1, dim, B.transpose())
-E10, dressed10 = get_dressed_state_and_energy(1, 0, dim, B.transpose())
-E11, dressed11 = get_dressed_state_and_energy(1, 1, dim, B.transpose())
-
-assert(np.max(dressed00 - dressed_states['00'] < 1e-12))
-assert(np.max(dressed01 - dressed_states['01'] < 1e-12))
-assert(np.max(dressed10 - dressed_states['10'] < 1e-12))
-assert(np.max(dressed11 - dressed_states['11'] < 1e-12))
-# %%
-
-labels = labels_generator(subsystem_dims, array=True)
-str_labels = labels_generator(subsystem_dims, array=False)
-for str_label, label in zip(str_labels, labels):
-    id = np.argmax(np.abs(dressed_states[str_label]))
-    labels[id]
-    assert((labels[id] == label))
 # %%

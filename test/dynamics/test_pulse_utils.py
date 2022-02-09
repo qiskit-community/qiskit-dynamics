@@ -22,7 +22,7 @@ from .common import QiskitDynamicsTestCase
 class TestDressedStateConverter(QiskitDynamicsTestCase):
     """DressedStateConverter tests"""
 
-    def dressed_tester(self, subsystem_dims, dressed_states):
+    def dressed_tester(self, dressed_states, subsystem_dims):
         labels = labels_generator(subsystem_dims, array=True)
         str_labels = labels_generator(subsystem_dims, array=False)
         for str_label, label in zip(str_labels, labels):
@@ -87,3 +87,6 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
 
 
 
+
+class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
+    
