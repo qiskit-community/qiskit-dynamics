@@ -644,8 +644,6 @@ def array_polynomial_distributive_binary_op(
     custom_binary_op = CustomBinaryOp(
         operation_rule=operation_rule,
         binary_op=binary_op,
-        A_shape=lmats[0].shape,
-        B_shape=rmats[0].shape,
         index_offset=1,
     )
     new_array_coefficients = custom_binary_op(lmats, rmats)

@@ -62,17 +62,12 @@ class CustomBinaryOp:
             - The index of the unique product for each coefficient.
           These arrays are padded with the value ``-1`` to make each
           linear combo the same length (relevant for JAX evaluation).
-
-    Note that the shapes of the :math:`A_j` and :math:`B_k` must be specified at instantiation
-    to allow the output shape :math:`f(A_j, B_k)` to be pre-determined.
     """
 
     def __init__(
         self,
         operation_rule: List,
         binary_op: Callable,
-        A_shape: Tuple[int],
-        B_shape: Tuple[int],
         index_offset: Optional[int] = 0,
         operation_rule_compiled: Optional[bool] = False,
         backend: Optional[str] = None,
@@ -82,8 +77,6 @@ class CustomBinaryOp:
         Args:
             operation_rule: Rule for the binary op as described in the doc string.
             binary_op: The binary operation, assumed to be vectorized.
-            A_shape: Shape of the first argument of binary_op.
-            B_shape: Shape of the second argument of binary_op.
             index_offset: Shift to be added to the indices in operation_rule.
             operation_rule_compiled: True if the operation_rule already corresponds to a
                                      rule that has been compiled to the internal representation.
@@ -96,9 +89,6 @@ class CustomBinaryOp:
         if not operation_rule_compiled:
             operation_rule = compile_custom_operation_rule(operation_rule, index_offset)
         self._unique_evaluation_pairs, self._linear_combo_rule = operation_rule
-        # determine output shape
-        self._output_shape = self._binary_op(np.zeros(A_shape), np.zeros(B_shape)).shape
-
         self._backend = backend or Array.default_backend()
 
         # establish which version of functions to use
@@ -111,7 +101,7 @@ class CustomBinaryOp:
             )
         else:
             self._compute_unique_evaluations = lambda A, B: compute_unique_evaluations(
-                A, B, self._unique_evaluation_pairs, self._binary_op, self._output_shape
+                A, B, self._unique_evaluation_pairs, self._binary_op
             )
             self._compute_linear_combos = lambda C: compute_linear_combos(
                 C, self._linear_combo_rule
@@ -263,18 +253,22 @@ def compute_unique_evaluations(
     A: np.array,
     B: np.array,
     unique_evaluation_pairs: np.array,
-    binary_op: Callable,
-    output_shape: Tuple[int],
+    binary_op: Callable
 ) -> np.array:
     """Compute ``binary_op(A[j], B[k])`` for index pairs ``[j, k]`` in ``unique_evaluation_pairs``."""
-    M0 = np.zeros(output_shape, dtype=complex)
-    unique_evaluations = np.empty((len(unique_evaluation_pairs),) + output_shape, dtype=complex)
+    # evaluate first pair (assumes not all evaluation pairs are paddings of [-1, -1])
+    eval_pair = unique_evaluation_pairs[0]
+    unique_evaluation = binary_op(A[eval_pair[0]], B[eval_pair[1]])
+    import pdb; pdb.set_trace()
+    M0 = np.zeros(unique_evaluation.shape, dtype=complex)
+    unique_evaluations = np.empty((len(unique_evaluation_pairs), ) + unique_evaluation.shape, dtype=complex)
+    unique_evaluations[0] = unique_evaluation
 
-    for idx, eval_pair in enumerate(unique_evaluation_pairs):
+    for idx, eval_pair in enumerate(unique_evaluation_pairs[1:]):
         if eval_pair[0] == -1:
-            unique_evaluations[idx] = M0
+            unique_evaluations[idx + 1] = M0
         else:
-            unique_evaluations[idx] = binary_op(A[eval_pair[0]], B[eval_pair[1]])
+            unique_evaluations[idx + 1] = binary_op(A[eval_pair[0]], B[eval_pair[1]])
 
     return unique_evaluations
 
