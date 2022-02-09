@@ -405,7 +405,7 @@ def setup_dyson_rhs(
         lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
 
     mat_shape = (mat_dim, mat_dim)
-    custom_matmul = CustomMatmul(lmult_rule, A_shape=mat_shape, B_shape=mat_shape, index_offset=1)
+    custom_matmul = CustomMatmul(lmult_rule, index_offset=1)
 
     perturbations_evaluate_len = len(perturbations_evaluation_order)
     new_list = [generator] + perturbations
@@ -463,9 +463,7 @@ def setup_dyson_rhs_jax(
         lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
 
     mat_shape = (mat_dim, mat_dim)
-    custom_matmul = CustomMatmul(
-        lmult_rule, A_shape=mat_shape, B_shape=mat_shape, index_offset=1, backend="jax"
-    )
+    custom_matmul = CustomMatmul(lmult_rule, index_offset=1, backend="jax")
 
     perturbations_evaluation_order = jnp.array(perturbations_evaluation_order, dtype=int)
 
@@ -616,12 +614,7 @@ def symmetric_magnus_from_dyson(
             stacked_q_update_rules[0][rule_idx],
             (stacked_q_update_rules[1][0][rule_idx], stacked_q_update_rules[1][1][rule_idx]),
         )
-        custom_matmul = CustomMatmul(
-            compiled_rule,
-            A_shape=q_mat[0].shape,
-            B_shape=q_mat[0].shape,
-            operation_rule_compiled=True,
-        )
+        custom_matmul = CustomMatmul(compiled_rule, operation_rule_compiled=True)
         q_mat[mat_idx] = custom_matmul(q_mat, q_mat)[0]
 
     return q_mat[magnus_indices]
@@ -651,9 +644,7 @@ def symmetric_magnus_from_dyson_jax(
 
     def scan_fun(B, x):
         idx, compiled_rule = x
-        custom_matmul = CustomMatmul(
-            compiled_rule, A_shape=B[0].shape, B_shape=B[0].shape, operation_rule_compiled=True
-        )
+        custom_matmul = CustomMatmul(compiled_rule, operation_rule_compiled=True)
         update = custom_matmul(B, B)[0]
         new_B = B.at[idx].set(update)
         return new_B, None

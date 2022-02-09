@@ -76,7 +76,7 @@ class CustomBinaryOp:
 
         Args:
             operation_rule: Rule for the binary op as described in the doc string.
-            binary_op: The binary operation, assumed to be vectorized.
+            binary_op: The binary operation.
             index_offset: Shift to be added to the indices in operation_rule.
             operation_rule_compiled: True if the operation_rule already corresponds to a
                                      rule that has been compiled to the internal representation.
@@ -94,7 +94,7 @@ class CustomBinaryOp:
         # establish which version of functions to use
         if self._backend == "jax":
             self._compute_unique_evaluations = lambda A, B: compute_unique_evaluations_jax(
-                A, B, self._unique_evaluation_pairs, self._binary_op
+                A, B, self._unique_evaluation_pairs, vmap(self._binary_op)
             )
             self._compute_linear_combos = lambda C: compute_linear_combos_jax(
                 C, self._linear_combo_rule
@@ -123,8 +123,6 @@ class CustomMatmul(CustomBinaryOp):
     def __init__(
         self,
         operation_rule: List,
-        A_shape: Tuple[int],
-        B_shape: Tuple[int],
         index_offset: Optional[int] = 0,
         operation_rule_compiled: Optional[bool] = False,
         backend: Optional[str] = None,
@@ -135,8 +133,6 @@ class CustomMatmul(CustomBinaryOp):
         super().__init__(
             operation_rule=operation_rule,
             binary_op=binary_op,
-            A_shape=A_shape,
-            B_shape=B_shape,
             index_offset=index_offset,
             operation_rule_compiled=operation_rule_compiled,
             backend=backend,
@@ -149,8 +145,6 @@ class CustomMul(CustomBinaryOp):
     def __init__(
         self,
         operation_rule: List,
-        A_shape: Tuple[int],
-        B_shape: Tuple[int],
         index_offset: Optional[int] = 0,
         operation_rule_compiled: Optional[bool] = False,
         backend: Optional[str] = None,
@@ -161,8 +155,6 @@ class CustomMul(CustomBinaryOp):
         super().__init__(
             operation_rule=operation_rule,
             binary_op=binary_op,
-            A_shape=A_shape,
-            B_shape=B_shape,
             index_offset=index_offset,
             operation_rule_compiled=operation_rule_compiled,
             backend=backend,
@@ -259,7 +251,7 @@ def compute_unique_evaluations(
     # evaluate first pair (assumes not all evaluation pairs are paddings of [-1, -1])
     eval_pair = unique_evaluation_pairs[0]
     unique_evaluation = binary_op(A[eval_pair[0]], B[eval_pair[1]])
-    import pdb; pdb.set_trace()
+
     M0 = np.zeros(unique_evaluation.shape, dtype=complex)
     unique_evaluations = np.empty((len(unique_evaluation_pairs), ) + unique_evaluation.shape, dtype=complex)
     unique_evaluations[0] = unique_evaluation
@@ -298,9 +290,8 @@ def compute_unique_evaluations_jax(
     unique_evaluation_pairs: np.array,
     binary_op: Callable,
 ) -> np.array:
-    """JAX version of a single loop step of :meth:`linear_combos`. Note that in this case
+    """JAX version of a single loop step of :meth:`linear_combos`. Note that in this function
     binary_op is assumed to be vectorized."""
-
     A = jnp.append(A, jnp.zeros((1,) + A[0].shape, dtype=complex), axis=0)
     B = jnp.append(B, jnp.zeros((1,) + B[0].shape, dtype=complex), axis=0)
 

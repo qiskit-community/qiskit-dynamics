@@ -52,7 +52,7 @@ class TestCustomMatmul(QiskitDynamicsTestCase):
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
         custom_op = self.CustomOpClass(
-            operation_rule=self.mult_rule1, A_shape=A.shape[1:], B_shape=B.shape[1:]
+            operation_rule=self.mult_rule1
         )
         output = custom_op(A, B)
 
@@ -69,7 +69,7 @@ class TestCustomMatmul(QiskitDynamicsTestCase):
         expected = np.array([prod02 + 5 * prod00])
 
         custom_op = self.CustomOpClass(
-            operation_rule=self.mult_rule2, A_shape=A.shape[1:], B_shape=B.shape[1:]
+            operation_rule=self.mult_rule2
         )
         output = custom_op(A, B)
 
@@ -88,7 +88,7 @@ class TestCustomMatmul(QiskitDynamicsTestCase):
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
         custom_op = self.CustomOpClass(
-            operation_rule=self.mult_rule1, A_shape=A.shape[1:], B_shape=B.shape[1:]
+            operation_rule=self.mult_rule1
         )
         output = custom_op(A, B)
 
@@ -102,7 +102,7 @@ class TestCustomMatmulJAX(TestCustomMatmul, TestJaxBase):
         from jax import jit, grad
 
         def func(A, B):
-            custom_matmul = CustomMatmul(self.mult_rule1, A.shape[1:], B.shape[1:])
+            custom_matmul = CustomMatmul(self.mult_rule1)
             return custom_matmul(A, B).real.sum()
 
         jit_grad_func = jit(grad(func))
@@ -130,7 +130,7 @@ class TestCustomMulJax(TestCustomMul, TestJaxBase):
         from jax import jit, grad
 
         def func(A, B):
-            custom_mul = CustomMul(self.mult_rule1, A.shape[1:], B.shape[1:])
+            custom_mul = CustomMul(self.mult_rule1)
             return custom_mul(A, B).real.sum()
 
         jit_grad_func = jit(grad(func))
