@@ -268,7 +268,7 @@ class TestSolver(QiskitDynamicsTestCase):
             hamiltonian_operators=[self.X],
             hamiltonian_signals=[Signal(1.0, 5.0)],
             dissipator_operators=[self.X],
-            dissipator_signals=[0.01 ** 2],
+            dissipator_signals=[0.01**2],
             static_hamiltonian=5 * self.Z,
             rotating_frame=5 * self.Z,
         )
