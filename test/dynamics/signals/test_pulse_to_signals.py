@@ -16,7 +16,7 @@ Tests to convert from pulse schedules to signals.
 from ddt import ddt, data, unpack
 import numpy as np
 
-import qiskit.pulse as pulse
+from qiskit import pulse
 from qiskit.pulse import (
     Schedule,
     DriveChannel,
