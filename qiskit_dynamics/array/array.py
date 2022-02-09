@@ -129,7 +129,7 @@ class Array(NDArrayOperatorsMixin):
         if self._backend == Dispatch.DEFAULT_BACKEND:
             suffix = ")"
         else:
-            suffix = "backend='{}')".format(self._backend)
+            suffix = f"backend='{self._backend}')"
         return Dispatch.repr(self.backend)(self._data, prefix=prefix, suffix=suffix)
 
     def __copy__(self):

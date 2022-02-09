@@ -171,11 +171,9 @@ class Signal:
             return str(self.name)
 
         if self.is_constant:
-            return "Constant({})".format(str(self(0.0)))
+            return f"Constant({str(self(0.0))})"
 
-        return "Signal(carrier_freq={freq}, phase={phase})".format(
-            freq=str(self.carrier_freq), phase=str(self.phase)
-        )
+        return f"Signal(carrier_freq={str(self.carrier_freq)}, phase={str(self.phase)})"
 
     def __add__(self, other: "Signal") -> "SignalSum":
         return signal_add(self, other)
@@ -452,9 +450,8 @@ class DiscreteSignal(Signal):
         if self.name is not None:
             return str(self.name)
 
-        return "DiscreteSignal(dt={dt}, carrier_freq={freq}, phase={phase})".format(
-            dt=self.dt, freq=str(self.carrier_freq), phase=str(self.phase)
-        )
+        return f"""DiscreteSignal(dt={self.dt}, carrier_freq={str(self.carrier_freq)},
+                phase={str(self.phase)})"""
 
 
 class SignalCollection:
@@ -607,7 +604,7 @@ class SignalSum(SignalCollection, Signal):
 
         default_str = str(self[0])
         for sig in self.components[1:]:
-            default_str += " + {}".format(str(sig))
+            default_str += f" + {str(sig)}"
 
         return default_str
 
@@ -757,7 +754,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         default_str = str(self[0])
         for sig in self.components[1:]:
-            default_str += " + {}".format(str(sig))
+            default_str += f" + {str(sig)}"
 
         return default_str
 
