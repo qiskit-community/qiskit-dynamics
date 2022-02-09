@@ -14,9 +14,11 @@
 """Tests for custom_binary_op.py"""
 
 import numpy as np
+from ddt import ddt, data, unpack
 
 from qiskit_dynamics.perturbation.custom_binary_op import (
     compile_custom_operation_rule,
+    CustomBinaryOp,
     CustomMatmul,
     CustomMul,
 )
@@ -24,8 +26,9 @@ from qiskit_dynamics.perturbation.custom_binary_op import (
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
-class TestCustomMatmul(QiskitDynamicsTestCase):
-    """Test CustomMatmul."""
+@ddt
+class TestCustomBinaryOp(QiskitDynamicsTestCase):
+    """Test CustomBinaryOp in the cases of matmul and mul."""
 
     def setUp(self):
         self.mult_rule1 = [
@@ -36,67 +39,96 @@ class TestCustomMatmul(QiskitDynamicsTestCase):
 
         self.mult_rule2 = [(np.array([1.0, 2.0, 3.0]), np.array([[0, 2], [0, 0], [0, 0]]))]
 
-        # for inheritance
-        self.binary_op = lambda A, B: A @ B
-        self.CustomOpClass = CustomMatmul
-
-    def test_rule1(self):
+    @unpack
+    @data((lambda A, B: A @ B,), (lambda A, B: A * B,))
+    def test_rule1(self, binary_op):
         """Test correct evaluation of rule1."""
         rng = np.random.default_rng(9381)
         A = rng.uniform(size=(3, 5, 5))
         B = rng.uniform(size=(3, 5, 5))
 
-        prod02 = self.binary_op(A[0], B[2])
-        prod11 = self.binary_op(A[1], B[1])
-        prod20 = self.binary_op(A[2], B[0])
+        prod02 = binary_op(A[0], B[2])
+        prod11 = binary_op(A[1], B[1])
+        prod20 = binary_op(A[2], B[0])
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
-        custom_op = self.CustomOpClass(
-            operation_rule=self.mult_rule1
-        )
+        custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
 
-    def test_rule2(self):
+    @unpack
+    @data((lambda A, B: A @ B,), (lambda A, B: A * B,))
+    def test_rule2(self, binary_op):
         """Test correct evaluation of rule 2."""
         rng = np.random.default_rng(9381)
         A = rng.uniform(size=(1, 10, 10))
         B = rng.uniform(size=(3, 10, 10))
 
-        prod02 = self.binary_op(A[0], B[2])
-        prod00 = self.binary_op(A[0], B[0])
+        prod02 = binary_op(A[0], B[2])
+        prod00 = binary_op(A[0], B[0])
         expected = np.array([prod02 + 5 * prod00])
 
-        custom_op = self.CustomOpClass(
-            operation_rule=self.mult_rule2
-        )
+        custom_op = CustomBinaryOp(operation_rule=self.mult_rule2, binary_op=binary_op)
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
 
-    def test_vectorized_dot(self):
-        """Test that custom_dot works for lists of matrices as well."""
+    @unpack
+    @data((lambda A, B: A @ B,), (lambda A, B: A * B,))
+    def test_vectorized_dot(self, binary_op):
+        """Test works for lists of matrices as well."""
 
         rng = np.random.default_rng(21319)
         A = rng.uniform(size=(3, 4, 5, 5))
         B = rng.uniform(size=(3, 4, 5, 5))
 
-        prod02 = self.binary_op(A[0], B[2])
-        prod11 = self.binary_op(A[1], B[1])
-        prod20 = self.binary_op(A[2], B[0])
+        prod02 = binary_op(A[0], B[2])
+        prod11 = binary_op(A[1], B[1])
+        prod20 = binary_op(A[2], B[0])
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
-        custom_op = self.CustomOpClass(
-            operation_rule=self.mult_rule1
-        )
+        custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
 
+    def test_matmul_unequal_shapes(self):
+        """Test custom matmul with uneven shapes."""
+        binary_op = lambda A, B: A @ B
 
-class TestCustomMatmulJAX(TestCustomMatmul, TestJaxBase):
-    def test_jit_grad(self):
+        rng = np.random.default_rng(21319)
+        A = rng.uniform(size=(3, 2, 5))
+        B = rng.uniform(size=(3, 5, 3))
+
+        prod02 = binary_op(A[0], B[2])
+        prod11 = binary_op(A[1], B[1])
+        prod20 = binary_op(A[2], B[0])
+        expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
+
+        custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
+        output = custom_op(A, B)
+
+    def test_mul_unequal_shapes(self):
+        """Test custom mul with uneven shapes."""
+        binary_op = lambda A, B: A * B
+
+        rng = np.random.default_rng(21319)
+        A = rng.uniform(size=(3, 2, 5))
+        B = rng.uniform(size=(3, 1))
+
+        prod02 = binary_op(A[0], B[2])
+        prod11 = binary_op(A[1], B[1])
+        prod20 = binary_op(A[2], B[0])
+        expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
+
+        custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
+        output = custom_op(A, B)
+
+
+class TestCustomBinaryOpJAX(TestCustomBinaryOp, TestJaxBase):
+
+    def test_jit_grad_matmul(self):
         """Verify jitting and gradding works through CustomMatmul."""
 
         from jax import jit, grad
@@ -114,17 +146,7 @@ class TestCustomMatmulJAX(TestCustomMatmul, TestJaxBase):
 
         jit_grad_func(A, B)
 
-
-class TestCustomMul(TestCustomMatmul):
-    def setUp(self):
-        super().setUp()
-        # for inheritance
-        self.binary_op = lambda A, B: A * B
-        self.CustomOpClass = CustomMul
-
-
-class TestCustomMulJax(TestCustomMul, TestJaxBase):
-    def test_jit_grad(self):
+    def test_jit_grad_mul(self):
         """Verify jitting and gradding works through CustomMul."""
 
         from jax import jit, grad
