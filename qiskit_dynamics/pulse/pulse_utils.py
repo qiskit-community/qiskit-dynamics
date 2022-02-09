@@ -151,6 +151,7 @@ elif ham_type == '3_4_5':
     Hdt = 2 * np.pi * (a1 + adag1)
 #%%
 # Hamiltonian 2 -- 3 level and 4 level qubit
+# When they merge, squash merge, so turns entire PR into one commit
 #%%
 
 def labels_generator(subsystem_dims):
