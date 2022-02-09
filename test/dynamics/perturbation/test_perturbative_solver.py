@@ -52,7 +52,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         r = 0.2
 
         def gaussian(amp, sig, t0, t):
-            return amp * np.exp(-((t - t0) ** 2) / (2 * sig ** 2))
+            return amp * np.exp(-((t - t0) ** 2) / (2 * sig**2))
 
         # specifications for generating envelope
         amp = 1.0  # amplitude
@@ -125,7 +125,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         adag = a.transpose()
         N = np.diag(np.arange(dim))
         ident = np.eye(dim)
-        ident2 = np.eye(dim ** 2)
+        ident2 = np.eye(dim**2)
 
         # operators on the control qubit (first tensor factor)
         a0 = np.kron(a, ident)
@@ -160,7 +160,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
 
         obj.yf_2q = dense_solver.solve(
             t_span=[0.0, dt * obj.n_steps_2q],
-            y0=np.eye(dim ** 2, dtype=complex),
+            y0=np.eye(dim**2, dtype=complex),
             method=integration_method,
             atol=1e-12,
             rtol=1e-12,
@@ -214,7 +214,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
 
         dyson_yf = self.dyson_solver_2q.solve(
             signals=[self.gauss_signal, self.gauss_signal],
-            y0=np.eye(self.dim_2q ** 2, dtype=complex),
+            y0=np.eye(self.dim_2q**2, dtype=complex),
             t0=0.0,
             n_steps=self.n_steps_2q,
         )
@@ -222,7 +222,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         self.assertTrue(
             np.abs(
                 1.0
-                - np.abs((dyson_yf.conj().transpose() @ self.yf_2q).sum()) ** 2 / (self.dim_2q ** 4)
+                - np.abs((dyson_yf.conj().transpose() @ self.yf_2q).sum()) ** 2 / (self.dim_2q**4)
             )
             < 1e-6
         )
@@ -232,7 +232,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
 
         magnus_yf = self.magnus_solver_2q.solve(
             signals=[self.gauss_signal, self.gauss_signal],
-            y0=np.eye(self.dim_2q ** 2, dtype=complex),
+            y0=np.eye(self.dim_2q**2, dtype=complex),
             t0=0.0,
             n_steps=self.n_steps_2q,
         )
@@ -241,7 +241,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             np.abs(
                 1.0
                 - np.abs((magnus_yf.conj().transpose() @ self.yf_2q).sum()) ** 2
-                / (self.dim_2q ** 4)
+                / (self.dim_2q**4)
             )
             < 1e-6
         )
@@ -305,7 +305,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
     def test_construct_DCT(self):
         """Verify consistency with numpy functions."""
 
-        f = lambda t: 1.0 + t ** 2 + t ** 3
+        f = lambda t: 1.0 + t**2 + t**3
 
         expected = Chebyshev.interpolate(f, deg=2)
         M, x_vals = construct_DCT(degree=2)
@@ -321,11 +321,11 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t0 + dt, t0 + 2 * dt]
         int2 = [t0 + 2 * dt, t0 + 3 * dt]
 
-        f = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        f = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
         multi_int_coeffs = multi_interval_DCT(f, degree=4, t0=t0, dt=dt, n_intervals=3)
 
         # force to resolve to numpy arrays for comparison to numpy functions
-        f = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
+        f = lambda t: 1.0 + t**2 + t**3 + np.sin(3.123 * t)
 
         # check correctness over each interval
         expected = Chebyshev.interpolate(f, deg=4, domain=int0)
@@ -350,7 +350,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        f = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
         carrier_freq = 1.0
         reference_freq = 0.23
         signal = Signal(f, carrier_freq)
@@ -359,7 +359,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         )
 
         # construct pure numpy comparison function
-        f = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
+        f = lambda t: 1.0 + t**2 + t**3 + np.sin(3.123 * t)
         carrier_phase_arg = 1j * 2 * np.pi * carrier_freq
         ref_phase_arg = -1j * 2 * np.pi * reference_freq
         final_phase_shift = np.exp(-ref_phase_arg * np.array([t0, t1, t2]))
@@ -389,12 +389,12 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
         carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(Array(3.123) * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
         carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
@@ -408,13 +408,13 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
             n_intervals=3,
         )
 
-        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(3.123 * t)
         carrier_phase_arg1 = 1j * 2 * np.pi * carrier_freq1
         ref_phase_arg1 = -1j * 2 * np.pi * reference_freq1
         final_phase_shift1 = np.exp(-ref_phase_arg1 * np.array([t0, t1, t2]))
         shifted_env1 = lambda t: f1(t) * np.exp((carrier_phase_arg1 + ref_phase_arg1) * t)
 
-        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(3.123 * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(3.123 * t)
         carrier_phase_arg2 = 1j * 2 * np.pi * carrier_freq2
         ref_phase_arg2 = -1j * 2 * np.pi * reference_freq2
         final_phase_shift2 = np.exp(-ref_phase_arg2 * np.array([t0, t1, t2]))
@@ -467,12 +467,12 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
         carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(Array(3.123) * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
         carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
@@ -487,13 +487,13 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
             include_imag=[False, True],
         )
 
-        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(3.123 * t)
         carrier_phase_arg1 = 1j * 2 * np.pi * carrier_freq1
         ref_phase_arg1 = -1j * 2 * np.pi * reference_freq1
         final_phase_shift1 = np.exp(-ref_phase_arg1 * np.array([t0, t1, t2]))
         shifted_env1 = lambda t: f1(t) * np.exp((carrier_phase_arg1 + ref_phase_arg1) * t)
 
-        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(3.123 * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(3.123 * t)
         carrier_phase_arg2 = 1j * 2 * np.pi * carrier_freq2
         ref_phase_arg2 = -1j * 2 * np.pi * reference_freq2
         final_phase_shift2 = np.exp(-ref_phase_arg2 * np.array([t0, t1, t2]))
@@ -546,12 +546,12 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(Array(3.123) * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
         carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(Array(3.123) * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
         carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
@@ -566,13 +566,13 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
             include_imag=[True, False],
         )
 
-        f1 = lambda t: 1.0 + t ** 2 + t ** 3 + np.sin(3.123 * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(3.123 * t)
         carrier_phase_arg1 = 1j * 2 * np.pi * carrier_freq1
         ref_phase_arg1 = -1j * 2 * np.pi * reference_freq1
         final_phase_shift1 = np.exp(-ref_phase_arg1 * np.array([t0, t1, t2]))
         shifted_env1 = lambda t: f1(t) * np.exp((carrier_phase_arg1 + ref_phase_arg1) * t)
 
-        f2 = lambda t: 2.1 + t ** 2 + t ** 4 + np.cos(3.123 * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(3.123 * t)
         carrier_phase_arg2 = 1j * 2 * np.pi * carrier_freq2
         ref_phase_arg2 = -1j * 2 * np.pi * reference_freq2
         final_phase_shift2 = np.exp(-ref_phase_arg2 * np.array([t0, t1, t2]))

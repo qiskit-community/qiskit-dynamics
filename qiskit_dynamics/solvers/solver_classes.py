@@ -280,7 +280,7 @@ class Solver:
         ):
             raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
         if is_lindblad_model_vectorized(self.model) and (
-            y0.shape[0] != self.model.dim ** 2 or y0.ndim > 2
+            y0.shape[0] != self.model.dim**2 or y0.ndim > 2
         ):
             raise QiskitError(
                 """Shape mismatch for initial state y0 and LindbladModel

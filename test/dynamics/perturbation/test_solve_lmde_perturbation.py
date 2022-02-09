@@ -75,10 +75,10 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             return Array([[1, 0], [0, 1]], dtype=complex).data
 
         def A0(t):
-            return Array([[0, t], [t ** 2, 0]], dtype=complex).data
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
 
         def A1(t):
-            return Array([[t, 0], [0, t ** 2]], dtype=complex).data
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
 
         T = np.pi * 1.2341
 
@@ -94,7 +94,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             rtol=1e-13,
         )
 
-        T2 = T ** 2
+        T2 = T**2
         T3 = T * T2
         T4 = T * T3
         T5 = T * T4
@@ -140,10 +140,10 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             return Array([[1, 0], [0, 1]], dtype=complex).data
 
         def A0(t):
-            return Array([[0, t], [t ** 2, 0]], dtype=complex).data
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
 
         def A1(t):
-            return Array([[t, 0], [0, t ** 2]], dtype=complex).data
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
 
         T = np.pi * 1.2341
 
@@ -159,7 +159,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             rtol=1e-13,
         )
 
-        T2 = T ** 2
+        T2 = T**2
         T3 = T * T2
         T4 = T * T3
         T5 = T * T4
@@ -330,10 +330,10 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             return Array([[1, 0], [0, 1]], dtype=complex).data
 
         def A0(t):
-            return Array([[0, t], [t ** 2, 0]], dtype=complex).data
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
 
         def A1(t):
-            return Array([[t, 0], [0, t ** 2]], dtype=complex).data
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
 
         T = np.pi * 1.2341
 
@@ -350,7 +350,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             rtol=1e-13,
         )
 
-        T2 = T ** 2
+        T2 = T**2
         T3 = T * T2
         T4 = T * T3
         T5 = T * T4
@@ -407,10 +407,10 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             return Array([[1, 0], [0, 1]], dtype=complex).data
 
         def A0(t):
-            return Array([[0, t], [t ** 2, 0]], dtype=complex).data
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
 
         def A1(t):
-            return Array([[t, 0], [0, t ** 2]], dtype=complex).data
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
 
         T = np.pi * 1.2341
 
@@ -434,7 +434,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             rtol=1e-13,
         )
 
-        T2 = T ** 2
+        T2 = T**2
         T3 = T * T2
         T4 = T * T3
         T5 = T * T4
@@ -683,22 +683,22 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             return Array([[1, 0], [0, 1]], dtype=complex).data
 
         def A0(t):
-            return Array([[0, t], [t ** 2, 0]], dtype=complex).data
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
 
         def A1(t):
-            return Array([[t, 0], [0, t ** 2]], dtype=complex).data
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
 
         def A00(t):
-            return Array([[1.0, 2.0 * 1j], [3.0 * (t ** 2), 4.0 * t]], dtype=complex).data
+            return Array([[1.0, 2.0 * 1j], [3.0 * (t**2), 4.0 * t]], dtype=complex).data
 
         def A01(t):
             return Array(
-                [[4.0, 2.0 * 1j * t], [1j + 3.0 * (t ** 2), 4.0 * (t ** 3)]], dtype=complex
+                [[4.0, 2.0 * 1j * t], [1j + 3.0 * (t**2), 4.0 * (t**3)]], dtype=complex
             ).data
 
         def A11(t):
             return Array(
-                [[4j + (t + t ** 2), 2.0 * 1j * t], [1.0 + 3j * (t ** 2), 1.0 * (t ** 3)]],
+                [[4j + (t + t**2), 2.0 * 1j * t], [1.0 + 3j * (t**2), 1.0 * (t**3)]],
                 dtype=complex,
             ).data
 
@@ -813,25 +813,25 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         A1_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
 
         def A1(t):
-            return 1j * A1_0 + (t ** 2) * A1_1
+            return 1j * A1_0 + (t**2) * A1_1
 
         A2_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
         A2_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
 
         def A2(t):
-            return 1j * t * A2_0 + (t ** 3) * A2_1
+            return 1j * t * A2_0 + (t**3) * A2_1
 
         A00_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
         A00_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
 
         def A00(t):
-            return A00_0 * (t ** 2) + A00_1 * (t ** 3) * 1j
+            return A00_0 * (t**2) + A00_1 * (t**3) * 1j
 
         A01_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
         A01_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
 
         def A01(t):
-            return A01_0 * t + A01_1 * (t ** 4) * 1j
+            return A01_0 * t + A01_1 * (t**4) * 1j
 
         T = np.pi * 1.2341 / 3
 
@@ -874,22 +874,22 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             return Array([[1, 0], [0, 1]], dtype=complex).data
 
         def A0(t):
-            return Array([[0, t], [t ** 2, 0]], dtype=complex).data
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
 
         def A1(t):
-            return Array([[t, 0], [0, t ** 2]], dtype=complex).data
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
 
         def A00(t):
-            return Array([[1.0, 2.0 * 1j], [3.0 * (t ** 2), 4.0 * t]], dtype=complex).data
+            return Array([[1.0, 2.0 * 1j], [3.0 * (t**2), 4.0 * t]], dtype=complex).data
 
         def A01(t):
             return Array(
-                [[4.0, 2.0 * 1j * t], [1j + 3.0 * (t ** 2), 4.0 * (t ** 3)]], dtype=complex
+                [[4.0, 2.0 * 1j * t], [1j + 3.0 * (t**2), 4.0 * (t**3)]], dtype=complex
             ).data
 
         def A11(t):
             return Array(
-                [[4j + (t + t ** 2), 2.0 * 1j * t], [1.0 + 3j * (t ** 2), 1.0 * (t ** 3)]],
+                [[4j + (t + t**2), 2.0 * 1j * t], [1.0 + 3j * (t**2), 1.0 * (t**3)]],
                 dtype=complex,
             ).data
 
@@ -968,25 +968,25 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         A1_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
 
         def A1(t):
-            return 1j * A1_0 + (t ** 2) * A1_1
+            return 1j * A1_0 + (t**2) * A1_1
 
         A2_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
         A2_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
 
         def A2(t):
-            return 1j * t * A2_0 + (t ** 3) * A2_1
+            return 1j * t * A2_0 + (t**3) * A2_1
 
         A00_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
         A00_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
 
         def A00(t):
-            return A00_0 * (t ** 2) + A00_1 * (t ** 3) * 1j
+            return A00_0 * (t**2) + A00_1 * (t**3) * 1j
 
         A01_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
         A01_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
 
         def A01(t):
-            return A01_0 * t + A01_1 * (t ** 4) * 1j
+            return A01_0 * t + A01_1 * (t**4) * 1j
 
         T = np.pi * 1.2341 / 3
 
@@ -1038,7 +1038,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
             return Array([[1, 0], [0, 1]], dtype=complex).data
 
         def A0(a, t):
-            return (a ** 2) * Array([[0, t], [t ** 2, 0]], dtype=complex).data
+            return (a**2) * Array([[0, t], [t**2, 0]], dtype=complex).data
 
         T = np.pi * 1.2341
 
@@ -1058,7 +1058,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
 
         jit_func = jit(func)
 
-        T2 = T ** 2
+        T2 = T**2
         T3 = T * T2
 
         expected_D0 = np.array([[0, T2 / 2], [T3 / 3, 0]], dtype=complex)
@@ -1078,10 +1078,10 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
             return Array([[1, 0], [0, 1]], dtype=complex).data
 
         def A0(a, t):
-            return (a ** 2) * Array([[0, t], [t ** 2, 0]], dtype=complex).data
+            return (a**2) * Array([[0, t], [t**2, 0]], dtype=complex).data
 
         def A1(t):
-            return Array([[t, 0], [0, t ** 2]], dtype=complex).data
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
 
         T = np.pi * 1.2341
 
@@ -1101,7 +1101,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
 
         jit_func = jit(func)
 
-        T2 = T ** 2
+        T2 = T**2
         T3 = T * T2
         T4 = T * T3
         T5 = T * T4

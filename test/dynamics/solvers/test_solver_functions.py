@@ -125,7 +125,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
 
             # pylint: disable=unused-argument
             def quad_rhs(t, y):
-                return np.real(Array([t ** 2]))
+                return np.real(Array([t**2]))
 
             results = self.solve(quad_rhs, t_span=[0.0, 1.0], y0=Array([0.0]))
             expected = Array([1.0 / 3])

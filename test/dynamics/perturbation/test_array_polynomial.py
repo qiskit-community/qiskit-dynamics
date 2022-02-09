@@ -302,8 +302,65 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertTrue(result.monomial_labels == expected_monomial_labels)
         self.assertAllClose(result.constant_term, expected_constant_term)
 
+    @unpack
+    @data((lambda A, B: A @ B,), (lambda A, B: A * B,))
+    def test_distributive_binary_op_on_array(self, binary_op):
+        """Test distributive binary op directly on an array."""
+        ap = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [1]],
+        )
+        v = np.random.rand(2, 2)
 
-class TestArrayPolynomialAlgebraJax(TestArrayPolynomialAlgebra, TestJaxBase):
+        output = binary_op(ap, v)
+        expected_constant_term = binary_op(ap.constant_term, v)
+        expected_array_coefficients = binary_op(ap.array_coefficients, v)
+        self.assertAllClose(output.constant_term, expected_constant_term)
+        self.assertAllClose(output.array_coefficients, expected_array_coefficients)
+
+        output = binary_op(v, ap)
+        expected_constant_term = binary_op(v, ap.constant_term)
+        expected_array_coefficients = binary_op(v, ap.array_coefficients)
+        self.assertAllClose(output.constant_term, expected_constant_term)
+        self.assertAllClose(output.array_coefficients, expected_array_coefficients)
+
+    def test_mult_scalar(self):
+        """Test multiplication with a scalar."""
+        ap = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [1]],
+        )
+
+        c = 2.324
+        output = c * ap
+        expected_constant_term = c * ap.constant_term
+        expected_array_coefficients = c * ap.array_coefficients
+        self.assertAllClose(output.constant_term, expected_constant_term)
+        self.assertAllClose(output.array_coefficients, expected_array_coefficients)
+
+        output = ap * c
+        self.assertAllClose(output.constant_term, expected_constant_term)
+        self.assertAllClose(output.array_coefficients, expected_array_coefficients)
+
+    def test_matmul_array(self):
+        """Test matmul of an ArrayPolynomial with an array."""
+
+        ap = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [1]],
+        )
+        v = np.random.rand(2)
+
+        output = ap @ v
+        expected_constant_term = ap.constant_term @ v
+        expected_array_coefficients = ap.array_coefficients @ v
+        self.assertAllClose(output.constant_term, expected_constant_term)
+        self.assertAllClose(output.array_coefficients, expected_array_coefficients)
+
+class TestArrayPolynomialAlgebraJAX(TestArrayPolynomialAlgebra, TestJaxBase):
     """JAX version of TestArrayPolynomialAlgebra."""
 
     def test_jit_grad_add(self):

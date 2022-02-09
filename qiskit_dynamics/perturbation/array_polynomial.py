@@ -271,7 +271,6 @@ class ArrayPolynomial:
         Returns:
             ArrayPolynomial achieved by matmul of self and other.
         """
-
         if isinstance(other, (int, float, complex, np.ndarray, Array)):
             other = ArrayPolynomial(constant_term=other)
 
@@ -280,9 +279,7 @@ class ArrayPolynomial:
                 self, other, lambda A, B: A @ B, order_bound, multiset_bounds
             )
 
-        raise QiskitError(
-            "Type {} not supported by ArrayPolynomial.matmul.".format(type(other))
-        )
+        raise QiskitError("Type {} not supported by ArrayPolynomial.matmul.".format(type(other)))
 
     def mul(
         self,
@@ -308,9 +305,7 @@ class ArrayPolynomial:
                 self, other, lambda A, B: A * B, order_bound, multiset_bounds
             )
 
-        raise QiskitError(
-            "Type {} not supported by ArrayPolynomial.mul.".format(type(other))
-        )
+        raise QiskitError("Type {} not supported by ArrayPolynomial.mul.".format(type(other)))
 
     def __add__(
         self, other: Union["ArrayPolynomial", int, float, complex, Array]
@@ -342,14 +337,14 @@ class ArrayPolynomial:
 
     def __rmatmul__(self, other: Union["ArrayPolynomial", Array]) -> "ArrayPolynomial":
         """Dunder method for rmatmul."""
-        if isinstance(other, (int, float, complex, Array)):
+        if isinstance(other, (int, float, complex, np.ndarray, Array)):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
             return other.matmul(self)
 
         raise QiskitError(
-            "Type {} not supported by ArrayPolynomial.matmul.".format(type(other))
+            "Type {} not supported by ArrayPolynomial.__rmatmul__.".format(type(other))
         )
 
     def __call__(self, c: Optional[Array] = None) -> Array:

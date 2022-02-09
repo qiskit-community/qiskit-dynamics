@@ -169,8 +169,8 @@ class TestSignalMultiplication(QiskitDynamicsTestCase):
         """Test Signal x Signal."""
 
         sig1 = Signal(lambda t: t, carrier_freq=3.0, phase=0.1)
-        sig2 = Signal(lambda t: t ** 2, carrier_freq=2.1, phase=1.1)
-        sig3 = Signal(lambda t: t ** 3, carrier_freq=2.1, phase=1.1)
+        sig2 = Signal(lambda t: t**2, carrier_freq=2.1, phase=1.1)
+        sig3 = Signal(lambda t: t**3, carrier_freq=2.1, phase=1.1)
 
         sig_prod = sig1 * sig2 * sig3
 
@@ -204,7 +204,7 @@ class TestSignalAlgebraJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
     """Test cases for jax transformations through signal algebraic operations."""
 
     def setUp(self):
-        self.signal = Signal(lambda t: t ** 2, carrier_freq=3.0)
+        self.signal = Signal(lambda t: t**2, carrier_freq=3.0)
         self.constant = Signal(3 * np.pi)
         self.discrete_signal = DiscreteSignal(
             dt=0.5, samples=jnp.ones(20, dtype=complex), carrier_freq=2.0

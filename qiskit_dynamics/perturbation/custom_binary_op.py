@@ -103,11 +103,19 @@ class CustomBinaryOp:
 
         # establish which version of functions to use
         if self._backend == "jax":
-            self._compute_unique_evaluations = compute_unique_evaluations_jax
-            self._compute_linear_combos = compute_linear_combos_jax
+            self._compute_unique_evaluations = lambda A, B: compute_unique_evaluations_jax(
+                A, B, self._unique_evaluation_pairs, self._binary_op
+            )
+            self._compute_linear_combos = lambda C: compute_linear_combos_jax(
+                C, self._linear_combo_rule
+            )
         else:
-            self._compute_unique_evaluations = compute_unique_evaluations
-            self._compute_linear_combos = compute_linear_combos
+            self._compute_unique_evaluations = lambda A, B: compute_unique_evaluations(
+                A, B, self._unique_evaluation_pairs, self._binary_op, self._output_shape
+            )
+            self._compute_linear_combos = lambda C: compute_linear_combos(
+                C, self._linear_combo_rule
+            )
 
     def __call__(self, A: np.ndarray, B: np.ndarray) -> np.ndarray:
         """Evaluate the custom binary operation on arrays A, B."""
@@ -115,10 +123,8 @@ class CustomBinaryOp:
             A = Array(A).data
             B = Array(B).data
 
-        unique_evaluations = self._compute_unique_evaluations(
-            A, B, self._unique_evaluation_pairs, self._binary_op, self._output_shape
-        )
-        return self._compute_linear_combos(unique_evaluations, self._linear_combo_rule)
+        unique_evaluations = self._compute_unique_evaluations(A, B)
+        return self._compute_linear_combos(unique_evaluations)
 
 
 class CustomMatmul(CustomBinaryOp):
@@ -297,15 +303,12 @@ def compute_unique_evaluations_jax(
     B: np.array,
     unique_evaluation_pairs: np.array,
     binary_op: Callable,
-    output_shape: Tuple[int],
 ) -> np.array:
     """JAX version of a single loop step of :meth:`linear_combos`. Note that in this case
     binary_op is assumed to be vectorized."""
 
-    big_zeros = jnp.zeros((1,) + output_shape, dtype=complex)
-
-    A = jnp.append(A, big_zeros, axis=0)
-    B = jnp.append(B, big_zeros, axis=0)
+    A = jnp.append(A, jnp.zeros((1,) + A[0].shape, dtype=complex), axis=0)
+    B = jnp.append(B, jnp.zeros((1,) + B[0].shape, dtype=complex), axis=0)
 
     return binary_op(A[unique_evaluation_pairs[:, 0]], B[unique_evaluation_pairs[:, 1]])
 
