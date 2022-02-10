@@ -13,11 +13,40 @@
 
 """Tests for pulse_utils.py."""
 
+from re import sub
 import numpy as np
-from qiskit_dynamics.pulse.pulse_utils import convert_to_dressed, generate_ham, labels_generator
-from qiskit_dynamics.pulse.test_pulse_utils_utils import get_dressed_state_and_energy_3x3
+from qiskit_dynamics.pulse.pulse_utils import (
+    compute_probabilities,
+    convert_to_dressed,
+    generate_ham,
+    labels_generator,
+)
 
 from .common import QiskitDynamicsTestCase
+
+
+def basis_vec(ind, dimension):
+    vec = np.zeros(dimension, dtype=complex)
+    vec[ind] = 1.0
+    return vec
+
+
+def two_q_basis_vec(inda, indb, dimension):
+    vec_a = basis_vec(inda, dimension)
+    vec_b = basis_vec(indb, dimension)
+    return np.kron(vec_a, vec_b)
+
+
+def get_dressed_state_index(inda, indb, dimension, evectors):
+    b_vec = two_q_basis_vec(inda, indb, dimension)
+    overlaps = np.abs(evectors @ b_vec)
+    return overlaps.argmax()
+
+
+def get_dressed_state_and_energy_3x3(evals, inda, indb, dimension, evecs):
+    ind = get_dressed_state_index(inda, indb, dimension, evecs)
+    return evals[ind], evecs[ind]
+
 
 class TestDressedStateConverter(QiskitDynamicsTestCase):
     """DressedStateConverter tests"""
@@ -35,15 +64,19 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
 
         subsystem_dims = [3]
         H0 = generate_ham(subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
+        dressed_states, dressed_freqs, dressed_evals, dressed_list = convert_to_dressed(
+            H0, subsystem_dims
+        )
         self.dressed_tester(dressed_states, subsystem_dims)
 
     def test_convert_to_dressed_two_q_states(self):
         """Test convert_to_dressed with a 2 qubit system with 3 levels per qubit."""
-        subsystem_dims=[3,3]
+        """also test state and energy using alternative method"""
+        subsystem_dims = [3, 3]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
-
+        dressed_states, dressed_freqs, dressed_evals, dressed_list = convert_to_dressed(
+            H0, subsystem_dims
+        )
 
         dim = subsystem_dims[0]
         evals, evectors = np.linalg.eigh(H0)
@@ -53,40 +86,72 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         E10, dressed10 = get_dressed_state_and_energy_3x3(evals, 1, 0, dim, evectors.transpose())
         E11, dressed11 = get_dressed_state_and_energy_3x3(evals, 1, 1, dim, evectors.transpose())
 
-        self.assertTrue(np.max(dressed00 - dressed_states['00'] < 1e-12))
-        self.assertTrue(np.max(dressed01 - dressed_states['01'] < 1e-12))
-        self.assertTrue(np.max(dressed10 - dressed_states['10'] < 1e-12))
-        self.assertTrue(np.max(dressed11 - dressed_states['11'] < 1e-12))
+        self.assertTrue(np.max(dressed00 - dressed_states["00"] < 1e-12))
+        self.assertTrue(np.max(dressed01 - dressed_states["01"] < 1e-12))
+        self.assertTrue(np.max(dressed10 - dressed_states["10"] < 1e-12))
+        self.assertTrue(np.max(dressed11 - dressed_states["11"] < 1e-12))
 
-        self.assertTrue(E00 - dressed_evals['00'] < 1e-12)
-        self.assertTrue(E01 - dressed_evals['01'] < 1e-12)
-        self.assertTrue(E10 - dressed_evals['10'] < 1e-12)
-        self.assertTrue(E11 - dressed_evals['11'] < 1e-12)
+        self.assertTrue(E00 - dressed_evals["00"] < 1e-12)
+        self.assertTrue(E01 - dressed_evals["01"] < 1e-12)
+        self.assertTrue(E10 - dressed_evals["10"] < 1e-12)
+        self.assertTrue(E11 - dressed_evals["11"] < 1e-12)
 
         self.dressed_tester(dressed_states, subsystem_dims)
 
-    
     def test_convert_to_dressed_three_q_states(self):
         """Test convert_to_dressed with a 3 qubit system with different levels per qubit."""
-        subsystem_dims=[3,4,5]
+        subsystem_dims = [3, 4, 5]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
+        dressed_states, dressed_freqs, dressed_evals, dressed_list = convert_to_dressed(
+            H0, subsystem_dims
+        )
 
         self.dressed_tester(dressed_states, subsystem_dims)
-
 
     def test_convert_to_dressed_three_q_states_high(self):
         """Test convert_to_dressed with a 3 qubit system with different levels per qubit."""
-        subsystem_dims=[3,8,4]
+        subsystem_dims = [3, 8, 4]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
+        dressed_states, dressed_freqs, dressed_evals, dressed_list = convert_to_dressed(
+            H0, subsystem_dims
+        )
 
         self.dressed_tester(dressed_states, subsystem_dims)
 
 
-
-
-
-
 class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
-    
+    """
+    How do we test compute probabilities? We can just take our systems
+    """
+
+    def test_compute_and_sample_probabilities_1q(self):
+        "Test compute_probabilities for a 1q system"
+        subsystem_dims = [3]
+        H0 = generate_ham(subsystem_dims=subsystem_dims)
+        dressed_states, _, _, _ = convert_to_dressed(H0, subsystem_dims)
+        state = [0, 1 / np.sqrt(2), 1 / np.sqrt(2)]
+        probs = compute_probabilities(state, dressed_states=dressed_states)
+
+        self.assertTrue(0.5 - probs["1"] < 1e-4)
+        self.assertTrue(0.5 - probs["2"] < 1e-4)
+
+        # how to test sampling because it's random?
+
+    #    samples
+    def test_compute_and_sample_probabilities_2q(self):
+        "Test compute_probabilities for a 2q system"
+        subsystem_dims = [3, 4]
+        H0 = generate_ham(subsystem_dims=subsystem_dims)
+        dressed_states, _, _, _ = convert_to_dressed(H0, subsystem_dims)
+        state1 = [1 / np.sqrt(2), 0, 1 / np.sqrt(2)]
+        state2 = [0, 1, 0, 0]
+        state = np.kron(state2, state1)
+        probs = compute_probabilities(state, dressed_states=dressed_states)
+        print(probs)
+
+        self.assertTrue(0.5 - probs["12"] < 1e-4)
+        self.assertTrue(0.5 - probs["10"] < 1e-4)
+
+        # how to test sampling because it's random?
+
+    #    samples

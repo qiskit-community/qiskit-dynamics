@@ -39,6 +39,7 @@ def labels_generator(subsystem_dims, array=False):
         labels = ["".join(lab) for lab in labels]
     return labels
 
+
 #%%
 
 
@@ -110,6 +111,7 @@ def sample_counts(probs, n_shots):
     results = np.vectorize(single_sample, excluded="probs")(samples, probs=probs)
     return results
 
+
 #%%
 # import numpy as np
 # #%%
@@ -149,11 +151,7 @@ def generate_ham(subsystem_dims):
         # operators on the control qubit (first tensor factor)
         N0 = N
 
-        H0 = (
-            w_c * N0
-            + 0.5 * alpha_c * N0 @ (N0 - ident)
-        )
-
+        H0 = w_c * N0 + 0.5 * alpha_c * N0 @ (N0 - ident)
 
     elif len(subsystem_dims) == 2:
 
@@ -169,10 +167,8 @@ def generate_ham(subsystem_dims):
         H0 = (
             w_c * N0
             + 0.5 * alpha_c * N0 @ (N0 - ident2q)
-
             + w_t * N1
             + 0.5 * alpha_t * N1 @ (N1 - ident2q)
-
             + J * (a0 @ adag1 + adag0 @ a1)
         )
     elif len(subsystem_dims) == 3:
@@ -204,17 +200,16 @@ def generate_ham(subsystem_dims):
         H0 = (
             w_c * N0
             + 0.5 * alpha_c * N0 @ (N0 - ident3q)
-
             + w_t * N1
             + 0.5 * alpha_t * N1 @ (N1 - ident3q)
-
             + w_2 * N2
             + 0.5 * alpha_2 * N2 @ (N2 - ident3q)
-
             + J * (a0 @ adag1 + adag0 @ a1)
             + J2 * (a1 @ adag2 + adag1 @ a2)
         )
     return H0
+
+
 #     # Hd0 = 2 * np.pi * (a0 + adag0)
 #     # Hd1 = 2 * np.pi * (a1 + adag1)
 
@@ -242,7 +237,7 @@ def generate_ham(subsystem_dims):
 #     return probs
 # #%%
 # test1()
-#     # assert(probs) 
+#     # assert(probs)
 # #%%
 # # %%
 # a = [0,1/np.sqrt(2),1/np.sqrt(2)]
@@ -283,19 +278,19 @@ def generate_ham(subsystem_dims):
 #     labels[id]
 #     assert((labels[id] == label))
 # %%
-def dressed_tester(dressed_states, subsystem_dims):
-    print(subsystem_dims)
-    labels = labels_generator(subsystem_dims, array=True)
-    str_labels = labels_generator(subsystem_dims, array=False)
-    for str_label, label in zip(str_labels, labels):
-        id = np.argmax(np.abs(dressed_states[str_label]))
-        labels[id]
-        # self.assertTrue((labels[id] == label))
+# def dressed_tester(dressed_states, subsystem_dims):
+#     print(subsystem_dims)
+#     labels = labels_generator(subsystem_dims, array=True)
+#     str_labels = labels_generator(subsystem_dims, array=False)
+#     for str_label, label in zip(str_labels, labels):
+#         id = np.argmax(np.abs(dressed_states[str_label]))
+#         labels[id]
+#         # self.assertTrue((labels[id] == label))
 
 
-subsystem_dims = [3]
-H0 = generate_ham(subsystem_dims)
-dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
-dressed_tester(dressed_states, subsystem_dims)
+# subsystem_dims = [3]
+# H0 = generate_ham(subsystem_dims)
+# dressed_states, dressed_freqs, dressed_evals, dressed_list= convert_to_dressed(H0, subsystem_dims)
+# dressed_tester(dressed_states, subsystem_dims)
 
 # %%
