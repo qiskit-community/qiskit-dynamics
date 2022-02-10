@@ -15,11 +15,13 @@
 
 from re import sub
 import numpy as np
+from collections import Counter
 from qiskit_dynamics.pulse.pulse_utils import (
     compute_probabilities,
     convert_to_dressed,
     generate_ham,
     labels_generator,
+    sample_counts,
 )
 
 from .common import QiskitDynamicsTestCase
@@ -132,12 +134,15 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         state = [0, 1 / np.sqrt(2), 1 / np.sqrt(2)]
         probs = compute_probabilities(state, dressed_states=dressed_states)
 
+        self.assertTrue(1 - sum(probs.values()) < 1e-12)
         self.assertTrue(0.5 - probs["1"] < 1e-4)
         self.assertTrue(0.5 - probs["2"] < 1e-4)
 
-        # how to test sampling because it's random?
+        samples = sample_counts(probs, 1000)
+        counts = Counter(samples)
+        self.assertTrue(counts["1"] > 450)
+        self.assertTrue(counts["2"] > 450)
 
-    #    samples
     def test_compute_and_sample_probabilities_2q(self):
         "Test compute_probabilities for a 2q system"
         subsystem_dims = [3, 4]
@@ -147,11 +152,45 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         state2 = [0, 1, 0, 0]
         state = np.kron(state2, state1)
         probs = compute_probabilities(state, dressed_states=dressed_states)
-        print(probs)
+        self.assertTrue(1 - sum(probs.values()) < 1e-12)
 
         self.assertTrue(0.5 - probs["12"] < 1e-4)
         self.assertTrue(0.5 - probs["10"] < 1e-4)
 
-        # how to test sampling because it's random?
+        samples = sample_counts(probs, 1000)
+        counts = Counter(samples)
+        self.assertTrue(counts["12"] > 450)
+        self.assertTrue(counts["10"] > 450)
 
-    #    samples
+    def test_compute_and_sample_probabilities_3q(self):
+        "Test compute_probabilities for a 3q system"
+        subsystem_dims = [3, 6, 3]
+        H0 = generate_ham(subsystem_dims=subsystem_dims)
+        dressed_states, _, _, _ = convert_to_dressed(H0, subsystem_dims)
+        state1 = [1 / np.sqrt(2), 0, 1 / np.sqrt(2)]
+        state2 = [0, 1 / np.sqrt(4), 0, 1 / np.sqrt(4), 1 / np.sqrt(4), 1 / np.sqrt(4)]
+        state3 = [1, 0, 0]
+        state = np.kron(state3, state2)
+        state = np.kron(state, state1)
+        probs = compute_probabilities(state, dressed_states=dressed_states)
+        self.assertTrue(1 - sum(probs.values()) < 1e-12)
+
+        self.assertTrue(0.125 - probs["010"] < 1e-4)
+        self.assertTrue(0.125 - probs["030"] < 1e-4)
+        self.assertTrue(0.125 - probs["040"] < 1e-4)
+        self.assertTrue(0.125 - probs["050"] < 1e-4)
+        self.assertTrue(0.125 - probs["012"] < 1e-4)
+        self.assertTrue(0.125 - probs["032"] < 1e-4)
+        self.assertTrue(0.125 - probs["042"] < 1e-4)
+        self.assertTrue(0.125 - probs["052"] < 1e-4)
+
+        samples = sample_counts(probs, 1000)
+        counts = Counter(samples)
+        self.assertTrue(counts["010"] > 100)
+        self.assertTrue(counts["030"] > 100)
+        self.assertTrue(counts["040"] > 100)
+        self.assertTrue(counts["050"] > 100)
+        self.assertTrue(counts["012"] > 100)
+        self.assertTrue(counts["032"] > 100)
+        self.assertTrue(counts["042"] > 100)
+        self.assertTrue(counts["052"] > 100)
