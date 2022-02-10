@@ -78,7 +78,7 @@ class Dispatch:
                     return backend
         if fallback is None or fallback in cls._REGISTERED_BACKENDS:
             return fallback
-        raise DispatchError("fallback '{}' is not a registered backend.".format(fallback))
+        raise DispatchError(f"fallback '{fallback}' is not a registered backend.")
 
     @classmethod
     def validate_backend(cls, backend: str):
@@ -93,9 +93,8 @@ class Dispatch:
         if backend not in cls._REGISTERED_BACKENDS:
             registered = cls.REGISTERED_BACKENDS if cls.REGISTERED_BACKENDS else None
             raise DispatchError(
-                "'{}' is not a registered array backends (registered backends: {})".format(
-                    backend, registered
-                )
+                f"""'{backend}' is not a registered array backends
+                (registered backends: {registered})"""
             )
 
     @classmethod

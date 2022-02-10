@@ -85,6 +85,5 @@ try:
     def _copy(array, order="K"):
         return jax.numpy.array(array, copy=True, order=order)
 
-
 except ModuleNotFoundError:
     pass

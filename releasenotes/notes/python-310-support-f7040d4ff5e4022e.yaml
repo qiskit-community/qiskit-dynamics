@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Added support for running with Python 3.10. Starting with this release Qiskit Dynamics now supports
+    running with Python 3.7 through 3.10.

@@ -31,19 +31,17 @@ def _minimal_ext_cmd(cmd):
     env["LANGUAGE"] = "C"
     env["LANG"] = "C"
     env["LC_ALL"] = "C"
-    proc = subprocess.Popen(
+    with subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
         cwd=os.path.join(os.path.dirname(ROOT_DIR)),
-    )
-    stdout, stderr = proc.communicate()
+    ) as proc:
+        stdout, stderr = proc.communicate()
     if proc.returncode > 0:
         raise OSError(
-            "Command {} exited with code {}: {}".format(
-                cmd, proc.returncode, stderr.strip().decode("ascii")
-            )
+            f"Command {cmd} exited with code {proc.returncode}: {stderr.strip().decode('ascii')}"
         )
     return stdout
 
@@ -60,7 +58,7 @@ def git_version():
     return git_revision
 
 
-with open(os.path.join(ROOT_DIR, "VERSION.txt"), "r") as version_file:
+with open(os.path.join(ROOT_DIR, "VERSION.txt"), "r", encoding="utf-8") as version_file:
     VERSION = version_file.read().strip()
 
 

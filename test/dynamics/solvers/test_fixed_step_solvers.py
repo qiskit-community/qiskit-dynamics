@@ -90,7 +90,7 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
 
         def random_generator(t):
             t = Array(t)
-            output = np.sin(t) * rand_ops[0] + (t ** 5) * rand_ops[1] + np.exp(t) * rand_ops[2]
+            output = np.sin(t) * rand_ops[0] + (t**5) * rand_ops[1] + np.exp(t) * rand_ops[2]
             return Array(output).data
 
         self.random_generator = random_generator
