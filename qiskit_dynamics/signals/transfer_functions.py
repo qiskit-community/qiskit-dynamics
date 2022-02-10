@@ -53,8 +53,8 @@ class BaseTransferFunction(ABC):
 
         if len(args) != self.n_inputs:
             raise QiskitError(
-                self.__class__.__name__ + " expected %i input signals but %i "
-                "were given" % (len(args), self.n_inputs)
+                f"""{self.__class__.__name__} expected {len(args)}
+                input signals but {self.n_inputs} were given."""
             )
 
         return self._apply(*args, **kwargs)

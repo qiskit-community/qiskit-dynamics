@@ -369,7 +369,7 @@ class RotatingFrame:
 
         if vectorized_operators:
             # If a vectorized output is required, reshape correctly
-            out = out.reshape(out.shape[:-2] + (self.dim ** 2,), order="F")
+            out = out.reshape(out.shape[:-2] + (self.dim**2,), order="F")
             if len(out.shape) == 2:
                 out = out.T
 

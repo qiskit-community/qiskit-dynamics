@@ -49,7 +49,7 @@ def jax_odeint(
         t_span: Interval to solve over.
         y0: Initial state.
         t_eval: Optional list of time points at which to return the solution.
-        kwargs: Optional arguments to be passed to ``odeint``.
+        **kwargs: Optional arguments to be passed to ``odeint``.
 
     Returns:
         OdeResult: Results object.
