@@ -233,14 +233,14 @@ class ArrayPolynomial:
     def add(
         self,
         other: Union["ArrayPolynomial", int, float, complex, Array],
-        order_bound: Optional[int] = np.inf,
+        degree_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
         """Add two polynomials with bounds on kept terms.
 
         Args:
             other: Other to add to self.
-            order_bound: Bound on length of returned terms.
+            degree_bound: Bound on length of returned terms.
             multiset_bounds: Multiset bounds.
         Returns:
             ArrayPolynomial achieved by adding both self and other.
@@ -250,7 +250,7 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_addition(self, other, order_bound, multiset_bounds)
+            return array_polynomial_addition(self, other, degree_bound, multiset_bounds)
 
         raise QiskitError(
             "Only types castable as an ArrayPolynomial can be added to an ArrayPolynomial."
@@ -259,14 +259,14 @@ class ArrayPolynomial:
     def matmul(
         self,
         other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
-        order_bound: Optional[int] = np.inf,
+        degree_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
         """Matmul self @ other with bounds on kept terms.
 
         Args:
             other: Other to add to self.
-            order_bound: Bound on length of returned terms.
+            degree_bound: Bound on length of returned terms.
             multiset_bounds: Multiset bounds.
         Returns:
             ArrayPolynomial achieved by matmul of self and other.
@@ -276,7 +276,7 @@ class ArrayPolynomial:
 
         if isinstance(other, ArrayPolynomial):
             return array_polynomial_distributive_binary_op(
-                self, other, lambda A, B: A @ B, order_bound, multiset_bounds
+                self, other, lambda A, B: A @ B, degree_bound, multiset_bounds
             )
 
         raise QiskitError("Type {} not supported by ArrayPolynomial.matmul.".format(type(other)))
@@ -284,14 +284,14 @@ class ArrayPolynomial:
     def mul(
         self,
         other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
-        order_bound: Optional[int] = np.inf,
+        degree_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
         """Entrywise multiplication of two ArrayPolynomials with bounds on kept terms.
 
         Args:
             other: Other to add to self.
-            order_bound: Bound on length of returned terms.
+            degree_bound: Bound on length of returned terms.
             multiset_bounds: Multiset bounds.
         Returns:
             ArrayPolynomial achieved by matmul of self and other.
@@ -302,7 +302,7 @@ class ArrayPolynomial:
 
         if isinstance(other, ArrayPolynomial):
             return array_polynomial_distributive_binary_op(
-                self, other, lambda A, B: A * B, order_bound, multiset_bounds
+                self, other, lambda A, B: A * B, degree_bound, multiset_bounds
             )
 
         raise QiskitError("Type {} not supported by ArrayPolynomial.mul.".format(type(other)))
@@ -559,7 +559,7 @@ def array_polynomial_distributive_binary_op(
     ap1: ArrayPolynomial,
     ap2: ArrayPolynomial,
     binary_op: Callable,
-    order_bound: Optional[int] = np.inf,
+    degree_bound: Optional[int] = np.inf,
     multiset_bounds: Optional[List[Multiset]] = None,
 ) -> ArrayPolynomial:
     """Apply a distributive binary op on two array polynomials."""
@@ -570,21 +570,21 @@ def array_polynomial_distributive_binary_op(
     if ap1.constant_term is not None:
         for multiset in ap2.monomial_labels:
             if (
-                multiset_is_bounded(multiset, order_bound, multiset_bounds)
+                multiset_is_bounded(multiset, degree_bound, multiset_bounds)
                 and multiset not in all_multisets
             ):
                 all_multisets.append(multiset)
     if ap2.constant_term is not None:
         for multiset in ap1.monomial_labels:
             if (
-                multiset_is_bounded(multiset, order_bound, multiset_bounds)
+                multiset_is_bounded(multiset, degree_bound, multiset_bounds)
                 and multiset not in all_multisets
             ):
                 all_multisets.append(multiset)
 
     for I, J in product(ap1.monomial_labels, ap2.monomial_labels):
         IuJ = I.union(J)
-        if multiset_is_bounded(IuJ, order_bound, multiset_bounds) and IuJ not in all_multisets:
+        if multiset_is_bounded(IuJ, degree_bound, multiset_bounds) and IuJ not in all_multisets:
             all_multisets.append(IuJ)
 
     all_multisets.sort()
@@ -658,7 +658,7 @@ def array_polynomial_distributive_binary_op(
 def array_polynomial_addition(
     ap1: ArrayPolynomial,
     ap2: ArrayPolynomial,
-    order_bound: Optional[int] = np.inf,
+    degree_bound: Optional[int] = np.inf,
     multiset_bounds: Optional[List[Multiset]] = None,
 ) -> ArrayPolynomial:
     """Add two ArrayPolynomials."""
@@ -689,7 +689,7 @@ def array_polynomial_addition(
     new_multisets = []
     for multiset in ap1.monomial_labels + ap2.monomial_labels:
         if (
-            multiset_is_bounded(multiset, order_bound, multiset_bounds)
+            multiset_is_bounded(multiset, degree_bound, multiset_bounds)
             and multiset not in new_multisets
         ):
             new_multisets.append(multiset)
@@ -734,12 +734,12 @@ def array_polynomial_addition(
 
 def multiset_is_bounded(
     multiset: Multiset,
-    order: Optional[int] = np.inf,
+    degree: Optional[int] = np.inf,
     multiset_bounds: Optional[List[Multiset]] = None,
 ) -> bool:
     """Check that either multiset has size bounded by order, or is a subset of any of the elements
     in multiset_bounds.
     """
     if multiset_bounds is None:
-        return len(multiset) <= order
-    return len(multiset) <= order or any(multiset.issubmultiset(bound) for bound in multiset_bounds)
+        return len(multiset) <= degree
+    return len(multiset) <= degree or any(multiset.issubmultiset(bound) for bound in multiset_bounds)

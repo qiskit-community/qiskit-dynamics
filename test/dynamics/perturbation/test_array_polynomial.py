@@ -157,8 +157,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertTrue(result.monomial_labels == ap1.monomial_labels)
         self.assertAllClose(result.constant_term, ap1.constant_term + np.eye(2))
 
-    def test_add_order_bound(self):
-        """Test adding with an order bound."""
+    def test_add_degree_bound(self):
+        """Test adding with a degree bound."""
 
         ap1 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
@@ -170,7 +170,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
         )
-        result = ap1.add(ap2, order_bound=1)
+        result = ap1.add(ap2, degree_bound=1)
 
         expected_coefficients = np.array(
             [
@@ -187,7 +187,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertTrue(result.monomial_labels == expected_monomial_labels)
         self.assertAllClose(result.constant_term, expected_constant_term)
 
-    def test_add_order_and_multiset_bound(self):
+    def test_add_degree_and_multiset_bound(self):
         """Test adding with an order and multiset bound."""
 
         ap1 = ArrayPolynomial(
@@ -200,7 +200,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
         )
-        result = ap1.add(ap2, order_bound=2, multiset_bounds=[[0, 0, 0]])
+        result = ap1.add(ap2, degree_bound=2, multiset_bounds=[[0, 0, 0]])
 
         expected_coefficients = np.array(
             [
