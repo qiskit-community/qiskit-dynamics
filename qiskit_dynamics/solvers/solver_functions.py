@@ -113,7 +113,7 @@ def solve_ode(
         method: Solving method to use.
         t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
                 the solution will be returned at the points in ``t_span``.
-        kwargs: Additional arguments to pass to the solver.
+        **kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult: Results object.
@@ -223,7 +223,7 @@ def solve_lmde(
         method: Solving method to use.
         t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
                 the solution will be returned at the points in ``t_span``.
-        kwargs: Additional arguments to pass to the solver.
+        **kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult: Results object.

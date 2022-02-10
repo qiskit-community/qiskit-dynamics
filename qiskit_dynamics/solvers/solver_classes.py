@@ -214,7 +214,7 @@ class Solver:
         Args:
             t_span: Time interval to integrate over.
             y0: Initial state.
-            kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
+            **kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
 
         Returns:
             OdeResult: object with formatted output types.
