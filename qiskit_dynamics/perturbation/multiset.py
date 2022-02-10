@@ -237,10 +237,10 @@ class Multiset:
         return sum(self.counts_dict.values())
 
     def __str__(self) -> str:
-        return "Multiset({})".format(str(dict(self.counts_dict)))
+        return f"Multiset({str(dict(self.counts_dict))})"
 
     def __repr__(self) -> str:
-        return "Multiset({})".format(str(self.counts_dict))
+        return f"Multiset({str(dict(self.counts_dict))})"
 
 
 def validate_counts_dict(counts_dict: dict):

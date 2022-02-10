@@ -186,7 +186,7 @@ def solve_lmde_perturbation(
                         Dyson terms.
         integration_method: Integration method to use.
         t_eval: Points at which to evaluate the system.
-        kwargs: Additional arguments to pass to ode integration method used to compute terms.
+        **kwargs: Additional arguments to pass to ode integration method used to compute terms.
 
     Returns:
         OdeResult: Results object containing standard ODE results for LMDE given by ``generator``

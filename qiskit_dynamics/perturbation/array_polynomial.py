@@ -24,7 +24,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation import Multiset
-from qiskit_dynamics.perturbation.multiset import to_Multiset, clean_multisets, get_all_submultisets
+from qiskit_dynamics.perturbation.multiset import to_Multiset, get_all_submultisets
 from qiskit_dynamics.perturbation.custom_binary_op import CustomBinaryOp
 
 try:
@@ -244,6 +244,8 @@ class ArrayPolynomial:
             multiset_bounds: Multiset bounds.
         Returns:
             ArrayPolynomial achieved by adding both self and other.
+        Raises:
+            QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
 
         if isinstance(other, (int, float, complex, np.ndarray, Array)):
@@ -270,6 +272,8 @@ class ArrayPolynomial:
             multiset_bounds: Multiset bounds.
         Returns:
             ArrayPolynomial achieved by matmul of self and other.
+        Raises:
+            QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
         if isinstance(other, (int, float, complex, np.ndarray, Array)):
             other = ArrayPolynomial(constant_term=other)
@@ -279,7 +283,7 @@ class ArrayPolynomial:
                 self, other, lambda A, B: A @ B, degree_bound, multiset_bounds
             )
 
-        raise QiskitError("Type {} not supported by ArrayPolynomial.matmul.".format(type(other)))
+        raise QiskitError(f"Type {type(other)} not supported by ArrayPolynomial.matmul.")
 
     def mul(
         self,
@@ -295,6 +299,8 @@ class ArrayPolynomial:
             multiset_bounds: Multiset bounds.
         Returns:
             ArrayPolynomial achieved by matmul of self and other.
+        Raises:
+            QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
 
         if isinstance(other, (int, float, complex, np.ndarray, Array)):
@@ -305,7 +311,7 @@ class ArrayPolynomial:
                 self, other, lambda A, B: A * B, degree_bound, multiset_bounds
             )
 
-        raise QiskitError("Type {} not supported by ArrayPolynomial.mul.".format(type(other)))
+        raise QiskitError(f"Type {type(other)} not supported by ArrayPolynomial.mul.")
 
     def __add__(
         self, other: Union["ArrayPolynomial", int, float, complex, Array]
@@ -343,9 +349,7 @@ class ArrayPolynomial:
         if isinstance(other, ArrayPolynomial):
             return other.matmul(self)
 
-        raise QiskitError(
-            "Type {} not supported by ArrayPolynomial.__rmatmul__.".format(type(other))
-        )
+        raise QiskitError(f"Type {type(other)} not supported by ArrayPolynomial.__rmatmul__.")
 
     def __call__(self, c: Optional[Array] = None) -> Array:
         """Evaluate the polynomial.
@@ -595,7 +599,7 @@ def array_polynomial_distributive_binary_op(
         new_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
 
     # return constant case
-    if all_multisets == []:
+    if not all_multisets:
         return ArrayPolynomial(constant_term=new_constant_term)
 
     # iteratively construct custom multiplication rule,
@@ -620,7 +624,7 @@ def array_polynomial_distributive_binary_op(
                     )
 
         # if non-empty,
-        if rule_indices != []:
+        if rule_indices:
             operation_rule.append((np.ones(len(rule_indices)), np.array(rule_indices)))
 
     lmats = None
@@ -742,4 +746,6 @@ def multiset_is_bounded(
     """
     if multiset_bounds is None:
         return len(multiset) <= degree
-    return len(multiset) <= degree or any(multiset.issubmultiset(bound) for bound in multiset_bounds)
+    return len(multiset) <= degree or any(
+        multiset.issubmultiset(bound) for bound in multiset_bounds
+    )
