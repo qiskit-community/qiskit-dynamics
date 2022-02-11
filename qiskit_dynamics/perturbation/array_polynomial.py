@@ -19,6 +19,7 @@ from copy import copy
 from itertools import product
 
 import numpy as np
+from numpy.typing import DTypeLike
 
 from qiskit import QiskitError
 
@@ -200,7 +201,7 @@ class ArrayPolynomial:
         offset: Optional[int] = 0,
         axis1: Optional[int] = 0,
         axis2: Optional[int] = 1,
-        dtype: Optional["dtype"] = None,
+        dtype: Optional[DTypeLike] = None,
     ) -> "ArrayPolynomial":
         """Take the trace of the coefficients."""
 

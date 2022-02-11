@@ -370,7 +370,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertAllClose(output.array_coefficients, expected_array_coefficients)
 
     @unpack
-    @data((lambda A, B: A @ B, 'matmul'), (lambda A, B: A * B, 'mul'))
+    @data((lambda A, B: A @ B, "matmul"), (lambda A, B: A * B, "mul"))
     def test_distributive_binary_op_degree_bound(self, binary_op, method_name):
         """Test distributive binary op with a degree bound."""
 
@@ -391,7 +391,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             Multiset({0: 1}),
             Multiset({1: 1}),
             Multiset({0: 2}),
-            Multiset({0: 1, 1: 1})
+            Multiset({0: 1, 1: 1}),
         ]
         expected_coefficients = np.array(
             [
@@ -409,7 +409,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertAllClose(result.constant_term, expected_constant_term)
 
     @unpack
-    @data((lambda A, B: A @ B, 'matmul'), (lambda A, B: A * B, 'mul'))
+    @data((lambda A, B: A @ B, "matmul"), (lambda A, B: A * B, "mul"))
     def test_distributive_binary_op_degree_and_multiset_bound(self, binary_op, method_name):
         """Test distributive binary op with a degree bound."""
 
@@ -431,7 +431,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             Multiset({1: 1}),
             Multiset({0: 2}),
             Multiset({0: 1, 1: 1}),
-            Multiset({0: 3})
+            Multiset({0: 3}),
         ]
         expected_coefficients = np.array(
             [
