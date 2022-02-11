@@ -15,6 +15,7 @@
 Shared functionality and helpers for the unit tests.
 """
 
+import warnings
 import unittest
 from typing import Callable, Iterable
 import numpy as np
@@ -110,7 +111,9 @@ class TestQutipBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         try:
-            # pylint: disable=import-outside-toplevel,unused-import
-            import qutip
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                # pylint: disable=import-outside-toplevel,unused-import
+                import qutip
         except Exception as err:
             raise unittest.SkipTest("Skipping qutip tests.") from err
