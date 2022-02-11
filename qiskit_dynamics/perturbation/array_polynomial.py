@@ -236,7 +236,10 @@ class ArrayPolynomial:
         degree_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
-        """Add two polynomials with bounds on kept terms.
+        """Add two polynomials with bounds on which terms to keep.
+
+        A term in the sum is kept if either the length of the multiset label is
+        ``<= degree_bound``, or if it is a subset of any of the multisets in ``multiset_bounds``.
 
         Args:
             other: Other to add to self.
@@ -264,7 +267,10 @@ class ArrayPolynomial:
         degree_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
-        """Matmul self @ other with bounds on kept terms.
+        """Matmul self @ other with bounds on which terms to keep.
+
+        A term in the product is kept if either the length of the multiset label is
+        ``<= degree_bound``, or if it is a subset of any of the multisets in ``multiset_bounds``.
 
         Args:
             other: Other to add to self.
@@ -291,7 +297,10 @@ class ArrayPolynomial:
         degree_bound: Optional[int] = np.inf,
         multiset_bounds: Optional[List[Multiset]] = None,
     ) -> "ArrayPolynomial":
-        """Entrywise multiplication of two ArrayPolynomials with bounds on kept terms.
+        """Entrywise multiplication of two ArrayPolynomials with bounds on which terms to keep.
+
+        A term in the product is kept if either the length of the multiset label is
+        ``<= degree_bound``, or if it is a subset of any of the multisets in ``multiset_bounds``.
 
         Args:
             other: Other to add to self.

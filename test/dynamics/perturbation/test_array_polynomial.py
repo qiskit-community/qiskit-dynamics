@@ -369,6 +369,86 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertAllClose(output.constant_term, expected_constant_term)
         self.assertAllClose(output.array_coefficients, expected_array_coefficients)
 
+    @unpack
+    @data((lambda A, B: A @ B, 'matmul'), (lambda A, B: A * B, 'mul'))
+    def test_distributive_binary_op_degree_bound(self, binary_op, method_name):
+        """Test distributive binary op with a degree bound."""
+
+        ap1 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [1]],
+        )
+        ap2 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [0, 0]],
+        )
+
+        result = getattr(ap1, method_name)(ap2, degree_bound=2)
+        expected_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
+        expected_monomial_labels = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1})
+        ]
+        expected_coefficients = np.array(
+            [
+                binary_op(ap1.constant_term, ap2.array_coefficients[0])
+                + binary_op(Array(ap1.array_coefficients[0]), ap2.constant_term),
+                binary_op(Array(ap1.array_coefficients[1]), ap2.constant_term),
+                binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[0])
+                + binary_op(ap1.constant_term, ap2.array_coefficients[1]),
+                binary_op(Array(ap1.array_coefficients[1]), ap2.array_coefficients[0]),
+            ]
+        )
+
+        self.assertAllClose(result.array_coefficients, expected_coefficients)
+        self.assertTrue(result.monomial_labels == expected_monomial_labels)
+        self.assertAllClose(result.constant_term, expected_constant_term)
+
+    @unpack
+    @data((lambda A, B: A @ B, 'matmul'), (lambda A, B: A * B, 'mul'))
+    def test_distributive_binary_op_degree_and_multiset_bound(self, binary_op, method_name):
+        """Test distributive binary op with a degree bound."""
+
+        ap1 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [1]],
+        )
+        ap2 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2),
+            array_coefficients=np.random.rand(2, 2, 2),
+            monomial_labels=[[0], [0, 0]],
+        )
+
+        result = getattr(ap1, method_name)(ap2, degree_bound=2, multiset_bounds=[Multiset({0: 3})])
+        expected_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
+        expected_monomial_labels = [
+            Multiset({0: 1}),
+            Multiset({1: 1}),
+            Multiset({0: 2}),
+            Multiset({0: 1, 1: 1}),
+            Multiset({0: 3})
+        ]
+        expected_coefficients = np.array(
+            [
+                binary_op(ap1.constant_term, ap2.array_coefficients[0])
+                + binary_op(Array(ap1.array_coefficients[0]), ap2.constant_term),
+                binary_op(Array(ap1.array_coefficients[1]), ap2.constant_term),
+                binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[0])
+                + binary_op(ap1.constant_term, ap2.array_coefficients[1]),
+                binary_op(Array(ap1.array_coefficients[1]), ap2.array_coefficients[0]),
+                binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[1]),
+            ]
+        )
+
+        self.assertAllClose(result.array_coefficients, expected_coefficients)
+        self.assertTrue(result.monomial_labels == expected_monomial_labels)
+        self.assertAllClose(result.constant_term, expected_constant_term)
+
 
 @ddt
 class TestArrayPolynomialAlgebraJAX(TestArrayPolynomialAlgebra, TestJaxBase):
