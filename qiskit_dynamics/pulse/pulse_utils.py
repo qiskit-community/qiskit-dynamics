@@ -15,10 +15,11 @@
 Pulse utils for computing dressed states and probabilities
 """
 
-import scipy.linalg as la
+import numpy.linalg as la
 import numpy as np
 from typing import Optional, Union
 from qiskit import QiskitError
+
 
 def labels_generator(
     subsystem_dims: list[int], array: Optional[bool] = False
@@ -89,8 +90,7 @@ def convert_to_dressed(
     dressed_evals = {}
     dressed_freqs = {}
 
-
-    for i, estate in enumerate(estates.T):
+    for i, estate in enumerate(estates):
 
         pos = np.argmax(np.abs(estate))
         lab = labels[pos]
@@ -103,10 +103,9 @@ def convert_to_dressed(
 
     dressed_freqs = []
     for subsys, _ in enumerate(subsystem_dims):
-        lab_excited = "".join(["0" if i != subsys else "1" for i in range(len(subsystem_dims))])
-        # could do lab ground if we don't want to assume labels[0] is '0000'
-        # lab_ground = ''.join(['0' for i in range(len(subsystem_dims))])
-        # energy = dressed_evals[lab_excited] - dressed_evals[lab_ground]
+        lab_excited = ["0" if i != subsys else "1" for i in range(len(subsystem_dims))]
+        lab_excited.reverse()
+        lab_excited = "".join(lab_excited)
         try:
             energy = dressed_evals[lab_excited] - dressed_evals[labels[0]]
         except:
@@ -125,7 +124,7 @@ def compute_probabilities(state: Union[np.ndarray, list], basis_states: dict) ->
        .. math::
         P(d) = (d^* \cdot s)^2
 
-        P(d) 
+        P(d)
         (density matrix * (matmul) dressed state).conj() * dressed_state
         real(P(d))
 
@@ -153,11 +152,11 @@ def compute_probabilities(state: Union[np.ndarray, list], basis_states: dict) ->
     #         label: (np.abs(np.inner(basis_states[label].conj(), state) ** 2)).real()
     #         for label in basis_states.keys()
     #     }
-    else: 
+    else:
         raise QiskitError("State has too many dimensions")
 
     sum_probs = sum(list(probs.values()))
-    probs = {key: value/sum_probs for key, value in probs.items()}
+    probs = {key: value / sum_probs for key, value in probs.items()}
 
     return probs
 
@@ -175,4 +174,3 @@ def sample_counts(probs: dict[str:float], n_shots: int, seed: Optional[int] = No
     """
     rng = np.random.default_rng(seed)
     return rng.choice(list(probs.keys()), size=n_shots, p=list(probs.values()))
-

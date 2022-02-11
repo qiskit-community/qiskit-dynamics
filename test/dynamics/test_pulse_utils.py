@@ -13,6 +13,7 @@
 
 """Tests for pulse_utils.py."""
 
+import random
 from re import sub
 import numpy as np
 from collections import Counter
@@ -24,8 +25,31 @@ from qiskit_dynamics.pulse.pulse_utils import (
 )
 from typing import List
 from .common import QiskitDynamicsTestCase
+#%%
+RANDOM_SEED = 123
 
-RANDOM_SEED=123
+
+def basis_vec_orig(ind, dimension):
+    vec = np.zeros(dimension, dtype=complex)
+    vec[ind] = 1.0
+    return vec
+
+
+def two_q_basis_vec_orig(inda, indb, dimension):
+    vec_a = basis_vec(inda, dimension)
+    vec_b = basis_vec(indb, dimension)
+    return np.kron(vec_a, vec_b)
+
+
+def get_dressed_state_index_orig(inda, indb, dimension, evectors):
+    b_vec = two_q_basis_vec_orig(inda, indb, dimension)
+    overlaps = np.abs(evectors @ b_vec)
+    return overlaps.argmax()
+
+
+def get_dressed_state_and_energy_2x3(evals, inda, indb, dimension, evecs):
+    ind = get_dressed_state_index_orig(inda, indb, dimension, evecs)
+    return evals[ind], evecs[ind]
 
 
 def basis_vec(ind, dimension):
@@ -34,20 +58,28 @@ def basis_vec(ind, dimension):
     return vec
 
 
-def two_q_basis_vec(inda, indb, dimension):
-    vec_a = basis_vec(inda, dimension)
-    vec_b = basis_vec(indb, dimension)
-    return np.kron(vec_a, vec_b)
+def nq_basis_vec(inds, subsystem_dims):
+    vecs = []
+    for ind, dim in zip(inds, subsystem_dims):
+        vecs.append(basis_vec(ind, dim))
+    # vec_a = basis_vec(inda, dimension)
+    # vec_b = basis_vec(indb, dimension)
+    output = vecs[0]
+    for vec in vecs[1:]:
+        output = np.kron(output, vec)
+    return output
 
 
-def get_dressed_state_index(inda, indb, dimension, evectors):
-    b_vec = two_q_basis_vec(inda, indb, dimension)
+def get_dressed_state_index(inds, subsystem_dims, evectors):
+    b_vec = nq_basis_vec(inds, subsystem_dims)
     overlaps = np.abs(evectors @ b_vec)
     return overlaps.argmax()
 
 
-def get_dressed_state_and_energy_3x3(evals, inda, indb, dimension, evecs):
-    ind = get_dressed_state_index(inda, indb, dimension, evecs)
+def get_dressed_state_and_energy_nq(evals, inds, subsystem_dims, evecs):
+    # inds = [0,1,1]
+    # subsystem_dims = [3,4,5]
+    ind = get_dressed_state_index(inds, subsystem_dims, evecs)
     return evals[ind], evecs[ind]
 
 
@@ -151,6 +183,8 @@ def generate_ham(subsystem_dims: List[int]) -> np.ndarray:
             + J2 * (a1 @ adag2 + adag1 @ a2)
         )
     return H0
+
+#%%
 class TestDressedStateConverter(QiskitDynamicsTestCase):
     """DressedStateConverter tests"""
 
@@ -158,14 +192,57 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         """Call np.allclose and assert true."""
 
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+    
+    def assertDictClose(self, dict1, dict2):
 
-    def dressed_tester(self, dressed_states, subsystem_dims):
+        self.assertTrue(set(dict1.keys()) == set(dict2.keys()))
+
+        for key in dict1.keys():
+            self.assertAllClose(dict1[key], dict2[key])
+
+    def argmax_label_test(self, dressed_states, subsystem_dims):
         labels = labels_generator(subsystem_dims, array=True)
         str_labels = labels_generator(subsystem_dims, array=False)
         for str_label, label in zip(str_labels, labels):
-            id = np.argmax(np.abs(dressed_states[str_label]))
-            labels[id]
-            self.assertTrue((labels[id] == label))
+            if str_label in dressed_states.keys():
+                id = np.argmax(np.abs(dressed_states[str_label]))
+                labels[id]
+                self.assertTrue((labels[id] == label))
+
+    def compare_dressed_states_freqs_evals(
+        self, H0, labels, subsystem_dims, dressed_states, dressed_frequencies, dressed_evals
+    ):
+        # NOTE: Remember that subsystem dimensions are passed intuitively, qubit 0, 1, 2... (maybe could switch this)
+        # However in order to match them up for `get_dressed_state_and_energy_nq` we need to reverse them
+
+        subsystem_dims_reverse = subsystem_dims.copy()
+        subsystem_dims_reverse.reverse()
+
+        evals, evectors = np.linalg.eigh(H0)
+
+        test_states = {}
+        test_energies = {}
+        for label in labels:
+            energy, state = get_dressed_state_and_energy_nq(evals, label, subsystem_dims_reverse, evecs=evectors)
+            label = [str(x) for x in label]
+            test_states["".join(label)] = state
+            test_energies["".join(label)] = energy
+        
+        test_freqs = []
+        for i in range(len(subsystem_dims)):
+            out = [0 for i in range(len(subsystem_dims))]
+            out[len(subsystem_dims) - 1 - i] = 1
+            out = [str(x) for x in out]
+            excited_energy = test_energies["".join(out)]
+            base_energy = test_energies["0" * len(subsystem_dims)]
+            test_freqs.append( (excited_energy - base_energy)/ (2 * np.pi))
+        
+        self.assertDictClose(dressed_states, test_states)
+        self.assertDictClose(dressed_evals, test_energies)
+        self.assertAllClose(test_freqs, dressed_frequencies)
+        
+
+
 
     def test_convert_to_dressed_single_q(self):
         """Test convert_to_dressed with a single 3 level qubit system."""
@@ -173,14 +250,16 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
 
         subsystem_dims = [3]
         H0 = generate_ham(subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals, = convert_to_dressed(
-            H0, subsystem_dims
-        )
-        self.dressed_tester(dressed_states, subsystem_dims)
+        (
+            dressed_states,
+            dressed_freqs,
+            dressed_evals,
+        ) = convert_to_dressed(H0, subsystem_dims)
+        self.argmax_label_test(dressed_states, subsystem_dims)
 
-        dressed_states_manual = {'0': [1.,0.,0.], '1': [0.,1.,0.], '2':[0.,0.,1.]}
+        dressed_states_manual = {"0": [1.0, 0.0, 0.0], "1": [0.0, 1.0, 0.0], "2": [0.0, 0.0, 1.0]}
         dressed_freqs_manual = [5.104999999498378]
-        dressed_evals_manual = {'0': 0., '1': 32.07566099, '2': 62.04431863}
+        dressed_evals_manual = {"0": 0.0, "1": 32.07566099, "2": 62.04431863}
 
         self.assertTrue(dressed_states_manual.keys() == dressed_states.keys())
         self.assertAllClose(list(dressed_states_manual.values()), list(dressed_states.values()))
@@ -193,45 +272,63 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         """also test state and energy using alternative method"""
         subsystem_dims = [3, 3]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals, = convert_to_dressed(
-            H0, subsystem_dims
-        )
+        (
+            dressed_states,
+            dressed_freqs,
+            dressed_evals,
+        ) = convert_to_dressed(H0, subsystem_dims)
 
         dim = subsystem_dims[0]
         evals, evectors = np.linalg.eigh(H0)
 
+        E00, dressed00 = get_dressed_state_and_energy_2x3(evals, 0, 0, dim, evectors.transpose())
+        E01, dressed01 = get_dressed_state_and_energy_2x3(evals, 0, 1, dim, evectors.transpose())
+        E02, dressed02 = get_dressed_state_and_energy_2x3(evals, 0, 2, dim, evectors.transpose())
+        E10, dressed10 = get_dressed_state_and_energy_2x3(evals, 1, 0, dim, evectors.transpose())
+        E11, dressed11 = get_dressed_state_and_energy_2x3(evals, 1, 1, dim, evectors.transpose())
+        E12, dressed12 = get_dressed_state_and_energy_2x3(evals, 1, 2, dim, evectors.transpose())
+        E20, dressed20 = get_dressed_state_and_energy_2x3(evals, 2, 0, dim, evectors.transpose())
+        E21, dressed21 = get_dressed_state_and_energy_2x3(evals, 2, 1, dim, evectors.transpose())
+        E22, dressed22 = get_dressed_state_and_energy_2x3(evals, 2, 2, dim, evectors.transpose())
 
-        E00, dressed00 = get_dressed_state_and_energy_3x3(evals, 0, 0, dim, evectors.transpose())
-        E01, dressed01 = get_dressed_state_and_energy_3x3(evals, 0, 1, dim, evectors.transpose())
-        E02, dressed02 = get_dressed_state_and_energy_3x3(evals, 0, 2, dim, evectors.transpose())
-        E10, dressed10 = get_dressed_state_and_energy_3x3(evals, 1, 0, dim, evectors.transpose())
-        E11, dressed11 = get_dressed_state_and_energy_3x3(evals, 1, 1, dim, evectors.transpose())
-        E12, dressed12 = get_dressed_state_and_energy_3x3(evals, 1, 2, dim, evectors.transpose())
-        E20, dressed20 = get_dressed_state_and_energy_3x3(evals, 2, 0, dim, evectors.transpose())
-        E21, dressed21 = get_dressed_state_and_energy_3x3(evals, 2, 1, dim, evectors.transpose())
-        E22, dressed22 = get_dressed_state_and_energy_3x3(evals, 2, 2, dim, evectors.transpose())
+        other_freqs = [E01 / (2 * np.pi), E10 / (2 * np.pi)]
 
-        if dressed00[np.argmax(np.abs(dressed00))] < 0: dressed00 = -1 * dressed00
-        if dressed01[np.argmax(np.abs(dressed01))] < 0: dressed01 = -1 * dressed01
-        if dressed02[np.argmax(np.abs(dressed02))] < 0: dressed02 = -1 * dressed02
-        if dressed10[np.argmax(np.abs(dressed10))] < 0: dressed10 = -1 * dressed10
-        if dressed11[np.argmax(np.abs(dressed11))] < 0: dressed11 = -1 * dressed11
-        if dressed12[np.argmax(np.abs(dressed12))] < 0: dressed12 = -1 * dressed12
-        if dressed20[np.argmax(np.abs(dressed20))] < 0: dressed20 = -1 * dressed20
-        if dressed21[np.argmax(np.abs(dressed21))] < 0: dressed21 = -1 * dressed21
-        if dressed22[np.argmax(np.abs(dressed22))] < 0: dressed22 = -1 * dressed22
+        # NOTE: Dressed frequencies coming out as a list corresponding to subsystem_dims is best I think
+        self.assertAllClose(dressed_freqs, other_freqs)
 
-        dressed_states = {key: (-1 * eval) if eval[np.argmax(np.abs(eval))] < 0 else eval for key, eval in dressed_states.items()}
+        if dressed00[np.argmax(np.abs(dressed00))] < 0:
+            dressed00 = -1 * dressed00
+        if dressed01[np.argmax(np.abs(dressed01))] < 0:
+            dressed01 = -1 * dressed01
+        if dressed02[np.argmax(np.abs(dressed02))] < 0:
+            dressed02 = -1 * dressed02
+        if dressed10[np.argmax(np.abs(dressed10))] < 0:
+            dressed10 = -1 * dressed10
+        if dressed11[np.argmax(np.abs(dressed11))] < 0:
+            dressed11 = -1 * dressed11
+        if dressed12[np.argmax(np.abs(dressed12))] < 0:
+            dressed12 = -1 * dressed12
+        if dressed20[np.argmax(np.abs(dressed20))] < 0:
+            dressed20 = -1 * dressed20
+        if dressed21[np.argmax(np.abs(dressed21))] < 0:
+            dressed21 = -1 * dressed21
+        if dressed22[np.argmax(np.abs(dressed22))] < 0:
+            dressed22 = -1 * dressed22
 
-        self.assertAllClose(dressed00, dressed_states['00'])
-        self.assertAllClose(dressed01, dressed_states['01'])
-        self.assertAllClose(dressed02, dressed_states['02'])
-        self.assertAllClose(dressed10, dressed_states['10'])
-        self.assertAllClose(dressed11, dressed_states['11'])
-        self.assertAllClose(dressed12, dressed_states['12'])
-        self.assertAllClose(dressed20, dressed_states['20'])
-        self.assertAllClose(dressed21, dressed_states['21'])
-        self.assertAllClose(dressed22, dressed_states['22'])
+        dressed_states = {
+            key: (-1 * eval) if eval[np.argmax(np.abs(eval))] < 0 else eval
+            for key, eval in dressed_states.items()
+        }
+
+        self.assertAllClose(dressed00, dressed_states["00"])
+        self.assertAllClose(dressed01, dressed_states["01"])
+        self.assertAllClose(dressed02, dressed_states["02"])
+        self.assertAllClose(dressed10, dressed_states["10"])
+        self.assertAllClose(dressed11, dressed_states["11"])
+        self.assertAllClose(dressed12, dressed_states["12"])
+        self.assertAllClose(dressed20, dressed_states["20"])
+        self.assertAllClose(dressed21, dressed_states["21"])
+        self.assertAllClose(dressed22, dressed_states["22"])
 
         self.assertAllClose(E00, dressed_evals["00"])
         self.assertAllClose(E01, dressed_evals["01"])
@@ -243,39 +340,166 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         self.assertAllClose(E21, dressed_evals["21"])
         self.assertAllClose(E22, dressed_evals["22"])
 
-        # self.assertTrue(np.max(dressed00 - dressed_states["00"] < 1e-12))
-        # self.assertTrue(np.max(dressed01 - dressed_states["01"] < 1e-12))
-        # self.assertTrue(np.max(dressed10 - dressed_states["10"] < 1e-12))
-        # self.assertTrue(np.max(dressed11 - dressed_states["11"] < 1e-12))
-
-        # self.assertTrue(E00 - dressed_evals["00"] < 1e-12)
-        # self.assertTrue(E01 - dressed_evals["01"] < 1e-12)
-        # self.assertTrue(E10 - dressed_evals["10"] < 1e-12)
-        # self.assertTrue(E11 - dressed_evals["11"] < 1e-12)
-
-        self.dressed_tester(dressed_states, subsystem_dims)
+        self.argmax_label_test(dressed_states, subsystem_dims)
 
     def test_convert_to_dressed_three_q_states(self):
         """Test convert_to_dressed with a 3 qubit system with different levels per qubit."""
-        subsystem_dims = [3, 4, 5]
+        subsystem_dims = [6, 4, 5]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals, = convert_to_dressed(
-            H0, subsystem_dims
-        )
+        (
+            dressed_states,
+            dressed_freqs,
+            dressed_evals,
+        ) = convert_to_dressed(H0, subsystem_dims)
 
-        self.dressed_tester(dressed_states, subsystem_dims)
+        labels = [
+            [0, 0, 0],
+            [0, 0, 1],
+            [0, 0, 2],
+            [0, 1, 0],
+            [0, 1, 1],
+            [0, 1, 2],
+            [0, 2, 0],
+            [0, 2, 1],
+            [0, 2, 2],
+            [0, 3, 0],
+            [0, 3, 1],
+            [0, 3, 2],
+            [1, 0, 0],
+            [1, 0, 1],
+            [1, 0, 2],
+            [1, 1, 0],
+            [1, 1, 1],
+            [1, 1, 2],
+            [1, 2, 0],
+            [1, 2, 1],
+            [1, 2, 2],
+            [1, 3, 0],
+            [1, 3, 1],
+            [1, 3, 2],
+            [2, 0, 0],
+            [2, 0, 1],
+            [2, 0, 2],
+            [2, 1, 0],
+            [2, 1, 1],
+            [2, 1, 2],
+            [2, 2, 0],
+            [2, 2, 1],
+            [2, 2, 2],
+            [2, 3, 0],
+            [2, 3, 1],
+            [2, 3, 2],
+            [3, 0, 0],
+            [3, 0, 1],
+            [3, 0, 2],
+            [3, 1, 0],
+            [3, 1, 1],
+            [3, 1, 2],
+            [3, 2, 0],
+            [3, 2, 1],
+            [3, 2, 2],
+            [3, 3, 0],
+            [3, 3, 1],
+            [3, 3, 2],
+            [4, 0, 0],
+            [4, 0, 1],
+            [4, 0, 2],
+            [4, 1, 0],
+            [4, 1, 1],
+            [4, 1, 2],
+            [4, 2, 0],
+            [4, 2, 1],
+            [4, 2, 2],
+            [4, 3, 0],
+            [4, 3, 1],
+            [4, 3, 2],
+        ]
+        labels = []
+        # Also test weird ordering of labels
+        for i in range(subsystem_dims[0]):
+            for j in range(subsystem_dims[1]):
+                for k in range(subsystem_dims[2]):
+                    labels.append([k, j, i])
+        random.shuffle(labels)
+        self.compare_dressed_states_freqs_evals(
+            H0=H0,
+            labels=labels,
+            subsystem_dims=subsystem_dims,
+            dressed_states=dressed_states,
+            dressed_frequencies=dressed_freqs,
+            dressed_evals=dressed_evals,
+        )
+        self.argmax_label_test(dressed_states, subsystem_dims)
+
+        # test_dressed_states, test_dressed_freqs, test_dressed_evals = test_dresser(H0, subsystem_dims)
+
+        # dressed_states_manual = {'0': [1.,0.,0.], '1': [0.,1.,0.], '2':[0.,0.,1.]}
+        # dressed_freqs_manual = [5.104999999498378]
+        # dressed_evals_manual = {'0': 0., '1': 32.07566099, '2': 62.04431863}
+
+        # self.assertTrue(dressed_states_manual.keys() == dressed_states.keys())
+        # self.assertAllClose(list(dressed_states_manual.values()), list(dressed_states.values()))
+        # self.assertTrue(dressed_evals_manual.keys() == dressed_evals.keys())
+        # self.assertAllClose(list(dressed_evals_manual.values()), list(dressed_evals.values()))
+        # self.assertAllClose(dressed_freqs_manual, dressed_freqs)
 
     def test_convert_to_dressed_three_q_states_high(self):
         """Test convert_to_dressed with a 3 qubit system with different levels per qubit."""
         subsystem_dims = [6, 8, 4]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals, = convert_to_dressed(
-            H0, subsystem_dims
+        (
+            dressed_states,
+            dressed_freqs,
+            dressed_evals,
+        ) = convert_to_dressed(H0, subsystem_dims)
+
+        self.argmax_label_test(dressed_states, subsystem_dims)
+
+        labels = []
+        # Also test weird ordering of labels
+        for i in range(subsystem_dims[0]):
+            for j in range(subsystem_dims[1]):
+                for k in range(subsystem_dims[2]):
+                    labels.append([k, j, i])
+        random.shuffle(labels)
+
+        self.compare_dressed_states_freqs_evals(
+            H0=H0,
+            labels=labels,
+            subsystem_dims=subsystem_dims,
+            dressed_states=dressed_states,
+            dressed_frequencies=dressed_freqs,
+            dressed_evals=dressed_evals,
         )
 
-        self.dressed_tester(dressed_states, subsystem_dims)
+    def test_convert_to_dressed_three_q_states_vary(self):
+        """Test convert_to_dressed with a 3 qubit system with different levels per qubit."""
+        subsystem_dims = [9, 8, 4]
+        H0 = generate_ham(subsystem_dims=subsystem_dims)
+        (
+            dressed_states,
+            dressed_freqs,
+            dressed_evals,
+        ) = convert_to_dressed(H0, subsystem_dims)
 
+        self.argmax_label_test(dressed_states, subsystem_dims)
 
+        labels = []
+        # Also test weird ordering of labels
+        for i in range(subsystem_dims[0]):
+            for j in range(subsystem_dims[1]):
+                for k in range(subsystem_dims[2]):
+                    labels.append([k, j, i])
+        random.shuffle(labels)
+
+        self.compare_dressed_states_freqs_evals(
+            H0=H0,
+            labels=labels,
+            subsystem_dims=subsystem_dims,
+            dressed_states=dressed_states,
+            dressed_frequencies=dressed_freqs,
+            dressed_evals=dressed_evals,
+        )
 class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
     """
     How do we test compute probabilities? We can just take our systems
