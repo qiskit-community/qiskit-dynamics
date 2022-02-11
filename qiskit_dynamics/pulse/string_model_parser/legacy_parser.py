@@ -79,7 +79,7 @@ class HamiltonianParser:
         # convert to reverse Polish notation
         for ham in self.h_str:
             if len(re.findall(r"\|\|", ham)) > 1:
-                raise Exception("Multiple time-dependent terms in %s" % ham)
+                raise Exception(f"Multiple time-dependent terms in {ham}")
             p_td = re.search(r"(?P<opr>[\S]+)\|\|(?P<ch>[\S]+)", ham)
 
             # find time-dependent term
@@ -122,7 +122,7 @@ class HamiltonianParser:
             p_sums = list(sum_str.finditer(ham))
             p_brks = list(brk_str.finditer(ham))
             if len(p_sums) != len(p_brks):
-                raise Exception("Missing correct number of brackets in %s" % ham)
+                raise Exception(f"Missing correct number of brackets in {ham}")
 
             # find correct sum-bracket correspondence
             if any(p_sums) == 0:
@@ -149,7 +149,7 @@ class HamiltonianParser:
                             if sub.isdecimal():
                                 pattern[p.group()] = sub
                             else:
-                                pattern[p.group()] = "{%s}" % sub
+                                pattern[p.group()] = f"{{{sub}}}"
                     for key, val in pattern.items():
                         trg_s = trg_s.replace(key, val)
                     _temp.append(
@@ -178,7 +178,7 @@ class HamiltonianParser:
                     if key in ["QubOpr", "CavOpr"]:
                         _key = key
                         _name = p.group()
-                        if p.group() not in self.__str2qopr.keys():
+                        if p.group() not in self.__str2qopr:
                             idx = int(p.group("idx"))
                             if qubit_list is not None and idx not in qubit_list:
                                 return 0, None
@@ -188,7 +188,7 @@ class HamiltonianParser:
                     elif key == "PrjOpr":
                         _key = key
                         _name = p.group()
-                        if p.group() not in self.__str2qopr.keys():
+                        if p.group() not in self.__str2qopr:
                             idx = int(p.group("idx"))
                             name = "P"
                             opr = operator_from_string(name, idx, self.subsystem_dims)
@@ -210,7 +210,7 @@ class HamiltonianParser:
                     prev = _key
                     break
             else:
-                raise Exception("Invalid input string %s is found" % op_str)
+                raise Exception(f"Invalid input string {op_str} is found")
 
         # split coefficient
         coef = ""
@@ -222,7 +222,7 @@ class HamiltonianParser:
                         token_list = token_list[ii + 1 :]
                         break
             else:
-                raise Exception("Invalid order of operators and coefficients in %s" % op_str)
+                raise Exception(f"Invalid order of operators and coefficients in {op_str}")
 
         return coef, token_list
 
@@ -251,7 +251,7 @@ class HamiltonianParser:
                 if pop.type == "Func":
                     queue.append(pop)
             else:
-                raise Exception("Invalid token %s is found" % token.name)
+                raise Exception(f"Invalid token {token.name} is found")
 
         while any(stack):
             queue.append(stack.pop(-1))
@@ -283,10 +283,10 @@ class HamiltonianParser:
             elif token.type in ["Func", "Ext"]:
                 stack.append(apply_func(token.name, stack.pop(-1)))
             else:
-                raise Exception("Invalid token %s is found" % token.name)
+                raise Exception(f"Invalid token {token.name} is found")
 
         if len(stack) > 1:
-            raise Exception("Invalid mathematical operation in " % tokens)
+            raise Exception("Invalid mathematical operation in ")
 
         return stack[0]
 
@@ -347,7 +347,7 @@ def parse_binop(op_str, operands={}, cast_str=True):
                     retv = 0
             break
     else:
-        raise Exception("Invalid string %s" % op_str)
+        raise Exception(f"Invalid string {op_str}")
 
     if cast_str:
         return str(retv)

@@ -155,7 +155,7 @@ def single_operator_from_string(op_label: str, dim: int) -> np.ndarray:
 
     op_func = __operdict.get(op_label, None)
     if op_func is None:
-        raise QiskitError("String {} does not correspond to a known operator.".format(op_label))
+        raise QiskitError(f"String {op_label} does not correspond to a known operator.")
 
     return op_func(dim)
 

@@ -126,8 +126,8 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
 
         static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
         self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
-        self.assertTrue(ham_ops == [])
-        self.assertTrue(channels == [])
+        self.assertTrue(not ham_ops)
+        self.assertTrue(not channels)
         self.assertTrue(subsystem_dims == {0: 2})
 
     def test_simple_single_q_system(self):

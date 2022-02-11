@@ -197,7 +197,7 @@ def parse_hamiltonian_dict(
     evaluated_ops = []
     for op, coeff in system:
         # pylint: disable=exec-used
-        exec("evaluated_coeff = %s" % coeff, globals(), local_vars)
+        exec(f"evaluated_coeff = {coeff}", globals(), local_vars)
         evaluated_ops.append(local_vars["evaluated_coeff"] * op)
 
     # merge terms based on channel
@@ -254,13 +254,11 @@ def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
 
     # verify that if terms in h_str have the divider ||, then the channels are in the valid format
     for term in hamiltonian_dict["h_str"]:
-        malformed_text = """Term '{}' does not conform to required string format.
+        malformed_text = f"""Term '{term}' does not conform to required string format.
                             Channels may only be specified in the format
                             'aa||Cxx', where 'aa' specifies an operator,
                             C is a valid channel character,
-                            and 'xx' is a string of digits.""".format(
-            term
-        )
+                            and 'xx' is a string of digits."""
 
         # if two vertical bars used together, check if channels in correct format
         if term.count("|") == 2 and term.count("||") == 1:
