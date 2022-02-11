@@ -47,7 +47,7 @@ def scipy_solve_ivp(
         y0: Initial state.
         method: Solver method.
         t_eval: Points at which to evaluate the solution.
-        kwargs: Optional arguments to be passed to ``solve_ivp``.
+        **kwargs: Optional arguments to be passed to ``solve_ivp``.
 
     Returns:
         OdeResult: results object
