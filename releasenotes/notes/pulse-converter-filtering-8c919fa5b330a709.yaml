@@ -1,0 +1,9 @@
+---
+upgrade:
+  - |
+    The ``InstructionsToSignals`` converter has been updated to allow channel
+    filtering. The converter now accepts an optional argument named ``channels``.
+    It makes the converter return only those channels, specified by name such
+    as "d0", in the same order in which they are given. Furthermore, the
+    ``carriers`` argument is updated to a dictionary to make the mapping from
+    channel names to carrier frequencies more obvious.
