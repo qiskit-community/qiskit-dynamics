@@ -13,21 +13,27 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Generate operators from string."""
+"""Generate operators from string.
 
+This file is meant for internal use and may be changed at any point.
+"""
+
+from typing import Dict
 import numpy as np
 
 from qiskit import QiskitError
 
 
-def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: dict) -> np.ndarray:
+def operator_from_string(
+    op_label: str, subsystem_label: int, subsystem_dims: Dict[int, int]
+) -> np.ndarray:
     r"""Generates a dense operator acting on a single subsystem, tensoring
     identities for remaining subsystems.
 
     The single system operator is specified via a string in ``op_label``,
     the list of subsystems and their corresponding dimensions are specified in the
     dictionary ``subsystem_dims``, with system label being the keys specified as ``int``s,
-    and system dimensions the values also specified as ``int``s, and ``subsystem_index``
+    and system dimensions the values also specified as ``int``s, and ``subsystem_label``
     indicates which subsystem the operator specified by ``op_label`` acts on.
 
     Accepted ``op_labels`` are:
@@ -53,15 +59,21 @@ def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: di
 
     Args:
         op_label: The string labelling the single system operator.
-        subsystem_index: Index of the subsystem to apply the operator.
-        subsystem_dims: dictionary of subsystem labels and dimensions.
+        subsystem_label: Index of the subsystem to apply the operator.
+        subsystem_dims: Dictionary of subsystem labels and dimensions.
 
     Returns:
         np.ndarray corresponding to the specified operator.
+
+    Raises:
+        QiskitError: If op_label is invalid.
     """
 
     # construct single system operator
-    out = single_operator_from_string(op_label, subsystem_dims[subsystem_index])
+    op_func = __operdict.get(op_label, None)
+    if op_func is None:
+        raise QiskitError(f"String {op_label} does not correspond to a known operator.")
+    out = op_func(subsystem_dims[subsystem_label])
 
     # sort subsystem labels and dimensions
     sorted_subsystem_keys, sorted_subsystem_dims = zip(
@@ -69,14 +81,14 @@ def operator_from_string(op_label: str, subsystem_index: int, subsystem_dims: di
     )
 
     # get subsystem location in ordered list
-    subsystem_location = sorted_subsystem_keys.index(subsystem_index)
+    subsystem_location = sorted_subsystem_keys.index(subsystem_label)
 
-    # tensor identity on right if subsystem_index is not first subsystem
+    # tensor identity on right if subsystem_label is not first subsystem
     if subsystem_location != 0:
         total_dim = np.prod(sorted_subsystem_dims[:subsystem_location])
         out = np.kron(out, ident(total_dim))
 
-    # tensor identity on left if subsystem_index not the last subsystem
+    # tensor identity on left if subsystem_label not the last subsystem
     if subsystem_location + 1 != len(sorted_subsystem_keys):
         total_dim = np.prod(sorted_subsystem_dims[(subsystem_location + 1) :])
         out = np.kron(ident(total_dim), out)
@@ -134,41 +146,3 @@ __operdict = {
     "O": N,
     "I": ident,
 }
-
-
-def single_operator_from_string(op_label: str, dim: int) -> np.ndarray:
-    """Generate a single operator from a string.
-
-    Helper function for operator_from_string, see its documentation for
-    label interpretation.
-
-    Args:
-        op_label: String representing operator.
-        dim: Dimension of operator.
-
-    Returns:
-        np.ndarray
-
-    Raises:
-        QiskitError: If op_label doesn't correspond to a known operator.
-    """
-
-    op_func = __operdict.get(op_label, None)
-    if op_func is None:
-        raise QiskitError(f"String {op_label} does not correspond to a known operator.")
-
-    return op_func(dim)
-
-
-def dag(op: np.ndarray) -> np.ndarray:
-    """Apply dagger."""
-    return np.conjugate(np.transpose(op))
-
-
-# pylint: disable=invalid-name
-__funcdict = {"dag": dag}
-
-
-def apply_func(name: str, op: np.ndarray) -> np.ndarray:
-    """Apply function of given name, or do nothing if func not found"""
-    return __funcdict.get(name, lambda x: x)(op)

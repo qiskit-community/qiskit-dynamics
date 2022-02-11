@@ -13,5 +13,7 @@
 # that they have been altered from the originals.
 
 """
-String model parser functionality
+String model parser functionality.
+
+This module is meant for internal use and may be changed at any point.
 """

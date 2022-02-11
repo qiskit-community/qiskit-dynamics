@@ -13,6 +13,8 @@
 
 """
 Functionality for importing qiskit.pulse model string representation.
+
+This file is meant for internal use and may be changed at any point.
 """
 
 from typing import Tuple, List, Optional

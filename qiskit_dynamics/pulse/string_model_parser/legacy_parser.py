@@ -13,42 +13,58 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Legacy code for parsing operator strings."""
+"""Legacy code for parsing operator strings.
+
+This file is meant for internal use and may be changed at any point.
+"""
 
 import re
 import copy
+from typing import List, Dict, Tuple
 from collections import namedtuple, OrderedDict
-from .operator_from_string import operator_from_string, apply_func
+
+import numpy as np
+
+from .operator_from_string import operator_from_string
 
 
-def legacy_parser(operator_str, subsystem_dims, subsystem_list):
-    """Function wrapper for legacy parsing object."""
+def legacy_parser(
+    operator_str: List[str], subsystem_dims: Dict[int, int], subsystem_list: List[int]
+) -> List[Tuple[np.array, str]]:
+    """Function wrapper for legacy parsing object.
 
-    system = HamiltonianParser(h_str=operator_str, subsystem_dims=subsystem_dims)
-    system.parse(subsystem_list)
+    Args:
+        operator_str: List of strings in accepted format as described in
+                      string_model_parser.parse_hamiltonian_dict.
+        subsystem_dims: Dictionary mapping subsystem labels to dimensions.
+        subsystem_list: List of subsystems on which the operators are to be constructed.
+    Returns:
+        List of tuples containing pairs operators and their string coefficients.
+    """
 
-    return system.compiled
-
-
-Token = namedtuple("Token", ("type", "name"))
-
-str_elements = OrderedDict(
-    QubOpr=re.compile(r"(?P<opr>O|Sp|Sm|X|Y|Z|I)(?P<idx>[0-9]+)"),
-    PrjOpr=re.compile(r"P(?P<idx>[0-9]+),(?P<ket>[0-9]+),(?P<bra>[0-9]+)"),
-    CavOpr=re.compile(r"(?P<opr>A|C|N)(?P<idx>[0-9]+)"),
-    Func=re.compile(r"(?P<name>[a-z]+)\("),
-    Ext=re.compile(r"\.(?P<name>dag)"),
-    Var=re.compile(r"[a-z]+[0-9]*"),
-    Num=re.compile(r"[0-9.]+"),
-    MathOrd0=re.compile(r"[*/]"),
-    MathOrd1=re.compile(r"[+-]"),
-    BrkL=re.compile(r"\("),
-    BrkR=re.compile(r"\)"),
-)
+    return HamiltonianParser(h_str=operator_str, subsystem_dims=subsystem_dims).parse(
+        subsystem_list
+    )
 
 
 class HamiltonianParser:
     """Legacy object for parsing string specifications of Hamiltonians."""
+
+    Token = namedtuple("Token", ("type", "name"))
+
+    str_elements = OrderedDict(
+        QubOpr=re.compile(r"(?P<opr>O|Sp|Sm|X|Y|Z|I)(?P<idx>[0-9]+)"),
+        PrjOpr=re.compile(r"P(?P<idx>[0-9]+),(?P<ket>[0-9]+),(?P<bra>[0-9]+)"),
+        CavOpr=re.compile(r"(?P<opr>A|C|N)(?P<idx>[0-9]+)"),
+        Func=re.compile(r"(?P<name>[a-z]+)\("),
+        Ext=re.compile(r"\.(?P<name>dag)"),
+        Var=re.compile(r"[a-z]+[0-9]*"),
+        Num=re.compile(r"[0-9.]+"),
+        MathOrd0=re.compile(r"[*/]"),
+        MathOrd1=re.compile(r"[+-]"),
+        BrkL=re.compile(r"\("),
+        BrkR=re.compile(r"\)"),
+    )
 
     def __init__(self, h_str, subsystem_dims):
         """Create new quantum operator generator
@@ -59,19 +75,12 @@ class HamiltonianParser:
         """
         self.h_str = h_str
         self.subsystem_dims = {int(label): int(dim) for label, dim in subsystem_dims.items()}
-        self.__td_hams = []
-        self.__tc_hams = []
-        self.__str2qopr = {}
-
-    @property
-    def compiled(self):
-        """Return Hamiltonian terms."""
-        return self.__tc_hams + self.__td_hams
+        self.str2qopr = {}
 
     def parse(self, qubit_list=None):
         """Parse and generate Hamiltonian terms."""
-        self.__td_hams = []
-        self.__tc_hams = []
+        td_hams = []
+        tc_hams = []
 
         # expand sum
         self._expand_sum()
@@ -95,7 +104,7 @@ class HamiltonianParser:
                 token = self._shunting_yard(token)
                 _td = self._token2qobj(token), td
 
-                self.__td_hams.append(_td)
+                td_hams.append(_td)
             else:
                 coef, token = self._tokenizer(ham, qubit_list)
                 if token is None:
@@ -107,7 +116,9 @@ class HamiltonianParser:
 
                 _tc = self._token2qobj(token), coef
 
-                self.__tc_hams.append(_tc)
+                tc_hams.append(_tc)
+
+        return tc_hams + td_hams
 
     def _expand_sum(self):
         """Takes a string-based Hamiltonian list and expands the _SUM action items out."""
@@ -171,28 +182,28 @@ class HamiltonianParser:
         token_list = []
         prev = "none"
         while any(_op_str):
-            for key, parser in str_elements.items():
+            for key, parser in HamiltonianParser.str_elements.items():
                 p = parser.match(_op_str)
                 if p:
                     # find quantum operators
                     if key in ["QubOpr", "CavOpr"]:
                         _key = key
                         _name = p.group()
-                        if p.group() not in self.__str2qopr:
+                        if p.group() not in self.str2qopr:
                             idx = int(p.group("idx"))
                             if qubit_list is not None and idx not in qubit_list:
                                 return 0, None
                             name = p.group("opr")
                             opr = operator_from_string(name, idx, self.subsystem_dims)
-                            self.__str2qopr[p.group()] = opr
+                            self.str2qopr[p.group()] = opr
                     elif key == "PrjOpr":
                         _key = key
                         _name = p.group()
-                        if p.group() not in self.__str2qopr:
+                        if p.group() not in self.str2qopr:
                             idx = int(p.group("idx"))
                             name = "P"
                             opr = operator_from_string(name, idx, self.subsystem_dims)
-                            self.__str2qopr[p.group()] = opr
+                            self.str2qopr[p.group()] = opr
                     elif key in ["Func", "Ext"]:
                         _name = p.group("name")
                         _key = key
@@ -205,7 +216,7 @@ class HamiltonianParser:
                     else:
                         _name = p.group()
                         _key = key
-                    token_list.append(Token(_key, _name))
+                    token_list.append(HamiltonianParser.Token(_key, _name))
                     _op_str = _op_str[p.end() :]
                     prev = _key
                     break
@@ -263,7 +274,7 @@ class HamiltonianParser:
         stack = []
         for token in tokens:
             if token.type in ["QubOpr", "PrjOpr", "CavOpr"]:
-                stack.append(self.__str2qopr[token.name])
+                stack.append(self.str2qopr[token.name])
             elif token.type == "Num":
                 stack.append(float(token.name))
             elif token.type in ["MathUnitary"]:
@@ -281,12 +292,15 @@ class HamiltonianParser:
                 elif token.name == "/":
                     stack.append(op1 / op2)
             elif token.type in ["Func", "Ext"]:
-                stack.append(apply_func(token.name, stack.pop(-1)))
+                if token.name == "dag":
+                    stack.append(np.conjugate(np.transpose(stack.pop(-1))))
+                else:
+                    raise Exception(f"Invalid token {token.name} of type Func, Ext.")
             else:
-                raise Exception(f"Invalid token {token.name} is found")
+                raise Exception(f"Invalid token {token.name} is found.")
 
         if len(stack) > 1:
-            raise Exception("Invalid mathematical operation in ")
+            raise Exception("Invalid mathematical operation in string.")
 
         return stack[0]
 

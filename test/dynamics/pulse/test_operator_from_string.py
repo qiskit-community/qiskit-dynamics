@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Tests for pulse.operator_from_string
+Tests for pulse.operator_from_string.
 """
 
 import numpy as np
