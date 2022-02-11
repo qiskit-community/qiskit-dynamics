@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Tests for functions in ArrayPolynomial."""
+"""Tests for array_polynomial.py."""
 
 import numpy as np
 from ddt import ddt, data, unpack
@@ -24,8 +24,7 @@ from qiskit_dynamics.perturbation import Multiset, ArrayPolynomial
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 try:
-    from jax import jit
-    from jax import grad, jit
+    from jax import jit, grad
 except ImportError:
     pass
 
