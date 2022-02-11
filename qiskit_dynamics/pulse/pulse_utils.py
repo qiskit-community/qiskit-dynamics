@@ -11,12 +11,32 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
+"""
+Pulse utils for computing dressed states and probabilities
+"""
+
 import scipy.linalg as la
 import numpy as np
+from typing import Optional, Union
+from qiskit import QiskitError
 
+def labels_generator(
+    subsystem_dims: list[int], array: Optional[bool] = False
+) -> list[Union[str, list[int]]]:
+    """Generate labels for a given system in a traditional order incrementing the
+    first qubit through all its levels, then incrememnting the next qubit once and
+    going back up the levels with the previous qubit, and so on. Can return either
+    the string or array version of the labels. The result for a 2x 3 level qubit system
+    is ['01', '02', '10', '11', '12', '20', '21', '22'].
+    Args:
+        subsystem_dims (list[int]): The dimensions of each subsystem of the general system.
+        array (Optional[bool], optional): Flag to determine type of label. Defaults to False.
 
-def labels_generator(subsystem_dims, array=False):
+    Returns:
+        list[Union[str, list[int]]]: List of system labels either in a string or list format.
+    """
     labels = [[0 for i in range(len(subsystem_dims))]]
+
     for subsys_ind, dim in enumerate(subsystem_dims):
         new_labels = []
         for state in range(dim)[1:]:
@@ -30,17 +50,37 @@ def labels_generator(subsystem_dims, array=False):
                     new_label[subsys_ind] = state
                     new_labels.append(new_label)
         labels += new_labels
+
     for l in labels:
         l.reverse()
+
     if not array:
         labels = [[str(x) for x in lab] for lab in labels]
         labels = ["".join(lab) for lab in labels]
+
     return labels
 
 
-def convert_to_dressed(static_ham, subsystem_dims):
+def convert_to_dressed(
+    static_ham: np.ndarray, subsystem_dims: list[int]
+) -> list[dict[str : np.ndarray], list[float], dict[str:float]]:
+    """Generate the dressed states for a given static hamiltonian. For each eigenvalue
+    of the hamiltonian, match it to an undressed state by finding the argmax of the
+    eigenvalue and mapping it to a corresponding undressed label. In addition, calculate
+    the dressed frequencies for each subsystem.
 
-    # Remap eigenvalues and eigenstates
+    Args:
+        static_ham: Time-independent hamiltonian for the system.
+        subsystem_dims: Dimensions of the subsystems composing the system.
+
+    Raises:
+        QiskitError: Multiple eigenvalues map to the same dressed state.
+        QiskitError: No dressed state found for a first excited or base state.
+
+    Returns:
+        a dictionary of dressed states, a list of dressed frequencies, a dictionary of dressed eigenvalues
+    """
+
     evals, estates = la.eigh(static_ham)
 
     labels = labels_generator(subsystem_dims)
@@ -49,7 +89,6 @@ def convert_to_dressed(static_ham, subsystem_dims):
     dressed_evals = {}
     dressed_freqs = {}
 
-    dressed_list = []
 
     for i, estate in enumerate(estates.T):
 
@@ -57,14 +96,13 @@ def convert_to_dressed(static_ham, subsystem_dims):
         lab = labels[pos]
 
         if lab in dressed_states.keys():
-            raise NotImplementedError("Found overlap of dressed states")
+            raise QiskitError("Found overlap of dressed states")
 
         dressed_states[lab] = estate
         dressed_evals[lab] = evals[i]
-        dressed_list.append(lab)
 
     dressed_freqs = []
-    for subsys, dim in enumerate(subsystem_dims):
+    for subsys, _ in enumerate(subsystem_dims):
         lab_excited = "".join(["0" if i != subsys else "1" for i in range(len(subsystem_dims))])
         # could do lab ground if we don't want to assume labels[0] is '0000'
         # lab_ground = ''.join(['0' for i in range(len(subsystem_dims))])
@@ -72,116 +110,69 @@ def convert_to_dressed(static_ham, subsystem_dims):
         try:
             energy = dressed_evals[lab_excited] - dressed_evals[labels[0]]
         except:
-            raise Error("missing eigenvalue for excited or base state")
+            raise QiskitError("missing eigenvalue for a first excited or base state")
 
         dressed_freqs.append(energy / (2 * np.pi))
 
-    return dressed_states, dressed_freqs, dressed_evals, dressed_list
+    # add testing for dressed frequencies
+    # Should dressed frequencies be a dict as well? -- YES -- label by subsystem
+    return dressed_states, dressed_freqs, dressed_evals
 
 
-def compute_probabilities(state, dressed_states: dict):
-    # DOUBLE CHECK THIS LINE WITH DAN -- remember issues with inner product
-    probs = {
-        label: (np.inner(dressed_states[label].conj(), state)) ** 2
-        for label in dressed_states.keys()
-    }
+def compute_probabilities(state: Union[np.ndarray, list], basis_states: dict) -> dict[str:float]:
+    """Compute the probabilities for each state occupation using the formula for each basis state:
+        For each basis state d, given input state vector s, we have the probability
+       .. math::
+        P(d) = (d^* \cdot s)^2
+
+        P(d) 
+        (density matrix * (matmul) dressed state).conj() * dressed_state
+        real(P(d))
+
+    Args:
+        state (Union[np.ndarray, list]): State vector for current state of system.
+        dressed_states (dict): Dressed state dictionary for system.
+
+    Returns:
+        dict[str: float]: Dictionary of probabilities for each dressed state.
+    """
+
+    # Potential input types, 1d state vector, 2d ndarray -- density matrix, terra statevector class, density matrix class (terra)
+    # might be able to just state=np.array()
+
+    # Also need testing for other types
+    state = np.array(state)
+    if state.ndim == 1:
+        probs = {
+            label: (np.abs(np.inner(basis_states[label].conj(), state) ** 2)).real
+            for label in basis_states.keys()
+        }
+    # if state.ndim == 2:
+    #     probs = {
+    #         label: ()
+    #         label: (np.abs(np.inner(basis_states[label].conj(), state) ** 2)).real()
+    #         for label in basis_states.keys()
+    #     }
+    else: 
+        raise QiskitError("State has too many dimensions")
+
+    sum_probs = sum(list(probs.values()))
+    probs = {key: value/sum_probs for key, value in probs.items()}
 
     return probs
 
 
-def sample_counts(probs, n_shots):
-    return np.random.choice(list(probs.keys()), size=n_shots, p=list(probs.values()))
+def sample_counts(probs: dict[str:float], n_shots: int, seed: Optional[int] = None) -> list[str]:
+    """Sample the probability distribution `n_shot` times.
 
+    Args:
+        probs: Probability of dressed state occupation.
+        n_shots: Number of samples
+        seed: seed for random choice
 
-def generate_ham(subsystem_dims):
-    dim = subsystem_dims[0]
-    if len(subsystem_dims) > 1:
-        dim1 = subsystem_dims[1]
-        ident2q = np.eye(dim * dim1)
-        a1 = np.diag(np.sqrt(np.arange(1, dim1)), 1)
-        adag1 = a1.transpose()
-        N_1 = np.diag(np.arange(dim1))
-        ident1 = np.eye(dim1)
-    if len(subsystem_dims) == 3:
-        dim2 = subsystem_dims[2]
-        ident3q = np.eye(dim * dim1 * dim2)
-        a2 = np.diag(np.sqrt(np.arange(1, dim2)), 1)
-        adag2 = a2.transpose()
-        N_2 = np.diag(np.arange(dim2))
-        ident2 = np.eye(dim2)
+    Returns:
+        list of samples.
+    """
+    rng = np.random.default_rng(seed)
+    return rng.choice(list(probs.keys()), size=n_shots, p=list(probs.values()))
 
-    w_c = 2 * np.pi * 5.105
-    w_t = 2 * np.pi * 5.033
-    w_2 = 2 * np.pi * 5.53
-    alpha_c = 2 * np.pi * (-0.33534)
-    alpha_t = 2 * np.pi * (-0.33834)
-    alpha_2 = 2 * np.pi * (-0.33234)
-    J = 2 * np.pi * 0.002
-    J2 = 2 * np.pi * 0.0021
-
-    a = np.diag(np.sqrt(np.arange(1, dim)), 1)
-    adag = a.transpose()
-    N = np.diag(np.arange(dim))
-    ident = np.eye(dim)
-
-    if len(subsystem_dims) == 1:
-        # operators on the control qubit (first tensor factor)
-        N0 = N
-
-        H0 = w_c * N0 + 0.5 * alpha_c * N0 @ (N0 - ident)
-
-    elif len(subsystem_dims) == 2:
-
-        # operators on the control qubit (first tensor factor)
-        a0 = np.kron(a, ident1)
-        adag0 = np.kron(adag, ident1)
-        N0 = np.kron(N, ident1)
-
-        # operators on the target qubit (first tensor factor)
-        a1 = np.kron(ident, a1)
-        adag1 = np.kron(ident, adag1)
-        N1 = np.kron(ident, N_1)
-        H0 = (
-            w_c * N0
-            + 0.5 * alpha_c * N0 @ (N0 - ident2q)
-            + w_t * N1
-            + 0.5 * alpha_t * N1 @ (N1 - ident2q)
-            + J * (a0 @ adag1 + adag0 @ a1)
-        )
-    elif len(subsystem_dims) == 3:
-
-        # operators on the control qubit (first tensor factor)
-        a0 = np.kron(a, ident1)
-        a0 = np.kron(a0, ident2)
-        adag0 = np.kron(adag, ident1)
-        adag0 = np.kron(adag0, ident2)
-        N0 = np.kron(N, ident1)
-        N0 = np.kron(N0, ident2)
-
-        # operators on the target qubit (first tensor factor)
-        a1 = np.kron(ident, a1)
-        a1 = np.kron(a1, ident2)
-        adag1 = np.kron(ident, adag1)
-        adag1 = np.kron(adag1, ident2)
-        N1 = np.kron(ident, N_1)
-        N1 = np.kron(N_2, N1)
-
-        # operators on the third qubit (first tensor factor)
-        a2 = np.kron(ident1, a2)
-        a2 = np.kron(ident, a2)
-        adag2 = np.kron(ident1, adag2)
-        adag2 = np.kron(ident, adag2)
-        N2 = np.kron(ident1, N_2)
-        N2 = np.kron(ident, N2)
-
-        H0 = (
-            w_c * N0
-            + 0.5 * alpha_c * N0 @ (N0 - ident3q)
-            + w_t * N1
-            + 0.5 * alpha_t * N1 @ (N1 - ident3q)
-            + w_2 * N2
-            + 0.5 * alpha_2 * N2 @ (N2 - ident3q)
-            + J * (a0 @ adag1 + adag0 @ a1)
-            + J2 * (a1 @ adag2 + adag1 @ a2)
-        )
-    return H0
