@@ -19,19 +19,16 @@ Perturbation Theory (:mod:`qiskit_dynamics.perturbation`)
 
 .. currentmodule:: qiskit_dynamics.perturbation
 
-This module contains tools for computing and utilizing time-dependent perturbation theory terms.
-Due to the advanced nature of this topic, the documentation below outlines the
-mathematical notation and data-structure conventions of the module, and also gives
-a detailed overview of the purposes of the user-facing components.
+This module contains tools for computing and utilizing perturbation theory terms.
 
 
-Multisets and power series
-==========================
+Power series
+============
 
 Perturbative expansions are typically expressed as power series decompositions,
 and the conventions for representing array-valued power series in this module are detailed here.
 
-Mathematically, we represent an array-valued power-series using a
+Mathematically, array-valued power-series are represented using a
 *multiset* notation. Let :math:`\mathcal{I}_k(r)` represent the set of multisets of
 size :math:`k` whose elements are drawn from :math:`\{1, \dots, r\}`. Furthermore, given
 :math:`r` scalars :math:`c_1, \dots, c_r`, and a multiset :math:`I \in \mathcal{I}_k(r)`,

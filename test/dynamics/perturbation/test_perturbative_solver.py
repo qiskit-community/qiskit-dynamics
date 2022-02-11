@@ -222,7 +222,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         self.assertTrue(
             np.abs(
                 1.0
-                - np.abs((dyson_yf.conj().transpose() @ self.yf_2q).sum()) ** 2 / (self.dim_2q**4)
+                - np.abs((dyson_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4)
             )
             < 1e-6
         )
@@ -240,7 +240,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         self.assertTrue(
             np.abs(
                 1.0
-                - np.abs((magnus_yf.conj().transpose() @ self.yf_2q).sum()) ** 2
+                - np.abs((magnus_yf.conj() * self.yf_2q).sum()) ** 2
                 / (self.dim_2q**4)
             )
             < 1e-6
