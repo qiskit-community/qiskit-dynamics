@@ -13,7 +13,7 @@
 
 """Tests for pulse_utils.py."""
 
-from qiskit.quantum_info import Statevector
+from qiskit.quantum_info import Statevector, DensityMatrix
 import random
 from re import sub
 import numpy as np
@@ -64,8 +64,6 @@ def nq_basis_vec(inds, subsystem_dims):
     vecs = []
     for ind, dim in zip(inds, subsystem_dims):
         vecs.append(basis_vec(ind, dim))
-    # vec_a = basis_vec(inda, dimension)
-    # vec_b = basis_vec(indb, dimension)
     output = vecs[0]
     for vec in vecs[1:]:
         output = np.kron(output, vec)
@@ -79,8 +77,6 @@ def get_dressed_state_index(inds, subsystem_dims, evectors):
 
 
 def get_dressed_state_and_energy_nq(evals, inds, subsystem_dims, evecs):
-    # inds = [0,1,1]
-    # subsystem_dims = [3,4,5]
     ind = get_dressed_state_index(inds, subsystem_dims, evecs)
     return evals[ind], evecs[ind]
 
@@ -215,8 +211,6 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
     def compare_dressed_states_freqs_evals(
         self, H0, labels, subsystem_dims, dressed_states, dressed_frequencies, dressed_evals
     ):
-        # NOTE: Remember that subsystem dimensions are passed intuitively, qubit 0, 1, 2... (maybe could switch this)
-        # However in order to match them up for `get_dressed_state_and_energy_nq` we need to reverse them
 
         subsystem_dims_reverse = subsystem_dims.copy()
         subsystem_dims_reverse.reverse()
@@ -248,7 +242,6 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
 
     def test_convert_to_dressed_single_q(self):
         """Test convert_to_dressed with a single 3 level qubit system."""
-        # How to test dressed frequencies without just rewriting my code?
 
         subsystem_dims = [3]
         H0 = generate_ham(subsystem_dims)
@@ -271,7 +264,7 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
 
     def test_convert_to_dressed_two_q_states(self):
         """Test convert_to_dressed with a 2 qubit system with 3 levels per qubit."""
-        """also test state and energy using alternative method"""
+        """Test state and energy using alternative method"""
         subsystem_dims = [3, 3]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
         (
@@ -283,19 +276,18 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         dim = subsystem_dims[0]
         evals, evectors = np.linalg.eigh(H0)
 
-        E00, dressed00 = get_dressed_state_and_energy_2x3(evals, 0, 0, dim, evectors.transpose())
-        E01, dressed01 = get_dressed_state_and_energy_2x3(evals, 0, 1, dim, evectors.transpose())
-        E02, dressed02 = get_dressed_state_and_energy_2x3(evals, 0, 2, dim, evectors.transpose())
-        E10, dressed10 = get_dressed_state_and_energy_2x3(evals, 1, 0, dim, evectors.transpose())
-        E11, dressed11 = get_dressed_state_and_energy_2x3(evals, 1, 1, dim, evectors.transpose())
-        E12, dressed12 = get_dressed_state_and_energy_2x3(evals, 1, 2, dim, evectors.transpose())
-        E20, dressed20 = get_dressed_state_and_energy_2x3(evals, 2, 0, dim, evectors.transpose())
-        E21, dressed21 = get_dressed_state_and_energy_2x3(evals, 2, 1, dim, evectors.transpose())
-        E22, dressed22 = get_dressed_state_and_energy_2x3(evals, 2, 2, dim, evectors.transpose())
+        E00, dressed00 = get_dressed_state_and_energy_2x3(evals, 0, 0, dim, evectors)
+        E01, dressed01 = get_dressed_state_and_energy_2x3(evals, 0, 1, dim, evectors)
+        E02, dressed02 = get_dressed_state_and_energy_2x3(evals, 0, 2, dim, evectors)
+        E10, dressed10 = get_dressed_state_and_energy_2x3(evals, 1, 0, dim, evectors)
+        E11, dressed11 = get_dressed_state_and_energy_2x3(evals, 1, 1, dim, evectors)
+        E12, dressed12 = get_dressed_state_and_energy_2x3(evals, 1, 2, dim, evectors)
+        E20, dressed20 = get_dressed_state_and_energy_2x3(evals, 2, 0, dim, evectors)
+        E21, dressed21 = get_dressed_state_and_energy_2x3(evals, 2, 1, dim, evectors)
+        E22, dressed22 = get_dressed_state_and_energy_2x3(evals, 2, 2, dim, evectors)
 
         other_freqs = [E01 / (2 * np.pi), E10 / (2 * np.pi)]
 
-        # NOTE: Dressed frequencies coming out as a list corresponding to subsystem_dims is best I think
         self.assertAllClose(dressed_freqs, other_freqs)
 
         if dressed00[np.argmax(np.abs(dressed00))] < 0:
@@ -318,8 +310,8 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
             dressed22 = -1 * dressed22
 
         dressed_states = {
-            key: (-1 * eval) if eval[np.argmax(np.abs(eval))] < 0 else eval
-            for key, eval in dressed_states.items()
+            key: (-1 * estate) if estate[np.argmax(np.abs(estate))] < 0 else estate
+            for key, estate in dressed_states.items()
         }
 
         self.assertAllClose(dressed00, dressed_states["00"])
@@ -355,7 +347,7 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         ) = convert_to_dressed(H0, subsystem_dims)
 
         labels = []
-        # Also test weird ordering of labels
+        # Also test random ordering of labels
         for i in range(subsystem_dims[0]):
             for j in range(subsystem_dims[1]):
                 for k in range(subsystem_dims[2]):
@@ -371,18 +363,6 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         )
         self.argmax_label_test(dressed_states, subsystem_dims)
 
-        # test_dressed_states, test_dressed_freqs, test_dressed_evals = test_dresser(H0, subsystem_dims)
-
-        # dressed_states_manual = {'0': [1.,0.,0.], '1': [0.,1.,0.], '2':[0.,0.,1.]}
-        # dressed_freqs_manual = [5.104999999498378]
-        # dressed_evals_manual = {'0': 0., '1': 32.07566099, '2': 62.04431863}
-
-        # self.assertTrue(dressed_states_manual.keys() == dressed_states.keys())
-        # self.assertAllClose(list(dressed_states_manual.values()), list(dressed_states.values()))
-        # self.assertTrue(dressed_evals_manual.keys() == dressed_evals.keys())
-        # self.assertAllClose(list(dressed_evals_manual.values()), list(dressed_evals.values()))
-        # self.assertAllClose(dressed_freqs_manual, dressed_freqs)
-
     def test_convert_to_dressed_three_q_states_high(self):
         """Test convert_to_dressed with a 3 qubit system with different levels per qubit."""
         subsystem_dims = [6, 8, 4]
@@ -396,7 +376,7 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         self.argmax_label_test(dressed_states, subsystem_dims)
 
         labels = []
-        # Also test weird ordering of labels
+        # Also test random ordering of labels
         for i in range(subsystem_dims[0]):
             for j in range(subsystem_dims[1]):
                 for k in range(subsystem_dims[2]):
@@ -425,7 +405,7 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         self.argmax_label_test(dressed_states, subsystem_dims)
 
         labels = []
-        # Also test weird ordering of labels
+        # Also test random ordering of labels
         for i in range(subsystem_dims[0]):
             for j in range(subsystem_dims[1]):
                 for k in range(subsystem_dims[2]):
@@ -549,27 +529,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         state = np.kron(state3, state2)
         state = np.kron(state, state1)
         probs = compute_probabilities(state, basis_states=dressed_states)
-        self.assertTrue(1 - sum(probs.values()) < 1e-12)
-
-        self.assertTrue(0.125 - probs["010"] < 1e-4)
-        self.assertTrue(0.125 - probs["030"] < 1e-4)
-        self.assertTrue(0.125 - probs["040"] < 1e-4)
-        self.assertTrue(0.125 - probs["050"] < 1e-4)
-        self.assertTrue(0.125 - probs["012"] < 1e-4)
-        self.assertTrue(0.125 - probs["032"] < 1e-4)
-        self.assertTrue(0.125 - probs["042"] < 1e-4)
-        self.assertTrue(0.125 - probs["052"] < 1e-4)
-
-        samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
-        counts = Counter(samples)
-        self.assertTrue(counts["010"] > 100)
-        self.assertTrue(counts["030"] > 100)
-        self.assertTrue(counts["040"] > 100)
-        self.assertTrue(counts["050"] > 100)
-        self.assertTrue(counts["012"] > 100)
-        self.assertTrue(counts["032"] > 100)
-        self.assertTrue(counts["042"] > 100)
-        self.assertTrue(counts["052"] > 100)
+        self.assertAllClose(1 - sum(probs.values()), 0)
 
         n_shots = 1000
         labels = []
@@ -582,9 +542,6 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
 
         self.compare_probs_general(H0, labels, subsystem_dims, dressed_states, state, n_shots)
 
-    # def test_compute_probabilities_density_matrix(self):
-    # def test_compute_probabilities_density_matrix_terra(self):
-    # def test_compute_probabilities_density_statevector_terra(self):
     def test_compute_and_sample_probabilities_2q_statevector_terra(self):
         "Test compute_probabilities for a 2q system"
         subsystem_dims = [3, 4]
@@ -638,7 +595,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         state2 = [0, 1, 0, 0]
         state = np.kron(state2, state1)
         state_density = np.outer(state, state)
-        state_density = Statevector(state_density)
+        state_density = DensityMatrix(state_density)
 
         probs = compute_probabilities(state_density, basis_states=dressed_states)
 
