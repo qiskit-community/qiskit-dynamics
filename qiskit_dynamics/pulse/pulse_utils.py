@@ -15,10 +15,13 @@
 Pulse utils for computing dressed states and probabilities
 """
 
-import numpy.linalg as la
-import numpy as np
+
 from typing import Optional, Union
+
+import numpy as np
+import numpy.linalg as la
 from qiskit import QiskitError
+from qiskit.quantum_info import DensityMatrix, Statevector
 
 
 def labels_generator(
@@ -30,11 +33,11 @@ def labels_generator(
     the string or array version of the labels. The result for a 2x 3 level qubit system
     is ['01', '02', '10', '11', '12', '20', '21', '22'].
     Args:
-        subsystem_dims (list[int]): The dimensions of each subsystem of the general system.
-        array (Optional[bool], optional): Flag to determine type of label. Defaults to False.
+        subsystem_dims: The dimensions of each subsystem of the general system.
+        array : Flag to determine type of label. Defaults to False.
 
     Returns:
-        list[Union[str, list[int]]]: List of system labels either in a string or list format.
+        List of system labels either in a string or list format.
     """
     labels = [[0 for i in range(len(subsystem_dims))]]
 
@@ -79,7 +82,8 @@ def convert_to_dressed(
         QiskitError: No dressed state found for a first excited or base state.
 
     Returns:
-        a dictionary of dressed states, a list of dressed frequencies, a dictionary of dressed eigenvalues
+        a dictionary of dressed states, a list of dressed frequencies, a
+        dictionary of dressed eigenvalues
     """
 
     evals, estates = la.eigh(static_ham)
@@ -95,7 +99,7 @@ def convert_to_dressed(
         pos = np.argmax(np.abs(estate))
         lab = labels[pos]
 
-        if lab in dressed_states.keys():
+        if lab in dressed_states:
             raise QiskitError("Found overlap of dressed states")
 
         dressed_states[lab] = estate
@@ -108,8 +112,8 @@ def convert_to_dressed(
         lab_excited = "".join(lab_excited)
         try:
             energy = dressed_evals[lab_excited] - dressed_evals[labels[0]]
-        except:
-            raise QiskitError("missing eigenvalue for a first excited or base state")
+        except KeyError as nokey:
+            raise QiskitError("missing eigenvalue for a first excited or base state") from nokey
 
         dressed_freqs.append(energy / (2 * np.pi))
 
@@ -118,28 +122,28 @@ def convert_to_dressed(
     return dressed_states, dressed_freqs, dressed_evals
 
 
-def compute_probabilities(state: Union[np.ndarray, list], basis_states: dict) -> dict[str:float]:
+def compute_probabilities(
+    state: Union[np.ndarray, list, Statevector, DensityMatrix], basis_states: dict
+) -> dict[str:float]:
     """Compute the probabilities for each state occupation using the formula for each basis state:
         For each basis state d, given input state vector s, we have the probability
        .. math::
-        P(d) = (d^* \cdot s)^2
+        P(d) = (d^* \\cdot s)^2
 
-        P(d)
-        (density matrix * (matmul) dressed state).conj() * dressed_state
-        real(P(d))
+        Or for a density matrix s
+       .. math::
+        P(d) = (s * (matmul) d).conj() * d
 
     Args:
-        state (Union[np.ndarray, list]): State vector for current state of system.
-        dressed_states (dict): Dressed state dictionary for system.
+        state: State vector for current state of system.
+        basis_states: Dressed state dictionary for system.
 
+    Raises:
+        QiskitError: state vector or density matrix has too many dimensions
     Returns:
         dict[str: float]: Dictionary of probabilities for each dressed state.
     """
 
-    # Potential input types, 1d state vector, 2d ndarray -- density matrix, terra statevector class, density matrix class (terra)
-    # might be able to just state=np.array()
-
-    # Also need testing for other types
     state = np.array(state)
     if state.ndim == 1:
         probs = {

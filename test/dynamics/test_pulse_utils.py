@@ -13,18 +13,19 @@
 
 """Tests for pulse_utils.py."""
 
-from qiskit.quantum_info import Statevector, DensityMatrix
 import random
-from re import sub
-import numpy as np
 from collections import Counter
+from re import sub
+
+import numpy as np
+from qiskit.quantum_info import DensityMatrix, Statevector
 from qiskit_dynamics.pulse.pulse_utils import (
     compute_probabilities,
     convert_to_dressed,
     labels_generator,
     sample_counts,
 )
-from typing import List
+
 from .common import QiskitDynamicsTestCase
 
 #%%
@@ -32,35 +33,41 @@ RANDOM_SEED = 123
 
 
 def basis_vec_orig(ind, dimension):
+    """generate basis vector for just the 2q case from a different source"""
     vec = np.zeros(dimension, dtype=complex)
     vec[ind] = 1.0
     return vec
 
 
 def two_q_basis_vec_orig(inda, indb, dimension):
+    """generate two basis vectors for just the 2q case from a different source"""
     vec_a = basis_vec(inda, dimension)
     vec_b = basis_vec(indb, dimension)
     return np.kron(vec_a, vec_b)
 
 
 def get_dressed_state_index_orig(inda, indb, dimension, evectors):
+    """get dressed state index for just the 2q case from a different source"""
     b_vec = two_q_basis_vec_orig(inda, indb, dimension)
     overlaps = np.abs(evectors @ b_vec)
     return overlaps.argmax()
 
 
 def get_dressed_state_and_energy_2x3(evals, inda, indb, dimension, evecs):
+    """get dressed state and energy for 2q case with code from a different source"""
     ind = get_dressed_state_index_orig(inda, indb, dimension, evecs)
     return evals[ind], evecs[ind]
 
 
 def basis_vec(ind, dimension):
+    """get arbitrary basis vector"""
     vec = np.zeros(dimension, dtype=complex)
     vec[ind] = 1.0
     return vec
 
 
 def nq_basis_vec(inds, subsystem_dims):
+    """get basis vectors for arbitrary system"""
     vecs = []
     for ind, dim in zip(inds, subsystem_dims):
         vecs.append(basis_vec(ind, dim))
@@ -71,21 +78,23 @@ def nq_basis_vec(inds, subsystem_dims):
 
 
 def get_dressed_state_index(inds, subsystem_dims, evectors):
+    """get dressed state index for arbitrary system"""
     b_vec = nq_basis_vec(inds, subsystem_dims)
     overlaps = np.abs(evectors @ b_vec)
     return overlaps.argmax()
 
 
 def get_dressed_state_and_energy_nq(evals, inds, subsystem_dims, evecs):
+    """get dressed state and energy for arbitrary system"""
     ind = get_dressed_state_index(inds, subsystem_dims, evecs)
     return evals[ind], evecs[ind]
 
 
-def generate_ham(subsystem_dims: List[int]) -> np.ndarray:
+def generate_ham(subsystem_dims: list[int]) -> np.ndarray:
     """Generate a hamiltonian of up to 3 subsystems with arbitrary dimensions and preset variables.
 
     Args:
-        subsystem_dims (List[int]): Dimensions of the subsystems of the hamiltonian.
+        subsystem_dims (list[int]): Dimensions of the subsystems of the hamiltonian.
 
     Returns:
         np.ndarray: Some hamiltonian.
@@ -193,6 +202,8 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
     def assertDictClose(self, dict1, dict2):
+        """Assert dictionary keys contain all the same elements and that all
+        elements are equivalent with np.allclose"""
 
         self.assertTrue(set(dict1.keys()) == set(dict2.keys()))
 
@@ -200,17 +211,20 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
             self.assertAllClose(dict1[key], dict2[key])
 
     def argmax_label_test(self, dressed_states, subsystem_dims):
+        """Test that the maximal elements of the dressed states correspond
+        to the label of the dressed state"""
         labels = labels_generator(subsystem_dims, array=True)
         str_labels = labels_generator(subsystem_dims, array=False)
         for str_label, label in zip(str_labels, labels):
             if str_label in dressed_states.keys():
-                id = np.argmax(np.abs(dressed_states[str_label]))
-                labels[id]
-                self.assertTrue((labels[id] == label))
+                lab_id = np.argmax(np.abs(dressed_states[str_label]))
+                self.assertTrue((labels[lab_id] == label))
 
     def compare_dressed_states_freqs_evals(
         self, H0, labels, subsystem_dims, dressed_states, dressed_frequencies, dressed_evals
     ):
+        """Assert that the dressed states, dressed frequencies, and dressed
+        eigenvalues that are calculated match up to an alternative method of generation"""
 
         subsystem_dims_reverse = subsystem_dims.copy()
         subsystem_dims_reverse.reverse()
@@ -263,8 +277,8 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         self.assertAllClose(dressed_freqs_manual, dressed_freqs)
 
     def test_convert_to_dressed_two_q_states(self):
-        """Test convert_to_dressed with a 2 qubit system with 3 levels per qubit."""
-        """Test state and energy using alternative method"""
+        """Test convert_to_dressed with a 2 qubit system with 3 levels per qubit.
+        Also test state and energy using alternative method"""
         subsystem_dims = [3, 3]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
         (
@@ -433,6 +447,8 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
     def assertDictClose(self, dict1, dict2):
+        """Assert dictionary keys contain all the same elements and that all
+        elements are equivalent with np.allclose"""
 
         self.assertTrue(set(dict1.keys()) == set(dict2.keys()))
 
@@ -440,6 +456,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
             self.assertAllClose(dict1[key], dict2[key])
 
     def compare_probs_general(self, H0, labels, subsystem_dims, dressed_states, state, n_shots):
+        """Compare probabilities calculated by `compute_probabilities` and internal testing code"""
         subsystem_dims_reverse = subsystem_dims.copy()
         subsystem_dims_reverse.reverse()
 
@@ -464,7 +481,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
             base_energy = test_energies["0" * len(subsystem_dims)]
             test_freqs.append((excited_energy - base_energy) / (2 * np.pi))
 
-        test_probs = {lab: np.inner(test_states[lab], state) ** 2 for lab in test_states.keys()}
+        test_probs = {lab: np.inner(test_states[lab], state) ** 2 for lab in test_states}
         # Normalize probabilities
         prob_sum = sum(test_probs.values())
         test_prbos = {key: value / prob_sum for key, value in test_probs.items()}
@@ -608,3 +625,6 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         counts = Counter(samples)
         self.assertTrue(counts["12"] == 506)
         self.assertTrue(counts["10"] == 494)
+
+
+# %%
