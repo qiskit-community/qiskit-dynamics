@@ -13,6 +13,7 @@
 
 """Tests for pulse_utils.py."""
 
+from qiskit.quantum_info import Statevector
 import random
 from re import sub
 import numpy as np
@@ -25,6 +26,7 @@ from qiskit_dynamics.pulse.pulse_utils import (
 )
 from typing import List
 from .common import QiskitDynamicsTestCase
+
 #%%
 RANDOM_SEED = 123
 
@@ -184,6 +186,7 @@ def generate_ham(subsystem_dims: List[int]) -> np.ndarray:
         )
     return H0
 
+
 #%%
 class TestDressedStateConverter(QiskitDynamicsTestCase):
     """DressedStateConverter tests"""
@@ -192,7 +195,7 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         """Call np.allclose and assert true."""
 
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
-    
+
     def assertDictClose(self, dict1, dict2):
 
         self.assertTrue(set(dict1.keys()) == set(dict2.keys()))
@@ -223,11 +226,13 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
         test_states = {}
         test_energies = {}
         for label in labels:
-            energy, state = get_dressed_state_and_energy_nq(evals, label, subsystem_dims_reverse, evecs=evectors)
+            energy, state = get_dressed_state_and_energy_nq(
+                evals, label, subsystem_dims_reverse, evecs=evectors
+            )
             label = [str(x) for x in label]
             test_states["".join(label)] = state
             test_energies["".join(label)] = energy
-        
+
         test_freqs = []
         for i in range(len(subsystem_dims)):
             out = [0 for i in range(len(subsystem_dims))]
@@ -235,14 +240,11 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
             out = [str(x) for x in out]
             excited_energy = test_energies["".join(out)]
             base_energy = test_energies["0" * len(subsystem_dims)]
-            test_freqs.append( (excited_energy - base_energy)/ (2 * np.pi))
-        
+            test_freqs.append((excited_energy - base_energy) / (2 * np.pi))
+
         self.assertDictClose(dressed_states, test_states)
         self.assertDictClose(dressed_evals, test_energies)
         self.assertAllClose(test_freqs, dressed_frequencies)
-        
-
-
 
     def test_convert_to_dressed_single_q(self):
         """Test convert_to_dressed with a single 3 level qubit system."""
@@ -352,68 +354,6 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
             dressed_evals,
         ) = convert_to_dressed(H0, subsystem_dims)
 
-        labels = [
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 0, 2],
-            [0, 1, 0],
-            [0, 1, 1],
-            [0, 1, 2],
-            [0, 2, 0],
-            [0, 2, 1],
-            [0, 2, 2],
-            [0, 3, 0],
-            [0, 3, 1],
-            [0, 3, 2],
-            [1, 0, 0],
-            [1, 0, 1],
-            [1, 0, 2],
-            [1, 1, 0],
-            [1, 1, 1],
-            [1, 1, 2],
-            [1, 2, 0],
-            [1, 2, 1],
-            [1, 2, 2],
-            [1, 3, 0],
-            [1, 3, 1],
-            [1, 3, 2],
-            [2, 0, 0],
-            [2, 0, 1],
-            [2, 0, 2],
-            [2, 1, 0],
-            [2, 1, 1],
-            [2, 1, 2],
-            [2, 2, 0],
-            [2, 2, 1],
-            [2, 2, 2],
-            [2, 3, 0],
-            [2, 3, 1],
-            [2, 3, 2],
-            [3, 0, 0],
-            [3, 0, 1],
-            [3, 0, 2],
-            [3, 1, 0],
-            [3, 1, 1],
-            [3, 1, 2],
-            [3, 2, 0],
-            [3, 2, 1],
-            [3, 2, 2],
-            [3, 3, 0],
-            [3, 3, 1],
-            [3, 3, 2],
-            [4, 0, 0],
-            [4, 0, 1],
-            [4, 0, 2],
-            [4, 1, 0],
-            [4, 1, 1],
-            [4, 1, 2],
-            [4, 2, 0],
-            [4, 2, 1],
-            [4, 2, 2],
-            [4, 3, 0],
-            [4, 3, 1],
-            [4, 3, 2],
-        ]
         labels = []
         # Also test weird ordering of labels
         for i in range(subsystem_dims[0]):
@@ -500,10 +440,64 @@ class TestDressedStateConverter(QiskitDynamicsTestCase):
             dressed_frequencies=dressed_freqs,
             dressed_evals=dressed_evals,
         )
+
+
 class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
     """
-    How do we test compute probabilities? We can just take our systems
+    Test computation of probabilities and sampling of probabilty distributions
     """
+
+    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+        """Call np.allclose and assert true."""
+
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+
+    def assertDictClose(self, dict1, dict2):
+
+        self.assertTrue(set(dict1.keys()) == set(dict2.keys()))
+
+        for key in dict1.keys():
+            self.assertAllClose(dict1[key], dict2[key])
+
+    def compare_probs_general(self, H0, labels, subsystem_dims, dressed_states, state, n_shots):
+        subsystem_dims_reverse = subsystem_dims.copy()
+        subsystem_dims_reverse.reverse()
+
+        evals, evectors = np.linalg.eigh(H0)
+
+        test_states = {}
+        test_energies = {}
+        for label in labels:
+            energy, state = get_dressed_state_and_energy_nq(
+                evals, label, subsystem_dims_reverse, evecs=evectors
+            )
+            label = [str(x) for x in label]
+            test_states["".join(label)] = state
+            test_energies["".join(label)] = energy
+
+        test_freqs = []
+        for i in range(len(subsystem_dims)):
+            out = [0 for i in range(len(subsystem_dims))]
+            out[len(subsystem_dims) - 1 - i] = 1
+            out = [str(x) for x in out]
+            excited_energy = test_energies["".join(out)]
+            base_energy = test_energies["0" * len(subsystem_dims)]
+            test_freqs.append((excited_energy - base_energy) / (2 * np.pi))
+
+        test_probs = {lab: np.inner(test_states[lab], state) ** 2 for lab in test_states.keys()}
+        # Normalize probabilities
+        prob_sum = sum(test_probs.values())
+        test_prbos = {key: value / prob_sum for key, value in test_probs.items()}
+
+        rng = np.random.default_rng(RANDOM_SEED)
+        test_choices = rng.choice(
+            list(test_probs.keys()), size=n_shots, p=list(test_probs.values())
+        )
+        probs = compute_probabilities(state, dressed_states)
+        choices = sample_counts(probs, n_shots)
+
+        self.assertDictClose(test_probs, probs)
+        self.assertDictClose(Counter(test_choices), Counter(choices))
 
     def test_compute_and_sample_probabilities_1q(self):
         "Test compute_probabilities for a 1q system"
@@ -515,9 +509,8 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
 
         self.assertTrue(sum(list(probs.values())) == 1)
 
-        self.assertTrue(1 - sum(probs.values()) < 1e-12)
-        self.assertTrue(0.5 - probs["1"] < 1e-16)
-        self.assertTrue(0.5 - probs["2"] < 1e-16)
+        self.assertTrue(probs["1"] == 0.5)
+        self.assertTrue(probs["2"] == 0.5)
 
         samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
         counts = Counter(samples)
@@ -535,15 +528,15 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
 
         probs = compute_probabilities(state, basis_states=dressed_states)
 
-        self.assertTrue(1 - sum(probs.values()) < 1e-12)
+        self.assertTrue(sum(list(probs.values())) == 1)
 
-        self.assertTrue(0.5 - probs["12"] < 1e-4)
-        self.assertTrue(0.5 - probs["10"] < 1e-4)
+        self.assertAllClose(probs["12"], 0.5068351119601028)
+        self.assertAllClose(probs["10"], 0.4931086543230836)
 
         samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
         counts = Counter(samples)
-        self.assertTrue(counts["12"] > 450)
-        self.assertTrue(counts["10"] > 450)
+        self.assertTrue(counts["12"] == 506)
+        self.assertTrue(counts["10"] == 494)
 
     def test_compute_and_sample_probabilities_3q(self):
         "Test compute_probabilities for a 3q system"
@@ -578,6 +571,83 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         self.assertTrue(counts["042"] > 100)
         self.assertTrue(counts["052"] > 100)
 
+        n_shots = 1000
+        labels = []
+        # Also test weird ordering of labels
+        for i in range(subsystem_dims[0]):
+            for j in range(subsystem_dims[1]):
+                for k in range(subsystem_dims[2]):
+                    labels.append([k, j, i])
+        random.shuffle(labels)
+
+        self.compare_probs_general(H0, labels, subsystem_dims, dressed_states, state, n_shots)
+
     # def test_compute_probabilities_density_matrix(self):
     # def test_compute_probabilities_density_matrix_terra(self):
     # def test_compute_probabilities_density_statevector_terra(self):
+    def test_compute_and_sample_probabilities_2q_statevector_terra(self):
+        "Test compute_probabilities for a 2q system"
+        subsystem_dims = [3, 4]
+        H0 = generate_ham(subsystem_dims=subsystem_dims)
+        dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
+        state1 = [1 / np.sqrt(2), 0, 1 / np.sqrt(2)]
+        state2 = [0, 1, 0, 0]
+        state = np.kron(state2, state1)
+        state = Statevector(state)
+
+        probs = compute_probabilities(state, basis_states=dressed_states)
+
+        self.assertTrue(sum(list(probs.values())) == 1)
+
+        self.assertAllClose(probs["12"], 0.5068351119601028)
+        self.assertAllClose(probs["10"], 0.4931086543230836)
+
+        samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
+        counts = Counter(samples)
+        self.assertTrue(counts["12"] == 506)
+        self.assertTrue(counts["10"] == 494)
+
+    def test_compute_and_sample_probabilities_2q_density_matrix(self):
+        "Test compute_probabilities for a 2q system"
+        subsystem_dims = [3, 4]
+        H0 = generate_ham(subsystem_dims=subsystem_dims)
+        dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
+        state1 = [1 / np.sqrt(2), 0, 1 / np.sqrt(2)]
+        state2 = [0, 1, 0, 0]
+        state = np.kron(state2, state1)
+        state_density = np.outer(state, state)
+
+        probs = compute_probabilities(state_density, basis_states=dressed_states)
+
+        self.assertTrue(sum(list(probs.values())) == 1)
+
+        self.assertAllClose(probs["12"], 0.5068351119601028)
+        self.assertAllClose(probs["10"], 0.4931086543230836)
+
+        samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
+        counts = Counter(samples)
+        self.assertTrue(counts["12"] == 506)
+        self.assertTrue(counts["10"] == 494)
+
+    def test_compute_and_sample_probabilities_2q_density_matrix_terra_statevector(self):
+        "Test compute_probabilities for a 2q system with a density matrix and a terra statevector"
+        subsystem_dims = [3, 4]
+        H0 = generate_ham(subsystem_dims=subsystem_dims)
+        dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
+        state1 = [1 / np.sqrt(2), 0, 1 / np.sqrt(2)]
+        state2 = [0, 1, 0, 0]
+        state = np.kron(state2, state1)
+        state_density = np.outer(state, state)
+        state_density = Statevector(state_density)
+
+        probs = compute_probabilities(state_density, basis_states=dressed_states)
+
+        self.assertTrue(sum(list(probs.values())) == 1)
+
+        self.assertAllClose(probs["12"], 0.5068351119601028)
+        self.assertAllClose(probs["10"], 0.4931086543230836)
+
+        samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
+        counts = Counter(samples)
+        self.assertTrue(counts["12"] == 506)
+        self.assertTrue(counts["10"] == 494)

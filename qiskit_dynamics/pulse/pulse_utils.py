@@ -146,12 +146,16 @@ def compute_probabilities(state: Union[np.ndarray, list], basis_states: dict) ->
             label: (np.abs(np.inner(basis_states[label].conj(), state) ** 2)).real
             for label in basis_states.keys()
         }
-    # if state.ndim == 2:
-    #     probs = {
-    #         label: ()
-    #         label: (np.abs(np.inner(basis_states[label].conj(), state) ** 2)).real()
-    #         for label in basis_states.keys()
-    #     }
+    if state.ndim == 2:
+        probs = {
+            label: (
+                np.abs(np.matmul(np.matmul(state, basis_states[label]).conj(), basis_states[label]))
+            )
+            for label in basis_states.keys()
+        }
+        # label: (np.abs(np.inner(basis_states[label].conj(), state) ** 2)).real()
+        # for label in basis_states.keys()
+
     else:
         raise QiskitError("State has too many dimensions")
 
