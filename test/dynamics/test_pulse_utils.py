@@ -15,7 +15,6 @@
 
 import random
 from collections import Counter
-from re import sub
 
 import numpy as np
 from qiskit.quantum_info import DensityMatrix, Statevector
@@ -481,10 +480,11 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
             base_energy = test_energies["0" * len(subsystem_dims)]
             test_freqs.append((excited_energy - base_energy) / (2 * np.pi))
 
-        test_probs = {lab: np.inner(test_states[lab], state) ** 2 for lab in test_states}
+        test_probs = {lab: np.inner(val, state) ** 2 for lab, val in test_states.items()}
+
         # Normalize probabilities
         prob_sum = sum(test_probs.values())
-        test_prbos = {key: value / prob_sum for key, value in test_probs.items()}
+        test_probs = {key: value / prob_sum for key, value in test_probs.items()}
 
         rng = np.random.default_rng(RANDOM_SEED)
         test_choices = rng.choice(
@@ -497,10 +497,10 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         self.assertDictClose(Counter(test_choices), Counter(choices))
 
     def test_compute_and_sample_probabilities_1q(self):
-        "Test compute_probabilities for a 1q system"
+        """Test compute_probabilities for a 1q system"""
         subsystem_dims = [3]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
-        dressed_states, dressed_freqs, dressed_evals = convert_to_dressed(H0, subsystem_dims)
+        dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
         state = [0, 1 / np.sqrt(2), 1 / np.sqrt(2)]
         probs = compute_probabilities(state, basis_states=dressed_states)
 
@@ -515,7 +515,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         self.assertTrue(counts["2"] == 499)
 
     def test_compute_and_sample_probabilities_2q(self):
-        "Test compute_probabilities for a 2q system"
+        """Test compute_probabilities for a 2q system"""
         subsystem_dims = [3, 4]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
         dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
@@ -536,7 +536,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         self.assertTrue(counts["10"] == 494)
 
     def test_compute_and_sample_probabilities_3q(self):
-        "Test compute_probabilities for a 3q system"
+        """Test compute_probabilities for a 3q system"""
         subsystem_dims = [3, 6, 3]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
         dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
@@ -560,7 +560,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         self.compare_probs_general(H0, labels, subsystem_dims, dressed_states, state, n_shots)
 
     def test_compute_and_sample_probabilities_2q_statevector_terra(self):
-        "Test compute_probabilities for a 2q system"
+        """Test compute_probabilities for a 2q system"""
         subsystem_dims = [3, 4]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
         dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
@@ -582,7 +582,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         self.assertTrue(counts["10"] == 494)
 
     def test_compute_and_sample_probabilities_2q_density_matrix(self):
-        "Test compute_probabilities for a 2q system"
+        """Test compute_probabilities for a 2q system"""
         subsystem_dims = [3, 4]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
         dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
@@ -604,7 +604,8 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         self.assertTrue(counts["10"] == 494)
 
     def test_compute_and_sample_probabilities_2q_density_matrix_terra_statevector(self):
-        "Test compute_probabilities for a 2q system with a density matrix and a terra statevector"
+        """Test compute_probabilities for a 2q system with a density matrix
+        and a terra statevector"""
         subsystem_dims = [3, 4]
         H0 = generate_ham(subsystem_dims=subsystem_dims)
         dressed_states, _, _ = convert_to_dressed(H0, subsystem_dims)
@@ -625,6 +626,3 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         counts = Counter(samples)
         self.assertTrue(counts["12"] == 506)
         self.assertTrue(counts["10"] == 494)
-
-
-# %%

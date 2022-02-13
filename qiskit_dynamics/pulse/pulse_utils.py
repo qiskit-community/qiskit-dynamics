@@ -157,8 +157,6 @@ def compute_probabilities(
             )
             for label in basis_states.keys()
         }
-        # label: (np.abs(np.inner(basis_states[label].conj(), state) ** 2)).real()
-        # for label in basis_states.keys()
 
     else:
         raise QiskitError("State has too many dimensions")
