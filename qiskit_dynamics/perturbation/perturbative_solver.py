@@ -188,9 +188,10 @@ class PerturbativeSolver:
             self._precomputation_results.perturbation_results.expansion_terms = (
                 Array(self.Udt) @ self._precomputation_results.perturbation_results.expansion_terms
             )
+            new_coeffs = self._precomputation_results.perturbation_results.expansion_terms[:, -1]
             self._perturbation_polynomial = ArrayPolynomial(
-                array_coefficients=results.perturbation_results.expansion_terms[:, -1],
-                monomial_labels=results.perturbation_results.expansion_labels,
+                array_coefficients=new_coeffs,
+                monomial_labels=self._precomputation_results.perturbation_results.expansion_labels,
                 constant_term=self.Udt,
             )
         elif self.expansion_method == "magnus":
