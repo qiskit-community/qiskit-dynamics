@@ -102,11 +102,7 @@ class TestJaxBase(unittest.TestCase):
 
 
 class TestQutipBase(unittest.TestCase):
-    """Base class with setUpClass for tests that utilize Qutip
-
-    Test cases that inherit from this class will automatically work with jax
-    backend.
-    """
+    """Base class for tests that utilize Qutip."""
 
     @classmethod
     def setUpClass(cls):
