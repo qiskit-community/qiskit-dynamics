@@ -51,7 +51,7 @@ from .perturbation_results import PerturbationResults
 
 try:
     import jax.numpy as jnp
-    from jax.lax import scan, cond, switch
+    from jax.lax import scan, switch
     from jax import vmap
 except ImportError:
     pass
