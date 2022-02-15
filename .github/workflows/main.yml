@@ -7,13 +7,6 @@ on:
 jobs:
   tests:
     name: tests-python${{ matrix.python-version }}-${{ matrix.os }}
-    rules:
-      - if: ${{ matrix.os }} == "windows-latest"
-        variables:
-          run_tests_command: "tox -e py"
-      - if: ${{ matrix.os }} != "windows-latest"
-        variables:
-          run_tests_command: "tox -e jax"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -37,7 +30,11 @@ jobs:
       - name: Install Deps
         run: python -m pip install -U tox setuptools virtualenv wheel
       - name: Install and Run Tests
-        run: ${{ run_tests_command }}
+        if: ${{ matrix.os }} == "windows-latest"
+        run: tox -e py
+      - name: Install and Run Tests with JAX
+        if: ${{ matrix.os }} != "windows-latest"
+        run: tox -e jax
   lint:
     name: lint
     runs-on: ubuntu-latest
