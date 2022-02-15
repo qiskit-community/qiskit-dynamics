@@ -8,10 +8,10 @@ jobs:
   tests:
     name: tests-python${{ matrix.python-version }}-${{ matrix.os }}
     rules:
-      - if: $matrix.os == "windows-latest"
+      - if: ${{ matrix.os }} == "windows-latest"
         variables:
           run_tests_command: "tox -e py"
-      - if: $matrix.os != "windows-latest"
+      - if: ${{ matrix.os }} != "windows-latest"
         variables:
           run_tests_command: "tox -e jax"
     runs-on: ${{ matrix.os }}
