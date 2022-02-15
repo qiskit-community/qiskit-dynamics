@@ -16,7 +16,7 @@ Pulse utils for computing dressed states and probabilities
 """
 
 
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import numpy as np
 import numpy.linalg as la
@@ -25,7 +25,7 @@ from qiskit.quantum_info import DensityMatrix, Statevector
 
 
 def labels_generator(
-    subsystem_dims: list[int], array: Optional[bool] = False
+    subsystem_dims: List[int], array: Optional[bool] = False
 ) -> list[Union[str, list[int]]]:
     """Generate labels for a given system in a traditional order incrementing the
     first qubit through all its levels, then incrememnting the next qubit once and
@@ -66,7 +66,7 @@ def labels_generator(
 
 
 def convert_to_dressed(
-    static_ham: np.ndarray, subsystem_dims: list[int]
+    static_ham: np.ndarray, subsystem_dims: List[int]
 ) -> list[dict[str : np.ndarray], list[float], dict[str:float]]:
     """Generate the dressed states for a given static hamiltonian. For each eigenvalue
     of the hamiltonian, match it to an undressed state by finding the argmax of the
