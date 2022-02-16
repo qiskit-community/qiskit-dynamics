@@ -28,10 +28,10 @@ import numpy as np
 from .operator_from_string import operator_from_string
 
 
-def legacy_parser(
+def _regex_parser(
     operator_str: List[str], subsystem_dims: Dict[int, int], subsystem_list: List[int]
 ) -> List[Tuple[np.array, str]]:
-    """Function wrapper for legacy parsing object.
+    """Function wrapper for regex parsing object.
 
     Args:
         operator_str: List of strings in accepted format as described in
@@ -42,12 +42,12 @@ def legacy_parser(
         List of tuples containing pairs operators and their string coefficients.
     """
 
-    return HamiltonianParser(h_str=operator_str, subsystem_dims=subsystem_dims).parse(
+    return _HamiltonianParser(h_str=operator_str, subsystem_dims=subsystem_dims).parse(
         subsystem_list
     )
 
 
-class HamiltonianParser:
+class _HamiltonianParser:
     """Legacy object for parsing string specifications of Hamiltonians."""
 
     Token = namedtuple("Token", ("type", "name"))
@@ -182,7 +182,7 @@ class HamiltonianParser:
         token_list = []
         prev = "none"
         while any(_op_str):
-            for key, parser in HamiltonianParser.str_elements.items():
+            for key, parser in _HamiltonianParser.str_elements.items():
                 p = parser.match(_op_str)
                 if p:
                     # find quantum operators
@@ -216,7 +216,7 @@ class HamiltonianParser:
                     else:
                         _name = p.group()
                         _key = key
-                    token_list.append(HamiltonianParser.Token(_key, _name))
+                    token_list.append(_HamiltonianParser.Token(_key, _name))
                     _op_str = _op_str[p.end() :]
                     prev = _key
                     break

@@ -17,7 +17,7 @@ Tests for pulse.operator_from_string.
 
 import numpy as np
 
-from qiskit_dynamics.pulse.string_model_parser.operator_from_string import operator_from_string
+from qiskit_dynamics.pulse.backend_parser.operator_from_string import operator_from_string
 from ..common import QiskitDynamicsTestCase
 
 

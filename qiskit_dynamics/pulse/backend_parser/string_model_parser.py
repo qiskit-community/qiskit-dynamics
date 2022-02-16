@@ -26,7 +26,7 @@ import numpy as np
 
 from qiskit import QiskitError
 
-from .legacy_parser import legacy_parser
+from .regex_parser import _regex_parser
 
 
 # valid channel characters
@@ -167,7 +167,7 @@ def parse_hamiltonian_dict(
     subsystem_dims = {int(qubit): qub_dict[int(qubit)] for qubit in subsystem_list}
 
     # Parse the Hamiltonian
-    system = legacy_parser(
+    system = _regex_parser(
         operator_str=hamiltonian_dict["h_str"],
         subsystem_dims=subsystem_dims,
         subsystem_list=subsystem_list,
