@@ -22,6 +22,7 @@ from typing import Dict
 import numpy as np
 
 from qiskit import QiskitError
+import qiskit.quantum_info as qi
 
 
 def operator_from_string(
@@ -73,9 +74,11 @@ def operator_from_string(
     op_func = __operdict.get(op_label, None)
     if op_func is None:
         raise QiskitError(f"String {op_label} does not correspond to a known operator.")
-    out = op_func(subsystem_dims[subsystem_label])
 
-    # sort subsystem labels and dimensions
+    dim = subsystem_dims[subsystem_label]
+    out = qi.Operator(op_func(dim), input_dims=[dim], output_dims=[dim])
+
+    # sort subsystem labels and dimensions according to subsystem label
     sorted_subsystem_keys, sorted_subsystem_dims = zip(
         *sorted(zip(subsystem_dims.keys(), subsystem_dims.values()))
     )
@@ -83,17 +86,8 @@ def operator_from_string(
     # get subsystem location in ordered list
     subsystem_location = sorted_subsystem_keys.index(subsystem_label)
 
-    # tensor identity on right if subsystem_label is not first subsystem
-    if subsystem_location != 0:
-        total_dim = np.prod(sorted_subsystem_dims[:subsystem_location])
-        out = np.kron(out, ident(total_dim))
-
-    # tensor identity on left if subsystem_label not the last subsystem
-    if subsystem_location + 1 != len(sorted_subsystem_keys):
-        total_dim = np.prod(sorted_subsystem_dims[(subsystem_location + 1) :])
-        out = np.kron(ident(total_dim), out)
-
-    return out
+    # construct full operator
+    return qi.ScalarOp(sorted_subsystem_dims).compose(out, [subsystem_location]).data
 
 
 # functions for generating individual operators
