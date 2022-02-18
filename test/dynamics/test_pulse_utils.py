@@ -16,6 +16,7 @@
 import random
 from collections import Counter
 
+from typing import List
 import numpy as np
 from qiskit.quantum_info import DensityMatrix, Statevector
 from qiskit_dynamics.pulse.pulse_utils import (
@@ -25,7 +26,6 @@ from qiskit_dynamics.pulse.pulse_utils import (
     sample_counts,
 )
 
-from typing import List
 from .common import QiskitDynamicsTestCase
 
 #%%

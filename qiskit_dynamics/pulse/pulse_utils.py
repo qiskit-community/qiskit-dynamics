@@ -26,7 +26,7 @@ from qiskit.quantum_info import DensityMatrix, Statevector
 
 def labels_generator(
     subsystem_dims: List[int], array: Optional[bool] = False
-) -> List[Union[str, list[int]]]:
+) -> List[Union[str, List[int]]]:
     """Generate labels for a given system in a traditional order incrementing the
     first qubit through all its levels, then incrememnting the next qubit once and
     going back up the levels with the previous qubit, and so on. Can return either
@@ -67,7 +67,7 @@ def labels_generator(
 
 def convert_to_dressed(
     static_ham: np.ndarray, subsystem_dims: List[int]
-) -> List[Dict[str : np.ndarray], list[float], dict[str:float]]:
+) -> List[Dict[str : np.ndarray], List[float], Dict[str:float]]:
     """Generate the dressed states for a given static hamiltonian. For each eigenvalue
     of the hamiltonian, match it to an undressed state by finding the argmax of the
     eigenvalue and mapping it to a corresponding undressed label. In addition, calculate
