@@ -25,6 +25,7 @@ from qiskit_dynamics.pulse.pulse_utils import (
     sample_counts,
 )
 
+from typing import List
 from .common import QiskitDynamicsTestCase
 
 #%%
@@ -89,7 +90,7 @@ def get_dressed_state_and_energy_nq(evals, inds, subsystem_dims, evecs):
     return evals[ind], evecs[ind]
 
 
-def generate_ham(subsystem_dims: list[int]) -> np.ndarray:
+def generate_ham(subsystem_dims: List[int]) -> np.ndarray:
     """Generate a hamiltonian of up to 3 subsystems with arbitrary dimensions and preset variables.
 
     Args:
