@@ -124,7 +124,7 @@ def convert_to_dressed(
 
 def compute_probabilities(
     state: Union[np.ndarray, list, Statevector, DensityMatrix], basis_states: dict
-) -> Dict[str,float]:
+) -> Dict[str, float]:
     """Compute the probabilities for each state occupation using the formula for each basis state:
         For each basis state d, given input state vector s, we have the probability
        .. math::
