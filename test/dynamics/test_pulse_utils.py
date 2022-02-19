@@ -605,7 +605,6 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
         # self.assertAllClose(probs["10"], 0.4931086543230836)
         self.assertAllClose(probs["10"], 0.4931)
 
-
         samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
         counts = Counter(samples)
         self.assertTrue(counts["12"] == 506)
