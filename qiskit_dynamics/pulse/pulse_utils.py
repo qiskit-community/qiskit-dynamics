@@ -67,7 +67,7 @@ def labels_generator(
 
 def convert_to_dressed(
     static_ham: np.ndarray, subsystem_dims: List[int]
-) -> List[Dict[str : np.ndarray], List[float], Dict[str:float]]:
+) -> Union[Dict[str, np.ndarray], List[float], Dict[str, float]]:
     """Generate the dressed states for a given static hamiltonian. For each eigenvalue
     of the hamiltonian, match it to an undressed state by finding the argmax of the
     eigenvalue and mapping it to a corresponding undressed label. In addition, calculate
@@ -124,7 +124,7 @@ def convert_to_dressed(
 
 def compute_probabilities(
     state: Union[np.ndarray, list, Statevector, DensityMatrix], basis_states: dict
-) -> Dict[str:float]:
+) -> Dict[str,float]:
     """Compute the probabilities for each state occupation using the formula for each basis state:
         For each basis state d, given input state vector s, we have the probability
        .. math::
@@ -167,7 +167,7 @@ def compute_probabilities(
     return probs
 
 
-def sample_counts(probs: Dict[str:float], n_shots: int, seed: Optional[int] = None) -> List[str]:
+def sample_counts(probs: Dict[str, float], n_shots: int, seed: Optional[int] = None) -> List[str]:
     """Sample the probability distribution `n_shot` times.
 
     Args:
