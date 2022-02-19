@@ -528,10 +528,10 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
 
         self.assertTrue(sum(list(probs.values())) == 1)
 
-        self.assertAllClose(probs["12"], 0.5068)
-        # self.assertAllClose(probs["12"], 0.5068351119601028)
-        self.assertAllClose(probs["10"], 0.4931)
-        # self.assertAllClose(probs["10"], 0.4931086543230836)
+        # self.assertAllClose(probs["12"], 0.5068)
+        self.assertAllClose(probs["12"], 0.5068351119601028)
+        # self.assertAllClose(probs["10"], 0.4931)
+        self.assertAllClose(probs["10"], 0.4931086543230836)
 
         samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
         counts = Counter(samples)
@@ -576,10 +576,10 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
 
         self.assertTrue(sum(list(probs.values())) == 1)
 
-        self.assertAllClose(probs["12"], 0.5068)
-        # self.assertAllClose(probs["12"], 0.5068351119601028)
-        self.assertAllClose(probs["10"], 0.4931)
-        # self.assertAllClose(probs["10"], 0.4931086543230836)
+        # self.assertAllClose(probs["12"], 0.5068)
+        self.assertAllClose(probs["12"], 0.5068351119601028)
+        # self.assertAllClose(probs["10"], 0.4931)
+        self.assertAllClose(probs["10"], 0.4931086543230836)
 
         samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
         counts = Counter(samples)
@@ -600,10 +600,10 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
 
         self.assertTrue(sum(list(probs.values())) == 1)
 
-        # self.assertAllClose(probs["12"], 0.5068351119601028)
-        self.assertAllClose(probs["12"], 0.5068)
-        # self.assertAllClose(probs["10"], 0.4931086543230836)
-        self.assertAllClose(probs["10"], 0.4931)
+        self.assertAllClose(probs["12"], 0.5068351119601028)
+        # self.assertAllClose(probs["12"], 0.5068)
+        self.assertAllClose(probs["10"], 0.4931086543230836)
+        # self.assertAllClose(probs["10"], 0.4931)
 
         samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
         counts = Counter(samples)
@@ -626,10 +626,10 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
 
         self.assertTrue(sum(list(probs.values())) == 1)
 
-        self.assertAllClose(probs["12"], 0.5068)
-        # self.assertAllClose(probs["12"], 0.5068351119601028)
-        self.assertAllClose(probs["10"], 0.4931)
-        # self.assertAllClose(probs["10"], 0.4931086543230836)
+        # self.assertAllClose(probs["12"], 0.5068)
+        self.assertAllClose(probs["12"], 0.5068351119601028)
+        # self.assertAllClose(probs["10"], 0.4931)
+        self.assertAllClose(probs["10"], 0.4931086543230836)
 
         samples = sample_counts(probs, 1000, seed=RANDOM_SEED)
         counts = Counter(samples)
