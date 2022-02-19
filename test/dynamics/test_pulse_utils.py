@@ -441,7 +441,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
     Test computation of probabilities and sampling of probabilty distributions
     """
 
-    def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
+    def assertAllClose(self, A, B, rtol=1e-6, atol=1e-6):
         """Call np.allclose and assert true."""
 
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
