@@ -444,7 +444,7 @@ class TestComputeandSampleProbabilities(QiskitDynamicsTestCase):
     def assertAllClose(self, A, B, rtol=1e-6, atol=1e-6):
         """Call np.allclose and assert true."""
 
-        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
+        self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol), "Floats do not match up: {} and {}".format(A, B))
 
     def assertDictClose(self, dict1, dict2):
         """Assert dictionary keys contain all the same elements and that all
