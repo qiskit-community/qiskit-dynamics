@@ -393,6 +393,11 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.assertAllClose(self.discrete2.envelope(0.1), 1.0 + 2j)
         self.assertAllClose(self.discrete2.envelope(1.23), 3.0)
 
+    def test_envelope_outside(self):
+        """Test envelope evaluation outside of defined start and end"""
+        self.assertAllClose(self.discrete1.envelope(-1.0), 0.0)
+        self.assertAllClose(self.discrete1.envelope(2.0), 0.0)
+
     def test_envelope_vectorized(self):
         """Test vectorized evaluation of envelope."""
         t_vals = np.array([0.1, 1.23])
