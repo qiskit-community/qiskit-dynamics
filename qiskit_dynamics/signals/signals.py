@@ -26,7 +26,6 @@ from matplotlib import pyplot as plt
 
 try:
     import jax.numpy as jnp
-    import jax.lax as jlax
 except ImportError:
     pass
 
@@ -310,20 +309,9 @@ class DiscreteSignal(Signal):
                 idx = jnp.clip(
                     jnp.array((t - self._start_time) // self._dt, dtype=int),
                     -1,
-                    len(self._samples)-1,
+                    len(self._samples) - 2,
                 )
-                return self._samples[idx+1]
-                # t = Array(t).data
-                # idx = jnp.clip(
-                #     jnp.array((t - self._start_time) // self._dt, dtype=int),
-                #     -1,
-                #     len(self._samples),
-                # )
-                # idx = jnp.array((t - self._start_time) // self._dt, dtype=int)
-                # tfa = idx < 0 or idx > len(self._samples)
-                # # return jlax.cond(idx < 0 or idx > len(self._samples), 0.0, self._samples[idx], operand=idx)
-                # return jlax.cond(tfa, 0.0, self._samples[idx], operand=idx)
-                # return self._samples[idx]
+                return self._samples[idx + 1]
 
         else:
 
@@ -332,21 +320,9 @@ class DiscreteSignal(Signal):
                 idx = np.clip(
                     np.array((t - self._start_time) // self._dt, dtype=int),
                     -1,
-                    len(self._samples)-1,
+                    len(self._samples) - 2,
                 )
-                return self._samples[idx+1]
-                # idx = np.clip(
-                #     np.array((t - self._start_time) // self._dt, dtype=int),
-                #     -1,
-                #     len(self._samples),
-                # )
-                idx = np.array((t - self._start_time) // self._dt, dtype=int)
-                # return self._samples[idx]
-                # return np.linalg.cond(idx < 0 or idx > len(self._samples), 0.0, self._samples[idx])
-                # return self._samples[idx] if idx > 0 or idx
-                return 0 if idx < 0 or idx > len(self._samples) else self._samples[idx]
-                # return np.lax.cond()
-
+                return self._samples[idx + 1]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
