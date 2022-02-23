@@ -103,6 +103,9 @@ def solve_lmde_perturbation(
         - ``generator`` is the unperturbed generator, and the computation is performed
           in the toggling frame of this generator.
         - ``y0`` is the initial state for the LMDE given by the unperturbed generator.
+          For Dyson methods, this can be non-square, but for Magnus it must be square.
+          If a non-square ``y0`` is supplied, then ``dyson_in_frame`` must be ``False``
+          (see below).
 
 
     If ``expansion_method == 'dyson'``, the setup is different. In this case,
@@ -138,7 +141,9 @@ def solve_lmde_perturbation(
         and ``'symmetric_dyson'`` expansion methods. If ``True``, the results are
         returned as above. If ``False``, the returned expansion terms will include
         a pre-factor of :math:`V(t_0, t)`, e.g. :math:`V(t_0, t)\mathcal{D}_I(t_0, t)`
-        in the case of a symmetric Dyson term. If the ``'symmetric_magnus'`` method is
+        in the case of a symmetric Dyson term. If ``y0`` is non-square,
+        ``dyson_in_frame`` must be set to ``False``, as in this case the matrix
+        :math:`V(t_0, t)` is not explicitly computed. If the ``'symmetric_magnus'`` method is
         used, ``dyson_in_frame`` has no effect on the output.
 
 
@@ -202,8 +207,18 @@ def solve_lmde_perturbation(
 
     # validation checks
     if y0 is not None:
-        if len(y0.shape) != 2 or y0.shape[0] != y0.shape[1]:
-            raise QiskitError("""If used, optional arg y0 must be a square 2d array.""")
+        if 'magnus' in expansion_method:
+            if y0.ndim != 2 or y0.shape[0] != y0.shape[1]:
+                raise QiskitError("""If used, optional arg y0 must be a square 2d array
+                                     for expansion_method=='symmeric_magnus'.""")
+        else:
+            if dyson_in_frame and (y0.ndim != 2 or y0.shape[0] != y0.shape[1]):
+                raise QiskitError("""If expansion_method in ['dyson', 'symmetric_dyson']
+                                  and non-square y0 passed, dyson_in_frame must be False.""")
+
+            # if 1d in a dyson case, turn into a column vector
+            if y0.ndim == 1:
+                y0 = Array([y0]).transpose()
 
     if perturbation_labels is not None and expansion_method == "dyson":
         raise QiskitError("perturbation_labels argument not usable with expansion_method='dyson'.")

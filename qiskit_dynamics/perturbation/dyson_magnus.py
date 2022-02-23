@@ -122,7 +122,7 @@ def solve_lmde_dyson(
     # initial state
     y0 = np.append(
         np.expand_dims(y0, 0),
-        np.zeros((len(complete_term_list), mat_dim, mat_dim), dtype=complex),
+        np.zeros((len(complete_term_list), y0.shape[-2], y0.shape[-1]), dtype=complex),
         axis=0,
     )
 
@@ -252,6 +252,8 @@ def solve_lmde_dyson_jax(
 
     if y0 is None:
         y0 = jnp.eye(mat_dim, dtype=complex)
+    else:
+        y0 = Array(y0).data
 
     # ensure perturbations and generator to return raw jax arrays
     def func_transform(f):
@@ -281,7 +283,7 @@ def solve_lmde_dyson_jax(
     # initial state
     y0 = jnp.append(
         jnp.expand_dims(y0, 0),
-        jnp.zeros((len(complete_term_list), mat_dim, mat_dim), dtype=complex),
+        jnp.zeros((len(complete_term_list), y0.shape[-2], y0.shape[-1]), dtype=complex),
         axis=0,
     )
 

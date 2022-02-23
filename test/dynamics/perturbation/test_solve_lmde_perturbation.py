@@ -14,6 +14,7 @@
 """Tests for solve_lmde_perturbation and related functions."""
 
 import numpy as np
+from scipy.linalg import expm
 
 from qiskit import QiskitError
 
@@ -46,8 +47,20 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "At least one"):
             solve_lmde_perturbation(perturbations=[], t_span=[], expansion_method="dyson")
 
-    def test_non_square_y0(self):
-        """Test error when y0 is non-square."""
+    def test_non_square_y0_magnus(self):
+        """Test error when y0 is non-square for magnus method."""
+
+        with self.assertRaisesRegex(QiskitError, "square"):
+            solve_lmde_perturbation(
+                perturbations=[],
+                t_span=[],
+                expansion_method="symmetric_magnus",
+                expansion_order=1,
+                y0=np.array([1.0, 0.0]),
+            )
+
+    def test_non_square_y0_dyson_in_frame(self):
+        """Test error when y0 is non-square for dyson method with dyson_in_frame=True."""
 
         with self.assertRaisesRegex(QiskitError, "square"):
             solve_lmde_perturbation(
@@ -55,6 +68,7 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
                 t_span=[],
                 expansion_method="dyson",
                 expansion_order=1,
+                dyson_in_frame=True,
                 y0=np.array([1.0, 0.0]),
             )
 
@@ -64,6 +78,74 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
 
     def setUp(self):
         self.integration_method = "DOP853"
+
+    def test_dyson_analytic_case1_1d(self):
+        """Analytic test of computing dyson terms for 1d initial state.
+
+        Note: The expected values were computed using a symbolic computation package.
+        """
+
+        def generator(t):
+            return Array([[1, 0], [0, 1]], dtype=complex).data
+
+        def A0(t):
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
+
+        def A1(t):
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
+
+        T = np.pi * 1.2341
+
+        results = solve_lmde_perturbation(
+            perturbations=[A0, A1],
+            t_span=[0, T],
+            generator=generator,
+            y0=np.array([1., 0.], dtype=complex),
+            expansion_method="dyson",
+            expansion_labels=[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1]],
+            dyson_in_frame=False,
+            integration_method=self.integration_method,
+            atol=1e-13,
+            rtol=1e-13,
+        )
+
+        T2 = T**2
+        T3 = T * T2
+        T4 = T * T3
+        T5 = T * T4
+        T6 = T * T5
+        T7 = T * T6
+        T8 = T * T7
+        T9 = T * T8
+        T10 = T * T9
+        T11 = T * T10
+
+        U = expm(np.array(generator(0)) * T)
+
+        expected_D0 = U @ np.array([[0], [T3 / 3]], dtype=complex)
+        expected_D1 = U @ np.array([[T2 / 2], [0]], dtype=complex)
+        expected_D00 = U @ np.array([[T5 / 15], [0]], dtype=complex)
+        expected_D01 = U @ np.array([[0], [T5 / 10]], dtype=complex)
+        expected_D10 = U @ np.array([[0], [T6 / 18]], dtype=complex)
+        expected_D11 = U @ np.array([[T4 / 8], [0]], dtype=complex)
+        expected_D001 = U @ np.array([[T7 / 70], [0]], dtype=complex)
+        expected_D010 = U @ np.array([[T8 / 144], [0]], dtype=complex)
+        expected_D100 = U @ np.array([[T7 / 105], [0]], dtype=complex)
+        expected_D0001 = U @ np.array([[0], [T10 / 700]], dtype=complex)
+        expected_D0011 = U @ np.array([[T9 / 504], [0]], dtype=complex)
+
+        self.assertAllClose(expected_D0, results.perturbation_results[[0]][-1])
+        self.assertAllClose(expected_D1, results.perturbation_results[[1]][-1])
+        self.assertAllClose(expected_D00, results.perturbation_results[[0, 0]][-1])
+        self.assertAllClose(expected_D01, results.perturbation_results[[0, 1]][-1])
+        self.assertAllClose(expected_D10, results.perturbation_results[[1, 0]][-1])
+        self.assertAllClose(expected_D11, results.perturbation_results[[1, 1]][-1])
+        self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
+        self.assertAllClose(expected_D010, results.perturbation_results[[0, 1, 0]][-1])
+        self.assertAllClose(expected_D100, results.perturbation_results[[1, 0, 0]][-1])
+        self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
+        self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
+
 
     def test_dyson_analytic_case1(self):
         """Analytic test of computing dyson terms.
@@ -315,6 +397,87 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(
             expected_D100, results.perturbation_results[[1, 0, 0]][-1], rtol=1e-10, atol=1e-10
         )
+
+    def test_symmetric_dyson_analytic_case1_1d(self):
+        """Analytic test of computing symmetric dyson terms with y0 being 1d.
+
+        Notes:
+            - The expected values were computed using a symbolic computation package.
+            - Expected results for Magnus expansion were computed using explicit integral
+              formulas, which is a totally different method from how solve_lmde_perturb
+              computes them.
+        """
+
+        def generator(t):
+            return Array([[1, 0], [0, 1]], dtype=complex).data
+
+        def A0(t):
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
+
+        def A1(t):
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
+
+        T = np.pi * 1.2341
+
+        results = solve_lmde_perturbation(
+            perturbations=[A0, A1],
+            t_span=[0, T],
+            generator=generator,
+            y0=np.array([0., 1.], dtype=complex),
+            expansion_method="symmetric_dyson",
+            expansion_order=2,
+            expansion_labels=[[0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 1]],
+            dyson_in_frame=False,
+            integration_method=self.integration_method,
+            atol=1e-13,
+            rtol=1e-13,
+        )
+
+        T2 = T**2
+        T3 = T * T2
+        T4 = T * T3
+        T5 = T * T4
+        T6 = T * T5
+        T7 = T * T6
+        T8 = T * T7
+        T9 = T * T8
+        T10 = T * T9
+        T11 = T * T10
+
+        U = expm(np.array(generator(0)) * T)
+
+        expected_D0 = U @ np.array([[T2 / 2], [0]], dtype=complex)
+        expected_D1 = U @ np.array([[0], [T3 / 3]], dtype=complex)
+        expected_D00 = U @ np.array([[0], [T5 / 10]], dtype=complex)
+        expected_D01 = U @ (np.array([[T5 / 15], [0]], dtype=complex) + np.array(
+            [[T4 / 8], [0]], dtype=complex
+        ))
+        expected_D11 = U @ np.array([[0], [T6 / 18]], dtype=complex)
+        expected_D001 = U @ (
+            np.array([[0], [T8 / 120]], dtype=complex)
+            + np.array([[0], [T7 / 56]], dtype=complex)
+            + np.array([[0], [T8 / 80]], dtype=complex)
+        )
+        expected_D0001 = U @ np.array(
+            [[(T10 / 480) + (T9 / 280)], [0]], dtype=complex
+        )
+        expected_D0011 = U @ np.array(
+            [
+                [0],
+                [(T11 / 396) + 23 * (T10 / 8400) + (T9 / 432)],
+            ],
+            dtype=complex,
+        )
+
+        self.assertAllClose(expected_D0, results.perturbation_results[[0]][-1])
+        self.assertAllClose(expected_D1, results.perturbation_results[[1]][-1])
+        self.assertAllClose(expected_D00, results.perturbation_results[[0, 0]][-1])
+        self.assertAllClose(expected_D01, results.perturbation_results[[0, 1]][-1])
+        self.assertAllClose(expected_D11, results.perturbation_results[[1, 1]][-1])
+        self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
+        self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
+        self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
+
 
     def test_symmetric_dyson_analytic_case1(self):
         """Analytic test of computing symmetric dyson terms.

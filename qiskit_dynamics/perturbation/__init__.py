@@ -64,6 +64,11 @@ multivariable polynomial (i.e. a truncated power series).
 Time dependent perturbation theory
 ==================================
 
+.. note::
+
+    **This notation will need to change to include the possibility of non-square ``y0``
+    when computing Dyson terms. Be careful with how this is explained.**
+
 The function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`
 computes various time-dependent perturbation theory terms related to the Dyson series
 [:footcite:`dyson_radiation_1949`] and Magnus expansion [:footcite:p:`magnus_exponential_1954`],
