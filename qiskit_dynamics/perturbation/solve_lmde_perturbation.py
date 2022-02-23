@@ -207,14 +207,18 @@ def solve_lmde_perturbation(
 
     # validation checks
     if y0 is not None:
-        if 'magnus' in expansion_method:
+        if "magnus" in expansion_method:
             if y0.ndim != 2 or y0.shape[0] != y0.shape[1]:
-                raise QiskitError("""If used, optional arg y0 must be a square 2d array
-                                     for expansion_method=='symmeric_magnus'.""")
+                raise QiskitError(
+                    """If used, optional arg y0 must be a square 2d array
+                                     for expansion_method=='symmeric_magnus'."""
+                )
         else:
             if dyson_in_frame and (y0.ndim != 2 or y0.shape[0] != y0.shape[1]):
-                raise QiskitError("""If expansion_method in ['dyson', 'symmetric_dyson']
-                                  and non-square y0 passed, dyson_in_frame must be False.""")
+                raise QiskitError(
+                    """If expansion_method in ['dyson', 'symmetric_dyson']
+                                  and non-square y0 passed, dyson_in_frame must be False."""
+                )
 
             # if 1d in a dyson case, turn into a column vector
             if y0.ndim == 1:

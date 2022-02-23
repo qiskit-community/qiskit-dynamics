@@ -100,7 +100,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            y0=np.array([1., 0.], dtype=complex),
+            y0=np.array([1.0, 0.0], dtype=complex),
             expansion_method="dyson",
             expansion_labels=[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1]],
             dyson_in_frame=False,
@@ -118,7 +118,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         T8 = T * T7
         T9 = T * T8
         T10 = T * T9
-        T11 = T * T10
 
         U = expm(np.array(generator(0)) * T)
 
@@ -145,7 +144,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D100, results.perturbation_results[[1, 0, 0]][-1])
         self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
         self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
-
 
     def test_dyson_analytic_case1(self):
         """Analytic test of computing dyson terms.
@@ -423,7 +421,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            y0=np.array([0., 1.], dtype=complex),
+            y0=np.array([0.0, 1.0], dtype=complex),
             expansion_method="symmetric_dyson",
             expansion_order=2,
             expansion_labels=[[0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 1]],
@@ -449,18 +447,16 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         expected_D0 = U @ np.array([[T2 / 2], [0]], dtype=complex)
         expected_D1 = U @ np.array([[0], [T3 / 3]], dtype=complex)
         expected_D00 = U @ np.array([[0], [T5 / 10]], dtype=complex)
-        expected_D01 = U @ (np.array([[T5 / 15], [0]], dtype=complex) + np.array(
-            [[T4 / 8], [0]], dtype=complex
-        ))
+        expected_D01 = U @ (
+            np.array([[T5 / 15], [0]], dtype=complex) + np.array([[T4 / 8], [0]], dtype=complex)
+        )
         expected_D11 = U @ np.array([[0], [T6 / 18]], dtype=complex)
         expected_D001 = U @ (
             np.array([[0], [T8 / 120]], dtype=complex)
             + np.array([[0], [T7 / 56]], dtype=complex)
             + np.array([[0], [T8 / 80]], dtype=complex)
         )
-        expected_D0001 = U @ np.array(
-            [[(T10 / 480) + (T9 / 280)], [0]], dtype=complex
-        )
+        expected_D0001 = U @ np.array([[(T10 / 480) + (T9 / 280)], [0]], dtype=complex)
         expected_D0011 = U @ np.array(
             [
                 [0],
@@ -477,7 +473,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
         self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
         self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
-
 
     def test_symmetric_dyson_analytic_case1(self):
         """Analytic test of computing symmetric dyson terms.
