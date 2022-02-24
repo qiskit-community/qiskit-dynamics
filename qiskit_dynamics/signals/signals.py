@@ -26,7 +26,6 @@ from matplotlib import pyplot as plt
 
 try:
     import jax.numpy as jnp
-    import jax.lax as jlax
 except ImportError:
     pass
 
@@ -297,25 +296,15 @@ class DiscreteSignal(Signal):
             phase: The phase of the carrier. Subclasses such as SignalSums
                    represent the phase of each signal in an array.
             name: name of the signal.
+
+        Raises:
+            QiskitError: if the dimensionality of the samples is greater than 2.
         """
         self._dt = dt
 
-        # if samples.backend == 'jax':
-        #     if len(self._samples.shape) == 2:
-        #         zeros = jnp.array(list(((0.0) for i in range(self._samples.shape[1]))), dtype=self._samples.dtype)
-        #     elif len(self._samples.shape) == 1:
-        #         zeros = jnp.array(0.0, dtype=self._samples.dtype)
-        #     else:
-        #         raise QiskitError("Too many dimensinos of samples")
-        # else:
-        #     if len(self._samples.shape) == 2:
-        #         zeros = np.array(list(((0.0) for i in range(self._samples.shape[1]))), dtype=self._samples.dtype)
-        #     elif len(self._samples.shape) == 1:
-        #         zeros = np.array(0.0, dtype=self._samples.dtype)
-        #     else:
-        #         raise QiskitError("Too many dimensinos of samples")
         samples = Array(samples)
         # Shouldn't it be bad to force np.array here? I guess not?
+
         if len(samples.shape) == 2:
             zeros = Array([list(((0.0) for i in range(samples.shape[1])))], dtype=samples.dtype)
             self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=0)
@@ -339,17 +328,6 @@ class DiscreteSignal(Signal):
                     len(self._samples),
                 )
                 return self._widesamples[idx + 1]
-                # t = Array(t).data
-                # idx = jnp.clip(
-                #     jnp.array((t - self._start_time) // self._dt, dtype=int),
-                #     -1,
-                #     len(self._samples),
-                # )
-                # idx = jnp.array((t - self._start_time) // self._dt, dtype=int)
-                # tfa = idx < 0 or idx > len(self._samples)
-                # # return jlax.cond(idx < 0 or idx > len(self._samples), 0.0, self._samples[idx], operand=idx)
-                # return jlax.cond(tfa, 0.0, self._samples[idx], operand=idx)
-                # return self._samples[idx]
 
         else:
 
@@ -361,17 +339,6 @@ class DiscreteSignal(Signal):
                     len(self._samples),
                 )
                 return self._widesamples[idx + 1]
-                # idx = np.clip(
-                #     np.array((t - self._start_time) // self._dt, dtype=int),
-                #     -1,
-                #     len(self._samples),
-                # )
-                idx = np.array((t - self._start_time) // self._dt, dtype=int)
-                # return self._samples[idx]
-                # return np.linalg.cond(idx < 0 or idx > len(self._samples), 0.0, self._samples[idx])
-                # return self._samples[idx] if idx > 0 or idx
-                return 0 if idx < 0 or idx > len(self._samples) else self._samples[idx]
-                # return np.lax.cond()
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
