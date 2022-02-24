@@ -299,7 +299,33 @@ class DiscreteSignal(Signal):
             name: name of the signal.
         """
         self._dt = dt
-        self._samples = np.concatenate([Array([0.0]), Array(samples), Array([0.0])])
+
+        # if samples.backend == 'jax':
+        #     if len(self._samples.shape) == 2:
+        #         zeros = jnp.array(list(((0.0) for i in range(self._samples.shape[1]))), dtype=self._samples.dtype)
+        #     elif len(self._samples.shape) == 1:
+        #         zeros = jnp.array(0.0, dtype=self._samples.dtype)
+        #     else:
+        #         raise QiskitError("Too many dimensinos of samples")
+        # else:
+        #     if len(self._samples.shape) == 2:
+        #         zeros = np.array(list(((0.0) for i in range(self._samples.shape[1]))), dtype=self._samples.dtype)
+        #     elif len(self._samples.shape) == 1:
+        #         zeros = np.array(0.0, dtype=self._samples.dtype)
+        #     else:
+        #         raise QiskitError("Too many dimensinos of samples")
+        samples = Array(samples)
+        # Shouldn't it be bad to force np.array here? I guess not?
+        if len(samples.shape) == 2:
+            zeros = Array([list(((0.0) for i in range(samples.shape[1])))], dtype=samples.dtype)
+            self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=0)
+        elif len(samples.shape) == 1:
+            zeros = Array([0.0], dtype=samples.dtype)
+            self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=None)
+        else:
+            raise QiskitError("Too many dimensinos of samples")
+
+        self._samples = Array(samples)
         self._start_time = start_time
 
         # define internal envelope function
@@ -310,9 +336,9 @@ class DiscreteSignal(Signal):
                 idx = jnp.clip(
                     jnp.array((t - self._start_time) // self._dt, dtype=int),
                     -1,
-                    len(self._samples)-1,
+                    len(self._samples),
                 )
-                return self._samples[idx+1]
+                return self._widesamples[idx + 1]
                 # t = Array(t).data
                 # idx = jnp.clip(
                 #     jnp.array((t - self._start_time) // self._dt, dtype=int),
@@ -332,9 +358,9 @@ class DiscreteSignal(Signal):
                 idx = np.clip(
                     np.array((t - self._start_time) // self._dt, dtype=int),
                     -1,
-                    len(self._samples)-1,
+                    len(self._samples),
                 )
-                return self._samples[idx+1]
+                return self._widesamples[idx + 1]
                 # idx = np.clip(
                 #     np.array((t - self._start_time) // self._dt, dtype=int),
                 #     -1,
@@ -346,7 +372,6 @@ class DiscreteSignal(Signal):
                 # return self._samples[idx] if idx > 0 or idx
                 return 0 if idx < 0 or idx > len(self._samples) else self._samples[idx]
                 # return np.lax.cond()
-
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
