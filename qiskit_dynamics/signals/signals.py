@@ -296,9 +296,25 @@ class DiscreteSignal(Signal):
             phase: The phase of the carrier. Subclasses such as SignalSums
                    represent the phase of each signal in an array.
             name: name of the signal.
+
+        Raises:
+            QiskitError: if the dimensionality of the samples is greater than 2.
         """
         self._dt = dt
-        self._samples = np.concatenate([Array([0.0]), Array(samples), Array([0.0])])
+
+        samples = Array(samples)
+        # Shouldn't it be bad to force np.array here? I guess not?
+
+        if len(samples.shape) == 2:
+            zeros = Array([list(((0.0) for i in range(samples.shape[1])))], dtype=samples.dtype)
+            self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=0)
+        elif len(samples.shape) == 1:
+            zeros = Array([0.0], dtype=samples.dtype)
+            self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=None)
+        else:
+            raise QiskitError("Too many dimensinos of samples")
+
+        self._samples = Array(samples)
         self._start_time = start_time
 
         # define internal envelope function
@@ -309,9 +325,9 @@ class DiscreteSignal(Signal):
                 idx = jnp.clip(
                     jnp.array((t - self._start_time) // self._dt, dtype=int),
                     -1,
-                    len(self._samples) - 2,
+                    len(self._samples),
                 )
-                return self._samples[idx + 1]
+                return self._widesamples[idx + 1]
 
         else:
 
@@ -320,9 +336,10 @@ class DiscreteSignal(Signal):
                 idx = np.clip(
                     np.array((t - self._start_time) // self._dt, dtype=int),
                     -1,
-                    len(self._samples) - 2,
+                    len(self._samples),
                 )
-                return self._samples[idx + 1]
+                return self._widesamples[idx + 1]
+
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
