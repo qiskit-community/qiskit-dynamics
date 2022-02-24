@@ -58,6 +58,21 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             # pylint: disable=pointless-statement
             ap1 + ap2
 
+    def test_negation(self):
+        """Test negation of an array polynomial."""
+
+        ap = ArrayPolynomial(
+            array_coefficients=np.random.rand(1, 4, 6) + 1j * np.random.rand(1, 4, 6),
+            monomial_labels=[[0]],
+            constant_term=np.random.rand(4, 6) + 1j * np.random.rand(4, 6),
+        )
+
+        neg_ap = -ap
+
+        self.assertAllClose(neg_ap.constant_term, -ap.constant_term)
+        self.assertAllClose(neg_ap.array_coefficients, -ap.array_coefficients)
+        self.assertTrue(neg_ap.monomial_labels == ap.monomial_labels)
+
     def test_addition_only_constant(self):
         """Addition with constant only ArrayPolynomials."""
 

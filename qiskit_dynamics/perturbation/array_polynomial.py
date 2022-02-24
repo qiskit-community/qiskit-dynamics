@@ -335,6 +335,31 @@ class ArrayPolynomial:
         """Dunder method for right-addition of two ArrayPolynomials."""
         return self.add(other)
 
+    def __neg__(self) -> "ArrayPolynomial":
+        constant_term = None
+        if self.constant_term is not None:
+            constant_term = -self.constant_term
+
+        array_coefficients = None
+        if self.array_coefficients is not None:
+            array_coefficients = -self.array_coefficients
+
+        return ArrayPolynomial(
+            constant_term=constant_term,
+            monomial_labels=self.monomial_labels,
+            array_coefficients=array_coefficients,
+        )
+
+    def __sub__(
+        self, other: Union["ArrayPolynomial", int, float, complex, Array]
+    ) -> "ArrayPolynomial":
+        return self + (-other)
+
+    def __rsub__(
+        self, other: Union["ArrayPolynomial", int, float, complex, Array]
+    ) -> "ArrayPolynomial":
+        return other + (-self)
+
     def __mul__(
         self, other: Union["ArrayPolynomial", int, float, complex, Array]
     ) -> "ArrayPolynomial":
