@@ -340,6 +340,7 @@ class DiscreteSignal(Signal):
                 )
                 return self._widesamples[idx + 1]
 
+
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
     @classmethod
