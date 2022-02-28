@@ -42,8 +42,8 @@ class PerturbativeSolver:
     r"""Perturbative solvers based on the Dyson series and Magnus expansion.
 
     This class implements two specialized LMDE solvers based on the Dyson series
-    and Magnus expansion as presented in [forthcoming], with the Dyson-based solver,
-    being a variant of the *Dysolve* algorithm introduced in
+    and Magnus expansion as presented in [:footcite:`puzzuoli_sensitivity_2022`],
+    with the Dyson-based solver, being a variant of the *Dysolve* algorithm introduced in
     [:footcite:p:`shillito_fast_2020`].
 
     These solvers apply to generators with a decomposition:

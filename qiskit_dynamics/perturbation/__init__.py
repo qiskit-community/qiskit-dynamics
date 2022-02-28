@@ -110,7 +110,7 @@ with :math:`\tilde{A}_I(t) = V(t_0, t)^\dagger A_I(t)V(t_0, t)`.
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` may be used to compute
 terms in either the symmetric Dyson series or symmetric Magnus expansion
-[forthcoming].
+[:footcite:`puzzuoli_sensitivity_2022`].
 Denoting :math:`U(t_0, t_f, c_1, \dots, c_r)` the solution of the LMDE with generator
 :math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the symmetric Dyson series
 directly expands the solution as a power series in the :math:`c_1, \dots, c_r`:
@@ -133,24 +133,26 @@ under certain conditions [:footcite:`magnus_exponential_1954`, :footcite:`blanes
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
 list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`
-using the algorithm in [forthcoming]. It may also be used to compute Dyson-like
-integrals using the algorithm in [:footcite:`haas_engineering_2019`]. Results are returned in a
-:class:`PerturbationResults` objects which is a data container with some functionality for
-indexing and accessing specific perturbation terms. See the function documentation for further
-details.
+using the algorithm in [:footcite:`puzzuoli_sensitivity_2022`]. It may also be used to compute
+Dyson-like integrals using the algorithm in [:footcite:`haas_engineering_2019`]. Results are
+returned in a :class:`PerturbationResults` objects which is a data container with some
+functionality for indexing and accessing specific perturbation terms. See the function
+documentation for further details.
 
 
 Perturbative Solvers
 ====================
 
 The :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` class provides two
-solvers built using the symmetric Dyson and Magnus expansions, as outlined in [forthcoming].
+solvers built using the symmetric Dyson and Magnus expansions, as outlined in
+[:footcite:`puzzuoli_sensitivity_2022`].
 
 .. note::
 
     The principles and core ideas of the methods were outlined in the Dyson-based *Dysolve*
     algorithm given in [:footcite:p:`shillito_fast_2020`], however the Magnus version and
-    specific algorithms and framing of the problem are as given in [forthcoming].
+    specific algorithms and framing of the problem are as given in
+    [:footcite:`puzzuoli_sensitivity_2022`].
 
 The methods are specialized to LMDEs whose generators are decomposed as:
 

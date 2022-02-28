@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,invalid-unary-operand-type
 
 """Tests for array_polynomial.py."""
 

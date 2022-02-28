@@ -338,10 +338,12 @@ class ArrayPolynomial:
     def __neg__(self) -> "ArrayPolynomial":
         constant_term = None
         if self.constant_term is not None:
+            # pylint: disable=invalid-unary-operand-type
             constant_term = -self.constant_term
 
         array_coefficients = None
         if self.array_coefficients is not None:
+            # pylint: disable=invalid-unary-operand-type
             array_coefficients = -self.array_coefficients
 
         return ArrayPolynomial(

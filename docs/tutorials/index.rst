@@ -11,12 +11,14 @@ Dynamics Tutorials
    qiskit_pulse.rst
    optimizing_pulse_sequence.rst
 
+
 Advanced Topics
+===============
 
 .. toctree::
    :maxdepth: 1
 
-   perturbative_solvers.ipynb
+   perturbative_solvers.rst
 
 
 .. Hiding - Indices and tables

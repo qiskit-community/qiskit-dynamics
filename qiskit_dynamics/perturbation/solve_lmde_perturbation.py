@@ -64,9 +64,9 @@ def solve_lmde_perturbation(
     r"""Compute time-dependent perturbation theory terms for an LMDE.
 
     This function computes symmetric Dyson or Magnus expansion terms
-    via the algorithm in [forthcoming], or Dyson-like terms via the algorithm in
-    [:footcite:`haas_engineering_2019`]. Which expansion is used is controlled by
-    the ``expansion_method`` argument, which impacts the interpretation of
+    via the algorithm in [:footcite:`puzzuoli_sensitivity_2022`], or Dyson-like terms
+    via the algorithm in [:footcite:`haas_engineering_2019`]. Which expansion is used
+    is specified by the ``expansion_method`` argument, which impacts the interpretation of
     several of the function arguments (described below).
 
     Regardless of ``expansion_method``, the main computation is performed by
