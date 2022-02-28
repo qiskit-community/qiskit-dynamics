@@ -40,7 +40,7 @@ where:
 
   - :math:`N`, :math:`a`, and :math:`a^\dagger` are, respectively,
     the number, annihilation, and creation operators.
-  - :math:`\nu` is the qubit frequncy and :math:`r` is the drive strength.
+  - :math:`\nu` is the qubit frequency and :math:`r` is the drive strength.
   - :math:`s(t)` is the drive signal, which we will take to be on resonance with constant
     envelope :math:`1`.
 
