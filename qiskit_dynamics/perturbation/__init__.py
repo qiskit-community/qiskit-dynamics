@@ -61,7 +61,7 @@ multivariable polynomial (i.e. a truncated power series).
 
 .. _td perturbation theory:
 
-Time dependent perturbation theory
+Time-dependent perturbation theory
 ==================================
 
 .. note::
@@ -152,6 +152,16 @@ returned in a :class:`PerturbationResults` objects which is a data container wit
 functionality for indexing and accessing specific perturbation terms. See the function
 documentation for further details.
 
+Schrieffer-Wolff
+================
+
+Schrieffer-Wolff perturbation theory seeks to perturbatively construct the generator
+of a unitary transformation which either block-diagonalizes or diagonalizes a Hamiltonian
+which perturbatively is either non-block-diagonal or non-diagonal
+[:footcite:`wikipedia_schriefferwolff_2021`, :footcite:`bravyi_schriefferwolff_2011`,
+:footcite:`schrieffer_relation_1966`, :footcite:`luttinger_motion_1955`]. The function
+:func:`~qiskit_dynamics.perturbation.schrieffer_wolff` computes the expansion for
+the diagonalization case in the multi-variable setting.
 
 Perturbative Solvers
 ====================

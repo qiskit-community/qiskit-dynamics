@@ -38,6 +38,12 @@ def schrieffer_wolff(
     r"""Construct truncated multi-variable expansion for the generator of the unitary
     Schrieffer-Wolff transformation.
 
+    Schrieffer-Wolff perturbation theory seeks to perturbatively construct the generator
+    of a unitary transformation which either block-diagonalizes or diagonalizes a Hamiltonian
+    which perturbatively is either non-block-diagonal or non-diagonal
+    [:footcite:`wikipedia_schriefferwolff_2021`, :footcite:`bravyi_schriefferwolff_2011`,
+    :footcite:`schrieffer_relation_1966`, :footcite:`luttinger_motion_1955`]. This
+    function considers the diagonalization version of the problem.
     Given a multi-variable power series decomposition of a Hamiltonian:
 
     .. math::
@@ -74,13 +80,13 @@ def schrieffer_wolff(
         S(c) = \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I S_I,
 
     (where the constant term is taken to be :math:`0` as :math:`H(0) = H_0`
-    is assumed already diagonal), we can expand the following using the BCH formula
-    and collect terms in the coefficients :math:`c_I`:
+    is assumed already diagonal), we follow [:footcite:`wikipedia_schriefferwolff_2021`] and
+    expand the following using the BCH formula and collect terms in the coefficients :math:`c_I`:
 
     .. math::
 
         e^{S(c)}H(c)e^{-S(c)} = H_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)}
-             c_I \left(H_0 + [S_I, H0] + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)})\right),
+             c_I \left(H_0 + [S_I, H_0] + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)})\right),
 
     where the :math:`A_I^{(m)}` and :math:`B_I^{(m)}` are defined recursively via
 
@@ -122,6 +128,8 @@ def schrieffer_wolff(
         QiskitError: If any assumptions of the function are not met: H0 is diagonal, real,
         and non-degenerate, the perturbations are Hermitian, and at least one of
         expansion_order or expansion_labels is specified.
+
+    .. footbibliography::
     """
 
     # validate H0 is diagonal and hermitian
