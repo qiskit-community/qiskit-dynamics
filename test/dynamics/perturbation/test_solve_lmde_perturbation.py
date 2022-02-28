@@ -45,7 +45,7 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
         """Test error when neither expansion_order or expansion_labels are specified."""
 
         with self.assertRaisesRegex(QiskitError, "At least one"):
-            solve_lmde_perturbation(perturbations=[], t_span=[], expansion_method="dyson")
+            solve_lmde_perturbation(perturbations=[], t_span=[], expansion_method="dyson_like")
 
     def test_non_square_y0_magnus(self):
         """Test error when y0 is non-square for magnus method."""
@@ -54,19 +54,19 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
             solve_lmde_perturbation(
                 perturbations=[],
                 t_span=[],
-                expansion_method="symmetric_magnus",
+                expansion_method="magnus",
                 expansion_order=1,
                 y0=np.array([1.0, 0.0]),
             )
 
-    def test_non_square_y0_dyson_in_frame(self):
+    def test_non_square_y0_dyson_like_in_frame(self):
         """Test error when y0 is non-square for dyson method with dyson_in_frame=True."""
 
         with self.assertRaisesRegex(QiskitError, "square"):
             solve_lmde_perturbation(
                 perturbations=[],
                 t_span=[],
-                expansion_method="dyson",
+                expansion_method="dyson_like",
                 expansion_order=1,
                 dyson_in_frame=True,
                 y0=np.array([1.0, 0.0]),
@@ -79,8 +79,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
     def setUp(self):
         self.integration_method = "DOP853"
 
-    def test_dyson_analytic_case1_1d(self):
-        """Analytic test of computing dyson terms for 1d initial state.
+    def test_dyson_like_analytic_case1_1d(self):
+        """Analytic test of computing dyson_like terms for 1d initial state.
 
         Note: The expected values were computed using a symbolic computation package.
         """
@@ -101,7 +101,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.array([1.0, 0.0], dtype=complex),
-            expansion_method="dyson",
+            expansion_method="dyson_like",
             expansion_labels=[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1]],
             dyson_in_frame=False,
             integration_method=self.integration_method,
@@ -145,8 +145,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
         self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
 
-    def test_dyson_analytic_case1(self):
-        """Analytic test of computing dyson terms.
+    def test_dyson_like_analytic_case1(self):
+        """Analytic test of computing dyson_like terms.
 
         Note: The expected values were computed using a symbolic computation package.
         """
@@ -167,7 +167,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="dyson",
+            expansion_method="dyson_like",
             expansion_labels=[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -209,8 +209,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
         self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
 
-    def test_dyson_analytic_case1_reduced(self):
-        """Analytic test of computing dyson terms, with reduced perturbation terms requested
+    def test_dyson_like_analytic_case1_reduced(self):
+        """Analytic test of computing dyson_like terms, with reduced perturbation terms requested
         (integration test verifying correct construction/solving of a reduced system).
 
         Note: The expected values were computed using a symbolic computation package.
@@ -232,7 +232,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="dyson",
+            expansion_method="dyson_like",
             expansion_labels=[[0, 0, 0, 1]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -259,8 +259,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
         self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
 
-    def test_dyson_semi_analytic_case1(self):
-        """Semi-analytic test case 1 for computing dyson terms.
+    def test_dyson_like_semi_analytic_case1(self):
+        """Semi-analytic test case 1 for computing dyson_like terms.
 
         Note: The expected values were computed using a symbolic computation package,
         though the formulas were too complicated, so they were explicitly evaluated
@@ -287,7 +287,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="dyson",
+            expansion_method="dyson_like",
             expansion_labels=[
                 [0],
                 [1],
@@ -396,8 +396,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             expected_D100, results.perturbation_results[[1, 0, 0]][-1], rtol=1e-10, atol=1e-10
         )
 
-    def test_symmetric_dyson_analytic_case1_1d(self):
-        """Analytic test of computing symmetric dyson terms with y0 being 1d.
+    def test_dyson_analytic_case1_1d(self):
+        """Analytic test of computing dyson terms with y0 being 1d.
 
         Notes:
             - The expected values were computed using a symbolic computation package.
@@ -422,7 +422,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.array([0.0, 1.0], dtype=complex),
-            expansion_method="symmetric_dyson",
+            expansion_method="dyson",
             expansion_order=2,
             expansion_labels=[[0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 1]],
             dyson_in_frame=False,
@@ -474,8 +474,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
         self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
 
-    def test_symmetric_dyson_analytic_case1(self):
-        """Analytic test of computing symmetric dyson terms.
+    def test_dyson_analytic_case1(self):
+        """Analytic test of computing dyson terms.
 
         Notes:
             - The expected values were computed using a symbolic computation package.
@@ -500,7 +500,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="symmetric_dyson",
+            expansion_method="dyson",
             expansion_order=2,
             expansion_labels=[[0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 1]],
             integration_method=self.integration_method,
@@ -551,8 +551,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
         self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
 
-    def test_symmetric_magnus_analytic_case1(self):
-        """Analytic test of computing symmetric magnus terms.
+    def test_magnus_analytic_case1(self):
+        """Analytic test of computing magnus terms.
 
         Notes:
             - The expected values were computed using a symbolic computation package.
@@ -576,7 +576,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            expansion_method="symmetric_magnus",
+            expansion_method="magnus",
             expansion_labels=[
                 [0],
                 [1],
@@ -638,8 +638,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_M0001, results.perturbation_results[[0, 0, 0, 1]][-1])
         self.assertAllClose(expected_M0011, results.perturbation_results[[0, 0, 1, 1]][-1])
 
-    def test_symmetric_dyson_semi_analytic_case1(self):
-        """Semi-analytic test case 1 for computing symmetric dyson terms.
+    def test_dyson_semi_analytic_case1(self):
+        """Semi-analytic test case 1 for computing dyson terms.
 
         Note: The expected values were computed using a symbolic computation package,
         though the formulas were too complicated, so they were explicitly evaluated
@@ -666,7 +666,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            expansion_method="symmetric_dyson",
+            expansion_method="dyson",
             expansion_order=3,
             integration_method=self.integration_method,
             atol=1e-13,
@@ -757,8 +757,8 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             expected_D001, results.perturbation_results[[0, 0, 1]][-1], rtol=1e-10, atol=1e-10
         )
 
-    def test_symmetric_magnus_semi_analytic_case1(self):
-        """Semi-analytic test case 1 for computing symmetric magnus terms.
+    def test_magnus_semi_analytic_case1(self):
+        """Semi-analytic test case 1 for computing magnus terms.
 
         Note: The expected values were computed using a symbolic computation package,
         though the formulas were too complicated, so they were explicitly evaluated
@@ -786,7 +786,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="symmetric_magnus",
+            expansion_method="magnus",
             expansion_order=2,
             expansion_labels=[[0, 0, 1]],
             integration_method=self.integration_method,
@@ -834,7 +834,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             expected_M11, results.perturbation_results[[1, 1]][-1], rtol=1e-10, atol=1e-10
         )
 
-    def test_symmetric_dyson_power_series_case1(self):
+    def test_dyson_power_series_case1(self):
         """Test consistency of computing power series decompositions across different methods."""
 
         def generator(t):
@@ -867,7 +867,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="dyson",
+            expansion_method="dyson_like",
             expansion_labels=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 0], [1, 1]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -879,7 +879,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="symmetric_dyson",
+            expansion_method="dyson",
             expansion_labels=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -892,7 +892,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbation_labels=[[0], [1], [0, 0], [0, 1], [1, 1]],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="symmetric_dyson",
+            expansion_method="dyson",
             expansion_labels=[[0], [1], [0, 0], [0, 1], [1, 1]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -952,7 +952,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(dyson11, results_sym_dyson_ps.perturbation_results[[1, 1]][-1])
         self.assertAllClose(sym_dyson11, results_sym_dyson_ps.perturbation_results[[1, 1]][-1])
 
-    def test_symmetric_dyson_power_series_case2(self):
+    def test_dyson_power_series_case2(self):
         """Test consistency of computing power series decompositions across different methods."""
 
         rng = np.random.default_rng(938122)
@@ -998,7 +998,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(d, dtype=complex),
-            expansion_method="symmetric_dyson",
+            expansion_method="dyson",
             expansion_labels=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -1011,7 +1011,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbation_labels=[[0], [1], [2], [0, 0], [0, 1]],
             generator=generator,
             y0=np.eye(d, dtype=complex),
-            expansion_method="symmetric_dyson",
+            expansion_method="dyson",
             expansion_labels=[[0, 0, 1, 2]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -1025,7 +1025,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
         self.assertAllClose(sym_dyson, results_sym_dyson_ps.perturbation_results[[0, 0, 1, 2]][-1])
 
-    def test_symmetric_magnus_power_series_case1(self):
+    def test_magnus_power_series_case1(self):
         """Test consistency of computing power series decompositions across different methods."""
 
         def generator(t):
@@ -1058,7 +1058,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="symmetric_magnus",
+            expansion_method="magnus",
             expansion_labels=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -1071,7 +1071,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbation_labels=[[0], [1], [0, 0], [0, 1], [1, 1]],
             generator=generator,
             y0=np.eye(2, dtype=complex),
-            expansion_method="symmetric_magnus",
+            expansion_method="magnus",
             expansion_labels=[[0], [1], [0, 0], [0, 1], [1, 1]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -1107,7 +1107,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
         self.assertAllClose(sym_magnus11, results_sym_magnus_ps.perturbation_results[[1, 1]][-1])
 
-    def test_symmetric_magnus_power_series_case2(self):
+    def test_magnus_power_series_case2(self):
         """Test consistency of computing power series decompositions across different methods."""
 
         rng = np.random.default_rng(938122)
@@ -1153,7 +1153,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             generator=generator,
             y0=np.eye(d, dtype=complex),
-            expansion_method="symmetric_magnus",
+            expansion_method="magnus",
             expansion_labels=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -1166,7 +1166,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbation_labels=[[0], [1], [2], [0, 0], [0, 1]],
             generator=generator,
             y0=np.eye(d, dtype=complex),
-            expansion_method="symmetric_magnus",
+            expansion_method="magnus",
             expansion_labels=[[0, 0, 1, 2]],
             integration_method=self.integration_method,
             atol=1e-13,
@@ -1189,7 +1189,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
     def setUp(self):
         self.integration_method = "jax_odeint"
 
-    def test_jit_grad_dyson(self):
+    def test_jit_grad_dyson_like(self):
         """Test that we can jit and grad a dyson computation."""
 
         def generator(t):
@@ -1206,7 +1206,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
                 t_span=[0, T],
                 generator=generator,
                 y0=np.eye(2, dtype=complex),
-                expansion_method="dyson",
+                expansion_method="dyson_like",
                 expansion_labels=[[0]],
                 integration_method=self.integration_method,
                 atol=1e-13,
@@ -1229,8 +1229,8 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
         output = grad_func(1.0)
         self.assertAllClose(T2, output)
 
-    def test_jit_grad_symmetric(self):
-        """Test that we can jit and grad a symmetric Dyson/Magnus computation."""
+    def test_jit_grad_dyson_magnus(self):
+        """Test that we can jit and grad a Dyson/Magnus computation."""
 
         def generator(t):
             return Array([[1, 0], [0, 1]], dtype=complex).data
@@ -1249,7 +1249,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
                 t_span=[0, T],
                 generator=generator,
                 y0=np.eye(2, dtype=complex),
-                expansion_method="symmetric_magnus",
+                expansion_method="magnus",
                 expansion_labels=[[0, 1]],
                 integration_method=self.integration_method,
                 atol=1e-13,

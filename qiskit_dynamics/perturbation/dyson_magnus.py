@@ -13,8 +13,8 @@
 
 r"""
 Core functionality for computing Dyson series [1] and Magnus expansion [2, 3] terms.
-Specifically, Dyson series terms are computed via the algorithm in [4], and
-symmetric Dyson series and symmetric Magnus expansion terms are computed via the
+Specifically, Dyson-like terms are computed via the algorithm in [4], and
+Dyson series and Magnus expansion terms are computed via the
 method in [5].
 
 References:
@@ -65,7 +65,7 @@ def solve_lmde_dyson(
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
-    symmetric: Optional[bool] = False,
+    dyson_like: Optional[bool] = False,
     integration_method: Optional[str] = "DOP853",
     t_eval: Optional[Array] = None,
     **kwargs,
@@ -78,12 +78,12 @@ def solve_lmde_dyson(
         t_span: Integration limits.
         dyson_terms: Terms to compute.
         perturbation_labels: Ordering/specification of the elements of perturbations. Only used
-                        for symmetric==True.
+                             for dyson_like==False.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
         dyson_in_frame: Whether to return the Dyson terms in the frame of the
                         the frame generator.
-        symmetric: Compute either symmetric or regular Dyson terms.
+        dyson_like: Compute either Dyson or Dyson-like terms.
         integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
         **kwargs: Additional arguments to pass to the solver.
@@ -103,19 +103,19 @@ def solve_lmde_dyson(
     if y0 is None:
         y0 = np.eye(mat_dim, dtype=complex)
 
-    # construct term list an RHS based on whether symmetric or not
+    # construct term list depending on whether computation is dyson or dyson_like
     complete_term_list = None
-    if symmetric:
-        complete_term_list = get_all_submultisets(dyson_terms)
+    if dyson_like:
+        complete_term_list = get_complete_dyson_like_indices(dyson_terms)
     else:
-        complete_term_list = get_complete_dyson_indices(dyson_terms)
+        complete_term_list = get_all_submultisets(dyson_terms)
 
     dyson_rhs = setup_dyson_rhs(
         generator,
         perturbations,
         complete_term_list,
         mat_dim,
-        symmetric=symmetric,
+        dyson_like=dyson_like,
         perturbation_labels=perturbation_labels,
     )
 
@@ -140,8 +140,8 @@ def solve_lmde_dyson(
             dyson_terms[idx] = np.linalg.solve(results.y, dyson_term)
 
     expansion_method = "dyson"
-    if symmetric:
-        expansion_method = "symmetric_dyson"
+    if dyson_like:
+        expansion_method = "dyson_like"
 
     results.perturbation_results = PerturbationResults(
         expansion_method=expansion_method,
@@ -152,7 +152,7 @@ def solve_lmde_dyson(
     return results
 
 
-def solve_lmde_symmetric_magnus(
+def solve_lmde_magnus(
     perturbations: List[Callable],
     t_span: Array,
     magnus_terms: List[Multiset],
@@ -163,7 +163,7 @@ def solve_lmde_symmetric_magnus(
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
-    """Helper function for computing symmetric Magnus terms using method in Reference [5].
+    """Helper function for computing Magnus terms using method in Reference [5].
     See documentaiton for :meth:`solve_lmde_perturbation`.
 
     Args:
@@ -190,18 +190,18 @@ def solve_lmde_symmetric_magnus(
         generator=generator,
         y0=y0,
         dyson_in_frame=True,
-        symmetric=True,
+        dyson_like=False,
         integration_method=integration_method,
         t_eval=t_eval,
         **kwargs,
     )
 
     # compute Magnus terms from Dyson and update the results
-    sym_magnus_terms = symmetric_magnus_from_dyson(
+    magnus_terms = magnus_from_dyson(
         results.perturbation_results.expansion_labels, results.perturbation_results.expansion_terms
     )
-    results.perturbation_results.expansion_method = "symmetric_magnus"
-    results.perturbation_results.expansion_terms = Array(sym_magnus_terms)
+    results.perturbation_results.expansion_method = "magnus"
+    results.perturbation_results.expansion_terms = Array(magnus_terms)
 
     return results
 
@@ -214,7 +214,7 @@ def solve_lmde_dyson_jax(
     generator: Optional[Callable] = None,
     y0: Optional[Array] = None,
     dyson_in_frame: Optional[bool] = True,
-    symmetric: Optional[bool] = False,
+    dyson_like: Optional[bool] = True,
     integration_method: Optional[str] = "jax_odeint",
     t_eval: Optional[Array] = None,
     **kwargs,
@@ -227,12 +227,12 @@ def solve_lmde_dyson_jax(
         t_span: Integration limits.
         dyson_terms: Terms to compute.
         perturbation_labels: Ordering/specification of the elements of perturbations. Only used if
-                        symmetric==True.
+                             dyson_like==False.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
         dyson_in_frame: Whether to return the Dyson terms in the frame of the
                         the frame generator.
-        symmetric: Compute either symmetric or regular Dyson terms.
+        dyson_like: Compute either Dyson or Dyson-like terms.
         integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
         **kwargs: Additional arguments to pass to the solver.
@@ -265,18 +265,18 @@ def solve_lmde_dyson_jax(
     generator = func_transform(generator)
     perturbations = [func_transform(a_func) for a_func in perturbations]
 
-    # construct term list an RHS based on whether symmetric or not
+    # construct term list an RHS based on whether dyson or dyson-like
     complete_term_list = None
-    if symmetric:
-        complete_term_list = get_all_submultisets(dyson_terms)
+    if dyson_like:
+        complete_term_list = get_complete_dyson_like_indices(dyson_terms)
     else:
-        complete_term_list = get_complete_dyson_indices(dyson_terms)
+        complete_term_list = get_all_submultisets(dyson_terms)
 
     dyson_rhs = setup_dyson_rhs_jax(
         generator,
         perturbations,
         complete_term_list,
-        symmetric=symmetric,
+        dyson_like=dyson_like,
         perturbation_labels=perturbation_labels,
     )
 
@@ -300,8 +300,8 @@ def solve_lmde_dyson_jax(
         dyson_terms = vmap(lambda x: jnp.linalg.solve(results.y, x))(dyson_terms)
 
     expansion_method = "dyson"
-    if symmetric:
-        expansion_method = "symmetric_dyson"
+    if dyson_like:
+        expansion_method = "dyson_like"
 
     results.perturbation_results = PerturbationResults(
         expansion_method=expansion_method,
@@ -312,7 +312,7 @@ def solve_lmde_dyson_jax(
     return results
 
 
-def solve_lmde_symmetric_magnus_jax(
+def solve_lmde_magnus_jax(
     perturbations: List[Callable],
     t_span: Array,
     magnus_terms: List[Multiset],
@@ -323,7 +323,7 @@ def solve_lmde_symmetric_magnus_jax(
     t_eval: Optional[Array] = None,
     **kwargs,
 ) -> OdeResult:
-    """JAX version of ``solve_lmde_symmetric_magnus``.
+    """JAX version of ``solve_lmde_magnus``.
     See documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
@@ -350,19 +350,16 @@ def solve_lmde_symmetric_magnus_jax(
         generator=generator,
         y0=y0,
         dyson_in_frame=True,
-        symmetric=True,
+        dyson_like=False,
         integration_method=integration_method,
         t_eval=t_eval,
         **kwargs,
     )
-    # compute Magnus terms from Dyson and update the results to contain
-    # symmetric magnus terms
+    # compute Magnus terms from Dyson and update the results
     dyson_terms = results.perturbation_results.expansion_terms.data
-    sym_magnus_terms = symmetric_magnus_from_dyson_jax(
-        results.perturbation_results.expansion_labels, dyson_terms
-    )
-    results.perturbation_results.expansion_method = "symmetric_magnus"
-    results.perturbation_results.expansion_terms = Array(sym_magnus_terms, backend="jax")
+    magnus_terms = magnus_from_dyson_jax(results.perturbation_results.expansion_labels, dyson_terms)
+    results.perturbation_results.expansion_method = "magnus"
+    results.perturbation_results.expansion_terms = Array(magnus_terms, backend="jax")
 
     return results
 
@@ -372,7 +369,7 @@ def setup_dyson_rhs(
     perturbations: List[Callable],
     oc_dyson_indices: List[Multiset],
     mat_dim: int,
-    symmetric: Optional[bool] = False,
+    dyson_like: Optional[bool] = True,
     perturbation_labels: Optional[List[Multiset]] = None,
 ) -> Callable:
     """Construct the RHS function for propagating Dyson terms.
@@ -382,16 +379,20 @@ def setup_dyson_rhs(
         perturbations: List of matrix functions appearing in Dyson terms.
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
         mat_dim: Dimension of outputs of generator and functions in perturbations.
-        symmetric: Whether the computation is for Dyson or symmetric Dyson terms.
+        dyson_like: Whether the computation is for Dyson or Dyson-like terms.
         perturbation_labels: List of lists specifying index information for perturbations.
-                             Only used when symmetric==True.
+                             Only used when dyson_like==False.
 
     Returns:
         Callable
     """
     lmult_rule = None
     perturbations_evaluation_order = None
-    if symmetric:
+    if dyson_like:
+        generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
+        perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
+        lmult_rule = get_dyson_like_lmult_rule(oc_dyson_indices, generator_eval_indices)
+    else:
         # filter members of perturbations required for given list of dyson terms
         if perturbation_labels is None:
             perturbation_labels = [[idx] for idx in range(len(perturbations))]
@@ -399,11 +400,7 @@ def setup_dyson_rhs(
         perturbations_evaluation_order = [0] + [
             perturbation_labels.index(multiset) + 1 for multiset in reduced_perturbation_labels
         ]
-        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_labels)
-    else:
-        generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
-        perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
-        lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
+        lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_labels)
 
     custom_matmul = CustomMatmul(lmult_rule, index_offset=1)
 
@@ -428,7 +425,7 @@ def setup_dyson_rhs_jax(
     generator: Callable,
     perturbations: List[Callable],
     oc_dyson_indices: List[Multiset],
-    symmetric: Optional[bool] = False,
+    dyson_like: Optional[bool] = True,
     perturbation_labels: Optional[List[Multiset]] = None,
 ) -> Callable:
     """JAX version of setup_dyson_rhs.
@@ -437,9 +434,9 @@ def setup_dyson_rhs_jax(
         generator: The frame generator G.
         perturbations: List of matrix functions appearing in Dyson terms.
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
-        symmetric: Whether the computation is for Dyson or symmetric Dyson terms.
+        dyson_like: Whether the computation is for Dyson or Dyson-like terms.
         perturbation_labels: List of lists specifying index information for perturbations.
-                             Only used when symmetric==True.
+                             Only used when dyson_like==False.
 
     Returns:
         Callable
@@ -447,7 +444,11 @@ def setup_dyson_rhs_jax(
 
     lmult_rule = None
     perturbations_evaluation_order = None
-    if symmetric:
+    if dyson_like:
+        generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
+        perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
+        lmult_rule = get_dyson_like_lmult_rule(oc_dyson_indices, generator_eval_indices)
+    else:
         # filter members of perturbations required for given list of dyson terms
         if perturbation_labels is None:
             perturbation_labels = [[idx] for idx in range(len(perturbations))]
@@ -455,11 +456,7 @@ def setup_dyson_rhs_jax(
         perturbations_evaluation_order = [0] + [
             perturbation_labels.index(multiset) + 1 for multiset in reduced_perturbation_labels
         ]
-        lmult_rule = get_symmetric_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_labels)
-    else:
-        generator_eval_indices = required_dyson_generator_indices(oc_dyson_indices)
-        perturbations_evaluation_order = [0] + [idx + 1 for idx in generator_eval_indices]
-        lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, generator_eval_indices)
+        lmult_rule = get_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_labels)
 
     custom_matmul = CustomMatmul(lmult_rule, index_offset=1, backend="jax")
 
@@ -491,7 +488,7 @@ def required_dyson_generator_indices(complete_dyson_indices: List) -> List:
     return generator_indices
 
 
-def get_dyson_lmult_rule(
+def get_dyson_like_lmult_rule(
     complete_dyson_indices: List[List[int]], generator_indices: List[List[int]]
 ) -> List:
     """Construct custom product rules, in the format required by ``custom_product``,
@@ -535,7 +532,7 @@ def get_dyson_lmult_rule(
     return lmult_rule
 
 
-def get_complete_dyson_indices(dyson_terms: List[List[int]]) -> List[List[int]]:
+def get_complete_dyson_like_indices(dyson_terms: List[List[int]]) -> List[List[int]]:
     """Given a list of Dyson terms to compute specified as lists of indices,
     recursively construct all other Dyson terms that need to be computed,
     returned as a list, ordered by increasing Dyson order, and
@@ -576,34 +573,32 @@ def get_complete_dyson_indices(dyson_terms: List[List[int]]) -> List[List[int]]:
     return ordered_term_list
 
 
-def symmetric_magnus_from_dyson(
-    complete_index_multisets: List[Multiset], symmetric_dyson_terms: np.array
-) -> np.array:
-    """Compute symmetric magnus terms from symmetric dyson terms using the recursion
+def magnus_from_dyson(complete_index_multisets: List[Multiset], dyson_terms: np.array) -> np.array:
+    """Compute magnus terms from dyson terms using the recursion
     relation presented in [5]. The term "Q Matrices" in helper functions refers to
     the matrices used in the recursion relation in [5].
 
     Args:
-        complete_index_multisets: A complete and canonically ordered list of symmetric indices.
-        symmetric_dyson_terms: Array of symmetric Dyson terms.
+        complete_index_multisets: A complete and canonically ordered list of index Multisets.
+        dyson_terms: Array of Dyson terms.
 
     Returns:
-        np.array: The symmetric Magnus terms.
+        np.array: The Magnus terms.
     """
 
     ordered_q_terms = get_q_term_list(complete_index_multisets)
     start_idx, magnus_indices, stacked_q_update_rules = q_recursive_compiled_rules(ordered_q_terms)
 
     # if all terms are first order, nothing needs to be done
-    if start_idx == len(symmetric_dyson_terms):
-        return symmetric_dyson_terms
+    if start_idx == len(dyson_terms):
+        return dyson_terms
 
     # initialize array of q matrices with dyson terms
-    q_mat_shape = (len(ordered_q_terms) + 1,) + symmetric_dyson_terms.shape[1:]
+    q_mat_shape = (len(ordered_q_terms) + 1,) + dyson_terms.shape[1:]
     q_mat = np.zeros(q_mat_shape, dtype=complex)
     # add an identity at the end
     q_mat[-1] = np.broadcast_to(np.eye(q_mat.shape[-1], dtype=complex), q_mat.shape[1:])
-    q_mat[magnus_indices] = symmetric_dyson_terms
+    q_mat[magnus_indices] = dyson_terms
 
     index_list = start_idx + np.arange(len(stacked_q_update_rules[0]))
 
@@ -618,22 +613,22 @@ def symmetric_magnus_from_dyson(
     return q_mat[magnus_indices]
 
 
-def symmetric_magnus_from_dyson_jax(
-    complete_index_multisets: List[Multiset], symmetric_dyson_terms: np.array
+def magnus_from_dyson_jax(
+    complete_index_multisets: List[Multiset], dyson_terms: np.array
 ) -> np.array:
-    """JAX version of symmetric_magnus_from_dyson."""
+    """JAX version of magnus_from_dyson."""
 
     ordered_q_terms = get_q_term_list(complete_index_multisets)
     start_idx, magnus_indices, stacked_q_update_rules = q_recursive_compiled_rules(ordered_q_terms)
 
     # if all terms are first order, nothing needs to be done
-    if start_idx == len(symmetric_dyson_terms):
-        return symmetric_dyson_terms
+    if start_idx == len(dyson_terms):
+        return dyson_terms
 
     # initialize array of q matrices with dyson terms
-    q_mat_shape = (len(ordered_q_terms) + 1,) + symmetric_dyson_terms.shape[1:]
+    q_mat_shape = (len(ordered_q_terms) + 1,) + dyson_terms.shape[1:]
     q_init = jnp.zeros(q_mat_shape, dtype=complex)
-    q_init = q_init.at[magnus_indices].set(symmetric_dyson_terms)
+    q_init = q_init.at[magnus_indices].set(dyson_terms)
     q_init = q_init.at[-1].set(
         jnp.broadcast_to(jnp.eye(q_init.shape[-1], dtype=complex), q_init.shape[1:])
     )
@@ -729,7 +724,7 @@ def q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
           correctly formatted in terms of internal sorting.
 
     Args:
-        q_term: Tuple with a symmetric index and a product order (int)
+        q_term: Tuple with a Multiset and a product order (int)
         oc_q_term_list: Ordered complete list of a q terms.
 
     Returns:
@@ -752,8 +747,7 @@ def q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
     else:
 
         # construct a list of products
-        # need to consider all possible sub-multisets of the symmetric index
-        # in q_term
+        # need to consider all possible sub-multisets of the Multiset index in q_term
         products = []
         submultisets, complements = sym_index.submultisets_and_complements(
             len(sym_index) - (q_term_order - 1) + 1
@@ -775,7 +769,7 @@ def get_q_term_list(complete_index_multisets: List[Multiset]) -> List:
     """Construct a specification of the recursive Q matrices
     required to compute all Magnus terms specified by
     ``complete_index_multisets``. Each Q matrix is specified as
-    a 2-tuple with first entry a list representing a symmetric index,
+    a 2-tuple with first entry a Multiset indexing the term,
     and second entry the product order of the Q matrix.
 
     Note: This function assumes ``complete_index_multisets`` are
@@ -783,8 +777,7 @@ def get_q_term_list(complete_index_multisets: List[Multiset]) -> List:
     a canonical ordering of the Q matrices.
 
     Args:
-        complete_index_multisets: canonically ordered complete
-                                    symmetric index list
+        complete_index_multisets: Canonically ordered complete list of index Multisets.
 
     Returns:
         List: Q matrix specification
@@ -798,7 +791,7 @@ def get_q_term_list(complete_index_multisets: List[Multiset]) -> List:
     return q_terms
 
 
-def get_symmetric_dyson_lmult_rule(
+def get_dyson_lmult_rule(
     complete_index_multisets: List[Multiset], perturbation_labels: Optional[List[Multiset]] = None
 ) -> List:
     """Given a complete list of index multisets, return

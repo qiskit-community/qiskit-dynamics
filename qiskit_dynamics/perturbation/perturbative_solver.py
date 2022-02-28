@@ -126,11 +126,7 @@ class PerturbativeSolver:
 
         self._expansion_method = expansion_method
 
-        if expansion_method == "dyson":
-            expansion_method = "symmetric_dyson"
-        elif expansion_method == "magnus":
-            expansion_method = "symmetric_magnus"
-        else:
+        if expansion_method not in ["dyson", "magnus"]:
             raise QiskitError(
                 "PerturbativeSolver only accepts expansion_method 'dyson' or 'magnus'."
             )

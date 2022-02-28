@@ -28,7 +28,7 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
         """Test that subscripting via __getitem__ works."""
 
         results = PerturbationResults(
-            expansion_method="dyson",
+            expansion_method="dyson_like",
             expansion_labels=[[0], [1], [0, 1]],
             expansion_terms=Array([5, 6, 7]),
         )
@@ -39,7 +39,7 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
         """Test that subscripting via __getitem__ works."""
 
         results = PerturbationResults(
-            expansion_method="symmetric_dyson",
+            expansion_method="dyson",
             expansion_labels=[
                 Multiset.from_list([0]),
                 Multiset.from_list([1]),
@@ -54,7 +54,7 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
         """Test an error gets raised when a requested term doesn't exist."""
 
         results = PerturbationResults(
-            expansion_method="dyson",
+            expansion_method="dyson_like",
             expansion_labels=[[0], [1], [0, 1]],
             expansion_terms=Array([5, 6, 7]),
         )

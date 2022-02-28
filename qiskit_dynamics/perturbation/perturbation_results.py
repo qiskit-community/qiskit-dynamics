@@ -65,7 +65,7 @@ class PerturbationResults:
             QiskitError: If ``label`` is not in ``expansion_labels``.
         """
 
-        if "symmetric" in self.expansion_method:
+        if self.expansion_method in ["dyson", "magnus"]:
             label = to_Multiset(label)
 
         if label in self.expansion_labels:
