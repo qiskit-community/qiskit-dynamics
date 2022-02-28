@@ -109,10 +109,10 @@ with :math:`\tilde{A}_I(t) = V(t_0, t)^\dagger A_I(t)V(t_0, t)`.
 
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` may be used to compute
-terms in either the symmetric Dyson series or symmetric Magnus expansion
-[:footcite:`puzzuoli_sensitivity_2022`].
+terms in either the Dyson series or Magnus expansion
+via the algorithms in [:footcite:`puzzuoli_sensitivity_2022`].
 Denoting :math:`U(t_0, t_f, c_1, \dots, c_r)` the solution of the LMDE with generator
-:math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the symmetric Dyson series
+:math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the Dyson series
 directly expands the solution as a power series in the :math:`c_1, \dots, c_r`:
 
 .. math::
@@ -120,7 +120,10 @@ directly expands the solution as a power series in the :math:`c_1, \dots, c_r`:
     U(t_0, t_f, c_1, \dots, c_r) =
             \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{D}_I(t_0, t_f).
 
-The symmetric Magnus expansion similarly gives a power series decomposition of the
+The :math:`\mathcal{D}_I(t_0, t_f)`, which we refer to as the *Dyson terms*, are defined
+*implicitly* above as the power-series expansion coefficients.
+
+The Magnus expansion similarly gives a power series decomposition of the
 time-averaged generator:
 
 .. math::
@@ -130,6 +133,16 @@ time-averaged generator:
 
 which satisfies :math:`U(t_0, t_f, c_1, \dots, c_r) = \exp(\Omega(t_0, t_f, c_1, \dots, c_r))`
 under certain conditions [:footcite:`magnus_exponential_1954`, :footcite:`blanes_magnus_2009`].
+Again, the :math:`\mathcal{O}_I(t_0, t_f)` are defined as *implicitly* as the coefficients
+in the above series.
+
+.. note::
+
+    The above is a non-standard presentation of the Dyson series and Magnus expansion.
+    These expansions are typically described via explicit expressions, and are not phrased
+    in terms of multi-variable power series. Within the above notation, the standard
+    definitions of the Dyson series and Magnus expansions may be viewed as the single-variable
+    case.
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
 list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`
@@ -144,7 +157,7 @@ Perturbative Solvers
 ====================
 
 The :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` class provides two
-solvers built using the symmetric Dyson and Magnus expansions, as outlined in
+solvers built using the Dyson series and Magnus expansion, as outlined in
 [:footcite:`puzzuoli_sensitivity_2022`].
 
 .. note::
@@ -161,8 +174,7 @@ The methods are specialized to LMDEs whose generators are decomposed as:
     G(t) = G_0 + \sum_j Re[f_j(t)e^{i2\pi\nu_jt}]G_j,
 
 and take time steps of a pre-defined fixed size :math:`\Delta t` by either computing
-a truncated symmetric Dyson series, or taking the exponential of a truncated
-symmetric Magnus expansion.
+a truncated Dyson series, or taking the exponential of a truncated Magnus expansion.
 
 
 Perturbation module API
