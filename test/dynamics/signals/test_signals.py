@@ -390,12 +390,12 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.assertAllClose(self.discrete1.envelope(0.0), 1.0)
         self.assertAllClose(self.discrete1.envelope(1.23), 3.0)
         self.assertAllClose(self.discrete1.envelope(1.49), 3.0)
-        self.assertAllClose(self.discrete1.envelope(1.5), 3.0)
+        self.assertAllClose(self.discrete1.envelope(1.5), 0.0)
 
         self.assertAllClose(self.discrete2.envelope(0.1), 1.0 + 2j)
         self.assertAllClose(self.discrete2.envelope(1.23), 3.0)
         self.assertAllClose(self.discrete2.envelope(1.49), 3.0)
-        self.assertAllClose(self.discrete2.envelope(1.5), 3.0)
+        self.assertAllClose(self.discrete2.envelope(1.5), 0.0)
 
     def test_envelope_outside(self):
         """Test envelope evaluation outside of defined start and end"""

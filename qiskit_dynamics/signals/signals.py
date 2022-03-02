@@ -348,7 +348,7 @@ class DiscreteSignal(Signal):
 
         else:
             def envelope(t):
-                if t < self._start_time or t >= start_time + (dt + len(samples)):
+                if t < self._start_time or t >= start_time + (dt * len(samples)):
                     return zero_pad[0]
                 else:
                     idx = np.array((t - self._start_time) // self._dt, dtype=int)
