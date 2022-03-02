@@ -26,6 +26,7 @@ from matplotlib import pyplot as plt
 
 try:
     import jax.numpy as jnp
+    import jax.lax as jlx
 except ImportError:
     pass
 
@@ -317,28 +318,42 @@ class DiscreteSignal(Signal):
         self._samples = Array(samples)
         self._start_time = start_time
 
+        zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
+        zero_single = np.zeros_like(Array(samples[0]))
+        wide_samples = np.append(samples, zero_pad, axis=0)
+        print(zero_pad[0])
+        print(zero_single)
+
+        # self._samples = Array(samples)
+        self._samples = Array(samples)
+        self._start_time = start_time
+
         # define internal envelope function
         if self._samples.backend == "jax":
 
             def envelope(t):
-                t = Array(t).data
-                idx = jnp.clip(
-                    jnp.array((t - self._start_time) // self._dt, dtype=int),
-                    -1,
-                    len(self._samples),
+                def out_fun():
+                    idx = jnp.array((t - self._start_time) // self._dt, dtype=int)
+                    return self._samples[idx]
+                # print(type(out))
+                return jlx.cond(
+                    t < self._start_time or t >= start_time + (dt * len(samples)),
+                    # lambda _: (zero_single),
+                    lambda _: (zero_pad[0]),
+                    out_fun,
+                    # self._samples[2],
+                    # self._samples[jnp.array((t - self._start_time) // self._dt, dtype=int)],
+                    operand=t,
                 )
-                return self._widesamples[idx + 1]
 
         else:
-
             def envelope(t):
-                t = Array(t).data
-                idx = np.clip(
-                    np.array((t - self._start_time) // self._dt, dtype=int),
-                    -1,
-                    len(self._samples),
-                )
-                return self._widesamples[idx + 1]
+                if t < self._start_time or t >= start_time + (dt + len(samples)):
+                    return zero_pad[0]
+                else:
+                    idx = np.array((t - self._start_time) // self._dt, dtype=int)
+                    return self._samples[idx]
+
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 

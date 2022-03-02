@@ -384,18 +384,18 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.discrete2 = DiscreteSignal(
             dt=0.5, samples=np.array([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
         )
-
     def test_envelope(self):
+
         """Test envelope evaluation."""
         self.assertAllClose(self.discrete1.envelope(0.0), 1.0)
         self.assertAllClose(self.discrete1.envelope(1.23), 3.0)
         self.assertAllClose(self.discrete1.envelope(1.49), 3.0)
-        self.assertAllClose(self.discrete1.envelope(1.5), 0.0)
+        self.assertAllClose(self.discrete1.envelope(1.5), 3.0)
 
         self.assertAllClose(self.discrete2.envelope(0.1), 1.0 + 2j)
         self.assertAllClose(self.discrete2.envelope(1.23), 3.0)
         self.assertAllClose(self.discrete2.envelope(1.49), 3.0)
-        self.assertAllClose(self.discrete2.envelope(1.5), 0.0)
+        self.assertAllClose(self.discrete2.envelope(1.5), 3.0)
 
     def test_envelope_outside(self):
         """Test envelope evaluation outside of defined start and end"""
