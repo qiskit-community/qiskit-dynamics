@@ -46,7 +46,7 @@ class Multiset:
 
     Note that, internally, the contents of the multiset are stored using an ``OrderedDict``,
     ordered in terms of increasing keys. While a multiset is inherently unordered,
-    having a standard ordering can aid in algorithms.
+    having a canonical ordering when iterating can be useful.
 
     This class also implements a partial order on multisets. It holds that
     ``multiset1 < multiset2`` if either:
@@ -58,7 +58,8 @@ class Multiset:
 
     This ordering corresponds to sorting multisets by size, and within a given size,
     ordering according to lexicographic ordering when the multiset is represented as a
-    sorted list with repeated entries.
+    sorted list with repeated entries. This enables a canonical ordering when dealing with
+    collections of ``Multiset`` objects.
     """
 
     def __init__(self, counts_dict: Dict[int, int]):

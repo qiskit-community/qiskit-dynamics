@@ -19,45 +19,110 @@ Perturbation Theory (:mod:`qiskit_dynamics.perturbation`)
 
 .. currentmodule:: qiskit_dynamics.perturbation
 
-This module contains tools for computing and utilizing perturbation theory terms.
+This module contains tools for numerically computing and utilizing perturbation
+theory terms, with functions for computing expansions for multi-variable Schrieffer-Wolff
+generator, as well as multi-variable Dyson series and Magnus expansions. As perturbative
+expansions are phrased in terms of multi-variable power-series, the starting point for
+this module is establishing a notation for multi-variable power series, which is outlined
+in the remainder of this introduction.
 
+Mathematically, a formal array-valued power-series in :math:`r` variables
+:math:`c_0, \dots, c_{r-1}` is an expression of the form:
 
-Power series
-============
+.. math::
 
-Perturbative expansions are typically expressed as power series decompositions,
-and the conventions for representing array-valued power series in this module are detailed here.
+    f(c_0, \dots, c_{r-1}) = A_0 + \sum_{k=1}^\infty
+                \sum_{0 \leq i_1 \leq \dots \leq i_k \leq r-1}
+                (c_{i_1} \times \dots \times c_{i_k}) A_{i_1, \dots, i_k},
 
-Mathematically, array-valued power-series are represented using a
-*multiset* notation. Let :math:`\mathcal{I}_k(r)` represent the set of multisets of
-size :math:`k` whose elements are drawn from :math:`\{1, \dots, r\}`. Furthermore, given
-:math:`r` scalars :math:`c_1, \dots, c_r`, and a multiset :math:`I \in \mathcal{I}_k(r)`,
-with elements :math:`I = (i_1, \dots, i_k)`, denote
+where, in general, the :math:`A_0` and :math:`A_{i_1, \dots, i_k}` are arrays of common shape.
+
+Structurally, each term in the power series is labelled by the number of times each
+variable :math:`c_0, \dots, c_{r-1}` appears in the product :math:`c_{i_1} \dots c_{i_k}`.
+Equivalently, each term may be indexed by the number of times each variable label appears
+:math:`0, \dots, r-1` appears. The data structure used to represent these labels in this
+module is that of a *multiset*, i.e. a "set with repeated entries". Denoting multisets
+with round brackets, e.g. :math:`I = (i_1, \dots, i_k)`, we define
 
 .. math::
 
     c_I = c_{i_1} \times \dots \times c_{i_k}.
 
-I.e. :math:`c_I` is the :math:`k`-fold product of the scalars :math:`c_j` whose indices
-are given by the multiset :math:`I`. Some example usages of this notation are:
-
-    - :math:`c_{(1, 2)} = c_1 c_2`,
-    - :math:`c_{(1, 1)} = c_1^2`, and
-    - :math:`c_{(1, 2, 2, 3)} = c_1 c_2^2 c_3`.
-
-With this notation, we represent a power series in :math:`r` variables as:
+and similarly denote :math:`A_I = A_{i_1, \dots, i_k}`. This notation is chosen due to
+the simple relationship between algebraic operations and multiset operations. E.g.,
+for two multisets :math:`I, J`, it holds that:
 
 .. math::
 
-    f(c_1, \dots, c_r) = A_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I,
+    c_{I \cup J} = c_I \times c_J,
 
-where :math:`A_0` is the constant term, and the :math:`A_I` are the array-valued power-series
-coefficients.
+where the union is understood to be in terms of multisets.
 
-The :class:`~qiskit_dynamics.perturbation.Multiset` class represents a multiset of indices,
-and :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` represents an array-valued
-multivariable polynomial (i.e. a truncated power series).
+Some example usages of this notation are:
 
+    - :math:`c_{(0, 1)} = c_0 c_1`,
+    - :math:`c_{(1, 1)} = c_1^2`, and
+    - :math:`c_{(1, 2, 2, 3)} = c_1 c_2^2 c_3`.
+
+Finally, we denote the set of multisets of size $k$ with elements lying in :math:`{0, \dots, r-1}`
+as :math:`\mathcal{I}_k(r)`. Combining everything, the power series above may be
+rewritten as:
+
+.. math::
+
+    f(c_0, \dots, c_{r-1}) = A_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I.
+
+
+Multisets and truncated power-series representation
+===================================================
+
+The :class:`~qiskit_dynamics.perturbation.Multiset` class represents a multiset whose elements
+are integers. The API is meant to mimic the built-in ``set`` class, e.g. the union of
+two multisets may be taken via
+
+.. code-block:: python
+
+    multiset1.union(multiset2)
+
+and the multiset complement may be computed via
+
+.. code-block:: python
+
+    multiset1.difference(multiset2)
+
+See the class documentation for further details, but a
+:class:`~qiskit_dynamics.perturbation.Multiset` may either be instantiated with a dictionary
+of counts, or a ``list`` of integers, with the former being the preferred method, and the
+latter being a convenience.
+
+The class :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` represents an array-valued
+multivariable polynomial (i.e. a truncated power series), and provides functionality for
+both evaluating and transforming array-valued polynomials. See the class documentation
+for instantiation details, but once constructed, an
+:class:`~qiskit_dynamics.perturbation.ArrayPolynomial` ``ap`` can be evaluated on a 1d array
+of variables ``c`` via:
+
+.. code-block:: python
+
+    ap(c)
+
+
+Algebraic operations can be performed via magic methods, e.g. the line ``ap3 = ap1 * ap2``
+for two :class:`~qiskit_dynamics.perturbation.ArrayPolynomial`\s ``ap1`` and ``ap2``
+results in a third ``ap3`` satisfying
+
+.. code-block:: python
+
+    ap3(c) == ap1(c) * ap2(c)
+
+for all variable arrays ``c``.
+
+Some array methods, such as ``trace`` and ``transpose``, are also implemented, and
+satisfy, e.g.
+
+.. code-block:: python
+
+    (ap.trace())(c) == ap(c).trace()
 
 .. _td perturbation theory:
 

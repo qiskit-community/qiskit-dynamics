@@ -44,16 +44,77 @@ class ArrayPolynomial:
 
     where in the above:
 
-        - :math:`S` is a finite set of index multisets indicating non-zero monomial terms,
-        - For a given index multiset :math:`I=(i_1, \dots, i_k)`,
+        - :math:`S` is a finite set of multisets
+          indicating non-zero monomial terms,
+        - For a given multiset :math:`I=(i_1, \dots, i_k)`,
           :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, and
         - The :math:`A_I` are arrays of the same shape, indexed by the first dimension.
 
-    At instantiation, the user specifies :math:`S` as a list of
-    :class:`~qiskit_dynamics.perturbation.multiset.Multiset` instances,
-    :math:`A_I` as list of arrays (specified as a >=1d array) whose first index has
-    corresponding ordering with the list specifying :math:`S`, and can optionally
-    specify a constant term :math:`A_0`.
+    An :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` is instantiated with the arguments:
+
+        - ``constant_term`` specifying the array :math:`A_0`.
+        - ``array_coefficients`` specifying a list of the arrays :math:`A_I`, or as a single array
+          whose first index lists the :math:`A_I`,
+        - ``monomial_labels`` specifying the set :math:`S` as a list of
+          :class:`~qiskit_dynamics.perturbation.multiset.Multiset` instances ordered in
+          correspondence with ``array_coefficients``.
+
+    For example, the :class:`~qiskit_dynamics.perturbation.ArrayPolynomial`
+    corresponding to the mathematical polynomial
+
+    .. math::
+
+        f(c_0, c_1) = A_0 + c_{(0)} A_{(0)} + c_{(0, 1)}A_{(0, 1)} + c_{(1, 1)}A_{(1, 1)}
+
+    for arrays :math:`A_0, A_{(0)}, A_{(0, 1)}, A_{(1, 1)}` stored in variables
+    ``A_c``, ``A0``, ``A01``, and ``A11`` can be instantiated with
+
+    .. code-block:: python
+
+        ap = ArrayPolynomial(
+            constant_term = A_c
+            array_coefficients=[A0, A01, A11],
+            monomial_labels=[Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({1: 2})]
+        )
+
+    Once instantiated, the polynomial can be evaluated on an array of variable values, e.g.
+
+    .. code-block:: python
+
+        c = np.array([c0, c1])
+        ap(c) # polynomial evaluated on variables
+
+    :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` supports some array properties,
+    e.g. ``ap.shape`` and ``ap.ndim`` return the shape and number of dimensions of the output
+    of the polynomial. Some array methods are also supported, such as ``transpose`` and
+    ``trace``, and their output produces a new
+    :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` which evaluates to the array
+    one would obtain by first evaluating the original, then calling the array method.
+    E.g.
+
+    .. code-block:: python
+
+        ap2 = ap1.transpose()
+        ap2(c) == ap1(c).transpose()
+
+    Finally, :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` supports algebraic operations,
+    e.g.
+
+    .. code-block:: python
+
+        ap3 = ap1 @ ap2
+        ap3(c) == ap1(c) @ ap2(c)
+
+    It also has specialized algebraic methods that perform algebraic operations while
+    "ignoring" terms. E.g., for two instances ``ap1`` and ``ap2``, the call
+
+    .. code-block:: python
+
+        ap1.matmul(ap2, degree_bound=3)
+
+    is similar to ``ap1 @ ap2``, but will result in an
+    :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` in which all terms of degree
+    larger than ``3`` will not be included in the results. 
     """
     __array_priority__ = 20
 
