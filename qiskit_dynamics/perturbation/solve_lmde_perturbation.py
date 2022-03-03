@@ -80,13 +80,25 @@ def solve_lmde_perturbation(
         - ``kwargs`` are passed directly to :func:`~qiskit_dynamics.solvers.solve_ode`, enabling
           passing through of tolerance or step size arguments.
 
+    Other arguments which are treated the same regardless off ``expansion_method`` are:
+
+        - ``generator`` is the unperturbed generator, and the computation is performed
+          in the toggling frame of this generator.
+        - ``y0`` is the initial state for the LMDE given by the unperturbed generator, :math:`V_0`.
+          Note that for ``expansion_method == 'magnus'``, ``y0`` must be a square 2d array,
+          whereas for ``expansion_method in ['dyson', 'dyson_like']``, it can be a 1d or 2d
+          array. In one of the Dyson cases, the output is equivalent to specifying ``y0``
+          as the identity matrix, but then multiplying all of the results by ``y0`` on the right.
+          If a non-square ``y0`` is used, the argument ``dyson_in_frame`` must be ``False``
+          (see below).
+
 
     If ``expansion_method == 'dyson'`` or ``expansion_method == 'magnus'``,
     the computation is performed as described in the
     :ref:`time-dependent perturbation theory section <td perturbation theory>`
     of the perturbation API doc. In this case:
 
-        - ``perturbations`` gives a list of the :math:`A_I` functions as callables.
+        - ``perturbations`` gives a list of the :math:`A_I(t)` functions as callables.
         - ``perturbation_labels`` is an optional list specifying the labels for the terms in
           ``perturbations`` in the form of
           :class:`~qiskit_dynamics.perturbation.multiset.Multiset`\s.
@@ -94,19 +106,12 @@ def solve_lmde_perturbation(
           ``[Multiset({0: 1}), ..., Multiset({len(perturbations) - 1: 1})]``.
         - ``expansion_order`` specifies that all expansion terms up to a given
           order are to be computed.
-        - ``expansion_labels`` allows specification of specific terms to be computed, by
-          specifying :class:`~qiskit_dynamics.perturbation.Multiset`\s.
+        - ``expansion_labels`` specifies individual terms to be computed, given as
+          :class:`~qiskit_dynamics.perturbation.Multiset`\s.
           Both of ``expansion_order``
           and ``expansion_labels`` are optional, however at least one must be specified.
           If both are specified, then all terms up to ``expansion_order`` will be computed,
           along with any additional specific terms given by ``expansion_labels``.
-        - ``generator`` is the unperturbed generator, and the computation is performed
-          in the toggling frame of this generator.
-        - ``y0`` is the initial state for the LMDE given by the unperturbed generator.
-          For Dyson methods, this can be non-square, but for Magnus it must be square.
-          If a non-square ``y0`` is supplied, then ``dyson_in_frame`` must be ``False``
-          (see below).
-
 
     If ``expansion_method == 'dyson_like'``, the setup is different. In this case,
     for a list of matrix-valued functions :math:`A_0(t), \dots, A_{r-1}(t)`,
@@ -116,7 +121,7 @@ def solve_lmde_perturbation(
         \int_{t_0}^{t_F} dt_1 \int_{t_0}^{t_1} dt_2 \dots \int_{t_0}^{t_{k-1}}dt_k
                 \tilde{A}_{i_1}(t_1) \dots \tilde{A}_{i_k}(t_k),
 
-    for lists of integers :math:`[i_1, \dots, i_k]`, and similar to the `'dyson'`
+    for lists of integers :math:`[i_1, \dots, i_k]`, and similar to the ``'dyson'``
     case, :math:`\tilde{A}_j(t) = V(t_0, t)^\dagger A_j(t)V(t_0, t)`, i.e. the computation
     is performed in the toggling frame specified by ``generator``.
 

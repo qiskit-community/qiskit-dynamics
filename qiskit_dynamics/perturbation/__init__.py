@@ -129,27 +129,24 @@ satisfy, e.g.
 Time-dependent perturbation theory
 ==================================
 
-.. note::
-
-    **This notation will need to change to include the possibility of non-square ``y0``
-    when computing Dyson terms. Be careful with how this is explained.**
-
-The function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`
-computes various time-dependent perturbation theory terms related to the Dyson series
-[:footcite:`dyson_radiation_1949`] and Magnus expansion [:footcite:p:`magnus_exponential_1954`],
+Using algorithms in [:footcite:`puzzuoli_sensitivity_2022`], the function
+:func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`
+computes Dyson series [:footcite:`dyson_radiation_1949`] and
+Magnus expansion [:footcite:p:`magnus_exponential_1954`] terms,
+which are time-dependent perturbation theory expansions
 used in matrix differential equations (LMDEs). Using the power series notation of the
 previous section, the general setting supported by this function involves LMDE generators
 with power series decompositions of the form:
 
 .. math::
 
-    G(t, c_1, \dots, c_r) = G_0(t) + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I(t),
+    G(t, c_0, \dots, c_{r-1}) = G_0(t) + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I(t),
 
 where
 
     - :math:`G_0(t)` is the unperturbed generator,
     - The :math:`A_I(t)` give the time-dependent operator form of the perturbations, and
-    - The expansion parameters :math:`c_1, \dots, c_r` are viewed as the perturbation parameters.
+    - The expansion parameters :math:`c_0, \dots, c_{r-1}` are the perturbation parameters.
 
 .. note::
 
@@ -157,35 +154,33 @@ where
     the function assumes only a finite number of the :math:`A_I(t)` are specified as being
     non-zero.
 
-:func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` enables computation of a
-finite number of power series decomposition coefficients of either the solution itself,
-or of a time-averaged generator *in the toggling frame of the unperturbed generator* :math:`G_0(t)`
+:func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` computes expansion terms
+*in the toggling frame of the unperturbed generator* :math:`G_0(t)`
 [:footcite:`evans_timedependent_1967`, :footcite:`haeberlen_1968`].
-Denoting :math:`V(t_0, t)` the solution of the LMDE with generator :math:`G_0(t)`
-over the interval :math:`[t_0, t]`, the generator :math:`G` in the toggling frame of :math:`G_0(t)`
+Denoting :math:`V(t)` the solution of the LMDE with generator :math:`G_0(t)`
+for an initial condition :math:`V_0` at :math:`t_0`,
+the generator :math:`G` in the toggling frame of :math:`G_0(t)`
 is given by:
 
 .. math::
 
-    \tilde{G}(t, c_1, \dots, c_r) =
+    \tilde{G}(t, c_0, \dots, c_{r-1}) =
             \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \tilde{A}_I(t),
 
-with :math:`\tilde{A}_I(t) = V(t_0, t)^\dagger A_I(t)V(t_0, t)`.
+with :math:`\tilde{A}_I(t) = V(t)^\dagger A_I(t)V(t)`.
 
+The Dyson series expands the soluti
 
-:func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` may be used to compute
-terms in either the Dyson series or Magnus expansion
-via the algorithms in [:footcite:`puzzuoli_sensitivity_2022`].
-Denoting :math:`U(t_0, t_f, c_1, \dots, c_r)` the solution of the LMDE with generator
-:math:`\tilde{G}` over the interval :math:`[t_0, t_f]`, the Dyson series
-directly expands the solution as a power series in the :math:`c_1, \dots, c_r`:
+Denoting :math:`U(t, c_0, \dots, c_{r-1})` the solution of the LMDE with generator
+:math:`\tilde{G}` with initial condition the identity matrix :math:`I` at :math:`t_0`,
+the Dyson series directly expands the solution as a power series in the :math:`c_0, \dots, c_{r-1}`:
 
 .. math::
 
-    U(t_0, t_f, c_1, \dots, c_r) =
-            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{D}_I(t_0, t_f).
+    U(t, c_0, \dots, c_{r-1}) =
+            I + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{D}_I(t_0, t).
 
-The :math:`\mathcal{D}_I(t_0, t_f)`, which we refer to as the *Dyson terms*, are defined
+The :math:`\mathcal{D}_I(t_0, t)`, which we refer to as the *Dyson terms*, are defined
 *implicitly* above as the power-series expansion coefficients.
 
 The Magnus expansion similarly gives a power series decomposition of the
@@ -193,12 +188,13 @@ time-averaged generator:
 
 .. math::
 
-    \Omega(t_0, t_f, c_1, \dots, c_r) =
-            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t_0, t_f),
+    \Omega(t, c_0, \dots, c_{r-1}) =
+            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t_0, t),
 
-which satisfies :math:`U(t_0, t_f, c_1, \dots, c_r) = \exp(\Omega(t_0, t_f, c_1, \dots, c_r))`
+which satisfies
+:math:`U(t, c_0, \dots, c_{r-1}) = \exp(\Omega(t, c_0, \dots, c_{r-1}))`
 under certain conditions [:footcite:`magnus_exponential_1954`, :footcite:`blanes_magnus_2009`].
-Again, the :math:`\mathcal{O}_I(t_0, t_f)` are defined as *implicitly* as the coefficients
+Again, the :math:`\mathcal{O}_I(t_0, t)` are defined as *implicitly* as the coefficients
 in the above series.
 
 .. note::
