@@ -48,7 +48,7 @@ def schrieffer_wolff(
 
     .. math::
 
-        H(c) = H_0 + \sum_{I \in S} c_I H_I,
+        H(c_0, \dots, c_{r-1}) = H_0 + \sum_{I \in S} c_I H_I,
 
     where:
 
@@ -67,25 +67,28 @@ def schrieffer_wolff(
           along with any additional terms given by ``expansion_labels``.
 
     The generator of the Schrieffer-Wolff transformation as a function of the perturbation
-    variables, :math:`S(c)`, is defined implicitly as an anti-Hermitian operator for which
+    variables, :math:`S(c_0, \dots, c_{r-1})`, is defined implicitly as an anti-Hermitian
+    operator for which
 
     .. math::
 
-        e^{S(c)}H(c)e^{-S(c)}
+        e^{S(c_0, \dots, c_{r-1})}H(c_0, \dots, c_{r-1})e^{-S(c_0, \dots, c_{r-1})}
 
-    is diagonal. Expanding :math:`S(c)` in a perturbative expansion about :math:`c=0`:
+    is diagonal. Expanding :math:`S(c_0, \dots, c_{r-1})` in a perturbative expansion about
+    :math:`c_0 = \dots = c_{r-1} = 0`:
 
     .. math::
 
-        S(c) = \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I S_I,
+        S(c_0, \dots, c_{r-1}) = \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I S_I,
 
-    (where the constant term is taken to be :math:`0` as :math:`H(0) = H_0`
+    (where the constant term is taken to be :math:`0` as :math:`H(0, \dots, 0) = H_0`
     is assumed already diagonal), we follow [:footcite:`wikipedia_schriefferwolff_2021`] and
     expand the following using the BCH formula and collect terms in the coefficients :math:`c_I`:
 
     .. math::
 
-        e^{S(c)}H(c)e^{-S(c)} = H_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)}
+        e^{S(c_0, \dots, c_{r-1})}H(c_0, \dots, c_{r-1})e^{-S(c_0, \dots, c_{r-1})} =
+        H_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)}
              c_I \left(H_0 + [S_I, H_0] + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)})\right),
 
     where the :math:`A_I^{(m)}` and :math:`B_I^{(m)}` are defined recursively via

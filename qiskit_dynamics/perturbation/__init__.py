@@ -39,7 +39,7 @@ where, in general, the :math:`A_0` and :math:`A_{i_1, \dots, i_k}` are arrays of
 
 Structurally, each term in the power series is labelled by the number of times each
 variable :math:`c_0, \dots, c_{r-1}` appears in the product :math:`c_{i_1} \dots c_{i_k}`.
-Equivalently, each term may be indexed by the number of times each variable label appears
+Equivalently, each term may be indexed by the number of times each variable label
 :math:`0, \dots, r-1` appears. The data structure used to represent these labels in this
 module is that of a *multiset*, i.e. a "set with repeated entries". Denoting multisets
 with round brackets, e.g. :math:`I = (i_1, \dots, i_k)`, we define
@@ -216,13 +216,37 @@ documentation for further details.
 Schrieffer-Wolff
 ================
 
-Schrieffer-Wolff perturbation theory seeks to perturbatively construct the generator
-of a unitary transformation which either block-diagonalizes or diagonalizes a Hamiltonian
-which perturbatively is either non-block-diagonal or non-diagonal
+Schrieffer-Wolff perturbation theory seeks to perturbatively construct the generator of a unitary
+transformation that diagonalizes a Hamiltonian which perturbatively non-diagonal
 [:footcite:`wikipedia_schriefferwolff_2021`, :footcite:`bravyi_schriefferwolff_2011`,
-:footcite:`schrieffer_relation_1966`, :footcite:`luttinger_motion_1955`]. The function
-:func:`~qiskit_dynamics.perturbation.schrieffer_wolff` computes the expansion for
-the diagonalization case in the multi-variable setting.
+:footcite:`schrieffer_relation_1966`, :footcite:`luttinger_motion_1955`]. (More generally,
+the goal is to *block-diagonalize* a perturbatively non-block-diagonal Hamiltonian,
+however, this function is specialized to the diagonal case.)
+
+I.e. given a power series decomposition of a Hamiltonian in :math:`r` variables:
+
+.. math::
+
+    H(c_0, \dots, c_{r-1}) = H_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I H_I
+
+for :math:`H0` a diagonal Hermitian operator, and :math:`H_I` Hermitian, the goal is to
+construct a power series decomposition of an anti-Hermitian matrix
+
+.. math::
+
+    S(c_0, \dots, c_{r-1}) = \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I S_I
+
+for which
+
+.. math::
+
+    e^{S(c_0, \dots, c_{r-1})}H(c_0, \dots, c_{r-1})e^{-S(c_0, \dots, c_{r-1})}
+
+is diagonal.
+
+The function :func:`~qiskit_dynamics.perturbation.schrieffer_wolff` computes the truncated
+expansion for :math:`S(c_0, \dots, c_{r-1})`, and returns it as an
+:class:`~qiskit_dynamics.perturbation.ArrayPolynomial` instance.
 
 Perturbative Solvers
 ====================
