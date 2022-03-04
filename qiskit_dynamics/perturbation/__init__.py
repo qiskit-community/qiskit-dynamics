@@ -20,8 +20,8 @@ Perturbation Theory (:mod:`qiskit_dynamics.perturbation`)
 .. currentmodule:: qiskit_dynamics.perturbation
 
 This module contains tools for numerically computing and utilizing perturbation
-theory terms, with functions for computing expansions for multi-variable Schrieffer-Wolff
-generator, as well as multi-variable Dyson series and Magnus expansions. As perturbative
+theory terms, with functions for computing multi-variable Dyson series and Magnus expansions,
+as well as expansions for the multi-variable Schrieffer-Wolff generator. As perturbative
 expansions are phrased in terms of multi-variable power-series, the starting point for
 this module is establishing a notation for multi-variable power series, which is outlined
 in the remainder of this introduction.
@@ -262,13 +262,13 @@ solvers built using the Dyson series and Magnus expansion, as outlined in
     specific algorithms and framing of the problem are as given in
     [:footcite:`puzzuoli_sensitivity_2022`].
 
-The methods are specialized to LMDEs whose generators are decomposed as:
+The solvers are specialized to LMDEs whose generators are decomposed as:
 
 .. math::
 
     G(t) = G_0 + \sum_j Re[f_j(t)e^{i2\pi\nu_jt}]G_j,
 
-and take time steps of a pre-defined fixed size :math:`\Delta t`. The differential equation is
+and are fixed step with a pre-defined step size :math:`\Delta t`. The differential equation is
 solved by either computing a truncated Dyson series, or taking the exponential of a truncated
 Magnus expansion.
 

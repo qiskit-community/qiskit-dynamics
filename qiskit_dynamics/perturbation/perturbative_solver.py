@@ -43,7 +43,7 @@ class PerturbativeSolver:
 
     This class implements two specialized LMDE solvers based on the Dyson series
     and Magnus expansion as presented in [:footcite:`puzzuoli_sensitivity_2022`],
-    with the Dyson-based solver, being a variant of the *Dysolve* algorithm introduced in
+    with the Dyson-based solver being a variant of the *Dysolve* algorithm introduced in
     [:footcite:p:`shillito_fast_2020`].
 
     These solvers apply to generators with a decomposition:
@@ -52,15 +52,16 @@ class PerturbativeSolver:
 
         G(t) = G_0 + \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]G_j,
 
-    and solve the LMDE in the rotating frame of :math:`G_0`, i.e. they solve the LMDE
-    with generator:
+    and solve the LMDE in the rotating frame of :math:`G_0`, which is assumed to be anti-Hermitian.
+    I.e. they solve the LMDE with generator:
 
     .. math::
 
         \tilde{G}(t) = \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]\tilde{G}_j(t),
 
     with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`. The solvers are *fixed-step*,
-    and solve over each step by computing either a truncated Dyson-series expansion or a
+    with step size :math:`\Delta t` being defiend *at instantiation*.
+    and solve over each step by computing either a truncated Dyson series or a
     truncated Magnus expansion followed by matrix exponentiation.
 
     At instantiation, the following parameters are fixed:
