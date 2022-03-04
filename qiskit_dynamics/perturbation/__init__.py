@@ -268,8 +268,9 @@ The methods are specialized to LMDEs whose generators are decomposed as:
 
     G(t) = G_0 + \sum_j Re[f_j(t)e^{i2\pi\nu_jt}]G_j,
 
-and take time steps of a pre-defined fixed size :math:`\Delta t` by either computing
-a truncated Dyson series, or taking the exponential of a truncated Magnus expansion.
+and take time steps of a pre-defined fixed size :math:`\Delta t`. The differential equation is
+solved by either computing a truncated Dyson series, or taking the exponential of a truncated
+Magnus expansion.
 
 
 Perturbation module API
