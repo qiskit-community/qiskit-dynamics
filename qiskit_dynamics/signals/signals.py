@@ -321,8 +321,6 @@ class DiscreteSignal(Signal):
         zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
         zero_single = np.zeros_like(Array(samples[0]))
         wide_samples = np.append(samples, zero_pad, axis=0)
-        print(zero_pad[0])
-        print(zero_single)
 
         # self._samples = Array(samples)
         self._samples = Array(samples)
@@ -345,6 +343,7 @@ class DiscreteSignal(Signal):
                     # self._samples[jnp.array((t - self._start_time) // self._dt, dtype=int)],
                     operand=t,
                 )
+            envelope = jnp.vectorize(envelope)
 
         else:
             def envelope(t):
@@ -354,7 +353,7 @@ class DiscreteSignal(Signal):
                     idx = np.array((t - self._start_time) // self._dt, dtype=int)
                     return self._samples[idx]
 
-
+            envelope = np.vectorize(envelope) 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
     @classmethod
