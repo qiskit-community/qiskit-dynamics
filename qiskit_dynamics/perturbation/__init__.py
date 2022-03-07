@@ -132,7 +132,7 @@ Time-dependent perturbation theory
 Using algorithms in [:footcite:`puzzuoli_sensitivity_2022`], the function
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`
 computes Dyson series [:footcite:`dyson_radiation_1949`] and
-Magnus expansion [:footcite:p:`magnus_exponential_1954`] terms,
+Magnus expansion [:footcite:`magnus_exponential_1954`, :footcite:`blanes_magnus_2009`] terms,
 which are time-dependent perturbation theory expansions
 used in matrix differential equations (LMDEs). Using the power series notation of the
 previous section, the general setting supported by this function involves LMDE generators
