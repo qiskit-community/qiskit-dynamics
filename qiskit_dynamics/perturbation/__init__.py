@@ -90,26 +90,19 @@ and the multiset complement may be computed via
 
     multiset1.difference(multiset2)
 
-See the class documentation for further details, but a
-:class:`~qiskit_dynamics.perturbation.Multiset` may either be instantiated with a dictionary
-of counts, or a ``list`` of integers, with the former being the preferred method, and the
-latter being a convenience.
-
 The class :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` represents an array-valued
 multivariable polynomial (i.e. a truncated power series), and provides functionality for
-both evaluating and transforming array-valued polynomials. See the class documentation
-for instantiation details, but once constructed, an
-:class:`~qiskit_dynamics.perturbation.ArrayPolynomial` ``ap`` can be evaluated on a 1d array
+both evaluating and transforming array-valued polynomials.
+An :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` ``ap`` can be evaluated on a 1d array
 of variables ``c`` via:
 
 .. code-block:: python
 
     ap(c)
 
-
-Algebraic operations can be performed via magic methods, e.g. the line ``ap3 = ap1 * ap2``
-for two :class:`~qiskit_dynamics.perturbation.ArrayPolynomial`\s ``ap1`` and ``ap2``
-results in a third ``ap3`` satisfying
+Algebraic operations may be performed on :class:`~qiskit_dynamics.perturbation.ArrayPolynomial`\s,
+e.g. for two instances ``ap1`` and ``ap2``, the line ``ap3 = ap1 * ap2``
+results in a third instance ``ap3`` satisfying
 
 .. code-block:: python
 
@@ -168,8 +161,6 @@ is given by:
             \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \tilde{A}_I(t),
 
 with :math:`\tilde{A}_I(t) = V(t)^\dagger A_I(t)V(t)`.
-
-The Dyson series expands the soluti
 
 Denoting :math:`U(t, c_0, \dots, c_{r-1})` the solution of the LMDE with generator
 :math:`\tilde{G}` with initial condition the identity matrix :math:`I` at :math:`t_0`,
