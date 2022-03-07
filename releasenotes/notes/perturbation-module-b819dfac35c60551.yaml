@@ -1,15 +1,25 @@
 ---
 prelude: >
-    Adds perturbation theory sub module for computing and utilizing time-dependent perturbation
-    theory terms.
+    Adds perturbation theory sub module for computing and utilizing multi-variable power series
+    expansions commonly used when studying quantum dynamics, e.g. Dyson series and Magnus expansion,
+    and the generator of the Schrieffer-Wolff transformation.
 features:
   - |
+    Adds classes :class:`~qiskit_dynamics.perturbation.Multiset` and
+    :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` for describing and represented
+    multi-variable array-valued polynomials, used to represent truncated power series.
+  - |
     Adds function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` for computing
-    time-dependent perturbation theory terms for linear matrix differential equations.
+    Dyson series and Magnus expansion terms for solutions to linear matrix
+    differential equations.
   - |
-    Adds class :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` for perturbation
-    theory-based linear matrix differential equation solvers.
+    Adds data container class :class:`qiskit_dynamics.perturbation.PerturbationResults`
+    for storing and accessing the results of
+    :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`.
   - |
-    Adds class :class:`~qiskit_dynamics.perturbation.MatrixPolynomial` for representing
-    and evaluating matrix-valued polynomials of complex variables. The primary intended use
-    is for utilizing results of :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation`.
+    Adds class :class:`~qiskit_dynamics.perturbation.PerturbativeSolver`, which implements
+    specialized fixed-step solvers for linear matrix differential equations,
+    based on the Dyson series and Magnus expansion.
+  - |
+    Adds function :func:`~qiskit_dynamics.perturbation.schreiffer_wolff` that computes
+    a multi-variable expansion for the generator of the Schrieffer-Wolff transformation.
