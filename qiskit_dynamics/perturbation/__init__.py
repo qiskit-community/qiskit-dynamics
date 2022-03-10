@@ -35,7 +35,8 @@ Mathematically, a formal array-valued power-series in :math:`r` variables
                 \sum_{0 \leq i_1 \leq \dots \leq i_k \leq r-1}
                 (c_{i_1} \times \dots \times c_{i_k}) A_{i_1, \dots, i_k},
 
-where, in general, the :math:`A_\emptyset` and :math:`A_{i_1, \dots, i_k}` are arrays of common shape.
+where, in general, the :math:`A_\emptyset` and :math:`A_{i_1, \dots, i_k}`
+are arrays of common shape.
 
 Structurally, each term in the power series is labelled by the number of times each
 variable :math:`c_0, \dots, c_{r-1}` appears in the product :math:`c_{i_1} \dots c_{i_k}`.
