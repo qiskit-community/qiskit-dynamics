@@ -84,14 +84,6 @@ def solve_lmde_perturbation(
 
         - ``generator`` is the unperturbed generator, and the computation is performed
           in the toggling frame of this generator.
-        - ``y0`` is the initial state for the LMDE given by the unperturbed generator, :math:`V_0`.
-          Note that for ``expansion_method == 'magnus'``, ``y0`` must be a square 2d array,
-          whereas for ``expansion_method in ['dyson', 'dyson_like']``, it can be a 1d or 2d
-          array. In one of the Dyson cases, the output is equivalent to specifying ``y0``
-          as the identity matrix, but then multiplying all of the results by ``y0`` on the right.
-          If a non-square ``y0`` is used, the argument ``dyson_in_frame`` must be ``False``
-          (see below).
-
 
     If ``expansion_method == 'dyson'`` or ``expansion_method == 'magnus'``,
     the computation is performed as described in the
@@ -121,8 +113,8 @@ def solve_lmde_perturbation(
         \int_{t_0}^{t_F} dt_1 \int_{t_0}^{t_1} dt_2 \dots \int_{t_0}^{t_{k-1}}dt_k
                 \tilde{G}_{i_1}(t_1) \dots \tilde{G}_{i_k}(t_k),
 
-    for lists of integers :math:`[i_1, \dots, i_k]`, and similar to the ``'dyson'``
-    case, :math:`\tilde{G}_j(t) = V(t_0, t)^\dagger G_j(t)V(t_0, t)`, i.e. the computation
+    for lists of integers :math:`[i_1, \dots, i_k]`, and similar to the other
+    cases, :math:`\tilde{G}_j(t) = V(t)^\dagger G_j(t)V(t)`, i.e. the computation
     is performed in the toggling frame specified by ``generator``.
 
         - ``perturbations`` gives the list of matrix functions as callables
@@ -136,21 +128,24 @@ def solve_lmde_perturbation(
           In this case, a term is specified by a list of ``int``\s, where the length
           of the list is the order of the integral, and the :math:`G_0(t), \dots, G_{r-1}(t)`
           appear in the integral in the order given by the list.
-        - ``generator`` serves the same function as in the `'dyson'` case -
-          the computation is performed in the toggling frame of ``generator``.
-        - ``y0`` again is the initial state of the LMDE given by ``generator``.
 
-    .. note::
+    Finally, additional optional arguments which can be used in the
+    ``'dyson'`` and ``'dyson_like'`` cases are:
 
-        The ``dyson_in_frame`` argument is used for both the ``'dyson'``
-        and ``'dyson_like'`` expansion methods. If ``True``, the results are
-        returned as above. If ``False``, the returned expansion terms will include
-        a pre-factor of :math:`V(t_0, t)`, e.g. :math:`V(t_0, t)\mathcal{D}_I(t_0, t)`
-        in the case of a Dyson term. If ``y0`` is non-square,
-        ``dyson_in_frame`` must be set to ``False``, as in this case the matrix
-        :math:`V(t_0, t)` is not explicitly computed. If the ``'magnus'`` method is
-        used, ``dyson_in_frame`` has no effect on the output.
-
+        - ``dyson_in_frame`` controls which frame the results are returned in. The default
+          is ``True``, in which case the results are returned as described above. If
+          ``False``, the returned results include a pre-factor of :math:`V(t)`, the solution
+          of the unperturbed generator, e.g.
+          :math:`V(t)\mathcal{D}_I(t)`. If ``expansion_method=='magnus'``, this argument
+          has no effect on the computation.
+        - ``y0`` is the initial state for the LMDE given by the unperturbed generator.
+          The effect of this argument on the output is to multiply all outputs by
+          ``y0`` on the right.
+          If ``y0`` is supplied, the argument ``dyson_in_frame`` must be ``False``,
+          as the operator :math:`V(t)` is never explicitly computed, and therefore it
+          cannot be removed from the results. If ``y0`` is 1d, it will first be
+          transformed into a 2d column vector to ensure consistent usage of
+          matrix multiplication.
 
     Regardless of the value of ``expansion_method``, results are returned in an
     ``OdeResult`` instance in the same manner as :func:`~qiskit_dynamics.solvers.solve_ode`.
@@ -213,21 +208,17 @@ def solve_lmde_perturbation(
     # validation checks
     if y0 is not None:
         if "magnus" in expansion_method:
-            if y0.ndim != 2 or y0.shape[0] != y0.shape[1]:
-                raise QiskitError(
-                    """If used, optional arg y0 must be a square 2d array
-                                     for expansion_method=='symmeric_magnus'."""
-                )
-        else:
-            if dyson_in_frame and (y0.ndim != 2 or y0.shape[0] != y0.shape[1]):
-                raise QiskitError(
-                    """If expansion_method in ['dyson', 'dyson_like']
-                       and non-square y0 passed, dyson_in_frame must be False."""
-                )
+            raise QiskitError("""Argument y0 cannot be used for expansion_method=='magnus'.""")
 
-            # if 1d in a dyson case, turn into a column vector
-            if y0.ndim == 1:
-                y0 = Array([y0]).transpose()
+        if dyson_in_frame:
+            raise QiskitError(
+                """If expansion_method in ['dyson', 'dyson_like']
+                   and y0 passed, dyson_in_frame must be False."""
+            )
+
+        # if 1d in a dyson case, turn into a column vector
+        if y0.ndim == 1:
+            y0 = Array([y0]).transpose()
 
     if perturbation_labels is not None and expansion_method == "dyson_like":
         raise QiskitError(

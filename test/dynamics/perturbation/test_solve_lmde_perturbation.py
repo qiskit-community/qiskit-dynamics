@@ -47,10 +47,10 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "At least one"):
             solve_lmde_perturbation(perturbations=[], t_span=[], expansion_method="dyson_like")
 
-    def test_non_square_y0_magnus(self):
-        """Test error when y0 is non-square for magnus method."""
+    def test_y0_magnus(self):
+        """Test error when y0 passed for magnus method."""
 
-        with self.assertRaisesRegex(QiskitError, "square"):
+        with self.assertRaisesRegex(QiskitError, "y0 cannot be used"):
             solve_lmde_perturbation(
                 perturbations=[],
                 t_span=[],
@@ -59,10 +59,10 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
                 y0=np.array([1.0, 0.0]),
             )
 
-    def test_non_square_y0_dyson_like_in_frame(self):
+    def test_y0_dyson_like_in_frame(self):
         """Test error when y0 is non-square for dyson method with dyson_in_frame=True."""
 
-        with self.assertRaisesRegex(QiskitError, "square"):
+        with self.assertRaisesRegex(QiskitError, "dyson_in_frame must be False"):
             solve_lmde_perturbation(
                 perturbations=[],
                 t_span=[],
@@ -166,7 +166,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="dyson_like",
             expansion_labels=[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1]],
             integration_method=self.integration_method,
@@ -231,7 +230,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="dyson_like",
             expansion_labels=[[0, 0, 0, 1]],
             integration_method=self.integration_method,
@@ -286,7 +284,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="dyson_like",
             expansion_labels=[
                 [0],
@@ -499,7 +496,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="dyson",
             expansion_order=2,
             expansion_labels=[[0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 1]],
@@ -785,7 +781,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="magnus",
             expansion_order=2,
             expansion_labels=[[0, 0, 1]],
@@ -866,7 +861,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1, A00, A01, A11],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="dyson_like",
             expansion_labels=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 0], [1, 1]],
             integration_method=self.integration_method,
@@ -878,7 +872,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1, A00, A01, A11],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="dyson",
             expansion_labels=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
             integration_method=self.integration_method,
@@ -891,7 +884,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             perturbation_labels=[[0], [1], [0, 0], [0, 1], [1, 1]],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="dyson",
             expansion_labels=[[0], [1], [0, 0], [0, 1], [1, 1]],
             integration_method=self.integration_method,
@@ -997,7 +989,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1, A2, A00, A01],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(d, dtype=complex),
             expansion_method="dyson",
             expansion_labels=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
             integration_method=self.integration_method,
@@ -1010,7 +1001,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             perturbation_labels=[[0], [1], [2], [0, 0], [0, 1]],
             generator=generator,
-            y0=np.eye(d, dtype=complex),
             expansion_method="dyson",
             expansion_labels=[[0, 0, 1, 2]],
             integration_method=self.integration_method,
@@ -1057,7 +1047,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1, A00, A01, A11],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="magnus",
             expansion_labels=[[0], [1], [2], [3], [4], [0, 0], [0, 1], [1, 1]],
             integration_method=self.integration_method,
@@ -1070,7 +1059,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             perturbation_labels=[[0], [1], [0, 0], [0, 1], [1, 1]],
             generator=generator,
-            y0=np.eye(2, dtype=complex),
             expansion_method="magnus",
             expansion_labels=[[0], [1], [0, 0], [0, 1], [1, 1]],
             integration_method=self.integration_method,
@@ -1152,7 +1140,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             perturbations=[A0, A1, A2, A00, A01],
             t_span=[0, T],
             generator=generator,
-            y0=np.eye(d, dtype=complex),
             expansion_method="magnus",
             expansion_labels=[[0, 0, 1, 2], [1, 2, 3], [0, 2, 4]],
             integration_method=self.integration_method,
@@ -1165,7 +1152,6 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             t_span=[0, T],
             perturbation_labels=[[0], [1], [2], [0, 0], [0, 1]],
             generator=generator,
-            y0=np.eye(d, dtype=complex),
             expansion_method="magnus",
             expansion_labels=[[0, 0, 1, 2]],
             integration_method=self.integration_method,
@@ -1205,7 +1191,6 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
                 perturbations=[lambda t: A0(a, t)],
                 t_span=[0, T],
                 generator=generator,
-                y0=np.eye(2, dtype=complex),
                 expansion_method="dyson_like",
                 expansion_labels=[[0]],
                 integration_method=self.integration_method,
@@ -1248,7 +1233,6 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
                 perturbations=[lambda t: A0(a, t), A1],
                 t_span=[0, T],
                 generator=generator,
-                y0=np.eye(2, dtype=complex),
                 expansion_method="magnus",
                 expansion_labels=[[0, 1]],
                 integration_method=self.integration_method,
