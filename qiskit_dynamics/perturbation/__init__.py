@@ -31,11 +31,11 @@ Mathematically, a formal array-valued power-series in :math:`r` variables
 
 .. math::
 
-    f(c_0, \dots, c_{r-1}) = A_0 + \sum_{k=1}^\infty
+    f(c_0, \dots, c_{r-1}) = A_\emptyset + \sum_{k=1}^\infty
                 \sum_{0 \leq i_1 \leq \dots \leq i_k \leq r-1}
                 (c_{i_1} \times \dots \times c_{i_k}) A_{i_1, \dots, i_k},
 
-where, in general, the :math:`A_0` and :math:`A_{i_1, \dots, i_k}` are arrays of common shape.
+where, in general, the :math:`A_\emptyset` and :math:`A_{i_1, \dots, i_k}` are arrays of common shape.
 
 Structurally, each term in the power series is labelled by the number of times each
 variable :math:`c_0, \dots, c_{r-1}` appears in the product :math:`c_{i_1} \dots c_{i_k}`.
@@ -70,7 +70,7 @@ rewritten as:
 
 .. math::
 
-    f(c_0, \dots, c_{r-1}) = A_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I.
+    f(c_0, \dots, c_{r-1}) = A_\emptyset + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I.
 
 
 Multisets and truncated power-series representation
@@ -133,46 +133,51 @@ with power series decompositions of the form:
 
 .. math::
 
-    G(t, c_0, \dots, c_{r-1}) = G_0(t) + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I A_I(t),
+    G(t, c_0, \dots, c_{r-1}) = G_\emptyset(t)
+        + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I G_I(t),
 
 where
 
-    - :math:`G_0(t)` is the unperturbed generator,
-    - The :math:`A_I(t)` give the time-dependent operator form of the perturbations, and
+    - :math:`G_\emptyset(t)` is the unperturbed generator,
+    - The :math:`G_I(t)` give the time-dependent operator form of the perturbations, and
     - The expansion parameters :math:`c_0, \dots, c_{r-1}` are the perturbation parameters.
 
 .. note::
 
     The above is written as an infinite power series, but of course, in practice,
-    the function assumes only a finite number of the :math:`A_I(t)` are specified as being
+    the function assumes only a finite number of the :math:`G_I(t)` are specified as being
     non-zero.
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` computes expansion terms
-*in the toggling frame of the unperturbed generator* :math:`G_0(t)`
+*in the toggling frame of the unperturbed generator* :math:`G_\emptyset(t)`
 [:footcite:`evans_timedependent_1967`, :footcite:`haeberlen_1968`].
-Denoting :math:`V(t)` the solution of the LMDE with generator :math:`G_0(t)`
-for an initial condition :math:`V_0` at :math:`t_0`,
-the generator :math:`G` in the toggling frame of :math:`G_0(t)`
+Denoting :math:`V(t) = \mathcal{T}\exp(\int_{t_0}^t ds G_\emptyset(s))`,
+the generator :math:`G` in the toggling frame of :math:`G_\emptyset(t)`
 is given by:
 
 .. math::
 
     \tilde{G}(t, c_0, \dots, c_{r-1}) =
-            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \tilde{A}_I(t),
+            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \tilde{G}_I(t),
 
-with :math:`\tilde{A}_I(t) = V(t)^\dagger A_I(t)V(t)`.
+with :math:`\tilde{G}_I(t) = V(t)^\dagger G_I(t)V(t)`.
 
-Denoting :math:`U(t, c_0, \dots, c_{r-1})` the solution of the LMDE with generator
-:math:`\tilde{G}` with initial condition the identity matrix :math:`I` at :math:`t_0`,
+Denoting
+
+.. math::
+
+    U(t, c_0, \dots, c_{r-1}) =
+        \mathcal{T}\exp\left(\int_{t_0}^t ds \tilde{G}(s, c_0, \dots, c_{r-1})\right),
+
 the Dyson series directly expands the solution as a power series in the :math:`c_0, \dots, c_{r-1}`:
 
 .. math::
 
     U(t, c_0, \dots, c_{r-1}) =
-            I + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{D}_I(t_0, t).
+            I + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{D}_I(t).
 
-The :math:`\mathcal{D}_I(t_0, t)`, which we refer to as the *Dyson terms*, are defined
-*implicitly* above as the power-series expansion coefficients.
+The :math:`\mathcal{D}_I(t)`, which we refer to as *multivariable Dyson terms*, or
+simply *Dyson terms*, are defined *implicitly* above as the power-series expansion coefficients.
 
 The Magnus expansion similarly gives a power series decomposition of the
 time-averaged generator:
@@ -180,12 +185,12 @@ time-averaged generator:
 .. math::
 
     \Omega(t, c_0, \dots, c_{r-1}) =
-            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t_0, t),
+            \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t),
 
 which satisfies
 :math:`U(t, c_0, \dots, c_{r-1}) = \exp(\Omega(t, c_0, \dots, c_{r-1}))`
 under certain conditions [:footcite:`magnus_exponential_1954`, :footcite:`blanes_magnus_2009`].
-Again, the :math:`\mathcal{O}_I(t_0, t)` are defined as *implicitly* as the coefficients
+Again, the :math:`\mathcal{O}_I(t)` are defined as *implicitly* as the coefficients
 in the above series.
 
 .. note::
@@ -197,7 +202,7 @@ in the above series.
     case.
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
-list of the :math:`\mathcal{D}_I(t_0, t_f)` or :math:`\mathcal{O}_I(t_0, t_f)`
+list of the :math:`\mathcal{D}_I(t)` or :math:`\mathcal{O}_I(t)`
 using the algorithm in [:footcite:`puzzuoli_sensitivity_2022`]. It may also be used to compute
 Dyson-like integrals using the algorithm in [:footcite:`haas_engineering_2019`]. Results are
 returned in a :class:`PerturbationResults` objects which is a data container with some
@@ -218,7 +223,7 @@ I.e. given a power series decomposition of a Hamiltonian in :math:`r` variables:
 
 .. math::
 
-    H(c_0, \dots, c_{r-1}) = H_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I H_I
+    H(c_0, \dots, c_{r-1}) = H_\emptyset + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I H_I
 
 for :math:`H0` a diagonal Hermitian operator, and :math:`H_I` Hermitian, the goal is to
 construct a power series decomposition of an anti-Hermitian matrix

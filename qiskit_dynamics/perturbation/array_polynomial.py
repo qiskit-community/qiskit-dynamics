@@ -40,7 +40,7 @@ class ArrayPolynomial:
     This class represents a multi-variable function of the form:
 
     .. math::
-        f(c_1, \dots, c_r) = A_0 + \sum_{I \in S} c_I A_I,
+        f(c_1, \dots, c_r) = A_\emptyset + \sum_{I \in S} c_I A_I,
 
     where in the above:
 
@@ -52,7 +52,7 @@ class ArrayPolynomial:
 
     An :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` is instantiated with the arguments:
 
-        - ``constant_term`` specifying the array :math:`A_0`.
+        - ``constant_term`` specifying the array :math:`A_\emptyset`.
         - ``array_coefficients`` specifying a list of the arrays :math:`A_I`, or as a single array
           whose first index lists the :math:`A_I`,
         - ``monomial_labels`` specifying the set :math:`S` as a list of
@@ -64,9 +64,10 @@ class ArrayPolynomial:
 
     .. math::
 
-        f(c_0, c_1) = A_0 + c_{(0)} A_{(0)} + c_{(0, 1)}A_{(0, 1)} + c_{(1, 1)}A_{(1, 1)}
+        f(c_0, c_1) = A_\emptyset
+            + c_{(0)} A_{(0)} + c_{(0, 1)}A_{(0, 1)} + c_{(1, 1)}A_{(1, 1)}
 
-    for arrays :math:`A_0, A_{(0)}, A_{(0, 1)}, A_{(1, 1)}` stored in variables
+    for arrays :math:`A_\emptyset, A_{(0)}, A_{(0, 1)}, A_{(1, 1)}` stored in variables
     ``A_c``, ``A0``, ``A01``, and ``A11`` can be instantiated with
 
     .. code-block:: python

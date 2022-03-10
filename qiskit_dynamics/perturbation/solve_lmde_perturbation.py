@@ -98,7 +98,7 @@ def solve_lmde_perturbation(
     :ref:`time-dependent perturbation theory section <td perturbation theory>`
     of the perturbation API doc. In this case:
 
-        - ``perturbations`` gives a list of the :math:`A_I(t)` functions as callables.
+        - ``perturbations`` gives a list of the :math:`G_I(t)` functions as callables.
         - ``perturbation_labels`` is an optional list specifying the labels for the terms in
           ``perturbations`` in the form of
           :class:`~qiskit_dynamics.perturbation.multiset.Multiset`\s.
@@ -114,27 +114,27 @@ def solve_lmde_perturbation(
           along with any additional specific terms given by ``expansion_labels``.
 
     If ``expansion_method == 'dyson_like'``, the setup is different. In this case,
-    for a list of matrix-valued functions :math:`A_0(t), \dots, A_{r-1}(t)`,
+    for a list of matrix-valued functions :math:`G_0(t), \dots, G_{r-1}(t)`,
     this function computes integrals of the form
 
     .. math::
         \int_{t_0}^{t_F} dt_1 \int_{t_0}^{t_1} dt_2 \dots \int_{t_0}^{t_{k-1}}dt_k
-                \tilde{A}_{i_1}(t_1) \dots \tilde{A}_{i_k}(t_k),
+                \tilde{G}_{i_1}(t_1) \dots \tilde{G}_{i_k}(t_k),
 
     for lists of integers :math:`[i_1, \dots, i_k]`, and similar to the ``'dyson'``
-    case, :math:`\tilde{A}_j(t) = V(t_0, t)^\dagger A_j(t)V(t_0, t)`, i.e. the computation
+    case, :math:`\tilde{G}_j(t) = V(t_0, t)^\dagger G_j(t)V(t_0, t)`, i.e. the computation
     is performed in the toggling frame specified by ``generator``.
 
         - ``perturbations`` gives the list of matrix functions as callables
-          :math:`A_0(t), \dots, A_{r-1}(t)`.
+          :math:`G_0(t), \dots, G_{r-1}(t)`.
         - ``perturbation_labels`` is not used in this mode.
         - ``expansion_order`` specifies that all possible integrals of the above form
           should be computed up to a given order
           (i.e. integrals up to a given order with all possible orderings of the
-          :math:`A_0(t), \dots, A_{r-1}(t)`).
+          :math:`G_0(t), \dots, G_{r-1}(t)`).
         - ``expansion_labels`` allows for specification of specific terms to be computed.
           In this case, a term is specified by a list of ``int``\s, where the length
-          of the list is the order of the integral, and the :math:`A_0(t), \dots, A_{r-1}(t)`
+          of the list is the order of the integral, and the :math:`G_0(t), \dots, G_{r-1}(t)`
           appear in the integral in the order given by the list.
         - ``generator`` serves the same function as in the `'dyson'` case -
           the computation is performed in the toggling frame of ``generator``.

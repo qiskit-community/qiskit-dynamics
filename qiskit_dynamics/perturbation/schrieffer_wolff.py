@@ -48,11 +48,11 @@ def schrieffer_wolff(
 
     .. math::
 
-        H(c_0, \dots, c_{r-1}) = H_0 + \sum_{I \in S} c_I H_I,
+        H(c_0, \dots, c_{r-1}) = H_\emptyset + \sum_{I \in S} c_I H_I,
 
     where:
 
-        - :math:`H_0` is the unperturbed diagonal Hamiltonian, given by argument ``H0``,
+        - :math:`H_\emptyset` is the unperturbed diagonal Hamiltonian, given by argument ``H0``,
         - :math:`H_I` are the multi-variable perturbations, given by the argument
           ``perturbations``, and
         - :math:`S` are the perturbation indices specified as
@@ -81,15 +81,16 @@ def schrieffer_wolff(
 
         S(c_0, \dots, c_{r-1}) = \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I S_I,
 
-    (where the constant term is taken to be :math:`0` as :math:`H(0, \dots, 0) = H_0`
+    (where the constant term is taken to be :math:`0` as :math:`H(0, \dots, 0) = H_\emptyset`
     is assumed already diagonal), we follow [:footcite:`wikipedia_schriefferwolff_2021`] and
     expand the following using the BCH formula and collect terms in the coefficients :math:`c_I`:
 
     .. math::
 
         e^{S(c_0, \dots, c_{r-1})}H(c_0, \dots, c_{r-1})e^{-S(c_0, \dots, c_{r-1})} =
-        H_0 + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)}
-             c_I \left(H_0 + [S_I, H_0] + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)})\right),
+        H_\emptyset + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)}
+             c_I \left(H_\emptyset + [S_I, H_\emptyset]
+             + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)})\right),
 
     where the :math:`A_I^{(m)}` and :math:`B_I^{(m)}` are defined recursively via
 
@@ -105,14 +106,14 @@ def schrieffer_wolff(
         B_I^{(m)} = \frac{1}{(m-1)} \sum_{J \subsetneq I, |J| \leq |I| - m + 1}
             [S_J, B_{I \setminus J}^{(m-1)}],
 
-    with base cases :math:`A_I^{(1)} = [S_I, H_0]` and :math:`B_I^{(1)} = H_I`.
+    with base cases :math:`A_I^{(1)} = [S_I, H_\emptyset]` and :math:`B_I^{(1)} = H_I`.
 
     This function recursively computes the desired :math:`S_I` at successive orders, where
     each :math:`S_I` is constructed by solving
 
     .. math::
 
-        [H_0, S_I] = \Delta(H_0 + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)}))
+        [H_\emptyset, S_I] = \Delta(H_\emptyset + \sum_{m=2}^k (A_I^{(m)} + B_I^{(m)}))
 
     where :math:`\Delta` is the projection onto matrices with zero diagonal, and each
     successive order of the :math:`A_I^{(m)}` and :math:`B_I^{(m)}` is computed
