@@ -643,6 +643,38 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         )
         self.assertTrue(poly_trace.monomial_labels == self.non_constant_32d.monomial_labels)
 
+    def test_sum(self):
+        """Test sum."""
+        poly_sum = self.non_constant_32d.sum()
+
+        self.assertAllClose(poly_sum.constant_term, self.non_constant_32d.constant_term.sum())
+        self.assertAllClose(
+            poly_sum.array_coefficients,
+            self.non_constant_32d.array_coefficients.sum(axis=(1, 2)),
+        )
+        self.assertTrue(poly_sum.monomial_labels == self.non_constant_32d.monomial_labels)
+
+    def test_sum_case2(self):
+        """Test sum case 2."""
+        poly_sum = self.non_constant_32d.sum(axis=0)
+
+        self.assertAllClose(poly_sum.constant_term, self.non_constant_32d.constant_term.sum(axis=0))
+        self.assertAllClose(
+            poly_sum.array_coefficients,
+            self.non_constant_32d.array_coefficients.sum(axis=(1,)),
+        )
+        self.assertTrue(poly_sum.monomial_labels == self.non_constant_32d.monomial_labels)
+
+    def test_sum_0d(self):
+        """Test sum for a 0d case."""
+        poly_sum = self.non_constant_0d.sum()
+
+        self.assertAllClose(
+            poly_sum.array_coefficients,
+            self.non_constant_0d.array_coefficients,
+        )
+        self.assertTrue(poly_sum.monomial_labels == self.non_constant_0d.monomial_labels)
+
     def test_call_simple_case(self):
         """Typical expected usage case."""
 

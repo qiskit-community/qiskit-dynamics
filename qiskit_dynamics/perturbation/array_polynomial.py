@@ -293,6 +293,37 @@ class ArrayPolynomial:
             constant_term=constant_term,
         )
 
+    def sum(self, axis: Optional[Union[int, Tuple[int]]] = None, dtype: Optional[DTypeLike] = None):
+        """Perform a sum on the coefficients."""
+
+        constant_term = None
+        coefficients = None
+
+        # constant term can be handled normally
+        if self.constant_term is not None:
+            constant_term = self.constant_term.sum(axis=axis, dtype=dtype)
+
+        # axis must be shifted for array coefficients
+        if self.array_coefficients is not None:
+
+            if self.ndim == 0 and axis is None:
+                coefficients = np.array(self.array_coefficients, dtype=dtype)
+            else:
+                if axis is None:
+                    axis = tuple(k for k in range(1, self.ndim + 1))
+                elif isinstance(axis, int):
+                    axis = axis + 1
+                elif isinstance(axis, tuple):
+                    axis = tuple(k + 1 for k in axis)
+
+                coefficients = self.array_coefficients.sum(axis=axis, dtype=dtype)
+
+        return ArrayPolynomial(
+            array_coefficients=coefficients,
+            monomial_labels=copy(self._monomial_labels),
+            constant_term=constant_term,
+        )
+
     def add(
         self,
         other: Union["ArrayPolynomial", int, float, complex, Array],
