@@ -324,6 +324,25 @@ class ArrayPolynomial:
             constant_term=constant_term,
         )
 
+    @property
+    def real(self) -> "ArrayPolynomial":
+        """Return the real part of self."""
+
+        constant_term = None
+        array_coefficients = None
+
+        if self.constant_term is not None:
+            constant_term = self.constant_term.real
+
+        if self.array_coefficients is not None:
+            array_coefficients = self.array_coefficients.real
+
+        return ArrayPolynomial(
+            array_coefficients=array_coefficients,
+            monomial_labels=copy(self._monomial_labels),
+            constant_term=constant_term,
+        )
+
     def add(
         self,
         other: Union["ArrayPolynomial", int, float, complex, Array],

@@ -675,6 +675,34 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         )
         self.assertTrue(poly_sum.monomial_labels == self.non_constant_0d.monomial_labels)
 
+    def test_real(self):
+        """Test taking the real part."""
+
+        ap = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2) + 1j * np.random.rand(2, 2),
+            array_coefficients=np.random.rand(3, 2, 2) + 1j * np.random.rand(3, 2, 2),
+            monomial_labels=[[0], [1], [2]],
+        )
+
+        ap_real = ap.real
+        self.assertAllClose(ap_real.constant_term, ap.constant_term.real)
+        self.assertAllClose(ap_real.array_coefficients, ap.array_coefficients.real)
+        self.assertTrue(ap_real.monomial_labels == ap.monomial_labels)
+
+    def test_real_scalar(self):
+        """Test taking the real part of a scalar array polynomial."""
+
+        ap = ArrayPolynomial(
+            constant_term=np.random.rand() + 1j * np.random.rand(),
+            array_coefficients=np.random.rand(3) + 1j * np.random.rand(3),
+            monomial_labels=[[0], [1], [2]],
+        )
+
+        ap_real = ap.real
+        self.assertAllClose(ap_real.constant_term, ap.constant_term.real)
+        self.assertAllClose(ap_real.array_coefficients, ap.array_coefficients.real)
+        self.assertTrue(ap_real.monomial_labels == ap.monomial_labels)
+
     def test_call_simple_case(self):
         """Typical expected usage case."""
 
