@@ -503,6 +503,23 @@ class ArrayPolynomial:
 
         raise QiskitError(f"Type {type(other)} not supported by ArrayPolynomial.__rmatmul__.")
 
+    def __getitem__(self, idx) -> "ArrayPolynomial":
+        """Index the ArrayPolynomial similarly to an array."""
+        constant_term = None
+        array_coefficients = None
+
+        if self.constant_term is not None:
+            constant_term = self.constant_term[idx]
+
+        if self.array_coefficients is not None:
+            array_coefficients = self.array_coefficients[(slice(None),) + idx]
+
+        return ArrayPolynomial(
+            array_coefficients=array_coefficients,
+            monomial_labels=copy(self._monomial_labels),
+            constant_term=constant_term,
+        )
+
     def __call__(self, c: Optional[Array] = None) -> Array:
         """Evaluate the polynomial.
 
@@ -784,7 +801,7 @@ def array_polynomial_distributive_binary_op(
     if ap1.constant_term is not None:
         lmats = np.expand_dims(ap1.constant_term, 0)
     else:
-        lmats = np.expand_dims(np.zeros_like(ap1.array_coefficients[0]), 0)
+        lmats = np.expand_dims(np.zeros_like(Array(ap1.array_coefficients[0])), 0)
 
     if ap1.array_coefficients is not None:
         lmats = np.append(lmats, ap1.array_coefficients, axis=0)
@@ -793,7 +810,7 @@ def array_polynomial_distributive_binary_op(
     if ap2.constant_term is not None:
         rmats = np.expand_dims(ap2.constant_term, 0)
     else:
-        rmats = np.expand_dims(np.zeros_like(ap2.array_coefficients[0]), 0)
+        rmats = np.expand_dims(np.zeros_like(Array(ap2.array_coefficients[0])), 0)
 
     if ap2.array_coefficients is not None:
         rmats = np.append(rmats, ap2.array_coefficients, axis=0)

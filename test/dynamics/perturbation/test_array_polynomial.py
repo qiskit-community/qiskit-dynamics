@@ -931,6 +931,16 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         c = np.array([3.0, 2.0, 4.0])
         self.assertAllClose(ap.compute_monomials(c), np.array([16.0, 3.0, 8.0]))
 
+    def test_get_item(self):
+        """Test fancy indexing."""
+
+        ap = self.non_constant_complex
+        ap_indexed = ap[0:2, 0:2]
+
+        self.assertAllClose(ap_indexed.constant_term, ap.constant_term[0:2, 0:2])
+        self.assertAllClose(ap_indexed.array_coefficients, ap.array_coefficients[:, 0:2, 0:2])
+        self.assertTrue(ap_indexed.monomial_labels, ap.monomial_labels)
+
 
 class TestArrayPolynomialJax(TestArrayPolynomial, TestJaxBase):
     """JAX version of TestArrayPolynomial."""
