@@ -26,7 +26,7 @@ from matplotlib import pyplot as plt
 
 try:
     import jax.numpy as jnp
-    import jax.lax as jlx
+    import jax.lax as lax
 except ImportError:
     pass
 
@@ -306,23 +306,11 @@ class DiscreteSignal(Signal):
         samples = Array(samples)
         # Shouldn't it be bad to force np.array here? I guess not?
 
-        if len(samples.shape) == 2:
-            zeros = Array([list(((0.0) for i in range(samples.shape[1])))], dtype=samples.dtype)
-            self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=0)
-        elif len(samples.shape) == 1:
-            zeros = Array([0.0], dtype=samples.dtype)
-            self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=None)
-        else:
-            raise QiskitError("Too many dimensinos of samples")
+      
+        zero_pad = np.zeros_like(Array(samples[0])).data
+        # zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
 
-        self._samples = Array(samples)
-        self._start_time = start_time
 
-        zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
-        zero_single = np.zeros_like(Array(samples[0]))
-        wide_samples = np.append(samples, zero_pad, axis=0)
-
-        # self._samples = Array(samples)
         self._samples = Array(samples)
         self._start_time = start_time
 
@@ -330,30 +318,35 @@ class DiscreteSignal(Signal):
         if self._samples.backend == "jax":
 
             def envelope(t):
-                def out_fun():
-                    idx = jnp.array((t - self._start_time) // self._dt, dtype=int)
+                
+                def out_fun(t):
+                    idx = jnp.array((t - start_time) // self._dt, dtype=int)
                     return self._samples[idx]
-                # print(type(out))
-                return jlx.cond(
-                    t < self._start_time or t >= start_time + (dt * len(samples)),
-                    # lambda _: (zero_single),
-                    lambda _: (zero_pad[0]),
+                return lax.cond(
+                    (t < start_time) | (t >= start_time + (dt * len(self._samples))),
+                    lambda _: zero_pad,
                     out_fun,
-                    # self._samples[2],
-                    # self._samples[jnp.array((t - self._start_time) // self._dt, dtype=int)],
                     operand=t,
                 )
-            envelope = jnp.vectorize(envelope)
+
+            if str(self._samples[0].shape)[-2] == ',':
+                envelope = jnp.vectorize(envelope, signature=f'()->{str(samples[0].shape)[:-2] + ")"}')
+            else:
+                envelope = jnp.vectorize(envelope, signature=f'()->{str(samples[0].shape)}')
 
         else:
+
             def envelope(t):
-                if t < self._start_time or t >= start_time + (dt * len(samples)):
-                    return zero_pad[0]
+                if t < self._start_time or t >= (start_time + (self._dt * len(self._samples))):
+                    return zero_pad
                 else:
                     idx = np.array((t - self._start_time) // self._dt, dtype=int)
                     return self._samples[idx]
 
-            envelope = np.vectorize(envelope) 
+            if str(self._samples[0].shape)[-2] == ',':
+                envelope = np.vectorize(envelope, signature=f'()->{str(self._samples[0].shape)[:-2] + ")"}')
+            else:
+                envelope = np.vectorize(envelope, signature=f'()->{str(self._samples[0].shape)}')
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
     @classmethod
