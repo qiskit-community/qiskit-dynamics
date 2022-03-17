@@ -111,7 +111,7 @@ class ArrayPolynomial:
 
     .. code-block:: python
 
-        ap1.matmul(ap2, degree_bound=3)
+        ap1.matmul(ap2, monomial_filter=lambda x: len(x) <= 3)
 
     is similar to ``ap1 @ ap2``, but will result in an
     :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` in which all terms of degree
@@ -346,22 +346,19 @@ class ArrayPolynomial:
     def add(
         self,
         other: Union["ArrayPolynomial", int, float, complex, Array],
-        degree_bound: Optional[int] = np.inf,
-        monomial_bounds: Optional[List[Multiset]] = None,
-        monomials_to_include: Optional[List[Multiset]] = None,
+        monomial_filter: Optional[Callable] = None,
     ) -> "ArrayPolynomial":
         """Add two polynomials with bounds on which terms to keep.
 
-        A term in the sum is kept if the length of the multiset label is
-        ``<= degree_bound``, if it is a subset of any of the multisets in ``monomial_bounds``,
-        or if it is in the list ``monomials_to_include``. The default is to include all
-        multisets.
+        Optionally, a function ``monomial_filter`` can be provided to limit which monomials
+        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,
+        and a term with label given by ``multiset`` will be included only if
+        ``monomial_filter(multiset) == True``, and will not be computed if
+        ``monomial_filter(multiset) == False``.
 
         Args:
             other: Other to add to self.
-            degree_bound: Bound on length of returned terms.
-            monomial_bounds: Multiset bounds.
-            monomials_to_include: A list of multisets to explicitly include.
+            monomial_filter: Function determining which terms to compute and keep.
         Returns:
             ArrayPolynomial achieved by adding both self and other.
         Raises:
@@ -372,9 +369,7 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_addition(
-                self, other, degree_bound, monomial_bounds, monomials_to_include
-            )
+            return array_polynomial_addition(self, other, monomial_filter=monomial_filter)
 
         raise QiskitError(
             "Only types castable as an ArrayPolynomial can be added to an ArrayPolynomial."
@@ -383,22 +378,19 @@ class ArrayPolynomial:
     def matmul(
         self,
         other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
-        degree_bound: Optional[int] = np.inf,
-        monomial_bounds: Optional[List[Multiset]] = None,
-        monomials_to_include: Optional[List[Multiset]] = None,
+        monomial_filter: Optional[Callable] = None,
     ) -> "ArrayPolynomial":
         """Matmul self @ other with bounds on which terms to keep.
 
-        A term in the product is kept if the length of the multiset label is
-        ``<= degree_bound``, if it is a subset of any of the multisets in ``monomial_bounds``,
-        or if it is in the list ``monomials_to_include``. The default is to include all
-        multisets.
+        Optionally, a function ``monomial_filter`` can be provided to limit which monomials
+        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,
+        and a term with label given by ``multiset`` will be included only if
+        ``monomial_filter(multiset) == True``, and will not be computed if
+        ``monomial_filter(multiset) == False``.
 
         Args:
             other: Other to add to self.
-            degree_bound: Bound on length of returned terms.
-            monomial_bounds: Multiset bounds.
-            monomials_to_include: A list of multisets to explicitly include.
+            monomial_filter: Function determining which terms to compute and keep.
         Returns:
             ArrayPolynomial achieved by matmul of self and other.
         Raises:
@@ -409,7 +401,7 @@ class ArrayPolynomial:
 
         if isinstance(other, ArrayPolynomial):
             return array_polynomial_distributive_binary_op(
-                self, other, lambda A, B: A @ B, degree_bound, monomial_bounds, monomials_to_include
+                self, other, lambda A, B: A @ B, monomial_filter=monomial_filter
             )
 
         raise QiskitError(f"Type {type(other)} not supported by ArrayPolynomial.matmul.")
@@ -417,22 +409,19 @@ class ArrayPolynomial:
     def mul(
         self,
         other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
-        degree_bound: Optional[int] = np.inf,
-        monomial_bounds: Optional[List[Multiset]] = None,
-        monomials_to_include: Optional[List[Multiset]] = None,
+        monomial_filter: Optional[Callable] = None,
     ) -> "ArrayPolynomial":
         """Entrywise multiplication of two ArrayPolynomials with bounds on which terms to keep.
 
-        A term in the product is kept if the length of the multiset label is
-        ``<= degree_bound``, if it is a subset of any of the multisets in ``monomial_bounds``,
-        or if it is in the list ``monomials_to_include``. The default is to include all
-        multisets.
+        Optionally, a function ``monomial_filter`` can be provided to limit which monomials
+        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,
+        and a term with label given by ``multiset`` will be included only if
+        ``monomial_filter(multiset) == True``, and will not be computed if
+        ``monomial_filter(multiset) == False``.
 
         Args:
             other: Other to add to self.
-            degree_bound: Bound on length of returned terms.
-            monomial_bounds: Multiset bounds.
-            monomials_to_include: A list of multisets to explicitly include.
+            monomial_filter: Function determining which terms to compute and keep.
         Returns:
             ArrayPolynomial achieved by matmul of self and other.
         Raises:
@@ -444,7 +433,7 @@ class ArrayPolynomial:
 
         if isinstance(other, ArrayPolynomial):
             return array_polynomial_distributive_binary_op(
-                self, other, lambda A, B: A * B, degree_bound, monomial_bounds, monomials_to_include
+                self, other, lambda A, B: A * B, monomial_filter=monomial_filter
             )
 
         raise QiskitError(f"Type {type(other)} not supported by ArrayPolynomial.mul.")
@@ -726,31 +715,29 @@ def array_polynomial_distributive_binary_op(
     ap1: ArrayPolynomial,
     ap2: ArrayPolynomial,
     binary_op: Callable,
-    degree_bound: Optional[int] = np.inf,
-    monomial_bounds: Optional[List[Multiset]] = None,
-    monomials_to_include: Optional[List[Multiset]] = None,
+    monomial_filter: Optional[Callable] = None,
 ) -> ArrayPolynomial:
     """Apply a distributive binary op on two array polynomials."""
 
     # determine list of Multisets required for monomial labels, including filtering
     all_multisets = []
 
-    multiset_filter = lambda x: include_multiset(
-        x, degree_bound, monomial_bounds, monomials_to_include
-    )
+    # if no filter is provided, set to always return True
+    if monomial_filter is None:
+        monomial_filter = lambda x: True
 
     if ap1.constant_term is not None:
         for multiset in ap2.monomial_labels:
-            if multiset_filter(multiset) and multiset not in all_multisets:
+            if monomial_filter(multiset) and multiset not in all_multisets:
                 all_multisets.append(multiset)
     if ap2.constant_term is not None:
         for multiset in ap1.monomial_labels:
-            if multiset_filter(multiset) and multiset not in all_multisets:
+            if monomial_filter(multiset) and multiset not in all_multisets:
                 all_multisets.append(multiset)
 
     for I, J in product(ap1.monomial_labels, ap2.monomial_labels):
         IuJ = I.union(J)
-        if multiset_filter(IuJ) and IuJ not in all_multisets:
+        if monomial_filter(IuJ) and IuJ not in all_multisets:
             all_multisets.append(IuJ)
 
     all_multisets.sort()
@@ -760,7 +747,7 @@ def array_polynomial_distributive_binary_op(
     if (
         ap1.constant_term is not None
         and ap2.constant_term is not None
-        and multiset_filter(Multiset({}))
+        and monomial_filter(Multiset({}))
     ):
         new_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
 
@@ -828,9 +815,7 @@ def array_polynomial_distributive_binary_op(
 def array_polynomial_addition(
     ap1: ArrayPolynomial,
     ap2: ArrayPolynomial,
-    degree_bound: Optional[int] = np.inf,
-    monomial_bounds: Optional[List[Multiset]] = None,
-    monomials_to_include: Optional[List[Multiset]] = None,
+    monomial_filter: Optional[Callable] = None,
 ) -> ArrayPolynomial:
     """Add two ArrayPolynomials."""
 
@@ -840,15 +825,14 @@ def array_polynomial_addition(
                 "ArrayPolynomial addition requires shapes be broadcastable to eachother."
             )
 
-    multiset_filter = lambda x: include_multiset(
-        x, degree_bound, monomial_bounds, monomials_to_include
-    )
+    if monomial_filter is None:
+        monomial_filter = lambda x: True
 
     # construct constant term
     new_constant_term = None
 
     # if constant term is to be included, determine what it is
-    if multiset_filter(Multiset({})):
+    if monomial_filter(Multiset({})):
         if ap1.constant_term is not None and ap2.constant_term is not None:
             new_constant_term = ap1.constant_term + ap2.constant_term
         elif ap1.constant_term is not None:
@@ -860,13 +844,10 @@ def array_polynomial_addition(
     if ap1.array_coefficients is None and ap2.array_coefficients is None:
         return ArrayPolynomial(constant_term=new_constant_term)
 
-    if monomial_bounds is not None:
-        monomial_bounds = [to_Multiset(x) for x in monomial_bounds]
-
     # construct list of admissable multisets and sort into canonical order
     new_multisets = []
     for multiset in ap1.monomial_labels + ap2.monomial_labels:
-        if multiset_filter(multiset) and multiset not in new_multisets:
+        if monomial_filter(multiset) and multiset not in new_multisets:
             new_multisets.append(multiset)
     new_multisets.sort()
 
@@ -905,29 +886,3 @@ def array_polynomial_addition(
         monomial_labels=new_multisets,
         constant_term=new_constant_term,
     )
-
-
-def include_multiset(
-    multiset: Multiset,
-    degree: Optional[int] = np.inf,
-    monomial_bounds: Optional[List[Multiset]] = None,
-    monomials_to_include: Optional[List[Multiset]] = None,
-) -> bool:
-    """Utility function to aid in computations in which multisets are filtered according
-    to some conditions.
-
-    Returns True if:
-        - The degree of multiset is less than degree, or
-        - multiset is a subset of some multiset in monomial_bounds, or
-        - multiset is explicit included in monomials_to_include.
-    """
-    if len(multiset) <= degree:
-        return True
-
-    if monomial_bounds and any(multiset.issubmultiset(bound) for bound in monomial_bounds):
-        return True
-
-    if monomials_to_include and any(multiset == x for x in monomials_to_include):
-        return True
-
-    return False

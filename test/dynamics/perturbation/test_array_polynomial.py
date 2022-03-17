@@ -171,8 +171,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertTrue(result.monomial_labels == ap1.monomial_labels)
         self.assertAllClose(result.constant_term, ap1.constant_term + np.eye(2))
 
-    def test_add_degree_bound(self):
-        """Test adding with a degree bound."""
+    def test_add_monomial_filter(self):
+        """Test adding with a monomial filter."""
 
         ap1 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
@@ -184,7 +184,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
         )
-        result = ap1.add(ap2, degree_bound=1)
+        result = ap1.add(ap2, monomial_filter=lambda x: len(x) <= 1)
 
         expected_coefficients = np.array(
             [
@@ -201,8 +201,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertTrue(result.monomial_labels == expected_monomial_labels)
         self.assertAllClose(result.constant_term, expected_constant_term)
 
-    def test_add_degree_and_multiset_bound(self):
-        """Test adding with an order and multiset bound."""
+    def test_add_monomial_filter_case2(self):
+        """Test adding with a monomial filter case 2."""
 
         ap1 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
@@ -214,7 +214,10 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
         )
-        result = ap1.add(ap2, degree_bound=2, monomial_bounds=[[0, 0, 0]])
+
+        ms = Multiset({0: 3})
+        monomial_filter = lambda x: len(x) <= 2 or x.issubmultiset(ms)
+        result = ap1.add(ap2, monomial_filter=monomial_filter)
 
         expected_coefficients = np.array(
             [
@@ -231,8 +234,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         self.assertTrue(result.monomial_labels == expected_monomial_labels)
         self.assertAllClose(result.constant_term, expected_constant_term)
 
-    def test_add_monomials_to_include(self):
-        """Test adding with explicit filtering."""
+    def test_add_monomial_filter_case3(self):
+        """Test adding with a monomial filter case 3."""
 
         ap1 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
@@ -244,7 +247,10 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
         )
-        result = ap1.add(ap2, degree_bound=-1, monomials_to_include=[Multiset({0: 3})])
+
+        ms_list = [Multiset({0: 3})]
+        monomial_filter = lambda x: x in ms_list
+        result = ap1.add(ap2, monomial_filter=monomial_filter)
 
         expected_coefficients = np.array([ap1.array_coefficients[1]])
         expected_monomial_labels = [Multiset({0: 3})]
@@ -408,8 +414,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
 
     @unpack
     @data((lambda A, B: A @ B, "matmul"), (lambda A, B: A * B, "mul"))
-    def test_distributive_binary_op_degree_bound(self, binary_op, method_name):
-        """Test distributive binary op with a degree bound."""
+    def test_distributive_binary_op_monomial_filter(self, binary_op, method_name):
+        """Test distributive binary op with a monomial filter."""
 
         ap1 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
@@ -422,7 +428,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [0, 0]],
         )
 
-        result = getattr(ap1, method_name)(ap2, degree_bound=2)
+        # keep only terms with degree <= 2
+        result = getattr(ap1, method_name)(ap2, monomial_filter=lambda x: len(x) <= 2)
         expected_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
         expected_monomial_labels = [
             Multiset({0: 1}),
@@ -447,8 +454,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
 
     @unpack
     @data((lambda A, B: A @ B, "matmul"), (lambda A, B: A * B, "mul"))
-    def test_distributive_binary_op_degree_and_multiset_bound(self, binary_op, method_name):
-        """Test distributive binary op with a degree bound."""
+    def test_distributive_binary_op_monomial_filter_case2(self, binary_op, method_name):
+        """Test distributive binary op with a monomial filter case 2."""
 
         ap1 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
@@ -461,7 +468,10 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [0, 0]],
         )
 
-        result = getattr(ap1, method_name)(ap2, degree_bound=2, monomial_bounds=[Multiset({0: 3})])
+        # keep if degree <= 2 or if it is a submultiset of Multiset({0: 3})
+        ms = Multiset({0: 3})
+        monomial_filter = lambda x: len(x) <= 2 or x.issubmultiset(ms)
+        result = getattr(ap1, method_name)(ap2, monomial_filter=monomial_filter)
         expected_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
         expected_monomial_labels = [
             Multiset({0: 1}),
@@ -488,8 +498,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
 
     @unpack
     @data((lambda A, B: A @ B, "matmul"), (lambda A, B: A * B, "mul"))
-    def test_distributive_binary_op_monomials_to_include(self, binary_op, method_name):
-        """Test distributive binary op with a degree bound."""
+    def test_distributive_binary_op_monomial_filter_case3(self, binary_op, method_name):
+        """Test distributive binary op with a monomial filter case 3."""
 
         ap1 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
@@ -502,12 +512,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             monomial_labels=[[0], [0, 0]],
         )
 
-        result = getattr(ap1, method_name)(
-            ap2, degree_bound=-1, monomials_to_include=[Multiset({0: 3})]
-        )
-        expected_monomial_labels = [Multiset({0: 3})]
+        # keep only a specific set of terms
+        ms_list = [Multiset({0: 2, 1: 1})]
+        monomial_filter = lambda x: x in ms_list
+        result = getattr(ap1, method_name)(ap2, monomial_filter=monomial_filter)
+        expected_monomial_labels = [Multiset({0: 2, 1: 1})]
         expected_coefficients = np.array(
-            [binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[1])]
+            [binary_op(Array(ap1.array_coefficients[1]), ap2.array_coefficients[1])]
         )
 
         self.assertAllClose(result.array_coefficients, expected_coefficients)
