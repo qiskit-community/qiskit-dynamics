@@ -305,14 +305,17 @@ class DiscreteSignal(Signal):
         samples = Array(samples)
         # Shouldn't it be bad to force np.array here? I guess not?
 
-        if len(samples.shape) == 2:
-            zeros = Array([list(((0.0) for i in range(samples.shape[1])))], dtype=samples.dtype)
-            self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=0)
-        elif len(samples.shape) == 1:
-            zeros = Array([0.0], dtype=samples.dtype)
-            self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=None)
-        else:
-            raise QiskitError("Too many dimensinos of samples")
+        zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
+        self._widesamples = np.concatenate([zero_pad, Array(samples), zero_pad], axis=0)
+
+        # if len(samples.shape) == 2:
+        #     zeros = Array([list(((0.0) for i in range(samples.shape[1])))], dtype=samples.dtype)
+        #     self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=0)
+        # elif len(samples.shape) == 1:
+        #     zeros = Array([0.0], dtype=samples.dtype)
+        #     self._widesamples = np.concatenate([zeros, Array(samples), zeros], axis=None)
+        # else:
+            # raise QiskitError("Too many dimensinos of samples")
 
         self._samples = Array(samples)
         self._start_time = start_time
