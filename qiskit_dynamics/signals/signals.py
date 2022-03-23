@@ -302,7 +302,7 @@ class DiscreteSignal(Signal):
         """
         self._dt = dt
 
-        # samples = Array(samples)
+        samples = Array(samples)
 
         if len(samples) == 0:
             zero_pad = np.array([0])
@@ -423,7 +423,7 @@ class DiscreteSignal(Signal):
         Returns:
             samples: the samples of the piecewise constant signal.
         """
-        return self._padded_samples[:-1]
+        return Array(self._padded_samples[:-1])
 
     @property
     def start_time(self) -> float:
@@ -456,6 +456,7 @@ class DiscreteSignal(Signal):
         Raises:
             QiskitError: if start_sample is invalid.
         """
+        samples = Array(samples)
         if start_sample < len(self.samples):
             raise QiskitError()
 
