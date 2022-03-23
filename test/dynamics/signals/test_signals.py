@@ -492,6 +492,21 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.assertAllClose(discrete_conj.dt, self.discrete2.dt)
 
 
+    def test_add_samples(self):
+
+        discrete1 = DiscreteSignal(dt=0.5, samples=np.array([]), carrier_freq=3.0)
+        discrete2 = DiscreteSignal(
+            dt=0.5, samples=np.array([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
+        )
+
+        t_vals = np.array([0.1, 1.23])
+        discrete1.add_samples(0, [4.0, 3.2])
+        self.assertAllClose(discrete1.envelope(t_vals), (4.0, 0.0))
+
+        discrete2.add_samples(3, [1.0, 5.0 + 2j])
+        self.assertAllClose(discrete2.envelope([1.9, 2]), (1.0, 5.0 + 2j))
+
+
 class TestSignalSum(QiskitDynamicsTestCase):
     """Test evaluation functions for ``SignalSum``."""
 

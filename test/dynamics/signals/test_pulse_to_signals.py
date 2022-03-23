@@ -136,8 +136,8 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         self.assertTrue(signals[0].duration == 20)
         self.assertTrue(signals[1].duration == 20)
 
-        self.assertAllClose(signals[0]._samples, np.append(np.ones(10), np.zeros(10)))
-        self.assertAllClose(signals[1]._samples, np.ones(20))
+        self.assertAllClose(signals[0].samples, np.append(np.ones(10), np.zeros(10)))
+        self.assertAllClose(signals[1].samples, np.ones(20))
 
         self.assertTrue(signals[0].carrier_freq == 2.0)
         self.assertTrue(signals[1].carrier_freq == 3.0)
