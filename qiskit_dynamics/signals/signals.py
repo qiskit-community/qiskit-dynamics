@@ -320,7 +320,6 @@ class DiscreteSignal(Signal):
         # else:
             # raise QiskitError("Too many dimensinos of samples")
 
-        samples = Array(samples)
         self._start_time = start_time
 
         # define internal envelope function
@@ -429,7 +428,7 @@ class DiscreteSignal(Signal):
         Returns:
             samples: the samples of the piecewise constant signal.
         """
-        return self._padded_samples[:-1]
+        return Array(self._padded_samples[:-1])
 
     @property
     def start_time(self) -> float:
@@ -462,6 +461,7 @@ class DiscreteSignal(Signal):
         Raises:
             QiskitError: if start_sample is invalid.
         """
+        samples = Array(samples)
         if start_sample < len(self.samples):
             raise QiskitError()
 
