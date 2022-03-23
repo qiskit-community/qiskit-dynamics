@@ -26,7 +26,6 @@ from matplotlib import pyplot as plt
 
 try:
     import jax.numpy as jnp
-    import jax.lax as lax
 except ImportError:
     pass
 
@@ -311,15 +310,6 @@ class DiscreteSignal(Signal):
             zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
         self._padded_samples = np.append(samples, zero_pad, axis=0)
 
-        # if len(samples.shape) == 2:
-        #     zeros = Array([list(((0.0) for i in range(samples.shape[1])))], dtype=samples.dtype)
-        #     self._padded_samples = np.concatenate([zeros, Array(samples), zeros], axis=0)
-        # elif len(samples.shape) == 1:
-        #     zeros = Array([0.0], dtype=samples.dtype)
-        #     self._padded_samples = np.concatenate([zeros, Array(samples), zeros], axis=None)
-        # else:
-            # raise QiskitError("Too many dimensinos of samples")
-
         self._start_time = start_time
 
         # define internal envelope function
@@ -344,7 +334,6 @@ class DiscreteSignal(Signal):
                     len(self.samples),
                 )
                 return self._padded_samples[idx]
-
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
@@ -434,7 +423,7 @@ class DiscreteSignal(Signal):
             start_time: The time at which the list of samples start.
         """
         return self._start_time
-    
+
     def conjugate(self):
         return self.__class__(
             dt=self._dt,
@@ -457,13 +446,16 @@ class DiscreteSignal(Signal):
 
         Raises:
             QiskitError: if start_sample is invalid.
+            QiskitError: if samples list is empty.
         """
         samples = Array(samples)
+
+        if len(samples) < 1:
+            raise QiskitError("Empty sample list")
         if start_sample < len(self.samples):
             raise QiskitError()
 
         zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
-        # zero_pad = self._padded_samples[-1]
 
         if len(self.samples) < start_sample:
             self._padded_samples = np.append(

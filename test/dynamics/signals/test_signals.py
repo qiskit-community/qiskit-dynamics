@@ -384,6 +384,7 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.discrete2 = DiscreteSignal(
             dt=0.5, samples=np.array([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
         )
+
     def test_envelope(self):
 
         """Test envelope evaluation."""
@@ -491,8 +492,8 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.assertAllClose(discrete_conj.phase, -self.discrete2.phase)
         self.assertAllClose(discrete_conj.dt, self.discrete2.dt)
 
-
     def test_add_samples(self):
+        """Verify that add_samples function works correctly"""
 
         discrete1 = DiscreteSignal(dt=0.5, samples=np.array([]), carrier_freq=3.0)
         discrete2 = DiscreteSignal(
@@ -906,7 +907,7 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
         self._test_jit_signal_eval(self.constant, t=2.1)
         self._test_jit_signal_eval(self.discrete_signal, t=2.1)
         self._test_jit_signal_eval(self.signal_sum, t=2.1)
-        # self._test_jit_signal_eval(self.discrete_signal_sum, t=2.1)
+        self._test_jit_signal_eval(self.discrete_signal_sum, t=2.1)
 
     def test_jit_grad_constant_construct(self):
         """Test jitting and grad through a function which constructs a constant signal."""
