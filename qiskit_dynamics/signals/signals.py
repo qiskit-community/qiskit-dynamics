@@ -302,7 +302,7 @@ class DiscreteSignal(Signal):
         """
         self._dt = dt
 
-        samples = Array(samples)
+        # samples = Array(samples)
 
         if len(samples) == 0:
             zero_pad = np.array([0])
@@ -319,7 +319,6 @@ class DiscreteSignal(Signal):
         # else:
             # raise QiskitError("Too many dimensinos of samples")
 
-        samples = Array(samples)
         self._start_time = start_time
 
         # define internal envelope function
