@@ -346,10 +346,10 @@ class DiscreteSignal(Signal):
                 )
                 return self._padded_samples[idx]
 
-            if str(self._samples[0].shape)[-2] == ',':
-                envelope = np.vectorize(envelope, signature=f'()->{str(self._samples[0].shape)[:-2] + ")"}')
+            if str(self.samples[0].shape)[-2] == ',':
+                envelope = np.vectorize(envelope, signature=f'()->{str(self.samples[0].shape)[:-2] + ")"}')
             else:
-                envelope = np.vectorize(envelope, signature=f'()->{str(self._samples[0].shape)}')
+                envelope = np.vectorize(envelope, signature=f'()->{str(self.samples[0].shape)}')
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
     @classmethod
