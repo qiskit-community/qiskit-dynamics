@@ -902,7 +902,8 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
         )
         self.signal_list = SignalList([self.signal, self.signal_sum, self.discrete_signal])
 
-        # Test jit-compilation of signal evaluation.
+    def test_jit_eval(self):
+        """Test jit-compilation of signal evaluation."""
         self._test_jit_signal_eval(self.signal, t=2.1)
         self._test_jit_signal_eval(self.constant, t=2.1)
         self._test_jit_signal_eval(self.discrete_signal, t=2.1)
