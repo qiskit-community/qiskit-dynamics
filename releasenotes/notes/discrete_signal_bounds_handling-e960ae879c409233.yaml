@@ -1,0 +1,13 @@
+---
+depreciated:
+  - |
+    The internal attribute `DiscreteSignal._samples` has been removed,
+    all methods should now be calling the public method `DiscreteSignal.samples`.
+
+other:
+  - |
+    The behavior of the `DiscreteSignal` class has been changed, specifically the
+    `envelope` function. The envelope will now return `0.0` if called on a time
+    outside the defined range for the `DiscreteSignal`. This is achieved by padding 
+    the samples, thus depreciating `DiscreteSignal._samples` in favor of `DiscreteSignal.samples`.
+    Internally, the `envelope` function uses the internal attribute `DiscreteSignal._padded_samples`.
