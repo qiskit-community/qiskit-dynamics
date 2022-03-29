@@ -447,7 +447,6 @@ class DiscreteSignal(Signal):
 
         Raises:
             QiskitError: if start_sample is invalid.
-            QiskitError: if samples list is empty.
         """
         samples = Array(samples)
 
