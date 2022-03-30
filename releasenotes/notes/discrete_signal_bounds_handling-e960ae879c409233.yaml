@@ -11,3 +11,4 @@ other:
     outside the defined range for the `DiscreteSignal`. This is achieved by padding 
     the samples, thus depreciating `DiscreteSignal._samples` in favor of `DiscreteSignal.samples`.
     Internally, the `envelope` function uses the internal attribute `DiscreteSignal._padded_samples`.
+
