@@ -270,12 +270,9 @@ class DiscreteSignal(Signal):
     r"""Piecewise constant signal implemented as an array of samples.
 
     The envelope is specified by an array of samples ``s = [s_0, ..., s_k]``, sample width ``dt``,
-    and a start time ``t_0``, with the envelope being evaluated as
-    :math:`f(t) =` ``s[floor((t - t0)/dt)]``.
-    If the signal is sampled outside of its defined sample list, it will return a 0.0. So if `
-    envelope(t)` is called when `t<start_time` or `t>start_time + (dt * len(samples))`,
-    then `envelope(t)` will return 0.0. This is implemented through a padding method,
-    in which the internal samples are stored with a 0 padded at the end.
+    and a start time ``t_0``, with the envelope being evaluated as 
+    :math:`f(t) =` ``s[floor((t - t0)/dt)]`` if ``t`` is in the interval with endpoints ``start_time``
+    and ``start_time + dt * len(samples)``, and ``0.0`` otherwise.
     By default a :class:`~qiskit_dynamics.signals.DiscreteSignal` is defined to start at
     :math:`t=0` but a custom start time can be set via the ``start_time`` kwarg.
     """
