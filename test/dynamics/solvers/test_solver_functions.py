@@ -28,8 +28,11 @@ from qiskit_dynamics.models import GeneratorModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.solvers.diffrax_solver import diffrax_solver
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
+
+from diffrax import Dopri5
 
 
 class TestSolverMethod(ABC, QiskitDynamicsTestCase):
@@ -381,6 +384,26 @@ class Testjax_odeint(TestSolverMethodJax):
             t_span=t_span,
             y0=y0,
             method="jax_odeint",
+            t_eval=t_eval,
+            atol=1e-10,
+            rtol=1e-10,
+            **kwargs,
+        )
+
+    @property
+    def is_ode_method(self):
+        return True
+
+
+class Testdiffrax_DOP5(TestSolverMethod):
+    """Tests for diffrax Dopri5 method."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        return diffrax_solver(
+            rhs=rhs,
+            t_span=t_span,
+            y0=y0,
+            method=Dopri5(),
             t_eval=t_eval,
             atol=1e-10,
             rtol=1e-10,
