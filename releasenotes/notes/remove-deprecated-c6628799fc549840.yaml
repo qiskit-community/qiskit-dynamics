@@ -1,0 +1,13 @@
+---
+upgrade:
+  - |
+    The following deprecated methods from the dispatch module have have been
+    removed from the package:
+    ``qiskit_dynamics.dispatch.Array`,
+    ``qiskit_dynamics.dispatch.wrap``,
+    ``qiskit_dynamics.dispatch.set_default_backend``, 
+    ``qiskit_dynamics.dispatch.default_backend``,
+    ``qiskit_dynamics.dispatch.available_backends``,
+    ``qiskit_dynamics.dispatch.backend_types``.
+    These methods must all now be imported from the
+    :mod:`qiskit_dynamics.array` module
