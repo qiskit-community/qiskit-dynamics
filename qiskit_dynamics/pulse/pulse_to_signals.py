@@ -14,6 +14,7 @@
 Pulse schedule to Signals converter.
 """
 
+import warnings
 from typing import Dict, List, Optional
 import numpy as np
 
@@ -78,6 +79,15 @@ class InstructionToSignals:
 
         self._dt = dt
         self._channels = channels
+
+        if isinstance(carriers, list):
+            warnings.warn(
+                "Passing `carriers` as a list has been deprecated and will be removed"
+                "as of next release. Pass `carriers` as a dict explicitly mapping "
+                "channel names to frequency values instead.",
+                DeprecationWarning,
+            )
+
         self._carriers = carriers or {}
 
     def get_signals(self, schedule: Schedule) -> List[DiscreteSignal]:
@@ -99,11 +109,19 @@ class InstructionToSignals:
         for idx, chan in enumerate(schedule.channels):
             phases[chan.name] = 0.0
             frequency_shifts[chan.name] = 0.0
+
+            # handle deprecated list case
+            carrier_freq = None
+            if isinstance(self._carriers, list):
+                carrier_freq = self._carriers[idx]
+            else:
+                carrier_freq = self._carriers.get(chan.name, 0.0)
+
             signals[chan.name] = DiscreteSignal(
                 samples=[],
                 dt=self._dt,
                 name=chan.name,
-                carrier_freq=self._carriers.get(chan.name, 0.0),
+                carrier_freq=carrier_freq,
             )
 
         for start_sample, inst in schedule.instructions:
