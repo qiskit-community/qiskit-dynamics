@@ -23,7 +23,8 @@ from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array, wrap
-from diffrax import diffeqsolve, ODETerm, Dopri5, PIDController
+from diffrax import ODETerm, Dopri5, PIDController
+from diffrax import diffeqsolve as _diffeqsolve
 
 from diffrax.solver import AbstractSolver
 
@@ -51,6 +52,7 @@ def diffrax_dopri5(
     Returns:
         OdeResult: Results object.
     """
+    raise NotImplementedError
 
     t_list = merge_t_args(t_span, t_eval)
     # if t_eval is none, doesn't matter, but if t_eval is specified, merge assumes t_span is also np array
@@ -67,7 +69,7 @@ def diffrax_dopri5(
 
     # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
     term = ODETerm(lambda t, y, _: Array(rhs(t.real, y)).data)
-    solver = Dopri5(**kwargs)
+    solver = Dopri5()
 
     results = diffeqsolve(
         term,
@@ -120,21 +122,30 @@ def diffrax_solver(
 
     # determine direction of integration
     # t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=complex))
-    rhs = wrap(rhs)
+    # rhs = rhs
 
+    rhs = wrap(rhs)
     stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
 
     # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
-    term = ODETerm(lambda t, y, _: Array(rhs(t.real, y)).data)
+    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=complex))
+    # term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=complex).data)
+    term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=complex).data)
+    # term = ODETerm(wrap(lambda t, y, _: rhs(np.real(t_direction * t), y) * t_direction))
+    # term = wrap(_term)
+    # term = _term
     solver = method
 
+    diffeqsolve = wrap(_diffeqsolve)
     results = diffeqsolve(
         term,
         solver,
         t0=t_list[0],
         t1=t_list[-1],
         dt0=None,
-        y0=y0,
+        y0=Array(y0, complex),
+        # y0=np.array(y0),
+        # y0 = jnp.array(y0.data), 
         stepsize_controller=stepsize_controller,
     )  # **kwargs
 
