@@ -220,7 +220,7 @@ class TestSolver(QiskitDynamicsTestCase):
 
         # SuperOp
         solver.model.evaluation_mode = "dense_vectorized"
-        y0 = SuperOp(np.eye(6**2), input_dims=(2, 3), output_dims=(3, 2))
+        y0 = SuperOp(np.eye(36), input_dims=(2, 3), output_dims=(3, 2))
         yf = solver.solve(t_span=[0.0, 0.1], y0=y0).y[-1]
         self.assertTrue(isinstance(yf, SuperOp))
         self.assertTrue(yf.input_dims() == (2, 3) and yf.output_dims() == (3, 2))
