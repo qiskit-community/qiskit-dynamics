@@ -60,7 +60,7 @@ def diffrax_dopri5(
     # t_list = t_list.data
 
     # determine direction of integration
-    # t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=complex))
+    # t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=float))
     # t_direction = 1
     # t_direction = jnp.array(1)
     rhs = wrap(rhs)
@@ -83,12 +83,12 @@ def diffrax_dopri5(
 
     # results = odeint(
     #     lambda y, t: rhs(np.real(t_direction * t), y) * t_direction,
-    #     y0=Array(y0, dtype=complex),
+    #     y0=Array(y0, dtype=float),
     #     t=np.real(t_direction) * Array(t_list),
     #     **kwargs,
     # )
 
-    results = OdeResult(t=t_list, y=Array(results.ys, backend="jax", dtype=complex))
+    results = OdeResult(t=t_list, y=Array(results.ys, backend="jax", dtype=float))
 
     return trim_t_results(results, t_span, t_eval)
 
@@ -121,29 +121,30 @@ def diffrax_solver(
     # t_list = t_list.data
 
     # determine direction of integration
-    # t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=complex))
+    # t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=float))
     # rhs = rhs
 
-    rhs = wrap(rhs)
+    # rhs = wrap(rhs)
     stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
 
     # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
-    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=complex))
-    # term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=complex).data)
-    term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=complex).data)
+    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=float))
+    # term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
+    term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
     # term = ODETerm(wrap(lambda t, y, _: rhs(np.real(t_direction * t), y) * t_direction))
     # term = wrap(_term)
     # term = _term
     solver = method
 
     diffeqsolve = wrap(_diffeqsolve)
+    # diffeqsolve = _diffeqsolve
     results = diffeqsolve(
         term,
         solver,
         t0=t_list[0],
         t1=t_list[-1],
         dt0=None,
-        y0=Array(y0, complex),
+        y0=Array(y0, float),
         # y0=np.array(y0),
         # y0 = jnp.array(y0.data), 
         stepsize_controller=stepsize_controller,
