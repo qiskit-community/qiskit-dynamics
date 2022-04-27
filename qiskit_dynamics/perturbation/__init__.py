@@ -35,7 +35,7 @@ Mathematically, a formal array-valued power-series in :math:`r` variables
                 \sum_{0 \leq i_1 \leq \dots \leq i_k \leq r-1}
                 (c_{i_1} \times \dots \times c_{i_k}) A_{i_1, \dots, i_k},
 
-where, in general, the :math:`A_\emptyset` and :math:`A_{i_1, \dots, i_k}`
+where the :math:`A_\emptyset` and :math:`A_{i_1, \dots, i_k}`
 are arrays of common shape.
 
 Structurally, each term in the power series is labelled by the number of times each
@@ -161,7 +161,7 @@ is given by:
     \tilde{G}(t, c_0, \dots, c_{r-1}) =
             \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \tilde{G}_I(t),
 
-with :math:`\tilde{G}_I(t) = V(t)^\dagger G_I(t)V(t)`.
+with :math:`\tilde{G}_I(t) = V^{-1}(t) G_I(t)V(t)`.
 
 Denoting
 
@@ -204,7 +204,7 @@ in the above series.
 
 :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` numerically computes a desired
 list of the :math:`\mathcal{D}_I(t)` or :math:`\mathcal{O}_I(t)`
-using the algorithm in [:footcite:`puzzuoli_sensitivity_2022`]. It may also be used to compute
+using algorithms in [:footcite:`puzzuoli_sensitivity_2022`]. It may also be used to compute
 Dyson-like integrals using the algorithm in [:footcite:`haas_engineering_2019`]. Results are
 returned in a :class:`PerturbationResults` objects which is a data container with some
 functionality for indexing and accessing specific perturbation terms. See the function
@@ -214,19 +214,19 @@ Schrieffer-Wolff
 ================
 
 Schrieffer-Wolff perturbation theory seeks to perturbatively construct the generator of a unitary
-transformation that diagonalizes a Hamiltonian which perturbatively non-diagonal
+transformation that diagonalizes a Hamiltonian which is perturbatively non-diagonal
 [:footcite:`wikipedia_schriefferwolff_2021`, :footcite:`bravyi_schriefferwolff_2011`,
 :footcite:`schrieffer_relation_1966`, :footcite:`luttinger_motion_1955`]. (More generally,
 the goal is to *block-diagonalize* a perturbatively non-block-diagonal Hamiltonian,
-however, this function is specialized to the diagonal case.)
+however, this function is specialized to the diagonalization case.)
 
 I.e. given a power series decomposition of a Hamiltonian in :math:`r` variables:
 
 .. math::
 
-    H(c_0, \dots, c_{r-1}) = H_\emptyset + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I H_I
+    H(c_0, \dots, c_{r-1}) = H_\emptyset + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I H_I,
 
-for :math:`H0` a diagonal Hermitian operator, and :math:`H_I` Hermitian, the goal is to
+for :math:`H_\emptyset` a diagonal Hermitian operator, and :math:`H_I` Hermitian, the goal is to
 construct a power series decomposition of an anti-Hermitian matrix
 
 .. math::
@@ -256,7 +256,7 @@ solvers built using the Dyson series and Magnus expansion, as outlined in
 
     The principles and core ideas of the methods were outlined in the Dyson-based *Dysolve*
     algorithm given in [:footcite:p:`shillito_fast_2020`], however the Magnus version and
-    specific algorithms and framing of the problem are as given in
+    specific algorithms and setup used here are as given in
     [:footcite:`puzzuoli_sensitivity_2022`].
 
 The solvers are specialized to LMDEs whose generators are decomposed as:
