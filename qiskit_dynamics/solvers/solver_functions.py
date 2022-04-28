@@ -145,7 +145,7 @@ def solve_ode(
     if method in SOLVE_IVP_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
     elif isinstance(method, type) and issubclass(method, AbstractSolver):
-        results = diffrax_solver(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
+        results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "RK4":
         results = RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "jax_RK4":
