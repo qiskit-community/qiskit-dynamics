@@ -34,67 +34,6 @@ from jax.lax import cond
 
 
 @requires_backend("jax")
-def diffrax_dopri5(
-    rhs: Callable,
-    t_span: Array,
-    y0: Array,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
-    **kwargs,
-):
-    """Routine for calling `jax.experimental.ode.odeint`
-
-    Args:
-        rhs: Callable of the form :math:`f(t, y)`
-        t_span: Interval to solve over.
-        y0: Initial state.
-        t_eval: Optional list of time points at which to return the solution.
-        **kwargs: Optional arguments to be passed to ``odeint``.
-
-    Returns:
-        OdeResult: Results object.
-    """
-    raise NotImplementedError
-
-    t_list = merge_t_args(t_span, t_eval)
-    # if t_eval is none, doesn't matter, but if t_eval is specified, merge assumes t_span is also np array
-    # Check if diffrax handles backwards integration
-    # t_list = t_list.data
-
-    # determine direction of integration
-    # t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=float))
-    # t_direction = 1
-    # t_direction = jnp.array(1)
-    rhs = wrap(rhs)
-
-    stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
-
-    # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
-    term = ODETerm(lambda t, y, _: Array(rhs(t.real, y)).data)
-    solver = Dopri5()
-
-    results = diffeqsolve(
-        term,
-        solver,
-        t0=t_list[0],
-        t1=t_list[-1],
-        dt0=None,
-        y0=y0,
-        stepsize_controller=stepsize_controller,
-    )  # **kwargs
-
-    # results = odeint(
-    #     lambda y, t: rhs(np.real(t_direction * t), y) * t_direction,
-    #     y0=Array(y0, dtype=float),
-    #     t=np.real(t_direction) * Array(t_list),
-    #     **kwargs,
-    # )
-
-    results = OdeResult(t=t_list, y=Array(results.ys, backend="jax", dtype=float))
-
-    return trim_t_results(results, t_span, t_eval)
-
-
-@requires_backend("jax")
 def diffrax_solver(
     rhs: Callable,
     t_span: Array,
@@ -128,11 +67,10 @@ def diffrax_solver(
     # determine direction of integration
     # t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=float))
 
-
     # convert rhs and y0 to real
     rhs = real_rhs(rhs)
     y0 = c2r(y0)
-    # rhs = wrap(rhs)
+
     stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
 
     # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
@@ -140,10 +78,6 @@ def diffrax_solver(
 
     diffeqsolve = wrap(_diffeqsolve)
 
-    # Convert
-    # t_eval = cond(t_eval == None, lambda _: t_list, lambda _: t_eval)
-    # if not t_eval:
-        # t_eval = t_list
     saveat = SaveAt(ts=t_list)
 
     results = diffeqsolve(
@@ -157,12 +91,11 @@ def diffrax_solver(
         saveat=saveat,
     )  # **kwargs
 
-
-    # ys = r2c(results.ys)
     ys = jnp.array([r2c(y) for y in results.ys])
     results = OdeResult(t=t_list, y=Array(ys, backend="jax", dtype=complex))
 
     return trim_t_results(results, t_span, t_eval)
+
 
 def real_rhs(rhs):
     """Convert complex RHS to real RHS function"""

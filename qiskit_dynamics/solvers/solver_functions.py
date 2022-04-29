@@ -247,7 +247,11 @@ def solve_lmde(
     """
 
     # delegate to solve_ode if necessary
-    if method in ODE_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)) or (isinstance(method, type) and issubclass(method, AbstractSolver)):
+    if (
+        method in ODE_METHODS
+        or (isinstance(method, type) and issubclass(method, OdeSolver))
+        or (isinstance(method, type) and issubclass(method, AbstractSolver))
+    ):
         if isinstance(generator, BaseGeneratorModel):
             rhs = generator
         else:
