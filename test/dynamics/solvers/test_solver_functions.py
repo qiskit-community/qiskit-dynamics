@@ -395,7 +395,7 @@ class Testjax_odeint(TestSolverMethodJax):
         return True
 
 
-class Testdiffrax_DOP5(TestSolverMethod):
+class Testdiffrax_DOP5(TestSolverMethodJax):
     """Tests for diffrax Dopri5 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
@@ -403,7 +403,7 @@ class Testdiffrax_DOP5(TestSolverMethod):
             rhs=rhs,
             t_span=t_span,
             y0=y0,
-            method=Dopri5(),
+            method=Dopri5,
             t_eval=t_eval,
             atol=1e-10,
             rtol=1e-10,

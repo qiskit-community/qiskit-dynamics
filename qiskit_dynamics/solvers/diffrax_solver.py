@@ -23,13 +23,14 @@ from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array, wrap
-from diffrax import ODETerm, Dopri5, PIDController
+from diffrax import ODETerm, Dopri5, PIDController, SaveAt
 from diffrax import diffeqsolve as _diffeqsolve
 
 from diffrax.solver import AbstractSolver
 
 from .solver_utils import merge_t_args, trim_t_results
 import jax.numpy as jnp
+from jax.lax import cond
 
 
 @requires_backend("jax")
@@ -116,6 +117,8 @@ def diffrax_solver(
     """
     if isinstance(method, type) and issubclass(method, AbstractSolver):
         solver = method()
+    else:
+        solver = method
 
     t_list = merge_t_args(t_span, t_eval)
     # if t_eval is none, doesn't matter, but if t_eval is specified, merge assumes t_span is also np array
@@ -137,18 +140,26 @@ def diffrax_solver(
 
     diffeqsolve = wrap(_diffeqsolve)
 
+    # Convert
+    # t_eval = cond(t_eval == None, lambda _: t_list, lambda _: t_eval)
+    # if not t_eval:
+        # t_eval = t_list
+    saveat = SaveAt(ts=t_list)
+
     results = diffeqsolve(
         term,
         solver=solver,
         t0=t_list[0],
         t1=t_list[-1],
         dt0=None,
-        y0=Array(y0),
+        y0=Array(y0, dtype=float),
         stepsize_controller=stepsize_controller,
+        saveat=saveat,
     )  # **kwargs
 
 
-    ys = r2c(results.ys)
+    # ys = r2c(results.ys)
+    ys = jnp.array([r2c(y) for y in results.ys])
     results = OdeResult(t=t_list, y=Array(ys, backend="jax", dtype=complex))
 
     return trim_t_results(results, t_span, t_eval)
