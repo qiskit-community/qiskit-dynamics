@@ -271,7 +271,8 @@ class DiscreteSignal(Signal):
 
     The envelope is specified by an array of samples ``s = [s_0, ..., s_k]``, sample width ``dt``,
     and a start time ``t_0``, with the envelope being evaluated as
-    :math:`f(t) =` ``s[floor((t - t0)/dt)]``.
+    :math:`f(t) =` ``s[floor((t - t0)/dt)]`` if ``t`` is in the interval with endpoints
+    ``start_time`` and ``start_time + dt * len(samples)``, and ``0.0`` otherwise.
     By default a :class:`~qiskit_dynamics.signals.DiscreteSignal` is defined to start at
     :math:`t=0` but a custom start time can be set via the ``start_time`` kwarg.
     """
@@ -298,30 +299,39 @@ class DiscreteSignal(Signal):
             name: name of the signal.
         """
         self._dt = dt
-        self._samples = Array(samples)
+
+        samples = Array(samples)
+
+        if len(samples) == 0:
+            zero_pad = np.array([0])
+        else:
+            zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
+        self._padded_samples = np.append(samples, zero_pad, axis=0)
+
         self._start_time = start_time
 
         # define internal envelope function
-        if self._samples.backend == "jax":
+        if samples.backend == "jax":
 
             def envelope(t):
                 t = Array(t).data
                 idx = jnp.clip(
                     jnp.array((t - self._start_time) // self._dt, dtype=int),
-                    0,
-                    len(self._samples) - 1,
+                    -1,
+                    len(self.samples),
                 )
-                return self._samples[idx]
+                return self._padded_samples[idx]
 
         else:
 
             def envelope(t):
+                t = Array(t).data
                 idx = np.clip(
                     np.array((t - self._start_time) // self._dt, dtype=int),
-                    0,
-                    len(self._samples) - 1,
+                    -1,
+                    len(self.samples),
                 )
-                return self._samples[idx]
+                return self._padded_samples[idx]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
@@ -386,7 +396,7 @@ class DiscreteSignal(Signal):
         Returns:
             duration: The duration of the signal in samples.
         """
-        return len(self._samples)
+        return len(self.samples)
 
     @property
     def dt(self) -> float:
@@ -402,7 +412,7 @@ class DiscreteSignal(Signal):
         Returns:
             samples: the samples of the piecewise constant signal.
         """
-        return self._samples
+        return Array(self._padded_samples[:-1])
 
     @property
     def start_time(self) -> float:
@@ -415,7 +425,7 @@ class DiscreteSignal(Signal):
     def conjugate(self):
         return self.__class__(
             dt=self._dt,
-            samples=np.conjugate(self._samples),
+            samples=np.conjugate(self.samples),
             start_time=self._start_time,
             carrier_freq=-self.carrier_freq,
             phase=-self.phase,
@@ -435,15 +445,23 @@ class DiscreteSignal(Signal):
         Raises:
             QiskitError: if start_sample is invalid.
         """
-        if start_sample < len(self._samples):
+        samples = Array(samples)
+
+        if len(samples) < 1:
+            return
+
+        if start_sample < len(self.samples):
             raise QiskitError()
 
-        if len(self._samples) < start_sample:
-            self._samples = np.append(
-                self._samples, np.zeros(start_sample - len(self._samples), dtype=complex)
+        zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
+
+        if len(self.samples) < start_sample:
+            self._padded_samples = np.append(
+                self.samples, np.zeros(start_sample - len(self.samples), dtype=complex)
             )
 
-        self._samples = np.append(self._samples, samples)
+        self._padded_samples = np.append(self.samples, samples)
+        self._padded_samples = np.append(self._padded_samples, zero_pad, axis=0)
 
     def __str__(self) -> str:
         """Return string representation."""

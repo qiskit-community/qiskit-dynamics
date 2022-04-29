@@ -386,12 +386,22 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         )
 
     def test_envelope(self):
+
         """Test envelope evaluation."""
+        self.assertAllClose(self.discrete1.envelope(1.5), 0.0)
         self.assertAllClose(self.discrete1.envelope(0.0), 1.0)
         self.assertAllClose(self.discrete1.envelope(1.23), 3.0)
+        self.assertAllClose(self.discrete1.envelope(1.49), 3.0)
 
         self.assertAllClose(self.discrete2.envelope(0.1), 1.0 + 2j)
         self.assertAllClose(self.discrete2.envelope(1.23), 3.0)
+        self.assertAllClose(self.discrete2.envelope(1.49), 3.0)
+        self.assertAllClose(self.discrete2.envelope(1.5), 0.0)
+
+    def test_envelope_outside(self):
+        """Test envelope evaluation outside of defined start and end"""
+        self.assertAllClose(self.discrete1.envelope(-1.0), 0.0)
+        self.assertAllClose(self.discrete1.envelope(3.0), 0.0)
 
     def test_envelope_vectorized(self):
         """Test vectorized evaluation of envelope."""
@@ -481,6 +491,21 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.assertAllClose(discrete_conj.carrier_freq, -self.discrete2.carrier_freq)
         self.assertAllClose(discrete_conj.phase, -self.discrete2.phase)
         self.assertAllClose(discrete_conj.dt, self.discrete2.dt)
+
+    def test_add_samples(self):
+        """Verify that add_samples function works correctly"""
+
+        discrete1 = DiscreteSignal(dt=0.5, samples=np.array([]), carrier_freq=3.0)
+        discrete2 = DiscreteSignal(
+            dt=0.5, samples=np.array([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
+        )
+
+        t_vals = np.array([0.1, 1.23])
+        discrete1.add_samples(0, [4.0, 3.2])
+        self.assertAllClose(discrete1.envelope(t_vals), (4.0, 0.0))
+
+        discrete2.add_samples(3, [1.0, 5.0 + 2j])
+        self.assertAllClose(discrete2.envelope([1.9, 2]), (1.0, 5.0 + 2j))
 
 
 class TestSignalSum(QiskitDynamicsTestCase):
