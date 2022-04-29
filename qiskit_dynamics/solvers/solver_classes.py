@@ -20,6 +20,7 @@ Solver classes.
 
 from typing import Optional, Union, Tuple, Any, Type, List, Callable
 from copy import copy
+import warnings
 
 import numpy as np
 
@@ -49,6 +50,10 @@ from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_ve
 
 
 class Solver:
+    ###################################################################################################
+    # Update doc!
+    ###################################################################################################
+
     """Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
     level type-handling of input states.
 
@@ -110,6 +115,7 @@ class Solver:
         in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
         rwa_cutoff_freq: Optional[float] = None,
+        rwa_carrier_freqs: Optional[Union[Array, Tuple[Array, Array]]] = None,
         validate: bool = True,
     ):
         """Initialize solver with model information.
@@ -119,11 +125,15 @@ class Solver:
                                 is specified, the ``frame_operator`` will be subtracted from
                                 the static_hamiltonian.
             hamiltonian_operators: Hamiltonian operators.
-            hamiltonian_signals: Coefficients for the Hamiltonian operators.
+            hamiltonian_signals: (Deprecated) Coefficients for the Hamiltonian operators.
+                                 This argument has been deprecated, signals should be passed
+                                 to the solve method.
             static_dissipators: Constant dissipation operators.
             dissipator_operators: Dissipation operators with time-dependent coefficients.
-            dissipator_signals: Optional time-dependent coefficients for the dissipators. If
-                                ``None``, coefficients are assumed to be the constant ``1.``.
+            dissipator_signals: (Deprecated) Optional time-dependent coefficients for the
+                                dissipators. If ``None``, coefficients are assumed to be the
+                                constant ``1.``. This argument has been deprecated, signals
+                                should be passed to the solve method.
             rotating_frame: Rotating frame to transform the model into. Rotating frames which
                             are diagonal can be supplied as a 1d array of the diagonal elements,
                             to explicitly indicate that they are diagonal.
@@ -136,8 +146,18 @@ class Solver:
                              (if dissipators in model) for valid modes.
             rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
                              approximation is made.
+            rwa_carrier_freqs: Carrier frequencies to use for rotating wave approximation.
             validate: Whether or not to validate Hamiltonian operators as being Hermitian.
         """
+
+        if hamiltonian_signals or dissipator_signals:
+            warnings.warn(
+                """hamiltonian_signals and dissipator_signals are deprecated arguments
+                and will be removed in a subsequent release.
+                Signals should be passed directly to the solve method.""",
+                DeprecationWarning,
+                stacklevel=3,
+            )
 
         model = None
         if static_dissipators is None and dissipator_operators is None:
@@ -166,6 +186,10 @@ class Solver:
             )
             self._signals = (hamiltonian_signals, dissipator_signals)
 
+        ###############################################################################################
+        # fix this to use new argument!
+        ##################################################################################################
+
         self._rwa_signal_map = None
         if rwa_cutoff_freq is not None:
             model, rwa_signal_map = rotating_wave_approximation(
@@ -182,16 +206,25 @@ class Solver:
 
     @property
     def signals(self) -> SignalList:
-        """The signals used in the solver.
-
-        These will be different from the signals in the model if a rotating wave approximation
-        was made.
-        """
+        """The signals used in the solver."""
+        warnings.warn(
+            """The signals property is deprecated.
+            Signals should be passed directly to the solve method.""",
+            DeprecationWarning,
+            stacklevel=3,
+        )
         return self._signals
 
     @signals.setter
     def signals(self, new_signals: Union[List[Signal], SignalList]):
         """Set signals for the solver, and pass to the model."""
+        warnings.warn(
+            """The signals property is deprecated.
+            Signals should be passed directly to the solve method.""",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+
         self._signals = new_signals
         if self._rwa_signal_map is not None:
             new_signals = self._rwa_signal_map(new_signals)
@@ -199,11 +232,28 @@ class Solver:
 
     def copy(self) -> "Solver":
         """Return a copy of self."""
+        ##############################################################################################
+        # Deprecate this?
+        # Not really necessary with pure version of solve
+        ##############################################################################################
+
         return copy(self)
 
     def solve(
-        self, t_span: Array, y0: Union[Array, QuantumState, BaseOperator], **kwargs
+        self,
+        signals: Union[List[Signal], Tuple[List[Signal], List[Signal]]],
+        t_span: Union[Array, List[Array]],
+        y0: Union[Array, QuantumState, BaseOperator],
+        wrap_results: Optional[bool] = True,
+        control_flow: Optional[str] = None,
+        **kwargs
     ) -> OdeResult:
+        ##############################################################################################
+        # Update this doc
+        # should signals be a single argument combining hamiltonian/dissipator signals, or should
+        # we break these into two separate kwargs?
+        ##############################################################################################
+
         r"""Solve the dynamical problem.
 
         Calls :func:`~qiskit_dynamics.solvers.solve_lmde`, and returns an `OdeResult`
@@ -212,8 +262,11 @@ class Solver:
         for special handling of various input types.
 
         Args:
+            signals: Specification of time-dependent coefficients to simulate.
             t_span: Time interval to integrate over.
             y0: Initial state.
+            wrap_results: Whether or not to wrap the result arrays in the same class as y0.
+            control_flow: Whether to use standard python or other loops.
             **kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
 
         Returns:
@@ -292,29 +345,40 @@ class Solver:
         ):
             raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
 
-        results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+        signals, t_span, num_sims = setup_simulation_list(signals, t_span)
 
-        # handle special cases
-        if y0_cls is DensityMatrix and isinstance(self.model, HamiltonianModel):
-            # conjugate by unitary
-            out = Array(results.y)
-            results.y = out @ y_input @ out.conj().transpose((0, 2, 1))
-        elif y0_cls is SuperOp and isinstance(self.model, HamiltonianModel):
-            # convert to SuperOp and compose
-            out = Array(results.y)
-            results.y = (
-                np.einsum("nka,nlb->nklab", out.conj(), out).reshape(
-                    out.shape[0], out.shape[1] ** 2, out.shape[1] ** 2
-                )
-                @ y_input
-            )
-        elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(self.model):
-            results.y = Array(results.y).reshape((len(results.y),) + y_input.shape, order="F")
+        """ *****************************************************************************************
+        insert RWA signal handling
+        """
 
-        if y0_cls is not None:
-            results.y = [state_type_wrapper(yi) for yi in results.y]
 
-        return results
+        all_results = []
+        if control_flow == 'jax':
+            pass
+        else:
+            original_signals = self.model.signals
+
+            for sim_signals, sim_t_span in zip(signals, t_span):
+                if sim_signals is not None:
+                    self.model.signals = sim_signals
+
+                results = solve_lmde(generator=self.model, t_span=sim_t_span, y0=y0, **kwargs)
+                results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+
+                all_results.append(results)
+
+            self.model.signals = original_signals
+
+        if y0_cls is not None and wrap_results:
+            for results in all_results:
+                results.y = [state_type_wrapper(yi) for yi in results.y]
+
+        # do we want to do this?
+        ##############################################################################################
+        if num_sims == 0:
+            return all_results[0]
+
+        return all_results
 
 
 def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
@@ -348,3 +412,70 @@ def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
         y0, y0_cls, wrapper = Array(obj), None, lambda x: x
 
     return y0, y0_cls, wrapper
+
+def format_final_states(y, model, y_input, y0_cls):
+    """Format final states for a single simulation."""
+
+    y = Array(y)
+
+    new_y = None
+    # handle special cases
+    if y0_cls is DensityMatrix and isinstance(model, HamiltonianModel):
+        # conjugate by unitary
+        new_y = y @ y_input @ y.conj().transpose((0, 2, 1))
+    elif y0_cls is SuperOp and isinstance(model, HamiltonianModel):
+        # convert to SuperOp and compose
+        new_y = (
+            np.einsum("nka,nlb->nklab", y.conj(), y).reshape(
+                y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2
+            )
+            @ y_input
+        )
+    elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(model):
+        new_y = y.reshape((len(y),) + y_input.shape, order="F")
+    else:
+        new_y = y
+
+    return new_y
+
+
+def setup_simulation_list(signals, t_span):
+    """Setup args to do a list of simulations.
+
+    ***************************************************************************************************
+    fill this out
+    """
+
+    num_sims = 0
+
+    if signals is None:
+        signals = [signals]
+    elif isinstance(signals, tuple):
+        # single Lindblad simulation
+        signals = [signals]
+    elif isinstance(signals, list) and isinstance(signals[0], tuple):
+        # multiple lindblad simulation
+        num_sims = len(signals)
+    elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
+        # multiple Hamiltonian simulation
+        num_sims = len(signals)
+    elif isinstance(signals, SignalList) or (isinstance(signals, list) and isinstance(signals[0], Signal)):
+        # single round of Hamiltonian simulation
+        signals = [signals]
+    else:
+        raise QiskitError("Signals specified in invalid format.")
+
+    # setup t_span to have the same "shape" as signals
+    t_span = Array(t_span)
+    if t_span.ndim > 2:
+        raise QiskitError("t_span must be either 1d or 2d.")
+    elif t_span.ndim == 2:
+        if num_sims == 0:
+            raise QiskitError("t_span can only be a list of intervals if signals specifies multiple simulations.")
+        elif len(t_span) != num_sims:
+            raise QiskitError("t_span must either specify a single interval, or a list of intervals of the same length as signals.")
+    else:
+        t_span = [t_span] * max(num_sims, 1)
+
+
+    return signals, t_span, num_sims
