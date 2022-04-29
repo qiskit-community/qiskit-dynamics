@@ -76,6 +76,9 @@ def diffrax_solver(
     # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
     term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
 
+    kwargs.pop("rtol")
+    kwargs.pop("atol")
+
     diffeqsolve = wrap(_diffeqsolve)
 
     saveat = SaveAt(ts=t_list)
@@ -89,7 +92,8 @@ def diffrax_solver(
         y0=Array(y0, dtype=float),
         stepsize_controller=stepsize_controller,
         saveat=saveat,
-    )  # **kwargs
+        **kwargs
+    )
 
     ys = jnp.array([r2c(y) for y in results.ys])
     results = OdeResult(t=t_list, y=Array(ys, backend="jax", dtype=complex))
