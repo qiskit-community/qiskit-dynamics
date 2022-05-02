@@ -48,6 +48,10 @@ from qiskit_dynamics.array import Array
 from .solver_functions import solve_lmde
 from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
 
+try:
+    from jax.lax import scan, vmap
+except ImportError:
+    pass
 
 class Solver:
     ###################################################################################################
@@ -351,13 +355,13 @@ class Solver:
         insert RWA signal handling
         """
 
+        # hold copy of signals in model for deprecated behavior
+        original_signals = self.model.signals
 
         all_results = []
         if control_flow == 'jax':
             pass
         else:
-            original_signals = self.model.signals
-
             for sim_signals, sim_t_span in zip(signals, t_span):
                 if sim_signals is not None:
                     self.model.signals = sim_signals
@@ -367,7 +371,8 @@ class Solver:
 
                 all_results.append(results)
 
-            self.model.signals = original_signals
+        # replace copy of original signals for deprecated behavior
+        self.model.signals = original_signals
 
         if y0_cls is not None and wrap_results:
             for results in all_results:

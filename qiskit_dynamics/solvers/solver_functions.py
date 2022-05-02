@@ -55,12 +55,6 @@ from .fixed_step_solvers import (
 from .scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .jax_odeint import jax_odeint
 
-try:
-    from jax.lax import scan
-except ImportError:
-    pass
-
-
 ODE_METHODS = (
     ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"]  # scipy solvers
     + ["RK4"]  # fixed step solvers
