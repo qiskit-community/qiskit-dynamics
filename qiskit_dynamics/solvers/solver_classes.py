@@ -198,10 +198,29 @@ class Solver:
 
         self._rwa_signal_map = None
         if rwa_cutoff_freq is not None:
+
+            original_signals = model.signals
+
+            if rwa_carrier_freqs:
+                if isinstance(rwa_carrier_freqs, tuple):
+                    rwa_ham_sigs = None
+                    rwa_linblad_sigs = None
+                    if rwa_carrier_freqs[0]:
+                        rwa_ham_sigs = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs[0]]
+                    if rwa_carrier_freqs[1]:
+                        rwa_linblad_sigs = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs[1]]
+
+                    model.signals = (rwa_ham_sigs, rwa_linblad_sigs)
+
+                else:
+                    model.signals = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs]
+
             model, rwa_signal_map = rotating_wave_approximation(
                 model, rwa_cutoff_freq, return_signal_map=True
             )
             self._rwa_signal_map = rwa_signal_map
+
+            model.signals = self._rwa_signal_map(original_signals)
 
         self._model = model
 
@@ -251,7 +270,6 @@ class Solver:
         t_span: Union[Array, List[Array]],
         y0: Union[Array, QuantumState, BaseOperator],
         wrap_results: Optional[bool] = True,
-        control_flow: Optional[str] = None,
         **kwargs
     ) -> OdeResult:
         ##############################################################################################
@@ -305,120 +323,84 @@ class Solver:
 
         """
 
-        # convert types
-        if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
-            y0 = DensityMatrix(y0)
 
-        y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
-
-        # validate types
-        if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
-            raise QiskitError(
-                """Simulating SuperOp for a LinbladModel requires setting
-                vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
-                """
-            )
-
-        # modify initial state for some custom handling of certain scenarios
-        y_input = y0
-
-        # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
-        if y0_cls in [DensityMatrix, SuperOp] and isinstance(self.model, HamiltonianModel):
-            y0 = np.eye(self.model.dim, dtype=complex)
-        # if LindbladModel is vectorized and simulating a density matrix, flatten
-        elif (
-            (y0_cls is DensityMatrix)
-            and isinstance(self.model, LindbladModel)
-            and "vectorized" in self.model.evaluation_mode
-        ):
-            y0 = y0.flatten(order="F")
-
-        # validate y0 shape before passing to solve_lmde
-        if isinstance(self.model, HamiltonianModel) and (
-            y0.shape[0] != self.model.dim or y0.ndim > 2
-        ):
-            raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
-        if is_lindblad_model_vectorized(self.model) and (
-            y0.shape[0] != self.model.dim**2 or y0.ndim > 2
-        ):
-            raise QiskitError(
-                """Shape mismatch for initial state y0 and LindbladModel
-                                 in vectorized evaluation mode."""
-            )
-        if is_lindblad_model_not_vectorized(self.model) and y0.shape[-2:] != (
-            self.model.dim,
-            self.model.dim,
-        ):
-            raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
-
-        signals, t_span, num_sims = setup_simulation_list(signals, t_span)
-
-        """ *****************************************************************************************
-        insert RWA signal handling
-        """
+        signals_list, y0_list, t_span_list, sim_shape = setup_simulation_lists(signals, y0, t_span)
 
         # hold copy of signals in model for deprecated behavior
         original_signals = self.model.signals
 
         all_results = []
-        if isinstance(control_flow, str) and 'jax' in control_flow:
+        ##################################################################################################
+        # for now assume Hamiltonian, can handle linblad properly later
+        #################################################################################################
+        for signals, y0, t_span in zip(signals_list, y0_list, t_span_list):
 
-            ##################################################################################################
-            # for now assume Hamiltonian, can handle linblad properly later
-            #################################################################################################
-            hamiltonian_signal_lists = [SignalList(sigs) for sigs in signals]
+            # convert types
+            if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
+                y0 = DensityMatrix(y0)
 
-            def get_sig_func(sig):
-                return lambda t: Array(sig(t)).data
+            y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
 
-            hamiltonian_sig_funcs = [get_sig_func(sig) for sig in hamiltonian_signal_lists]
+            # validate types
+            if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
+                raise QiskitError(
+                    """Simulating SuperOp for a LinbladModel requires setting
+                    vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
+                    """
+                )
 
-            def eval_ham_signals(sim_idx, t):
-                return switch(sim_idx, hamiltonian_sig_funcs, t)
+            # modify initial state for some custom handling of certain scenarios
+            y_input = y0
 
-            sig_len = len(hamiltonian_signal_lists[0])
-            def sim_func(sim_idx, interval):
-                # assumes hamiltonian
-                signals = VectorSignal(lambda t: eval_ham_signals(sim_idx, t), length=sig_len)
+            # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
+            if y0_cls in [DensityMatrix, SuperOp] and isinstance(self.model, HamiltonianModel):
+                y0 = np.eye(self.model.dim, dtype=complex)
+            # if LindbladModel is vectorized and simulating a density matrix, flatten
+            elif (
+                (y0_cls is DensityMatrix)
+                and isinstance(self.model, LindbladModel)
+                and "vectorized" in self.model.evaluation_mode
+            ):
+                y0 = y0.flatten(order="F")
+
+            # validate y0 shape before passing to solve_lmde
+            if isinstance(self.model, HamiltonianModel) and (
+                y0.shape[0] != self.model.dim or y0.ndim > 2
+            ):
+                raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
+            if is_lindblad_model_vectorized(self.model) and (
+                y0.shape[0] != self.model.dim**2 or y0.ndim > 2
+            ):
+                raise QiskitError(
+                    """Shape mismatch for initial state y0 and LindbladModel
+                                     in vectorized evaluation mode."""
+                )
+            if is_lindblad_model_not_vectorized(self.model) and y0.shape[-2:] != (
+                self.model.dim,
+                self.model.dim,
+            ):
+                raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
+
+            if signals is not None:
+                if self._rwa_signal_map:
+                    signals = self._rwa_signal_map(signals)
                 self.model.signals = signals
 
-                results = solve_lmde(generator=self.model, t_span=interval, y0=y0, **kwargs)
+            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+            results.y = format_final_states(results.y, self.model, y_input, y0_cls)
 
-                results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+            if y0_cls is not None and wrap_results:
+                results.y = [state_type_wrapper(yi) for yi in results.y]
 
-                # for now ignore the extra frame processing processing
-                return Array(results.t).data, Array(results.y).data
+            all_results.append(results)
 
-            def scan_func(carry, x):
-                idx, interval = x
-                return None, sim_func(idx, interval)
-
-            results = scan(scan_func, init=None, xs=(np.arange(max(num_sims, 1)), Array(t_span).data))[1]
-            all_results = [OdeResult(t=ts, y=Array(ys)) for ts, ys in zip(results[0], results[1])]
-
-        else:
-            ##################################################################################################
-            # for now assume Hamiltonian, can handle linblad properly later
-            #################################################################################################
-            for sim_signals, sim_t_span in zip(signals, t_span):
-                if sim_signals is not None:
-                    self.model.signals = sim_signals
-
-                results = solve_lmde(generator=self.model, t_span=sim_t_span, y0=y0, **kwargs)
-                results.y = format_final_states(results.y, self.model, y_input, y0_cls)
-
-                all_results.append(results)
 
         # replace copy of original signals for deprecated behavior
         self.model.signals = original_signals
 
-        if y0_cls is not None and wrap_results:
-            for results in all_results:
-                results.y = [state_type_wrapper(yi) for yi in results.y]
-
         # do we want to do this?
         ##############################################################################################
-        if num_sims == 0:
+        if sim_shape == 0:
             return all_results[0]
 
         return all_results
@@ -456,13 +438,14 @@ def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
 
     return y0, y0_cls, wrapper
 
+
 def format_final_states(y, model, y_input, y0_cls):
     """Format final states for a single simulation."""
 
     y = Array(y)
 
     new_y = None
-    # handle special cases
+
     if y0_cls is DensityMatrix and isinstance(model, HamiltonianModel):
         # conjugate by unitary
         new_y = y @ y_input @ y.conj().transpose((0, 2, 1))
@@ -482,31 +465,39 @@ def format_final_states(y, model, y_input, y0_cls):
     return new_y
 
 
-def setup_simulation_list(signals, t_span):
+def setup_simulation_lists(signals, y0, t_span):
     """Setup args to do a list of simulations.
 
     ***************************************************************************************************
     fill this out
     """
 
-    num_sims = 0
+    sim_shape = 0
 
     if signals is None:
+        # for deprecated behavior
         signals = [signals]
     elif isinstance(signals, tuple):
         # single Lindblad simulation
         signals = [signals]
     elif isinstance(signals, list) and isinstance(signals[0], tuple):
         # multiple lindblad simulation
-        num_sims = len(signals)
+        sim_shape = len(signals)
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
         # multiple Hamiltonian simulation
-        num_sims = len(signals)
+        sim_shape = len(signals)
     elif isinstance(signals, SignalList) or (isinstance(signals, list) and isinstance(signals[0], Signal)):
         # single round of Hamiltonian simulation
         signals = [signals]
     else:
         raise QiskitError("Signals specified in invalid format.")
+
+
+    if not isinstance(y0, list):
+        y0 = [y0]
+
+    if len(y0) != max(sim_shape, 1):
+        raise QiskitError("y0 must specify the same number of simulations as signals")
 
     t_span = Array(t_span)
 
@@ -514,25 +505,11 @@ def setup_simulation_list(signals, t_span):
     if t_span.ndim > 2:
         raise QiskitError("t_span must be either 1d or 2d.")
     elif t_span.ndim == 2:
-        if num_sims == 0:
+        if sim_shape == 0:
             raise QiskitError("t_span can only be a list of intervals if signals specifies multiple simulations.")
-        elif len(t_span) != num_sims:
+        elif len(t_span) != sim_shape:
             raise QiskitError("t_span must either specify a single interval, or a list of intervals of the same length as signals.")
     else:
-        t_span = Array([t_span.data] * max(num_sims, 1))
+        t_span = Array([t_span.data] * max(sim_shape, 1))
 
-    return signals, t_span, num_sims
-
-
-class VectorSignal(SignalList):
-    """Used to define a signal list directly."""
-
-    def __init__(self, f, length):
-        self._f = f
-        self._len = length
-
-    def __len__(self):
-        return self._len
-
-    def __call__(self, t):
-        return self._f(t)
+    return signals, y0, t_span, sim_shape
