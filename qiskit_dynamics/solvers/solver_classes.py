@@ -324,7 +324,7 @@ class Solver:
         """
 
 
-        signals_list, y0_list, t_span_list, sim_shape = setup_simulation_lists(signals, y0, t_span)
+        signals_list, y0_list, t_span_list, multiple_sims = setup_simulation_lists(signals, y0, t_span)
 
         # hold copy of signals in model for deprecated behavior
         original_signals = self.model.signals
@@ -400,7 +400,7 @@ class Solver:
 
         # do we want to do this?
         ##############################################################################################
-        if sim_shape == 0:
+        if multiple_sims is False:
             return all_results[0]
 
         return all_results
@@ -472,7 +472,7 @@ def setup_simulation_lists(signals, y0, t_span):
     fill this out
     """
 
-    sim_shape = 0
+    multiple_sims = False
 
     if signals is None:
         # for deprecated behavior
@@ -482,34 +482,39 @@ def setup_simulation_lists(signals, y0, t_span):
         signals = [signals]
     elif isinstance(signals, list) and isinstance(signals[0], tuple):
         # multiple lindblad simulation
-        sim_shape = len(signals)
+        multiple_sims = True
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
         # multiple Hamiltonian simulation
-        sim_shape = len(signals)
+        multiple_sims = True
     elif isinstance(signals, SignalList) or (isinstance(signals, list) and isinstance(signals[0], Signal)):
         # single round of Hamiltonian simulation
         signals = [signals]
     else:
         raise QiskitError("Signals specified in invalid format.")
 
-
     if not isinstance(y0, list):
         y0 = [y0]
+    else:
+        multiple_sims = True
 
-    if len(y0) != max(sim_shape, 1):
-        raise QiskitError("y0 must specify the same number of simulations as signals")
 
     t_span = Array(t_span)
 
     # setup t_span to have the same "shape" as signals
     if t_span.ndim > 2:
         raise QiskitError("t_span must be either 1d or 2d.")
-    elif t_span.ndim == 2:
-        if sim_shape == 0:
-            raise QiskitError("t_span can only be a list of intervals if signals specifies multiple simulations.")
-        elif len(t_span) != sim_shape:
-            raise QiskitError("t_span must either specify a single interval, or a list of intervals of the same length as signals.")
+    elif t_span.ndim == 1:
+        t_span = [t_span]
     else:
-        t_span = Array([t_span.data] * max(sim_shape, 1))
+        multiple_sims = True
 
-    return signals, y0, t_span, sim_shape
+    # consolidate lengths and raise error if incompatible
+    args = [signals, y0, t_span]
+    arg_lens = [len(x) for x in args]
+    max_len = max(arg_lens)
+    if any(x != 1 and x != max_len for x in arg_lens):
+        raise QiskitError("signals, y0, and t_span specify an incompatible number of simulations.")
+
+    args = [arg * max_len if arg_len == 1 else arg for arg, arg_len in zip(args, arg_lens)]
+
+    return args[0], args[1], args[2], multiple_sims
