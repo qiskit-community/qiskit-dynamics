@@ -49,7 +49,9 @@ from .solver_functions import solve_lmde
 from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
 
 try:
-    from jax.lax import scan, vmap
+    import jax.numpy as jnp
+    from jax import jit
+    from jax.lax import switch, scan
 except ImportError:
     pass
 
@@ -359,9 +361,45 @@ class Solver:
         original_signals = self.model.signals
 
         all_results = []
-        if control_flow == 'jax':
-            pass
+        if isinstance(control_flow, str) and 'jax' in control_flow:
+
+            ##################################################################################################
+            # for now assume Hamiltonian, can handle linblad properly later
+            #################################################################################################
+            hamiltonian_signal_lists = [SignalList(sigs) for sigs in signals]
+
+            def get_sig_func(sig):
+                return lambda t: Array(sig(t)).data
+
+            hamiltonian_sig_funcs = [get_sig_func(sig) for sig in hamiltonian_signal_lists]
+
+            def eval_ham_signals(sim_idx, t):
+                return switch(sim_idx, hamiltonian_sig_funcs, t)
+
+            sig_len = len(hamiltonian_signal_lists[0])
+            def sim_func(sim_idx, interval):
+                # assumes hamiltonian
+                signals = VectorSignal(lambda t: eval_ham_signals(sim_idx, t), length=sig_len)
+                self.model.signals = signals
+
+                results = solve_lmde(generator=self.model, t_span=interval, y0=y0, **kwargs)
+
+                results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+
+                # for now ignore the extra frame processing processing
+                return Array(results.t).data, Array(results.y).data
+
+            def scan_func(carry, x):
+                idx, interval = x
+                return None, sim_func(idx, interval)
+
+            results = scan(scan_func, init=None, xs=(np.arange(max(num_sims, 1)), Array(t_span).data))[1]
+            all_results = [OdeResult(t=ts, y=Array(ys)) for ts, ys in zip(results[0], results[1])]
+
         else:
+            ##################################################################################################
+            # for now assume Hamiltonian, can handle linblad properly later
+            #################################################################################################
             for sim_signals, sim_t_span in zip(signals, t_span):
                 if sim_signals is not None:
                     self.model.signals = sim_signals
@@ -470,8 +508,9 @@ def setup_simulation_list(signals, t_span):
     else:
         raise QiskitError("Signals specified in invalid format.")
 
-    # setup t_span to have the same "shape" as signals
     t_span = Array(t_span)
+
+    # setup t_span to have the same "shape" as signals
     if t_span.ndim > 2:
         raise QiskitError("t_span must be either 1d or 2d.")
     elif t_span.ndim == 2:
@@ -480,7 +519,20 @@ def setup_simulation_list(signals, t_span):
         elif len(t_span) != num_sims:
             raise QiskitError("t_span must either specify a single interval, or a list of intervals of the same length as signals.")
     else:
-        t_span = [t_span] * max(num_sims, 1)
-
+        t_span = Array([t_span.data] * max(num_sims, 1))
 
     return signals, t_span, num_sims
+
+
+class VectorSignal(SignalList):
+    """Used to define a signal list directly."""
+
+    def __init__(self, f, length):
+        self._f = f
+        self._len = length
+
+    def __len__(self):
+        return self._len
+
+    def __call__(self, t):
+        return self._f(t)
