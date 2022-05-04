@@ -60,7 +60,7 @@ class PerturbativeSolver:
         \tilde{G}(t) = \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]\tilde{G}_j(t),
 
     with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`. The solvers are *fixed-step*,
-    with step size :math:`\Delta t` being defiend *at instantiation*.
+    with step size :math:`\Delta t` being defined at instantiation,
     and solve over each step by computing either a truncated Dyson series or a
     truncated Magnus expansion followed by matrix exponentiation.
 
@@ -80,9 +80,59 @@ class PerturbativeSolver:
     initial time ``t0``, number of time-steps ``n_steps`` of size :math:`\Delta t`,
     and the list of envelopes specified as :class:`~qiskit_dynamics.signals.Signal` objects.
 
-    When solving, over each time-step, the signal envelopes are approximated using a
+    More explicitly, the process of solving over an interval :math:`[t_0, t_0 + \Delta t]`
+    is as follows. The signal envelopes are approximated using a
     discrete Chebyshev transform, whose orders for each signal is given by ``chebyshev_orders``.
+    That is, for :math:`t \in [t_0, t_0 + \Delta t]`, each envelope is approximated as:
 
+    .. math::
+
+        f_j(t) \approx \sum_{m=0}^{d_j} f_{j,m}T_m(t-t_0)
+
+    where :math:`T_m(\cdot)` are the Chebyshev polynomials over the interval,
+    :math:`f_{j,m}` are the approximation coefficients attained via Discrete Chebyshev Transform,
+    and :math:`d_j` is the order of approximation used for the given envelope.
+    Using:
+
+    .. math::
+
+        \textnormal{Re}[f_{j,m}T_m(t-t_0)e^{i2 \pi \nu_j t}] =
+        \textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}] \cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) \\
+        + \textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}] \sin(-2 \pi \nu_j (t-t_0))T_m(t-t_0)
+
+    The generator is approximately decomposed as
+
+    .. math::
+
+        \tilde{G}(t) \approx \sum_{j=1}^s \sum_{m=0}^{d_j}
+        \textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
+        \cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j \\
+        + \sum_{j=1}^s \sum_{m=0}^{d_j}
+        \textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
+        \sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j
+
+    A multivariable Dyson series or Magnus expansion truncation is then computed relative to the
+    above decomposition, with the variables being the
+    :math:`\textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}]` and
+    :math:`\textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]`, and the operators being
+    :math:`\cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) G_j` and
+    :math:`\sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) G_j`. As shown in
+    [:footcite:`puzzuoli_sensitivity_2022`, :footcite:p:`shillito_fast_2020`],
+    the multivariable Dyson series or Magnus expansion for intervals of length :math:`\Delta t`
+    but with different starting times are related via a simple frame change, and as such
+    these need only be computed once, and this makes up the 'pre-computation' step of this
+    object.
+
+    The optional argument ``include_imag`` can be used to control, on a signal by signal basis,
+    whether or not the imaginary terms
+
+    .. math::
+
+        \textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
+        \sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j
+
+    are included in the scheme. In generality they are required, but in special cases,
+    such as when :math:`\nu_j = 0`, they are not necessary. By default all such terms are included.
 
     .. footbibliography::
     """
@@ -98,6 +148,7 @@ class PerturbativeSolver:
         expansion_order: Optional[int] = None,
         expansion_labels: Optional[List[Multiset]] = None,
         integration_method: Optional[str] = None,
+        include_imag: Optional[List[bool]] = None,
         **kwargs,
     ):
         """Initialize.
@@ -119,6 +170,8 @@ class PerturbativeSolver:
                                 ``expansion_order`` are computed, along with the additional terms
                                 specified in ``expansion_terms``.
             integration_method: ODE solver method to use when computing perturbation terms.
+            include_imag: List of bools determining whether to keep imaginary components in
+                          the signal approximation. Defaults to True for all signals.
             kwargs: Additional arguments to pass to the solver when computing perturbation terms.
 
         Raises:
@@ -132,6 +185,9 @@ class PerturbativeSolver:
                 "PerturbativeSolver only accepts expansion_method 'dyson' or 'magnus'."
             )
 
+        if include_imag is None:
+            include_imag = [True] * len(carrier_freqs)
+
         # construct signal approximation function
         def collective_dct(signal_list, t0, n_steps):
             return signal_list_envelope_DCT(
@@ -141,6 +197,7 @@ class PerturbativeSolver:
                 t0=t0,
                 dt=dt,
                 n_intervals=n_steps,
+                include_imag=include_imag,
             )
 
         self._signal_approximation = collective_dct
@@ -157,12 +214,12 @@ class PerturbativeSolver:
         if Array.default_backend() == "jax":
             # compute perturbative terms
             perturbations = construct_cheb_perturbations_jax(
-                operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame
+                operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame, include_imag
             )
             integration_method = integration_method or "jax_odeint"
         else:
             perturbations = construct_cheb_perturbations(
-                operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame
+                operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame, include_imag
             )
             integration_method = integration_method or "DOP853"
 
@@ -325,6 +382,7 @@ def construct_cheb_perturbations(
     carrier_freqs: np.ndarray,
     dt: float,
     rotating_frame: RotatingFrame,
+    include_imag: Optional[bool] = None,
 ) -> List[Callable]:
     r"""Helper function for constructing perturbation terms in the expansions used by
     PerturbativeSolver.
@@ -346,10 +404,16 @@ def construct_cheb_perturbations(
         carrier_freqs: List of frequencies for each operator.
         dt: Interval over which the chebyshev polynomials are defined.
         rotating_frame: Frame the operators are in.
+        include_imag: List of bools determining whether to keep imaginary components in
+                      the signal approximation. Defaults to True for all signals.
+                      Corresponds to whether or not to include the sine terms in this function.
 
     Returns:
         List of operator-valued functions as described above.
     """
+
+    if include_imag is None:
+        include_imag = [True] * len(operators)
 
     # define functions for constructing perturbations
     def cheb_func(t, deg):
@@ -375,24 +439,28 @@ def construct_cheb_perturbations(
 
     # iterate through and construct perturbations list
     perturbations = []
-    for deg, op, freq in zip(chebyshev_orders, operators, carrier_freqs):
+    for deg, op, freq, inc_imag in zip(chebyshev_orders, operators, carrier_freqs, include_imag):
         # construct cosine terms
         for k in range(deg + 1):
             # construct cheb function of appropriate degree
             perturbations.append(get_cheb_func_cos_op(k, freq, op))
 
-        # construct sine terms
-        for k in range(deg + 1):
-            # construct cheb function of appropriate degree
-            perturbations.append(get_cheb_func_sin_op(k, freq, op))
+        if inc_imag:
+            # construct sine terms
+            for k in range(deg + 1):
+                # construct cheb function of appropriate degree
+                perturbations.append(get_cheb_func_sin_op(k, freq, op))
 
     return perturbations
 
 
 def construct_cheb_perturbations_jax(
-    operators, chebyshev_orders, carrier_freqs, dt, rotating_frame
+    operators, chebyshev_orders, carrier_freqs, dt, rotating_frame, include_imag=None
 ):
     """JAX version of construct_cheb_perturbations."""
+
+    if include_imag is None:
+        include_imag = [True] * len(operators)
 
     # define functions for constructing perturbations list
     def get_cheb_func(deg):
@@ -425,16 +493,17 @@ def construct_cheb_perturbations_jax(
 
     # iterate through and construct perturbations list
     perturbations = []
-    for deg, op, freq in zip(chebyshev_orders, operators, carrier_freqs):
+    for deg, op, freq, inc_imag in zip(chebyshev_orders, operators, carrier_freqs, include_imag):
         # construct cosine terms
         for k in range(deg + 1):
             # construct cheb function of appropriate degree
             perturbations.append(get_cheb_func_cos_op(k, freq, op))
 
-        # construct sine terms
-        for k in range(deg + 1):
-            # construct cheb function of appropriate degree
-            perturbations.append(get_cheb_func_sin_op(k, freq, op))
+        if inc_imag:
+            # construct sine terms
+            for k in range(deg + 1):
+                # construct cheb function of appropriate degree
+                perturbations.append(get_cheb_func_sin_op(k, freq, op))
 
     return perturbations
 

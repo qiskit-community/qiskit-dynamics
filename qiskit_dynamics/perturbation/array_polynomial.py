@@ -520,6 +520,17 @@ class ArrayPolynomial:
             constant_term=constant_term,
         )
 
+    def __len__(self) -> int:
+        """Number of terms in the polynomial."""
+        num_terms = 0
+        if self.array_coefficients is not None:
+            num_terms = num_terms + len(self.array_coefficients)
+
+        if self.constant_term is not None:
+            num_terms = num_terms + 1
+
+        return num_terms
+
     def __call__(self, c: Optional[Array] = None) -> Array:
         """Evaluate the polynomial.
 

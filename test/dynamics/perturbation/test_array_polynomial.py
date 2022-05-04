@@ -602,6 +602,12 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         self.assertTrue(self.non_constant_0d.shape == tuple())
         self.assertTrue(self.non_constant_32d.shape == (3, 2))
 
+    def test_len(self):
+        """Test len."""
+        self.assertTrue(len(self.constant_0d) == 1)
+        self.assertTrue(len(self.non_constant_0d) == 3)
+        self.assertTrue(len(self.non_constant_complex) == 4)
+
     def test_ndim(self):
         """Test ndim."""
         self.assertTrue(self.constant_22d.ndim == 2)

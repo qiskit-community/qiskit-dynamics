@@ -178,6 +178,19 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             atol=1e-10,
             rtol=1e-10,
         )
+        obj.dyson_solver_2q_0_carrier = PerturbativeSolver(
+            operators=[-1j * Hdc, -1j * Hdt],
+            rotating_frame=-1j * H0,
+            dt=dt,
+            carrier_freqs=[0.0, 0.0],
+            chebyshev_orders=[3, 3],
+            expansion_method="dyson",
+            expansion_order=6,
+            integration_method=integration_method,
+            include_imag=[False, False],
+            atol=1e-10,
+            rtol=1e-10,
+        )
         obj.magnus_solver_2q = PerturbativeSolver(
             operators=[-1j * Hdc, -1j * Hdt],
             rotating_frame=-1j * H0,
@@ -218,6 +231,22 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             t0=0.0,
             n_steps=self.n_steps_2q,
         )
+        # measure similarity with fidelity
+        self.assertTrue(
+            np.abs(1.0 - np.abs((dyson_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
+            < 1e-6
+        )
+
+    def test_dyson_solver_2q_0_carrier(self):
+        """Test dyson solver on a two transmon model."""
+
+        dyson_yf = self.dyson_solver_2q_0_carrier.solve(
+            signals=[self.gauss_signal, self.gauss_signal],
+            y0=np.eye(self.dim_2q**2, dtype=complex),
+            t0=0.0,
+            n_steps=self.n_steps_2q,
+        )
+
         # measure similarity with fidelity
         self.assertTrue(
             np.abs(1.0 - np.abs((dyson_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
