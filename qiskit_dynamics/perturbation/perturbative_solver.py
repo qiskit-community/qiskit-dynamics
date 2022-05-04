@@ -131,8 +131,9 @@ class PerturbativeSolver:
         \textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
         \sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j
 
-    are included in the scheme. In generality they are required, but in special cases,
-    such as when :math:`\nu_j = 0`, they are not necessary. By default all such terms are included.
+    are included in the scheme. In generality they are required, but in special cases they are not
+    necessary, such as when :math:`\nu_j = 0`, or if :math:`f_j(t)`, including phase, is purely
+    real. By default all such terms are included.
 
     .. footbibliography::
     """
