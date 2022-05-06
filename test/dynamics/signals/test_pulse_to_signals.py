@@ -44,6 +44,21 @@ from ..common import QiskitDynamicsTestCase
 class TestPulseToSignals(QiskitDynamicsTestCase):
     """Tests the conversion between pulse schedules and signals."""
 
+    def test_deprecated_carriers(self):
+        """Test that carriers as a list still works and raises deprecation warning."""
+
+        sched = Schedule(name="Schedule")
+        sched += Play(Gaussian(duration=20, amp=0.5, sigma=4), DriveChannel(0))
+
+        with self.assertWarns(DeprecationWarning):
+            converter = InstructionToSignals(dt=0.222, carriers=[5.5e9])
+
+        signals = converter.get_signals(sched)
+
+        self.assertEqual(signals[0].carrier_freq, 5.5e9)
+        # pylint: disable=protected-access
+        self.assertEqual(signals[0]._dt, 0.222)
+
     def test_pulse_to_signals(self):
         """Generic test."""
 
