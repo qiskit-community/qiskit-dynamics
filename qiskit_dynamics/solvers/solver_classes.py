@@ -162,7 +162,7 @@ class Solver:
                 and will be removed in a subsequent release.
                 Signals should be passed directly to the solve method.""",
                 DeprecationWarning,
-                stacklevel=3,
+                stacklevel=2
             )
 
         model = None
@@ -202,15 +202,19 @@ class Solver:
             original_signals = model.signals
 
             if rwa_carrier_freqs:
+                #######################################################################################
+                # Coudl validate here based on model type as well
+                #######################################################################################
+
                 if isinstance(rwa_carrier_freqs, tuple):
                     rwa_ham_sigs = None
-                    rwa_linblad_sigs = None
+                    rwa_lindblad_sigs = None
                     if rwa_carrier_freqs[0]:
                         rwa_ham_sigs = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs[0]]
                     if rwa_carrier_freqs[1]:
-                        rwa_linblad_sigs = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs[1]]
+                        rwa_lindblad_sigs = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs[1]]
 
-                    model.signals = (rwa_ham_sigs, rwa_linblad_sigs)
+                    model.signals = (rwa_ham_sigs, rwa_lindblad_sigs)
 
                 else:
                     model.signals = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs]
@@ -220,7 +224,8 @@ class Solver:
             )
             self._rwa_signal_map = rwa_signal_map
 
-            model.signals = self._rwa_signal_map(original_signals)
+            if hamiltonian_signals or dissipator_signals:
+                model.signals = self._rwa_signal_map(original_signals)
 
         self._model = model
 
@@ -236,7 +241,7 @@ class Solver:
             """The signals property is deprecated.
             Signals should be passed directly to the solve method.""",
             DeprecationWarning,
-            stacklevel=3,
+            stacklevel=2,
         )
         return self._signals
 
@@ -247,7 +252,7 @@ class Solver:
             """The signals property is deprecated.
             Signals should be passed directly to the solve method.""",
             DeprecationWarning,
-            stacklevel=3,
+            stacklevel=2,
         )
 
         self._signals = new_signals
@@ -331,7 +336,7 @@ class Solver:
 
         all_results = []
         ##################################################################################################
-        # for now assume Hamiltonian, can handle linblad properly later
+        # for now assume Hamiltonian, can handle lindblad properly later
         #################################################################################################
         for signals, y0, t_span in zip(signals_list, y0_list, t_span_list):
 
@@ -344,7 +349,7 @@ class Solver:
             # validate types
             if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
                 raise QiskitError(
-                    """Simulating SuperOp for a LinbladModel requires setting
+                    """Simulating SuperOp for a LindbladModel requires setting
                     vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
                     """
                 )
