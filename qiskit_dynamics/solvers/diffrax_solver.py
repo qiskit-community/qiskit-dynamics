@@ -14,7 +14,7 @@
 # pylint: disable=invalid-name
 
 """
-Wrapper for jax.experimental.ode.odeint
+Wrapper for diffrax solvers
 """
 
 from typing import Callable, Optional, Union, Tuple, List
@@ -30,7 +30,6 @@ from diffrax.solver import AbstractSolver
 
 from .solver_utils import merge_t_args, trim_t_results
 import jax.numpy as jnp
-from jax.lax import cond
 
 
 @requires_backend("jax")
@@ -40,6 +39,7 @@ def diffrax_solver(
     y0: Array,
     method: Optional[AbstractSolver] = Dopri5(),
     t_eval: Optional[Union[Tuple, List, Array]] = None,
+    stepsize_controller = None,
     **kwargs,
 ):
     """Routine for calling `jax.experimental.ode.odeint`
@@ -71,11 +71,15 @@ def diffrax_solver(
     rhs = real_rhs(rhs)
     y0 = c2r(y0)
 
-    stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
+    # TODO: do we want to allow kwargs for this part as well?
+    # Right now my solution was to allow a user to pass a stepsize controller if they want
+    if not stepsize_controller: 
+        stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
 
     # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
     term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
 
+    # Ensure that atol and rtol are not present to be passed into the diffrax solver
     kwargs.pop("rtol")
     kwargs.pop("atol")
 
@@ -92,7 +96,7 @@ def diffrax_solver(
         y0=Array(y0, dtype=float),
         stepsize_controller=stepsize_controller,
         saveat=saveat,
-        **kwargs
+        **kwargs,
     )
 
     ys = jnp.array([r2c(y) for y in results.ys])
