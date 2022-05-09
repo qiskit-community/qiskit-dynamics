@@ -190,7 +190,9 @@ class Solver:
         return self._signals
 
     @signals.setter
-    def signals(self, new_signals: Union[List[Signal], SignalList]):
+    def signals(
+        self, new_signals: Union[List[Signal], SignalList, Tuple[List[Signal]], Tuple[SignalList]]
+    ):
         """Set signals for the solver, and pass to the model."""
         self._signals = new_signals
         if self._rwa_signal_map is not None:
