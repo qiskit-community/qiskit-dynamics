@@ -282,13 +282,13 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
             dissipator_signals=sigs,
         )
         f = rotating_wave_approximation(LM, 100, return_signal_map=True)[1]
-        rwa_ham_sig, rwa_dis_sig = f(sigs, sigs)
+        rwa_ham_sig, rwa_dis_sig = f((sigs, sigs))
         self.assertAllClose(rwa_ham_sig.complex_value(2)[:4], SignalList(sigs).complex_value(2))
         self.assertAllClose(rwa_dis_sig.complex_value(2)[:4], SignalList(sigs).complex_value(2))
         self.assertAllClose(rwa_ham_sig.complex_value(2)[4:], SignalList(s_prime).complex_value(2))
         self.assertAllClose(rwa_dis_sig.complex_value(2)[4:], SignalList(s_prime).complex_value(2))
 
-        self.assertTrue(f(None, None) == (None, None))
+        self.assertTrue(f((None, None)) == (None, None))
 
     def test_rwa_operators(self):
         """Tests get_rwa_operators using pseudorandom numbers."""
