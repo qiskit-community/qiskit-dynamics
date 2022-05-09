@@ -143,6 +143,19 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
 
         self.assertAllClose(results.y[-1], expected, atol=self.tol, rtol=self.tol)
 
+    def test_backwards_solving(self):
+        """Test case for reversed basic model."""
+
+        reverse_t_span = self.t_span.copy()
+        reverse_t_span.reverse()
+
+        reverse_y0 = expm(-1j * np.pi * self.X.data)
+
+        results = self.solve(self.basic_rhs, t_span=reverse_t_span, y0=reverse_y0)
+
+
+        self.assertAllClose(results.y[-1], self.y0, atol=self.tol, rtol=self.tol)
+
     def test_w_GeneratorModel(self):
         """Test on a GeneratorModel."""
 

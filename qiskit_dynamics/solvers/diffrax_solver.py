@@ -39,17 +39,16 @@ def diffrax_solver(
     y0: Array,
     method: Optional[AbstractSolver] = Dopri5(),
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    stepsize_controller = None,
     **kwargs,
 ):
-    """Routine for calling `jax.experimental.ode.odeint`
+    """Routine for calling `diffrax.diffeqsolve`
 
     Args:
         rhs: Callable of the form :math:`f(t, y)`
         t_span: Interval to solve over.
         y0: Initial state.
         t_eval: Optional list of time points at which to return the solution.
-        **kwargs: Optional arguments to be passed to ``odeint``.
+        **kwargs: Optional arguments to be passed to ``diffeqsolve``.
 
     Returns:
         OdeResult: Results object.
@@ -73,7 +72,10 @@ def diffrax_solver(
 
     # TODO: do we want to allow kwargs for this part as well?
     # Right now my solution was to allow a user to pass a stepsize controller if they want
-    if not stepsize_controller: 
+    # Is this maybe not how you're supposed to use kwargs?
+    if 'stepsize_controller' in kwargs:
+        stepsize_controller = kwargs['stepsize_controller']
+    else:
         stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
 
     # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
