@@ -63,3 +63,20 @@ def clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
     unique_multisets.sort(key=lambda x: str(len(x)) + ', ' + str(multiset_to_sorted_list(x)))
 
     return unique_multisets
+
+
+def submultiset_filter(
+    multiset_candidates: List[Multiset], multiset_list: List[Multiset]
+) -> List[Multiset]:
+    """Filter the list of multiset_candidates based on whether they are a
+    submultiset of an element in multiset_list.
+    """
+
+    filtered_multisets = []
+    for candidate in multiset_candidates:
+        for multiset in multiset_list:
+            if candidate <= multiset:
+                filtered_multisets.append(candidate)
+                break
+
+    return filtered_multisets

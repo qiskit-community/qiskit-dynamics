@@ -17,7 +17,7 @@ from multiset import Multiset
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.perturbation.multiset_utils import validate_non_negative_ints, multiset_to_sorted_list, clean_multisets
+from qiskit_dynamics.perturbation.multiset_utils import validate_non_negative_ints, multiset_to_sorted_list, clean_multisets, submultiset_filter
 
 from ..common import QiskitDynamicsTestCase
 
@@ -79,3 +79,27 @@ class TestCleanMultisets(QiskitDynamicsTestCase):
         )
         expected = [Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({1: 1, 2: 1, 3: 1})]
         self.assertTrue(output == expected)
+
+
+class TestSubmultisetFilter(QiskitDynamicsTestCase):
+    """Test submultiset_filter function."""
+
+    def test_submultiset_filter(self):
+        """Test submultiset_filter utility function."""
+
+        multiset_list = [Multiset({0: 2, 1: 1}), Multiset({0: 2, 2: 1})]
+
+        multiset_candidates = [Multiset({0: 1}), Multiset({1: 1}), Multiset({0: 1, 2: 1})]
+        self.assertTrue(
+            submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates
+        )
+
+        multiset_candidates = [Multiset({0: 2}), Multiset({1: 1}), Multiset({0: 1, 2: 1})]
+        self.assertTrue(
+            submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates
+        )
+
+        multiset_candidates = [Multiset({0: 3}), Multiset({1: 1}), Multiset({0: 1, 2: 1})]
+        self.assertTrue(
+            submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates[1:]
+        )
