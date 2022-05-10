@@ -26,6 +26,11 @@ try:
 except ImportError:
     pass
 
+try:
+    from diffrax.solver import Dopri5, Tsit5
+except ImportError:
+    pass
+
 from qiskit_dynamics.array import Array, wrap
 
 
@@ -99,6 +104,32 @@ class TestJaxBase(unittest.TestCase):
         wf = wrap(lambda f: jit(grad(f)), decorator=True)
         f = lambda *args: np.sum(func_to_test(*args)).real
         return wf(f)
+
+
+class TestDiffraxBase(unittest.TestCase):
+    """Base class with setUpClass and tearDownClass for importing diffrax solvers
+
+    Test cases that inherit from this class will automatically work with diffrax solvers
+    backend.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                # pylint: disable=import-outside-toplevel
+                import diffrax  # pylint: disable=unused-import
+        except Exception as err:
+            raise unittest.SkipTest("Skipping diffrax tests.") from err
+
+    def Dopri5(self) -> Callable:
+        """Enables the import of the Dopri5 solver if diffrax is installed"""
+        return Dopri5
+
+    def Tsit5(self) -> Callable:
+        """Enables the import of the Tsit5 solver if diffrax is installed"""
+        return Tsit5
 
 
 class TestQutipBase(unittest.TestCase):

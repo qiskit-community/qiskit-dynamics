@@ -18,18 +18,21 @@ Wrapper for diffrax solvers
 """
 
 from typing import Callable, Optional, Union, Tuple, List
-import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array, wrap
-from diffrax import ODETerm, Dopri5, PIDController, SaveAt
-from diffrax import diffeqsolve as _diffeqsolve
-
-from diffrax.solver import AbstractSolver
 
 from .solver_utils import merge_t_args, trim_t_results
-import jax.numpy as jnp
+
+try:
+    from diffrax import ODETerm, Dopri5, PIDController, SaveAt
+    from diffrax import diffeqsolve as _diffeqsolve
+
+    from diffrax.solver import AbstractSolver
+    import jax.numpy as jnp
+except ImportError as err:
+    pass
 
 
 @requires_backend("jax")
@@ -47,6 +50,7 @@ def diffrax_solver(
         rhs: Callable of the form :math:`f(t, y)`
         t_span: Interval to solve over.
         y0: Initial state.
+        method: Which diffeq solving method to use.
         t_eval: Optional list of time points at which to return the solution.
         **kwargs: Optional arguments to be passed to ``diffeqsolve``.
 
@@ -59,12 +63,6 @@ def diffrax_solver(
         solver = method
 
     t_list = merge_t_args(t_span, t_eval)
-    # if t_eval is none, doesn't matter, but if t_eval is specified, merge assumes t_span is also np array
-    # Check if diffrax handles backwards integration
-    # t_list = t_list.data
-
-    # determine direction of integration
-    # t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=float))
 
     # convert rhs and y0 to real
     rhs = real_rhs(rhs)
@@ -73,12 +71,12 @@ def diffrax_solver(
     # TODO: do we want to allow kwargs for this part as well?
     # Right now my solution was to allow a user to pass a stepsize controller if they want
     # Is this maybe not how you're supposed to use kwargs?
-    if 'stepsize_controller' in kwargs:
-        stepsize_controller = kwargs['stepsize_controller']
+    if "stepsize_controller" in kwargs:
+        stepsize_controller = kwargs["stepsize_controller"]
+        kwargs.pop("stepsize_controller")
     else:
         stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
 
-    # term = ODETerm(lambda y, t, _: (rhs(np.real(t_direction * t), y) * t_direction).data)
     term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
 
     # Ensure that atol and rtol are not present to be passed into the diffrax solver

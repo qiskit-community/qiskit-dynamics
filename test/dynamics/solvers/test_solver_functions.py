@@ -30,9 +30,7 @@ from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.solvers.diffrax_solver import diffrax_solver
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
-
-from diffrax import Dopri5
+from ..common import QiskitDynamicsTestCase, TestDiffraxBase, TestJaxBase
 
 
 class TestSolverMethod(ABC, QiskitDynamicsTestCase):
@@ -152,7 +150,6 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         reverse_y0 = expm(-1j * np.pi * self.X.data)
 
         results = self.solve(self.basic_rhs, t_span=reverse_t_span, y0=reverse_y0)
-
 
         self.assertAllClose(results.y[-1], self.y0, atol=self.tol, rtol=self.tol)
 
@@ -408,7 +405,7 @@ class Testjax_odeint(TestSolverMethodJax):
         return True
 
 
-class Testdiffrax_DOP5(TestSolverMethodJax):
+class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Dopri5 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
@@ -416,7 +413,27 @@ class Testdiffrax_DOP5(TestSolverMethodJax):
             rhs=rhs,
             t_span=t_span,
             y0=y0,
-            method=Dopri5,
+            method=self.Dopri5(),
+            t_eval=t_eval,
+            atol=1e-10,
+            rtol=1e-10,
+            **kwargs,
+        )
+
+    @property
+    def is_ode_method(self):
+        return True
+
+
+class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
+    """Tests for diffrax Tsit5 method."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        return diffrax_solver(
+            rhs=rhs,
+            t_span=t_span,
+            y0=y0,
+            method=self.Tsit5(),
             t_eval=t_eval,
             atol=1e-10,
             rtol=1e-10,

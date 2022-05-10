@@ -56,7 +56,10 @@ from .scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .jax_odeint import jax_odeint
 from .diffrax_solver import diffrax_solver
 
-from diffrax.solver import AbstractSolver
+try:
+    from diffrax.solver import AbstractSolver
+except ImportError:
+    pass
 
 try:
     from jax.lax import scan
