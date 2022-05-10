@@ -16,10 +16,12 @@
 import numpy as np
 from ddt import ddt, data, unpack
 
+from multiset import Multiset
+
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation import Multiset, ArrayPolynomial
+from qiskit_dynamics.perturbation import ArrayPolynomial
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -90,7 +92,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         result = ap1 + ap2
 
         self.assertTrue(result.constant_term is None)
-        self.assertTrue(result.monomial_labels == [Multiset.from_list(x) for x in [[0], [1]]])
+        self.assertTrue(result.monomial_labels == [Multiset(x) for x in [[0], [1]]])
         self.assertAllClose(result.array_coefficients, np.array([1.0, 2.0]))
 
     def test_addition_simple(self):
@@ -137,7 +139,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
                 ap2.array_coefficients[2],
             ]
         )
-        expected_monomial_labels = [Multiset.from_list(l) for l in [[0], [1], [2], [3], [2, 2]]]
+        expected_monomial_labels = [Multiset(l) for l in [[0], [1], [2], [3], [2, 2]]]
         expected_constant_term = ap1.constant_term + ap2.constant_term
 
         self.assertAllClose(result.array_coefficients, expected_coefficients)
@@ -194,7 +196,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
                 ap2.array_coefficients[1],
             ]
         )
-        expected_monomial_labels = [Multiset.from_list(l) for l in [[0], [1], [2], [3]]]
+        expected_monomial_labels = [Multiset(l) for l in [[0], [1], [2], [3]]]
         expected_constant_term = ap1.constant_term + ap2.constant_term
 
         self.assertAllClose(result.array_coefficients, expected_coefficients)
@@ -216,7 +218,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         )
 
         ms = Multiset({0: 3})
-        monomial_filter = lambda x: len(x) <= 2 or x.issubmultiset(ms)
+        monomial_filter = lambda x: len(x) <= 2 or x <= ms
         result = ap1.add(ap2, monomial_filter=monomial_filter)
 
         expected_coefficients = np.array(
@@ -227,7 +229,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
                 ap1.array_coefficients[1],
             ]
         )
-        expected_monomial_labels = [Multiset.from_list(l) for l in [[0], [3], [2, 2], [0, 0, 0]]]
+        expected_monomial_labels = [Multiset(l) for l in [[0], [3], [2, 2], [0, 0, 0]]]
         expected_constant_term = ap1.constant_term + ap2.constant_term
 
         self.assertAllClose(result.array_coefficients, expected_coefficients)
@@ -470,7 +472,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
 
         # keep if degree <= 2 or if it is a submultiset of Multiset({0: 3})
         ms = Multiset({0: 3})
-        monomial_filter = lambda x: len(x) <= 2 or x.issubmultiset(ms)
+        monomial_filter = lambda x: len(x) <= 2 or x <= ms
         result = getattr(ap1, method_name)(ap2, monomial_filter=monomial_filter)
         expected_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
         expected_monomial_labels = [

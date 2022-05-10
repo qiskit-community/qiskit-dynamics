@@ -18,14 +18,15 @@ from typing import List, Optional, Callable, Tuple, Union
 from copy import copy
 from itertools import product
 
+from multiset import Multiset
+
 import numpy as np
 from numpy.typing import DTypeLike
 
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation import Multiset
-from qiskit_dynamics.perturbation.multiset import to_Multiset, get_all_submultisets
+from qiskit_dynamics.perturbation.multiset_utils import get_all_submultisets, sorted_multisets, submultisets_and_complements, multiset_to_sorted_list
 from qiskit_dynamics.perturbation.custom_binary_op import CustomBinaryOp
 
 try:
@@ -56,7 +57,7 @@ class ArrayPolynomial:
         - ``array_coefficients`` specifying a list of the arrays :math:`A_I`, or as a single array
           whose first index lists the :math:`A_I`,
         - ``monomial_labels`` specifying the set :math:`S` as a list of
-          :class:`~qiskit_dynamics.perturbation.multiset.Multiset` instances ordered in
+          ``Multiset`` instances ordered in
           correspondence with ``array_coefficients``.
 
     For example, the :class:`~qiskit_dynamics.perturbation.ArrayPolynomial`
@@ -143,7 +144,7 @@ class ArrayPolynomial:
             )
 
         if monomial_labels is not None:
-            self._monomial_labels = [to_Multiset(m) for m in monomial_labels]
+            self._monomial_labels = [Multiset(m) for m in monomial_labels]
         else:
             self._monomial_labels = []
 
@@ -677,7 +678,7 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
     current_len = 2
 
     # convert multisets to list representation
-    complete_multisets = [multiset.as_list() for multiset in complete_multisets]
+    complete_multisets = [multiset_to_sorted_list(multiset) for multiset in complete_multisets]
 
     for multiset in complete_multisets:
         if len(multiset) == 1:
@@ -763,11 +764,11 @@ def array_polynomial_distributive_binary_op(
                 all_multisets.append(multiset)
 
     for I, J in product(ap1.monomial_labels, ap2.monomial_labels):
-        IuJ = I.union(J)
+        IuJ = I + J
         if monomial_filter(IuJ) and IuJ not in all_multisets:
             all_multisets.append(IuJ)
 
-    all_multisets.sort()
+    all_multisets = sorted_multisets(all_multisets)
 
     # setup constant term
     new_constant_term = None
@@ -797,7 +798,7 @@ def array_polynomial_distributive_binary_op(
             rule_indices.append([-1, idx])
 
         if len(multiset) > 1:
-            for I, J in zip(*multiset.submultisets_and_complements()):
+            for I, J in zip(*submultisets_and_complements(multiset)):
                 if I in ap1.monomial_labels and J in ap2.monomial_labels:
                     rule_indices.append(
                         [ap1.monomial_labels.index(I), ap2.monomial_labels.index(J)]
@@ -876,7 +877,7 @@ def array_polynomial_addition(
     for multiset in ap1.monomial_labels + ap2.monomial_labels:
         if monomial_filter(multiset) and multiset not in new_multisets:
             new_multisets.append(multiset)
-    new_multisets.sort()
+    new_multisets = sorted_multisets(new_multisets)
 
     # construct index order mapping for each polynomial
     idx1 = []
