@@ -26,7 +26,7 @@ from numpy.typing import DTypeLike
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation.multiset_utils import get_all_submultisets, sorted_multisets, submultisets_and_complements, multiset_to_sorted_list
+from qiskit_dynamics.perturbation.multiset_utils import validate_non_negative_ints, get_all_submultisets, sorted_multisets, submultisets_and_complements, multiset_to_sorted_list
 from qiskit_dynamics.perturbation.custom_binary_op import CustomBinaryOp
 
 try:
@@ -47,7 +47,7 @@ class ArrayPolynomial:
 
         - :math:`S` is a finite set of multisets
           indicating non-zero monomial terms,
-        - For a given multiset :math:`I=(i_1, \dots, i_k)`,
+        - For a given multiset of non-negative integers :math:`I=(i_1, \dots, i_k)`,
           :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, and
         - The :math:`A_I` are arrays of the same shape, indexed by the first dimension.
 
@@ -131,11 +131,12 @@ class ArrayPolynomial:
         Args:
             constant_term: An array representing the constant term of the polynomial.
             array_coefficients: A 3d array representing a list of array coefficients.
-            monomial_labels: A list of multisets of the same length as ``array_coefficients``
-                             indicating the monomial coefficient for each corresponding
-                             ``array_coefficients``.
+            monomial_labels: A list of multisets with non-negative integer entries of the same
+                             length as ``array_coefficients`` indicating the monomial coefficient
+                             for each corresponding ``array_coefficients``.
         Raises:
-            QiskitError: If insufficient information is supplied to define an ArrayPolynomial.
+            QiskitError: If insufficient information is supplied to define an ArrayPolynomial,
+                         or if monomial labels contain anything other than non-negative integers.
         """
 
         if array_coefficients is None and constant_term is None:
@@ -145,6 +146,8 @@ class ArrayPolynomial:
 
         if monomial_labels is not None:
             self._monomial_labels = [Multiset(m) for m in monomial_labels]
+            for m in self._monomial_labels:
+                validate_non_negative_ints(m)
         else:
             self._monomial_labels = []
 

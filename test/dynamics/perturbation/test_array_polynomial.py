@@ -589,6 +589,11 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "At least one"):
             ArrayPolynomial()
 
+    def test_validation_non_negative_ints(self):
+        """Test validation error if monomial contains something other than non-negative ints."""
+        with self.assertRaisesRegex(QiskitError, "non-negative integers"):
+            ArrayPolynomial(array_coefficients=np.array([0., 1., 2.]), monomial_labels=['a', 'b', 'c'])
+
     def test_trace_validation(self):
         """Test attempting to trace an AP with ndim < 2 raises an error."""
         with self.assertRaisesRegex(QiskitError, "at least 2."):
