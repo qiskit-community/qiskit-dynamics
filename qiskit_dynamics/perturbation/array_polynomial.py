@@ -139,8 +139,7 @@ class ArrayPolynomial:
 
         if array_coefficients is None and constant_term is None:
             raise QiskitError(
-                """At least one of array_coefficients and
-                                    constant_term must be specified."""
+                "At least one of array_coefficients and constant_term must be specified."
             )
 
         if monomial_labels is not None:
