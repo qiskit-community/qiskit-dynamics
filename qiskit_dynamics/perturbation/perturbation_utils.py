@@ -18,9 +18,11 @@ Utility functions for perturbation module.
 from typing import List, Optional, Union
 from itertools import product
 
+from multiset import Multiset
+
 from qiskit import QiskitError
 
-from qiskit_dynamics.perturbation.multiset import Multiset, clean_multisets, to_Multiset
+from qiskit_dynamics.perturbation.multiset_utils import validate_non_negative_ints, sorted_multisets, clean_multisets
 
 
 def merge_multiset_expansion_order_labels(
@@ -34,9 +36,10 @@ def merge_multiset_expansion_order_labels(
     Generates a list of all Multisets of a given size given by expansion_order,
     and includes any additional multisets specified by expansion_labels. The elements
     of the multisets are drawn from perturbation_labels, which is either a list of
-    ints, or a list of Multisets from which the ints are drawn from.
+    ints, or a list of Multisets from which the ints are drawn.
 
-    At least one of expansion_order or expansion_labels must be specified.
+    At least one of expansion_order or expansion_labels must be specified. Accepts
+    only multisets and labels consisting of non-negative integers.
 
     Args:
         perturbation_labels: Specification of elements of the multisets to generate.
@@ -50,14 +53,13 @@ def merge_multiset_expansion_order_labels(
 
     # validate
     if expansion_order is None and expansion_labels is None:
-        raise QiskitError(
-            """At least one of expansion_order or
-                          expansion_labels must be specified."""
-        )
+        raise QiskitError("At least one of expansion_order or expansion_labels must be specified.")
 
     # clean expansion_labels if specified
     if expansion_labels is not None:
         expansion_labels = clean_multisets(expansion_labels)
+        for label in expansion_labels:
+            validate_non_negative_ints(label)
 
     # if no expansion_order passed, just return expansion_labels
     if expansion_order is None:
@@ -71,7 +73,9 @@ def merge_multiset_expansion_order_labels(
         if isinstance(perturbation_label, int):
             unique_labels = unique_labels.union({perturbation_label})
         else:
-            unique_labels = unique_labels.union(to_Multiset(perturbation_label).elements)
+            perturbation_label = Multiset(perturbation_label)
+            validate_non_negative_ints(perturbation_label)
+            unique_labels = unique_labels.union(perturbation_label.distinct_elements())
     unique_labels = list(unique_labels)
     unique_labels.sort()
 
