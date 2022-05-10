@@ -17,7 +17,7 @@ from multiset import Multiset
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.perturbation.multiset_utils import validate_non_negative_ints, multiset_to_sorted_list
+from qiskit_dynamics.perturbation.multiset_utils import validate_non_negative_ints, multiset_to_sorted_list, clean_multisets
 
 from ..common import QiskitDynamicsTestCase
 
@@ -51,3 +51,31 @@ class TestToSortedList(QiskitDynamicsTestCase):
 
         ms = Multiset({1: 3, 4: 2, 0: 1})
         self.assertTrue([0, 1, 1, 1, 4, 4] == multiset_to_sorted_list(ms))
+
+
+class TestCleanMultisets(QiskitDynamicsTestCase):
+    """Test clean_multisets function for removing duplicates and sorting."""
+
+    def test_clean_multisets(self):
+        """Test clean_multisets."""
+        output = clean_multisets(
+            [
+                Multiset({0: 1}),
+                Multiset({0: 1, 1: 1}),
+                Multiset({0: 2, 1: 1}),
+                Multiset({0: 2, 1: 1}),
+            ]
+        )
+        expected = [Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({0: 2, 1: 1})]
+        self.assertTrue(output == expected)
+
+        output = clean_multisets(
+            [
+                Multiset({1: 1, 2: 1, 3: 1}),
+                Multiset({0: 1, 1: 1}),
+                Multiset({1: 1, 2: 1, 3: 1}),
+                Multiset({0: 1}),
+            ]
+        )
+        expected = [Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({1: 1, 2: 1, 3: 1})]
+        self.assertTrue(output == expected)
