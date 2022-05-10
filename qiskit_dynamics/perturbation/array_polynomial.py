@@ -129,10 +129,10 @@ class ArrayPolynomial:
 
         Args:
             constant_term: An array representing the constant term of the polynomial.
-            array_coefficients: A 3d array representing a list of matrix coefficients.
-            monomial_labels: A list of multisets of the same length as ``matrix_coefficients``
+            array_coefficients: A 3d array representing a list of array coefficients.
+            monomial_labels: A list of multisets of the same length as ``array_coefficients``
                              indicating the monomial coefficient for each corresponding
-                             ``matrix_coefficients``.
+                             ``array_coefficients``.
         Raises:
             QiskitError: If insufficient information is supplied to define an ArrayPolynomial.
         """
