@@ -20,6 +20,7 @@ requirements = [
     "scipy>=1.4",
     "matplotlib>=3.0",
     "qiskit-terra>=0.16.0",
+    "multiset>=3.0.1",
 ]
 
 jax_extras = ['jax>=0.2.26',
