@@ -41,14 +41,3 @@ from .dispatch import (
 
 # Register backends
 from .backends import *
-
-
-# DEPRECATED imports
-from .dispatch import (
-    set_default_backend,
-    default_backend,
-    available_backends,
-    backend_types,
-)
-from .array import Array
-from .wrap import wrap
