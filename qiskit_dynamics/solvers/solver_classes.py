@@ -331,7 +331,7 @@ class Solver:
         """
 
 
-        signals_list, y0_list, t_span_list, multiple_sims = setup_simulation_lists(signals, y0, t_span)
+        signals_list, t_span_list, y0_list, multiple_sims = setup_simulation_lists(signals, t_span, y0)
 
         # hold copy of signals in model for deprecated behavior
         original_signals = self.model.signals
@@ -340,7 +340,7 @@ class Solver:
         ##################################################################################################
         # for now assume Hamiltonian, can handle lindblad properly later
         #################################################################################################
-        for signals, y0, t_span in zip(signals_list, y0_list, t_span_list):
+        for signals, t_span, y0 in zip(signals_list, t_span_list, y0_list):
 
             # convert types
             if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
@@ -472,8 +472,11 @@ def format_final_states(y, model, y_input, y0_cls):
     return new_y
 
 
-def setup_simulation_lists(signals, y0, t_span):
+def setup_simulation_lists(signals, t_span, y0):
     """Setup args to do a list of simulations.
+
+    This can probably be done more generally, involving some generic singleton type
+    checking/variable name arguments.
 
     ***************************************************************************************************
     fill this out
@@ -516,7 +519,7 @@ def setup_simulation_lists(signals, y0, t_span):
         multiple_sims = True
 
     # consolidate lengths and raise error if incompatible
-    args = [signals, y0, t_span]
+    args = [signals, t_span, y0]
     arg_lens = [len(x) for x in args]
     max_len = max(arg_lens)
     if any(x != 1 and x != max_len for x in arg_lens):
