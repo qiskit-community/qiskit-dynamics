@@ -19,9 +19,6 @@ features:
     Adds class :class:`~qiskit_dynamics.perturbation.PerturbativeSolver`, which implements
     specialized fixed-step solvers for linear matrix differential equations,
     based on the Dyson series and Magnus expansion.
-  - |
-    Adds function :func:`~qiskit_dynamics.perturbation.schreiffer_wolff` that computes
-    a multi-variable expansion for the generator of the Schrieffer-Wolff transformation.
 other:
   - |
     Adds ``multiset`` package as a dependency.

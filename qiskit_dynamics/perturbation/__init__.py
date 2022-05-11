@@ -200,41 +200,6 @@ returned in a :class:`PerturbationResults` objects which is a data container wit
 functionality for indexing and accessing specific perturbation terms. See the function
 documentation for further details.
 
-Schrieffer-Wolff
-================
-
-Schrieffer-Wolff perturbation theory seeks to perturbatively construct the generator of a unitary
-transformation that diagonalizes a Hamiltonian which is perturbatively non-diagonal
-[:footcite:`wikipedia_schriefferwolff_2021`, :footcite:`bravyi_schriefferwolff_2011`,
-:footcite:`schrieffer_relation_1966`, :footcite:`luttinger_motion_1955`]. (More generally,
-the goal is to *block-diagonalize* a perturbatively non-block-diagonal Hamiltonian,
-however, this function is specialized to the diagonalization case.)
-
-I.e. given a power series decomposition of a Hamiltonian in :math:`r` variables:
-
-.. math::
-
-    H(c_0, \dots, c_{r-1}) = H_\emptyset + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I H_I,
-
-for :math:`H_\emptyset` a diagonal Hermitian operator, and :math:`H_I` Hermitian, the goal is to
-construct a power series decomposition of an anti-Hermitian matrix
-
-.. math::
-
-    S(c_0, \dots, c_{r-1}) = \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I S_I
-
-for which
-
-.. math::
-
-    e^{S(c_0, \dots, c_{r-1})}H(c_0, \dots, c_{r-1})e^{-S(c_0, \dots, c_{r-1})}
-
-is diagonal.
-
-The function :func:`~qiskit_dynamics.perturbation.schrieffer_wolff` computes the truncated
-expansion for :math:`S(c_0, \dots, c_{r-1})`, and returns it as an
-:class:`~qiskit_dynamics.perturbation.ArrayPolynomial` instance.
-
 Perturbative Solvers
 ====================
 
@@ -268,7 +233,6 @@ Perturbation module API
 
     ArrayPolynomial
     solve_lmde_perturbation
-    schrieffer_wolff
     PerturbationResults
     PerturbativeSolver
 
@@ -277,6 +241,5 @@ Perturbation module API
 
 from .array_polynomial import ArrayPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
-from .schrieffer_wolff import schrieffer_wolff
 from .perturbation_results import PerturbationResults
 from .perturbative_solver import PerturbativeSolver
