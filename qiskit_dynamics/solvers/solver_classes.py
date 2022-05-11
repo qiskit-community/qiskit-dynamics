@@ -18,7 +18,7 @@ Solver classes.
 """
 
 
-from typing import Optional, Union, Tuple, Any, Type, List
+from typing import Optional, Union, Tuple, Any, Type, List, Callable
 from copy import copy
 
 import numpy as np
@@ -190,7 +190,9 @@ class Solver:
         return self._signals
 
     @signals.setter
-    def signals(self, new_signals: Union[List[Signal], SignalList]):
+    def signals(
+        self, new_signals: Union[List[Signal], SignalList, Tuple[List[Signal]], Tuple[SignalList]]
+    ):
         """Set signals for the solver, and pass to the model."""
         self._signals = new_signals
         if self._rwa_signal_map is not None:
@@ -250,7 +252,7 @@ class Solver:
         if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
             y0 = DensityMatrix(y0)
 
-        y0, y0_cls = initial_state_converter(y0, return_class=True)
+        y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
 
         # validate types
         if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
@@ -312,56 +314,39 @@ class Solver:
             results.y = Array(results.y).reshape((len(results.y),) + y_input.shape, order="F")
 
         if y0_cls is not None:
-            results.y = [final_state_converter(yi, y0_cls) for yi in results.y]
+            results.y = [state_type_wrapper(yi) for yi in results.y]
 
         return results
 
 
-def initial_state_converter(
-    obj: Any, return_class: bool = False
-) -> Union[Array, Tuple[Array, Type]]:
-    """Convert initial state object to an Array.
+def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
+    """Convert initial state object to an Array, the type of the initial input, and return
+    function for constructing a state of the same type.
 
     Args:
         obj: An initial state.
-        return_class: Optional. If True return the class to use
-                      for converting the output y Array.
 
     Returns:
-        Array: the converted initial state if ``return_class=False``.
-        tuple: (Array, class) if ``return_class=True``.
+        tuple: (Array, Type, Callable)
     """
     # pylint: disable=invalid-name
     y0_cls = None
     if isinstance(obj, Array):
-        y0, y0_cls = obj, None
+        y0, y0_cls, wrapper = obj, None, lambda x: x
     if isinstance(obj, QuantumState):
         y0, y0_cls = Array(obj.data), obj.__class__
+        wrapper = lambda x: y0_cls(np.array(x), dims=obj.dims())
     elif isinstance(obj, QuantumChannel):
         y0, y0_cls = Array(SuperOp(obj).data), SuperOp
+        wrapper = lambda x: SuperOp(
+            np.array(x), input_dims=obj.input_dims(), output_dims=obj.output_dims()
+        )
     elif isinstance(obj, (BaseOperator, Gate, QuantumCircuit)):
         y0, y0_cls = Array(Operator(obj.data)), Operator
+        wrapper = lambda x: Operator(
+            np.array(x), input_dims=obj.input_dims(), output_dims=obj.output_dims()
+        )
     else:
-        y0, y0_cls = Array(obj), None
-    if return_class:
-        return y0, y0_cls
-    return y0
+        y0, y0_cls, wrapper = Array(obj), None, lambda x: x
 
-
-def final_state_converter(obj: Any, cls: Optional[Type] = None) -> Any:
-    """Convert final state Array to custom class. If ``cls`` is not ``None``,
-    will explicitly convert ``obj`` into a ``numpy.array`` before wrapping,
-    under the assumption that ``cls`` will be a ``qiskit.quantum_info`` type,
-    which only support ``numpy.array``s.
-
-    Args:
-        obj: final state Array.
-        cls: Optional. The class to convert to.
-
-    Returns:
-        Any: the final state.
-    """
-    if cls is None:
-        return obj
-
-    return cls(np.array(obj))
+    return y0, y0_cls, wrapper
