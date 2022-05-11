@@ -77,17 +77,17 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "non-negative"):
             solve_lmde_perturbation(
-                perturbations=[lambda t: np.array([[0., 1.], [1., 0.]])],
+                perturbations=[lambda t: np.array([[0.0, 1.0], [1.0, 0.0]])],
                 t_span=[0, 1],
                 expansion_method="dyson",
                 expansion_order=1,
-                expansion_labels=[['a']]
+                expansion_labels=[["a"]],
             )
 
         with self.assertRaisesRegex(QiskitError, "non-negative"):
             solve_lmde_perturbation(
-                perturbations=[lambda t: np.array([[0., 1.], [1., 0.]])],
-                perturbation_labels=[['a']],
+                perturbations=[lambda t: np.array([[0.0, 1.0], [1.0, 0.0]])],
+                perturbation_labels=[["a"]],
                 t_span=[0, 1],
                 expansion_method="dyson",
                 expansion_order=1,

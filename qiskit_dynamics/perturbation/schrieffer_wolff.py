@@ -25,7 +25,10 @@ from scipy.linalg import solve_sylvester
 from qiskit import QiskitError
 
 from qiskit_dynamics.perturbation import ArrayPolynomial
-from qiskit_dynamics.perturbation.multiset_utils import get_all_submultisets, submultisets_and_complements
+from qiskit_dynamics.perturbation.multiset_utils import (
+    get_all_submultisets,
+    submultisets_and_complements,
+)
 from qiskit_dynamics.perturbation.perturbation_utils import merge_multiset_expansion_order_labels
 
 

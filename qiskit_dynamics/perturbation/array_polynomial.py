@@ -26,7 +26,13 @@ from numpy.typing import DTypeLike
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation.multiset_utils import validate_non_negative_ints, get_all_submultisets, sorted_multisets, submultisets_and_complements, multiset_to_sorted_list
+from qiskit_dynamics.perturbation.multiset_utils import (
+    validate_non_negative_ints,
+    get_all_submultisets,
+    sorted_multisets,
+    submultisets_and_complements,
+    multiset_to_sorted_list,
+)
 from qiskit_dynamics.perturbation.custom_binary_op import CustomBinaryOp
 
 try:

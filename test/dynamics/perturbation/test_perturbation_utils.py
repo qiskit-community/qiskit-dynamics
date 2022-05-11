@@ -42,12 +42,12 @@ class Testmerge_multiset_expansion_order_labels(QiskitDynamicsTestCase):
         """Test error is raised when anything other than non-negative ints used."""
         with self.assertRaisesRegex(QiskitError, "non-negative"):
             merge_multiset_expansion_order_labels(
-                perturbation_labels=['a'], expansion_order=2, expansion_labels=None
+                perturbation_labels=["a"], expansion_order=2, expansion_labels=None
             )
 
         with self.assertRaisesRegex(QiskitError, "non-negative"):
             merge_multiset_expansion_order_labels(
-                perturbation_labels=[[0]], expansion_order=2, expansion_labels=['a']
+                perturbation_labels=[[0]], expansion_order=2, expansion_labels=["a"]
             )
 
     def test_order(self):

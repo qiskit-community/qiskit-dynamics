@@ -47,7 +47,11 @@ from qiskit_dynamics.perturbation.custom_binary_op import (
     CustomMatmul,
 )
 
-from qiskit_dynamics.perturbation.multiset_utils import get_all_submultisets, submultiset_filter, submultisets_and_complements
+from qiskit_dynamics.perturbation.multiset_utils import (
+    get_all_submultisets,
+    submultiset_filter,
+    submultisets_and_complements,
+)
 
 from .perturbation_results import PerturbationResults
 

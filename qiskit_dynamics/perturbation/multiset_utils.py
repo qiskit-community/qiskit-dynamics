@@ -56,6 +56,7 @@ def sorted_multisets(multisets: List[Multiset]) -> List[Multiset]:
 
     return sorted(multisets, key=lambda x: str(len(x)) + ", " + str(multiset_to_sorted_list(x)))
 
+
 def clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
     """Given a list of multisets, remove duplicates, and sort in non-decreasing order
     according to the sorted_multisets function.
@@ -133,6 +134,7 @@ def submultisets_and_complements(
     formatted_complements = [Multiset(complement) for complement in complements]
 
     return formatted_submultisets, formatted_complements
+
 
 def get_all_submultisets(multisets: List[Multiset]) -> List[Multiset]:
     """Given a list of multisets, return a list of all possible submultisets

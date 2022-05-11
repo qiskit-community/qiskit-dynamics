@@ -24,7 +24,7 @@ from qiskit_dynamics.perturbation.multiset_utils import (
     clean_multisets,
     submultiset_filter,
     submultisets_and_complements,
-    get_all_submultisets
+    get_all_submultisets,
 )
 
 from ..common import QiskitDynamicsTestCase
@@ -123,6 +123,7 @@ class TestSubmultisetFilter(QiskitDynamicsTestCase):
         self.assertTrue(
             submultiset_filter(multiset_candidates, multiset_list) == multiset_candidates[1:]
         )
+
 
 class TestSubmultisetsAndComplements(QiskitDynamicsTestCase):
     """Test submultisets_and_complements function."""

@@ -5,9 +5,8 @@ prelude: >
     and the generator of the Schrieffer-Wolff transformation.
 features:
   - |
-    Adds classes :class:`~qiskit_dynamics.perturbation.Multiset` and
-    :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` for describing and represented
-    multi-variable array-valued polynomials, used to represent truncated power series.
+    Adds :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` for representing
+    multi-variable array-valued polynomials.
   - |
     Adds function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` for computing
     Dyson series and Magnus expansion terms for solutions to linear matrix
@@ -23,3 +22,6 @@ features:
   - |
     Adds function :func:`~qiskit_dynamics.perturbation.schreiffer_wolff` that computes
     a multi-variable expansion for the generator of the Schrieffer-Wolff transformation.
+other:
+  - |
+    Adds ``multiset`` package as a dependency.
