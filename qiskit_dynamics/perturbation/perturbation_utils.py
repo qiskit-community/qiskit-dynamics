@@ -24,7 +24,6 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.perturbation.multiset_utils import (
     validate_non_negative_ints,
-    sorted_multisets,
     clean_multisets,
 )
 

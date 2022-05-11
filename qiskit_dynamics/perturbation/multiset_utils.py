@@ -98,6 +98,7 @@ def submultisets_and_complements(
     Note: Submultisets and compliments are always strict submultisets.
 
     Args:
+        multiset: The multiset to construct submultisets from.
         submultiset_bound: Strict upper bound on submultiset to include.
                            Defaults to len(multiset).
 
