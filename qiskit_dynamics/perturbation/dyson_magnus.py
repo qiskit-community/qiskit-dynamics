@@ -37,6 +37,8 @@ from scipy.special import factorial
 # pylint: disable=unused-import
 from scipy.integrate._ivp.ivp import OdeResult
 
+from multiset import Multiset
+
 from qiskit_dynamics import dispatch, solve_ode
 from qiskit_dynamics.array import Array
 
@@ -45,7 +47,7 @@ from qiskit_dynamics.perturbation.custom_binary_op import (
     CustomMatmul,
 )
 
-from qiskit_dynamics.perturbation.multiset import Multiset, get_all_submultisets, submultiset_filter
+from qiskit_dynamics.perturbation.multiset_utils import get_all_submultisets, submultiset_filter, submultisets_and_complements
 
 from .perturbation_results import PerturbationResults
 
@@ -749,8 +751,8 @@ def q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
         # construct a list of products
         # need to consider all possible sub-multisets of the Multiset index in q_term
         products = []
-        submultisets, complements = sym_index.submultisets_and_complements(
-            len(sym_index) - (q_term_order - 1) + 1
+        submultisets, complements = submultisets_and_complements(
+            sym_index, len(sym_index) - (q_term_order - 1) + 1
         )
 
         for subset, complement in zip(submultisets, complements):
@@ -832,11 +834,11 @@ def get_dyson_lmult_rule(
             lmult_indices = [[-1, term_idx]]
 
             for l_idx, l_term in enumerate(perturbation_labels):
-                if l_term.issubmultiset(term):
+                if l_term <= term:
                     if len(l_term) == len(term):
                         lmult_indices.append([l_idx, -1])
                     else:
-                        r_term = term.difference(l_term)
+                        r_term = term - l_term
                         r_idx = complete_index_multisets.index(r_term)
                         lmult_indices.append([l_idx, r_idx])
 

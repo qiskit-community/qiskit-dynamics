@@ -15,7 +15,8 @@
 
 import numpy as np
 
-from qiskit_dynamics.perturbation import Multiset
+from multiset import Multiset
+
 from qiskit_dynamics.perturbation.dyson_magnus import (
     get_dyson_lmult_rule,
     get_complete_dyson_like_indices,
@@ -288,23 +289,23 @@ class TestMagnusQTerms(QiskitDynamicsTestCase):
         """Test q_term list construction case 2."""
 
         oc_symmetric_indices = [[0], [1], [2], [0, 1], [0, 2], [1, 1], [1, 2], [1, 1, 2]]
-        oc_symmetric_indices = [Multiset.from_list(multiset) for multiset in oc_symmetric_indices]
+        oc_symmetric_indices = [Multiset(multiset) for multiset in oc_symmetric_indices]
         output = get_q_term_list(oc_symmetric_indices)
         expected = [
-            (Multiset.from_list([0]), 1),
-            (Multiset.from_list([1]), 1),
-            (Multiset.from_list([2]), 1),
-            (Multiset.from_list([0, 1]), 2),
-            (Multiset.from_list([0, 1]), 1),
-            (Multiset.from_list([0, 2]), 2),
-            (Multiset.from_list([0, 2]), 1),
-            (Multiset.from_list([1, 1]), 2),
-            (Multiset.from_list([1, 1]), 1),
-            (Multiset.from_list([1, 2]), 2),
-            (Multiset.from_list([1, 2]), 1),
-            (Multiset.from_list([1, 1, 2]), 3),
-            (Multiset.from_list([1, 1, 2]), 2),
-            (Multiset.from_list([1, 1, 2]), 1),
+            (Multiset([0]), 1),
+            (Multiset([1]), 1),
+            (Multiset([2]), 1),
+            (Multiset([0, 1]), 2),
+            (Multiset([0, 1]), 1),
+            (Multiset([0, 2]), 2),
+            (Multiset([0, 2]), 1),
+            (Multiset([1, 1]), 2),
+            (Multiset([1, 1]), 1),
+            (Multiset([1, 2]), 2),
+            (Multiset([1, 2]), 1),
+            (Multiset([1, 1, 2]), 3),
+            (Multiset([1, 1, 2]), 2),
+            (Multiset([1, 1, 2]), 1),
         ]
 
         self.assertTrue(output == expected)
@@ -312,14 +313,14 @@ class TestMagnusQTerms(QiskitDynamicsTestCase):
     def test_q_product_rule_case1(self):
         """Test construction of the q_product_rule."""
         oc_q_terms = [([0], 1), ([1], 1), ([0, 1], 2), ([0, 1], 1)]
-        oc_q_terms = [(Multiset.from_list(x), y) for (x, y) in oc_q_terms]
+        oc_q_terms = [(Multiset(x), y) for (x, y) in oc_q_terms]
 
-        q_term = (Multiset.from_list([0, 1]), 2)
+        q_term = (Multiset([0, 1]), 2)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [(np.array([1.0, 1.0]), np.array([[0, 1], [1, 0]]))]
         self.assertMultRulesEqual(output, expected)
 
-        q_term = (Multiset.from_list([0, 1]), 1)
+        q_term = (Multiset([0, 1]), 1)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [(np.array([1.0, -0.5]), np.array([[4, 3], [4, 2]]))]
         self.assertMultRulesEqual(output, expected)
@@ -340,21 +341,21 @@ class TestMagnusQTerms(QiskitDynamicsTestCase):
             ([0, 1, 2], 2),
             ([0, 1, 2], 1),
         ]
-        oc_q_terms = [(Multiset.from_list(x), y) for (x, y) in oc_q_terms]
+        oc_q_terms = [(Multiset(x), y) for (x, y) in oc_q_terms]
 
-        q_term = (Multiset.from_list([0, 1, 2]), 3)
+        q_term = (Multiset([0, 1, 2]), 3)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [(np.array([1.0, 1.0, 1.0]), np.array([[0, 7], [1, 5], [2, 3]]))]
         self.assertMultRulesEqual(output, expected)
 
-        q_term = (Multiset.from_list([0, 1, 2]), 2)
+        q_term = (Multiset([0, 1, 2]), 2)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [
             (np.ones(6, dtype=float), np.array([[0, 8], [1, 6], [2, 4], [4, 2], [6, 1], [8, 0]]))
         ]
         self.assertMultRulesEqual(output, expected)
 
-        q_term = (Multiset.from_list([0, 1, 2]), 1)
+        q_term = (Multiset([0, 1, 2]), 1)
         output = q_product_rule(q_term, oc_q_terms)
         expected = [
             (np.array([1.0, -(1.0 / 2), -(1.0 / 6)]), np.array([[12, 11], [12, 10], [12, 9]]))
@@ -536,9 +537,9 @@ class TestDysonProduct(QiskitDynamicsTestCase):
         """
 
         expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
-        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
+        expansion_labels = [Multiset(label) for label in expansion_labels]
         perturbation_labels = [[0], [1], [0, 1], [1, 1]]
-        perturbation_labels = [Multiset.from_list(label) for label in perturbation_labels]
+        perturbation_labels = [Multiset(label) for label in perturbation_labels]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -560,9 +561,9 @@ class TestDysonProduct(QiskitDynamicsTestCase):
         """
 
         expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
-        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
+        expansion_labels = [Multiset(label) for label in expansion_labels]
         perturbation_labels = [[0], [1], [2], [0, 1]]
-        perturbation_labels = [Multiset.from_list(label) for label in perturbation_labels]
+        perturbation_labels = [Multiset(label) for label in perturbation_labels]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -581,7 +582,7 @@ class TestDysonProduct(QiskitDynamicsTestCase):
     def test_get_dyson_lmult_rule_case1(self):
         """Test _get_dyson_lmult_rule case 1."""
         expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
-        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
+        expansion_labels = [Multiset(label) for label in expansion_labels]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
@@ -620,7 +621,7 @@ class TestDysonProduct(QiskitDynamicsTestCase):
             [1, 1, 2, 3],
             [0, 1, 1, 2, 3],
         ]
-        expansion_labels = [Multiset.from_list(label) for label in expansion_labels]
+        expansion_labels = [Multiset(label) for label in expansion_labels]
         expected_lmult_rule = [
             (np.ones(1, dtype=float), np.array([[-1, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
