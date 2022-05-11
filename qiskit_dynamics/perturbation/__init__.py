@@ -20,10 +20,9 @@ Perturbation Theory (:mod:`qiskit_dynamics.perturbation`)
 .. currentmodule:: qiskit_dynamics.perturbation
 
 This module contains tools for numerically computing and utilizing perturbation
-theory terms, with functions for computing multi-variable Dyson series and Magnus expansions,
-as well as expansions for the multi-variable Schrieffer-Wolff generator. As perturbative
-expansions are phrased in terms of multi-variable power-series, the starting point for
-this module is establishing a notation for multi-variable power series, which is outlined
+theory terms, with functions for computing multi-variable Dyson series and Magnus expansions.
+As perturbative expansions are phrased in terms of multi-variable power-series, the starting
+point for this module is establishing a notation for multi-variable power series, which is outlined
 in the remainder of this introduction.
 
 Mathematically, a formal array-valued power-series in :math:`r` variables
@@ -55,9 +54,10 @@ for two multisets :math:`I, J`, it holds that:
 
 .. math::
 
-    c_{I \cup J} = c_I \times c_J,
+    c_{I + J} = c_I \times c_J,
 
-where the union is understood to be in terms of multisets.
+where :math:`I+J` denotes the multiset whose object counts are the sum of both :math:`I` and
+:math:`J`.
 
 Some example usages of this notation are:
 
