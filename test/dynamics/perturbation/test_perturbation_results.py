@@ -14,8 +14,9 @@
 
 from qiskit import QiskitError
 
+from multiset import Multiset
+
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation import Multiset
 from qiskit_dynamics.perturbation.perturbation_results import PerturbationResults
 
 from ..common import QiskitDynamicsTestCase
@@ -41,9 +42,9 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
         results = PerturbationResults(
             expansion_method="dyson",
             expansion_labels=[
-                Multiset.from_list([0]),
-                Multiset.from_list([1]),
-                Multiset.from_list([0, 1]),
+                Multiset([0]),
+                Multiset([1]),
+                Multiset([0, 1]),
             ],
             expansion_terms=Array([5, 6, 7]),
         )

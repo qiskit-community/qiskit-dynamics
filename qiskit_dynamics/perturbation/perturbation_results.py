@@ -17,9 +17,10 @@ Class for storing results of perturbation theory computations.
 from typing import List, Union
 from dataclasses import dataclass
 
+from multiset import Multiset
+
 from qiskit import QiskitError
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation.multiset import Multiset, to_Multiset
 
 
 @dataclass
@@ -66,7 +67,7 @@ class PerturbationResults:
         """
 
         if self.expansion_method in ["dyson", "magnus"]:
-            label = to_Multiset(label)
+            label = Multiset(label)
 
         if label in self.expansion_labels:
             idx = self.expansion_labels.index(label)

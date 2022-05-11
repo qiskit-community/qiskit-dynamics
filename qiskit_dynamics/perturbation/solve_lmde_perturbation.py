@@ -22,11 +22,13 @@ from typing import List, Optional, Callable
 # pylint: disable=unused-import
 from scipy.integrate._ivp.ivp import OdeResult
 
+from multiset import Multiset
+
 from qiskit import QiskitError
 
 from qiskit_dynamics import solve_ode
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation.multiset import Multiset, clean_multisets
+from qiskit_dynamics.perturbation.multiset_utils import clean_multisets
 from qiskit_dynamics.perturbation.perturbation_utils import (
     merge_multiset_expansion_order_labels,
     merge_list_expansion_order_labels,
@@ -92,15 +94,17 @@ def solve_lmde_perturbation(
 
         - ``perturbations`` gives a list of the :math:`G_I(t)` functions as callables.
         - ``perturbation_labels`` is an optional list specifying the labels for the terms in
-          ``perturbations`` in the form of
-          :class:`~qiskit_dynamics.perturbation.multiset.Multiset`\s.
+          ``perturbations`` in the form of ``Multiset`` instances, or valid arguments to the
+          constructor of ``Multiset``. This function requires that the Multisets consist of
+          non-negative integers.
           If not specified, the labels are assumed to be
           ``[Multiset({0: 1}), ..., Multiset({len(perturbations) - 1: 1})]``.
         - ``expansion_order`` specifies that all expansion terms up to a given
           order are to be computed.
-        - ``expansion_labels`` specifies individual terms to be computed, given as
-          :class:`~qiskit_dynamics.perturbation.Multiset`\s.
-          Both of ``expansion_order``
+        - ``expansion_labels`` specifies individual terms to be computed, specified as
+          ``Multiset`` instances, or valid arguments to the
+          constructor of ``Multiset``. This function requires that the Multisets consist of
+          non-negative integers.
           and ``expansion_labels`` are optional, however at least one must be specified.
           If both are specified, then all terms up to ``expansion_order`` will be computed,
           along with any additional specific terms given by ``expansion_labels``.
@@ -157,8 +161,7 @@ def solve_lmde_perturbation(
 
         - ``expansion_method``: Method as specified by the user.
         - ``expansion_labels``: Index labels for all computed perturbation terms. In the case of
-          the Dyson or Magnus expansion, the labels are
-          :class:`~qiskit_dynamics.perturbation.multiset.Multiset` instances, and in the
+          the Dyson or Magnus expansion, the labels are ``Multiset`` instances and in the
           `'dyson_like'` case are lists of ``int``\s.
         - ``expansion_terms``: A 4d array storing all computed terms. The first axis indexes
           the expansion terms in the same ordering as ``expansion_labels``,
