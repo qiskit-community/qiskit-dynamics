@@ -21,11 +21,13 @@ import numpy as np
 from numpy.polynomial.chebyshev import chebpts1, chebvander, chebval
 from scipy.linalg import expm
 
+from multiset import Multiset
+
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
 from qiskit_dynamics import Signal, RotatingFrame
-from qiskit_dynamics.perturbation import solve_lmde_perturbation, ArrayPolynomial, Multiset
+from qiskit_dynamics.perturbation import solve_lmde_perturbation, ArrayPolynomial
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 
@@ -152,7 +154,7 @@ class PerturbativeSolver:
         include_imag: Optional[List[bool]] = None,
         **kwargs,
     ):
-        """Initialize.
+        r"""Initialize.
 
         Args:
             operators: List of constant operators specifying the operators with
@@ -169,7 +171,10 @@ class PerturbativeSolver:
             expansion_labels: Specific perturbation terms to compute. If both ``expansion_order``
                                 and ``expansion_terms`` are specified, then all terms up to
                                 ``expansion_order`` are computed, along with the additional terms
-                                specified in ``expansion_terms``.
+                                specified in ``expansion_terms``. Labels are specified either as
+                                ``Multiset`` or as valid arguments to the ``Multiset`` constructor.
+                                This function further requires that ``Multiset``\s consist only of
+                                non-negative integers.
             integration_method: ODE solver method to use when computing perturbation terms.
             include_imag: List of bools determining whether to keep imaginary components in
                           the signal approximation. Defaults to True for all signals.
