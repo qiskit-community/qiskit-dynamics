@@ -15,9 +15,11 @@
 
 import numpy as np
 
+from multiset import Multiset
+
 from qiskit import QiskitError
 
-from qiskit_dynamics.perturbation import schrieffer_wolff, Multiset
+from qiskit_dynamics.perturbation import schrieffer_wolff
 from qiskit_dynamics.perturbation.schrieffer_wolff import solve_commutator_projection, commutator
 
 from ..common import QiskitDynamicsTestCase

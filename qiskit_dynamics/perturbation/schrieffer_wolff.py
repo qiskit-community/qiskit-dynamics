@@ -17,13 +17,15 @@ Schrieffer-Wolff perturbation computation.
 
 from typing import List, Optional
 
+from multiset import Multiset
+
 import numpy as np
 from scipy.linalg import solve_sylvester
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.perturbation import ArrayPolynomial, Multiset
-from qiskit_dynamics.perturbation.multiset import get_all_submultisets
+from qiskit_dynamics.perturbation import ArrayPolynomial
+from qiskit_dynamics.perturbation.multiset_utils import get_all_submultisets, submultisets_and_complements
 from qiskit_dynamics.perturbation.perturbation_utils import merge_multiset_expansion_order_labels
 
 
@@ -123,8 +125,10 @@ def schrieffer_wolff(
         H0: Diagonal Hamiltonian, assumed and validated to be non-degenerate.
         perturbations: Perturbation terms.
         expansion_order: Expansion order to compute to.
-        expansion_labels: Expansion labels to compute.
-        perturbation_labels: Labels for perturbation terms in the form of multisets.
+        expansion_labels: Expansion labels to compute specified as multisets of non-negative
+                          integers.
+        perturbation_labels: Labels for perturbation terms in the form of multisets. Multisets
+                             must consist only of non-negative integers.
         tol: Tolerance for validation and for determining if matrix entries are 0.
     Returns:
         ArrayPolynomial object containing the perturbative Shrieffer-Wolff coefficients.
@@ -204,8 +208,8 @@ def schrieffer_wolff(
         else:
             # get all 2-fold partitions, bounding the submultisets to have size
             # <= len(expansion_label) - (commutator_order - 1)
-            submultisets, complements = expansion_label.submultisets_and_complements(
-                len(expansion_label) - commutator_order + 2
+            submultisets, complements = submultisets_and_complements(
+                expansion_label, len(expansion_label) - commutator_order + 2
             )
             for submultiset, complement in zip(submultisets, complements):
                 SI = expansion_terms[expansion_labels.index(submultiset)]
