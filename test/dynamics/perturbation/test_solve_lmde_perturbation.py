@@ -72,6 +72,27 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
                 y0=np.array([1.0, 0.0]),
             )
 
+    def test_invalid_multisets(self):
+        """Test error when labels specified with entries other than non-negative integers."""
+
+        with self.assertRaisesRegex(QiskitError, "non-negative"):
+            solve_lmde_perturbation(
+                perturbations=[lambda t: np.array([[0., 1.], [1., 0.]])],
+                t_span=[0, 1],
+                expansion_method="dyson",
+                expansion_order=1,
+                expansion_labels=[['a']]
+            )
+
+        with self.assertRaisesRegex(QiskitError, "non-negative"):
+            solve_lmde_perturbation(
+                perturbations=[lambda t: np.array([[0., 1.], [1., 0.]])],
+                perturbation_labels=[['a']],
+                t_span=[0, 1],
+                expansion_method="dyson",
+                expansion_order=1,
+            )
+
 
 class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
     """Test cases for perturbation theory computation."""
