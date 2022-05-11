@@ -77,19 +77,9 @@ rewritten as:
 Multisets and truncated power-series representation
 ===================================================
 
-The :class:`~qiskit_dynamics.perturbation.Multiset` class represents a multiset whose elements
-are integers. The API is meant to mimic the built-in ``set`` class, e.g. the union of
-two multisets may be taken via
-
-.. code-block:: python
-
-    multiset1.union(multiset2)
-
-and the multiset complement may be computed via
-
-.. code-block:: python
-
-    multiset1.difference(multiset2)
+Can reinsert a description of ``Multiset`` in the ``multiset`` package here.
+Need to be explicit that the functionality here restricts multisets to consist
+only of non-negative integers.
 
 The class :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` represents an array-valued
 multivariable polynomial (i.e. a truncated power series), and provides functionality for
@@ -276,7 +266,6 @@ Perturbation module API
 .. autosummary::
     :toctree: ../stubs/
 
-    Multiset
     ArrayPolynomial
     solve_lmde_perturbation
     schrieffer_wolff
@@ -286,7 +275,6 @@ Perturbation module API
 .. footbibliography::
 """
 
-from .multiset import Multiset
 from .array_polynomial import ArrayPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
 from .schrieffer_wolff import schrieffer_wolff
