@@ -19,7 +19,6 @@ Advanced Topics
    :maxdepth: 1
 
    perturbative_solvers.rst
-   perturbative_approximations.rst
 
 
 .. Hiding - Indices and tables
