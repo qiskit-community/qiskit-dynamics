@@ -21,25 +21,14 @@ from typing import Optional, Union, Callable, Tuple, List
 
 from scipy.integrate import OdeSolver
 
-# pylint: disable=unused-import
-from scipy.integrate._ivp.ivp import OdeResult
-
-from qiskit.circuit import Gate, QuantumCircuit
-from qiskit.quantum_info.operators.base_operator import BaseOperator
-from qiskit.quantum_info.operators.channel.quantum_channel import QuantumChannel
-from qiskit.quantum_info.states.quantum_state import QuantumState
-from qiskit.quantum_info import SuperOp, Operator
+from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import QiskitError
-from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array
 
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
     GeneratorModel,
-    RotatingFrame,
-    rotating_wave_approximation,
-    HamiltonianModel,
     LindbladModel,
 )
 
@@ -54,12 +43,6 @@ from .fixed_step_solvers import (
 )
 from .scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .jax_odeint import jax_odeint
-
-try:
-    from jax.lax import scan
-except ImportError:
-    pass
-
 
 ODE_METHODS = (
     ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"]  # scipy solvers
