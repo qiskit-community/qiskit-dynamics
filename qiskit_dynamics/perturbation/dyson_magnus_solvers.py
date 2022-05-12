@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2022.
@@ -9,12 +11,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
 
-r"""
-Perturbation theory-based solvers.
+"""
+Model class for perturbative expansion of solution of an LMDE.
 """
 
+from abc import ABC, abstractmethod
 from typing import Optional, Tuple, Callable, List, Union
 
 import numpy as np
@@ -40,104 +42,100 @@ except ImportError:
     pass
 
 
-class PerturbativeSolver:
-    r"""Perturbative solvers based on the Dyson series and Magnus expansion.
+class DysonSolver:
 
-    This class implements two specialized LMDE solvers based on the Dyson series
-    and Magnus expansion as presented in [:footcite:`puzzuoli_sensitivity_2022`],
-    with the Dyson-based solver being a variant of the *Dysolve* algorithm introduced in
-    [:footcite:p:`shillito_fast_2020`].
+    def __init__(
+        self,
+        operators: List[Operator],
+        rotating_frame: Union[Array, Operator, RotatingFrame, None],
+        dt: float,
+        carrier_freqs: Array,
+        chebyshev_orders: List[int],
+        expansion_order: Optional[int] = None,
+        expansion_labels: Optional[List[Multiset]] = None,
+        integration_method: Optional[str] = None,
+        include_imag: Optional[List[bool]] = None,
+        **kwargs,
+    ):
 
-    These solvers apply to generators with a decomposition:
+        self._model = ExpansionModel(
+            operators=operators,
+            rotating_frame=rotating_frame,
+            dt=dt,
+            carrier_freqs=carrier_freqs,
+            chebyshev_orders=chebyshev_orders,
+            expansion_method="dyson",
+            expansion_order=expansion_order,
+            expansion_labels=expansion_labels,
+            integration_method=integration_method,
+            include_imag=include_imag,
+            **kwargs
+        )
 
-    .. math::
+    @property
+    def model(self) -> 'ExpansionModel':
+        return self._model
 
-        G(t) = G_0 + \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]G_j,
+    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+        if Array.default_backend() == "jax":
+            single_step = lambda x: self.model.evaluate(x).data
+            return perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)
 
-    and solve the LMDE in the rotating frame of :math:`G_0`, which is assumed to be anti-Hermitian.
-    I.e. they solve the LMDE with generator:
+        else:
+            def single_step(coeffs, y):
+                return self.model.evaluate(coeffs) @ y
+            return perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)
 
-    .. math::
 
-        \tilde{G}(t) = \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]\tilde{G}_j(t),
+class MagnusSolver:
 
-    with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`. The solvers are *fixed-step*,
-    with step size :math:`\Delta t` being defined at instantiation,
-    and solve over each step by computing either a truncated Dyson series or a
-    truncated Magnus expansion followed by matrix exponentiation.
+    def __init__(
+        self,
+        operators: List[Operator],
+        rotating_frame: Union[Array, Operator, RotatingFrame, None],
+        dt: float,
+        carrier_freqs: Array,
+        chebyshev_orders: List[int],
+        expansion_order: Optional[int] = None,
+        expansion_labels: Optional[List[Multiset]] = None,
+        integration_method: Optional[str] = None,
+        include_imag: Optional[List[bool]] = None,
+        **kwargs,
+    ):
 
-    At instantiation, the following parameters are fixed:
+        self._model = ExpansionModel(
+            operators=operators,
+            rotating_frame=rotating_frame,
+            dt=dt,
+            carrier_freqs=carrier_freqs,
+            chebyshev_orders=chebyshev_orders,
+            expansion_method="magnus",
+            expansion_order=expansion_order,
+            expansion_labels=expansion_labels,
+            integration_method=integration_method,
+            include_imag=include_imag,
+            **kwargs
+        )
 
-    - The step size :math:`\Delta t`,
-    - The operator structure :math:`G_0`, :math:`G_i`,
-    - The reference frequencies :math:`\nu_j`,
-    - Approximation schemes for the envelopes :math:`f_j` over each time step (see below), and
-    - Perturbative expansion method and terms used in the truncation. Note that terms must
-      be given as either ``Multiset`` instances or compatible types.
+    @property
+    def model(self) -> 'ExpansionModel':
+        return self._model
 
-    These parameters define the details of the perturbative expansions used, and
-    a 'compilation' or 'pre-computation' step computing these terms occurs at instantiation.
-    Once instantiated, the LMDE can be solved repeatedly for different lists of envelopes
-    :math:`f_1(t), \dots, f_s(t)` by calling the :meth:`solve` method with the
-    initial time ``t0``, number of time-steps ``n_steps`` of size :math:`\Delta t`,
-    and the list of envelopes specified as :class:`~qiskit_dynamics.signals.Signal` objects.
+    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+        if Array.default_backend() == "jax":
+            single_step = lambda x: self.model.Udt @ jexpm(self.model.evaluate(x).data)
+            return perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)
 
-    More explicitly, the process of solving over an interval :math:`[t_0, t_0 + \Delta t]`
-    is as follows. The signal envelopes are approximated using a
-    discrete Chebyshev transform, whose orders for each signal is given by ``chebyshev_orders``.
-    That is, for :math:`t \in [t_0, t_0 + \Delta t]`, each envelope is approximated as:
+        else:
+            def single_step(coeffs, y):
+                return self.model.Udt @ expm(self.model.evaluate(coeffs)) @ y
+            return perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)
 
-    .. math::
 
-        f_j(t) \approx \sum_{m=0}^{d_j} f_{j,m}T_m(t-t_0)
+class ExpansionModel:
+    """Represents a perturbative expansion of an LMDE.
 
-    where :math:`T_m(\cdot)` are the Chebyshev polynomials over the interval,
-    :math:`f_{j,m}` are the approximation coefficients attained via Discrete Chebyshev Transform,
-    and :math:`d_j` is the order of approximation used for the given envelope.
-    Using:
-
-    .. math::
-
-        \textnormal{Re}[f_{j,m}T_m(t-t_0)e^{i2 \pi \nu_j t}] =
-        \textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}] \cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) \\
-        + \textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}] \sin(-2 \pi \nu_j (t-t_0))T_m(t-t_0)
-
-    The generator is approximately decomposed as
-
-    .. math::
-
-        \tilde{G}(t) \approx \sum_{j=1}^s \sum_{m=0}^{d_j}
-        \textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
-        \cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j \\
-        + \sum_{j=1}^s \sum_{m=0}^{d_j}
-        \textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
-        \sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j
-
-    A multivariable Dyson series or Magnus expansion truncation is then computed relative to the
-    above decomposition, with the variables being the
-    :math:`\textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}]` and
-    :math:`\textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]`, and the operators being
-    :math:`\cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) G_j` and
-    :math:`\sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) G_j`. As shown in
-    [:footcite:`puzzuoli_sensitivity_2022`, :footcite:p:`shillito_fast_2020`],
-    the multivariable Dyson series or Magnus expansion for intervals of length :math:`\Delta t`
-    but with different starting times are related via a simple frame change, and as such
-    these need only be computed once, and this makes up the 'pre-computation' step of this
-    object.
-
-    The optional argument ``include_imag`` can be used to control, on a signal by signal basis,
-    whether or not the imaginary terms
-
-    .. math::
-
-        \textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
-        \sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j
-
-    are included in the scheme. In generality they are required, but in special cases they are not
-    necessary, such as when :math:`\nu_j = 0`, or if :math:`f_j(t)`, including phase, is purely
-    real. By default all such terms are included.
-
-    .. footbibliography::
+    Should this just straight up do the construction?
     """
 
     def __init__(
@@ -183,7 +181,6 @@ class PerturbativeSolver:
         Raises:
             QiskitError: if invalid expansion_method passed.
         """
-
         self._expansion_method = expansion_method
 
         if expansion_method not in ["dyson", "magnus"]:
@@ -206,7 +203,7 @@ class PerturbativeSolver:
                 include_imag=include_imag,
             )
 
-        self._signal_approximation = collective_dct
+        self._approximate_signals = collective_dct
 
         # setup rotating frame and single time-step frame change operator
         self._rotating_frame = RotatingFrame(rotating_frame)
@@ -241,34 +238,33 @@ class PerturbativeSolver:
             integration_method=integration_method,
             **kwargs,
         )
-        self._precomputation_results = results
 
         if self.expansion_method == "dyson":
             # if Dyson multiply by single step frame transformation
-            self._precomputation_results.perturbation_results.expansion_terms = (
-                Array(self.Udt) @ self._precomputation_results.perturbation_results.expansion_terms
+            results.perturbation_results.expansion_terms = (
+                Array(self.Udt) @ results.perturbation_results.expansion_terms
             )
-            new_coeffs = self._precomputation_results.perturbation_results.expansion_terms[:, -1]
-            self._perturbation_polynomial = ArrayPolynomial(
+            new_coeffs = results.perturbation_results.expansion_terms[:, -1]
+            self._expansion_polynomial = ArrayPolynomial(
                 array_coefficients=new_coeffs,
-                monomial_labels=self._precomputation_results.perturbation_results.expansion_labels,
+                monomial_labels=results.perturbation_results.expansion_labels,
                 constant_term=self.Udt,
             )
         elif self.expansion_method == "magnus":
-            self._perturbation_polynomial = ArrayPolynomial(
+            self._expansion_polynomial = ArrayPolynomial(
                 array_coefficients=results.perturbation_results.expansion_terms[:, -1],
                 monomial_labels=results.perturbation_results.expansion_labels,
             )
+
+        """
+        ************************************************************************************************
+        Save construction data, like integration options, approximation options?
+        """
 
     @property
     def expansion_method(self):
         """Perturbation method used in solver."""
         return self._expansion_method
-
-    @property
-    def precomputation_results(self):
-        """Storage of pre-computation results object."""
-        return self._precomputation_results
 
     @property
     def dt(self):
@@ -286,11 +282,11 @@ class PerturbativeSolver:
         return self._rotating_frame
 
     @property
-    def perturbation_polynomial(self) -> ArrayPolynomial:
-        """Matrix polynomial object for evaluating the perturbation series."""
-        return self._perturbation_polynomial
+    def expansion_polynomial(self) -> ArrayPolynomial:
+        """ArrayPolynomial object for evaluating the perturbation series."""
+        return self._expansion_polynomial
 
-    def signal_approximation(self, signals: List[Signal], t0: float, n_steps: int) -> np.ndarray:
+    def approximate_signals(self, signals: List[Signal], t0: float, n_steps: int) -> np.ndarray:
         """Approximate a list of signals over a series of intervals according to the Chebyshev
         time-step and Chebyshev approximation structure set at instantiation.
 
@@ -303,83 +299,46 @@ class PerturbativeSolver:
             np.ndarray: The Chebyshev coefficients of each signal over each time-step.
             The first dimension indexes the signals, and the second the time-step.
         """
-        return self._signal_approximation(signals, t0, n_steps)
+        return self._approximate_signals(signals, t0, n_steps)
 
-    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
-        """Solve for a list of signals, initial state, initial time, and number of steps.
+    def evaluate(self, coeffs: Array) -> Array:
+        return self.expansion_polynomial(coeffs)
 
-        Args:
-            signals: List of signals.
-            y0: Initial state at time t0.
-            t0: Initial time.
-            n_steps: Number of time steps to solve for.
 
-        Returns:
-            np.ndarray: State after n_steps.
-        """
-        if Array.default_backend() == "jax":
+def perturbative_solve(single_step: Callable, model: 'ExpansionModel', signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+    """Standard python logic version of perturbative solving routine."""
+    U0 = model.rotating_frame.state_out_of_frame(
+        t0, np.eye(model.Udt.shape[0], dtype=complex)
+    )
+    Uf = model.rotating_frame.state_into_frame(
+        t0 + n_steps * model.dt, np.eye(U0.shape[0], dtype=complex)
+    )
 
-            # setup single step function
-            single_step = None
-            if "dyson" in self.expansion_method:
+    sig_cheb_coeffs = model.approximate_signals(signals, t0, n_steps)
 
-                def single_step_dyson(coeffs):
-                    return self.perturbation_polynomial(coeffs).data
+    y = U0 @ y0
+    for k in range(n_steps):
+        y = single_step(sig_cheb_coeffs[:, k], y)
 
-                single_step = single_step_dyson
-            elif "magnus" in self.expansion_method:
+    return Uf @ y
 
-                def single_step_magnus(coeffs):
-                    return self.Udt @ jexpm(self.perturbation_polynomial(coeffs).data)
 
-                single_step = single_step_magnus
+def perturbative_solve_jax(single_step: Callable, model: 'ExpansionModel', signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+    U0 = model.rotating_frame.state_out_of_frame(
+        t0, jnp.eye(model.Udt.shape[0], dtype=complex)
+    ).data
+    Uf = model.rotating_frame.state_into_frame(
+        t0 + n_steps * model.dt, jnp.eye(U0.shape[0], dtype=complex)
+    ).data
 
-            U0 = self.rotating_frame.state_out_of_frame(
-                t0, jnp.eye(self.Udt.shape[0], dtype=complex)
-            ).data
-            Uf = self.rotating_frame.state_into_frame(
-                t0 + n_steps * self.dt, jnp.eye(U0.shape[0], dtype=complex)
-            ).data
+    sig_cheb_coeffs = model.approximate_signals(signals, t0, n_steps).data
 
-            sig_cheb_coeffs = self.signal_approximation(signals, t0, n_steps).data
+    y = U0 @ y0
 
-            y = U0 @ y0
+    step_propagators = vmap(single_step)(jnp.flip(sig_cheb_coeffs.transpose(), axis=0))
+    y = associative_scan(jnp.matmul, step_propagators, axis=0)[-1] @ y
 
-            step_propagators = vmap(single_step)(jnp.flip(sig_cheb_coeffs.transpose(), axis=0))
-            y = associative_scan(jnp.matmul, step_propagators, axis=0)[-1] @ y
-
-            return Uf @ y
-
-        else:
-            # setup single step function
-            single_step = None
-            if "dyson" in self.expansion_method:
-
-                def single_step_dyson(y, coeffs):
-                    return self.perturbation_polynomial(coeffs) @ y
-
-                single_step = single_step_dyson
-            elif "magnus" in self.expansion_method:
-
-                def single_step_magnus(y, coeffs):
-                    return self.Udt @ expm(self.perturbation_polynomial(coeffs)) @ y
-
-                single_step = single_step_magnus
-
-            U0 = self.rotating_frame.state_out_of_frame(
-                t0, np.eye(self.Udt.shape[0], dtype=complex)
-            )
-            Uf = self.rotating_frame.state_into_frame(
-                t0 + n_steps * self.dt, np.eye(U0.shape[0], dtype=complex)
-            )
-
-            sig_cheb_coeffs = self.signal_approximation(signals, t0, n_steps)
-
-            y = U0 @ y0
-            for k in range(n_steps):
-                y = single_step(y, sig_cheb_coeffs[:, k])
-
-            return Uf @ y
+    return Uf @ y
 
 
 def construct_cheb_perturbations(

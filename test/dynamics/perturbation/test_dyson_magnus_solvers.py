@@ -19,8 +19,9 @@ from numpy.polynomial.chebyshev import Chebyshev
 from qiskit_dynamics import Signal, Solver
 from qiskit_dynamics.array import Array
 
-from qiskit_dynamics.perturbation.perturbative_solver import (
-    PerturbativeSolver,
+from qiskit_dynamics.perturbation.dyson_magnus_solvers import (
+    DysonSolver,
+    MagnusSolver,
     construct_DCT,
     multi_interval_DCT,
     signal_envelope_DCT,
@@ -86,25 +87,23 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             rtol=1e-12,
         ).y[-1]
 
-        obj.simple_dyson_solver = PerturbativeSolver(
+        obj.simple_dyson_solver = DysonSolver(
             operators=-1j * hamiltonian_operators,
             rotating_frame=-1j * static_hamiltonian,
             dt=dt,
             carrier_freqs=[5.0],
             chebyshev_orders=[1],
-            expansion_method="dyson",
             expansion_order=6,
             integration_method=integration_method,
             atol=1e-10,
             rtol=1e-10,
         )
-        obj.simple_magnus_solver = PerturbativeSolver(
+        obj.simple_magnus_solver = MagnusSolver(
             operators=-1j * hamiltonian_operators,
             rotating_frame=-1j * static_hamiltonian,
             dt=dt,
             carrier_freqs=[5.0],
             chebyshev_orders=[1],
-            expansion_method="magnus",
             expansion_order=3,
             integration_method=integration_method,
             atol=1e-10,
@@ -166,38 +165,35 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             rtol=1e-12,
         ).y[-1]
 
-        obj.dyson_solver_2q = PerturbativeSolver(
+        obj.dyson_solver_2q = DysonSolver(
             operators=[-1j * Hdc, -1j * Hdt],
             rotating_frame=-1j * H0,
             dt=dt,
             carrier_freqs=[5.0, 5.0],
             chebyshev_orders=[1, 1],
-            expansion_method="dyson",
             expansion_order=6,
             integration_method=integration_method,
             atol=1e-10,
             rtol=1e-10,
         )
-        obj.dyson_solver_2q_0_carrier = PerturbativeSolver(
+        obj.dyson_solver_2q_0_carrier = DysonSolver(
             operators=[-1j * Hdc, -1j * Hdt],
             rotating_frame=-1j * H0,
             dt=dt,
             carrier_freqs=[0.0, 0.0],
             chebyshev_orders=[3, 3],
-            expansion_method="dyson",
             expansion_order=6,
             integration_method=integration_method,
             include_imag=[False, False],
             atol=1e-10,
             rtol=1e-10,
         )
-        obj.magnus_solver_2q = PerturbativeSolver(
+        obj.magnus_solver_2q = MagnusSolver(
             operators=[-1j * Hdc, -1j * Hdt],
             rotating_frame=-1j * H0,
             dt=dt,
             carrier_freqs=[5.0, 5.0],
             chebyshev_orders=[1, 1],
-            expansion_method="magnus",
             expansion_order=3,
             integration_method=integration_method,
             atol=1e-10,
