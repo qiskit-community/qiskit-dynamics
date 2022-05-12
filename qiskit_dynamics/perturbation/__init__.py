@@ -200,29 +200,7 @@ returned in a :class:`PerturbationResults` objects which is a data container wit
 functionality for indexing and accessing specific perturbation terms. See the function
 documentation for further details.
 
-Perturbative Solvers
-====================
-
-The :class:`~qiskit_dynamics.perturbation.PerturbativeSolver` class provides two
-solvers built using the Dyson series and Magnus expansion, as outlined in
-[:footcite:`puzzuoli_sensitivity_2022`].
-
-.. note::
-
-    The principles and core ideas of the methods were outlined in the Dyson-based *Dysolve*
-    algorithm given in [:footcite:p:`shillito_fast_2020`], however the Magnus version and
-    specific algorithms and setup used here are as given in
-    [:footcite:`puzzuoli_sensitivity_2022`].
-
-The solvers are specialized to LMDEs whose generators are decomposed as:
-
-.. math::
-
-    G(t) = G_0 + \sum_j Re[f_j(t)e^{i2\pi\nu_jt}]G_j,
-
-and are fixed step with a pre-defined step size :math:`\Delta t`. The differential equation is
-solved by either computing a truncated Dyson series, or taking the exponential of a truncated
-Magnus expansion.
+Add link to perturbative solvers here?
 
 
 Perturbation module API
@@ -234,8 +212,6 @@ Perturbation module API
     ArrayPolynomial
     solve_lmde_perturbation
     PerturbationResults
-    DysonSolver
-    MagnusSolver
 
 .. footbibliography::
 """

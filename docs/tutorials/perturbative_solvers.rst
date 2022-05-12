@@ -117,16 +117,15 @@ explanation, but some general comments on its instantiation and usage:
 
     %%time
 
-    from qiskit_dynamics.perturbation import PerturbativeSolver
+    from qiskit_dynamics import DysonSolver
 
     dt = 0.1
-    dyson_solver = PerturbativeSolver(
+    dyson_solver = DysonSolver(
         operators=[-1j * drive_hamiltonian],
         rotating_frame=-1j * static_hamiltonian,
         dt=dt,
         carrier_freqs=[v],
         chebyshev_orders=[1],
-        expansion_method='dyson',
         expansion_order=7,
         integration_method='jax_odeint',
         atol=1e-12,
@@ -244,14 +243,15 @@ itself is more expensive.
 
     %%time
 
+    from qiskit_dynamics import MagnusSolver
+
     dt = 0.1
-    magnus_solver = PerturbativeSolver(
+    magnus_solver = MagnusSolver(
         operators=[-1j * drive_hamiltonian],
         rotating_frame=-1j * static_hamiltonian,
         dt=dt,
         carrier_freqs=[v],
         chebyshev_orders=[1],
-        expansion_method='magnus',
         expansion_order=3,
         integration_method='jax_odeint',
         atol=1e-12,
