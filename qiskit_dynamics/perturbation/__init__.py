@@ -243,4 +243,3 @@ Perturbation module API
 from .array_polynomial import ArrayPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
 from .perturbation_results import PerturbationResults
-from .dyson_magnus_solvers import DysonSolver, MagnusSolver

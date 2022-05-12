@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
 Model class for perturbative expansion of solution of an LMDE.
@@ -29,7 +30,8 @@ from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
 from qiskit_dynamics import Signal, RotatingFrame
-from qiskit_dynamics.perturbation import solve_lmde_perturbation, ArrayPolynomial
+from qiskit_dynamics.perturbation.solve_lmde_perturbation import solve_lmde_perturbation
+from qiskit_dynamics.perturbation.array_polynomial import ArrayPolynomial
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 
@@ -43,7 +45,6 @@ except ImportError:
 
 
 class DysonSolver:
-
     def __init__(
         self,
         operators: List[Operator],
@@ -69,11 +70,11 @@ class DysonSolver:
             expansion_labels=expansion_labels,
             integration_method=integration_method,
             include_imag=include_imag,
-            **kwargs
+            **kwargs,
         )
 
     @property
-    def model(self) -> 'ExpansionModel':
+    def model(self) -> "ExpansionModel":
         return self._model
 
     def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
@@ -82,13 +83,14 @@ class DysonSolver:
             return perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)
 
         else:
+
             def single_step(coeffs, y):
                 return self.model.evaluate(coeffs) @ y
+
             return perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)
 
 
 class MagnusSolver:
-
     def __init__(
         self,
         operators: List[Operator],
@@ -114,11 +116,11 @@ class MagnusSolver:
             expansion_labels=expansion_labels,
             integration_method=integration_method,
             include_imag=include_imag,
-            **kwargs
+            **kwargs,
         )
 
     @property
-    def model(self) -> 'ExpansionModel':
+    def model(self) -> "ExpansionModel":
         return self._model
 
     def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
@@ -127,8 +129,10 @@ class MagnusSolver:
             return perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)
 
         else:
+
             def single_step(coeffs, y):
                 return self.model.Udt @ expm(self.model.evaluate(coeffs)) @ y
+
             return perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)
 
 
@@ -305,11 +309,16 @@ class ExpansionModel:
         return self.expansion_polynomial(coeffs)
 
 
-def perturbative_solve(single_step: Callable, model: 'ExpansionModel', signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+def perturbative_solve(
+    single_step: Callable,
+    model: "ExpansionModel",
+    signals: List[Signal],
+    y0: np.ndarray,
+    t0: float,
+    n_steps: int,
+) -> np.ndarray:
     """Standard python logic version of perturbative solving routine."""
-    U0 = model.rotating_frame.state_out_of_frame(
-        t0, np.eye(model.Udt.shape[0], dtype=complex)
-    )
+    U0 = model.rotating_frame.state_out_of_frame(t0, np.eye(model.Udt.shape[0], dtype=complex))
     Uf = model.rotating_frame.state_into_frame(
         t0 + n_steps * model.dt, np.eye(U0.shape[0], dtype=complex)
     )
@@ -323,7 +332,14 @@ def perturbative_solve(single_step: Callable, model: 'ExpansionModel', signals: 
     return Uf @ y
 
 
-def perturbative_solve_jax(single_step: Callable, model: 'ExpansionModel', signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+def perturbative_solve_jax(
+    single_step: Callable,
+    model: "ExpansionModel",
+    signals: List[Signal],
+    y0: np.ndarray,
+    t0: float,
+    n_steps: int,
+) -> np.ndarray:
     U0 = model.rotating_frame.state_out_of_frame(
         t0, jnp.eye(model.Udt.shape[0], dtype=complex)
     ).data

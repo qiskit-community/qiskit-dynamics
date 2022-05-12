@@ -29,6 +29,7 @@ from .signals.signals import Signal, DiscreteSignal
 
 from .solvers.solver_functions import solve_ode, solve_lmde
 from .solvers.solver_classes import Solver
+from .solvers.dyson_magnus_solvers import DysonSolver, MagnusSolver
 
 from . import models
 from . import signals

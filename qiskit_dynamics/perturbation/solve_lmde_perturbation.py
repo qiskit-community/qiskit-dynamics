@@ -19,14 +19,12 @@ Compute perturbation theory terms for an LMDE.
 
 from typing import List, Optional, Callable
 
-# pylint: disable=unused-import
-from scipy.integrate._ivp.ivp import OdeResult
+from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from multiset import Multiset
 
 from qiskit import QiskitError
 
-from qiskit_dynamics import solve_ode
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation.multiset_utils import clean_multisets
 from qiskit_dynamics.perturbation.perturbation_utils import (
@@ -40,13 +38,6 @@ from qiskit_dynamics.perturbation.dyson_magnus import (
     solve_lmde_dyson_jax,
     solve_lmde_magnus_jax,
 )
-
-try:
-    import jax.numpy as jnp
-    from jax import vmap
-    from jax.lax import switch
-except ImportError:
-    pass
 
 
 def solve_lmde_perturbation(

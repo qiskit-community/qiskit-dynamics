@@ -34,13 +34,12 @@ from typing import Optional, List, Callable, Tuple, Union
 import numpy as np
 from scipy.special import factorial
 
-# pylint: disable=unused-import
-from scipy.integrate._ivp.ivp import OdeResult
+from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from multiset import Multiset
 
-from qiskit_dynamics import dispatch, solve_ode
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.solvers.solver_functions import solve_ode
 
 from qiskit_dynamics.perturbation.custom_binary_op import (
     compile_custom_operation_rule,

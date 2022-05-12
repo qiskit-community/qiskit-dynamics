@@ -62,6 +62,8 @@ Solver classes
    :toctree: ../stubs/
 
    Solver
+   DysonSolver
+   MagnusSolver
 
 Solver functions
 ================
@@ -75,3 +77,4 @@ Solver functions
 
 from .solver_functions import solve_ode, solve_lmde
 from .solver_classes import Solver
+from .dyson_magnus_solvers import DysonSolver, MagnusSolver

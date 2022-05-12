@@ -16,12 +16,10 @@
 import numpy as np
 from numpy.polynomial.chebyshev import Chebyshev
 
-from qiskit_dynamics import Signal, Solver
+from qiskit_dynamics import Signal, Solver, DysonSolver, MagnusSolver
 from qiskit_dynamics.array import Array
 
-from qiskit_dynamics.perturbation.dyson_magnus_solvers import (
-    DysonSolver,
-    MagnusSolver,
+from qiskit_dynamics.solvers.dyson_magnus_solvers import (
     construct_DCT,
     multi_interval_DCT,
     signal_envelope_DCT,
