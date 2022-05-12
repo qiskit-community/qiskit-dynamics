@@ -147,7 +147,7 @@ with a given amplitude.
             y0=np.eye(dim, dtype=complex),
             t0=0.,
             n_steps=int(T // dt)
-        )
+        ).y[-1]
 
     from jax import jit
 
@@ -270,7 +270,7 @@ Setup simulation function.
             y0=np.eye(dim, dtype=complex),
             t0=0.,
             n_steps=int(T // dt)
-        )
+        ).y[-1]
 
     jit_magnus_sim = jit(magnus_sim)
 

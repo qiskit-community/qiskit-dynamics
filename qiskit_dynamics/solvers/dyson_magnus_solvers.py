@@ -23,6 +23,7 @@ from typing import Optional, Tuple, Callable, List, Union
 import numpy as np
 from numpy.polynomial.chebyshev import chebpts1, chebvander, chebval
 from scipy.linalg import expm
+from scipy.integrate._ivp.ivp import OdeResult
 
 from multiset import Multiset
 
@@ -62,7 +63,7 @@ class PerturbativeSolver(ABC):
         return self._model
 
     @abstractmethod
-    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> OdeResult:
         """Solve for a list of signals, initial state, initial time, and number of steps.
 
         Args:
@@ -226,13 +227,16 @@ class DysonSolver(PerturbativeSolver):
         )
         super().__init__(model=model)
 
-    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> OdeResult:
+        ys = None
         if Array.default_backend() == "jax":
             single_step = lambda x: self.model.evaluate(x).data
-            return perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)
+            ys = [y0, perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)]
         else:
             single_step = lambda coeffs, y: self.model.evaluate(coeffs) @ y
-            return perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)
+            ys = [y0, perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)]
+
+        return OdeResult(t=[t0, t0 + n_steps * self.model.dt], y=ys)
 
 
 class MagnusSolver(PerturbativeSolver):
@@ -291,13 +295,16 @@ class MagnusSolver(PerturbativeSolver):
         )
         super().__init__(model=model)
 
-    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> np.ndarray:
+    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> OdeResult:
+        ys = None
         if Array.default_backend() == "jax":
             single_step = lambda x: self.model.Udt @ jexpm(self.model.evaluate(x).data)
-            return perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)
+            ys = [y0, perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)]
         else:
             single_step = lambda coeffs, y: self.model.Udt @ expm(self.model.evaluate(coeffs)) @ y
-            return perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)
+            ys = [y0, perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)]
+
+        return OdeResult(t=[t0, t0 + n_steps * self.model.dt], y=ys)
 
 
 class ExpansionModel:

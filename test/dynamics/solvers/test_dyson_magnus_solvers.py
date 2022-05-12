@@ -203,7 +203,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
 
         dyson_yf = self.simple_dyson_solver.solve(
             signals=[self.gauss_signal], y0=np.eye(2, dtype=complex), t0=0.0, n_steps=self.n_steps
-        )
+        ).y[-1]
 
         self.assertAllClose(dyson_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
 
@@ -212,7 +212,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
 
         magnus_yf = self.simple_magnus_solver.solve(
             signals=[self.gauss_signal], y0=np.eye(2, dtype=complex), t0=0.0, n_steps=self.n_steps
-        )
+        ).y[-1]
 
         self.assertAllClose(magnus_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
 
@@ -224,7 +224,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             y0=np.eye(self.dim_2q**2, dtype=complex),
             t0=0.0,
             n_steps=self.n_steps_2q,
-        )
+        ).y[-1]
         # measure similarity with fidelity
         self.assertTrue(
             np.abs(1.0 - np.abs((dyson_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
@@ -239,7 +239,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             y0=np.eye(self.dim_2q**2, dtype=complex),
             t0=0.0,
             n_steps=self.n_steps_2q,
-        )
+        ).y[-1]
 
         # measure similarity with fidelity
         self.assertTrue(
@@ -255,7 +255,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             y0=np.eye(self.dim_2q**2, dtype=complex),
             t0=0.0,
             n_steps=self.n_steps_2q,
-        )
+        ).y[-1]
         # measure similarity with fidelity
         self.assertTrue(
             np.abs(1.0 - np.abs((magnus_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
@@ -282,7 +282,7 @@ class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
                 y0=np.eye(2, dtype=complex),
                 t0=0.0,
                 n_steps=self.n_steps,
-            )
+            ).y[-1]
             return dyson_yf
 
         jitted_func = self.jit_wrap(func)
@@ -295,13 +295,13 @@ class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
         """Test jitting of and gradding of magnus solve."""
 
         def func(c):
-            dyson_yf = self.simple_magnus_solver.solve(
+            magnus_yf = self.simple_magnus_solver.solve(
                 signals=[Signal(Array(c), carrier_freq=5.0)],
                 y0=np.eye(2, dtype=complex),
                 t0=0.0,
                 n_steps=self.n_steps,
-            )
-            return dyson_yf
+            ).y[-1]
+            return magnus_yf
 
         jitted_func = self.jit_wrap(func)
         self.assertAllClose(func(1.0), jitted_func(1.0))
