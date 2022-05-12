@@ -92,6 +92,8 @@ Solver classes
    :toctree: ../stubs/
 
    Solver
+   DysonSolver
+   MagnusSolver
 
 Solver functions
 ================
