@@ -84,24 +84,26 @@ class DysonSolver(PerturbativeSolver):
     This class implements the Dyson-series based solver presented in
     [:footcite:`puzzuoli_sensitivity_2022`], which is a variant of the *Dysolve* algorithm
     originally introduced in [:footcite:p:`shillito_fast_2020`].
-    This solvers applies to generators with a decomposition:
+    This solver applies to linear matrix differential equations with generators of the form:
 
     .. math::
 
         G(t) = G_0 + \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]G_j,
 
     and solves the LMDE in the rotating frame of :math:`G_0`, which is assumed to be
-    anti-Hermitian. I.e. they solve the LMDE with generator:
+    anti-Hermitian. I.e. it solves the LMDE with generator:
 
     .. math::
 
         \tilde{G}(t) = \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]\tilde{G}_j(t),
 
-    with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`. The solvers are *fixed-step*,
+    with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`. The solver is *fixed-step*,
     with step size :math:`\Delta t` being defined at instantiation,
-    and solve over each step by computing either a truncated Dyson series or a
-    truncated Magnus expansion followed by matrix exponentiation.
-    At instantiation, the following parameters are fixed:
+    and solves over each step by computing a truncated Dyson series. See the
+    :mod:`qiskit_dynamics.perturbation` module for a description of the Dyson series.
+
+    At instantiation, the following parameters, which define the structure of the Dyson series
+    used, are fixed:
 
     - The step size :math:`\Delta t`,
     - The operator structure :math:`G_0`, :math:`G_i`,
@@ -109,17 +111,19 @@ class DysonSolver(PerturbativeSolver):
     - Approximation schemes for the envelopes :math:`f_j` over each time step (see below), and
     - The Dyson series terms to keep in the truncation.
 
-    These parameters define the details of the perturbative expansions used, and
-    a 'compilation' or 'pre-computation' step computing these terms occurs at instantiation.
-    Once instantiated, the LMDE can be solved repeatedly for different lists of envelopes
-    :math:`f_1(t), \dots, f_s(t)` by calling the :meth:`solve` method with the
-    initial time ``t0``, number of time-steps ``n_steps`` of size :math:`\Delta t`,
-    and the list of envelopes specified as :class:`~qiskit_dynamics.signals.Signal` objects.
+    A 'compilation' or 'pre-computation' step computing the truncated expansion occurs
+    at instantiation. Once instantiated, the LMDE can be solved repeatedly for different lists of
+    envelopes :math:`f_1(t), \dots, f_s(t)` by calling the :meth:`solve` method with the
+    initial time ``t0`` and number of time-steps ``n_steps`` of size :math:`\Delta t`.
+    The list of envelopes are specified as :class:`~qiskit_dynamics.signals.Signal` objects,
+    whose carrier frequencies are automatically shifted to the reference frequencies :math:`\nu_j`,
+    with the frequency difference, and any phase, being absorbed into the envelope.
 
     More explicitly, the process of solving over an interval :math:`[t_0, t_0 + \Delta t]`
-    is as follows. The signal envelopes are approximated using a
-    discrete Chebyshev transform, whose orders for each signal is given by ``chebyshev_orders``.
-    That is, for :math:`t \in [t_0, t_0 + \Delta t]`, each envelope is approximated as:
+    is as follows. After shifting the carrier frequencies, the resulting envelopes are approximated
+    using a discrete Chebyshev transform, whose orders for each signal is given by
+    ``chebyshev_orders``. That is, for :math:`t \in [t_0, t_0 + \Delta t]`, each envelope is
+    approximated as:
 
     .. math::
 
@@ -240,7 +244,18 @@ class DysonSolver(PerturbativeSolver):
 
 
 class MagnusSolver(PerturbativeSolver):
-    """This is a doc string."""
+    """Solver for linear matrix differential equations based on the Magnus expansion.
+
+    This class implements the Magnus expansion-based solver presented in
+    [:footcite:`puzzuoli_sensitivity_2022`], which is a Magnus expansion variant of the
+    *Dysolve* algorithm originally introduced in [:footcite:p:`shillito_fast_2020`]. Its
+    setup and behaviour are the same as as the :class:`~qiskit_dynamics.solvers.DysonSolver`
+    class, with the sole exception being that it uses a truncated Magnus expansion
+    and matrix exponentiation to solve over a single time step. See the
+    :mod:`qiskit_dynamics.perturbation` module for a description of the Magnus expansion,
+    and the documentation for :class:`~qiskit_dynamics.solvers.DysonSolver` for more detailed
+    behaviour of this class.
+    """
 
     def __init__(
         self,
