@@ -56,20 +56,21 @@ def solve_lmde_perturbation(
 ) -> OdeResult:
     r"""Compute time-dependent perturbation theory terms for an LMDE.
 
-    This function computes Dyson or Magnus expansion terms
+    This function computes multi-variable Dyson or Magnus expansion terms
     via the algorithm in [:footcite:`puzzuoli_sensitivity_2022`], or Dyson-like terms
-    via the algorithm in [:footcite:`haas_engineering_2019`]. Which expansion is used
-    is specified by the ``expansion_method`` argument, which impacts the interpretation of
-    several of the function arguments (described below).
+    via the algorithm in [:footcite:`haas_engineering_2019`]. See the
+    :ref:`review on time-dependent perturbation theory <perturbation review>`
+    to understand the details and notation used in this documentation.
 
+    Which expansion is used is specified by the ``expansion_method`` argument, which impacts
+    the interpretation of several of the function arguments (described below).
     Regardless of ``expansion_method``, the main computation is performed by
     solving a differential equation, utilizing :func:`~qiskit_dynamics.solvers.solve_ode`,
     and as such several of the function arguments are direct inputs into this function:
 
         - ``integration_method`` is the ODE method used (passed as ``method``
-          to :func:`~qiskit_dynamics.solvers.solve_ode`),
-        - ``t_span`` is the integration interval, and
-        - ``t_eval`` is an optional set of points to evaluate the perturbation terms at.
+          to :func:`~qiskit_dynamics.solvers.solve_ode`), ``t_span`` is the integration interval,
+          and ``t_eval`` is an optional set of points to evaluate the perturbation terms at.
         - ``kwargs`` are passed directly to :func:`~qiskit_dynamics.solvers.solve_ode`, enabling
           passing through of tolerance or step size arguments.
 
@@ -78,27 +79,39 @@ def solve_lmde_perturbation(
         - ``generator`` is the unperturbed generator, and the computation is performed
           in the toggling frame of this generator.
 
-    If ``expansion_method == 'dyson'`` or ``expansion_method == 'magnus'``,
-    the computation is performed as described in the
-    :ref:`time-dependent perturbation theory section <td perturbation theory>`
-    of the perturbation API doc. In this case:
+    If ``expansion_method in ['dyson', 'magnus']``, this function computes either
+    multivariable Dyson series or Magnus expansion terms.
+    That is, given a (finitely truncated) power series for the generator:
 
-        - ``perturbations`` gives a list of the :math:`G_I(t)` functions as callables.
-        - ``perturbation_labels`` is an optional list specifying the labels for the terms in
-          ``perturbations`` in the form of ``Multiset`` instances, or valid arguments to the
-          constructor of ``Multiset``. This function requires that the Multisets consist of
-          non-negative integers.
-          If not specified, the labels are assumed to be
+    .. math::
+
+        G(t, c_0, \dots, c_{r-1}) = G_\emptyset(t)
+            + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I G_I(t),
+
+    this function computes, in the toggling frame of :math:`G_\emptyset(t)` given by ``generator``,
+    either a collection of multivariable Dyson terms :math:`\mathcal{D}_I(t)` or
+    multivariable Magnus terms :math:`\mathcal{O}_I(t)`, whose definitions are
+    given in the :ref:`perturbation theory review <perturbation review>`.
+    In this case, the arguments to the function are interpreted as follows:
+
+        - ``perturbations`` and ``perturbation_labels`` specify the truncated generator power
+          series. ``perturbations`` provides a list of python callable functions for the non-zero
+          :math:`G_I(t)`, and the ``perturbation_labels`` is a list of the corresponding
+          multiset labels :math:`I`, in the form of ``Multiset`` instances. If not specified,
+          the labels are assumed to be
           ``[Multiset({0: 1}), ..., Multiset({len(perturbations) - 1: 1})]``.
-        - ``expansion_order`` specifies that all expansion terms up to a given
-          order are to be computed.
-        - ``expansion_labels`` specifies individual terms to be computed, specified as
-          ``Multiset`` instances, or valid arguments to the
-          constructor of ``Multiset``. This function requires that the Multisets consist of
-          non-negative integers.
-          and ``expansion_labels`` are optional, however at least one must be specified.
+        - ``expansion_order`` and ``expansion_labels`` specify which terms in the chosen
+          expansion are to be computed. ``expansion_order`` specifies that all expansion terms up
+          to a given order are to be computed, and ``expansion_labels`` specifies individual terms
+          to be computed, specified as ``Multiset`` instances.
+          At least one of ``expansion_order`` and ``expansion_labels`` must be specified.
           If both are specified, then all terms up to ``expansion_order`` will be computed,
           along with any additional specific terms given by ``expansion_labels``.
+
+    Note that in the above, this function requires that the Multisets consist of
+    non-negative integers. Arguments requiring lists of ``Multiset`` instances also accept
+    lists of any valid format acceptable to the ``Multiset`` constructor (modulo the
+    non-negative integer constraint).
 
     If ``expansion_method == 'dyson_like'``, the setup is different. In this case,
     for a list of matrix-valued functions :math:`G_0(t), \dots, G_{r-1}(t)`,

@@ -57,6 +57,9 @@ class ArrayPolynomial:
           :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, and
         - The :math:`A_I` are arrays of the same shape, indexed by the first dimension.
 
+    See the :ref:`multiset and power series notation section <multiset power series>`
+    of the perturbation review for an explanation of the multiset notation.
+
     An :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` is instantiated with the arguments:
 
         - ``constant_term`` specifying the array :math:`A_\emptyset`.
