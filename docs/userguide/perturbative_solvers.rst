@@ -1,17 +1,26 @@
-Accelerating simulation using perturbative solvers
-==================================================
+How-to use Dyson and Magnus based solvers
+=========================================
 
-In this tutorial we walk through how to use perturbation-theory based
-solvers to accelerate simulation.
+In this tutorial we walk through how to use perturbation-theory based solvers.
 
 .. note::
 
     This is an advanced topic --- utilizing perturbation-theory based solvers
     requires detailed knowledge of the structure of the differential equations
-    involved, as well as manual tuning of the solver parameters. See the
-    ``PerturbativeSolver`` documentation for API details, as well as
+    involved, as well as manual tuning of the solver parameters.
+    See the :class:`~qiskit_dynamics.solvers.DysonSolver` and
+    :class:`~qiskit_dynamics.solvers.MagnusSolver` documentation for API details. Also, see
     [:footcite:`puzzuoli_sensitivity_2022`] for a detailed explanation of the solvers,
     which varies and builds on the core idea introduced in [:footcite:`shillito_fast_2020`].
+
+    We note further that the circumstances under which perturbative solvers outperform
+    traditional solvers, and which parameter sets to use, is nuanced.
+    Perturbative solvers executed with JAX are setup to use more parallelization within a
+    single solver run than typical solvers, and thus it is circumstance-specific whether
+    the trade-off between speed of a single run and resource consumption is advantageous.
+    Due to the parallelized nature, the comparison of execution times demonstrated in this
+    userguide are highly hardware-dependent.
+
 
 In this tutorial we use a simple transmon model:
 
@@ -31,9 +40,9 @@ We will walk through the following steps:
 
 1. Configure ``qiskit-dynamics`` to work with JAX.
 2. Construct the model.
-3. Simulate using the Dyson-based perturbative solver.
+3. How-to construct and simulate using the Dyson-based perturbative solver.
 4. Simulate using a traditional ODE solver, comparing speed.
-5. Simulate using the Magnus-based perturbative solver.
+5. How-to construct and simulate using the Magnus-based perturbative solver.
 
 1. Configure to use JAX
 -----------------------
@@ -87,26 +96,28 @@ higher dimension to observe a difference between the solvers.
     # envelope function
     envelope_func = lambda t: t * (T - t) / (T**2 / 4)
 
-3. Construct Dyson-based perturbative solver
---------------------------------------------
+3. How-to construct and simulate using the Dyson-based perturbative solver
+--------------------------------------------------------------------------
 
-Constructing the perturbative solver requires specifying several
+Constructing the Dyson-based perturbative solver requires specifying several
 configuration parameters, as well as specifying the structure of the
-differential equation more explicitly than using the standard ``Solver``
-object in qiskit-dynamics.
+differential equation more explicitly than using the standard
+:class:`~qiskit_dynamics.solvers.Solver` object in qiskit-dynamics, which automatically builds
+either the Schrodinger or Lindblad equation based on the inputs.
 
-See the API docs for ``PerturbativeSolver`` for a more detailed
+See the API docs for :class:`~qiskit_dynamics.solvers.DysonSolver` for a more detailed
 explanation, but some general comments on its instantiation and usage:
 
-- ``PerturbativeSolver`` requires direct specification of the LMDE to the
+- :class:`~qiskit_dynamics.solvers.DysonSolver` requires direct specification of the LMDE to the
   solver. As we are simulating the Schrodinger equation, we need to
   multiply the Hamiltonian terms by ``-1j``.
-- ``PerturbativeSolver`` is a fixed step solver, with the step size
+- :class:`~qiskit_dynamics.solvers.DysonSolver` is a fixed step solver, with the step size
   being fixed at instantiation. This step size must be chosen in conjunction
   with the ``expansion_order``, to ensure that a suitable accuracy is attained.
 - Over each fixed time-step:
 
-  - ``PerturbativeSolver`` solves by computing a truncated perturbative expansion.
+  - :class:`~qiskit_dynamics.solvers.DysonSolver` solves by computing a truncated perturbative
+    expansion.
   - To compute the truncated perturbative expansion, the signal envelopes are
     approximated as a linear combination of Chebyshev polynomials.
   - The order of the Chebyshev approximations, along with central carrier frequencies
@@ -231,13 +242,15 @@ significant speed advantage over the traditional solver, at the expense
 of the initial compilation time and the technical aspect of using the
 solver.
 
-5. Construct and compare Magnus-based perturbation solver
----------------------------------------------------------
+5. How-to construct and simulate using the Magnus-based perturbation solver
+---------------------------------------------------------------------------
 
-Next, build the solver with the Magnus expansion. Note that the Magnus
-expansion typically requires going to fewer orders to achieve accuracy,
-with the trade-off being that, after construction, the solving step
-itself is more expensive.
+Next, build the Magnus-based perturbative solver.
+The :class:`~qiskit_dynamics.solvers.MagnusSolver` uses the same scheme as
+:class:`~qiskit_dynamics.solvers.DysonSolver`, but uses the Magnus expansion and
+matrix exponentiation to simulate over each fixed time step.
+Note that the Magnus expansion typically requires going to fewer orders to achieve accuracy,
+with the trade-off being that, after construction, the solving step itself is more expensive.
 
 .. jupyter-execute::
 

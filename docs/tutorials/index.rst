@@ -12,15 +12,6 @@ Dynamics Tutorials
    optimizing_pulse_sequence.rst
 
 
-Advanced Topics
-===============
-
-.. toctree::
-   :maxdepth: 1
-
-   perturbative_solvers.rst
-
-
 .. Hiding - Indices and tables
    :ref:`genindex`
    :ref:`modindex`

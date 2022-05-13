@@ -2,7 +2,7 @@
 Dynamics Discussions
 ####################
 
-Discussions about topics and concepts related to this package.
+Discussions about topics and concepts related to the package.
 
 .. toctree::
    :maxdepth: 1

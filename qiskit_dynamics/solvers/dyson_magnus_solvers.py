@@ -100,7 +100,8 @@ class DysonSolver(PerturbativeSolver):
     with :math:`\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}`. The solver is *fixed-step*,
     with step size :math:`\Delta t` being defined at instantiation,
     and solves over each step by computing a truncated Dyson series. See the
-    :mod:`qiskit_dynamics.perturbation` module for a description of the Dyson series.
+    :ref:`Time-dependent perturbation theory and multi-variable
+    series expansions review <perturbation review>` for a description of the Dyson series.
 
     At instantiation, the following parameters, which define the structure of the Dyson series
     used, are fixed:
@@ -252,7 +253,8 @@ class MagnusSolver(PerturbativeSolver):
     setup and behaviour are the same as as the :class:`~qiskit_dynamics.solvers.DysonSolver`
     class, with the sole exception being that it uses a truncated Magnus expansion
     and matrix exponentiation to solve over a single time step. See the
-    :mod:`qiskit_dynamics.perturbation` module for a description of the Magnus expansion,
+    :ref:`Time-dependent perturbation theory and multi-variable
+    series expansions review <perturbation review>` for a description of the Magnus expansion,
     and the documentation for :class:`~qiskit_dynamics.solvers.DysonSolver` for more detailed
     behaviour of this class.
     """
