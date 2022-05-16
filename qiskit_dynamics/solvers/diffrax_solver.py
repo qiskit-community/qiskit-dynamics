@@ -26,7 +26,7 @@ from qiskit_dynamics.array import Array, wrap
 from .solver_utils import merge_t_args, trim_t_results
 
 try:
-    from diffrax import ODETerm, Dopri5, PIDController, SaveAt
+    from diffrax import ODETerm, PIDController, SaveAt
     from diffrax import diffeqsolve as _diffeqsolve
 
     from diffrax.solver import AbstractSolver
