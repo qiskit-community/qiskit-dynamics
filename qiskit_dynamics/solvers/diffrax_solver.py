@@ -40,7 +40,7 @@ def diffrax_solver(
     rhs: Callable,
     t_span: Array,
     y0: Array,
-    method: Optional[AbstractSolver] = Dopri5(),
+    method: AbstractSolver,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
