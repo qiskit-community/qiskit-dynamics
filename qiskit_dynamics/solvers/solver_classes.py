@@ -276,9 +276,9 @@ class Solver:
 
     def solve(
         self,
-        signals: Union[List[Signal], Tuple[List[Signal], List[Signal]]],
         t_span: Union[Array, List[Array]],
         y0: Union[Array, QuantumState, BaseOperator],
+        signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
         wrap_results: Optional[bool] = True,
         **kwargs
     ) -> OdeResult:
@@ -296,9 +296,9 @@ class Solver:
         for special handling of various input types.
 
         Args:
-            signals: Specification of time-dependent coefficients to simulate.
             t_span: Time interval to integrate over.
             y0: Initial state.
+            signals: Specification of time-dependent coefficients to simulate.
             wrap_results: Whether or not to wrap the result arrays in the same class as y0.
             control_flow: Whether to use standard python or other loops.
             **kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
@@ -499,7 +499,7 @@ def setup_simulation_lists(signals, t_span, y0):
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
         # multiple Hamiltonian simulation
         multiple_sims = True
-    elif isinstance(signals, SignalList) or (isinstance(signals, list) and isinstance(signals[0], Signal)):
+    elif isinstance(signals, SignalList) or (isinstance(signals, list) and not isinstance(signals[0], (list, SignalList))):
         # single round of Hamiltonian simulation
         signals = [signals]
     else:
