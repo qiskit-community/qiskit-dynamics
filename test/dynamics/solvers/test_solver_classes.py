@@ -28,6 +28,41 @@ from qiskit_dynamics.type_utils import to_array
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
+class TestSolverDeprecations(QiskitDynamicsTestCase):
+    """Test deprecation warnings and deprecated behaviour."""
+
+    def setUp(self):
+        self.X = Operator.from_label("X")
+
+    def test_deprecated_signals_at_construction(self):
+        """Test deprecation warning raised when signals passed to constructor."""
+
+        with self.assertWarnsRegex(DeprecationWarning, 'deprecated arguments'):
+            Solver(hamiltonian_operators=[self.X], hamiltonian_signals=[1.])
+
+        with self.assertWarnsRegex(DeprecationWarning, 'deprecated arguments'):
+            Solver(dissipator_operators=[self.X], dissipator_signals=[1.])
+
+    def test_deprecated_signals_property(self):
+        """Test deprecation warning raised when setting or getting signals property."""
+
+        solver = Solver(hamiltonian_operators=[self.X])
+
+        with self.assertWarnsRegex(DeprecationWarning, 'signals property is deprecated'):
+            solver.signals = [1.]
+
+        with self.assertWarnsRegex(DeprecationWarning, 'signals property is deprecated'):
+            solver.signals
+
+    def test_copy_deprecated(self):
+        """Test copy method raises deprecation warning."""
+
+        solver = Solver(hamiltonian_operators=[self.X])
+
+        with self.assertWarnsRegex(DeprecationWarning, 'copy method is deprecated'):
+            solver.copy()
+
+
 class TestSolverValidation(QiskitDynamicsTestCase):
     """Test validation for Hamiltonian terms."""
 

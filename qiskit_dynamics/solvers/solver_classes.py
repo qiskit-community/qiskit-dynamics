@@ -238,7 +238,7 @@ class Solver:
     def signals(self) -> SignalList:
         """The signals used in the solver."""
         warnings.warn(
-            """The signals property is deprecated.
+            """The signals property is deprecated and will be removed in the next release.
             Signals should be passed directly to the solve method.""",
             DeprecationWarning,
             stacklevel=2,
@@ -251,7 +251,7 @@ class Solver:
     ):
         """Set signals for the solver, and pass to the model."""
         warnings.warn(
-            """The signals property is deprecated.
+            """The signals property is deprecated and will be removed in the next release.
             Signals should be passed directly to the solve method.""",
             DeprecationWarning,
             stacklevel=2,
@@ -264,10 +264,13 @@ class Solver:
 
     def copy(self) -> "Solver":
         """Return a copy of self."""
-        ##############################################################################################
-        # Deprecate this?
-        # Not really necessary with pure version of solve
-        ##############################################################################################
+        warnings.warn(
+            """The copy method is deprecated and will be removed in the next release.
+            This deprecation is associated with the deprecation of the signals property;
+            the copy method will no longer be needed once the signal property is removed.""",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         return copy(self)
 
