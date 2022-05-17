@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Added support for solvers from the diffrax package: https://github.com/patrick-kidger/diffrax. 
+    A new option is enabled to pass in a solver from diffrax instead of a string for a jax or scipy solver.
