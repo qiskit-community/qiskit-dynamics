@@ -87,7 +87,7 @@ requested, and solve the evolution.
     t_eval = np.linspace(0., t_final, n_steps)
     signals = [Signal(envelope=1., carrier_freq=nu_d)]
 
-    sol = solver.solve(t_span=[0., t_final], y0=y0, signals=signals, t_eval = t_eval)
+    sol = solver.solve(t_span=[0., t_final], y0=y0, signals=signals, t_eval=t_eval)
 
 3. Plot the qubit state
 -----------------------
@@ -189,15 +189,16 @@ seen in the plots below.
     t_final = 5.5 / max(Gamma_1, Gamma_2)
 
     y0 = DensityMatrix.from_label('0')
-    solver = Solver(static_hamiltonian=.5 * 2 * np.pi * nu_z * Z,
-                    hamiltonian_operators=[.5 * 2 * np.pi * nu_x * X],
-                    hamiltonian_signals = [Signal(envelope=1.,
-                                                  carrier_freq=nu_d)],
-                    static_dissipators = [np.sqrt(Gamma_1) * s_p, np.sqrt(Gamma_2) * Z])
+    solver = Solver(
+        static_hamiltonian=.5 * 2 * np.pi * nu_z * Z,
+        hamiltonian_operators=[.5 * 2 * np.pi * nu_x * X],
+        static_dissipators=[np.sqrt(Gamma_1) * s_p, np.sqrt(Gamma_2) * Z]
+    )
 
     n_steps = int(np.ceil(t_final / tau)) + 1
     t_eval = np.linspace(0., t_final, n_steps)
+    signals = [Signal(envelope=1., carrier_freq=nu_d)]
 
-    sol = solver.solve(t_span = [0., t_final], y0 = y0, t_eval = t_eval)
+    sol = solver.solve(t_span=[0., t_final], y0=y0, signals=signals, t_eval=t_eval)
 
     plot_qubit_dynamics(sol, t_eval, X, Y, Z)

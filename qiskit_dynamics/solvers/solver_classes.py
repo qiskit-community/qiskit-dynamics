@@ -46,6 +46,8 @@ from qiskit_dynamics.array import Array
 from .solver_functions import solve_lmde
 from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
 
+from ..type_utils import to_array
+
 
 class Solver:
     """Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
@@ -326,10 +328,11 @@ class Solver:
             ``t_span``, ``y0``, or ``signals`` as a list of valid inputs.
             For this mode of operation, all of these arguments must be either lists of the same
             length, or a single valid input, which will be used repeatedly.
-
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            give examples
         """
+
+        #################################################################################################
+        # give examples
+        #################################################################################################
 
         # hold copy of signals in model for deprecated behavior
         original_signals = self.model.signals
@@ -345,13 +348,13 @@ class Solver:
                 stacklevel=2,
             )
 
-        signals_list, t_span_list, y0_list, multiple_sims = setup_simulation_lists(
+        t_span_list, y0_list, signals_list, multiple_sims = setup_simulation_lists(
             t_span, y0, signals
         )
 
         all_results = []
 
-        for current_signals, current_t_span, current_y0 in zip(signals_list, t_span_list, y0_list):
+        for current_t_span, current_y0, current_signals in zip(t_span_list, y0_list, signals_list):
 
             # convert types
             if isinstance(current_y0, QuantumState) and isinstance(self.model, LindbladModel):
@@ -402,7 +405,6 @@ class Solver:
                 raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
 
             if current_signals is not None:
-
                 # if Lindblad model and signals are given as a list
                 # set as just the Hamiltonian part of the signals
                 if isinstance(self.model, LindbladModel):
@@ -547,7 +549,7 @@ def setup_simulation_lists(
     else:
         multiple_sims = True
 
-    t_span = Array(t_span)
+    t_span = to_array(t_span)
 
     if t_span.ndim > 2:
         raise QiskitError("t_span must be either 1d or 2d.")
@@ -557,7 +559,7 @@ def setup_simulation_lists(
         multiple_sims = True
 
     # consolidate lengths and raise error if incompatible
-    args = [signals, t_span, y0]
+    args = [t_span, y0, signals]
     arg_lens = [len(x) for x in args]
     max_len = max(arg_lens)
     if any(x not in (1, max_len) for x in arg_lens):

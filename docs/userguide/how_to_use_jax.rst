@@ -94,7 +94,7 @@ For convenience, the ``wrap`` function can be used to transform
 inputs and outputs.
 
 .. jupyter-execute::
-    
+
     from qiskit_dynamics.array import wrap
 
     jit = wrap(jax.jit, decorator=True)
@@ -141,15 +141,12 @@ before setting the signals, to ensure the simulation function remains pure.
         amp = Array(amp)
         signals = [Signal(amp, carrier_freq=w)]
 
-        # make copy and set signals
-        solver_copy = solver.copy()
-        solver.signals = signals
-
         # simulate and return results
         # setting user_frame tells solve that states should be specified and returned in the frame
         # of the drift
-        results = solver_copy.solve(
+        results = solver.solve(
             t_span=[0, 3.],
+            signals=signals,
             t_eval=np.linspace(0, 3., 100),
             y0=np.array([0., 1.], dtype=complex),
             method='jax_odeint'
