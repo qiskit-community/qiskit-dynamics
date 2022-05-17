@@ -24,8 +24,7 @@ import warnings
 
 import numpy as np
 
-# pylint: disable=unused-import
-from scipy.integrate._ivp.ivp import OdeResult
+from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import QiskitError
 
@@ -33,10 +32,9 @@ from qiskit.circuit import Gate, QuantumCircuit
 from qiskit.quantum_info.operators.base_operator import BaseOperator
 from qiskit.quantum_info.operators.channel.quantum_channel import QuantumChannel
 from qiskit.quantum_info.states.quantum_state import QuantumState
-from qiskit.quantum_info import SuperOp, Operator, Statevector, DensityMatrix
+from qiskit.quantum_info import SuperOp, Operator, DensityMatrix
 
 from qiskit_dynamics.models import (
-    BaseGeneratorModel,
     HamiltonianModel,
     LindbladModel,
     RotatingFrame,
