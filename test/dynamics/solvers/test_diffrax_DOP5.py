@@ -48,7 +48,9 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
         t_eval = np.array([1.0, 1.5, 1.7])
         y0 = jnp.array([1.0])
 
-        results = diffrax_solver(self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10)
+        results = diffrax_solver(
+            self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10
+        )
 
         self.assertAllClose(t_eval, results.t)
 
@@ -69,7 +71,9 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
         t_eval = np.array([1.7, 1.5, 1.0])
         y0 = jnp.array([1 + 0.5 + (2.0**3 - 1.0**3) / 3])
 
-        results = diffrax_solver(self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10)
+        results = diffrax_solver(
+            self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10
+        )
 
         self.assertAllClose(t_eval, results.t)
 
@@ -90,7 +94,9 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
         t_eval = np.array([1.0, 1.5, 1.7, 2.0])
         y0 = jnp.array([1.0])
 
-        results = diffrax_solver(self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10)
+        results = diffrax_solver(
+            self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10
+        )
 
         self.assertAllClose(t_eval, results.t)
 
@@ -112,7 +118,9 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
         t_eval = np.array([2.0, 1.7, 1.5, 1.0])
         y0 = jnp.array([1 + 0.5 + (2.0**3 - 1.0**3) / 3])
 
-        results = diffrax_solver(self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10)
+        results = diffrax_solver(
+            self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10
+        )
 
         self.assertAllClose(t_eval, results.t)
 
