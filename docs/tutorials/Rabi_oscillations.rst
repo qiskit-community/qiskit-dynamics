@@ -61,9 +61,10 @@ for the trasverse driving term we setup a harmonic signal.
     Z = Operator.from_label('Z')
     s_p = 0.5 * (X + 1j * Y)
 
-    solver = Solver(static_hamiltonian=.5 * 2 * np.pi * nu_z * Z,
-                    hamiltonian_operators = [2 * np.pi * nu_x * X],
-                    hamiltonian_signals = [Signal(envelope=1., carrier_freq=nu_d)])
+    solver = Solver(
+        static_hamiltonian=.5 * 2 * np.pi * nu_z * Z,
+        hamiltonian_operators=[2 * np.pi * nu_x * X],
+    )
 
 2. Solve the system
 -------------------
@@ -84,8 +85,9 @@ requested, and solve the evolution.
 
     n_steps = int(np.ceil(t_final / tau)) + 1
     t_eval = np.linspace(0., t_final, n_steps)
+    signals = [Signal(envelope=1., carrier_freq=nu_d)]
 
-    sol = solver.solve(t_span = [0., t_final], y0 = y0, t_eval = t_eval)
+    sol = solver.solve(t_span=[0., t_final], y0=y0, signals=signals, t_eval = t_eval)
 
 3. Plot the qubit state
 -----------------------

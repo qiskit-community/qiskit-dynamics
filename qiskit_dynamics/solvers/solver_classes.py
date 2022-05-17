@@ -48,10 +48,6 @@ from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_ve
 
 
 class Solver:
-    ###################################################################################################
-    # Update doc!
-    ###################################################################################################
-
     """Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
     level type-handling of input states.
 
@@ -62,24 +58,30 @@ class Solver:
     Transformations on the model can be specified via the optional arguments:
 
     * ``rotating_frame``: Transforms the model into a rotating frame. Note that
-      operator specifying the frame will be substracted from the static_hamiltonian.
+      operator specifying the frame will be substracted from the ``static_hamiltonian``.
       If supplied as a 1d array, ``rotating_frame`` is interpreted as the diagonal
       elements of a diagonal matrix. See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
     * ``in_frame_basis``: Whether to represent the model in the basis in which the frame
       operator is diagonal, henceforth called the "frame basis".
       If ``rotating_frame`` is ``None`` or was supplied as a 1d array,
       this kwarg has no effect. If ``rotating_frame`` was specified as a 2d array,
-      the frame basis is hte diagonalizing basis supplied by ``np.linalg.eigh``.
-      If ``in_frame_basis==True``, calls to ``solve``, this objects behaves as if all
+      the frame basis is the diagonalizing basis supplied by ``np.linalg.eigh``.
+      If ``in_frame_basis==True``, this objects behaves as if all
       operators were supplied in the frame basis: calls to ``solve`` will assume the initial
       state is supplied in the frame basis, and the results will be returned in the frame basis.
       If ``in_frame_basis==False``, the system will still be solved in the frame basis for
       efficiency, however the initial state (and final output states) will automatically be
       transformed into (and, respectively, out of) the frame basis.
-    * ``rwa_cutoff_freq``: Performs a rotating wave approximation (RWA) on the model
-      with cutoff frequency ``rwa_cutoff_freq``. See
-      :func:`~qiskit_dynamics.models.rotating_wave_approximation`
-      for details.
+    * ``rwa_cutoff_freq`` and ``rwa_carrier_freqs``: Performs a rotating wave approximation (RWA)
+      on the model with cutoff frequency ``rwa_cutoff_freq``, assuming the time-dependent
+      coefficients of the model have carrier frequencies specified by ``rwa_carrier_freqs``.
+      If ``dissipator_operators is None``, ``rwa_carrier_freqs`` must be a list of floats
+      of length equal to ``hamiltonian_operators``, and if ``dissipator_operators is not None``,
+      ``rwa_carrier_freqs`` must be a ``tuple`` of lists of floats, with the first entry
+      the list of carrier frequencies for ``hamiltonian_operators``, and the second
+      entry the list of carrier frequencies for ``dissipator_operators``.
+      See :func:`~qiskit_dynamics.models.rotating_wave_approximation` for details on
+      the mathematical approximation.
 
       .. note::
             When using the ``rwa_cutoff_freq`` optional argument,
@@ -266,33 +268,28 @@ class Solver:
 
     def solve(
         self,
-        t_span: Union[Array, List[Array]],
+        t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
         signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
         wrap_results: Optional[bool] = True,
         **kwargs,
     ) -> OdeResult:
-        ##############################################################################################
-        # Update/clean up this doc
-        # Main logic for signals:
-        # - If Hamiltonian model only, a single set of signals is given as a list of signals
-        # - If Lindblad model, if a list of signals is supplied, represents just the Hamiltonian part
-        # - If a Lindbald model, and a tuple of lists, then signals[0] is the Hamiltonian part,
-        #   and signals[1] is the time-dependent dissipator part
-        # Same thing holds for rwa_carrier_freqs
-        ##############################################################################################
-
         r"""Solve the dynamical problem.
 
         Calls :func:`~qiskit_dynamics.solvers.solve_lmde`, and returns an `OdeResult`
         object in the style of `scipy.integrate.solve_ivp`, with results
         formatted to be the same types as the input. See Additional Information
-        for special handling of various input types.
+        for special handling of various input types, and for specifying multiple
+        simulations at once.
 
         Args:
             t_span: Time interval to integrate over.
             y0: Initial state.
             signals: Specification of time-dependent coefficients to simulate.
+                     If ``dissipator_operators is None``, specify as a list of signals for the
+                     Hamiltonian component, otherwise specify as a tuple of two lists, one
+                     for Hamiltonian components, and one for the ``dissipator_operators``
+                     coefficients.
             wrap_results: Whether or not to wrap the result arrays in the same class as y0.
             **kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
 
@@ -318,12 +315,20 @@ class Solver:
                     and ``y0`` a :class:`DensityMatrix`, the full unitary will be simulated,
                     and the evolution of ``y0`` is attained via conjugation.
 
-             * If ``y0`` is a subclass of :class`qiskit.quantum_info.QuantumChannel`, the full
+             * If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumChannel`, the full
                 evolution map will be computed and composed with ``y0``; either the unitary if
                 ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`, or the full
                 Lindbladian ``SuperOp`` if the model is a
                 :class:`~qiskit_dynamics.models.LindbladModel`.
 
+            In addition to the above, this method can be used to specify multiple simulations
+            simultaneously. This can be done by specifying one or more of the arguments
+            ``t_span``, ``y0``, or ``signals`` as a list of valid inputs.
+            For this mode of operation, all of these arguments must be either lists of the same
+            length, or a single valid input, which will be used repeatedly.
+
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            give examples
         """
 
         # hold copy of signals in model for deprecated behavior
@@ -341,7 +346,7 @@ class Solver:
             )
 
         signals_list, t_span_list, y0_list, multiple_sims = setup_simulation_lists(
-            signals, t_span, y0
+            t_span, y0, signals
         )
 
         all_results = []
@@ -421,8 +426,6 @@ class Solver:
         # replace copy of original signals for deprecated behavior
         self.model.signals = original_signals
 
-        # do we want to do this?
-        ##############################################################################################
         if multiple_sims is False:
             return all_results[0]
 
@@ -488,14 +491,33 @@ def format_final_states(y, model, y_input, y0_cls):
     return new_y
 
 
-def setup_simulation_lists(signals, t_span, y0):
-    """Setup args to do a list of simulations.
+def setup_simulation_lists(
+    t_span: Array,
+    y0: Union[Array, QuantumState, BaseOperator],
+    signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]],
+) -> Tuple[List, List, List, bool]:
+    """Helper function for setting up lists of simulations.
 
-    This can probably be done more generally, involving some generic singleton type
-    checking/variable name arguments.
+    Transform input signals, t_span, and y0 into lists of the same length.
+    Arguments are given as either lists of valid specifications, or as a singleton of a valid
+    specification. Singletons are transformed into a list of length one, then all arguments
+    are expanded to be the same length as the longest argument max_len:
+        - If len(arg) == 1, it will be repeated max_len times
+        - if len(arg) == max_len, nothing is done
+        - If len(arg) not in (1, max_len), an error is raised
 
-    ***************************************************************************************************
-    fill this out
+    Args:
+        t_span: Time interval specification.
+        y0: Initial state specification.
+        signals: Signal specification.
+
+    Returns:
+        Tuple: tuple of lists of arguments of the same length, along with a bool specifying whether
+        the arguments specified multiple simulations or not.
+
+    Raises:
+        QiskitError: If the length of each argument is incompatible, or if any singleton
+        is an invalid shape.
     """
 
     multiple_sims = False
