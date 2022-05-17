@@ -53,7 +53,7 @@ class TestSolverDeprecations(QiskitDynamicsTestCase):
             solver.signals = [1.0]
 
         with self.assertWarnsRegex(DeprecationWarning, "signals property is deprecated"):
-            solver.signals
+            solver.signals  # pylint: disable=pointless-statement
 
     def test_copy_deprecated(self):
         """Test copy method raises deprecation warning."""
@@ -69,16 +69,21 @@ class TestSolverDeprecations(QiskitDynamicsTestCase):
         """
 
         with self.assertWarnsRegex(DeprecationWarning, "deprecated arguments"):
-            solver = Solver(hamiltonian_operators=[self.X], hamiltonian_signals=[1.])
+            solver = Solver(hamiltonian_operators=[self.X], hamiltonian_signals=[1.0])
 
         with self.assertWarnsRegex(DeprecationWarning, "No signals specified to solve"):
-            solver.solve(t_span=[0., 0.1], y0=np.array([0., 1.]))
+            solver.solve(t_span=[0.0, 0.1], y0=np.array([0.0, 1.0]))
 
         with self.assertWarnsRegex(DeprecationWarning, "deprecated arguments"):
-            solver = Solver(hamiltonian_operators=[self.X], hamiltonian_signals=[1.], dissipator_operators=[self.X], dissipator_signals=[1.])
+            solver = Solver(
+                hamiltonian_operators=[self.X],
+                hamiltonian_signals=[1.0],
+                dissipator_operators=[self.X],
+                dissipator_signals=[1.0],
+            )
 
         with self.assertWarnsRegex(DeprecationWarning, "No signals specified to solve"):
-            solver.solve(t_span=[0., 0.1], y0=np.array([[0., 0.],[0., 1.]]))
+            solver.solve(t_span=[0.0, 0.1], y0=np.array([[0.0, 0.0], [0.0, 1.0]]))
 
 
 class TestSolverValidation(QiskitDynamicsTestCase):
@@ -142,12 +147,12 @@ class TestSolverExceptions(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
             self.ham_solver.solve(t_span=[0.0, 1.0], y0=np.array([1.0, 0.0, 0.0]), signals=[1.0])
 
-        with self.assertRaisesRegex(QiskitError, "Shape mismatch") as qe:
+        with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
             self.ham_solver.solve(
                 t_span=[0.0, 1.0], y0=np.array([[[1.0, 0.0, 0.0]]]), signals=[1.0]
             )
 
-        with self.assertRaisesRegex(QiskitError, "Shape mismatch") as qe:
+        with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
             self.ham_solver.solve(
                 t_span=[0.0, 1.0], y0=Statevector(np.array([1.0, 0.0, 0.0])), signals=[1.0]
             )
@@ -235,9 +240,9 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
             rotating_frame=5 * self.Z,
         )
 
-        y0 = np.array([0., 1.])
-        t_span = [0., 1.42]
-        signals = [Signal(3.)]
+        y0 = np.array([0.0, 1.0])
+        t_span = [0.0, 1.42]
+        signals = [Signal(3.0)]
 
         res1 = ham_solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -256,9 +261,9 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
             rotating_frame=5 * self.Z,
         )
 
-        y0 = np.array([[0., 1.], [0., 1.]])
-        t_span = [0., 1.42]
-        signals = [Signal(3.)]
+        y0 = np.array([[0.0, 1.0], [0.0, 1.0]])
+        t_span = [0.0, 1.42]
+        signals = [Signal(3.0)]
 
         res1 = lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -278,9 +283,9 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
             rotating_frame=5 * self.Z,
         )
 
-        y0 = np.array([[0., 1.], [0., 1.]])
-        t_span = [0., 1.42]
-        signals = ([Signal(3.)], [Signal(2.)])
+        y0 = np.array([[0.0, 1.0], [0.0, 1.0]])
+        t_span = [0.0, 1.42]
+        signals = ([Signal(3.0)], [Signal(2.0)])
 
         res1 = td_lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -296,18 +301,18 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
             hamiltonian_operators=[self.X],
             static_hamiltonian=5 * self.Z,
             rotating_frame=5 * self.Z,
-            rwa_cutoff_freq=5.,
-            rwa_carrier_freqs=[5.]
+            rwa_cutoff_freq=5.0,
+            rwa_carrier_freqs=[5.0],
         )
 
-        y0 = np.array([0., 1.])
-        t_span = [0., 1.]
-        signals = [Signal(1., carrier_freq=5.)]
+        y0 = np.array([0.0, 1.0])
+        t_span = [0.0, 1.0]
+        signals = [Signal(1.0, carrier_freq=5.0)]
 
         res1 = rwa_ham_solver.solve(t_span=t_span, y0=y0, signals=signals)
 
         self.ham_model.signals = signals
-        rwa_ham_model = rotating_wave_approximation(self.ham_model, cutoff_freq=5.)
+        rwa_ham_model = rotating_wave_approximation(self.ham_model, cutoff_freq=5.0)
         res2 = solve_lmde(generator=rwa_ham_model, t_span=t_span, y0=y0)
 
         self.assertAllClose(res1.y, res2.y)
@@ -322,18 +327,18 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
             static_dissipators=[0.01 * self.X],
             static_hamiltonian=5 * self.Z,
             rotating_frame=5 * self.Z,
-            rwa_cutoff_freq=5.,
-            rwa_carrier_freqs=[5.]
+            rwa_cutoff_freq=5.0,
+            rwa_carrier_freqs=[5.0],
         )
 
-        y0 = np.array([[0., 0.], [0., 1.]])
-        t_span = [0., 1.]
-        signals = [Signal(1., carrier_freq=5.)]
+        y0 = np.array([[0.0, 0.0], [0.0, 1.0]])
+        t_span = [0.0, 1.0]
+        signals = [Signal(1.0, carrier_freq=5.0)]
 
         res1 = rwa_lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
 
         self.lindblad_model.signals = (signals, None)
-        rwa_lindblad_model = rotating_wave_approximation(self.lindblad_model, cutoff_freq=5.)
+        rwa_lindblad_model = rotating_wave_approximation(self.lindblad_model, cutoff_freq=5.0)
         res2 = solve_lmde(generator=rwa_lindblad_model, t_span=t_span, y0=y0)
 
         self.assertAllClose(res1.y, res2.y)
@@ -349,18 +354,18 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
             dissipator_operators=[0.01 * self.X],
             static_hamiltonian=5 * self.Z,
             rotating_frame=5 * self.Z,
-            rwa_cutoff_freq=5.,
-            rwa_carrier_freqs=([5.], [5.])
+            rwa_cutoff_freq=5.0,
+            rwa_carrier_freqs=([5.0], [5.0]),
         )
 
-        y0 = np.array([[0., 0.], [0., 1.]])
-        t_span = [0., 1.]
-        signals = ([Signal(1., carrier_freq=5.)], [Signal(1., carrier_freq=5.)])
+        y0 = np.array([[0.0, 0.0], [0.0, 1.0]])
+        t_span = [0.0, 1.0]
+        signals = ([Signal(1.0, carrier_freq=5.0)], [Signal(1.0, carrier_freq=5.0)])
 
         res1 = rwa_td_lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
 
         self.td_lindblad_model.signals = signals
-        rwa_td_lindblad_model = rotating_wave_approximation(self.td_lindblad_model, cutoff_freq=5.)
+        rwa_td_lindblad_model = rotating_wave_approximation(self.td_lindblad_model, cutoff_freq=5.0)
         res2 = solve_lmde(generator=rwa_td_lindblad_model, t_span=t_span, y0=y0)
 
         self.assertAllClose(res1.y, res2.y)
@@ -636,6 +641,7 @@ class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
         jit_grad_func = self.jit_grad_wrap(func)
         jit_grad_func(1.0)
 
+
 @ddt
 class TestSolverListSimulation(QiskitDynamicsTestCase):
     """Test cases for Solver class using list simulation."""
@@ -669,10 +675,7 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
         )
 
     @unpack
-    @data(
-        ('ham_solver',),
-        ('lindblad_solver',)
-    )
+    @data(("ham_solver",), ("lindblad_solver",))
     def test_list_hamiltonian_sim_case1(self, model):
         """Test doing lists of simulations for a solvers whose time dependence only
         comes from the Hamiltonian part.
@@ -680,9 +683,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = getattr(self, model)
 
-        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
-        t_span = [0., 0.4232]
-        signals = [Signal(1., 5.)]
+        y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
+        t_span = [0.0, 0.4232]
+        signals = [Signal(1.0, 5.0)]
 
         results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -693,10 +696,7 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
         self.assertAllClose(results[1].y[-1], res1.y[-1])
 
     @unpack
-    @data(
-        ('ham_solver',),
-        ('lindblad_solver',)
-    )
+    @data(("ham_solver",), ("lindblad_solver",))
     def test_list_hamiltonian_sim_case2(self, model):
         """Test doing lists of simulations for a solvers whose time dependence only
         comes from the Hamiltonian part.
@@ -704,9 +704,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = getattr(self, model)
 
-        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
-        t_span = [0., 0.4232]
-        signals = [[Signal(1., 5.)], [Signal(0.5, 5.)]]
+        y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
+        t_span = [0.0, 0.4232]
+        signals = [[Signal(1.0, 5.0)], [Signal(0.5, 5.0)]]
 
         results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -717,10 +717,7 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
         self.assertAllClose(results[1].y[-1], res1.y[-1])
 
     @unpack
-    @data(
-        ('ham_solver',),
-        ('lindblad_solver',)
-    )
+    @data(("ham_solver",), ("lindblad_solver",))
     def test_list_hamiltonian_sim_case3(self, model):
         """Test doing lists of simulations for a solvers whose time dependence only
         comes from the Hamiltonian part.
@@ -728,9 +725,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = getattr(self, model)
 
-        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
-        t_span = [[0., 0.4232], [0., 1.23]]
-        signals = [Signal(1., 5.)]
+        y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
+        t_span = [[0.0, 0.4232], [0.0, 1.23]]
+        signals = [Signal(1.0, 5.0)]
 
         results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -741,10 +738,7 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
         self.assertAllClose(results[1].y[-1], res1.y[-1])
 
     @unpack
-    @data(
-        ('ham_solver',),
-        ('lindblad_solver',)
-    )
+    @data(("ham_solver",), ("lindblad_solver",))
     def test_list_hamiltonian_sim_case4(self, model):
         """Test doing lists of simulations for a solvers whose time dependence only
         comes from the Hamiltonian part.
@@ -752,9 +746,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = getattr(self, model)
 
-        y0 = Statevector([0., 1.])
-        t_span = [0., 0.4232]
-        signals = [[Signal(1., 5.)], [Signal(0.5, 5.)]]
+        y0 = Statevector([0.0, 1.0])
+        t_span = [0.0, 0.4232]
+        signals = [[Signal(1.0, 5.0)], [Signal(0.5, 5.0)]]
 
         results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -769,9 +763,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = self.td_lindblad_solver
 
-        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
-        t_span = [0., 0.4232]
-        signals = ([Signal(1., 5.)], [1.])
+        y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
+        t_span = [0.0, 0.4232]
+        signals = ([Signal(1.0, 5.0)], [1.0])
 
         results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -786,9 +780,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = self.td_lindblad_solver
 
-        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
-        t_span = [0., 0.4232]
-        signals = [([Signal(1., 5.)], [1.]), ([Signal(0.5, 5.)], [2.])]
+        y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
+        t_span = [0.0, 0.4232]
+        signals = [([Signal(1.0, 5.0)], [1.0]), ([Signal(0.5, 5.0)], [2.0])]
 
         results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -803,9 +797,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = self.td_lindblad_solver
 
-        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
-        t_span = [[0., 0.4232], [0., 1.23]]
-        signals = ([Signal(1., 5.)], [1.])
+        y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
+        t_span = [[0.0, 0.4232], [0.0, 1.23]]
+        signals = ([Signal(1.0, 5.0)], [1.0])
 
         results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
@@ -820,9 +814,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = self.td_lindblad_solver
 
-        y0 = Statevector([0., 1.])
-        t_span = [0., 0.4232]
-        signals = [([Signal(1., 5.)], [1.]), ([Signal(0.5, 5.)], [2.])]
+        y0 = Statevector([0.0, 1.0])
+        t_span = [0.0, 0.4232]
+        signals = [([Signal(1.0, 5.0)], [1.0]), ([Signal(0.5, 5.0)], [2.0])]
 
         results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
