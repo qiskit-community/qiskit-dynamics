@@ -20,8 +20,8 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
 
-from qiskit_dynamics import Solver
-from qiskit_dynamics.signals import Signal
+from qiskit_dynamics import Solver, Signal, solve_lmde
+from qiskit_dynamics.models import HamiltonianModel, LindbladModel, rotating_wave_approximation
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 
@@ -37,21 +37,21 @@ class TestSolverDeprecations(QiskitDynamicsTestCase):
     def test_deprecated_signals_at_construction(self):
         """Test deprecation warning raised when signals passed to constructor."""
 
-        with self.assertWarnsRegex(DeprecationWarning, 'deprecated arguments'):
-            Solver(hamiltonian_operators=[self.X], hamiltonian_signals=[1.])
+        with self.assertWarnsRegex(DeprecationWarning, "deprecated arguments"):
+            Solver(hamiltonian_operators=[self.X], hamiltonian_signals=[1.0])
 
-        with self.assertWarnsRegex(DeprecationWarning, 'deprecated arguments'):
-            Solver(dissipator_operators=[self.X], dissipator_signals=[1.])
+        with self.assertWarnsRegex(DeprecationWarning, "deprecated arguments"):
+            Solver(dissipator_operators=[self.X], dissipator_signals=[1.0])
 
     def test_deprecated_signals_property(self):
         """Test deprecation warning raised when setting or getting signals property."""
 
         solver = Solver(hamiltonian_operators=[self.X])
 
-        with self.assertWarnsRegex(DeprecationWarning, 'signals property is deprecated'):
-            solver.signals = [1.]
+        with self.assertWarnsRegex(DeprecationWarning, "signals property is deprecated"):
+            solver.signals = [1.0]
 
-        with self.assertWarnsRegex(DeprecationWarning, 'signals property is deprecated'):
+        with self.assertWarnsRegex(DeprecationWarning, "signals property is deprecated"):
             solver.signals
 
     def test_copy_deprecated(self):
@@ -59,7 +59,7 @@ class TestSolverDeprecations(QiskitDynamicsTestCase):
 
         solver = Solver(hamiltonian_operators=[self.X])
 
-        with self.assertWarnsRegex(DeprecationWarning, 'copy method is deprecated'):
+        with self.assertWarnsRegex(DeprecationWarning, "copy method is deprecated"):
             solver.copy()
 
 
@@ -110,9 +110,7 @@ class TestSolverExceptions(QiskitDynamicsTestCase):
         X = Operator.from_label("X")
         self.ham_solver = Solver(hamiltonian_operators=[X])
 
-        self.lindblad_solver = Solver(
-            hamiltonian_operators=[X], static_dissipators=[X]
-        )
+        self.lindblad_solver = Solver(hamiltonian_operators=[X], static_dissipators=[X])
 
         self.vec_lindblad_solver = Solver(
             hamiltonian_operators=[X],
@@ -124,47 +122,207 @@ class TestSolverExceptions(QiskitDynamicsTestCase):
         """Test error raising if invalid shape for Hamiltonian model."""
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
-            self.ham_solver.solve(t_span=[0.0, 1.0], y0=np.array([1.0, 0.0, 0.0]), signals=[1.])
+            self.ham_solver.solve(t_span=[0.0, 1.0], y0=np.array([1.0, 0.0, 0.0]), signals=[1.0])
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch") as qe:
-            self.ham_solver.solve(t_span=[0.0, 1.0], y0=np.array([[[1.0, 0.0, 0.0]]]), signals=[1.])
+            self.ham_solver.solve(
+                t_span=[0.0, 1.0], y0=np.array([[[1.0, 0.0, 0.0]]]), signals=[1.0]
+            )
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch") as qe:
-            self.ham_solver.solve(t_span=[0.0, 1.0], y0=Statevector(np.array([1.0, 0.0, 0.0])), signals=[1.])
+            self.ham_solver.solve(
+                t_span=[0.0, 1.0], y0=Statevector(np.array([1.0, 0.0, 0.0])), signals=[1.0]
+            )
 
     def test_lindblad_shape_error(self):
         """Test error raising if invalid shape for Lindblad model."""
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
-            self.lindblad_solver.solve(t_span=[0.0, 1.0], y0=np.array([1.0, 0.0, 0.0]), signals=[1.])
+            self.lindblad_solver.solve(
+                t_span=[0.0, 1.0], y0=np.array([1.0, 0.0, 0.0]), signals=[1.0]
+            )
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
-            self.lindblad_solver.solve(t_span=[0.0, 1.0], y0=np.array([[[1.0, 0.0, 0.0]]]), signals=[1.])
+            self.lindblad_solver.solve(
+                t_span=[0.0, 1.0], y0=np.array([[[1.0, 0.0, 0.0]]]), signals=[1.0]
+            )
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
-            self.lindblad_solver.solve(t_span=[0.0, 1.0], y0=Statevector(np.array([1.0, 0.0, 0.0])), signals=[1.])
+            self.lindblad_solver.solve(
+                t_span=[0.0, 1.0], y0=Statevector(np.array([1.0, 0.0, 0.0])), signals=[1.0]
+            )
 
     def test_vectorized_lindblad_shape_error(self):
         """Test error raising if invalid shape for vectorized Lindblad model."""
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
-            self.vec_lindblad_solver.solve(t_span=[0.0, 1.0], y0=np.array([[1.0, 0.0], [0.0, 1.0]]), signals=[1.])
+            self.vec_lindblad_solver.solve(
+                t_span=[0.0, 1.0], y0=np.array([[1.0, 0.0], [0.0, 1.0]]), signals=[1.0]
+            )
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
-            self.vec_lindblad_solver.solve(t_span=[0.0, 1.0], y0=DensityMatrix(np.array([1.0, 0.0, 0.0])), signals=[1.])
+            self.vec_lindblad_solver.solve(
+                t_span=[0.0, 1.0], y0=DensityMatrix(np.array([1.0, 0.0, 0.0])), signals=[1.0]
+            )
 
         with self.assertRaisesRegex(QiskitError, "Shape mismatch"):
-            self.vec_lindblad_solver.solve(t_span=[0.0, 1.0], y0=Statevector(np.array([1.0, 0.0, 0.0])), signals=[1.])
+            self.vec_lindblad_solver.solve(
+                t_span=[0.0, 1.0], y0=Statevector(np.array([1.0, 0.0, 0.0])), signals=[1.0]
+            )
 
     def test_non_vectorized_SuperOp_error(self):
         """Test SuperOp simulation attempt for non-vectorized Lindblad model."""
 
         with self.assertRaisesRegex(QiskitError, "Simulating SuperOp"):
-            self.lindblad_solver.solve(t_span=[0.0, 1.0], y0=SuperOp(np.eye(4)), signals=[1.])
+            self.lindblad_solver.solve(t_span=[0.0, 1.0], y0=SuperOp(np.eye(4)), signals=[1.0])
 
 
-class TestSolver(QiskitDynamicsTestCase):
-    """Tests for Solver class."""
+class TestSolverSignalHandling(QiskitDynamicsTestCase):
+    """Test correct handling of signals arguments to solve."""
+
+    def setUp(self):
+        """Set up some simple models."""
+        X = 2 * np.pi * Operator.from_label("X") / 2
+        Z = 2 * np.pi * Operator.from_label("Z") / 2
+        self.X = X
+        self.Z = Z
+
+        self.ham_model = HamiltonianModel(
+            operators=[X],
+            static_operator=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
+        self.lindblad_model = LindbladModel(
+            hamiltonian_operators=[X],
+            static_dissipators=[0.01 * X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
+        self.td_lindblad_model = LindbladModel(
+            hamiltonian_operators=[X],
+            static_dissipators=[0.01 * X],
+            dissipator_operators=[0.01 * X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
+    def test_hamiltonian_model(self):
+        """Test for solver with only Hamiltonian information."""
+
+        ham_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+        )
+
+        y0 = np.array([0., 1.])
+        t_span = [0., 1.42]
+        signals = [Signal(3.)]
+
+        res1 = ham_solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        self.ham_model.signals = signals
+        res2 = solve_lmde(generator=self.ham_model, t_span=t_span, y0=y0)
+
+        self.assertAllClose(res1.y, res2.y)
+
+    def test_lindblad_model(self):
+        """Test for solver with only static lindblad information."""
+
+        lindblad_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_dissipators=[0.01 * self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+        )
+
+        y0 = np.array([[0., 1.], [0., 1.]])
+        t_span = [0., 1.42]
+        signals = [Signal(3.)]
+
+        res1 = lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        self.lindblad_model.signals = (signals, None)
+        res2 = solve_lmde(generator=self.lindblad_model, t_span=t_span, y0=y0)
+
+        self.assertAllClose(res1.y, res2.y)
+
+    def test_td_lindblad_model(self):
+        """Test for solver with time-dependent lindblad information."""
+
+        td_lindblad_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_dissipators=[0.01 * self.X],
+            dissipator_operators=[0.01 * self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+        )
+
+        y0 = np.array([[0., 1.], [0., 1.]])
+        t_span = [0., 1.42]
+        signals = ([Signal(3.)], [Signal(2.)])
+
+        res1 = td_lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        self.td_lindblad_model.signals = signals
+        res2 = solve_lmde(generator=self.td_lindblad_model, t_span=t_span, y0=y0)
+
+        self.assertAllClose(res1.y, res2.y)
+
+    def test_rwa_ham_model(self):
+        """Test correct handling of RWA for a Hamiltonian model."""
+
+        rwa_ham_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+            rwa_cutoff_freq=5.,
+            rwa_carrier_freqs=[5.]
+        )
+
+        y0 = np.array([0., 1.])
+        t_span = [0., 1.]
+        signals = [Signal(1., carrier_freq=5.)]
+
+        res1 = rwa_ham_solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        self.ham_model.signals = signals
+        rwa_ham_model = rotating_wave_approximation(self.ham_model, cutoff_freq=5.)
+        res2 = solve_lmde(generator=rwa_ham_model, t_span=t_span, y0=y0)
+
+        self.assertAllClose(res1.y, res2.y)
+
+    def test_rwa_lindblad_model(self):
+        """Test correct handling of RWA for Lindblad model without
+        time-dependent dissipator terms.
+        """
+
+        rwa_lindblad_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_dissipators=[0.01 * self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+            rwa_cutoff_freq=5.,
+            rwa_carrier_freqs=[5.]
+        )
+
+        y0 = np.array([[0., 0.], [0., 1.]])
+        t_span = [0., 1.]
+        signals = [Signal(1., carrier_freq=5.)]
+
+        res1 = rwa_lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        self.lindblad_model.signals = (signals, None)
+        rwa_lindblad_model = rotating_wave_approximation(self.lindblad_model, cutoff_freq=5.)
+        res2 = solve_lmde(generator=rwa_lindblad_model, t_span=t_span, y0=y0)
+
+        self.assertAllClose(res1.y, res2.y)
+
+
+class TestSolverSimulation(QiskitDynamicsTestCase):
+    """Test cases for correct simulation for Solver class."""
 
     def setUp(self):
         """Set up some simple models."""
@@ -183,7 +341,7 @@ class TestSolver(QiskitDynamicsTestCase):
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
             rwa_cutoff_freq=2 * 5.0,
-            rwa_carrier_freqs=[5.]
+            rwa_carrier_freqs=[5.0],
         )
 
         self.lindblad_solver = Solver(
@@ -249,7 +407,10 @@ class TestSolver(QiskitDynamicsTestCase):
         """Test correct conversion of Statevector to DensityMatrix."""
 
         results = self.lindblad_solver.solve(
-            t_span=[0.0, 1.0], y0=Statevector([0.0, 1.0]), signals=[Signal(1.0, 5.0)], method=self.method
+            t_span=[0.0, 1.0],
+            y0=Statevector([0.0, 1.0]),
+            signals=[Signal(1.0, 5.0)],
+            method=self.method,
         )
         self.assertTrue(isinstance(results.y[-1], DensityMatrix))
         self.assertTrue(results.y[-1].data[0, 0] > 0.99 and results.y[-1].data[0, 0] < 0.999)
@@ -258,10 +419,16 @@ class TestSolver(QiskitDynamicsTestCase):
         """Test correct conversion of Statevector to DensityMatrix and vectorized solving."""
 
         results = self.vec_lindblad_solver.solve(
-            t_span=[0.0, 1.0], y0=Statevector([0.0, 1.0]), signals=[Signal(1.0, 5.0)], method=self.method
+            t_span=[0.0, 1.0],
+            y0=Statevector([0.0, 1.0]),
+            signals=[Signal(1.0, 5.0)],
+            method=self.method,
         )
         results2 = self.lindblad_solver.solve(
-            t_span=[0.0, 1.0], y0=Statevector([0.0, 1.0]), signals=[Signal(1.0, 5.0)], method=self.method
+            t_span=[0.0, 1.0],
+            y0=Statevector([0.0, 1.0]),
+            signals=[Signal(1.0, 5.0)],
+            method=self.method,
         )
         self.assertTrue(isinstance(results.y[-1], DensityMatrix))
         self.assertAllClose(results.y[-1].data, results2.y[-1].data)
@@ -280,7 +447,12 @@ class TestSolver(QiskitDynamicsTestCase):
     def test_rwa_hamiltonian(self):
         """Test perfect inversion for pi pulse with RWA."""
         results = self.rwa_ham_solver.solve(
-            t_span=[0.0, 1.0], y0=np.array([0.0, 1.0]), signals=[Signal(1.0, 5.0)], atol=1e-10, rtol=1e-10, method=self.method
+            t_span=[0.0, 1.0],
+            y0=np.array([0.0, 1.0]),
+            signals=[Signal(1.0, 5.0)],
+            atol=1e-10,
+            rtol=1e-10,
+            method=self.method,
         )
         self.assertTrue(np.abs(results.y[-1][0]) > (1 - 1e-8))
 
@@ -300,7 +472,12 @@ class TestSolver(QiskitDynamicsTestCase):
     def test_hamiltonian_SuperOp(self):
         """Test Hamiltonian-based SuperOp simulation."""
         results = self.rwa_ham_solver.solve(
-            t_span=[0.0, 1.0], y0=SuperOp(np.eye(4)), signals=[Signal(1.0, 5.0)], atol=1e-10, rtol=1e-10, method=self.method
+            t_span=[0.0, 1.0],
+            y0=SuperOp(np.eye(4)),
+            signals=[Signal(1.0, 5.0)],
+            atol=1e-10,
+            rtol=1e-10,
+            method=self.method,
         )
         self.assertTrue(isinstance(results.y[-1], SuperOp))
         X = np.array([[0.0, 1.0], [1.0, 0.0]])
@@ -309,10 +486,19 @@ class TestSolver(QiskitDynamicsTestCase):
     def test_hamiltonian_lindblad_SuperOp_consistency(self):
         """Test Hamiltonian-based SuperOp simulation."""
         results = self.ham_solver.solve(
-            t_span=[0.0, 0.432], y0=SuperOp(np.eye(4)), signals=[Signal(1.0, 5.0)], atol=1e-10, rtol=1e-10, method=self.method
+            t_span=[0.0, 0.432],
+            y0=SuperOp(np.eye(4)),
+            signals=[Signal(1.0, 5.0)],
+            atol=1e-10,
+            rtol=1e-10,
+            method=self.method,
         )
         results2 = self.vec_lindblad_solver_no_diss.solve(
-            t_span=[0.0, 0.432], y0=SuperOp(np.eye(4)), signals=[Signal(1.0, 5.0)], atol=1e-10, rtol=1e-10
+            t_span=[0.0, 0.432],
+            y0=SuperOp(np.eye(4)),
+            signals=[Signal(1.0, 5.0)],
+            atol=1e-10,
+            rtol=1e-10,
         )
         self.assertAllClose(results.y[-1].data, results2.y[-1].data)
 
@@ -327,13 +513,18 @@ class TestSolver(QiskitDynamicsTestCase):
             rotating_frame=5 * self.Z,
         )
 
-        results = lindblad_solver2.solve(t_span=[0.0, 1.0], y0=Statevector([0.0, 1.0]), signals=([Signal(1.0, 5.0)], [0.01**2]), method=self.method)
+        results = lindblad_solver2.solve(
+            t_span=[0.0, 1.0],
+            y0=Statevector([0.0, 1.0]),
+            signals=([Signal(1.0, 5.0)], [0.01**2]),
+            method=self.method,
+        )
         self.assertTrue(isinstance(results.y[-1], DensityMatrix))
         self.assertTrue(results.y[-1].data[0, 0] > 0.99 and results.y[-1].data[0, 0] < 0.999)
 
 
-class TestSolverJax(TestSolver, TestJaxBase):
-    """JAX version of TestSolver."""
+class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
+    """JAX version of TestSolverSimulation."""
 
     def setUp(self):
         """Set method to 'jax_odeint' to speed up running of jax version of tests."""
@@ -353,9 +544,12 @@ class TestSolverJax(TestSolver, TestJaxBase):
                 rotating_frame=5 * Z,
                 validate=False,
             )
-            yf = solver.solve(t_span=np.array([0.0, 0.1]), y0=np.array([0.0, 1.0]), signals=[Signal(Array(a), 5.0)], method=self.method).y[
-                -1
-            ]
+            yf = solver.solve(
+                t_span=np.array([0.0, 0.1]),
+                y0=np.array([0.0, 1.0]),
+                signals=[Signal(Array(a), 5.0)],
+                method=self.method,
+            ).y[-1]
             return yf
 
         jit_func = self.jit_wrap(func)
@@ -369,7 +563,10 @@ class TestSolverJax(TestSolver, TestJaxBase):
 
         def func(a):
             yf = self.ham_solver.solve(
-                t_span=np.array([0.0, 1.0]), y0=np.array([0.0, 1.0]), signals=[Signal(lambda t: a, 5.0)], method=self.method
+                t_span=np.array([0.0, 1.0]),
+                y0=np.array([0.0, 1.0]),
+                signals=[Signal(lambda t: a, 5.0)],
+                method=self.method,
             ).y[-1]
             return yf
 
@@ -380,13 +577,14 @@ class TestSolverJax(TestSolver, TestJaxBase):
         """Test jitting setting signals and solving."""
 
         X = Operator.from_label("X")
-        solver = Solver(
-            hamiltonian_operators=[X], dissipator_operators=[X]
-        )
+        solver = Solver(hamiltonian_operators=[X], dissipator_operators=[X])
 
         def func(a):
             yf = solver.solve(
-                t_span=[0.0, 1.0], y0=np.array([[0.0, 1.0], [0.0, 1.0]], dtype=complex), signals = [[Signal(lambda t: a, 5.0)], [1.0]], method=self.method
+                t_span=[0.0, 1.0],
+                y0=np.array([[0.0, 1.0], [0.0, 1.0]], dtype=complex),
+                signals=([Signal(lambda t: a, 5.0)], [1.0]),
+                method=self.method,
             ).y[-1]
             return yf
 

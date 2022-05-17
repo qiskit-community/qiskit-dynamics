@@ -55,6 +55,7 @@ try:
 except ImportError:
     pass
 
+
 class Solver:
     ###################################################################################################
     # Update doc!
@@ -153,6 +154,11 @@ class Solver:
             rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
                              approximation is made.
             rwa_carrier_freqs: Carrier frequencies to use for rotating wave approximation.
+                               If no time dependent coefficients in model leave as ``None``,
+                               if no time-dependent dissipators specify as a list of frequencies
+                               for each Hamiltonian operator, and if time-dependent dissipators
+                               present specify as a tuple of lists of frequencies, one for
+                               Hamiltonian operators and one for dissipators.
             validate: Whether or not to validate Hamiltonian operators as being Hermitian.
         """
 
@@ -162,7 +168,7 @@ class Solver:
                 and will be removed in a subsequent release.
                 Signals should be passed directly to the solve method.""",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
         model = None
@@ -192,10 +198,6 @@ class Solver:
             )
             self._signals = (hamiltonian_signals, dissipator_signals)
 
-        ###############################################################################################
-        # fix this to use new argument!
-        ##################################################################################################
-
         self._rwa_signal_map = None
         if rwa_cutoff_freq is not None:
 
@@ -210,14 +212,18 @@ class Solver:
                     rwa_ham_sigs = None
                     rwa_lindblad_sigs = None
                     if rwa_carrier_freqs[0]:
-                        rwa_ham_sigs = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs[0]]
+                        rwa_ham_sigs = [
+                            Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs[0]
+                        ]
                     if rwa_carrier_freqs[1]:
-                        rwa_lindblad_sigs = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs[1]]
+                        rwa_lindblad_sigs = [
+                            Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs[1]
+                        ]
 
                     model.signals = (rwa_ham_sigs, rwa_lindblad_sigs)
 
                 else:
-                    model.signals = [Signal(1., carrier_freq=freq) for freq in rwa_carrier_freqs]
+                    model.signals = [Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs]
 
             model, rwa_signal_map = rotating_wave_approximation(
                 model, rwa_cutoff_freq, return_signal_map=True
@@ -280,12 +286,16 @@ class Solver:
         y0: Union[Array, QuantumState, BaseOperator],
         signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
         wrap_results: Optional[bool] = True,
-        **kwargs
+        **kwargs,
     ) -> OdeResult:
         ##############################################################################################
-        # Update this doc
-        # should signals be a single argument combining hamiltonian/dissipator signals, or should
-        # we break these into two separate kwargs?
+        # Update/clean up this doc
+        # Main logic for signals:
+        # - If Hamiltonian model only, a single set of signals is given as a list of signals
+        # - If Lindblad model, if a list of signals is supplied, represents just the Hamiltonian part
+        # - If a Lindbald model, and a tuple of lists, then signals[0] is the Hamiltonian part,
+        #   and signals[1] is the time-dependent dissipator part
+        # Same thing holds for rwa_carrier_freqs
         ##############################################################################################
 
         r"""Solve the dynamical problem.
@@ -300,7 +310,6 @@ class Solver:
             y0: Initial state.
             signals: Specification of time-dependent coefficients to simulate.
             wrap_results: Whether or not to wrap the result arrays in the same class as y0.
-            control_flow: Whether to use standard python or other loops.
             **kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
 
         Returns:
@@ -333,16 +342,15 @@ class Solver:
 
         """
 
-
-        signals_list, t_span_list, y0_list, multiple_sims = setup_simulation_lists(signals, t_span, y0)
+        signals_list, t_span_list, y0_list, multiple_sims = setup_simulation_lists(
+            signals, t_span, y0
+        )
 
         # hold copy of signals in model for deprecated behavior
         original_signals = self.model.signals
 
         all_results = []
-        ##################################################################################################
-        # for now assume Hamiltonian, can handle lindblad properly later
-        #################################################################################################
+
         for signals, t_span, y0 in zip(signals_list, t_span_list, y0_list):
 
             # convert types
@@ -392,6 +400,13 @@ class Solver:
                 raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
 
             if signals is not None:
+
+                # if Lindblad model and signals are given as a list
+                # set as just the Hamiltonian part of the signals
+                if isinstance(self.model, LindbladModel):
+                    if isinstance(signals, (list, SignalList)):
+                        signals = (signals, None)
+
                 if self._rwa_signal_map:
                     signals = self._rwa_signal_map(signals)
                 self.model.signals = signals
@@ -403,7 +418,6 @@ class Solver:
                 results.y = [state_type_wrapper(yi) for yi in results.y]
 
             all_results.append(results)
-
 
         # replace copy of original signals for deprecated behavior
         self.model.signals = original_signals
@@ -491,16 +505,18 @@ def setup_simulation_lists(signals, t_span, y0):
         # for deprecated behavior
         signals = [signals]
     elif isinstance(signals, tuple):
-        # single Lindblad simulation
+        # single Lindblad
         signals = [signals]
     elif isinstance(signals, list) and isinstance(signals[0], tuple):
-        # multiple lindblad simulation
+        # multiple lindblad
         multiple_sims = True
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
-        # multiple Hamiltonian simulation
+        # multiple Hamiltonian signals lists
         multiple_sims = True
-    elif isinstance(signals, SignalList) or (isinstance(signals, list) and not isinstance(signals[0], (list, SignalList))):
-        # single round of Hamiltonian simulation
+    elif isinstance(signals, SignalList) or (
+        isinstance(signals, list) and not isinstance(signals[0], (list, SignalList))
+    ):
+        # single Hamiltonian signals list
         signals = [signals]
     else:
         raise QiskitError("Signals specified in invalid format.")
@@ -509,7 +525,6 @@ def setup_simulation_lists(signals, t_span, y0):
         y0 = [y0]
     else:
         multiple_sims = True
-
 
     t_span = Array(t_span)
 
