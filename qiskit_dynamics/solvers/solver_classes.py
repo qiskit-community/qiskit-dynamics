@@ -204,10 +204,6 @@ class Solver:
             original_signals = model.signals
 
             if rwa_carrier_freqs:
-                #######################################################################################
-                # Coudl validate here based on model type as well
-                #######################################################################################
-
                 if isinstance(rwa_carrier_freqs, tuple):
                     rwa_ham_sigs = None
                     rwa_lindblad_sigs = None
@@ -221,9 +217,13 @@ class Solver:
                         ]
 
                     model.signals = (rwa_ham_sigs, rwa_lindblad_sigs)
-
                 else:
-                    model.signals = [Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs]
+                    rwa_sigs = [Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs]
+
+                    if isinstance(model, LindbladModel):
+                        rwa_sigs = (rwa_sigs, None)
+
+                    model.signals = rwa_sigs
 
             model, rwa_signal_map = rotating_wave_approximation(
                 model, rwa_cutoff_freq, return_signal_map=True

@@ -320,6 +320,33 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
 
         self.assertAllClose(res1.y, res2.y)
 
+    def test_rwa_td_lindblad_model(self):
+        """Test correct handling of RWA for Lindblad model with
+        time-dependent dissipator terms.
+        """
+
+        rwa_td_lindblad_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_dissipators=[0.01 * self.X],
+            dissipator_operators=[0.01 * self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+            rwa_cutoff_freq=5.,
+            rwa_carrier_freqs=([5.], [5.])
+        )
+
+        y0 = np.array([[0., 0.], [0., 1.]])
+        t_span = [0., 1.]
+        signals = ([Signal(1., carrier_freq=5.)], [Signal(1., carrier_freq=5.)])
+
+        res1 = rwa_td_lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        self.td_lindblad_model.signals = signals
+        rwa_td_lindblad_model = rotating_wave_approximation(self.td_lindblad_model, cutoff_freq=5.)
+        res2 = solve_lmde(generator=rwa_td_lindblad_model, t_span=t_span, y0=y0)
+
+        self.assertAllClose(res1.y, res2.y)
+
 
 class TestSolverSimulation(QiskitDynamicsTestCase):
     """Test cases for correct simulation for Solver class."""
