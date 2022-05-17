@@ -16,6 +16,7 @@ Tests for solver classes module.
 """
 
 import numpy as np
+from ddt import ddt, data, unpack
 
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
@@ -617,3 +618,199 @@ class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
 
         jit_grad_func = self.jit_grad_wrap(func)
         jit_grad_func(1.0)
+
+@ddt
+class TestSolverListSimulation(QiskitDynamicsTestCase):
+    """Test cases for Solver class using list simulation."""
+
+    def setUp(self):
+        """Set up some simple models."""
+        X = 2 * np.pi * Operator.from_label("X") / 2
+        Z = 2 * np.pi * Operator.from_label("Z") / 2
+        self.X = X
+        self.Z = Z
+
+        self.ham_solver = Solver(
+            hamiltonian_operators=[X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
+        self.lindblad_solver = Solver(
+            hamiltonian_operators=[X],
+            static_dissipators=[0.01 * X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
+        self.td_lindblad_solver = Solver(
+            hamiltonian_operators=[X],
+            static_dissipators=[0.01 * X],
+            dissipator_operators=[0.01 * X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
+    @unpack
+    @data(
+        ('ham_solver',),
+        ('lindblad_solver',)
+    )
+    def test_list_hamiltonian_sim_case1(self, model):
+        """Test doing lists of simulations for a solvers whose time dependence only
+        comes from the Hamiltonian part.
+        """
+
+        solver = getattr(self, model)
+
+        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
+        t_span = [0., 0.4232]
+        signals = [Signal(1., 5.)]
+
+        results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        res0 = solver.solve(t_span=t_span, y0=y0[0], signals=signals)
+        res1 = solver.solve(t_span=t_span, y0=y0[1], signals=signals)
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
+
+    @unpack
+    @data(
+        ('ham_solver',),
+        ('lindblad_solver',)
+    )
+    def test_list_hamiltonian_sim_case2(self, model):
+        """Test doing lists of simulations for a solvers whose time dependence only
+        comes from the Hamiltonian part.
+        """
+
+        solver = getattr(self, model)
+
+        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
+        t_span = [0., 0.4232]
+        signals = [[Signal(1., 5.)], [Signal(0.5, 5.)]]
+
+        results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        res0 = solver.solve(t_span=t_span, y0=y0[0], signals=signals[0])
+        res1 = solver.solve(t_span=t_span, y0=y0[1], signals=signals[1])
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
+
+    @unpack
+    @data(
+        ('ham_solver',),
+        ('lindblad_solver',)
+    )
+    def test_list_hamiltonian_sim_case3(self, model):
+        """Test doing lists of simulations for a solvers whose time dependence only
+        comes from the Hamiltonian part.
+        """
+
+        solver = getattr(self, model)
+
+        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
+        t_span = [[0., 0.4232], [0., 1.23]]
+        signals = [Signal(1., 5.)]
+
+        results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        res0 = solver.solve(t_span=t_span[0], y0=y0[0], signals=signals)
+        res1 = solver.solve(t_span=t_span[1], y0=y0[1], signals=signals)
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
+
+    @unpack
+    @data(
+        ('ham_solver',),
+        ('lindblad_solver',)
+    )
+    def test_list_hamiltonian_sim_case4(self, model):
+        """Test doing lists of simulations for a solvers whose time dependence only
+        comes from the Hamiltonian part.
+        """
+
+        solver = getattr(self, model)
+
+        y0 = Statevector([0., 1.])
+        t_span = [0., 0.4232]
+        signals = [[Signal(1., 5.)], [Signal(0.5, 5.)]]
+
+        results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        res0 = solver.solve(t_span=t_span, y0=y0, signals=signals[0])
+        res1 = solver.solve(t_span=t_span, y0=y0, signals=signals[1])
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
+
+    def test_list_td_lindblad_sim_case1(self):
+        """Test doing lists of simulations for solver with time-dependent dissipators."""
+
+        solver = self.td_lindblad_solver
+
+        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
+        t_span = [0., 0.4232]
+        signals = ([Signal(1., 5.)], [1.])
+
+        results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        res0 = solver.solve(t_span=t_span, y0=y0[0], signals=signals)
+        res1 = solver.solve(t_span=t_span, y0=y0[1], signals=signals)
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
+
+    def test_list_td_lindblad_sim_case2(self):
+        """Test doing lists of simulations for solver with time-dependent dissipators."""
+
+        solver = self.td_lindblad_solver
+
+        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
+        t_span = [0., 0.4232]
+        signals = [([Signal(1., 5.)], [1.]), ([Signal(0.5, 5.)], [2.])]
+
+        results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        res0 = solver.solve(t_span=t_span, y0=y0[0], signals=signals[0])
+        res1 = solver.solve(t_span=t_span, y0=y0[1], signals=signals[1])
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
+
+    def test_list_td_lindblad_sim_case3(self):
+        """Test doing lists of simulations for solver with time-dependent dissipators."""
+
+        solver = self.td_lindblad_solver
+
+        y0 = [Statevector([0., 1.]), Statevector([1., 0.])]
+        t_span = [[0., 0.4232], [0., 1.23]]
+        signals = ([Signal(1., 5.)], [1.])
+
+        results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        res0 = solver.solve(t_span=t_span[0], y0=y0[0], signals=signals)
+        res1 = solver.solve(t_span=t_span[1], y0=y0[1], signals=signals)
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
+
+    def test_list_td_lindblad_sim_case4(self):
+        """Test doing lists of simulations for solver with time-dependent dissipators."""
+
+        solver = self.td_lindblad_solver
+
+        y0 = Statevector([0., 1.])
+        t_span = [0., 0.4232]
+        signals = [([Signal(1., 5.)], [1.]), ([Signal(0.5, 5.)], [2.])]
+
+        results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        res0 = solver.solve(t_span=t_span, y0=y0, signals=signals[0])
+        res1 = solver.solve(t_span=t_span, y0=y0, signals=signals[1])
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
