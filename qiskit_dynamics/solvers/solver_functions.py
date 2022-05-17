@@ -58,8 +58,10 @@ from .diffrax_solver import diffrax_solver
 
 try:
     from diffrax.solver import AbstractSolver
+
+    diffrax_installed = True
 except ImportError:
-    pass
+    diffrax_installed = False
 
 try:
     from jax.lax import scan
@@ -79,7 +81,7 @@ def solve_ode(
     rhs: Union[Callable, BaseGeneratorModel],
     t_span: Array,
     y0: Array,
-    method: Optional[Union[str, OdeSolver, AbstractSolver]] = "DOP853",
+    method: Optional[Union[str, OdeSolver, "AbstractSolver"]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
@@ -131,7 +133,9 @@ def solve_ode(
     if (
         method not in ODE_METHODS
         and not (isinstance(method, type) and issubclass(method, OdeSolver))
-        and not (isinstance(method, type) and issubclass(method, AbstractSolver))
+        and not (
+            isinstance(method, type) and diffrax_installed and issubclass(method, AbstractSolver)
+        )
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
@@ -147,7 +151,7 @@ def solve_ode(
     # solve the problem using specified method
     if method in SOLVE_IVP_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
-    elif isinstance(method, type) and issubclass(method, AbstractSolver):
+    elif isinstance(method, type) and diffrax_installed and issubclass(method, AbstractSolver):
         results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "RK4":
         results = RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
@@ -171,7 +175,7 @@ def solve_lmde(
     generator: Union[Callable, BaseGeneratorModel],
     t_span: Array,
     y0: Array,
-    method: Optional[Union[str, OdeSolver, AbstractSolver]] = "DOP853",
+    method: Optional[Union[str, OdeSolver, "AbstractSolver"]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
@@ -253,7 +257,7 @@ def solve_lmde(
     if (
         method in ODE_METHODS
         or (isinstance(method, type) and issubclass(method, OdeSolver))
-        or (isinstance(method, type) and issubclass(method, AbstractSolver))
+        or (isinstance(method, type) and diffrax_installed and issubclass(method, AbstractSolver))
     ):
         if isinstance(generator, BaseGeneratorModel):
             rhs = generator
