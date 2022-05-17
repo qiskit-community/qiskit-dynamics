@@ -109,7 +109,6 @@ class TestQutipBase(unittest.TestCase):
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                # pylint: disable=import-outside-toplevel,unused-import
-                import qutip
+                import qutip  # pylint: disable=import-outside-toplevel,unused-import
         except Exception as err:
             raise unittest.SkipTest("Skipping qutip tests.") from err
