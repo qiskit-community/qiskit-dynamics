@@ -340,12 +340,23 @@ class Solver:
 
         """
 
+        # hold copy of signals in model for deprecated behavior
+        original_signals = self.model.signals
+
+        # raise warning if signals is None and non-trivial signals to fall back on
+        if signals is None and not (original_signals == (None, None) or original_signals == None):
+            warnings.warn(
+                """No signals specified to solve, falling back on signals stored in model.
+                Passing signals to Solver at instantiation and setting Solver.signals have been
+                deprecated and will be removed in the next release. Instead pass signals
+                directly to the solve method.""",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         signals_list, t_span_list, y0_list, multiple_sims = setup_simulation_lists(
             signals, t_span, y0
         )
-
-        # hold copy of signals in model for deprecated behavior
-        original_signals = self.model.signals
 
         all_results = []
 

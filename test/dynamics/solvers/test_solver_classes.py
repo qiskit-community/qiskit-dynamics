@@ -63,6 +63,23 @@ class TestSolverDeprecations(QiskitDynamicsTestCase):
         with self.assertWarnsRegex(DeprecationWarning, "copy method is deprecated"):
             solver.copy()
 
+    def test_no_signals_to_solve(self):
+        """Test raising of deprecation warning if no signals passed to solve,
+        and signals present in model.
+        """
+
+        with self.assertWarnsRegex(DeprecationWarning, "deprecated arguments"):
+            solver = Solver(hamiltonian_operators=[self.X], hamiltonian_signals=[1.])
+
+        with self.assertWarnsRegex(DeprecationWarning, "No signals specified to solve"):
+            solver.solve(t_span=[0., 0.1], y0=np.array([0., 1.]))
+
+        with self.assertWarnsRegex(DeprecationWarning, "deprecated arguments"):
+            solver = Solver(hamiltonian_operators=[self.X], hamiltonian_signals=[1.], dissipator_operators=[self.X], dissipator_signals=[1.])
+
+        with self.assertWarnsRegex(DeprecationWarning, "No signals specified to solve"):
+            solver.solve(t_span=[0., 0.1], y0=np.array([[0., 0.],[0., 1.]]))
+
 
 class TestSolverValidation(QiskitDynamicsTestCase):
     """Test validation for Hamiltonian terms."""
