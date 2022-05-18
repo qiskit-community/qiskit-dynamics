@@ -87,16 +87,15 @@ class TestSolverDeprecations(QiskitDynamicsTestCase):
 
 
 class TestSolverValidation(QiskitDynamicsTestCase):
-    """Test validation for Hamiltonian terms."""
+    """Test validation checks."""
 
     def test_hamiltonian_operators_array_not_hermitian(self):
         """Test raising error if operators are not Hermitian."""
 
         operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "operators must be Hermitian."):
             Solver(hamiltonian_operators=operators)
-        self.assertTrue("operators must be Hermitian." in str(qe.exception))
 
     def test_validation_override_hamiltonian(self):
         """Test raising error if operators are not Hermitian."""
@@ -111,9 +110,8 @@ class TestSolverValidation(QiskitDynamicsTestCase):
 
         operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "operators must be Hermitian"):
             Solver(hamiltonian_operators=operators, static_dissipators=operators)
-        self.assertTrue("operators must be Hermitian." in str(qe.exception))
 
     def test_validation_override_lindblad(self):
         """Test raising error if operators are not Hermitian."""
@@ -124,6 +122,19 @@ class TestSolverValidation(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(solver.model.hamiltonian_operators, operators)
+
+    def test_incompatible_input_lengths(self):
+        """Test exception raised if args to solve are incompatible lengths."""
+
+        solver = Solver(hamiltonian_operators=[np.array([[0., 1.], [1., 0.]])])
+
+        error_str = "y0 specifies 3 inputs, but signals is of length 2"
+        with self.assertRaisesRegex(QiskitError, error_str):
+            solver.solve(t_span=[0., 1.], y0=[np.array([0., 1.])] * 3, signals=[[1.]] * 2)
+
+        error_str = "y0 specifies 4 inputs, but t_span is of length 2"
+        with self.assertRaisesRegex(QiskitError, error_str):
+            solver.solve(t_span=[[0., 1.]] * 2, y0=[np.array([0., 1.])] * 4, signals=[1.])
 
 
 class TestSolverExceptions(QiskitDynamicsTestCase):

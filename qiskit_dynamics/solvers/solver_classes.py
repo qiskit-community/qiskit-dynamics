@@ -559,10 +559,18 @@ def setup_simulation_lists(
 
     # consolidate lengths and raise error if incompatible
     args = [t_span, y0, signals]
+    arg_names = ['t_span', 'y0', 'signals']
     arg_lens = [len(x) for x in args]
     max_len = max(arg_lens)
-    if any(x not in (1, max_len) for x in arg_lens):
-        raise QiskitError("signals, y0, and t_span specify an incompatible number of simulations.")
+    for idx, arg_len in enumerate(arg_lens):
+        if arg_len not in (1, max_len):
+            max_name = arg_names[arg_lens.index(max_len)]
+            raise QiskitError(
+                f"""If one of signals, y0, and t_span is given as a list of valid inputs,
+                then the others must specify only a single input, or a list of the same length.
+                {max_name} specifies {max_len} inputs, but {arg_names[idx]} is of length {arg_len},
+                which is incompatible."""
+            )
 
     args = [arg * max_len if arg_len == 1 else arg for arg, arg_len in zip(args, arg_lens)]
 
