@@ -25,16 +25,6 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import LindbladModel
 
 
-def get_diffrax():
-    """Try to import diffrax, returning None if not installed, otherwise the library"""
-    try:
-        import diffrax
-
-        return diffrax
-    except ImportError:
-        return None
-
-
 def is_lindblad_model_vectorized(obj: any) -> bool:
     """Return True if obj is a vectorized LindbladModel."""
     return isinstance(obj, LindbladModel) and ("vectorized" in obj.evaluation_mode)
