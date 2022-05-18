@@ -16,6 +16,7 @@ Tests for solver classes module.
 """
 
 import numpy as np
+from scipy.linalg import expm
 from ddt import ddt, data, unpack
 
 from qiskit import QiskitError
@@ -84,6 +85,23 @@ class TestSolverDeprecations(QiskitDynamicsTestCase):
 
         with self.assertWarnsRegex(DeprecationWarning, "No signals specified to solve"):
             solver.solve(t_span=[0.0, 0.1], y0=np.array([[0.0, 0.0], [0.0, 1.0]]))
+
+    def test_replacing_signals_in_solve(self):
+        """Test that the signals stored in the signals attribute are correctly replaced."""
+
+        with self.assertWarnsRegex(DeprecationWarning, "deprecated arguments"):
+            solver = Solver(
+                hamiltonian_operators=[self.X],
+                hamiltonian_signals=[1.0],
+            )
+
+        y0 = np.array([1.0, 0.0])
+        results = solver.solve(t_span=[0.0, 0.1], y0=y0, signals=[2.], atol=1e-10, rtol=1e-10)
+        expected = expm(-1j * 0.1 * 2 * self.X.data) @ y0
+        self.assertAllClose(results.y[-1], expected)
+
+        with self.assertWarnsRegex(DeprecationWarning, "signals property is deprecated"):
+            self.assertTrue(solver.signals[0] == 1.)
 
 
 class TestSolverValidation(QiskitDynamicsTestCase):
@@ -664,8 +682,19 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
         self.X = X
         self.Z = Z
 
+        self.static_ham_solver = Solver(
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
         self.ham_solver = Solver(
             hamiltonian_operators=[X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
+        self.static_lindblad_solver = Solver(
+            static_dissipators=[0.01 * X],
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
         )
@@ -684,6 +713,27 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
         )
+
+    @unpack
+    @data(("static_ham_solver",), ("static_lindblad_solver",))
+    def test_static_solver(self, model):
+        """Test doing lists of simulations for a solver with only static information.
+        """
+
+        model = 'static_lindblad_solver'
+        solver = getattr(self, model)
+
+        y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
+        t_span = [0.0, 0.4232]
+
+        results = solver.solve(t_span=t_span, y0=y0)
+
+        res0 = solver.solve(t_span=t_span, y0=y0[0])
+        res1 = solver.solve(t_span=t_span, y0=y0[1])
+
+        self.assertAllClose(results[0].y[-1], res0.y[-1])
+        self.assertAllClose(results[1].y[-1], res1.y[-1])
+
 
     @unpack
     @data(("ham_solver",), ("lindblad_solver",))

@@ -336,8 +336,8 @@ class Solver:
         # hold copy of signals in model for deprecated behavior
         original_signals = self.model.signals
 
-        # raise warning if signals is None and non-trivial signals to fall back on
-        if signals is None and not original_signals in ((None, None), None):
+        # raise deprecation warning if signals is None and non-trivial signals to fall back on
+        if signals is None and not original_signals in (None, (None, None)):
             warnings.warn(
                 """No signals specified to solve, falling back on signals stored in model.
                 Passing signals to Solver at instantiation and setting Solver.signals have been
@@ -524,7 +524,6 @@ def setup_simulation_lists(
     multiple_sims = False
 
     if signals is None:
-        # for deprecated behavior
         signals = [signals]
     elif isinstance(signals, tuple):
         # single Lindblad
