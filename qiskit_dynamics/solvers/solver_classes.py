@@ -229,7 +229,7 @@ class Solver:
 
     @property
     def signals(self) -> SignalList:
-        """The signals used in the solver."""
+        """(Deprecated) The signals used in the solver."""
         warnings.warn(
             """The signals property is deprecated and will be removed in the next release.
             Signals should be passed directly to the solve method.""",
@@ -242,7 +242,7 @@ class Solver:
     def signals(
         self, new_signals: Union[List[Signal], SignalList, Tuple[List[Signal]], Tuple[SignalList]]
     ):
-        """Set signals for the solver, and pass to the model."""
+        """(Deprecated) Set signals for the solver, and pass to the model."""
         warnings.warn(
             """The signals property is deprecated and will be removed in the next release.
             Signals should be passed directly to the solve method.""",
@@ -256,7 +256,7 @@ class Solver:
         self.model.signals = new_signals
 
     def copy(self) -> "Solver":
-        """Return a copy of self."""
+        """(Deprecated) Return a copy of self."""
         warnings.warn(
             """The copy method is deprecated and will be removed in the next release.
             This deprecation is associated with the deprecation of the signals property;
@@ -275,10 +275,10 @@ class Solver:
         wrap_results: Optional[bool] = True,
         **kwargs,
     ) -> OdeResult:
-        r"""Solve the dynamical problem.
+        r"""Solve a dynamical problem, or a set of dynamical problems.
 
-        Calls :func:`~qiskit_dynamics.solvers.solve_lmde`, and returns an `OdeResult`
-        object in the style of `scipy.integrate.solve_ivp`, with results
+        Calls :func:`~qiskit_dynamics.solvers.solve_lmde`, and returns an ``OdeResult``
+        object in the style of ``scipy.integrate.solve_ivp``, with results
         formatted to be the same types as the input. See Additional Information
         for special handling of various input types, and for specifying multiple
         simulations at once.
@@ -302,37 +302,53 @@ class Solver:
 
         Additional Information:
 
-            The behaviour of this method is impacted by the input type of ``y0``:
+        The behaviour of this method is impacted by the input type of ``y0``:
 
-             * If ``y0`` is an ``Array``, it is passed directly to
-                :func:`~qiskit_dynamics.solve_lmde` as is. Acceptable array shapes are
-                determined by the model type and evaluation mode.
-             * If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumState`:
+         * If ``y0`` is an ``Array``, it is passed directly to
+            :func:`~qiskit_dynamics.solve_lmde` as is. Acceptable array shapes are
+            determined by the model type and evaluation mode.
+         * If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumState`:
 
-                 * If ``self.model`` is a :class:`~qiskit_dynamics.models.LindbladModel`,
-                    ``y0`` is converted to a :class:`DensityMatrix`. Further, if the model
-                    evaluation mode is vectorized ``y0`` will be suitably reshaped for solving.
-                 * If ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`,
-                    and ``y0`` a :class:`DensityMatrix`, the full unitary will be simulated,
-                    and the evolution of ``y0`` is attained via conjugation.
+             * If ``self.model`` is a :class:`~qiskit_dynamics.models.LindbladModel`,
+                ``y0`` is converted to a :class:`DensityMatrix`. Further, if the model
+                evaluation mode is vectorized ``y0`` will be suitably reshaped for solving.
+             * If ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`,
+                and ``y0`` a :class:`DensityMatrix`, the full unitary will be simulated,
+                and the evolution of ``y0`` is attained via conjugation.
 
-             * If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumChannel`, the full
-                evolution map will be computed and composed with ``y0``; either the unitary if
-                ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`, or the full
-                Lindbladian ``SuperOp`` if the model is a
-                :class:`~qiskit_dynamics.models.LindbladModel`.
+         * If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumChannel`, the full
+            evolution map will be computed and composed with ``y0``; either the unitary if
+            ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`, or the full
+            Lindbladian ``SuperOp`` if the model is a
+            :class:`~qiskit_dynamics.models.LindbladModel`.
 
-            In addition to the above, this method can be used to specify multiple simulations
-            simultaneously. This can be done by specifying one or more of the arguments
-            ``t_span``, ``y0``, or ``signals`` as a list of valid inputs.
-            For this mode of operation, all of these arguments must be either lists of the same
-            length, or a single valid input, which will be used repeatedly.
+        In addition to the above, this method can be used to specify multiple simulations
+        simultaneously. This can be done by specifying one or more of the arguments
+        ``t_span``, ``y0``, or ``signals`` as a list of valid inputs.
+        For this mode of operation, all of these arguments must be either lists of the same
+        length, or a single valid input, which will be used repeatedly.
+
+        For example the following code runs three simulations, returning results in a list:
+
+        .. code-block:: python
+
+            t_span = [span1, span2, span3]
+            y0 = [state1, state2, state3]
+            signals = [signals1, signals2, signals3]
+
+            results = solver.solve(t_span=t_span, y0=y0, signals=signals)
+
+        The following code block runs three simulations, for different sets of signals,
+        repeatedly using the same ``t_span`` and ``y0``:
+
+        .. code-block:: python
+
+            t_span = [t0, tf]
+            y0 = state1
+            signals = [signals1, signals2, signal3]
+
+            results = solver.solve(t_span=t_span, y0=y0, signals=signals)
         """
-
-        #################################################################################################
-        # give examples
-        #################################################################################################
-
         # hold copy of signals in model for deprecated behavior
         original_signals = self.model.signals
 
@@ -558,7 +574,7 @@ def setup_simulation_lists(
 
     # consolidate lengths and raise error if incompatible
     args = [t_span, y0, signals]
-    arg_names = ['t_span', 'y0', 'signals']
+    arg_names = ["t_span", "y0", "signals"]
     arg_lens = [len(x) for x in args]
     max_len = max(arg_lens)
     for idx, arg_len in enumerate(arg_lens):

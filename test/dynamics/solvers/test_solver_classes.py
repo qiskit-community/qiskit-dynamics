@@ -96,12 +96,12 @@ class TestSolverDeprecations(QiskitDynamicsTestCase):
             )
 
         y0 = np.array([1.0, 0.0])
-        results = solver.solve(t_span=[0.0, 0.1], y0=y0, signals=[2.], atol=1e-10, rtol=1e-10)
+        results = solver.solve(t_span=[0.0, 0.1], y0=y0, signals=[2.0], atol=1e-10, rtol=1e-10)
         expected = expm(-1j * 0.1 * 2 * self.X.data) @ y0
         self.assertAllClose(results.y[-1], expected)
 
         with self.assertWarnsRegex(DeprecationWarning, "signals property is deprecated"):
-            self.assertTrue(solver.signals[0] == 1.)
+            self.assertTrue(solver.signals[0] == 1.0)
 
 
 class TestSolverValidation(QiskitDynamicsTestCase):
@@ -144,15 +144,15 @@ class TestSolverValidation(QiskitDynamicsTestCase):
     def test_incompatible_input_lengths(self):
         """Test exception raised if args to solve are incompatible lengths."""
 
-        solver = Solver(hamiltonian_operators=[np.array([[0., 1.], [1., 0.]])])
+        solver = Solver(hamiltonian_operators=[np.array([[0.0, 1.0], [1.0, 0.0]])])
 
         error_str = "y0 specifies 3 inputs, but signals is of length 2"
         with self.assertRaisesRegex(QiskitError, error_str):
-            solver.solve(t_span=[0., 1.], y0=[np.array([0., 1.])] * 3, signals=[[1.]] * 2)
+            solver.solve(t_span=[0.0, 1.0], y0=[np.array([0.0, 1.0])] * 3, signals=[[1.0]] * 2)
 
         error_str = "y0 specifies 4 inputs, but t_span is of length 2"
         with self.assertRaisesRegex(QiskitError, error_str):
-            solver.solve(t_span=[[0., 1.]] * 2, y0=[np.array([0., 1.])] * 4, signals=[1.])
+            solver.solve(t_span=[[0.0, 1.0]] * 2, y0=[np.array([0.0, 1.0])] * 4, signals=[1.0])
 
 
 class TestSolverExceptions(QiskitDynamicsTestCase):
@@ -717,10 +717,9 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
     @unpack
     @data(("static_ham_solver",), ("static_lindblad_solver",))
     def test_static_solver(self, model):
-        """Test doing lists of simulations for a solver with only static information.
-        """
+        """Test doing lists of simulations for a solver with only static information."""
 
-        model = 'static_lindblad_solver'
+        model = "static_lindblad_solver"
         solver = getattr(self, model)
 
         y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
@@ -733,7 +732,6 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         self.assertAllClose(results[0].y[-1], res0.y[-1])
         self.assertAllClose(results[1].y[-1], res1.y[-1])
-
 
     @unpack
     @data(("ham_solver",), ("lindblad_solver",))
