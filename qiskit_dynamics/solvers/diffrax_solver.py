@@ -25,7 +25,14 @@ from qiskit_dynamics.array import Array, wrap
 
 from .solver_utils import merge_t_args, trim_t_results
 
+try:
+    from diffrax import ODETerm, PIDController, SaveAt
+    from diffrax import diffeqsolve as _diffeqsolve
 
+    from diffrax.solver import AbstractSolver
+    import jax.numpy as jnp
+except ImportError as err:
+    pass
 
 
 @requires_backend("jax")
@@ -37,14 +44,6 @@ def diffrax_solver(
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
-    try:
-        from diffrax import ODETerm, PIDController, SaveAt
-        from diffrax import diffeqsolve as _diffeqsolve
-
-        from diffrax.solver import AbstractSolver
-        import jax.numpy as jnp
-    except ImportError as err:
-        pass
     """Routine for calling `diffrax.diffeqsolve`
 
     Args:
