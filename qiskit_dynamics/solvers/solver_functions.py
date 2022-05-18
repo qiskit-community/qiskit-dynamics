@@ -43,7 +43,7 @@ from qiskit_dynamics.models import (
     LindbladModel,
 )
 
-from .solver_utils import is_lindblad_model_not_vectorized
+from .solver_utils import is_lindblad_model_not_vectorized, get_diffrax
 from .fixed_step_solvers import (
     RK4_solver,
     jax_RK4_solver,
@@ -134,7 +134,9 @@ def solve_ode(
         method not in ODE_METHODS
         and not (isinstance(method, type) and issubclass(method, OdeSolver))
         and not (
-            isinstance(method, type) and diffrax_installed and issubclass(method, AbstractSolver)
+            isinstance(method, type)
+            and (get_diffrax() is not None)
+            and issubclass(method, get_diffrax().AbstractSolver)
         )
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
