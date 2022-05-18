@@ -274,7 +274,7 @@ class Solver:
         signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
         wrap_results: Optional[bool] = True,
         **kwargs,
-    ) -> OdeResult:
+    ) -> Union[OdeResult, List[OdeResult]]:
         r"""Solve a dynamical problem, or a set of dynamical problems.
 
         Calls :func:`~qiskit_dynamics.solvers.solve_lmde`, and returns an ``OdeResult``

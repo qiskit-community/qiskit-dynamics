@@ -1,0 +1,27 @@
+---
+upgrade:
+  - |
+    The :class:`~qiskit_dynamics.Solver` class has been modified to no longer
+    internally store signals: rather than passing them at instantiation, or setting them
+    via the ``signals`` property, ``signals`` must be passed as an argument to the
+    ``solve`` method when solving. Setting ``signals`` at instantiation or through the
+    property has been deprecated (see deprecations). A new instantiation argument,
+    ``rwa_carrier_freqs``, has been added to control behaviour of the rotating wave
+    approximation in the absence of signals being specified.
+  - |
+    The ``solve`` method of :class:`~qiskit_dynamics.Solver` can now be made to perform
+    lists of simulations by specifying one or more of the ``t_span``, ``y0``, and ``signals``
+    arguments as lists of valid single inputs. This supports specifying all as a list of the
+    same length (with a different value for each to be used in each simulation), or a subset
+    can be specified with lists of the same length, with the other arguments giving only a single
+    value (to be used repeatedly while varying the other parameters). Results are returned as a
+    list of the results of the individual simulations.
+deprecations:
+  - |
+    Storing signals in the :class:`~qiskit_dynamics.Solver` class has been deprecated:
+    The ``hamiltonian_signals`` and ``dissipator_signals`` constructor arguments are deprecated,
+    and the ``signals`` property is deprecated. Signals must now be passed directly to the
+    ``solve`` method. These arguments and property will be removed in the next major release.
+  - |
+    The :meth:`~qiskit_dynamics.Solver.copy` method has been deprecated and will be removed
+    in the next release.
