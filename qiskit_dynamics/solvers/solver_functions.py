@@ -146,7 +146,11 @@ def solve_ode(
     # solve the problem using specified method
     if method in SOLVE_IVP_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
-    elif isinstance(method, type) and (get_diffrax is not None) and issubclass(method, get_diffrax().AbstractSolver):
+    elif (
+        isinstance(method, type)
+        and (get_diffrax is not None)
+        and issubclass(method, get_diffrax().AbstractSolver)
+    ):
         results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "RK4":
         results = RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
@@ -170,7 +174,7 @@ def solve_lmde(
     generator: Union[Callable, BaseGeneratorModel],
     t_span: Array,
     y0: Array,
-    method: Optional[Union[str, OdeSolver, "AbstractSolver"]] = "DOP853",
+    method: Optional[Union[str, OdeSolver]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
@@ -249,13 +253,7 @@ def solve_lmde(
     """
 
     # delegate to solve_ode if necessary
-    if method in ODE_METHODS or (
-        isinstance(method, type)
-        and (
-            issubclass(method, OdeSolver)
-            or (diffrax_installed and issubclass(method, AbstractSolver))
-        )
-    ):
+    if method in ODE_METHODS or (isinstance(method, type)):
         if isinstance(generator, BaseGeneratorModel):
             rhs = generator
         else:
