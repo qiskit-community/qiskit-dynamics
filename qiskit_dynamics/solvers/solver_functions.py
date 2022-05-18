@@ -57,13 +57,6 @@ from .jax_odeint import jax_odeint
 from .diffrax_solver import diffrax_solver
 
 try:
-    from diffrax.solver import AbstractSolver
-
-    diffrax_installed = True
-except ImportError:
-    diffrax_installed = False
-
-try:
     from jax.lax import scan
 except ImportError:
     pass
@@ -153,7 +146,7 @@ def solve_ode(
     # solve the problem using specified method
     if method in SOLVE_IVP_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
-    elif isinstance(method, type) and diffrax_installed and issubclass(method, AbstractSolver):
+    elif isinstance(method, type) and (get_diffrax is not None) and issubclass(method, get_diffrax().AbstractSolver):
         results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "RK4":
         results = RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
