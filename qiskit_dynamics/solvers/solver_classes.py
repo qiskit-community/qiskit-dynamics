@@ -42,11 +42,10 @@ from qiskit_dynamics.models import (
 )
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.dispatch.dispatch import Dispatch
 
 from .solver_functions import solve_lmde
 from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
-
-from ..type_utils import to_array
 
 
 class Solver:
@@ -549,11 +548,11 @@ def setup_simulation_lists(
     else:
         multiple_sims = True
 
-    t_span = to_array(t_span)
+    t_span_ndim = nested_ndim(t_span)
 
-    if t_span.ndim > 2:
+    if t_span_ndim > 2:
         raise QiskitError("t_span must be either 1d or 2d.")
-    if t_span.ndim == 1:
+    if t_span_ndim == 1:
         t_span = [t_span]
     else:
         multiple_sims = True
@@ -568,3 +567,14 @@ def setup_simulation_lists(
     args = [arg * max_len if arg_len == 1 else arg for arg, arg_len in zip(args, arg_lens)]
 
     return args[0], args[1], args[2], multiple_sims
+
+
+def nested_ndim(x):
+    """Determine the 'ndim' of x, which could be composed of nested lists and array types."""
+    if isinstance(x, (list, tuple)):
+        return 1 + nested_ndim(x[0])
+    elif issubclass(type(x), Dispatch.REGISTERED_TYPES) or isinstance(x, Array):
+        return x.ndim
+
+    # assume scalar
+    return 0
