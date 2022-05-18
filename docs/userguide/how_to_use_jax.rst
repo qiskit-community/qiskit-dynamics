@@ -146,9 +146,9 @@ before setting the signals, to ensure the simulation function remains pure.
         # of the drift
         results = solver.solve(
             t_span=[0, 3.],
+            y0=np.array([0., 1.], dtype=complex),
             signals=signals,
             t_eval=np.linspace(0, 3., 100),
-            y0=np.array([0., 1.], dtype=complex),
             method='jax_odeint'
         )
 
