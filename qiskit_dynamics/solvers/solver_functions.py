@@ -148,7 +148,7 @@ def solve_ode(
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
     elif (
         isinstance(method, type)
-        and (get_diffrax is not None)
+        and (get_diffrax() is not None)
         and issubclass(method, get_diffrax().AbstractSolver)
     ):
         results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
