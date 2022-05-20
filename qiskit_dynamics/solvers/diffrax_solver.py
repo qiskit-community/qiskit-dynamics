@@ -88,7 +88,7 @@ def diffrax_solver(
         )
 
     # couble check ts is t_eval and not t_list
-    saveat = SaveAt(ts=t_eval)
+    saveat = SaveAt(ts=t_list)
 
     results = diffeqsolve(
         term,
