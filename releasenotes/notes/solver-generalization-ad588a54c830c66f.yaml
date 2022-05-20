@@ -27,5 +27,5 @@ deprecations:
     and the ``signals`` property is deprecated. Signals must now be passed directly to the
     ``solve`` method. These arguments and property will be removed in the next major release.
   - |
-    The :meth:`~qiskit_dynamics.Solver.copy` method has been deprecated and will be removed
+    The :meth:`~.Solver.copy` method has been deprecated and is scheduled to be removed
     in the next release.
