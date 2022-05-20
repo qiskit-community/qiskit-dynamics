@@ -367,78 +367,18 @@ class Solver:
             t_span, y0, signals
         )
 
-        all_results = []
-
-        for current_t_span, current_y0, current_signals in zip(t_span_list, y0_list, signals_list):
-
-            # convert types
-            if isinstance(current_y0, QuantumState) and isinstance(self.model, LindbladModel):
-                current_y0 = DensityMatrix(current_y0)
-
-            current_y0, current_y0_cls, state_type_wrapper = initial_state_converter(current_y0)
-
-            # validate types
-            if (current_y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
-                raise QiskitError(
-                    """Simulating SuperOp for a LindbladModel requires setting
-                    vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
-                    """
-                )
-
-            # modify initial state for some custom handling of certain scenarios
-            y_input = current_y0
-
-            # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
-            if current_y0_cls in [DensityMatrix, SuperOp] and isinstance(
-                self.model, HamiltonianModel
-            ):
-                current_y0 = np.eye(self.model.dim, dtype=complex)
-            # if LindbladModel is vectorized and simulating a density matrix, flatten
-            elif (
-                (current_y0_cls is DensityMatrix)
-                and isinstance(self.model, LindbladModel)
-                and "vectorized" in self.model.evaluation_mode
-            ):
-                current_y0 = current_y0.flatten(order="F")
-
-            # validate y0 shape before passing to solve_lmde
-            if isinstance(self.model, HamiltonianModel) and (
-                current_y0.shape[0] != self.model.dim or current_y0.ndim > 2
-            ):
-                raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
-            if is_lindblad_model_vectorized(self.model) and (
-                current_y0.shape[0] != self.model.dim**2 or current_y0.ndim > 2
-            ):
-                raise QiskitError(
-                    """Shape mismatch for initial state y0 and LindbladModel
-                                     in vectorized evaluation mode."""
-                )
-            if is_lindblad_model_not_vectorized(self.model) and current_y0.shape[-2:] != (
-                self.model.dim,
-                self.model.dim,
-            ):
-                raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
-
-            if current_signals is not None:
-                # if Lindblad model and signals are given as a list
-                # set as just the Hamiltonian part of the signals
-                if isinstance(self.model, LindbladModel):
-                    if isinstance(current_signals, (list, SignalList)):
-                        current_signals = (current_signals, None)
-
-                if self._rwa_signal_map:
-                    current_signals = self._rwa_signal_map(current_signals)
-                self.model.signals = current_signals
-
-            results = solve_lmde(
-                generator=self.model, t_span=current_t_span, y0=current_y0, **kwargs
+        all_results = [
+            self._solve(
+                t_span=current_t_span,
+                y0=current_y0,
+                signals=current_signals,
+                wrap_results=wrap_results,
+                **kwargs,
             )
-            results.y = format_final_states(results.y, self.model, y_input, current_y0_cls)
-
-            if current_y0_cls is not None and wrap_results:
-                results.y = [state_type_wrapper(yi) for yi in results.y]
-
-            all_results.append(results)
+            for current_t_span, current_y0, current_signals in zip(
+                t_span_list, y0_list, signals_list
+            )
+        ]
 
         # replace copy of original signals for deprecated behavior
         self.model.signals = original_signals
@@ -447,6 +387,79 @@ class Solver:
             return all_results[0]
 
         return all_results
+
+    def _solve(
+        self,
+        t_span: Array,
+        y0: Union[Array, QuantumState, BaseOperator],
+        signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
+        wrap_results: Optional[bool] = True,
+        **kwargs,
+    ) -> OdeResult:
+        """Helper function solve for running a single simulation."""
+        # convert types
+        if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
+            y0 = DensityMatrix(y0)
+
+        y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
+
+        # validate types
+        if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
+            raise QiskitError(
+                """Simulating SuperOp for a LindbladModel requires setting
+                vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
+                """
+            )
+
+        # modify initial state for some custom handling of certain scenarios
+        y_input = y0
+
+        # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
+        if y0_cls in [DensityMatrix, SuperOp] and isinstance(self.model, HamiltonianModel):
+            y0 = np.eye(self.model.dim, dtype=complex)
+        # if LindbladModel is vectorized and simulating a density matrix, flatten
+        elif (
+            (y0_cls is DensityMatrix)
+            and isinstance(self.model, LindbladModel)
+            and "vectorized" in self.model.evaluation_mode
+        ):
+            y0 = y0.flatten(order="F")
+
+        # validate y0 shape before passing to solve_lmde
+        if isinstance(self.model, HamiltonianModel) and (
+            y0.shape[0] != self.model.dim or y0.ndim > 2
+        ):
+            raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
+        if is_lindblad_model_vectorized(self.model) and (
+            y0.shape[0] != self.model.dim**2 or y0.ndim > 2
+        ):
+            raise QiskitError(
+                """Shape mismatch for initial state y0 and LindbladModel
+                                 in vectorized evaluation mode."""
+            )
+        if is_lindblad_model_not_vectorized(self.model) and y0.shape[-2:] != (
+            self.model.dim,
+            self.model.dim,
+        ):
+            raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
+
+        if signals is not None:
+            # if Lindblad model and signals are given as a list
+            # set as just the Hamiltonian part of the signals
+            if isinstance(self.model, LindbladModel) and isinstance(signals, (list, SignalList)):
+                signals = (signals, None)
+
+            if self._rwa_signal_map:
+                signals = self._rwa_signal_map(signals)
+            self.model.signals = signals
+
+        results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+        results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+
+        if y0_cls is not None and wrap_results:
+            results.y = [state_type_wrapper(yi) for yi in results.y]
+
+        return results
 
 
 def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
