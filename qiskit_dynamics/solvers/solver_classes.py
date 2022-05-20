@@ -302,25 +302,47 @@ class Solver:
 
         Additional Information:
 
-        The behaviour of this method is impacted by the input type of ``y0``:
+        The behaviour of this method is impacted by the input type of ``y0``
+        and the internal model, summarized in the following table:
 
-         * If ``y0`` is an ``Array``, it is passed directly to
-            :func:`~qiskit_dynamics.solve_lmde` as is. Acceptable array shapes are
-            determined by the model type and evaluation mode.
-         * If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumState`:
+        .. list-table:: Type-based behaviour
+           :widths: 10 10 10 70
+           :header-rows: 1
 
-             * If ``self.model`` is a :class:`~qiskit_dynamics.models.LindbladModel`,
-                ``y0`` is converted to a :class:`DensityMatrix`. Further, if the model
-                evaluation mode is vectorized ``y0`` will be suitably reshaped for solving.
-             * If ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`,
-                and ``y0`` a :class:`DensityMatrix`, the full unitary will be simulated,
-                and the evolution of ``y0`` is attained via conjugation.
-
-         * If ``y0`` is a subclass of :class:`qiskit.quantum_info.QuantumChannel`, the full
-            evolution map will be computed and composed with ``y0``; either the unitary if
-            ``self.model`` is a :class:`~qiskit_dynamics.models.HamiltonianModel`, or the full
-            Lindbladian ``SuperOp`` if the model is a
-            :class:`~qiskit_dynamics.models.LindbladModel`.
+           * - ``y0`` type
+             - Model type
+             - ``yf`` type
+             - Description
+           * - ``Array``, ``np.ndarray``, ``Operator``
+             - Any
+             - Same as ``y0``
+             - Solves either the Schrodinger equation or Lindblad equation
+               with initial state ``y0`` as specified.
+           * - ``Statevector``
+             - ``HamiltonianModel``
+             - ``Statevector``
+             - Solves the Schrodinger equation with initial state ``y0``.
+           * - ``DensityMatrix``
+             - ``HamiltonianModel``
+             - ``DensityMatrix``
+             - Solves the Schrodinger equation with initial state the identity matrix to compute
+               the unitary, then conjugates ``y0`` with the result to solve for the density matrix.
+           * - ``Statevector``, ``DensityMatrix``
+             - ``LindbladModel``
+             - ``DensityMatrix``
+             - Solve the Lindblad equation with initial state ``y0``, converting to a
+               ``DensityMatrix`` first if ``y0`` is a ``Statevector``.
+           * - ``QuantumChannel``
+             - ``HamiltonianModel``
+             - ``SuperOp``
+             - Converts ``y0`` to a ``SuperOp`` representation, then solves the Schrodinger
+               equation with initial state the identity matrix to compute the unitary and
+               composes with ``y0``.
+           * - ``QuantumChannel``
+             - ``LindbladModel``
+             - ``SuperOp``
+             - Solves the vectorized Lindblad equation with initial state ``y0``.
+               ``evaluation_mode`` must be set to a vectorized option.
 
         In addition to the above, this method can be used to specify multiple simulations
         simultaneously. This can be done by specifying one or more of the arguments
