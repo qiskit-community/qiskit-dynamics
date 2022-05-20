@@ -19,13 +19,13 @@ Wrapper for diffrax solvers
 
 from typing import Callable, Optional, Union, Tuple, List
 from scipy.integrate._ivp.ivp import OdeResult
+from qiskit import QiskitError
 
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array, wrap
 
 from .solver_utils import merge_t_args, trim_t_results
 
-from qiskit import QiskitError
 
 try:
     from diffrax import ODETerm, SaveAt
@@ -58,6 +58,9 @@ def diffrax_solver(
 
     Returns:
         OdeResult: Results object.
+
+    Raises:
+        QiskitError: Passing both `SaveAt` argument and `t_eval` argument.
     """
     if isinstance(method, type) and issubclass(method, AbstractSolver):
         solver = method()
@@ -80,7 +83,8 @@ def diffrax_solver(
 
     if "saveat" in kwargs and t_eval is not None:
         raise QiskitError(
-            "Saveat argument and t_eval both passed to diffrax solver. Use only one, t_eval can be contained in the saveat instance."
+            """Saveat argument and t_eval both passed to diffrax solver.
+            Use only one, t_eval can be contained in the saveat instance."""
         )
 
     # couble check ts is t_eval and not t_list
