@@ -186,11 +186,11 @@ class Solver:
             self._signals = (hamiltonian_signals, dissipator_signals)
 
         self._rwa_signal_map = None
-        if rwa_cutoff_freq is not None:
+        if rwa_cutoff_freq:
 
             original_signals = model.signals
 
-            if rwa_carrier_freqs:
+            if rwa_carrier_freqs is not None:
                 if isinstance(rwa_carrier_freqs, tuple):
                     rwa_ham_sigs = None
                     rwa_lindblad_sigs = None
@@ -487,25 +487,21 @@ def format_final_states(y, model, y_input, y0_cls):
 
     y = Array(y)
 
-    new_y = None
-
     if y0_cls is DensityMatrix and isinstance(model, HamiltonianModel):
         # conjugate by unitary
-        new_y = y @ y_input @ y.conj().transpose((0, 2, 1))
+        return y @ y_input @ y.conj().transpose((0, 2, 1))
     elif y0_cls is SuperOp and isinstance(model, HamiltonianModel):
         # convert to SuperOp and compose
-        new_y = (
+        return (
             np.einsum("nka,nlb->nklab", y.conj(), y).reshape(
                 y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2
             )
             @ y_input
         )
     elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(model):
-        new_y = y.reshape((len(y),) + y_input.shape, order="F")
-    else:
-        new_y = y
+        return y.reshape((len(y),) + y_input.shape, order="F")
 
-    return new_y
+    return y
 
 
 def setup_simulation_lists(
