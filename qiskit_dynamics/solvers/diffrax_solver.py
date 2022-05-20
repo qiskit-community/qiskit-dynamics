@@ -24,7 +24,7 @@ from qiskit import QiskitError
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array, wrap
 
-from .solver_utils import merge_t_args, trim_t_results
+from .solver_utils import merge_t_args
 
 
 try:
@@ -73,10 +73,6 @@ def diffrax_solver(
     rhs = real_rhs(rhs)
     y0 = c2r(y0)
 
-    # TODO: do we want to allow kwargs for this part as well?
-    # Right now my solution was to allow a user to pass a stepsize controller if they want
-    # Is this maybe not how you're supposed to use kwargs?
-
     term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
 
     diffeqsolve = wrap(_diffeqsolve)
@@ -87,23 +83,32 @@ def diffrax_solver(
             Use only one, t_eval can be contained in the saveat instance."""
         )
 
-    saveat = SaveAt(ts=t_list)
-
-    results = diffeqsolve(
-        term,
-        solver=solver,
-        t0=t_list[0],
-        t1=t_list[-1],
-        dt0=None,
-        y0=Array(y0, dtype=float),
-        saveat=saveat,
-        **kwargs,
-    )
+    if t_eval is not None:
+        saveat = SaveAt(ts=t_eval)
+        results = diffeqsolve(
+            term,
+            solver=solver,
+            t0=t_list[0],
+            t1=t_list[-1],
+            dt0=None,
+            y0=Array(y0, dtype=float),
+            saveat=saveat,
+            **kwargs,
+        )
+    else:
+        results = diffeqsolve(
+            term,
+            solver=solver,
+            t0=t_list[0],
+            t1=t_list[-1],
+            dt0=None,
+            y0=Array(y0, dtype=float),
+            **kwargs,
+        )
 
     ys = jnp.array([r2c(y) for y in results.ys])
-    results = OdeResult(t=t_list, y=Array(ys, backend="jax", dtype=complex))
-
-    return trim_t_results(results, t_span, t_eval)
+    results = OdeResult(t=t_eval, y=Array(ys, backend="jax", dtype=complex))
+    return results
 
 
 def real_rhs(rhs):
