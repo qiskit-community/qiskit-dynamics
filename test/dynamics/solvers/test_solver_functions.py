@@ -32,6 +32,11 @@ from qiskit_dynamics.solvers.diffrax_solver import diffrax_solver
 
 from ..common import QiskitDynamicsTestCase, TestDiffraxBase, TestJaxBase
 
+try:
+    from diffrax import PIDController
+except ImportError:
+    pass
+
 
 class TestSolverMethod(ABC, QiskitDynamicsTestCase):
     """Abstract base class for setting up models and RHS to be used in tests."""
@@ -409,14 +414,14 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Dopri5 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return diffrax_solver(
+        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
+        return solve_ode(
             rhs=rhs,
             t_span=t_span,
             y0=y0,
             method=self.Dopri5(),
             t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
+            stepsize_controller=stepsize_controller,
             **kwargs,
         )
 
@@ -429,14 +434,14 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Tsit5 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return diffrax_solver(
+        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
+        return solve_ode(
             rhs=rhs,
             t_span=t_span,
             y0=y0,
             method=self.Tsit5(),
             t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
+            stepsize_controller=stepsize_controller,
             **kwargs,
         )
 

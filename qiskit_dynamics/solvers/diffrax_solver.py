@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2022.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -44,10 +44,10 @@ def diffrax_solver(
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
-    """Routine for calling `diffrax.diffeqsolve`
+    """Routine for calling ``diffrax.diffeqsolve``
 
     Args:
-        rhs: Callable of the form :math:`f(t, y)`
+        rhs: Callable of the form :math:`f(t, y)`.
         t_span: Interval to solve over.
         y0: Initial state.
         method: Which diffeq solving method to use.
@@ -71,17 +71,8 @@ def diffrax_solver(
     # TODO: do we want to allow kwargs for this part as well?
     # Right now my solution was to allow a user to pass a stepsize controller if they want
     # Is this maybe not how you're supposed to use kwargs?
-    if "stepsize_controller" in kwargs:
-        stepsize_controller = kwargs["stepsize_controller"]
-        kwargs.pop("stepsize_controller")
-    else:
-        stepsize_controller = PIDController(rtol=kwargs["rtol"], atol=kwargs["atol"])
 
     term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
-
-    # Ensure that atol and rtol are not present to be passed into the diffrax solver
-    kwargs.pop("rtol")
-    kwargs.pop("atol")
 
     diffeqsolve = wrap(_diffeqsolve)
 
@@ -94,7 +85,6 @@ def diffrax_solver(
         t1=t_list[-1],
         dt0=None,
         y0=Array(y0, dtype=float),
-        stepsize_controller=stepsize_controller,
         saveat=saveat,
         **kwargs,
     )

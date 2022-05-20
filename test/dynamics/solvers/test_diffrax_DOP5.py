@@ -24,7 +24,7 @@ from ..common import QiskitDynamicsTestCase, TestJaxBase
 try:
     import jax.numpy as jnp
     from jax.lax import cond
-    from diffrax import Dopri5
+    from diffrax import Dopri5, PIDController
 # pylint: disable=broad-except
 except Exception:
     pass
@@ -48,8 +48,14 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
         t_eval = np.array([1.0, 1.5, 1.7])
         y0 = jnp.array([1.0])
 
+        stepsize_controller = PIDController(rtol=1e-10, atol=1e-10)
         results = diffrax_solver(
-            self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10
+            self.simple_rhs,
+            t_span,
+            y0,
+            method=Dopri5(),
+            t_eval=t_eval,
+            stepsize_controller=stepsize_controller,
         )
 
         self.assertAllClose(t_eval, results.t)
@@ -71,8 +77,14 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
         t_eval = np.array([1.7, 1.5, 1.0])
         y0 = jnp.array([1 + 0.5 + (2.0**3 - 1.0**3) / 3])
 
+        stepsize_controller = PIDController(rtol=1e-10, atol=1e-10)
         results = diffrax_solver(
-            self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10
+            self.simple_rhs,
+            t_span,
+            y0,
+            method=Dopri5(),
+            t_eval=t_eval,
+            stepsize_controller=stepsize_controller,
         )
 
         self.assertAllClose(t_eval, results.t)
@@ -94,8 +106,14 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
         t_eval = np.array([1.0, 1.5, 1.7, 2.0])
         y0 = jnp.array([1.0])
 
+        stepsize_controller = PIDController(rtol=1e-10, atol=1e-10)
         results = diffrax_solver(
-            self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10
+            self.simple_rhs,
+            t_span,
+            y0,
+            method=Dopri5(),
+            t_eval=t_eval,
+            stepsize_controller=stepsize_controller,
         )
 
         self.assertAllClose(t_eval, results.t)
@@ -118,8 +136,14 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
         t_eval = np.array([2.0, 1.7, 1.5, 1.0])
         y0 = jnp.array([1 + 0.5 + (2.0**3 - 1.0**3) / 3])
 
+        stepsize_controller = PIDController(rtol=1e-10, atol=1e-10)
         results = diffrax_solver(
-            self.simple_rhs, t_span, y0, method=Dopri5(), t_eval=t_eval, atol=1e-10, rtol=1e-10
+            self.simple_rhs,
+            t_span,
+            y0,
+            method=Dopri5(),
+            t_eval=t_eval,
+            stepsize_controller=stepsize_controller,
         )
 
         self.assertAllClose(t_eval, results.t)
