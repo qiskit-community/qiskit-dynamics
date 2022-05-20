@@ -28,7 +28,6 @@ from qiskit_dynamics.models import GeneratorModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.solvers.diffrax_solver import diffrax_solver
 
 from ..common import QiskitDynamicsTestCase, TestDiffraxBase, TestJaxBase
 

@@ -25,8 +25,10 @@ from qiskit_dynamics.array import Array, wrap
 
 from .solver_utils import merge_t_args, trim_t_results
 
+from qiskit import QiskitError
+
 try:
-    from diffrax import ODETerm, PIDController, SaveAt
+    from diffrax import ODETerm, SaveAt
     from diffrax import diffeqsolve as _diffeqsolve
 
     from diffrax.solver import AbstractSolver
@@ -76,7 +78,13 @@ def diffrax_solver(
 
     diffeqsolve = wrap(_diffeqsolve)
 
-    saveat = SaveAt(ts=t_list)
+    if "saveat" in kwargs and t_eval is not None:
+        raise QiskitError(
+            "Saveat argument and t_eval both passed to diffrax solver. Use only one, t_eval can be contained in the saveat instance."
+        )
+
+    # couble check ts is t_eval and not t_list
+    saveat = SaveAt(ts=t_eval)
 
     results = diffeqsolve(
         term,

@@ -118,8 +118,7 @@ class TestDiffraxBase(unittest.TestCase):
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                # pylint: disable=import-outside-toplevel
-                import diffrax  # pylint: disable=unused-import
+                import diffrax  # pylint: disable=unused-import, disable=import-outside-toplevel
         except Exception as err:
             raise unittest.SkipTest("Skipping diffrax tests.") from err
 
