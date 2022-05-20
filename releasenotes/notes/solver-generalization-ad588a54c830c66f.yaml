@@ -1,7 +1,11 @@
 ---
 upgrade:
   - |
-    The :class:`~qiskit_dynamics.Solver` class has been modified to no longer
+    The :class:`~.Solver` API has been updated so that ``signals`` are passed
+    as a kwarg to the :meth:`.Solver.solve` method rather than being set as a
+    class attribute. A new instantiation argument, ``rwa_carrier_freqs``, has been
+    added to control behaviour of the rotating wave approximation in the absence
+    of signals being specified.
     internally store signals: rather than passing them at instantiation, or setting them
     via the ``signals`` property, ``signals`` must be passed as an argument to the
     ``solve`` method when solving. Setting ``signals`` at instantiation or through the
