@@ -529,7 +529,7 @@ def setup_simulation_lists(
         the arguments specified multiple simulations or not.
 
     Raises:
-        QiskitError: If the length of each argument is incompatible, or if any singleton
+        QiskitError: If the length of any arguments are incompatible, or if any singleton
         is an invalid shape.
     """
 
