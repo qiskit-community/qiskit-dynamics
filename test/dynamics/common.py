@@ -26,11 +26,6 @@ try:
 except ImportError:
     pass
 
-try:
-    from diffrax.solver import Dopri5, Tsit5
-except ImportError:
-    pass
-
 from qiskit_dynamics.array import Array, wrap
 
 
