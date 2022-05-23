@@ -122,14 +122,6 @@ class TestDiffraxBase(unittest.TestCase):
         except Exception as err:
             raise unittest.SkipTest("Skipping diffrax tests.") from err
 
-    def Dopri5(self) -> Callable:
-        """Enables the import of the Dopri5 solver if diffrax is installed"""
-        return Dopri5
-
-    def Tsit5(self) -> Callable:
-        """Enables the import of the Tsit5 solver if diffrax is installed"""
-        return Tsit5
-
 
 class TestQutipBase(unittest.TestCase):
     """Base class for tests that utilize Qutip."""

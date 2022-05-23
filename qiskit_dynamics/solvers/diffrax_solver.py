@@ -94,7 +94,7 @@ def diffrax_solver(
     else:
         results = diffeqsolve(
             term,
-            solver=solver,
+            solver=method,
             t0=t_list[0],
             t1=t_list[-1],
             dt0=None,
@@ -103,8 +103,16 @@ def diffrax_solver(
         )
 
     ys = jnp.array([r2c(y) for y in results.ys])
-    results = OdeResult(t=t_eval, y=Array(ys, backend="jax", dtype=complex))
-    return results
+    results_out = OdeResult(
+        t=t_eval, y=Array(ys, backend="jax", dtype=complex), status=results.result
+    )
+    results_out.interpolation = results.interpolation
+    results_out.stats = results.stats
+    results_out.solver_state = results.solver_state
+    results_out.controller_state = results.controller_state
+    results_out.made_jump = results.made_jump
+
+    return results_out
 
 
 def real_rhs(rhs):

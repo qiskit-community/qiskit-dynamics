@@ -114,11 +114,8 @@ def solve_ode(
     """
 
     if method not in ODE_METHODS and not (
-        isinstance(method, type)
-        and (
-            issubclass(method, OdeSolver)
-            or (diffrax_installed and issubclass(method, AbstractSolver))
-        )
+        (isinstance(method, type) and (issubclass(method, OdeSolver)))
+        or (diffrax_installed and isinstance(method, AbstractSolver))
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
@@ -134,7 +131,7 @@ def solve_ode(
     # solve the problem using specified method
     if method in SOLVE_IVP_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
-    elif isinstance(method, type) and diffrax_installed and issubclass(method, AbstractSolver):
+    elif diffrax_installed and isinstance(method, AbstractSolver):
         results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "RK4":
         results = RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)

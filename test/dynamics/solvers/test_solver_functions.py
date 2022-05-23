@@ -32,7 +32,7 @@ from qiskit_dynamics.array import Array
 from ..common import QiskitDynamicsTestCase, TestDiffraxBase, TestJaxBase
 
 try:
-    from diffrax import PIDController
+    from diffrax import PIDController, Tsit5, Dopri5
 except ImportError:
     pass
 
@@ -418,7 +418,7 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
             rhs=rhs,
             t_span=t_span,
             y0=y0,
-            method=self.Dopri5(),
+            method=Dopri5(),
             t_eval=t_eval,
             stepsize_controller=stepsize_controller,
             **kwargs,
@@ -438,7 +438,7 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
             rhs=rhs,
             t_span=t_span,
             y0=y0,
-            method=self.Tsit5(),
+            method=Tsit5(),
             t_eval=t_eval,
             stepsize_controller=stepsize_controller,
             **kwargs,
