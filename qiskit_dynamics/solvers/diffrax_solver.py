@@ -62,10 +62,6 @@ def diffrax_solver(
     Raises:
         QiskitError: Passing both `SaveAt` argument and `t_eval` argument.
     """
-    if isinstance(method, type) and issubclass(method, AbstractSolver):
-        solver = method()
-    else:
-        solver = method
 
     t_list = merge_t_args(t_span, t_eval)
 
@@ -87,7 +83,7 @@ def diffrax_solver(
         saveat = SaveAt(ts=t_eval)
         results = diffeqsolve(
             term,
-            solver=solver,
+            solver=method,
             t0=t_list[0],
             t1=t_list[-1],
             dt0=None,

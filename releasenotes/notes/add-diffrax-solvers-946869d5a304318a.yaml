@@ -7,7 +7,7 @@ features:
     instead of a string for a jax or scipy solver, for example:
     
       from diffrax import Dopri5
-      from qiskit-dynamics.solvers.solver_functions import solve_ode
+      from qiskit-dynamics import solve_ode
 
       sol = solve_ode(
           rhs: some_function,

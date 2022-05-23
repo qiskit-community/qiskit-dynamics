@@ -113,11 +113,11 @@ def solve_ode(
         QiskitError: If specified method does not exist.
     """
 
-    if (
-        method not in ODE_METHODS
-        and not (isinstance(method, type) and issubclass(method, OdeSolver))
-        and not (
-            isinstance(method, type) and diffrax_installed and issubclass(method, AbstractSolver)
+    if method not in ODE_METHODS and not (
+        isinstance(method, type)
+        and (
+            issubclass(method, OdeSolver)
+            or (diffrax_installed and issubclass(method, AbstractSolver))
         )
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
