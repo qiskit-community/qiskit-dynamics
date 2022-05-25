@@ -31,7 +31,7 @@ try:
     from diffrax import ODETerm, SaveAt
     from diffrax import diffeqsolve as _diffeqsolve
 
-    from diffrax.solver import AbstractSolver
+    from diffrax.solver import AbstractSolver  # pylint: disable=unused-import
     import jax.numpy as jnp
 except ImportError as err:
     pass
@@ -42,7 +42,7 @@ def diffrax_solver(
     rhs: Callable,
     t_span: Array,
     y0: Array,
-    method: AbstractSolver,
+    method: "AbstractSolver",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
