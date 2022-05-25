@@ -4,7 +4,7 @@ features:
     Added support for solvers from the diffrax package:
     https://github.com/patrick-kidger/diffrax. A new option
     is enabled to pass in an object -- a solver from diffrax
-    instead of a string for a jax or scipy solver, for example:
+    instead of a string for a jax or scipy solver, for example::
     
       from diffrax import Dopri5
       from qiskit-dynamics import solve_ode
