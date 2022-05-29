@@ -69,9 +69,13 @@ def RK4_solver(
         k4 = rhs_func(t + h, y + h * k3)
 
         return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
+    
+    # ensure the output of rhs_func is a raw array
+    def wrapped_rhs_func(*args):
+        return Array(rhs(*args)).data
 
     return fixed_step_solver_template(
-        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
@@ -100,9 +104,13 @@ def scipy_expm_solver(
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
         return expm(generator(eval_time) * h) @ y
+    
+    # ensure the output of rhs_func is a raw array
+    def wrapped_rhs_func(*args):
+        return Array(generator(*args)).data
 
     return fixed_step_solver_template(
-        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
@@ -377,9 +385,9 @@ def fixed_step_solver_template(
         OdeResult: Results object.
     """
 
-    # ensure the output of rhs_func is a raw array
-    def wrapped_rhs_func(*args):
-        return Array(rhs_func(*args)).data
+    # # ensure the output of rhs_func is a raw array
+    # def wrapped_rhs_func(*args):
+    #     return Array(rhs_func(*args)).data
 
     y0 = Array(y0).data
 
@@ -390,7 +398,7 @@ def fixed_step_solver_template(
         y = ys[-1]
         inner_t = current_t
         for _ in range(n_steps):
-            y = take_step(wrapped_rhs_func, inner_t, y, h)
+            y = take_step(rhs_func, inner_t, y, h)
             inner_t = inner_t + h
         ys.append(y)
     ys = Array(ys)
