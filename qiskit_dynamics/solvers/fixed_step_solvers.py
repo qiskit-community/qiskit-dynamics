@@ -194,7 +194,7 @@ def lanczos_diag_solver(
     y0: Array,
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    **kwargs,
+    k_dim: Optional[int] = None,
 ):
     """Fixed-step size matrix exponential based solver implemented using
     lanczos algorithm. Solves the specified problem by taking steps of
@@ -206,14 +206,16 @@ def lanczos_diag_solver(
         y0: Initial state.
         max_dt: Maximum step size.
         t_eval: Optional list of time points at which to return the solution.
-        **kwargs: ``k_dim`` integer which specifies the dimension of Krylov subspace used for
-                   lanczos iteration. Acts as an accuracy parameter. ``k_dim < dim(generator)``
+        k_dim: Integer which specifies the dimension of Krylov subspace used for
+               lanczos iteration. Acts as an accuracy parameter. ``k_dim < dim(generator)``.
 
     Returns:
         OdeResult: Results object.
     """
 
-    k_dim = kwargs.get("k_dim", max(2, generator(0).shape[0] // 4))
+    # k_dim = kwargs.get("k_dim", max(2, generator(0).shape[0] // 4))
+    if k_dim is None:
+        k_dim = generator(0).shape[0] // 4
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
