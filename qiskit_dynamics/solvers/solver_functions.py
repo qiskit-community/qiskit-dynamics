@@ -184,6 +184,10 @@ def solve_lmde(
       size to take. This solver will break integration periods into even
       sub-intervals no larger than ``max_dt``, and solve over each sub-interval via
       matrix exponentiation of the generator sampled at the midpoint.
+    - ``'lanczos_diag'``: A fixed-step matrix-exponential solver similar to ``'scipy_expm'``
+      but uses using lanczos algorithm. Requires additional kwargs ``max_dt`` and ``k_dim``
+      indicating the maximum step size to take and krylov subspace dimension respectively.
+      ``k_dim`` acts an adjustable accuracy parameter and ``k_dim`` < ``model.dim``.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
