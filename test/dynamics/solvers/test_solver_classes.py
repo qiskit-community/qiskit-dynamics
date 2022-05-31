@@ -482,6 +482,20 @@ class TestSolverSimulation(QiskitDynamicsTestCase):
         self.assertTrue(isinstance(yf, SuperOp))
         self.assertTrue(yf.input_dims() == (2, 3) and yf.output_dims() == (3, 2))
 
+    def test_convert_results(self):
+        """Test convert_results option in a Lindblad simulation of a Statevector."""
+
+        results = self.lindblad_solver.solve(
+            t_span=[0.0, 1.0],
+            y0=Statevector([0.0, 1.0]),
+            signals=[Signal(1.0, 5.0)],
+            convert_results=False,
+            method=self.method,
+        )
+        self.assertTrue(not isinstance(results.y[-1], DensityMatrix))
+        self.assertTrue(results.y[-1].shape == (2, 2))
+        self.assertTrue(results.y[-1][0, 0] > 0.99 and results.y[-1][0, 0] < 0.999)
+
     def test_lindblad_solve_statevector(self):
         """Test correct conversion of Statevector to DensityMatrix."""
 
