@@ -69,7 +69,7 @@ def RK4_solver(
         k4 = rhs_func(t + h, y + h * k3)
 
         return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
-    
+
     # ensure the output of rhs_func is a raw array
     def wrapped_rhs_func(*args):
         return Array(rhs(*args)).data
@@ -104,7 +104,7 @@ def scipy_expm_solver(
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
         return expm(generator(eval_time) * h) @ y
-    
+
     # ensure the output of rhs_func is a raw array
     def wrapped_rhs_func(*args):
         return Array(generator(*args)).data
@@ -121,7 +121,7 @@ def lanczos_exmp(
     max_dt: float,
 ):
     """Calculates action of matrix exponential on the state using lanczos algorithm
-    
+
     Args:
         array : Array to exponentiate
         v_0 : Inital state
@@ -131,56 +131,60 @@ def lanczos_exmp(
     Returns:
         y_dt : Action of matrix exponential on state
     """
-    array = 1j*array
+    array = 1j * array
 
     data_type = np.result_type(array.dtype, v_0.dtype)
-    v_0 = np.array(v_0).reshape(-1,1) # ket
+    v_0 = np.array(v_0).reshape(-1, 1)  # ket
     array_dim = array.shape[0]
     q_basis = np.zeros((k_dim, array_dim), dtype=data_type)
 
     v_p = np.zeros_like(v_0)
-    projection = np.zeros_like(v_0) # v1
+    projection = np.zeros_like(v_0)  # v1
 
     beta = np.zeros((k_dim,), dtype=data_type)
     alpha = np.zeros((k_dim,), dtype=data_type)
 
     v_0 = v_0 / np.sqrt(np.abs(v_0.conj().T @ v_0))
-    q_basis[[0],:] = v_0.T
+    q_basis[[0], :] = v_0.T
 
     projection = array @ v_0
     alpha[0] = v_0.conj().T @ projection
-    projection = projection - alpha[0]*v_0
+    projection = projection - alpha[0] * v_0
     beta[0] = np.sqrt(np.abs(projection.conj().T @ projection))
 
     error = np.finfo(np.float64).eps
 
-    for i in range(1,k_dim,1):
-        v_p = q_basis[i-1,:]
+    for i in range(1, k_dim, 1):
+        v_p = q_basis[i - 1, :]
 
-        q_basis[[i],:] = projection.T / beta[i-1]
-        projection = array @ q_basis[i,:] # |array_dim>
-        alpha[i] = q_basis[i,:].conj().T @ projection # real?
-        projection = projection - alpha[i]*q_basis[i,:] - beta[i-1]*v_p
+        q_basis[[i], :] = projection.T / beta[i - 1]
+        projection = array @ q_basis[i, :]  # |array_dim>
+        alpha[i] = q_basis[i, :].conj().T @ projection  # real?
+        projection = projection - alpha[i] * q_basis[i, :] - beta[i - 1] * v_p
         beta[i] = np.sqrt(np.abs(projection.conj().T @ projection))
-        
+
         # addtitional steps to increase accuracy
-        delta = q_basis[i,:].conj().T @ projection
-        projection -= delta*q_basis[i,:]
+        delta = q_basis[i, :].conj().T @ projection
+        projection -= delta * q_basis[i, :]
         alpha[i] += delta
-        
+
         if beta[i] < error:
             k_dim = i
             # print('smaller space found', k_dim)
             break
-    
-    Tridiagonal = np.diag(alpha[:k_dim],k=0) + np.diag(beta[:k_dim-1],k=-1) + np.diag(beta[:k_dim-1],k=1)
+
+    Tridiagonal = (
+        np.diag(alpha[:k_dim], k=0)
+        + np.diag(beta[: k_dim - 1], k=-1)
+        + np.diag(beta[: k_dim - 1], k=1)
+    )
     q_basis = q_basis[:k_dim]
     q_basis = q_basis.T
 
     eigen_value, eigen_vectors_t = np.linalg.eigh(Tridiagonal)
 
     # eigen_vectors_a = (q_basis @ eigen_vectors_t)
-    y_dt = q_basis @ eigen_vectors_t @ (np.exp(-1j*max_dt*eigen_value)*eigen_vectors_t[0,:])
+    y_dt = q_basis @ eigen_vectors_t @ (np.exp(-1j * max_dt * eigen_value) * eigen_vectors_t[0, :])
     return y_dt
 
 
@@ -190,7 +194,7 @@ def lanczos_diag_solver(
     y0: Array,
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    **kwargs
+    **kwargs,
 ):
     """Fixed-step size matrix exponential based solver implemented using
     lanczos algorithm. Solves the specified problem by taking steps of
@@ -210,15 +214,15 @@ def lanczos_diag_solver(
     Returns:
         OdeResult: Results object.
     """
-    
-    if 'k_dim' in kwargs.keys():
-        k_dim = kwargs['k_dim']
+
+    if "k_dim" in kwargs.keys():
+        k_dim = kwargs["k_dim"]
     else:
-        k_dim = max(2,  generator(0).shape[0]//4)
+        k_dim = max(2, generator(0).shape[0] // 4)
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
-        return lanczos_exmp(generator(eval_time),y,k_dim,h)
+        return lanczos_exmp(generator(eval_time), y, k_dim, h)
 
     return fixed_step_solver_template(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
