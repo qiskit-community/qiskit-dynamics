@@ -272,7 +272,7 @@ class Solver:
         t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
         signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
-        wrap_results: Optional[bool] = True,
+        wrap_results: bool = True,
         **kwargs,
     ) -> Union[OdeResult, List[OdeResult]]:
         r"""Solve a dynamical problem, or a set of dynamical problems.
