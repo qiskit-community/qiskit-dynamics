@@ -206,19 +206,14 @@ def lanczos_diag_solver(
         y0: Initial state.
         max_dt: Maximum step size.
         t_eval: Optional list of time points at which to return the solution.
-
-    Kwargs:
-        k_dim: Integer which specifies the dimension of Krylov subspace used for
-               lanczos iteration. Acts as an accuracy parameter. `k_dim < dim(generator)`
+        **kwargs: ``k_dim`` integer which specifies the dimension of Krylov subspace used for
+                   lanczos iteration. Acts as an accuracy parameter. ``k_dim < dim(generator)``
 
     Returns:
         OdeResult: Results object.
     """
 
-    if "k_dim" in kwargs.keys():
-        k_dim = kwargs["k_dim"]
-    else:
-        k_dim = max(2, generator(0).shape[0] // 4)
+    k_dim = kwargs.get("k_dim", max(2, generator(0).shape[0] // 4))
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
