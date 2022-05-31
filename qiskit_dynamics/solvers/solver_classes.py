@@ -272,7 +272,7 @@ class Solver:
         t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
         signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
-        wrap_results: bool = True,
+        convert_results: bool = True,
         **kwargs,
     ) -> Union[OdeResult, List[OdeResult]]:
         r"""Solve a dynamical problem, or a set of dynamical problems.
@@ -291,7 +291,9 @@ class Solver:
                      Hamiltonian component, otherwise specify as a tuple of two lists, one
                      for Hamiltonian components, and one for the ``dissipator_operators``
                      coefficients.
-            wrap_results: Whether or not to wrap the result arrays in the same class as y0.
+            convert_results: If ``True``, convert returned solver state results to the same class
+                             as y0. If ``False``, states will be returned in the native array type
+                             used by the specified solver method.
             **kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
 
         Returns:
@@ -344,6 +346,11 @@ class Solver:
              - Solves the vectorized Lindblad equation with initial state ``y0``.
                ``evaluation_mode`` must be set to a vectorized option.
 
+        In some cases (e.g. if using JAX), wrapping the returned states in the type
+        given in the ``yf`` type column above may be undesirable. Setting
+        ``convert_results=False`` prevents this wrapping, while still allowing
+        usage of the automatic type-handling for the input state.
+
         In addition to the above, this method can be used to specify multiple simulations
         simultaneously. This can be done by specifying one or more of the arguments
         ``t_span``, ``y0``, or ``signals`` as a list of valid inputs.
@@ -394,7 +401,7 @@ class Solver:
                 t_span=current_t_span,
                 y0=current_y0,
                 signals=current_signals,
-                wrap_results=wrap_results,
+                convert_results=convert_results,
                 **kwargs,
             )
             for current_t_span, current_y0, current_signals in zip(
@@ -415,7 +422,7 @@ class Solver:
         t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
         signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
-        wrap_results: Optional[bool] = True,
+        convert_results: Optional[bool] = True,
         **kwargs,
     ) -> OdeResult:
         """Helper function solve for running a single simulation."""
@@ -478,7 +485,7 @@ class Solver:
         results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
         results.y = format_final_states(results.y, self.model, y_input, y0_cls)
 
-        if y0_cls is not None and wrap_results:
+        if y0_cls is not None and convert_results:
             results.y = [state_type_wrapper(yi) for yi in results.y]
 
         return results
