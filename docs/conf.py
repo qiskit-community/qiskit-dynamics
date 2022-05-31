@@ -45,7 +45,7 @@ numfig = True
 numfig_format = {
     'table': 'Table %s'
 }
-language = None
+language = 'en'
 pygments_style = 'colorful'
 add_module_names = False
 modindex_common_prefix = ['qiskit_dynamics.']

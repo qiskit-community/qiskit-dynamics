@@ -182,13 +182,12 @@ The function we want to optimize consists of:
 
         # apply signal mapping and set signals
         signal = signal_mapping(params)
-        solver_copy = ham_solver.copy()
-        solver_copy.signals = [signal]
-
+        
         # Simulate
-        results = solver_copy.solve(
+        results = ham_solver.solve(
             y0=np.eye(2, dtype=complex),
             t_span=[0, signal.duration * signal.dt],
+            signals=[signal],
             method='jax_odeint',
             atol=1e-8,
             rtol=1e-8

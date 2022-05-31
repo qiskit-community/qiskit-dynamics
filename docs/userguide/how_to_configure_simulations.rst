@@ -80,11 +80,10 @@ timing the solver.
     solver = Solver(
         static_hamiltonian=static_hamiltonian,
         hamiltonian_operators=[drive_hamiltonian],
-        hamiltonian_signals=[drive_signal]
     )
 
     y0 = np.eye(dim, dtype=complex)
-    %time results = solver.solve(t_span=[0., T], y0=y0, atol=1e-10, rtol=1e-10)
+    %time results = solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
 
 Next, define a ``Solver`` in the rotating frame of the static
 Hamiltonian by setting the ``rotating_frame`` kwarg, and solve, again timing the solver.
@@ -94,12 +93,11 @@ Hamiltonian by setting the ``rotating_frame`` kwarg, and solve, again timing the
     rf_solver = Solver(
         static_hamiltonian=static_hamiltonian,
         hamiltonian_operators=[drive_hamiltonian],
-        hamiltonian_signals=[drive_signal],
         rotating_frame=static_hamiltonian
     )
 
     y0 = np.eye(dim, dtype=complex)
-    %time rf_results = rf_solver.solve(t_span=[0., T], y0=y0, atol=1e-10, rtol=1e-10)
+    %time rf_results = rf_solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
 
 Observe that despite the two simulation problems being mathematically equivalent, it takes
 less time to solve in the rotating frame.
@@ -156,20 +154,21 @@ how it results in further speed ups at the expense of solution accuracy. See the
 documentation for the :meth:`~qiskit_dynamics.models.rotating_wave_approximation` function
 for specific details about the RWA.
 
-Construct a solver for the same problem, now specifying an RWA cutoff frequency:
+Construct a solver for the same problem, now specifying an RWA cutoff frequency and
+the carrier frequencies relative to which the cutoff should be applied:
 
 .. jupyter-execute::
 
     rwa_solver = Solver(
         static_hamiltonian=static_hamiltonian,
         hamiltonian_operators=[drive_hamiltonian],
-        hamiltonian_signals=[drive_signal],
         rotating_frame=static_hamiltonian,
-        rwa_cutoff_freq=1.5 * v
+        rwa_cutoff_freq=1.5 * v,
+        rwa_carrier_freqs=[v]
     )
 
     y0 = np.eye(dim, dtype=complex)
-    %time rwa_results = rwa_solver.solve(t_span=[0., T], y0=y0, atol=1e-10, rtol=1e-10)
+    %time rwa_results = rwa_solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
 
 We observe a further reduction in time, which is a result of the solver requiring even fewer RHS
 evaluations with the RWA:
@@ -266,11 +265,10 @@ amplitude, and just-in-time compile it using JAX.
 
     def dense_func(amp):
         drive_signal = Signal(Array(amp), carrier_freq=v)
-        solver_copy = solver.copy()
-        solver_copy.signals = [drive_signal]
-        res = solver_copy.solve(
+        res = solver.solve(
             t_span=[0., T],
             y0=y0,
+            signals=[drive_signal],
             method='jax_odeint',
             atol=1e-10,
             rtol=1e-10
@@ -293,11 +291,10 @@ diagonal, but we explicitly highlight the need for this.
 
     def sparse_func(amp):
         drive_signal = Signal(Array(amp), carrier_freq=v)
-        solver_copy = sparse_solver.copy()
-        solver_copy.signals = [drive_signal]
-        res = solver_copy.solve(
+        res = sparse_solver.solve(
             t_span=[0., T],
             y0=y0,
+            signals = [drive_signal],
             method='jax_odeint',
             atol=1e-10,
             rtol=1e-10

@@ -1,0 +1,27 @@
+---
+upgrade:
+  - |
+    The :class:`~.Solver` API has been updated so that ``signals`` are passed
+    as a kwarg to the :meth:`.Solver.solve` method rather than being set as a
+    class attribute. A new instantiation argument, ``rwa_carrier_freqs``, has been
+    added to control behaviour of the rotating wave approximation in the absence
+    of signals being specified.
+features:
+  - |
+    The  :meth:`.Solver.solve` method can now run multiple simulations in a single call by
+    specifying one or more of the ``t_span``, ``y0``, and ``signals``
+    arguments as lists of valid single inputs. This supports specifying all as a list of the
+    same length (with a different value for each to be used in each simulation), or a subset
+    can be specified with lists of the same length, with the other arguments giving only a single
+    value (to be used repeatedly while varying the other parameters). Results are returned as a
+    list of the results of the individual simulations. The list of simulations is performed
+    in a serial loop.
+deprecations:
+  - |
+    The ``signals`` property and ``hamiltonian_signals`` and ``dissipator_signals`` init kwargs
+    of :class:`.Solver` have been deprecated. Signals are now specified as a kwarg to the
+    :meth:`.Solver.solve` method. The deprecated functionality is scheduled to be removed in the
+    0.4.0 release.
+  - |
+    The :meth:`~.Solver.copy` method has been deprecated and is scheduled to be removed
+    in the 0.4.0 release.
