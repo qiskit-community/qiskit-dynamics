@@ -206,7 +206,10 @@ def lanczos_diag_solver(
     Returns:
         OdeResult: Results object.
     """
-    k_dim = kwargs['k_dim'] #max(generator(0).shape[0]//3,2)
+    if 'k_dim' in kwargs.keys():
+        k_dim = kwargs['k_dim']
+    else:
+        k_dim = max(2, generator(0).shape[0]//4)
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
