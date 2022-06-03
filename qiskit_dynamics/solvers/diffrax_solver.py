@@ -75,42 +75,32 @@ def diffrax_solver(
 
     if "saveat" in kwargs and t_eval is not None:
         raise QiskitError(
-            """Saveat argument and t_eval both passed to diffrax solver.
-            Use only one, t_eval can be contained in the saveat instance."""
+            """Only one of t_eval or saveat can be passed when using a diffrax solver, but both were specified."""
         )
 
     if t_eval is not None:
-        saveat = SaveAt(ts=t_eval)
-        results = diffeqsolve(
-            term,
-            solver=method,
-            t0=t_list[0],
-            t1=t_list[-1],
-            dt0=None,
-            y0=Array(y0, dtype=float),
-            saveat=saveat,
-            **kwargs,
-        )
-    else:
-        results = diffeqsolve(
-            term,
-            solver=method,
-            t0=t_list[0],
-            t1=t_list[-1],
-            dt0=None,
-            y0=Array(y0, dtype=float),
-            **kwargs,
-        )
+        kwargs["saveat"] = SaveAt(ts=t_eval)
 
-    ys = jnp.array([r2c(y) for y in results.ys])
-    results_out = OdeResult(
-        t=t_eval, y=Array(ys, backend="jax", dtype=complex), status=results.result
+    results = diffeqsolve(
+        term,
+        solver=method,
+        t0=t_list[0],
+        t1=t_list[-1],
+        dt0=None,
+        y0=Array(y0, dtype=float),
+        **kwargs,
     )
-    results_out.interpolation = results.interpolation
-    results_out.stats = results.stats
-    results_out.solver_state = results.solver_state
-    results_out.controller_state = results.controller_state
-    results_out.made_jump = results.made_jump
+
+    sol_dict = vars(results)
+    ys_out = sol_dict.pop("ys")
+    ys = jnp.array([r2c(y) for y in results.ys])
+
+    # Below only works for 2d arrays
+    # ys = r2c(ys_out.transpose((1,0))).transpose((1, 0))
+    # ys = jnp.array([r2c(y) for y in ys])
+    # assert(ys.all()==ys1.all())
+
+    results_out = OdeResult(t=t_eval, y=Array(ys, backend="jax", dtype=complex), **sol_dict)
 
     return results_out
 
