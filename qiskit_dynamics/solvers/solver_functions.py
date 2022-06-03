@@ -238,7 +238,7 @@ def solve_lmde(
         isinstance(method, type)
         and (
             issubclass(method, OdeSolver)
-            or (diffrax_installed and issubclass(method, AbstractSolver))
+            or (diffrax_installed and isinstance(method, AbstractSolver))
         )
     ):
         if isinstance(generator, BaseGeneratorModel):
