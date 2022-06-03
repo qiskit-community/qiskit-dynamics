@@ -176,7 +176,7 @@ requested.
     n_steps = int(np.ceil(t_final / tau)) + 1
     t_eval = np.linspace(0., t_final, n_steps)
 
-    sol = solver.solve(t_span = [0., t_final], y0 = y0, t_eval = t_eval)
+    sol = solver.solve(t_span=[0., t_final], y0=y0, t_eval=t_eval)
 
 
 4. Define the observables and calculate their values
