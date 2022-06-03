@@ -29,7 +29,12 @@ from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.array import Array
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, TestDiffraxBase, TestJaxBase
+
+try:
+    from diffrax import PIDController, Tsit5, Dopri5
+except ImportError:
+    pass
 
 
 class TestSolverMethod(ABC, QiskitDynamicsTestCase):
@@ -139,6 +144,18 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         expected = expm(-1j * np.pi * self.X.data)
 
         self.assertAllClose(results.y[-1], expected, atol=self.tol, rtol=self.tol)
+
+    def test_backwards_solving(self):
+        """Test case for reversed basic model."""
+
+        reverse_t_span = self.t_span.copy()
+        reverse_t_span.reverse()
+
+        reverse_y0 = expm(-1j * np.pi * self.X.data)
+
+        results = self.solve(self.basic_rhs, t_span=reverse_t_span, y0=reverse_y0)
+
+        self.assertAllClose(results.y[-1], self.y0, atol=self.tol, rtol=self.tol)
 
     def test_w_GeneratorModel(self):
         """Test on a GeneratorModel."""
@@ -384,6 +401,46 @@ class Testjax_odeint(TestSolverMethodJax):
             t_eval=t_eval,
             atol=1e-10,
             rtol=1e-10,
+            **kwargs,
+        )
+
+    @property
+    def is_ode_method(self):
+        return True
+
+
+class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
+    """Tests for diffrax Dopri5 method."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
+        return solve_ode(
+            rhs=rhs,
+            t_span=t_span,
+            y0=y0,
+            method=Dopri5(),
+            t_eval=t_eval,
+            stepsize_controller=stepsize_controller,
+            **kwargs,
+        )
+
+    @property
+    def is_ode_method(self):
+        return True
+
+
+class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
+    """Tests for diffrax Tsit5 method."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
+        return solve_ode(
+            rhs=rhs,
+            t_span=t_span,
+            y0=y0,
+            method=Tsit5(),
+            t_eval=t_eval,
+            stepsize_controller=stepsize_controller,
             **kwargs,
         )
 
