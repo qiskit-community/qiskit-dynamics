@@ -75,7 +75,8 @@ def diffrax_solver(
 
     if "saveat" in kwargs and t_eval is not None:
         raise QiskitError(
-            """Only one of t_eval or saveat can be passed when using a diffrax solver, but both were specified."""
+            """Only one of t_eval or saveat can be passed when using
+            a diffrax solver, but both were specified."""
         )
 
     if t_eval is not None:
@@ -92,13 +93,9 @@ def diffrax_solver(
     )
 
     sol_dict = vars(results)
-    ys_out = sol_dict.pop("ys")
-    ys = jnp.array([r2c(y) for y in results.ys])
+    ys = sol_dict.pop("ys")
 
-    # Below only works for 2d arrays
-    # ys = r2c(ys_out.transpose((1,0))).transpose((1, 0))
-    # ys = jnp.array([r2c(y) for y in ys])
-    # assert(ys.all()==ys1.all())
+    ys = jnp.swapaxes(r2c(jnp.swapaxes(ys, 0, 1)), 0, 1)
 
     results_out = OdeResult(t=t_eval, y=Array(ys, backend="jax", dtype=complex), **sol_dict)
 
