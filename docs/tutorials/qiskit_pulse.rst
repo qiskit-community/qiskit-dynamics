@@ -119,9 +119,9 @@ rotating frame and perform the rotating wave approximation.
     hamiltonian_solver = Solver(
         static_hamiltonian=drift,
         hamiltonian_operators=operators,
-        hamiltonian_signals=signals,
         rotating_frame=drift,
-        rwa_cutoff_freq=2*w
+        rwa_cutoff_freq=2*w,
+        rwa_carrier_freqs=[w]
     )
 
 4. Simulate the pulse schedule using the model
@@ -136,7 +136,7 @@ In the last step we perform the simulation and plot the results.
     # Start the qubit in its ground state.
     y0 = Statevector([1., 0.])
 
-    %time sol = hamiltonian_solver.solve(t_span=[0., 2*T], y0=y0, atol=1e-8, rtol=1e-8)
+    %time sol = hamiltonian_solver.solve(t_span=[0., 2*T], y0=y0, signals=signals, atol=1e-8, rtol=1e-8)
 
 
 .. jupyter-execute::
