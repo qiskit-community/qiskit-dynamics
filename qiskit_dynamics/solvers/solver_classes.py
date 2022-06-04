@@ -41,6 +41,7 @@ from qiskit_dynamics.models import (
     rotating_wave_approximation,
 )
 from qiskit_dynamics.signals import Signal, SignalList
+from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 
@@ -102,9 +103,13 @@ class Solver:
         static_hamiltonian: Optional[Array] = None,
         hamiltonian_operators: Optional[Array] = None,
         hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
+        hamiltonian_channels: Optional[List[str]] = None,
         static_dissipators: Optional[Array] = None,
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
+        dissipator_channels: Optional[List[str]] = None,
+        channel_carrier_freqs: Optional[dict] = None,
+        dt: Optional[float] = None,
         rotating_frame: Optional[Union[Array, RotatingFrame]] = None,
         in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
@@ -122,12 +127,16 @@ class Solver:
             hamiltonian_signals: (Deprecated) Coefficients for the Hamiltonian operators.
                                  This argument has been deprecated, signals should be passed
                                  to the solve method.
+            hamiltonian_channels: List of channel names corresponding to Hamiltonian operators.
             static_dissipators: Constant dissipation operators.
             dissipator_operators: Dissipation operators with time-dependent coefficients.
             dissipator_signals: (Deprecated) Optional time-dependent coefficients for the
                                 dissipators. If ``None``, coefficients are assumed to be the
                                 constant ``1.``. This argument has been deprecated, signals
                                 should be passed to the solve method.
+            dissipator_channels: List of channel names corresponding to dissipator operators.
+            channel_carrier_freqs: Dictionary mapping channel names to floats.
+            dt: Sample rate for simulating pulse schedules.
             rotating_frame: Rotating frame to transform the model into. Rotating frames which
                             are diagonal can be supplied as a 1d array of the diagonal elements,
                             to explicitly indicate that they are diagonal.
@@ -147,7 +156,56 @@ class Solver:
                                present specify as a tuple of lists of frequencies, one for
                                Hamiltonian operators and one for dissipators.
             validate: Whether or not to validate Hamiltonian operators as being Hermitian.
+
+        Raises:
+            QiskitError: If arguments are invalid.
         """
+
+        # set pulse specific information
+        all_channels = []
+
+        if hamiltonian_channels is not None:
+            hamiltonian_channels = [chan.lower() for chan in hamiltonian_channels]
+            all_channels = hamiltonian_channels
+            if hamiltonian_operators is None or len(hamiltonian_operators) != len(hamiltonian_channels):
+                raise QiskitError("""hamiltonian_channels must have same length as hamiltonian_operators""")
+
+        self._hamiltonian_channels = hamiltonian_channels
+
+        if dissipator_channels is not None:
+            dissipator_channels = [chan.lower() for chan in dissipator_channels]
+            for chan in dissipator_channels:
+                if chan not in all_channels:
+                    all_channels.append(chan)
+            if dissipator_operators is None or len(dissipator_operators) != len(dissipator_channels):
+                raise QiskitError("""dissipator_channels must have same length as dissipator_operators""")
+
+        self._dissipator_channels = dissipator_channels
+        self._all_channels = all_channels
+
+        self._dt = dt
+
+        if channel_carrier_freqs is None:
+            channel_carrier_freqs = {}
+        else:
+            channel_carrier_freqs = {key.lower(): val for key, val in channel_carrier_freqs.items()}
+
+        for chan in all_channels:
+            if chan not in channel_carrier_freqs:
+                raise QiskitError(f"""Channel '{chan}' does not have carrier frequency specified in channel_carrier_freqs.""")
+
+        self._channel_carrier_freqs = channel_carrier_freqs
+
+        """
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        Do we validate before constructing this?
+        """
+
+        self._schedule_converter = InstructionToSignals(
+            dt=self._dt,
+            carriers=self._channel_carrier_freqs,
+            channels=self._all_channels
+        )
 
         if hamiltonian_signals or dissipator_signals:
             warnings.warn(
@@ -158,6 +216,7 @@ class Solver:
                 stacklevel=2,
             )
 
+        # setup model
         model = None
         if static_dissipators is None and dissipator_operators is None:
             model = HamiltonianModel(

@@ -155,6 +155,44 @@ class TestSolverValidation(QiskitDynamicsTestCase):
             solver.solve(t_span=[[0.0, 1.0]] * 2, y0=[np.array([0.0, 1.0])] * 4, signals=[1.0])
 
 
+class TestPulseSolverValidation(QiskitDynamicsTestCase):
+    """Tests for validation when constructing with pulse simulation parameters."""
+
+    def setUp(self):
+        self.X = Operator.from_label("X")
+
+    def test_channels_len(self):
+        """Test hamiltonian_channels or dissipator_channels length error."""
+
+        error_str = "hamiltonian_channels must have same length"
+        with self.assertRaisesRegex(QiskitError, error_str):
+            Solver(hamiltonian_operators=[self.X]*2, hamiltonian_channels=['d0'])
+
+        with self.assertRaisesRegex(QiskitError, error_str):
+            Solver(hamiltonian_operators=None, hamiltonian_channels=['d0'])
+
+        error_str = "dissipator_channels must have same length"
+        with self.assertRaisesRegex(QiskitError, error_str):
+            Solver(dissipator_operators=[self.X]*2, dissipator_channels=['d0'])
+
+        with self.assertRaisesRegex(QiskitError, error_str):
+            Solver(dissipator_operators=None, dissipator_channels=['d0'])
+
+    def test_channel_carrier_freq_not_specified(self):
+        """Test cases when a channel carrier freq not specified."""
+
+        error_str = "Channel 'd0' does not have carrier frequency specified in channel_carrier_freqs."
+        with self.assertRaisesRegex(QiskitError, error_str):
+            Solver(hamiltonian_operators=[self.X], hamiltonian_channels=['d0'])
+
+        with self.assertRaisesRegex(QiskitError, error_str):
+            Solver(hamiltonian_operators=[self.X], hamiltonian_channels=['d0'], channel_carrier_freqs={'d1': 1.})
+
+        with self.assertRaisesRegex(QiskitError, error_str):
+            Solver(dissipator_operators=[self.X], dissipator_channels=['d0'], channel_carrier_freqs={'d1': 1.})
+
+
+
 class TestSolverExceptions(QiskitDynamicsTestCase):
     """Tests for Solver exception raising based on input types."""
 
