@@ -146,7 +146,7 @@ def lanczos_diag_solver(
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
         # since qiskt-dynamics generator is -1j*H but lanczos only works on hermitian arrays
-        return lanczos_exmp(1j*generator(eval_time), y, k_dim, h)
+        return lanczos_exmp(1j * generator(eval_time), y, k_dim, h)
 
     return fixed_step_solver_template(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
