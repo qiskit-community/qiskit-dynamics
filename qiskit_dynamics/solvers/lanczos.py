@@ -21,15 +21,16 @@ from scipy.sparse import csr_matrix
 
 def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
     """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
+    using Lanczos algorithm.
 
     Args:
-        array : Array to tridiagonalise
-        v_0 : Initial state
-        k_dim : Dimension of the krylov subspace
+        array : Array to tridiagonalise.
+        v_0 : Initial state.
+        k_dim : Dimension of the krylov subspace.
 
     Returns:
-        tridiagonal : Tridiagonal projection of ``array``
-        q_basis : Basis of the krylov subspace
+        tridiagonal : Tridiagonal projection of ``array``.
+        q_basis : Basis of the krylov subspace.
     """
 
     data_type = np.result_type(array.dtype, v_0.dtype)
@@ -84,16 +85,17 @@ def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: 
 def lanczos_eig(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
     """
     Finds the lowest k_dim eigenvalues and corresponding eigenvectors of a hermitian array
+    using Lanczos algorithm.
     Args:
-        array : Array to diagonalize
-        v_0 : Initial state
-        k_dim : Dimension of the krylov subspace
+        array : Array to diagonalize.
+        v_0 : Initial state.
+        k_dim : Dimension of the krylov subspace.
 
     Returns:
-        q_basis : Basis of the krylov subspace
-        eigen_values : lowest ``k_dim`` Eigenvalues
-        eigen_vectors_t : Eigenvectors in both krylov-space
-        eigen_vectors_a : Eigenvectors in both hilbert-space
+        q_basis : Basis of the krylov subspace.
+        eigen_values : lowest ``k_dim`` Eigenvalues.
+        eigen_vectors_t : Eigenvectors in both krylov-space.
+        eigen_vectors_a : Eigenvectors in both hilbert-space.
     """
 
     tridiagonal, q_basis = lanczos_basis(array, v_0, k_dim)
@@ -110,16 +112,16 @@ def lanczos_expm(
     k_dim: int,
     max_dt: float,
 ):
-    """Calculates action of matrix exponential on the state using lanczos algorithm
+    """Calculates action of matrix exponential on the state using Lanczos algorithm.
 
     Args:
-        array : Array to exponentiate
-        v_0 : Initial state
-        k_dim : Dimension of the krylov subspace
+        array : Array to exponentiate.
+        v_0 : Initial state.
+        k_dim : Dimension of the krylov subspace.
         max_dt : Maximum step size.
 
     Returns:
-        y_dt : Action of matrix exponential on state
+        y_dt : Action of matrix exponential on state.
     """
 
     q_basis, eigen_values, eigen_vectors_t, _ = lanczos_eig(array, v_0, k_dim)
