@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """
-Module contaning Lanczos diagonalization algorithm
+Module containing Lanczos diagonalization algorithm
 """
 
 from typing import Union
@@ -24,11 +24,11 @@ def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: 
 
     Args:
         array : Array to tridiagonalise
-        v_0 : Inital state
+        v_0 : Initial state
         k_dim : Dimension of the krylov subspace
 
     Returns:
-        tridiagonal : Tridigonal projection of ``array``
+        tridiagonal : Tridiagonal projection of ``array``
         q_basis : Basis of the krylov subspace
     """
 
@@ -62,7 +62,7 @@ def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: 
         projection = projection - alpha[i] * q_basis[i, :] - beta[i - 1] * v_p
         beta[i] = np.sqrt(np.abs(projection.conj().T @ projection))
 
-        # addtitional steps to increase accuracy
+        # additional steps to increase accuracy
         delta = q_basis[i, :].conj().T @ projection
         projection -= delta * q_basis[i, :]
         alpha[i] += delta
@@ -85,8 +85,8 @@ def lanczos_eig(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: in
     """
     Finds the lowest k_dim eigenvalues and corresponding eigenvectors of a hermitian array
     Args:
-        array : Array to diagonalise
-        v_0 : Inital state
+        array : Array to diagonalize
+        v_0 : Initial state
         k_dim : Dimension of the krylov subspace
 
     Returns:
@@ -104,7 +104,7 @@ def lanczos_eig(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: in
     return q_basis, eigen_values, eigen_vectors_t, eigen_vectors_a
 
 
-def lanczos_exmp(
+def lanczos_expm(
     array: Union[csr_matrix, np.ndarray],
     v_0: np.ndarray,
     k_dim: int,
@@ -114,7 +114,7 @@ def lanczos_exmp(
 
     Args:
         array : Array to exponentiate
-        v_0 : Inital state
+        v_0 : Initial state
         k_dim : Dimension of the krylov subspace
         max_dt : Maximum step size.
 
