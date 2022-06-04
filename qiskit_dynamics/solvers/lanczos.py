@@ -1,7 +1,9 @@
+
 """
 Module contaning Lanczos diagonalization algorithm
 """
-from typing import Tuple, Union
+
+from typing import Union
 import numpy as np
 from scipy.sparse import csr_matrix
 
@@ -15,7 +17,7 @@ def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: 
         k_dim : Dimension of the krylov subspace
 
     Returns:
-        Tridiagonal : Tridigonal projection of ``array``
+        tridiagonal : Tridigonal projection of ``array``
         q_basis : Basis of the krylov subspace
     """
 
@@ -58,14 +60,14 @@ def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: 
             k_dim = i
             break
 
-    Tridiagonal = Tridiagonal = (
+    tridiagonal = (
         np.diag(alpha[:k_dim], k=0)
         + np.diag(beta[: k_dim - 1], k=-1)
         + np.diag(beta[: k_dim - 1], k=1)
     )
     q_basis = q_basis[:k_dim]
     q_basis = q_basis.T
-    return Tridiagonal, q_basis
+    return tridiagonal, q_basis
 
 
 def lanczos_eig(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
@@ -83,8 +85,8 @@ def lanczos_eig(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: in
         eigen_vectors_a : Eigenvectors in both hilbert-space
     """
 
-    Tridiagonal, q_basis = lanczos_basis(array, v_0, k_dim)
-    eigen_values, eigen_vectors_t = np.linalg.eigh(Tridiagonal)
+    tridiagonal, q_basis = lanczos_basis(array, v_0, k_dim)
+    eigen_values, eigen_vectors_t = np.linalg.eigh(tridiagonal)
 
     eigen_vectors_a = q_basis @ eigen_vectors_t
 
