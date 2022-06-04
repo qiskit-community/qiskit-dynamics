@@ -19,10 +19,10 @@ import numpy as np
 from scipy.linalg import expm
 from ddt import ddt, data, unpack
 
-from qiskit import QiskitError
+from qiskit import pulse, QiskitError
 from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
 
-from qiskit_dynamics import Solver, Signal, solve_lmde
+from qiskit_dynamics import Solver, Signal, DiscreteSignal, solve_lmde
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel, rotating_wave_approximation
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
@@ -190,7 +190,6 @@ class TestPulseSolverValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, error_str):
             Solver(dissipator_operators=[self.X], dissipator_channels=['d0'], channel_carrier_freqs={'d1': 1.})
-
 
 
 class TestSolverExceptions(QiskitDynamicsTestCase):
@@ -721,6 +720,63 @@ class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
 
         jit_grad_func = self.jit_grad_wrap(func)
         jit_grad_func(1.0)
+
+
+class TestPulseSimulation(QiskitDynamicsTestCase):
+    """Test simulation of pulse schedules."""
+
+    def setUp(self):
+        """Set up some simple models."""
+        X = 2 * np.pi * Operator.from_label("X") / 2
+        Z = 2 * np.pi * Operator.from_label("Z") / 2
+        self.X = X
+        self.Z = Z
+        self.ham_solver = Solver(
+            hamiltonian_operators=[X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            hamiltonian_channels=['d0'],
+            channel_carrier_freqs={'d0': 5.},
+            dt = 0.1
+        )
+
+        self.method = "DOP853"
+
+    def test_hamiltonian_simulation(self):
+        """Test Hamiltonian simulation."""
+
+        # construct schedule
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+            pulse.shift_phase(np.pi/2.98, pulse.DriveChannel(0))
+            pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.), pulse.DriveChannel(0))
+
+        # construct equivalent DiscreteSignal
+        constant_samples = np.ones(5, dtype=float) * 0.9
+        phase = np.exp(1j * np.pi/2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.).get_waveform().samples
+
+        samples = np.append(constant_samples, gauss_samples * phase)
+
+        sig = DiscreteSignal(dt=0.1, samples=samples, carrier_freq=5.)
+
+        pulse_results = self.ham_solver.solve(
+                            t_span=[0., 1.],
+                            y0 = Statevector([1., 0.]),
+                            signals=sched,
+                            atol=1e-8, rtol=1e-8,
+                            convert_results=False
+                        )
+        signal_results = self.ham_solver.solve(
+                            t_span=[0., 1.],
+                            y0 = Statevector([1., 0.]),
+                            signals=[sig],
+                            atol=1e-8, rtol=1e-8,
+                            convert_results=False
+                        )
+
+        self.assertAllClose(pulse_results.t, signal_results.t)
+        self.assertAllClose(pulse_results.y, signal_results.y)
 
 
 @ddt

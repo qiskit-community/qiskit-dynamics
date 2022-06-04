@@ -27,6 +27,8 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import QiskitError
+from qiskit.pulse import Schedule, ScheduleBlock
+from qiskit.pulse.transforms.canonicalization import block_to_schedule
 
 from qiskit.circuit import Gate, QuantumCircuit
 from qiskit.quantum_info.operators.base_operator import BaseOperator
@@ -199,6 +201,8 @@ class Solver:
         """
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         Do we validate before constructing this?
+            - When calling solve with schedules, this needs to be instantiated
+            -
         """
 
         self._schedule_converter = InstructionToSignals(
@@ -330,7 +334,7 @@ class Solver:
         self,
         t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
-        signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
+        signals: Optional[Union[List[Schedule], List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
         convert_results: bool = True,
         **kwargs,
     ) -> Union[OdeResult, List[OdeResult]]:
@@ -455,6 +459,29 @@ class Solver:
             t_span, y0, signals
         )
 
+        # if simulating schedules, convert to Signal objects at this point
+        if isinstance(signals_list[0], (Schedule, ScheduleBlock)):
+            new_signals_list = []
+            for sched in signals_list:
+                if isinstance(sched, ScheduleBlock):
+                    sched = block_to_schedule(sched)
+
+                all_signals = self._schedule_converter.get_signals(sched)
+
+                if isinstance(self.model, HamiltonianModel) and self._hamiltonian_channels is not None:
+                    new_signals_list.append([all_signals[self._all_channels.index(chan)] for chan in self._hamiltonian_channels])
+                else:
+                    hamiltonian_signals = None
+                    dissipator_signals = None
+                    if self._hamiltonian_channels is not None:
+                        hamiltonian_signals = [all_signals[self._all_channels.index(chan)] for chan in self._hamiltonian_channels]
+                    if self._dissipator_channels is not None:
+                        dissipator_signals = [all_signals[self._all_channels.index(chan)] for chan in self._dissipator_channels]
+                    new_signals_list.append((hamiltonian_signals, dissipator_signals))
+
+            signals_list = new_signals_list
+
+        # run simulations
         all_results = [
             self._solve(
                 t_span=current_t_span,
@@ -608,7 +635,7 @@ def format_final_states(y, model, y_input, y0_cls):
 def setup_simulation_lists(
     t_span: Array,
     y0: Union[Array, QuantumState, BaseOperator],
-    signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]],
+    signals: Optional[Union[List[Schedule], List[Signal], Tuple[List[Signal], List[Signal]]]],
 ) -> Tuple[List, List, List, bool]:
     """Helper function for setting up lists of simulations.
 
@@ -643,6 +670,12 @@ def setup_simulation_lists(
         signals = [signals]
     elif isinstance(signals, list) and isinstance(signals[0], tuple):
         # multiple lindblad
+        multiple_sims = True
+    elif isinstance(signals, (Schedule, ScheduleBlock)):
+        # pulse simulation
+        signals = [signals]
+    elif isinstance(signals, list) and isinstance(signals[0], (Schedule, ScheduleBlock)):
+        # multiple pulse simulation
         multiple_sims = True
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
         # multiple Hamiltonian signals lists
