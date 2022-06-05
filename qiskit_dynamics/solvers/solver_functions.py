@@ -31,6 +31,7 @@ from qiskit_dynamics.models import (
     GeneratorModel,
     LindbladModel,
 )
+from qiskit_dynamics.models.hamiltonian_model import is_hermitian
 
 from .solver_utils import is_lindblad_model_not_vectorized
 from .fixed_step_solvers import (
@@ -279,6 +280,10 @@ def solve_lmde(
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     if method == "lanczos_diag":
+        if "sparse" not in generator.evaluation_mode:
+            raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
+        if not is_hermitian(solver_generator(1.12)):
+            raise QiskitError("lanczos_diag must be used with hermitian generators.")
         results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
         if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
