@@ -18,6 +18,7 @@ Solver functions.
 """
 
 from typing import Optional, Union, Callable, Tuple, List
+from warnings import warn
 
 from scipy.integrate import OdeSolver
 
@@ -281,7 +282,8 @@ def solve_lmde(
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     if method == "lanczos_diag":
         if "sparse" not in generator.evaluation_mode:
-            raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
+            warn("""lanczos_diag must be used with a generator in sparse mode for better performance.""", stacklevel=2)
+            # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
         if not is_hermitian(solver_generator(1.12)):
             raise QiskitError("lanczos_diag must be used with hermitian generators.")
         results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
