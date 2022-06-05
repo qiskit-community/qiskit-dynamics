@@ -282,11 +282,13 @@ def solve_lmde(
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     if method == "lanczos_diag":
         if "sparse" not in generator.evaluation_mode:
-            warn("lanczos_diag must be used with a generator in sparse mode for better performance.",
-            category=Warning,
-            stacklevel=5)
+            warn(
+                "lanczos_diag must be used with a generator in sparse mode for better performance.",
+                category=Warning,
+                stacklevel=5,
+            )
             # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
-        if not is_hermitian(1j*solver_generator(1.12)):
+        if not is_hermitian(1j * solver_generator(1.12)):
             raise QiskitError("lanczos_diag must be used with hermitian generators.")
         results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
