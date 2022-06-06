@@ -5,4 +5,4 @@ features:
     lmde method that diagonalises a smaller subspace (the Krylov Subspace). The advantage is
     a speedup. The size of this subspace ``k_dim``, controls the accuracy of this algorithm 
     at the cose of runtime. To use this method, an addtional kwarg ``k_dim`` must be suplied 
-    to ``solve``.
+    to ``solve``. There is also a jax implementation of the same.

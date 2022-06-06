@@ -23,7 +23,6 @@ from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array
 
 try:
-    import jax
     import jax.numpy as jnp
 except ImportError:
     pass
