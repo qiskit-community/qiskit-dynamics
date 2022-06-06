@@ -160,56 +160,72 @@ class Solver:
             validate: Whether or not to validate Hamiltonian operators as being Hermitian.
 
         Raises:
-            QiskitError: If arguments are invalid.
+            QiskitError: If arguments concerning pulse-schedule interpretation are insufficiently
+            specified.
         """
 
-        # set pulse specific information
-        all_channels = []
+        # set pulse specific information if specified
+        self._hamiltonian_channels = None
+        self._dissipator_channels = None
+        self._all_channels = None
+        self._channel_carrier_freqs = None
+        self._dt = None
+        self._schedule_converter = None
 
-        if hamiltonian_channels is not None:
-            hamiltonian_channels = [chan.lower() for chan in hamiltonian_channels]
-            all_channels = hamiltonian_channels
-            if hamiltonian_operators is None or len(hamiltonian_operators) != len(hamiltonian_channels):
-                raise QiskitError("""hamiltonian_channels must have same length as hamiltonian_operators""")
+        if any([dt, channel_carrier_freqs, hamiltonian_channels, dissipator_channels]):
+            all_channels = []
 
-        self._hamiltonian_channels = hamiltonian_channels
+            if hamiltonian_channels is not None:
+                hamiltonian_channels = [chan.lower() for chan in hamiltonian_channels]
+                all_channels = hamiltonian_channels
+                if hamiltonian_operators is None or len(hamiltonian_operators) != len(
+                    hamiltonian_channels
+                ):
+                    raise QiskitError(
+                        """hamiltonian_channels must have same length as hamiltonian_operators"""
+                    )
 
-        if dissipator_channels is not None:
-            dissipator_channels = [chan.lower() for chan in dissipator_channels]
-            for chan in dissipator_channels:
-                if chan not in all_channels:
-                    all_channels.append(chan)
-            if dissipator_operators is None or len(dissipator_operators) != len(dissipator_channels):
-                raise QiskitError("""dissipator_channels must have same length as dissipator_operators""")
+            self._hamiltonian_channels = hamiltonian_channels
 
-        self._dissipator_channels = dissipator_channels
-        self._all_channels = all_channels
+            if dissipator_channels is not None:
+                dissipator_channels = [chan.lower() for chan in dissipator_channels]
+                for chan in dissipator_channels:
+                    if chan not in all_channels:
+                        all_channels.append(chan)
+                if dissipator_operators is None or len(dissipator_operators) != len(
+                    dissipator_channels
+                ):
+                    raise QiskitError(
+                        """dissipator_channels must have same length as dissipator_operators"""
+                    )
 
-        self._dt = dt
+            self._dissipator_channels = dissipator_channels
+            self._all_channels = all_channels
 
-        if channel_carrier_freqs is None:
-            channel_carrier_freqs = {}
-        else:
-            channel_carrier_freqs = {key.lower(): val for key, val in channel_carrier_freqs.items()}
+            if channel_carrier_freqs is None:
+                channel_carrier_freqs = {}
+            else:
+                channel_carrier_freqs = {
+                    key.lower(): val for key, val in channel_carrier_freqs.items()
+                }
 
-        for chan in all_channels:
-            if chan not in channel_carrier_freqs:
-                raise QiskitError(f"""Channel '{chan}' does not have carrier frequency specified in channel_carrier_freqs.""")
+            for chan in all_channels:
+                if chan not in channel_carrier_freqs:
+                    raise QiskitError(
+                        f"""Channel '{chan}' does not have carrier frequency specified in
+                        channel_carrier_freqs."""
+                    )
 
-        self._channel_carrier_freqs = channel_carrier_freqs
+            self._channel_carrier_freqs = channel_carrier_freqs
 
-        """
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        Do we validate before constructing this?
-            - When calling solve with schedules, this needs to be instantiated
-            -
-        """
+            if dt is not None:
+                self._dt = dt
 
-        self._schedule_converter = InstructionToSignals(
-            dt=self._dt,
-            carriers=self._channel_carrier_freqs,
-            channels=self._all_channels
-        )
+                self._schedule_converter = InstructionToSignals(
+                    dt=self._dt, carriers=self._channel_carrier_freqs, channels=self._all_channels
+                )
+            else:
+                raise QiskitError("dt must be specified if channel information provided.")
 
         if hamiltonian_signals or dissipator_signals:
             warnings.warn(
@@ -334,7 +350,9 @@ class Solver:
         self,
         t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
-        signals: Optional[Union[List[Schedule], List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
+        signals: Optional[
+            Union[List[Schedule], List[Signal], Tuple[List[Signal], List[Signal]]]
+        ] = None,
         convert_results: bool = True,
         **kwargs,
     ) -> Union[OdeResult, List[OdeResult]]:
@@ -363,7 +381,9 @@ class Solver:
             OdeResult: object with formatted output types.
 
         Raises:
-            QiskitError: Initial state ``y0`` is of invalid shape.
+            QiskitError: Initial state ``y0`` is of invalid shape. If ``signals`` specifies
+                         ``Schedule`` simulation but ``Solver`` hasn't been configured to
+                         simulate pulse schedules.
 
         Additional Information:
 
@@ -461,6 +481,9 @@ class Solver:
 
         # if simulating schedules, convert to Signal objects at this point
         if isinstance(signals_list[0], (Schedule, ScheduleBlock)):
+            if self._schedule_converter is None:
+                raise QiskitError("Solver instance not configured for pulse Schedule simulation.")
+
             new_signals_list = []
             for sched in signals_list:
                 if isinstance(sched, ScheduleBlock):
@@ -468,15 +491,29 @@ class Solver:
 
                 all_signals = self._schedule_converter.get_signals(sched)
 
-                if isinstance(self.model, HamiltonianModel) and self._hamiltonian_channels is not None:
-                    new_signals_list.append([all_signals[self._all_channels.index(chan)] for chan in self._hamiltonian_channels])
+                if (
+                    isinstance(self.model, HamiltonianModel)
+                    and self._hamiltonian_channels is not None
+                ):
+                    new_signals_list.append(
+                        [
+                            all_signals[self._all_channels.index(chan)]
+                            for chan in self._hamiltonian_channels
+                        ]
+                    )
                 else:
                     hamiltonian_signals = None
                     dissipator_signals = None
                     if self._hamiltonian_channels is not None:
-                        hamiltonian_signals = [all_signals[self._all_channels.index(chan)] for chan in self._hamiltonian_channels]
+                        hamiltonian_signals = [
+                            all_signals[self._all_channels.index(chan)]
+                            for chan in self._hamiltonian_channels
+                        ]
                     if self._dissipator_channels is not None:
-                        dissipator_signals = [all_signals[self._all_channels.index(chan)] for chan in self._dissipator_channels]
+                        dissipator_signals = [
+                            all_signals[self._all_channels.index(chan)]
+                            for chan in self._dissipator_channels
+                        ]
                     new_signals_list.append((hamiltonian_signals, dissipator_signals))
 
             signals_list = new_signals_list

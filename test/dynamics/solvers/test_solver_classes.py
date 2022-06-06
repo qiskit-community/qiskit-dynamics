@@ -166,30 +166,63 @@ class TestPulseSolverValidation(QiskitDynamicsTestCase):
 
         error_str = "hamiltonian_channels must have same length"
         with self.assertRaisesRegex(QiskitError, error_str):
-            Solver(hamiltonian_operators=[self.X]*2, hamiltonian_channels=['d0'])
+            Solver(hamiltonian_operators=[self.X] * 2, hamiltonian_channels=["d0"])
 
         with self.assertRaisesRegex(QiskitError, error_str):
-            Solver(hamiltonian_operators=None, hamiltonian_channels=['d0'])
+            Solver(hamiltonian_operators=None, hamiltonian_channels=["d0"])
 
         error_str = "dissipator_channels must have same length"
         with self.assertRaisesRegex(QiskitError, error_str):
-            Solver(dissipator_operators=[self.X]*2, dissipator_channels=['d0'])
+            Solver(dissipator_operators=[self.X] * 2, dissipator_channels=["d0"])
 
         with self.assertRaisesRegex(QiskitError, error_str):
-            Solver(dissipator_operators=None, dissipator_channels=['d0'])
+            Solver(dissipator_operators=None, dissipator_channels=["d0"])
 
     def test_channel_carrier_freq_not_specified(self):
         """Test cases when a channel carrier freq not specified."""
 
-        error_str = "Channel 'd0' does not have carrier frequency specified in channel_carrier_freqs."
+        error_str = (
+            "Channel 'd0' does not have carrier frequency specified"
+        )
         with self.assertRaisesRegex(QiskitError, error_str):
-            Solver(hamiltonian_operators=[self.X], hamiltonian_channels=['d0'])
+            Solver(hamiltonian_operators=[self.X], hamiltonian_channels=["d0"])
 
         with self.assertRaisesRegex(QiskitError, error_str):
-            Solver(hamiltonian_operators=[self.X], hamiltonian_channels=['d0'], channel_carrier_freqs={'d1': 1.})
+            Solver(
+                hamiltonian_operators=[self.X],
+                hamiltonian_channels=["d0"],
+                channel_carrier_freqs={"d1": 1.0},
+            )
 
         with self.assertRaisesRegex(QiskitError, error_str):
-            Solver(dissipator_operators=[self.X], dissipator_channels=['d0'], channel_carrier_freqs={'d1': 1.})
+            Solver(
+                dissipator_operators=[self.X],
+                dissipator_channels=["d0"],
+                channel_carrier_freqs={"d1": 1.0},
+            )
+
+    def test_dt_not_specified(self):
+        """Test error if sufficient channel information provided but dt not specified."""
+
+        with self.assertRaisesRegex(QiskitError, "dt must be specified"):
+            Solver(
+                dissipator_operators=[self.X],
+                dissipator_channels=["d0"],
+                channel_carrier_freqs={"d0": 1.0},
+            )
+
+    def test_solve_not_pulse_configured(self):
+        """Test error raised if Schedule passed to solve but Solver not configured for
+        pulse simulation.
+        """
+
+        solver = Solver(static_hamiltonian=self.X)
+
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        with self.assertRaisesRegex(QiskitError, "not configured for pulse"):
+            solver.solve(t_span=[0.0, 1.0], y0=np.array([0.0, 1.0]), signals=sched)
 
 
 class TestSolverExceptions(QiskitDynamicsTestCase):
@@ -735,9 +768,9 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             hamiltonian_operators=[X],
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
-            hamiltonian_channels=['d0'],
-            channel_carrier_freqs={'d0': 5.},
-            dt = 0.1
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
+            dt=0.1,
         )
 
         self.method = "DOP853"
@@ -748,35 +781,37 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         # construct schedule
         with pulse.build() as sched:
             pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
-            pulse.shift_phase(np.pi/2.98, pulse.DriveChannel(0))
-            pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.), pulse.DriveChannel(0))
+            pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+            pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
 
         # construct equivalent DiscreteSignal
         constant_samples = np.ones(5, dtype=float) * 0.9
-        phase = np.exp(1j * np.pi/2.98)
-        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.).get_waveform().samples
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
 
         samples = np.append(constant_samples, gauss_samples * phase)
 
-        sig = DiscreteSignal(dt=0.1, samples=samples, carrier_freq=5.)
+        sig = DiscreteSignal(dt=0.1, samples=samples, carrier_freq=5.0)
 
         pulse_results = self.ham_solver.solve(
-                            t_span=[0., 1.],
-                            y0 = Statevector([1., 0.]),
-                            signals=sched,
-                            atol=1e-8, rtol=1e-8,
-                            convert_results=False
-                        )
+            t_span=[0.0, 1.0],
+            y0=Statevector([1.0, 0.0]),
+            signals=sched,
+            atol=1e-8,
+            rtol=1e-8,
+            convert_results=False,
+        )
         signal_results = self.ham_solver.solve(
-                            t_span=[0., 1.],
-                            y0 = Statevector([1., 0.]),
-                            signals=[sig],
-                            atol=1e-8, rtol=1e-8,
-                            convert_results=False
-                        )
+            t_span=[0.0, 1.0],
+            y0=Statevector([1.0, 0.0]),
+            signals=[sig],
+            atol=1e-8,
+            rtol=1e-8,
+            convert_results=False,
+        )
 
-        self.assertAllClose(pulse_results.t, signal_results.t)
-        self.assertAllClose(pulse_results.y, signal_results.y)
+        self.assertAllClose(pulse_results.t, signal_results.t, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(pulse_results.y, signal_results.y, atol=1e-14, rtol=1e-14)
 
 
 @ddt
