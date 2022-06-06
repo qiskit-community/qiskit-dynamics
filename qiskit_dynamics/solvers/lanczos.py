@@ -18,8 +18,11 @@ Module containing Lanczos diagonalization algorithm
 from typing import Union
 import numpy as np
 from scipy.sparse import csr_matrix
-import jax.numpy as jnp
 
+try:
+    import jax.numpy as jnp
+except ImportError:
+    pass
 
 def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
     """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
