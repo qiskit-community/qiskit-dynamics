@@ -490,17 +490,16 @@ class Solver:
                     sched = block_to_schedule(sched)
 
                 all_signals = self._schedule_converter.get_signals(sched)
-
-                if (
-                    isinstance(self.model, HamiltonianModel)
-                    and self._hamiltonian_channels is not None
-                ):
-                    new_signals_list.append(
-                        [
-                            all_signals[self._all_channels.index(chan)]
-                            for chan in self._hamiltonian_channels
-                        ]
-                    )
+                if isinstance(self.model, HamiltonianModel):
+                    if self._hamiltonian_channels is not None:
+                        new_signals_list.append(
+                            [
+                                all_signals[self._all_channels.index(chan)]
+                                for chan in self._hamiltonian_channels
+                            ]
+                        )
+                    else:
+                        new_signals_list.append(None)
                 else:
                     hamiltonian_signals = None
                     dissipator_signals = None

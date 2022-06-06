@@ -755,6 +755,7 @@ class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
         jit_grad_func(1.0)
 
 
+@ddt
 class TestPulseSimulation(QiskitDynamicsTestCase):
     """Test simulation of pulse schedules."""
 
@@ -764,6 +765,13 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         Z = 2 * np.pi * Operator.from_label("Z") / 2
         self.X = X
         self.Z = Z
+
+        self.static_ham_solver = Solver(
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            dt=0.1
+        )
+
         self.ham_solver = Solver(
             hamiltonian_operators=[X],
             static_hamiltonian=5 * Z,
@@ -773,10 +781,64 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             dt=0.1,
         )
 
+        self.static_lindblad_solver = Solver(
+            static_dissipators=[0.01 * X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            dt=0.1
+        )
+
+        self.lindblad_solver = Solver(
+            hamiltonian_operators=[X],
+            static_dissipators=[0.01 * X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
+            dt=0.1
+        )
+
+
+        self.ham_solver_2_channels = Solver(
+            hamiltonian_operators=[X, Z],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            hamiltonian_channels=["d0", "d1"],
+            channel_carrier_freqs={"d0": 5.0, "d1": 3.1},
+            dt=0.1,
+        )
+
+        self.td_lindblad_solver = Solver(
+            hamiltonian_operators=[X],
+            static_dissipators=[0.01 * X],
+            dissipator_operators=[0.01 * X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+        )
+
         self.method = "DOP853"
 
-    def test_hamiltonian_simulation(self):
-        """Test Hamiltonian simulation."""
+    @unpack
+    @data(("static_ham_solver",), ("static_lindblad_solver",))
+    def test_static_simulation(self, model):
+        """Test pulse simulation with a static model."""
+
+        # construct schedule
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        self._compare_schedule_to_signals(
+            solver=getattr(self, model),
+            t_span=[0., 1.],
+            y0=Statevector([0., 1.]),
+            schedules=sched,
+            signals=None
+        )
+
+    @unpack
+    @data(("ham_solver",), ("lindblad_solver",))
+    def test_one_channel_simulation(self, model):
+        """Test pulse simulation with models with one channel."""
 
         # construct schedule
         with pulse.build() as sched:
@@ -784,34 +846,86 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
             pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
 
-        # construct equivalent DiscreteSignal
+        # construct equivalent DiscreteSignal manually
         constant_samples = np.ones(5, dtype=float) * 0.9
         phase = np.exp(1j * np.pi / 2.98)
         gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
-
         samples = np.append(constant_samples, gauss_samples * phase)
-
         sig = DiscreteSignal(dt=0.1, samples=samples, carrier_freq=5.0)
 
-        pulse_results = self.ham_solver.solve(
-            t_span=[0.0, 1.0],
-            y0=Statevector([1.0, 0.0]),
-            signals=sched,
-            atol=1e-8,
-            rtol=1e-8,
-            convert_results=False,
-        )
-        signal_results = self.ham_solver.solve(
-            t_span=[0.0, 1.0],
-            y0=Statevector([1.0, 0.0]),
+        self._compare_schedule_to_signals(
+            solver=getattr(self, model),
+            t_span=[0., 1.],
+            y0=Statevector([1., 0.]),
+            schedules=sched,
             signals=[sig],
-            atol=1e-8,
-            rtol=1e-8,
-            convert_results=False,
+            atol=1e-8, rtol=1e-8
         )
 
-        self.assertAllClose(pulse_results.t, signal_results.t, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(pulse_results.y, signal_results.y, atol=1e-14, rtol=1e-14)
+    @unpack
+    @data(("ham_solver_2_channels",), ("td_lindblad_solver",))
+    def test_two_channel_simulation(self, model):
+        """Test pulse simulation with models with two channels."""
+
+        # construct schedule
+        with pulse.build() as sched:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(1))
+
+        import pdb; pdb.set_trace()
+        # construct equivalent DiscreteSignal manually
+        constant_samples = np.ones(5, dtype=float) * 0.9
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
+        samples1 = np.append(np.zeros(10), gauss_samples)
+        sig0 = DiscreteSignal(dt=0.1, samples=samples0, carrier_freq=5.0)
+        sig1 = DiscreteSignal(dt=0.1, samples=samples1, carrier_freq=3.1)
+
+        self._compare_schedule_to_signals(
+            solver=getattr(self, model),
+            t_span=[0., 1.5],
+            y0=Statevector([1., 0.]),
+            schedules=sched,
+            signals=[sig0, sig1]
+        )
+
+    def _compare_schedule_to_signals(self, solver, t_span, y0, schedules, signals, **kwargs):
+        """Run comparison of schedule simulation to manually build signals.
+
+        The expectation of this function is that schedules and signals should represent
+        exactly the same time-dependence, so that the solutions agree exactly regardless of
+        tolerance.
+        """
+
+        pulse_results = solver.solve(
+            t_span=t_span,
+            y0=y0,
+            signals=schedules,
+            convert_results=False,
+            method=self.method,
+            **kwargs
+        )
+        signal_results = solver.solve(
+            t_span=t_span,
+            y0=y0,
+            signals=signals,
+            convert_results=False,
+            method=self.method,
+            **kwargs
+        )
+
+        if not isinstance(pulse_results, list):
+            pulse_results = [pulse_results]
+            signal_results = [signal_results]
+        import pdb; pdb.set_trace()
+        for pulse_res, signal_res in zip(pulse_results, signal_results):
+            self.assertAllClose(pulse_res.t, signal_res.t, atol=1e-14, rtol=1e-14)
+            self.assertAllClose(pulse_res.y, signal_res.y, atol=1e-14, rtol=1e-14)
+
 
 
 @ddt
@@ -862,7 +976,6 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
     def test_static_solver(self, model):
         """Test doing lists of simulations for a solver with only static information."""
 
-        model = "static_lindblad_solver"
         solver = getattr(self, model)
 
         y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
