@@ -24,6 +24,7 @@ try:
 except ImportError:
     pass
 
+
 def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
     """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
     using Lanczos algorithm.
@@ -264,5 +265,7 @@ def jax_lanczos_expm(
     """
 
     q_basis, eigen_values, eigen_vectors_t, _ = jax_lanczos_eig(array, v_0, k_dim)
-    y_dt = q_basis @ eigen_vectors_t @ (jnp.exp(-1j * max_dt * eigen_values) * eigen_vectors_t[0, :])
+    y_dt = (
+        q_basis @ eigen_vectors_t @ (jnp.exp(-1j * max_dt * eigen_values) * eigen_vectors_t[0, :])
+    )
     return y_dt
