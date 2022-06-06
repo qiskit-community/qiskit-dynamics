@@ -19,6 +19,8 @@ from typing import Union
 import numpy as np
 from scipy.sparse import csr_matrix
 
+from qiskit_dynamics.dispatch import requires_backend
+
 try:
     import jax.numpy as jnp
 except ImportError:
@@ -135,6 +137,7 @@ def lanczos_expm(
     return y_dt
 
 
+@requires_backend("jax")
 def jax_lanczos_basis(array: jnp.ndarray, v_0: jnp.ndarray, k_dim: int):
     """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
     using Lanczos algorithm implemented with ``jax``.
@@ -178,7 +181,7 @@ def jax_lanczos_basis(array: jnp.ndarray, v_0: jnp.ndarray, k_dim: int):
     beta = beta.at[0].set((jnp.sqrt(jnp.abs(projection.conj().T @ projection)))[0, 0])
     #     beta[0] = jnp.sqrt(jnp.abs(projection.conj().T @ projection))
 
-    error = jnp.finfo(jnp.float64).eps
+    # error = jnp.finfo(jnp.float64).eps
 
     for i in range(1, k_dim, 1):
         v_p = q_basis[i - 1, :]
@@ -221,6 +224,7 @@ def jax_lanczos_basis(array: jnp.ndarray, v_0: jnp.ndarray, k_dim: int):
     return tridiagonal, q_basis
 
 
+@requires_backend("jax")
 def jax_lanczos_eig(array: jnp.ndarray, v_0: jnp.ndarray, k_dim: int):
     """
     Finds the lowest k_dim eigenvalues and corresponding eigenvectors of a hermitian array
@@ -245,6 +249,7 @@ def jax_lanczos_eig(array: jnp.ndarray, v_0: jnp.ndarray, k_dim: int):
     return q_basis, eigen_values, eigen_vectors_t, eigen_vectors_a
 
 
+@requires_backend("jax")
 def jax_lanczos_expm(
     array: jnp.ndarray,
     v_0: jnp.ndarray,
