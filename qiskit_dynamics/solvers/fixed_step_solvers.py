@@ -302,7 +302,7 @@ def jax_expm_solver(
     def take_step(generator, t, y, h):
         eval_time = t + (h / 2)
         return jexpm(generator(eval_time) * h) @ y
-    
+
     def wrapped_rhs_func(*args):
         return Array(generator(*args), backend="jax").data
 
