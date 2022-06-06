@@ -34,8 +34,7 @@ except ImportError:
     pass
 
 from .solver_utils import merge_t_args, trim_t_results
-from .lanczos import lanczos_expm
-from .jaxlanczos import jax_lanczos_expm
+from .lanczos import lanczos_expm, jax_lanczos_expm
 
 
 def RK4_solver(
@@ -228,8 +227,11 @@ def jax_RK4_solver(
 
         return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
 
+    def wrapped_rhs_func(*args):
+        return Array(rhs(*args), backend="jax").data
+
     return fixed_step_solver_template_jax(
-        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
@@ -300,9 +302,12 @@ def jax_expm_solver(
     def take_step(generator, t, y, h):
         eval_time = t + (h / 2)
         return jexpm(generator(eval_time) * h) @ y
+    
+    def wrapped_rhs_func(*args):
+        return Array(generator(*args), backend="jax").data
 
     return fixed_step_solver_template_jax(
-        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 

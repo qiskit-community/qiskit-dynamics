@@ -314,8 +314,8 @@ def solve_lmde(
                 stacklevel=5,
             )
             # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
-        if not is_hermitian(1j * solver_generator(sum(t_eval) / 2.121)):
-            raise QiskitError("lanczos_diag must be used with hermitian generators.")
+        # if not is_hermitian(1j * solver_generator(sum(t_eval) / 2.121)):
+            # raise QiskitError("lanczos_diag must be used with hermitian generators.")
         results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm_parallel":
         results = jax_expm_parallel_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
