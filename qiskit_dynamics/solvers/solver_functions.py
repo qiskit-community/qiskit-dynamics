@@ -40,6 +40,7 @@ from .fixed_step_solvers import (
     jax_RK4_solver,
     scipy_expm_solver,
     lanczos_diag_solver,
+    jax_lanczos_diag_solver,
     jax_expm_solver,
     jax_RK4_parallel_solver,
     jax_expm_parallel_solver,
@@ -60,7 +61,14 @@ ODE_METHODS = (
     + ["RK4"]  # fixed step solvers
     + ["jax_odeint", "jax_RK4"]  # jax solvers
 )
-LMDE_METHODS = ["scipy_expm", "lanczos_diag", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]
+LMDE_METHODS = [
+    "scipy_expm",
+    "lanczos_diag",
+    "jax_lanczos_diag",
+    "jax_expm",
+    "jax_expm_parallel",
+    "jax_RK4_parallel",
+]
 
 
 def solve_ode(
@@ -297,6 +305,17 @@ def solve_lmde(
         if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
             raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
         results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+    elif method == "jax_lanczos_diag":
+        if "sparse" not in generator.evaluation_mode:
+            warn(
+                "lanczos_diag must be used with a generator in sparse mode for better performance.",
+                category=Warning,
+                stacklevel=5,
+            )
+            # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
+        if not is_hermitian(1j * solver_generator(sum(t_eval) / 2.121)):
+            raise QiskitError("lanczos_diag must be used with hermitian generators.")
+        results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm_parallel":
         results = jax_expm_parallel_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_RK4_parallel":

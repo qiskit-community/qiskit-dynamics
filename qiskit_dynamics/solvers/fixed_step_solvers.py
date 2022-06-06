@@ -35,6 +35,7 @@ except ImportError:
 
 from .solver_utils import merge_t_args, trim_t_results
 from .lanczos import lanczos_expm
+from .jaxlanczos import jax_lanczos_expm
 
 
 def RK4_solver(
@@ -149,6 +150,46 @@ def lanczos_diag_solver(
         return lanczos_expm(1j * generator(eval_time), y, k_dim, h)
 
     return fixed_step_solver_template(
+        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
+@requires_backend("jax")
+def jax_lanczos_diag_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    k_dim: Optional[int] = None,
+):
+    """Fixed-step size matrix exponential based solver implemented using
+    lanczos algorithm implemented with ``jax``. Solves the specified problem
+    by taking steps of size no larger than ``max_dt``.
+
+    Args:
+        generator: Generator for the LMDE.
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        t_eval: Optional list of time points at which to return the solution.
+        k_dim: Integer which specifies the dimension of Krylov subspace used for
+               lanczos iteration. Acts as an accuracy parameter. ``k_dim < dim(generator)``.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    # k_dim = kwargs.get("k_dim", max(2, generator(0).shape[0] // 4))
+    if k_dim is None:
+        k_dim = generator(0).shape[0] // 4
+
+    def take_step(generator, t0, y, h):
+        eval_time = t0 + (h / 2)
+        # since qiskt-dynamics generator is -1j*H but lanczos only works on hermitian arrays
+        return jax_lanczos_expm(1j * generator(eval_time), y, k_dim, h)
+
+    return fixed_step_solver_template_jax(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
@@ -366,7 +407,7 @@ def fixed_step_solver_template_jax(
 
     # ensure the output of rhs_func is a raw array
     def wrapped_rhs_func(*args):
-        return Array(rhs_func(*args), backend="jax").data
+        return rhs_func(*args)  # Array(rhs_func(*args), backend="jax").data
 
     y0 = Array(y0).data
 
