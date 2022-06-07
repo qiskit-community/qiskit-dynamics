@@ -56,7 +56,7 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
             stepsize_controller=stepsize_controller,
         )
 
-        self.assertAllClose(results.t, t_span)
+        self.assertAllClose(results.t, t_span[-1])
 
     def test_t_eval_arg_no_overlap(self):
         """Test handling of t_eval when no overlap with t_span."""

@@ -81,8 +81,8 @@ def diffrax_solver(
 
     if t_eval is not None:
         kwargs["saveat"] = SaveAt(ts=t_eval)
-    else:
-        kwargs["saveat"] = SaveAt(ts=t_list)
+    # else:
+    #     kwargs["saveat"] = SaveAt(ts=t_list)
 
     results = diffeqsolve(
         term,
@@ -101,7 +101,6 @@ def diffrax_solver(
     ys = jnp.swapaxes(r2c(jnp.swapaxes(ys, 0, 1)), 0, 1)
 
     results_out = OdeResult(t=ts, y=Array(ys, backend="jax", dtype=complex), **sol_dict)
-    # results_out = OdeResult(t=t_eval, y=Array(ys, backend="jax", dtype=complex), **sol_dict)
 
     return results_out
 

@@ -335,16 +335,17 @@ class Testscipy_RK45(TestSolverMethod):
         )
 
     def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
-            return solve_lmde(
-                generator=rhs,
-                t_span=t_span,
-                y0=y0,
-                method="RK45",
-                t_eval=t_eval,
-                atol=1e-10,
-                rtol=1e-10,
-                **kwargs,
-            )
+        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
+        return solve_lmde(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="RK45",
+            t_eval=t_eval,
+            atol=1e-10,
+            rtol=1e-10,
+            **kwargs,
+        )
 
     @property
     def is_ode_method(self):
@@ -367,6 +368,7 @@ class Testscipy_RK23(TestSolverMethod):
         )
 
     def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
         return solve_lmde(
             generator=rhs,
             t_span=t_span,
@@ -397,8 +399,9 @@ class Testscipy_BDF(TestSolverMethod):
             rtol=1e-10,
             **kwargs,
         )
-        
+
     def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
         return solve_lmde(
             rhs=rhs,
             t_span=t_span,
@@ -431,6 +434,7 @@ class Testscipy_DOP853(TestSolverMethod):
         )
 
     def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
         return solve_lmde(
             generator=rhs,
             t_span=t_span,
@@ -463,6 +467,7 @@ class Testjax_odeint(TestSolverMethodJax):
         )
 
     def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
         return solve_lmde(
             generator=rhs,
             t_span=t_span,
@@ -495,6 +500,7 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
         )
 
     def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
         return solve_lmde(
             generator=rhs,
@@ -527,6 +533,7 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
         )
 
     def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
         return solve_lmde(
             generator=rhs,
