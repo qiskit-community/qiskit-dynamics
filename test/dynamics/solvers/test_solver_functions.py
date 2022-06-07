@@ -136,6 +136,16 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
             expected = Array([1.0 / 3])
             self.assertAllClose(results.y[-1], expected)
 
+    def test_basic_model_lmde_from_ode(self):
+        """Test case for basic model."""
+
+        if self.is_ode_method:
+            results = self.solve_lmde(self.basic_rhs, t_span=self.t_span, y0=self.y0)
+
+            expected = expm(-1j * np.pi * self.X.data)
+
+            self.assertAllClose(results.y[-1], expected, atol=self.tol, rtol=self.tol)
+
     def test_basic_model(self):
         """Test case for basic model."""
 
@@ -324,6 +334,18 @@ class Testscipy_RK45(TestSolverMethod):
             **kwargs,
         )
 
+    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="RK45",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
+
     @property
     def is_ode_method(self):
         return True
@@ -344,6 +366,18 @@ class Testscipy_RK23(TestSolverMethod):
             **kwargs,
         )
 
+    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        return solve_lmde(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="RK23",
+            t_eval=t_eval,
+            atol=1e-10,
+            rtol=1e-10,
+            **kwargs,
+        )
+
     @property
     def is_ode_method(self):
         return True
@@ -354,6 +388,18 @@ class Testscipy_BDF(TestSolverMethod):
 
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
         return solve_ode(
+            rhs=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="BDF",
+            t_eval=t_eval,
+            atol=1e-10,
+            rtol=1e-10,
+            **kwargs,
+        )
+        
+    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        return solve_lmde(
             rhs=rhs,
             t_span=t_span,
             y0=y0,
@@ -384,6 +430,18 @@ class Testscipy_DOP853(TestSolverMethod):
             **kwargs,
         )
 
+    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        return solve_lmde(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="DOP853",
+            t_eval=t_eval,
+            atol=1e-10,
+            rtol=1e-10,
+            **kwargs,
+        )
+
     @property
     def is_ode_method(self):
         return True
@@ -395,6 +453,18 @@ class Testjax_odeint(TestSolverMethodJax):
     def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
         return solve_ode(
             rhs=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="jax_odeint",
+            t_eval=t_eval,
+            atol=1e-10,
+            rtol=1e-10,
+            **kwargs,
+        )
+
+    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        return solve_lmde(
+            generator=rhs,
             t_span=t_span,
             y0=y0,
             method="jax_odeint",
@@ -424,6 +494,18 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
             **kwargs,
         )
 
+    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
+        return solve_lmde(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method=Dopri5(),
+            t_eval=t_eval,
+            stepsize_controller=stepsize_controller,
+            **kwargs,
+        )
+
     @property
     def is_ode_method(self):
         return True
@@ -436,6 +518,18 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
         return solve_ode(
             rhs=rhs,
+            t_span=t_span,
+            y0=y0,
+            method=Tsit5(),
+            t_eval=t_eval,
+            stepsize_controller=stepsize_controller,
+            **kwargs,
+        )
+
+    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
+        return solve_lmde(
+            generator=rhs,
             t_span=t_span,
             y0=y0,
             method=Tsit5(),

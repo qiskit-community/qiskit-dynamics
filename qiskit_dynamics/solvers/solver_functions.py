@@ -94,6 +94,7 @@ def solve_ode(
     - ``'jax_RK4'``: JAX backend implementation of ``'RK4'`` method.
     - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
       solver.
+    - :class:`AbstractSolver` instance of any Diffrax solver.
 
     Results are returned as a :class:`OdeResult` object.
 
@@ -234,12 +235,10 @@ def solve_lmde(
     """
 
     # delegate to solve_ode if necessary
-    if method in ODE_METHODS or (
-        isinstance(method, type)
-        and (
-            issubclass(method, OdeSolver)
-            or (diffrax_installed and issubclass(method, AbstractSolver))
-        )
+    if (
+        method in ODE_METHODS
+        or (isinstance(method, type) and (issubclass(method, OdeSolver)))
+        or (diffrax_installed and isinstance(method, AbstractSolver))
     ):
         if isinstance(generator, BaseGeneratorModel):
             rhs = generator
