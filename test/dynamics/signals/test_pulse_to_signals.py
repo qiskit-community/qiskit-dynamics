@@ -183,8 +183,8 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
         samples1 = np.append(np.zeros(10), gauss_samples)
 
-        self.assertAllClose(signals[0].samples, samples0)
-        self.assertAllClose(signals[1].samples, samples1)
+        self.assertAllClose(signals[0].samples, samples0, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[1].samples, samples1, atol=1e-14, rtol=1e-14)
         self.assertTrue(signals[0].carrier_freq == 5.)
         self.assertTrue(signals[1].carrier_freq == 3.1)
 
@@ -221,10 +221,10 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         samples2 = np.append(np.zeros(15), np.append(gauss_samples, np.zeros(10)))
         samples3 = np.append(np.zeros(20), np.append(gauss_samples, np.zeros(5)))
 
-        self.assertAllClose(signals[0].samples, samples0)
-        self.assertAllClose(signals[1].samples, samples1)
-        self.assertAllClose(signals[2].samples, samples2)
-        self.assertAllClose(signals[3].samples, samples3)
+        self.assertAllClose(signals[0].samples, samples0, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[1].samples, samples1, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[2].samples, samples2, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[3].samples, samples3, atol=1e-14, rtol=1e-14)
         self.assertTrue(signals[0].carrier_freq == 5.)
         self.assertTrue(signals[1].carrier_freq == 3.1)
         self.assertTrue(signals[2].carrier_freq == 0.)

@@ -177,7 +177,9 @@ class Solver:
 
             if hamiltonian_channels is not None:
                 hamiltonian_channels = [chan.lower() for chan in hamiltonian_channels]
-                all_channels = hamiltonian_channels
+                for chan in hamiltonian_channels:
+                    if chan not in all_channels:
+                        all_channels.append(chan)
                 if hamiltonian_operators is None or len(hamiltonian_operators) != len(
                     hamiltonian_channels
                 ):
@@ -516,7 +518,7 @@ class Solver:
                     new_signals_list.append((hamiltonian_signals, dissipator_signals))
 
             signals_list = new_signals_list
-
+        import pdb; pdb.set_trace()
         # run simulations
         all_results = [
             self._solve(

@@ -814,6 +814,10 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             dissipator_operators=[0.01 * X],
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
+            hamiltonian_channels=["d0"],
+            dissipator_channels=["d1"],
+            channel_carrier_freqs={"d0": 5.0, "d1": 3.1},
+            dt=0.1,
         )
 
         self.method = "DOP853"
@@ -884,12 +888,70 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         sig0 = DiscreteSignal(dt=0.1, samples=samples0, carrier_freq=5.0)
         sig1 = DiscreteSignal(dt=0.1, samples=samples1, carrier_freq=3.1)
 
+        signals = None
+        if "lindblad" in model:
+            signals = ([sig0], [sig1])
+        else:
+            signals = [sig0, sig1]
+
         self._compare_schedule_to_signals(
             solver=getattr(self, model),
             t_span=[0., 1.5],
             y0=Statevector([1., 0.]),
             schedules=sched,
-            signals=[sig0, sig1]
+            signals=signals
+        )
+
+    def test_4_channel_schedule(self):
+        """Test Solver with 4 channels."""
+
+        dt = 0.05
+        big_solver = Solver(
+            hamiltonian_operators=[self.X, self.Z],
+            static_dissipators=[0.01 * self.X],
+            dissipator_operators=[0.01 * self.X, self.Z],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+            hamiltonian_channels=["d0", "d2"],
+            dissipator_channels=["d1", "d3"],
+            channel_carrier_freqs={"d0": 5.0, "d1": 3.1, "d2": 0, "d3": 4.},
+            dt=dt,
+        )
+
+        with pulse.build() as schedule:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(1))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(2))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(3))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+
+        # construct samples
+        constant_samples = np.ones(5, dtype=float) * 0.9
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(15))
+        samples0 = np.append(samples0, gauss_samples * (phase**2))
+        samples1 = np.append(np.append(np.zeros(10), gauss_samples), np.zeros(15))
+        samples2 = np.append(np.zeros(15), np.append(gauss_samples, np.zeros(10)))
+        samples3 = np.append(np.zeros(20), np.append(gauss_samples, np.zeros(5)))
+        sig0 = DiscreteSignal(dt=dt, samples=samples0, carrier_freq=5.)
+        sig1 = DiscreteSignal(dt=dt, samples=samples1, carrier_freq=3.1)
+        sig2 = DiscreteSignal(dt=dt, samples=samples2, carrier_freq=0.)
+        sig3 = DiscreteSignal(dt=dt, samples=samples3, carrier_freq=4.)
+
+        signals = ([sig0, sig2], [sig1, sig3])
+
+        self._compare_schedule_to_signals(
+            solver=big_solver,
+            t_span=[0., 30 * dt],
+            y0=Statevector([1., 0.]),
+            schedules=schedule,
+            signals=signals,
+            atol=1e-10, rtol=1e-10
         )
 
     def _compare_schedule_to_signals(self, solver, t_span, y0, schedules, signals, **kwargs):
@@ -921,6 +983,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             pulse_results = [pulse_results]
             signal_results = [signal_results]
 
+        import pdb; pdb.set_trace()
         for pulse_res, signal_res in zip(pulse_results, signal_results):
             self.assertAllClose(pulse_res.t, signal_res.t, atol=1e-14, rtol=1e-14)
             self.assertAllClose(pulse_res.y, signal_res.y, atol=1e-14, rtol=1e-14)
