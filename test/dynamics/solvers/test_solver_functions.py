@@ -403,7 +403,7 @@ class Testscipy_BDF(TestSolverMethod):
     def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
         """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
         return solve_lmde(
-            rhs=rhs,
+            generator=rhs,
             t_span=t_span,
             y0=y0,
             method="BDF",
