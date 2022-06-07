@@ -453,13 +453,14 @@ class DiscreteSignal(Signal):
 
         zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
 
+        new_samples = self.samples
         if len(self.samples) < start_sample:
-            self._padded_samples = np.append(
-                self.samples, np.repeat(zero_pad, start_sample - len(self.samples))
+            new_samples = np.append(
+                new_samples, np.repeat(zero_pad, start_sample - len(self.samples))
             )
 
-        self._padded_samples = np.append(self._padded_samples, samples)
-        self._padded_samples = np.append(self._padded_samples, zero_pad, axis=0)
+        new_samples = np.append(new_samples, samples)
+        self._padded_samples = np.append(new_samples, zero_pad, axis=0)
 
     def __str__(self) -> str:
         """Return string representation."""

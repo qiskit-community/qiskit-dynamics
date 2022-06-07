@@ -875,7 +875,6 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
                 pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
                 pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(1))
 
-        import pdb; pdb.set_trace()
         # construct equivalent DiscreteSignal manually
         constant_samples = np.ones(5, dtype=float) * 0.9
         phase = np.exp(1j * np.pi / 2.98)
@@ -921,7 +920,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         if not isinstance(pulse_results, list):
             pulse_results = [pulse_results]
             signal_results = [signal_results]
-        import pdb; pdb.set_trace()
+
         for pulse_res, signal_res in zip(pulse_results, signal_results):
             self.assertAllClose(pulse_res.t, signal_res.t, atol=1e-14, rtol=1e-14)
             self.assertAllClose(pulse_res.y, signal_res.y, atol=1e-14, rtol=1e-14)

@@ -144,7 +144,6 @@ class InstructionToSignals:
                 for idx, sample in enumerate(inst_samples):
                     time = self._dt * (idx + start_idx)
                     samples.append(sample * np.exp(2.0j * np.pi * freq * time + 1.0j * phi))
-                import pdb; pdb.set_trace()
                 signals[chan].add_samples(start_sample, samples)
 
             if isinstance(inst, ShiftPhase):
