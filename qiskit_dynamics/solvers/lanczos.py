@@ -161,8 +161,7 @@ def jax_lanczos_basis(array: Array, v_0: Array, k_dim: int):
 
     initial = jnp.array([*v_0, *projection_0, beta_0])
 
-    def lanczos_iter(carry, dummy):
-        dummy += 0
+    def lanczos_iter(carry, _):
         size = (len(carry) - 1) // 2
         q_p = jnp.array(carry[:size])
         projection = jnp.array(carry[size : 2 * size])
