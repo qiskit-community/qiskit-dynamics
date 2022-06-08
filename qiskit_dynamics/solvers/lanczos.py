@@ -154,18 +154,18 @@ def jax_lanczos_basis(array: Array, v_0: Array, k_dim: int):
         q_basis : Basis of the krylov subspace.
     """
 
+    data_type = jnp.result_type(array.dtype, v_0.dtype)
+    v_0 = v_0.astype(data_type)
+
     projection_0 = array @ v_0
     alpha_0 = v_0.conj().T @ projection_0
     projection_0 = projection_0 - alpha_0 * v_0
     beta_0 = jnp.sqrt(jnp.abs(projection_0.conj().T @ projection_0))
 
-    initial = jnp.array([*v_0, *projection_0, beta_0])
+    initial = [v_0, projection_0, beta_0]
 
     def lanczos_iter(carry, _):
-        size = (len(carry) - 1) // 2
-        q_p = jnp.array(carry[:size])
-        projection = jnp.array(carry[size : 2 * size])
-        beta_p = carry[2 * size]
+        q_p, projection, beta_p = carry
 
         q_i = projection.T / beta_p
         projection = array @ q_i
@@ -177,16 +177,16 @@ def jax_lanczos_basis(array: Array, v_0: Array, k_dim: int):
         projection = projection - delta * q_i
         alpha_i = alpha_i + delta
 
-        carry_next = jnp.array([*q_i, *projection, beta_i])
-        accumulate = jnp.array([alpha_i, beta_i, *q_i])
+        carry_next = [q_i, projection, beta_i]
+        accumulate = [alpha_i, beta_i, q_i]
 
         return carry_next, accumulate
 
-    _, accumulate_stack = scan(lanczos_iter, initial, None, length=k_dim - 1)
+    _, (alpha, beta, q_basis) = scan(lanczos_iter, initial, None, length=k_dim - 1)
 
-    alpha = jnp.array([alpha_0, *accumulate_stack[:, 0]])
-    beta = jnp.array([beta_0, *accumulate_stack[:, 1]])
-    q_basis = jnp.array([v_0, *accumulate_stack[:, 2:]])
+    alpha = jnp.array([alpha_0, *alpha])
+    beta = jnp.array([beta_0, *beta])
+    q_basis = jnp.array([v_0, *q_basis])
 
     tridiagonal = (
         jnp.diag(alpha, k=0) + jnp.diag(beta[: k_dim - 1], k=-1) + jnp.diag(beta[: k_dim - 1], k=1)
