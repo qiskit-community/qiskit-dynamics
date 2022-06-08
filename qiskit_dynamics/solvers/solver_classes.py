@@ -518,7 +518,7 @@ class Solver:
                     new_signals_list.append((hamiltonian_signals, dissipator_signals))
 
             signals_list = new_signals_list
-        import pdb; pdb.set_trace()
+
         # run simulations
         all_results = [
             self._solve(
