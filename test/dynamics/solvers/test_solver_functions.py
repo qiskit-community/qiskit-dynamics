@@ -123,7 +123,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
     def tol(self):
         """Tolerance to use when checking results."""
         return 1e-5
-
+    
     def test_ode_method(self):
         """Test for ODE-specific method."""
         if self.is_ode_method:
@@ -234,10 +234,33 @@ class TestSolverMethodJax(TestSolverMethod, TestJaxBase):
 class TestRK4(TestSolverMethod):
     """Test class for RK4_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_ode(
-            rhs=rhs, t_span=t_span, y0=y0, method="RK4", t_eval=t_eval, max_dt=0.001, **kwargs
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="RK4",
+                t_eval=t_eval,
+                max_dt=0.001,
+                **kwargs,
         )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="RK4",
+                t_eval=t_eval,
+                max_dt=0.001,
+                **kwargs,
+            )
+        else:
+            raise QiskitError("solver class {solver} not found")
+
+    @property
+    def is_ode_method(self):
+        return True
 
 
 class Testjax_RK4(TestSolverMethodJax):
@@ -247,6 +270,36 @@ class Testjax_RK4(TestSolverMethodJax):
         return solve_ode(
             rhs=rhs, t_span=t_span, y0=y0, method="jax_RK4", t_eval=t_eval, max_dt=0.001, **kwargs
         )
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="jax_RK4",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+        )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="jax_RK4",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
+        else:
+            raise QiskitError("solver class {solver} not found")
+
+    @property
+    def is_ode_method(self):
+        return True
+
 
 
 class Testjax_RK4_parallel(TestSolverMethodJax):
@@ -322,30 +375,31 @@ class Testjax_expm_parallel(TestSolverMethodJax):
 class Testscipy_RK45(TestSolverMethod):
     """Tests for scipy solve_ivp RK45 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_ode(
-            rhs=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="RK45",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="RK45",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
         )
-
-    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="RK45",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
-        )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="RK45",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
+        else:
+            raise QiskitError("solver class {solver} not found")
 
     @property
     def is_ode_method(self):
@@ -355,30 +409,31 @@ class Testscipy_RK45(TestSolverMethod):
 class Testscipy_RK23(TestSolverMethod):
     """Tests for scipy solve_ivp RK23 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_ode(
-            rhs=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="RK23",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="RK23",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
         )
-
-    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="RK23",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
-        )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="RK23",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
+        else:
+            raise QiskitError("solver class {solver} not found")
 
     @property
     def is_ode_method(self):
@@ -388,30 +443,31 @@ class Testscipy_RK23(TestSolverMethod):
 class Testscipy_BDF(TestSolverMethod):
     """Tests for scipy solve_ivp BDF method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_ode(
-            rhs=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="BDF",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="BDF",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
         )
-
-    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="BDF",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
-        )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="BDF",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
+        else:
+            raise QiskitError("solver class {solver} not found")
 
     @property
     def is_ode_method(self):
@@ -421,30 +477,30 @@ class Testscipy_BDF(TestSolverMethod):
 class Testscipy_DOP853(TestSolverMethod):
     """Tests for scipy solve_ivp DOP853 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_ode(
-            rhs=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="DOP853",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="DOP853",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
         )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="DOP853",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
 
-    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="DOP853",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
-        )
 
     @property
     def is_ode_method(self):
@@ -454,30 +510,32 @@ class Testscipy_DOP853(TestSolverMethod):
 class Testjax_odeint(TestSolverMethodJax):
     """Tests for jax odeint method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_ode(
-            rhs=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="jax_odeint",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="jax_odeint",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
         )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="jax_odeint",
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
+        else:
+            raise QiskitError("solver class {solver} not found")
 
-    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method="jax_odeint",
-            t_eval=t_eval,
-            atol=1e-10,
-            rtol=1e-10,
-            **kwargs,
-        )
 
     @property
     def is_ode_method(self):
@@ -487,30 +545,32 @@ class Testjax_odeint(TestSolverMethodJax):
 class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Dopri5 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
-        return solve_ode(
-            rhs=rhs,
-            t_span=t_span,
-            y0=y0,
-            method=Dopri5(),
-            t_eval=t_eval,
-            stepsize_controller=stepsize_controller,
-            **kwargs,
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method=Dopri5(),
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
         )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method=Dopri5()
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
+        else:
+            raise QiskitError("solver class {solver} not found")
 
-    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
-        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method=Dopri5(),
-            t_eval=t_eval,
-            stepsize_controller=stepsize_controller,
-            **kwargs,
-        )
 
     @property
     def is_ode_method(self):
@@ -520,30 +580,31 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
 class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Tsit5 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
-        return solve_ode(
-            rhs=rhs,
-            t_span=t_span,
-            y0=y0,
-            method=Tsit5(),
-            t_eval=t_eval,
-            stepsize_controller=stepsize_controller,
-            **kwargs,
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
+        if solver_class == 'ode'
+            return solve_ode(
+                rhs=rhs,
+                t_span=t_span,
+                y0=y0,
+                method=Tsit5(),
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
         )
-
-    def solve_lmde(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        """Method for solving lmdes, passing through `solve_lmde` to `solve_ode"""
-        stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
-        return solve_lmde(
-            generator=rhs,
-            t_span=t_span,
-            y0=y0,
-            method=Tsit5(),
-            t_eval=t_eval,
-            stepsize_controller=stepsize_controller,
-            **kwargs,
-        )
+        elif solver_class='lmde'
+            return solve_lmde(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method=Tsit5(),
+                t_eval=t_eval,
+                atol=1e-10,
+                rtol=1e-10,
+                **kwargs,
+            )
+        else:
+            raise QiskitError("solver class {solver} not found")
 
     @property
     def is_ode_method(self):
