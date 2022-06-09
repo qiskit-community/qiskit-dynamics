@@ -436,8 +436,7 @@ class DiscreteSignal(Signal):
         Appends samples to the pulse starting at start_sample, filling any gap with zeros.
 
         Args:
-            start_sample: Number of the sample at which the new samples
-                          should be appended.
+            start_sample: Index of the sample at which the new samples should be appended.
             samples: List of samples to append.
 
         Raises:
