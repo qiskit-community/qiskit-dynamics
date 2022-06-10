@@ -290,8 +290,8 @@ def solve_lmde(
                 stacklevel=5,
             )
             # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
-        if not is_hermitian(1j * solver_generator(1.12)):
-            raise QiskitError("lanczos_diag must be used with hermitian generators.")
+        if isinstance(solver_generator, (LindbladModel, GeneratorModel)):
+            raise QiskitError("Lanczos solver can only be used for HamiltonianModel or function-based anti-Hermitian generators.")
         results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
         if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
