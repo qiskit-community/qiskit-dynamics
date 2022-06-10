@@ -433,17 +433,14 @@ class DiscreteSignal(Signal):
 
     def add_samples(self, start_sample: int, samples: List):
         """
-        Appends samples to the pulse starting at start_sample.
-        If start_sample is larger than the number of samples currently
-        in the signal the signal is padded with zeros.
+        Appends samples to the pulse starting at start_sample, filling any gap with zeros.
 
         Args:
-            start_sample: number of the sample at which the new samples
-                should be appended.
-            samples: list of samples to append.
+            start_sample: Index of the sample at which the new samples should be appended.
+            samples: List of samples to append.
 
         Raises:
-            QiskitError: if start_sample is invalid.
+            QiskitError: If start_sample is less than the current length of samples.
         """
         samples = Array(samples)
 
@@ -451,17 +448,18 @@ class DiscreteSignal(Signal):
             return
 
         if start_sample < len(self.samples):
-            raise QiskitError()
+            raise QiskitError("Samples can only be added afer the last sample.")
 
         zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
 
+        new_samples = self.samples
         if len(self.samples) < start_sample:
-            self._padded_samples = np.append(
-                self.samples, np.zeros(start_sample - len(self.samples), dtype=complex)
+            new_samples = np.append(
+                new_samples, np.repeat(zero_pad, start_sample - len(self.samples))
             )
 
-        self._padded_samples = np.append(self.samples, samples)
-        self._padded_samples = np.append(self._padded_samples, zero_pad, axis=0)
+        new_samples = np.append(new_samples, samples)
+        self._padded_samples = np.append(new_samples, zero_pad, axis=0)
 
     def __str__(self) -> str:
         """Return string representation."""
