@@ -32,7 +32,7 @@ from qiskit_dynamics.array import Array
 from ..common import QiskitDynamicsTestCase, TestDiffraxBase, TestJaxBase
 
 try:
-    from diffrax import PIDController, Tsit5, Dopri5, SaveAt
+    from diffrax import PIDController, Tsit5, Dopri5
 except ImportError:
     pass
 
@@ -276,8 +276,7 @@ class Testjax_RK4(TestSolverMethodJax):
                 y0=y0,
                 method="jax_RK4",
                 t_eval=t_eval,
-                atol=1e-10,
-                rtol=1e-10,
+                max_dt=0.001,
                 **kwargs,
             )
         else:
@@ -287,8 +286,7 @@ class Testjax_RK4(TestSolverMethodJax):
                 y0=y0,
                 method="jax_RK4",
                 t_eval=t_eval,
-                atol=1e-10,
-                rtol=1e-10,
+                max_dt=0.001,
                 **kwargs,
             )
 
@@ -532,14 +530,12 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
-        saveat = SaveAt(t_eval)
         if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
                 y0=y0,
                 method=Dopri5(),
-                saveat=saveat,
                 stepsize_controller=stepsize_controller,
                 **kwargs,
             )
@@ -549,7 +545,6 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
                 t_span=t_span,
                 y0=y0,
                 method=Dopri5(),
-                saveat=saveat,
                 stepsize_controller=stepsize_controller,
                 **kwargs,
             )
@@ -564,14 +559,12 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
-        saveat = SaveAt(t_eval)
         if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
                 y0=y0,
                 method=Tsit5(),
-                saveat=saveat,
                 stepsize_controller=stepsize_controller,
                 **kwargs,
             )
@@ -581,7 +574,6 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
                 t_span=t_span,
                 y0=y0,
                 method=Tsit5(),
-                saveat=saveat,
                 stepsize_controller=stepsize_controller,
                 **kwargs,
             )

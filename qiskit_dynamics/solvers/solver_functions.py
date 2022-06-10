@@ -95,7 +95,7 @@ def solve_ode(
     - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
       solver.
     - ``diffrax.diffeqsolve`` - a JAX solver function, called by passing ``method``
-    as a valid ``diffrax.solver.AbstractSolver`` instance. Requires the ``diffrax`` library.
+      as a valid ``diffrax.solver.AbstractSolver`` instance. Requires the ``diffrax`` library.
 
     Results are returned as a :class:`OdeResult` object.
 
