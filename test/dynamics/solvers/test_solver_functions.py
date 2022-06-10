@@ -140,7 +140,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         """Test case for basic model."""
 
         if self.is_ode_method:
-            results = self.solve_lmde(self.basic_rhs, t_span=self.t_span, y0=self.y0)
+            results = self.solve(self.basic_rhs, t_span=self.t_span, y0=self.y0, solver_class='lmde')
 
             expected = expm(-1j * np.pi * self.X.data)
 
@@ -234,8 +234,8 @@ class TestSolverMethodJax(TestSolverMethod, TestJaxBase):
 class TestRK4(TestSolverMethod):
     """Test class for RK4_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class=='ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -245,7 +245,7 @@ class TestRK4(TestSolverMethod):
                 max_dt=0.001,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
@@ -266,12 +266,12 @@ class TestRK4(TestSolverMethod):
 class Testjax_RK4(TestSolverMethodJax):
     """Test class for jax_RK4_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        return solve_ode(
-            rhs=rhs, t_span=t_span, y0=y0, method="jax_RK4", t_eval=t_eval, max_dt=0.001, **kwargs
-        )
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    # def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
+    #     return solve_ode(
+    #         rhs=rhs, t_span=t_span, y0=y0, method="jax_RK4", t_eval=t_eval, max_dt=0.001, **kwargs
+    #     )
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class=='ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -282,7 +282,7 @@ class Testjax_RK4(TestSolverMethodJax):
                 rtol=1e-10,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
@@ -375,8 +375,8 @@ class Testjax_expm_parallel(TestSolverMethodJax):
 class Testscipy_RK45(TestSolverMethod):
     """Tests for scipy solve_ivp RK45 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class=='ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -387,7 +387,7 @@ class Testscipy_RK45(TestSolverMethod):
                 rtol=1e-10,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
@@ -409,8 +409,8 @@ class Testscipy_RK45(TestSolverMethod):
 class Testscipy_RK23(TestSolverMethod):
     """Tests for scipy solve_ivp RK23 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class=='ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -421,7 +421,7 @@ class Testscipy_RK23(TestSolverMethod):
                 rtol=1e-10,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
@@ -443,8 +443,8 @@ class Testscipy_RK23(TestSolverMethod):
 class Testscipy_BDF(TestSolverMethod):
     """Tests for scipy solve_ivp BDF method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class == 'ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -455,7 +455,7 @@ class Testscipy_BDF(TestSolverMethod):
                 rtol=1e-10,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
@@ -477,8 +477,8 @@ class Testscipy_BDF(TestSolverMethod):
 class Testscipy_DOP853(TestSolverMethod):
     """Tests for scipy solve_ivp DOP853 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class == 'ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -489,7 +489,7 @@ class Testscipy_DOP853(TestSolverMethod):
                 rtol=1e-10,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
@@ -510,8 +510,8 @@ class Testscipy_DOP853(TestSolverMethod):
 class Testjax_odeint(TestSolverMethodJax):
     """Tests for jax odeint method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class == 'ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -522,7 +522,7 @@ class Testjax_odeint(TestSolverMethodJax):
                 rtol=1e-10,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
@@ -545,8 +545,8 @@ class Testjax_odeint(TestSolverMethodJax):
 class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Dopri5 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class == 'ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -557,12 +557,12 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
                 rtol=1e-10,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
                 y0=y0,
-                method=Dopri5()
+                method=Dopri5(),
                 t_eval=t_eval,
                 atol=1e-10,
                 rtol=1e-10,
@@ -580,8 +580,8 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
 class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Tsit5 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode' **kwargs):
-        if solver_class == 'ode'
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_class='ode', **kwargs):
+        if solver_class == 'ode':
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -592,7 +592,7 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
                 rtol=1e-10,
                 **kwargs,
         )
-        elif solver_class='lmde'
+        elif solver_class=='lmde':
             return solve_lmde(
                 generator=rhs,
                 t_span=t_span,
