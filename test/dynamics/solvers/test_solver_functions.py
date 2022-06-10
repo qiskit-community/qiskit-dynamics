@@ -109,7 +109,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         self.pseudo_random_rhs = pseudo_random_rhs
 
     @abstractmethod
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class=None, **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
         """Call the solver to test."""
 
     @property
@@ -140,9 +140,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         """Test case for basic model."""
 
         if self.is_ode_method:
-            results = self.solve(
-                self.basic_rhs, t_span=self.t_span, y0=self.y0, solver_class="lmde"
-            )
+            results = self.solve(self.basic_rhs, t_span=self.t_span, y0=self.y0, solver_func="lmde")
 
             expected = expm(-1j * np.pi * self.X.data)
 
@@ -236,8 +234,8 @@ class TestSolverMethodJax(TestSolverMethod, TestJaxBase):
 class TestRK4(TestSolverMethod):
     """Test class for RK4_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
-        if solver_class == "ode":
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -270,8 +268,8 @@ class Testjax_RK4(TestSolverMethodJax):
     #     return solve_ode(
     #         rhs=rhs, t_span=t_span, y0=y0, method="jax_RK4", t_eval=t_eval, max_dt=0.001, **kwargs
     #     )
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
-        if solver_class == "ode":
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -302,7 +300,7 @@ class Testjax_RK4(TestSolverMethodJax):
 class Testjax_RK4_parallel(TestSolverMethodJax):
     """Test class for jax_RK4_parallel_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class=None, **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
         # ensure that warning is raised as tests are run on CPU
         with self.assertWarns(Warning) as w:
             results = solve_lmde(
@@ -322,7 +320,7 @@ class Testjax_RK4_parallel(TestSolverMethodJax):
 class Testscipy_expm(TestSolverMethod):
     """Test class for scipy_expm_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class=None, **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
         return solve_lmde(
             generator=rhs,
             t_span=t_span,
@@ -337,7 +335,7 @@ class Testscipy_expm(TestSolverMethod):
 class Testjax_expm(TestSolverMethodJax):
     """Test class for jax_expm_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class=None, **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
         return solve_lmde(
             generator=rhs,
             t_span=t_span,
@@ -352,7 +350,7 @@ class Testjax_expm(TestSolverMethodJax):
 class Testjax_expm_parallel(TestSolverMethodJax):
     """Test class for jax_expm_parallel_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class=None, **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
         # ensure that warning is raised as tests are run on CPU
         with self.assertWarns(Warning) as w:
             results = solve_lmde(
@@ -372,8 +370,8 @@ class Testjax_expm_parallel(TestSolverMethodJax):
 class Testscipy_RK45(TestSolverMethod):
     """Tests for scipy solve_ivp RK45 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
-        if solver_class == "ode":
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -404,8 +402,8 @@ class Testscipy_RK45(TestSolverMethod):
 class Testscipy_RK23(TestSolverMethod):
     """Tests for scipy solve_ivp RK23 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
-        if solver_class == "ode":
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -436,8 +434,8 @@ class Testscipy_RK23(TestSolverMethod):
 class Testscipy_BDF(TestSolverMethod):
     """Tests for scipy solve_ivp BDF method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
-        if solver_class == "ode":
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -468,8 +466,8 @@ class Testscipy_BDF(TestSolverMethod):
 class Testscipy_DOP853(TestSolverMethod):
     """Tests for scipy solve_ivp DOP853 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
-        if solver_class == "ode":
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -500,8 +498,8 @@ class Testscipy_DOP853(TestSolverMethod):
 class Testjax_odeint(TestSolverMethodJax):
     """Tests for jax odeint method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
-        if solver_class == "ode":
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -532,10 +530,10 @@ class Testjax_odeint(TestSolverMethodJax):
 class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Dopri5 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
         saveat = SaveAt(t_eval)
-        if solver_class == "ode":
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,
@@ -564,10 +562,10 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
 class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
     """Tests for diffrax Tsit5 method."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_class="ode", **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
         saveat = SaveAt(t_eval)
-        if solver_class == "ode":
+        if solver_func == "ode":
             return solve_ode(
                 rhs=rhs,
                 t_span=t_span,

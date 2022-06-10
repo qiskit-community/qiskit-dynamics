@@ -81,8 +81,6 @@ def diffrax_solver(
 
     if t_eval is not None:
         kwargs["saveat"] = SaveAt(ts=t_eval)
-    # else:
-    #     kwargs["saveat"] = SaveAt(ts=t_list)
 
     results = diffeqsolve(
         term,
