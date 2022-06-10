@@ -18,6 +18,7 @@ Custom fixed step solvers.
 from typing import Callable, Optional, Union, Tuple, List
 from warnings import warn
 import numpy as np
+from qiskit import QiskitError
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
 
@@ -133,15 +134,18 @@ def lanczos_diag_solver(
         max_dt: Maximum step size.
         t_eval: Optional list of time points at which to return the solution.
         k_dim: Integer which specifies the dimension of Krylov subspace used for
-               lanczos iteration. Acts as an accuracy parameter. ``k_dim < dim(generator)``.
+               lanczos iteration. Acts as an accuracy parameter. ``k_dim`` must
+               always be less than dimension of generator.
 
     Returns:
         OdeResult: Results object.
     """
 
-    # k_dim = kwargs.get("k_dim", max(2, generator(0).shape[0] // 4))
+    dim = generator(0).shape[0]
     if k_dim is None:
-        k_dim = generator(0).shape[0] // 4
+        k_dim = dim // 4
+    if k_dim > dim:
+        raise QiskitError(f"k_dim value {k_dim} is greater than dimension of generator {dim}")
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)

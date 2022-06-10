@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2022.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -20,38 +20,38 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 
-def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
+def lanczos_basis(A: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
     """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
     using Lanczos algorithm.
 
     Args:
-        array : Array to tridiagonalise.
-        v_0 : Initial state.
+        A : Array to tridiagonalise.
+        v_0 : Vector to initialise Lanczos iteration.
         k_dim : Dimension of the krylov subspace.
 
     Returns:
-        tridiagonal : Tridiagonal projection of ``array``.
+        tridiagonal : Tridiagonal projection of ``A``.
         q_basis : Basis of the krylov subspace.
     """
 
-    data_type = np.result_type(array.dtype, v_0.dtype)
-    v_0 = np.array(v_0).reshape(-1, 1)  # ket
-    array_dim = array.shape[0]
+    data_type = np.result_type(A.dtype, v_0.dtype)
+    v_0 = np.array(v_0).reshape(-1, 1)
+    array_dim = A.shape[0]
     q_basis = np.zeros((k_dim, array_dim), dtype=data_type)
 
     v_p = np.zeros_like(v_0)
-    projection = np.zeros_like(v_0)  # v1
+    projection = np.zeros_like(v_0)
 
     beta = np.zeros((k_dim,), dtype=data_type)
     alpha = np.zeros((k_dim,), dtype=data_type)
 
-    v_0 = v_0 / np.sqrt(np.abs(v_0.conj().T @ v_0))
+    v_0 = v_0 / np.linalg.norm(v_0)
     q_basis[[0], :] = v_0.T
 
-    projection = array @ v_0
+    projection = A @ v_0
     alpha[0] = v_0.conj().T @ projection
     projection = projection - alpha[0] * v_0
-    beta[0] = np.sqrt(np.abs(projection.conj().T @ projection))
+    beta[0] = np.linalg.norm(projection)
 
     error = np.finfo(np.float64).eps
 
@@ -59,10 +59,10 @@ def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: 
         v_p = q_basis[i - 1, :]
 
         q_basis[[i], :] = projection.T / beta[i - 1]
-        projection = array @ q_basis[i, :]  # |array_dim>
-        alpha[i] = q_basis[i, :].conj().T @ projection  # real?
+        projection = A @ q_basis[i, :]
+        alpha[i] = q_basis[i, :].conj().T @ projection
         projection = projection - alpha[i] * q_basis[i, :] - beta[i - 1] * v_p
-        beta[i] = np.sqrt(np.abs(projection.conj().T @ projection))
+        beta[i] = np.linalg.norm(projection)
 
         # additional steps to increase accuracy
         delta = q_basis[i, :].conj().T @ projection
@@ -85,18 +85,18 @@ def lanczos_basis(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: 
 
 def lanczos_eig(array: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
     """
-    Finds the lowest k_dim eigenvalues and corresponding eigenvectors of a hermitian array
+    Finds the lowest ``k_dim`` eigenvalues and corresponding eigenvectors of a hermitian array
     using Lanczos algorithm.
     Args:
         array : Array to diagonalize.
-        v_0 : Initial state.
+        v_0 : Vector to initialise Lanczos iteration.
         k_dim : Dimension of the krylov subspace.
 
     Returns:
         q_basis : Basis of the krylov subspace.
         eigen_values : lowest ``k_dim`` Eigenvalues.
-        eigen_vectors_t : Eigenvectors in both krylov-space.
-        eigen_vectors_a : Eigenvectors in both hilbert-space.
+        eigen_vectors_t : Eigenvectors in krylov-space.
+        eigen_vectors_a : Eigenvectors in hilbert-space.
     """
 
     tridiagonal, q_basis = lanczos_basis(array, v_0, k_dim)

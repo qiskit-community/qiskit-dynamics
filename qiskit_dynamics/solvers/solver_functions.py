@@ -201,7 +201,7 @@ def solve_lmde(
       but uses using Lanczos algorithm. Requires additional kwargs ``max_dt`` and ``k_dim``
       indicating the maximum step size to take and Krylov subspace dimension, respectively.
       ``k_dim`` acts an adjustable accuracy parameter and ``k_dim`` < ``model.dim``. Note
-      that the generator must be necessarily hermitian and preferably in sparse evaluation
+      that the generator must be necessarily anti-hermitian and preferably in sparse evaluation
       mode for better performance.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
@@ -283,7 +283,7 @@ def solve_lmde(
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     if method == "lanczos_diag":
-        if "sparse" not in generator.evaluation_mode:
+        if isinstance(generator, BaseGeneratorModel) and "sparse" not in generator.evaluation_mode:
             warn(
                 "lanczos_diag must be used with a generator in sparse mode for better performance.",
                 category=Warning,
