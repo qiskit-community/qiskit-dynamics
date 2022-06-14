@@ -808,7 +808,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             dissipator_channels=["d1"],
             channel_carrier_freqs={"d0": 5.0, "d1": 3.1},
             dt=0.1,
-            evaluation_mode='dense_vectorized'
+            evaluation_mode="dense_vectorized",
         )
 
         self.method = "DOP853"
@@ -908,7 +908,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         self._compare_schedule_to_signals(
             solver=getattr(self, model),
             t_span=[0.0, 1.5],
-            y0=[Statevector([1.0, 0.0]), DensityMatrix([0., 1.])],
+            y0=[Statevector([1.0, 0.0]), DensityMatrix([0.0, 1.0])],
             schedules=[sched0, sched1],
             signals=signals,
         )
