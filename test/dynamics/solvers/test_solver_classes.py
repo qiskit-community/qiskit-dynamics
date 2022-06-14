@@ -808,6 +808,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             dissipator_channels=["d1"],
             channel_carrier_freqs={"d0": 5.0, "d1": 3.1},
             dt=0.1,
+            evaluation_mode='dense_vectorized'
         )
 
         self.method = "DOP853"
@@ -859,8 +860,63 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
 
     @unpack
     @data(("ham_solver_2_channels",), ("td_lindblad_solver",))
-    def test_two_channel_simulation(self, model):
-        """Test pulse simulation with models with two channels."""
+    def test_two_channel_list_simulation(self, model):
+        """Test pulse simulation with models with two channels, with solve arguments specified as
+        a list.
+        """
+
+        # construct schedule0
+        with pulse.build() as sched0:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(1))
+
+        # construct equivalent DiscreteSignal manually
+        constant_samples = np.ones(5, dtype=float) * 0.9
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
+        samples1 = np.append(np.zeros(10), gauss_samples)
+        sig00 = DiscreteSignal(dt=0.1, samples=samples0, carrier_freq=5.0)
+        sig01 = DiscreteSignal(dt=0.1, samples=samples1, carrier_freq=3.1)
+
+        # construct schedule1
+        with pulse.build() as sched1:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.8), pulse.DriveChannel(0))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.973, sigma=1.0), pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.973, sigma=1.0), pulse.DriveChannel(1))
+
+        # construct equivalent DiscreteSignal manually
+        constant_samples = np.ones(5, dtype=float) * 0.8
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.973, sigma=1.0).get_waveform().samples
+        samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
+        samples1 = np.append(np.zeros(10), gauss_samples)
+        sig10 = DiscreteSignal(dt=0.1, samples=samples0, carrier_freq=5.0)
+        sig11 = DiscreteSignal(dt=0.1, samples=samples1, carrier_freq=3.1)
+
+        signals = None
+        if "lindblad" in model:
+            signals = [([sig00], [sig01]), ([sig10], [sig11])]
+        else:
+            signals = [[sig00, sig01], [sig10, sig11]]
+
+        self._compare_schedule_to_signals(
+            solver=getattr(self, model),
+            t_span=[0.0, 1.5],
+            y0=[Statevector([1.0, 0.0]), DensityMatrix([0., 1.])],
+            schedules=[sched0, sched1],
+            signals=signals,
+        )
+
+    @unpack
+    @data(("ham_solver_2_channels",), ("td_lindblad_solver",))
+    def test_two_channel_SuperOp_simulation(self, model):
+        """Test pulse simulation with models with two channels when simulating a SuperOp."""
 
         # construct schedule
         with pulse.build() as sched:
@@ -888,7 +944,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         self._compare_schedule_to_signals(
             solver=getattr(self, model),
             t_span=[0.0, 1.5],
-            y0=Statevector([1.0, 0.0]),
+            y0=SuperOp(np.eye(4, dtype=complex)),
             schedules=sched,
             signals=signals,
         )
