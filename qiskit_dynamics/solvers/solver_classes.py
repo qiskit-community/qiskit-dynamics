@@ -429,11 +429,12 @@ class Solver:
         Args:
             t_span: Time interval to integrate over.
             y0: Initial state.
-            signals: Specification of time-dependent coefficients to simulate.
-                     If ``dissipator_operators is None``, specify as a list of signals for the
-                     Hamiltonian component, otherwise specify as a tuple of two lists, one
-                     for Hamiltonian components, and one for the ``dissipator_operators``
-                     coefficients.
+            signals: Specification of time-dependent coefficients to simulate, either in
+                     Signal format or as Qiskit Pulse Pulse schedules.
+                     If specifying in Signal format, if ``dissipator_operators is None``,
+                     specify as a list of signals for the Hamiltonian component, otherwise
+                     specify as a tuple of two lists, one for Hamiltonian components, and
+                     one for the ``dissipator_operators`` coefficients.
             convert_results: If ``True``, convert returned solver state results to the same class
                              as y0. If ``False``, states will be returned in the native array type
                              used by the specified solver method.
