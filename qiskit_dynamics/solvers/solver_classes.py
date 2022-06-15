@@ -52,16 +52,60 @@ from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_ve
 
 
 class Solver:
-    """Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
+    r"""Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
     level type-handling of input states.
 
-    Given the components of a Hamiltonian and optional dissipators, this class will
-    internally construct either a :class:`HamiltonianModel` or :class:`LindbladModel`
-    instance.
+    If only Hamiltonian information is provided, this class will internally construct
+    a :class:`~qiskit_dynamics.models.HamiltonianModel` instance, and simulate the model
+    using the Schrodinger equation :math:`\dot{y}(t) = -iH(t)y(t)`
+    (see the :meth:`~qiskit_dynamics.solvers.Solver.solve` method documentation for details
+    on how different initial state types are handled).
+    :class:`~qiskit_dynamics.models.HamiltonianModel` represents a
+    decomposition of the Hamiltonian of the form:
+
+    .. math::
+
+        H(t) = H_0 + \sum_i s_i(t) H_i,
+
+    where :math:`H_0` is the static component, the :math:`H_i` are the operator part
+    of the time-dependent part of the Hamiltonian, and the :math:`s_i(t)` are the
+    time-dependent signals, specifiable as either :class:`~qiskit_dynamics.signals.Signal`
+    objects, or constructed from Qiskit Pulse schedules if :class:`~qiskit_dynamics.solvers.Solver`
+    is configured for Pulse simulation (see below).
+
+    If dissipators are specified as part of the model, then a
+    :class:`~qiskit_dynamics.models.LindbladModel` is constructed, and simulations are performed
+    by solving the Lindblad equation:
+
+    .. math::
+
+        \dot{y}(t) = -i[H(t), y(t)] + \mathcal{D}_0(y(t)) + \mathcal{D}(t)(y(t)),
+
+    where :math:`H(t)` is the Hamiltonian part, specified as above, and :math:`\mathcal{D}_0`
+    and :math:`\mathcal{D}(t)` are the static and time-dependent portions of the dissipator,
+    given by:
+
+    .. math::
+
+        \mathcal{D}_0(y(t)) = \sum_j N_j y(t) N_j^\dagger
+                                      - \frac{1}{2} \{N_j^\dagger N_j, y(t)\},
+
+    and
+
+    .. math::
+
+        \mathcal{D}(t)(y(t)) = \sum_j \gamma_j(t) L_j y(t) L_j^\dagger
+                                  - \frac{1}{2} \{L_j^\dagger L_j, y(t)\},
+
+    with :math:`N_j` the static dissipators, :math:`L_j` the time-dependent dissipator
+    operators, and :math:`\gamma_j(t)` the time-dependent signals
+    specifiable as either :class:`~qiskit_dynamics.signals.Signal`
+    objects, or constructed from Qiskit Pulse schedules if :class:`~qiskit_dynamics.solvers.Solver`
+    is configured for Pulse simulation (see below).
 
     Transformations on the model can be specified via the optional arguments:
 
-    * ``rotating_frame``: Transforms the model into a rotating frame. Note that
+    * ``rotating_frame``: Transforms the model into a rotating frame. Note that the
       operator specifying the frame will be substracted from the ``static_hamiltonian``.
       If supplied as a 1d array, ``rotating_frame`` is interpreted as the diagonal
       elements of a diagonal matrix. See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
@@ -94,6 +138,22 @@ class Solver:
             still be used within JAX-transformable functions regardless of whether an
             ``rwa_cutoff_freq`` is set.
 
+    :class:`~qiskit_dynamics.solvers.Solver` can be configured to simulate Qiskit Pulse schedules
+    by setting all of the following parameters, which determine how Pulse schedules are
+    interpreted:
+
+    * ``hamiltonian_channels``: List of channels in string format corresponding to the
+      time-dependent coefficients of ``hamiltonian_operators``.
+    * ``dissipator_channels``: List of channels in string format corresponding to time-dependent
+      coefficients of ``dissipator_operators``.
+    * ``channel_carrier_freqs``: Dictionary mapping channel names to frequencies. A frequency
+      must be specified for every channel appearing in ``hamiltonian_channels`` and
+      ``dissipator_channels``. When simulating ``schedule``\s, these frequencies are
+      interpreted as the analog carrier frequencies associated with the channel; deviations from
+      these frequencies due to ``SetFrequency`` or ``ShiftFrequency`` instructions are
+      implemented by digitally modulating the samples for the channel envelope.
+    * ``dt``: The envelope sample width.
+
     The evolution given by the model can be simulated by calling
     :meth:`~qiskit_dynamics.solvers.Solver.solve`, which calls
     calls :func:`~qiskit_dynamics.solve.solve_lmde`, and does various automatic
@@ -105,10 +165,10 @@ class Solver:
         static_hamiltonian: Optional[Array] = None,
         hamiltonian_operators: Optional[Array] = None,
         hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
-        hamiltonian_channels: Optional[List[str]] = None,
         static_dissipators: Optional[Array] = None,
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
+        hamiltonian_channels: Optional[List[str]] = None,
         dissipator_channels: Optional[List[str]] = None,
         channel_carrier_freqs: Optional[dict] = None,
         dt: Optional[float] = None,
@@ -129,13 +189,13 @@ class Solver:
             hamiltonian_signals: (Deprecated) Coefficients for the Hamiltonian operators.
                                  This argument has been deprecated, signals should be passed
                                  to the solve method.
-            hamiltonian_channels: List of channel names corresponding to Hamiltonian operators.
             static_dissipators: Constant dissipation operators.
             dissipator_operators: Dissipation operators with time-dependent coefficients.
             dissipator_signals: (Deprecated) Optional time-dependent coefficients for the
                                 dissipators. If ``None``, coefficients are assumed to be the
                                 constant ``1.``. This argument has been deprecated, signals
                                 should be passed to the solve method.
+            hamiltonian_channels: List of channel names corresponding to Hamiltonian operators.
             dissipator_channels: List of channel names corresponding to dissipator operators.
             channel_carrier_freqs: Dictionary mapping channel names to floats.
             dt: Sample rate for simulating pulse schedules.
