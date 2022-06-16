@@ -228,26 +228,28 @@ class Testorganize_signals_to_channels(QiskitDynamicsTestCase):
     """Test helper function organize_signals_to_channels."""
 
     def test_hamiltonian_model(self):
+        """Test for HamiltonianModel case."""
         output = organize_signals_to_channels(
-            all_signals=['a', 'b', 'c', 'd'],
-            all_channels=['d0', 'd1', 'd2', 'd3'],
+            all_signals=["a", "b", "c", "d"],
+            all_channels=["d0", "d1", "d2", "d3"],
             model_class=HamiltonianModel,
-            hamiltonian_channels=['d1', 'd2', 'd0', 'd3'],
-            dissipator_channels=None
+            hamiltonian_channels=["d1", "d2", "d0", "d3"],
+            dissipator_channels=None,
         )
 
-        self.assertTrue(output == ['b', 'c', 'a', 'd'])
+        self.assertTrue(output == ["b", "c", "a", "d"])
 
     def test_lindblad_model(self):
+        """Test for LindbladModel case."""
         output = organize_signals_to_channels(
-            all_signals=['a', 'b', 'c', 'd'],
-            all_channels=['d0', 'd1', 'd2', 'd3'],
+            all_signals=["a", "b", "c", "d"],
+            all_channels=["d0", "d1", "d2", "d3"],
             model_class=LindbladModel,
-            hamiltonian_channels=['d1', 'd2'],
-            dissipator_channels=['d0', 'd3']
+            hamiltonian_channels=["d1", "d2"],
+            dissipator_channels=["d0", "d3"],
         )
 
-        self.assertTrue(output == (['b', 'c'], ['a', 'd']))
+        self.assertTrue(output == (["b", "c"], ["a", "d"]))
 
 
 class TestSolverExceptions(QiskitDynamicsTestCase):

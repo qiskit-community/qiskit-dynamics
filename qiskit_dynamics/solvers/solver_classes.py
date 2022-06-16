@@ -624,45 +624,9 @@ class Solver:
 
         y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
 
-        # validate types
-        if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
-            raise QiskitError(
-                """Simulating SuperOp for a LindbladModel requires setting
-                vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
-                """
-            )
-
         # modify initial state for some custom handling of certain scenarios
         y_input = y0
-
-        # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
-        if y0_cls in [DensityMatrix, SuperOp] and isinstance(self.model, HamiltonianModel):
-            y0 = np.eye(self.model.dim, dtype=complex)
-        # if LindbladModel is vectorized and simulating a density matrix, flatten
-        elif (
-            (y0_cls is DensityMatrix)
-            and isinstance(self.model, LindbladModel)
-            and "vectorized" in self.model.evaluation_mode
-        ):
-            y0 = y0.flatten(order="F")
-
-        # validate y0 shape before passing to solve_lmde
-        if isinstance(self.model, HamiltonianModel) and (
-            y0.shape[0] != self.model.dim or y0.ndim > 2
-        ):
-            raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
-        if is_lindblad_model_vectorized(self.model) and (
-            y0.shape[0] != self.model.dim**2 or y0.ndim > 2
-        ):
-            raise QiskitError(
-                """Shape mismatch for initial state y0 and LindbladModel
-                                 in vectorized evaluation mode."""
-            )
-        if is_lindblad_model_not_vectorized(self.model) and y0.shape[-2:] != (
-            self.model.dim,
-            self.model.dim,
-        ):
-            raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
+        y0 = validate_and_format_initial_state(y0, self.model, y0_cls)
 
         if signals is not None:
             # if Lindblad model and signals are given as a list
@@ -714,6 +678,47 @@ def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
         y0, y0_cls, wrapper = Array(obj), None, lambda x: x
 
     return y0, y0_cls, wrapper
+
+
+def validate_and_format_initial_state(y0, model, y0_cls):
+    """Format initial state for simulation. Assumes y0 is an array type that was
+    originally wrapped in y0_cls.
+    """
+
+    # validate types
+    if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(model):
+        raise QiskitError(
+            """Simulating SuperOp for a LindbladModel requires setting
+            vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
+            """
+        )
+
+    # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
+    if y0_cls in [DensityMatrix, SuperOp] and isinstance(model, HamiltonianModel):
+        y0 = np.eye(model.dim, dtype=complex)
+    # if LindbladModel is vectorized and simulating a density matrix, flatten
+    elif (
+        (y0_cls is DensityMatrix)
+        and isinstance(model, LindbladModel)
+        and "vectorized" in model.evaluation_mode
+    ):
+        y0 = y0.flatten(order="F")
+
+    # validate y0 shape before passing to solve_lmde
+    if isinstance(model, HamiltonianModel) and (y0.shape[0] != model.dim or y0.ndim > 2):
+        raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
+    if is_lindblad_model_vectorized(model) and (y0.shape[0] != model.dim**2 or y0.ndim > 2):
+        raise QiskitError(
+            """Shape mismatch for initial state y0 and LindbladModel
+                             in vectorized evaluation mode."""
+        )
+    if is_lindblad_model_not_vectorized(model) and y0.shape[-2:] != (
+        model.dim,
+        model.dim,
+    ):
+        raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
+
+    return y0
 
 
 def format_final_states(y, model, y_input, y0_cls):
