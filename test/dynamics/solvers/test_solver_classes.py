@@ -1001,6 +1001,75 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             signals=signals,
         )
 
+    def test_rwa_ham_solver(self):
+        """Test RWA for pulse solver with hamiltonian information."""
+
+        ham_pulse_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
+            dt=0.1,
+            rwa_cutoff_freq=1.5 * 5.0
+        )
+
+        ham_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+            rwa_cutoff_freq=1.5 * 5.0,
+            rwa_carrier_freqs=[5.0]
+        )
+
+        with pulse.build() as schedule:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        sig = Signal(0.9, carrier_freq=5.0)
+
+        res_pulse = ham_pulse_solver.solve(t_span=[0, 0.4], y0=Statevector([0., 1.]), signals=schedule)
+        res_signal = ham_solver.solve(t_span=[0, 0.4], y0=Statevector([0., 1.]), signals=[sig])
+
+        self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-14, rtol=1e-14)
+
+    def test_rwa_lindblad_solver(self):
+        """Test RWA for pulse solver with Lindblad information."""
+
+        lindblad_pulse_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_dissipators=[0.01 * self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
+            dt=0.1,
+            rwa_cutoff_freq=1.5 * 5.
+        )
+
+        lindblad_solver = Solver(
+            hamiltonian_operators=[self.X],
+            static_dissipators=[0.01 * self.X],
+            static_hamiltonian=5 * self.Z,
+            rotating_frame=5 * self.Z,
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
+            dt=0.1,
+            rwa_cutoff_freq=1.5 * 5.,
+            rwa_carrier_freqs=[5.0]
+        )
+
+        with pulse.build() as schedule:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        sig = Signal(0.9, carrier_freq=5.0)
+
+        res_pulse = lindblad_pulse_solver.solve(t_span=[0, 0.4], y0=Statevector([0., 1.]), signals=schedule, convert_results=False)
+        res_signal = lindblad_solver.solve(t_span=[0, 0.4], y0=Statevector([0., 1.]), signals=[sig], convert_results=False)
+
+        self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-14, rtol=1e-14)
+
     def _compare_schedule_to_signals(self, solver, t_span, y0, schedules, signals, **kwargs):
         """Run comparison of schedule simulation to manually build signals.
 

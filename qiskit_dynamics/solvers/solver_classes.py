@@ -152,6 +152,8 @@ class Solver:
       interpreted as the analog carrier frequencies associated with the channel; deviations from
       these frequencies due to ``SetFrequency`` or ``ShiftFrequency`` instructions are
       implemented by digitally modulating the samples for the channel envelope.
+      If an ``rwa_cutoff_freq`` is specified, and no ``rwa_carrier_freqs`` is specified, these
+      frequencies will be used for the RWA.
     * ``dt``: The envelope sample width.
 
     The evolution given by the model can be simulated by calling
@@ -278,6 +280,8 @@ class Solver:
                         channel_carrier_freqs."""
                     )
 
+            if len(channel_carrier_freqs) == 0:
+                channel_carrier_freqs = None
             self._channel_carrier_freqs = channel_carrier_freqs
 
             if dt is not None:
@@ -330,6 +334,15 @@ class Solver:
         if rwa_cutoff_freq:
 
             original_signals = model.signals
+            # if configured in pulse mode and rwa_carrier_freqs is None, use the channel
+            # carrier freqs
+            if rwa_carrier_freqs is None and self._channel_carrier_freqs is not None:
+                rwa_carrier_freqs = None
+                if self._hamiltonian_channels is not None:
+                    rwa_carrier_freqs = [self._channel_carrier_freqs[c] for c in self._hamiltonian_channels]
+
+                if self._dissipator_channels is not None:
+                    rwa_carrier_freqs = (rwa_carrier_freqs, [self._channel_carrier_freqs[c] for c in self._dissipator_channels])
 
             if rwa_carrier_freqs is not None:
                 if isinstance(rwa_carrier_freqs, tuple):
