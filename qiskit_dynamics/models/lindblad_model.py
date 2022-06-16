@@ -67,7 +67,7 @@ class LindbladModel(BaseGeneratorModel):
     and
 
     .. math::
-    
+
         \mathcal{D}(t)(\rho(t)) = \sum_j \gamma_j(t) L_j \rho L_j^\dagger
                                   - \frac{1}{2} \{L_j^\dagger L_j, \rho\},
 

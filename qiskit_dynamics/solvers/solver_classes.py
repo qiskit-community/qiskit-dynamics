@@ -339,10 +339,15 @@ class Solver:
             if rwa_carrier_freqs is None and self._channel_carrier_freqs is not None:
                 rwa_carrier_freqs = None
                 if self._hamiltonian_channels is not None:
-                    rwa_carrier_freqs = [self._channel_carrier_freqs[c] for c in self._hamiltonian_channels]
+                    rwa_carrier_freqs = [
+                        self._channel_carrier_freqs[c] for c in self._hamiltonian_channels
+                    ]
 
                 if self._dissipator_channels is not None:
-                    rwa_carrier_freqs = (rwa_carrier_freqs, [self._channel_carrier_freqs[c] for c in self._dissipator_channels])
+                    rwa_carrier_freqs = (
+                        rwa_carrier_freqs,
+                        [self._channel_carrier_freqs[c] for c in self._dissipator_channels],
+                    )
 
             if rwa_carrier_freqs is not None:
                 if isinstance(rwa_carrier_freqs, tuple):

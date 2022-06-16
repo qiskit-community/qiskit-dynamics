@@ -1011,7 +1011,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
-            rwa_cutoff_freq=1.5 * 5.0
+            rwa_cutoff_freq=1.5 * 5.0,
         )
 
         ham_solver = Solver(
@@ -1019,7 +1019,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             static_hamiltonian=5 * self.Z,
             rotating_frame=5 * self.Z,
             rwa_cutoff_freq=1.5 * 5.0,
-            rwa_carrier_freqs=[5.0]
+            rwa_carrier_freqs=[5.0],
         )
 
         with pulse.build() as schedule:
@@ -1027,8 +1027,10 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
 
         sig = Signal(0.9, carrier_freq=5.0)
 
-        res_pulse = ham_pulse_solver.solve(t_span=[0, 0.4], y0=Statevector([0., 1.]), signals=schedule)
-        res_signal = ham_solver.solve(t_span=[0, 0.4], y0=Statevector([0., 1.]), signals=[sig])
+        res_pulse = ham_pulse_solver.solve(
+            t_span=[0, 0.4], y0=Statevector([0.0, 1.0]), signals=schedule
+        )
+        res_signal = ham_solver.solve(t_span=[0, 0.4], y0=Statevector([0.0, 1.0]), signals=[sig])
 
         self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-14, rtol=1e-14)
         self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-14, rtol=1e-14)
@@ -1044,7 +1046,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
-            rwa_cutoff_freq=1.5 * 5.
+            rwa_cutoff_freq=1.5 * 5.0,
         )
 
         lindblad_solver = Solver(
@@ -1055,8 +1057,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
-            rwa_cutoff_freq=1.5 * 5.,
-            rwa_carrier_freqs=[5.0]
+            rwa_cutoff_freq=1.5 * 5.0,
+            rwa_carrier_freqs=[5.0],
         )
 
         with pulse.build() as schedule:
@@ -1064,8 +1066,12 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
 
         sig = Signal(0.9, carrier_freq=5.0)
 
-        res_pulse = lindblad_pulse_solver.solve(t_span=[0, 0.4], y0=Statevector([0., 1.]), signals=schedule, convert_results=False)
-        res_signal = lindblad_solver.solve(t_span=[0, 0.4], y0=Statevector([0., 1.]), signals=[sig], convert_results=False)
+        res_pulse = lindblad_pulse_solver.solve(
+            t_span=[0, 0.4], y0=Statevector([0.0, 1.0]), signals=schedule, convert_results=False
+        )
+        res_signal = lindblad_solver.solve(
+            t_span=[0, 0.4], y0=Statevector([0.0, 1.0]), signals=[sig], convert_results=False
+        )
 
         self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-14, rtol=1e-14)
         self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-14, rtol=1e-14)
