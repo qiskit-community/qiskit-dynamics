@@ -114,12 +114,9 @@ class RotatingFrame:
             self._frame_basis_adjoint = frame_basis.conj().transpose()
             self._dim = len(self._frame_diag)
 
-        self.vectorized_frame_basis = None
-        self.vectorized_frame_basis_adjoint = None
-
-        if self.frame_basis is not None:
-            self.vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
-            self.vectorized_frame_basis_adjoint = self.vectorized_frame_basis.conj().transpose()
+        # lazily evaluate change-of-basis matrices for vectorized operators.
+        self._vectorized_frame_basis = None
+        self._vectorized_frame_basis_adjoint = None
 
     @property
     def dim(self) -> int:
@@ -519,6 +516,33 @@ class RotatingFrame:
                 operator_in_frame_basis=operator_in_frame_basis,
                 return_in_frame_basis=return_in_frame_basis,
             )
+
+    @property
+    def vectorized_frame_basis(self):
+        """Lazily evaluated operator for mapping vectorized operators into the frame basis."""
+
+        if self.frame_basis is None:
+            return None
+
+        if self._vectorized_frame_basis is None:
+            self._vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
+            self._vectorized_frame_basis_adjoint = self._vectorized_frame_basis.conj().transpose()
+
+        return self._vectorized_frame_basis
+
+    @property
+    def vectorized_frame_basis_adjoint(self):
+        """Lazily evaluated operator for mapping vectorized operators out of the frame basis."""
+
+        if self.frame_basis is None:
+            return None
+
+        if self._vectorized_frame_basis_adjoint is None:
+            # trigger lazy evaluation of vectorized_frame_basis
+            # pylint: disable=pointless-statement
+            self.vectorized_frame_basis
+
+        return self._vectorized_frame_basis_adjoint
 
     def vectorized_map_into_frame(
         self,

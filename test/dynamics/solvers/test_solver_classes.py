@@ -832,7 +832,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             static_dissipators=[0.01 * X],
             dissipator_operators=[0.01 * X],
             static_hamiltonian=5 * Z,
-            rotating_frame=5 * Z,
+            rotating_frame=np.diag(5 * Z),
             hamiltonian_channels=["d0"],
             dissipator_channels=["d1"],
             channel_carrier_freqs={"d0": 5.0, "d1": 3.1},

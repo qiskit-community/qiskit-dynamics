@@ -671,8 +671,14 @@ class Solver:
         convert_results: bool = True,
         **kwargs,
     ) -> List[OdeResult]:
-        """Helper function for running a list of schedule simulations using JAX."""
+        """Helper function for simulating a list of schedules using JAX with automatic jitting.
+        The jitting strategy is to define a function whose inputs are t_span, y0, and the
+        samples for all channels in a single large array. To avoid recompilation for schedules
+        with samples of different lengths, all are padded to be the length of the schedule
+        with the max duration.
+        """
 
+        # determine max duration and convert all schedules to signals
         max_duration = 0
         all_signals_list = []
         for sched in signals_list:
@@ -681,12 +687,15 @@ class Solver:
             max_duration = max(sched.duration, max_duration)
             all_signals_list.append(self._schedule_converter.get_signals(sched))
 
+        # fixed shape of array of all samples for each schedule
         all_samples_shape = (len(self._all_channels), max_duration)
 
+        # define function to simulate a single schedule
         def sim_function(t_span, y0, all_samples):
             # store signals to ensure purity
             model_sigs = self.model.signals
 
+            # construct signals from the samples
             signals = []
             for idx, samples in enumerate(all_samples):
                 carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
@@ -694,6 +703,7 @@ class Solver:
                     DiscreteSignal(dt=self._dt, samples=samples, carrier_freq=carrier_freq)
                 )
 
+            # map signals to correct structure for model
             signals = organize_signals_to_channels(
                 signals,
                 self._all_channels,
@@ -724,6 +734,7 @@ class Solver:
 
         jit_sim_function = jit(sim_function)
 
+        # run simulations
         all_results = []
         for t_span, y0, all_signals in zip(t_span_list, y0_list, all_signals_list):
             # setup initial state
