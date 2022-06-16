@@ -23,6 +23,7 @@ from scipy.sparse import csr_matrix
 def lanczos_basis(A: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int):
     """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
     using Lanczos algorithm.
+    reference: https://tensornetwork.org/mps/algorithms/timeevo/global-krylov.html
 
     Args:
         A : Array to tridiagonalise.
