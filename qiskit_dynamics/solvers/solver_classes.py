@@ -565,6 +565,31 @@ class Solver:
             t_span, y0, signals
         )
 
+        all_results = self._solve_list(
+            t_span_list=t_span_list,
+            y0_list=y0_list,
+            signals_list=signals_list,
+            convert_results=convert_results,
+            **kwargs,
+        )
+
+        if multiple_sims is False:
+            return all_results[0]
+
+        return all_results
+
+    def _solve_list(
+        self,
+        t_span_list: List[Array],
+        y0_list: List[Union[Array, QuantumState, BaseOperator]],
+        signals_list: Optional[
+            Union[List[Schedule], List[List[Signal]], List[Tuple[List[Signal], List[Signal]]]]
+        ] = None,
+        convert_results: bool = True,
+        **kwargs,
+    ) -> List[OdeResult]:
+        """Helper function for running a list of simulations."""
+
         # if simulating schedules, convert to Signal objects at this point
         if isinstance(signals_list[0], (Schedule, ScheduleBlock)):
             if self._schedule_converter is None:
@@ -587,64 +612,38 @@ class Solver:
 
             signals_list = new_signals_list
 
-        # run simulations
-        all_results = [
-            self._solve(
-                t_span=current_t_span,
-                y0=current_y0,
-                signals=current_signals,
-                convert_results=convert_results,
-                **kwargs,
-            )
-            for current_t_span, current_y0, current_signals in zip(
-                t_span_list, y0_list, signals_list
-            )
-        ]
+        all_results = []
+        for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
+            if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
+                y0 = DensityMatrix(y0)
 
-        # replace copy of original signals for deprecated behavior
-        self.model.signals = original_signals
+            y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
 
-        if multiple_sims is False:
-            return all_results[0]
+            # modify initial state for some custom handling of certain scenarios
+            y_input = y0
+            y0 = validate_and_format_initial_state(y0, self.model, y0_cls)
+
+            if signals is not None:
+                # if Lindblad model and signals are given as a list
+                # set as just the Hamiltonian part of the signals
+                if isinstance(self.model, LindbladModel) and isinstance(
+                    signals, (list, SignalList)
+                ):
+                    signals = (signals, None)
+
+                if self._rwa_signal_map:
+                    signals = self._rwa_signal_map(signals)
+                self.model.signals = signals
+
+            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+            results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+
+            if y0_cls is not None and convert_results:
+                results.y = [state_type_wrapper(yi) for yi in results.y]
+
+            all_results.append(results)
 
         return all_results
-
-    def _solve(
-        self,
-        t_span: Array,
-        y0: Union[Array, QuantumState, BaseOperator],
-        signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
-        convert_results: Optional[bool] = True,
-        **kwargs,
-    ) -> OdeResult:
-        """Helper function solve for running a single simulation."""
-        # convert types
-        if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
-            y0 = DensityMatrix(y0)
-
-        y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
-
-        # modify initial state for some custom handling of certain scenarios
-        y_input = y0
-        y0 = validate_and_format_initial_state(y0, self.model, y0_cls)
-
-        if signals is not None:
-            # if Lindblad model and signals are given as a list
-            # set as just the Hamiltonian part of the signals
-            if isinstance(self.model, LindbladModel) and isinstance(signals, (list, SignalList)):
-                signals = (signals, None)
-
-            if self._rwa_signal_map:
-                signals = self._rwa_signal_map(signals)
-            self.model.signals = signals
-
-        results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
-        results.y = format_final_states(results.y, self.model, y_input, y0_cls)
-
-        if y0_cls is not None and convert_results:
-            results.y = [state_type_wrapper(yi) for yi in results.y]
-
-        return results
 
 
 def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
