@@ -575,31 +575,15 @@ class Solver:
                 if isinstance(sched, ScheduleBlock):
                     sched = block_to_schedule(sched)
 
-                all_signals = self._schedule_converter.get_signals(sched)
-                if isinstance(self.model, HamiltonianModel):
-                    if self._hamiltonian_channels is not None:
-                        new_signals_list.append(
-                            [
-                                all_signals[self._all_channels.index(chan)]
-                                for chan in self._hamiltonian_channels
-                            ]
-                        )
-                    else:
-                        new_signals_list.append(None)
-                else:
-                    hamiltonian_signals = None
-                    dissipator_signals = None
-                    if self._hamiltonian_channels is not None:
-                        hamiltonian_signals = [
-                            all_signals[self._all_channels.index(chan)]
-                            for chan in self._hamiltonian_channels
-                        ]
-                    if self._dissipator_channels is not None:
-                        dissipator_signals = [
-                            all_signals[self._all_channels.index(chan)]
-                            for chan in self._dissipator_channels
-                        ]
-                    new_signals_list.append((hamiltonian_signals, dissipator_signals))
+                new_signals_list.append(
+                    organize_signals_to_channels(
+                        self._schedule_converter.get_signals(sched),
+                        self._all_channels,
+                        self.model.__class__,
+                        self._hamiltonian_channels,
+                        self._dissipator_channels,
+                    )
+                )
 
             signals_list = new_signals_list
 
@@ -842,6 +826,33 @@ def setup_simulation_lists(
     args = [arg * max_len if arg_len == 1 else arg for arg, arg_len in zip(args, arg_lens)]
 
     return args[0], args[1], args[2], multiple_sims
+
+
+def organize_signals_to_channels(
+    all_signals, all_channels, model_class, hamiltonian_channels, dissipator_channels
+):
+    """Restructures a list of signals with order corresponding to all_channels, into the correctly
+    formatted data structure to pass into model.signals, according to the ordering specified
+    by hamiltonian_channels and dissipator_channels.
+    """
+
+    if model_class == HamiltonianModel:
+        if hamiltonian_channels is not None:
+            return [all_signals[all_channels.index(chan)] for chan in hamiltonian_channels]
+        else:
+            return None
+    else:
+        hamiltonian_signals = None
+        dissipator_signals = None
+        if hamiltonian_channels is not None:
+            hamiltonian_signals = [
+                all_signals[all_channels.index(chan)] for chan in hamiltonian_channels
+            ]
+        if dissipator_channels is not None:
+            dissipator_signals = [
+                all_signals[all_channels.index(chan)] for chan in dissipator_channels
+            ]
+        return (hamiltonian_signals, dissipator_signals)
 
 
 def nested_ndim(x):

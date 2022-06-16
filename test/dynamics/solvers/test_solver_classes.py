@@ -26,6 +26,7 @@ from qiskit_dynamics import Solver, Signal, DiscreteSignal, solve_lmde
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel, rotating_wave_approximation
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
+from qiskit_dynamics.solvers.solver_classes import organize_signals_to_channels
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -221,6 +222,32 @@ class TestPulseSolverValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "not configured for pulse"):
             solver.solve(t_span=[0.0, 1.0], y0=np.array([0.0, 1.0]), signals=sched)
+
+
+class Testorganize_signals_to_channels(QiskitDynamicsTestCase):
+    """Test helper function organize_signals_to_channels."""
+
+    def test_hamiltonian_model(self):
+        output = organize_signals_to_channels(
+            all_signals=['a', 'b', 'c', 'd'],
+            all_channels=['d0', 'd1', 'd2', 'd3'],
+            model_class=HamiltonianModel,
+            hamiltonian_channels=['d1', 'd2', 'd0', 'd3'],
+            dissipator_channels=None
+        )
+
+        self.assertTrue(output == ['b', 'c', 'a', 'd'])
+
+    def test_lindblad_model(self):
+        output = organize_signals_to_channels(
+            all_signals=['a', 'b', 'c', 'd'],
+            all_channels=['d0', 'd1', 'd2', 'd3'],
+            model_class=LindbladModel,
+            hamiltonian_channels=['d1', 'd2'],
+            dissipator_channels=['d0', 'd3']
+        )
+
+        self.assertTrue(output == (['b', 'c'], ['a', 'd']))
 
 
 class TestSolverExceptions(QiskitDynamicsTestCase):
