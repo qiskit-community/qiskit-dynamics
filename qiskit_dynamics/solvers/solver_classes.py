@@ -108,7 +108,12 @@ class Solver:
     * ``rotating_frame``: Transforms the model into a rotating frame. Note that the
       operator specifying the frame will be substracted from the ``static_hamiltonian``.
       If supplied as a 1d array, ``rotating_frame`` is interpreted as the diagonal
-      elements of a diagonal matrix. See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
+      elements of a diagonal matrix. Given a frame operator :math:`F = -i H_0`,
+      for the Schrodinger equation entering the rotating frame of :math:`F`, corresponds
+      to transforming the solution as :math:`y(t) \mapsto exp(-tF)y(t)`, and for the
+      Lindblad equation it corresponds to transforming the solution as
+      :math:`y(t) \mapsto exp(-tF)y(t)exp(tF)`.
+      See :class:`~qiskit_dynamics.models.RotatingFrame` for more details.
     * ``in_frame_basis``: Whether to represent the model in the basis in which the frame
       operator is diagonal, henceforth called the "frame basis".
       If ``rotating_frame`` is ``None`` or was supplied as a 1d array,
