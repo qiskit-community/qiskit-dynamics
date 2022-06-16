@@ -167,6 +167,10 @@ class Solver:
       frequencies will be used for the RWA.
     * ``dt``: The envelope sample width.
 
+    If configured to simulate Pulse schedules while ``Array.default_backend() == 'jax'``,
+    calling :meth:`~qiskit_dynamics.solvers.Solver.solve` will automatically compile
+    simulation runs when calling with a JAX-based solver method.
+
     The evolution given by the model can be simulated by calling
     :meth:`~qiskit_dynamics.solvers.Solver.solve`, which calls
     calls :func:`~qiskit_dynamics.solve.solve_lmde`, and does various automatic
