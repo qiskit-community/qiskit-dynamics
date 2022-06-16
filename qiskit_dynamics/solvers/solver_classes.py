@@ -42,13 +42,19 @@ from qiskit_dynamics.models import (
     RotatingFrame,
     rotating_wave_approximation,
 )
-from qiskit_dynamics.signals import Signal, SignalList
+from qiskit_dynamics.signals import Signal, DiscreteSignal, SignalList
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 
-from .solver_functions import solve_lmde
+from .solver_functions import solve_lmde, is_jax_method
 from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
+
+
+try:
+    from jax import jit
+except ImportError:
+    pass
 
 
 class Solver:
@@ -565,13 +571,27 @@ class Solver:
             t_span, y0, signals
         )
 
-        all_results = self._solve_list(
-            t_span_list=t_span_list,
-            y0_list=y0_list,
-            signals_list=signals_list,
-            convert_results=convert_results,
-            **kwargs,
-        )
+        all_results = None
+        if (
+            Array.default_backend() == "jax"
+            and is_jax_method(kwargs.get("method", ""))
+            and all(isinstance(x, (Schedule, ScheduleBlock)) for x in signals_list)
+        ):
+            all_results = self._solve_schedule_list_jax(
+                t_span_list=t_span_list,
+                y0_list=y0_list,
+                signals_list=signals_list,
+                convert_results=convert_results,
+                **kwargs,
+            )
+        else:
+            all_results = self._solve_list(
+                t_span_list=t_span_list,
+                y0_list=y0_list,
+                signals_list=signals_list,
+                convert_results=convert_results,
+                **kwargs,
+            )
 
         if multiple_sims is False:
             return all_results[0]
@@ -590,36 +610,32 @@ class Solver:
     ) -> List[OdeResult]:
         """Helper function for running a list of simulations."""
 
-        # if simulating schedules, convert to Signal objects at this point
-        if isinstance(signals_list[0], (Schedule, ScheduleBlock)):
-            if self._schedule_converter is None:
-                raise QiskitError("Solver instance not configured for pulse Schedule simulation.")
-
-            new_signals_list = []
-            for sched in signals_list:
-                if isinstance(sched, ScheduleBlock):
-                    sched = block_to_schedule(sched)
-
-                new_signals_list.append(
-                    organize_signals_to_channels(
-                        self._schedule_converter.get_signals(sched),
-                        self._all_channels,
-                        self.model.__class__,
-                        self._hamiltonian_channels,
-                        self._dissipator_channels,
-                    )
-                )
-
-            signals_list = new_signals_list
-
         all_results = []
         for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
+            # setup signals if schedules supplied
+            if isinstance(signals, (Schedule, ScheduleBlock)):
+                if self._schedule_converter is None:
+                    raise QiskitError(
+                        "Solver instance not configured for pulse Schedule simulation."
+                    )
+
+                if isinstance(signals, ScheduleBlock):
+                    signals = block_to_schedule(signals)
+
+                signals = organize_signals_to_channels(
+                    self._schedule_converter.get_signals(signals),
+                    self._all_channels,
+                    self.model.__class__,
+                    self._hamiltonian_channels,
+                    self._dissipator_channels,
+                )
+
+            # setup initial state
             if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
                 y0 = DensityMatrix(y0)
 
             y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
 
-            # modify initial state for some custom handling of certain scenarios
             y_input = y0
             y0 = validate_and_format_initial_state(y0, self.model, y0_cls)
 
@@ -637,6 +653,95 @@ class Solver:
 
             results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
             results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+
+            if y0_cls is not None and convert_results:
+                results.y = [state_type_wrapper(yi) for yi in results.y]
+
+            all_results.append(results)
+
+        return all_results
+
+    def _solve_schedule_list_jax(
+        self,
+        t_span_list: List[Array],
+        y0_list: List[Union[Array, QuantumState, BaseOperator]],
+        signals_list: Optional[
+            Union[List[Schedule], List[List[Signal]], List[Tuple[List[Signal], List[Signal]]]]
+        ] = None,
+        convert_results: bool = True,
+        **kwargs,
+    ) -> List[OdeResult]:
+        """Helper function for running a list of schedule simulations using JAX."""
+
+        max_duration = 0
+        all_signals_list = []
+        for sched in signals_list:
+            if isinstance(sched, ScheduleBlock):
+                sched = block_to_schedule(sched)
+            max_duration = max(sched.duration, max_duration)
+            all_signals_list.append(self._schedule_converter.get_signals(sched))
+
+        all_samples_shape = (len(self._all_channels), max_duration)
+
+        def sim_function(t_span, y0, all_samples):
+            # store signals to ensure purity
+            model_sigs = self.model.signals
+
+            signals = []
+            for idx in range(len(all_samples)):
+                carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
+                signals.append(
+                    DiscreteSignal(dt=self._dt, samples=all_samples[idx], carrier_freq=carrier_freq)
+                )
+
+            signals = organize_signals_to_channels(
+                signals,
+                self._all_channels,
+                self.model.__class__,
+                self._hamiltonian_channels,
+                self._dissipator_channels,
+            )
+
+            if signals is not None:
+                # if Lindblad model and signals are given as a list
+                # set as just the Hamiltonian part of the signals
+                if isinstance(self.model, LindbladModel) and isinstance(
+                    signals, (list, SignalList)
+                ):
+                    signals = (signals, None)
+
+                if self._rwa_signal_map:
+                    signals = self._rwa_signal_map(signals)
+                self.model.signals = signals
+
+            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+            results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+
+            # reset signals to ensure purity
+            self.model.signals = model_sigs
+
+            return Array(results.t).data, Array(results.y).data
+
+        jit_sim_function = jit(sim_function)
+
+        all_results = []
+        for t_span, y0, all_signals in zip(t_span_list, y0_list, all_signals_list):
+            # setup initial state
+            if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
+                y0 = DensityMatrix(y0)
+
+            y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
+
+            y_input = y0
+            y0 = validate_and_format_initial_state(y0, self.model, y0_cls)
+
+            # setup array of all samples
+            all_samples = np.zeros(all_samples_shape, dtype=complex)
+            for idx, sig in enumerate(all_signals):
+                all_samples[idx, 0 : len(sig.samples)] = np.array(sig.samples)
+
+            results_t, results_y = jit_sim_function(Array(t_span).data, Array(y0).data, all_samples)
+            results = OdeResult(t=results_t, y=Array(results_y, backend="jax", dtype=complex))
 
             if y0_cls is not None and convert_results:
                 results.y = [state_type_wrapper(yi) for yi in results.y]
