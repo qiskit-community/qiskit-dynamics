@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Module containing Lanczos diagonalization algorithm
+Module containing Lanczos diagonalization and time evolution algorithms
 """
 
 from typing import Union

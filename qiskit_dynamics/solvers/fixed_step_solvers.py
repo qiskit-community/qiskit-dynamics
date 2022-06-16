@@ -139,6 +139,9 @@ def lanczos_diag_solver(
 
     Returns:
         OdeResult: Results object.
+
+    Raises:
+        QiskitError: If ``k_dim`` is greater than dimension of generator
     """
 
     dim = generator(0).shape[0]
