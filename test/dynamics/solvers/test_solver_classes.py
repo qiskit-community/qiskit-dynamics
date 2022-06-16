@@ -1153,6 +1153,56 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
         super().setUp()
         self.method = "jax_odeint"
 
+    def test_list_simulation_jitting(self):
+        """Test correct formatting when input states have the same shape.
+
+        This catches an edge case bug that occurred during implementation.
+        """
+
+        # construct schedule0
+        with pulse.build() as sched0:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(1))
+
+        # construct equivalent DiscreteSignal manually
+        constant_samples = np.ones(5, dtype=float) * 0.9
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
+        samples1 = np.append(np.zeros(10), gauss_samples)
+        sig00 = DiscreteSignal(dt=0.1, samples=samples0, carrier_freq=5.0)
+        sig01 = DiscreteSignal(dt=0.1, samples=samples1, carrier_freq=3.1)
+
+        # construct schedule1
+        with pulse.build() as sched1:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.8), pulse.DriveChannel(0))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.973, sigma=1.0), pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.973, sigma=1.0), pulse.DriveChannel(1))
+
+        # construct equivalent DiscreteSignal manually
+        constant_samples = np.ones(5, dtype=float) * 0.8
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.973, sigma=1.0).get_waveform().samples
+        samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
+        samples1 = np.append(np.zeros(10), gauss_samples)
+        sig10 = DiscreteSignal(dt=0.1, samples=samples0, carrier_freq=5.0)
+        sig11 = DiscreteSignal(dt=0.1, samples=samples1, carrier_freq=3.1)
+
+        signals = [[sig00, sig01], [sig10, sig11]]
+
+        self._compare_schedule_to_signals(
+            solver=self.ham_solver_2_channels,
+            t_span=[0.0, 1.5],
+            y0=[np.eye(2, dtype=complex), DensityMatrix([0.0, 1.0])],
+            schedules=[sched0, sched1],
+            signals=signals,
+        )
+
 
 @ddt
 class TestSolverListSimulation(QiskitDynamicsTestCase):

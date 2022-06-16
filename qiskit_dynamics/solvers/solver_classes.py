@@ -694,8 +694,8 @@ class Solver:
         # fixed shape of array of all samples for each schedule
         all_samples_shape = (len(self._all_channels), max_duration)
 
-        # define function to simulate a single schedule
-        def sim_function(t_span, y0, all_samples):
+        # define function to simulate a single schedule that we will jit
+        def sim_function(t_span, y0, all_samples, y_input, y0_cls):
             # store signals to ensure purity
             model_sigs = self.model.signals
 
@@ -736,7 +736,7 @@ class Solver:
 
             return Array(results.t).data, Array(results.y).data
 
-        jit_sim_function = jit(sim_function)
+        jit_sim_function = jit(sim_function, static_argnums=(4,))
 
         # run simulations
         all_results = []
@@ -755,7 +755,9 @@ class Solver:
             for idx, sig in enumerate(all_signals):
                 all_samples[idx, 0 : len(sig.samples)] = np.array(sig.samples)
 
-            results_t, results_y = jit_sim_function(Array(t_span).data, Array(y0).data, all_samples)
+            results_t, results_y = jit_sim_function(
+                Array(t_span).data, Array(y0).data, all_samples, Array(y_input).data, y0_cls
+            )
             results = OdeResult(t=results_t, y=Array(results_y, backend="jax", dtype=complex))
 
             if y0_cls is not None and convert_results:
