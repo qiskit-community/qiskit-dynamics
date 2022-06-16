@@ -688,10 +688,10 @@ class Solver:
             model_sigs = self.model.signals
 
             signals = []
-            for idx in range(len(all_samples)):
+            for idx, samples in enumerate(all_samples):
                 carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
                 signals.append(
-                    DiscreteSignal(dt=self._dt, samples=all_samples[idx], carrier_freq=carrier_freq)
+                    DiscreteSignal(dt=self._dt, samples=samples, carrier_freq=carrier_freq)
                 )
 
             signals = organize_signals_to_channels(
