@@ -61,7 +61,7 @@ LMDE_METHODS = ["scipy_expm", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel
 
 
 def is_jax_method(method: any) -> bool:
-    """Helper function to check if a solver is a jax method."""
+    """Check if method is a jax solver method."""
     if method in ["jax_odeint", "jax_RK4", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]:
         return True
 
