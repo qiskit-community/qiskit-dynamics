@@ -1157,6 +1157,7 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
         """Test correct formatting when input states have the same shape.
 
         This catches an edge case bug that occurred during implementation.
+        It passes two initial states with different type handling but with the same shape.
         """
 
         # construct schedule0

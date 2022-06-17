@@ -635,13 +635,9 @@ class Solver:
                 )
 
             # setup initial state
-            if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
-                y0 = DensityMatrix(y0)
-
-            y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
-
-            y_input = y0
-            y0 = validate_and_format_initial_state(y0, self.model, y0_cls)
+            y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
+                y0, self.model
+            )
 
             if signals is not None:
                 # if Lindblad model and signals are given as a list
@@ -656,7 +652,7 @@ class Solver:
                 self.model.signals = signals
 
             results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
-            results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+            results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
 
             if y0_cls is not None and convert_results:
                 results.y = [state_type_wrapper(yi) for yi in results.y]
@@ -695,7 +691,7 @@ class Solver:
         all_samples_shape = (len(self._all_channels), max_duration)
 
         # define function to simulate a single schedule that we will jit
-        def sim_function(t_span, y0, all_samples, y_input, y0_cls):
+        def sim_function(t_span, y0, all_samples, y0_input, y0_cls):
             # store signals to ensure purity
             model_sigs = self.model.signals
 
@@ -729,7 +725,7 @@ class Solver:
                 self.model.signals = signals
 
             results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
-            results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+            results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
 
             # reset signals to ensure purity
             self.model.signals = model_sigs
@@ -742,13 +738,9 @@ class Solver:
         all_results = []
         for t_span, y0, all_signals in zip(t_span_list, y0_list, all_signals_list):
             # setup initial state
-            if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
-                y0 = DensityMatrix(y0)
-
-            y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
-
-            y_input = y0
-            y0 = validate_and_format_initial_state(y0, self.model, y0_cls)
+            y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
+                y0, self.model
+            )
 
             # setup array of all samples
             all_samples = np.zeros(all_samples_shape, dtype=complex)
@@ -756,7 +748,7 @@ class Solver:
                 all_samples[idx, 0 : len(sig.samples)] = np.array(sig.samples)
 
             results_t, results_y = jit_sim_function(
-                Array(t_span).data, Array(y0).data, all_samples, Array(y_input).data, y0_cls
+                Array(t_span).data, Array(y0).data, all_samples, Array(y0_input).data, y0_cls
             )
             results = OdeResult(t=results_t, y=Array(results_y, backend="jax", dtype=complex))
 
@@ -801,10 +793,29 @@ def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
     return y0, y0_cls, wrapper
 
 
-def validate_and_format_initial_state(y0, model, y0_cls):
-    """Format initial state for simulation. Assumes y0 is an array type that was
-    originally wrapped in y0_cls.
+def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, LindbladModel]):
+    """Format initial state for simulation. This function encodes the logic of how
+    simulations are run based on initial state type.
+
+    Args:
+        y0: The user-specified input state.
+        model: The model contained in the solver.
+
+    Returns:
+        Tuple containing the input state to pass to the solver, the user-specified input
+        as an array, the class of the user specified input, and a function for converting
+        the output states to the right class.
+
+    Raises:
+        QiskitError: Initial state ``y0`` is of invalid shape relative to the model.
     """
+
+    if isinstance(y0, QuantumState) and isinstance(model, LindbladModel):
+        y0 = DensityMatrix(y0)
+
+    y0, y0_cls, wrapper = initial_state_converter(y0)
+
+    y0_input = y0
 
     # validate types
     if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(model):
@@ -839,27 +850,27 @@ def validate_and_format_initial_state(y0, model, y0_cls):
     ):
         raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
 
-    return y0
+    return y0, y0_input, y0_cls, wrapper
 
 
-def format_final_states(y, model, y_input, y0_cls):
+def format_final_states(y, model, y0_input, y0_cls):
     """Format final states for a single simulation."""
 
     y = Array(y)
 
     if y0_cls is DensityMatrix and isinstance(model, HamiltonianModel):
         # conjugate by unitary
-        return y @ y_input @ y.conj().transpose((0, 2, 1))
+        return y @ y0_input @ y.conj().transpose((0, 2, 1))
     elif y0_cls is SuperOp and isinstance(model, HamiltonianModel):
         # convert to SuperOp and compose
         return (
             np.einsum("nka,nlb->nklab", y.conj(), y).reshape(
                 y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2
             )
-            @ y_input
+            @ y0_input
         )
     elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(model):
-        return y.reshape((len(y),) + y_input.shape, order="F")
+        return y.reshape((len(y),) + y0_input.shape, order="F")
 
     return y
 
