@@ -584,7 +584,7 @@ class Solver:
             all_results = self._solve_schedule_list_jax(
                 t_span_list=t_span_list,
                 y0_list=y0_list,
-                signals_list=signals_list,
+                schedule_list=signals_list,
                 convert_results=convert_results,
                 **kwargs,
             )
@@ -612,44 +612,20 @@ class Solver:
         convert_results: bool = True,
         **kwargs,
     ) -> List[OdeResult]:
-        """Helper function for running a list of simulations."""
+        """Run a list of simulations."""
 
         all_results = []
         for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
-            # setup signals if schedules supplied
+
             if isinstance(signals, (Schedule, ScheduleBlock)):
-                if self._schedule_converter is None:
-                    raise QiskitError(
-                        "Solver instance not configured for pulse Schedule simulation."
-                    )
+                signals = self._schedule_to_signals(signals)
 
-                if isinstance(signals, ScheduleBlock):
-                    signals = block_to_schedule(signals)
-
-                signals = organize_signals_to_channels(
-                    self._schedule_converter.get_signals(signals),
-                    self._all_channels,
-                    self.model.__class__,
-                    self._hamiltonian_channels,
-                    self._dissipator_channels,
-                )
+            self._set_new_signals(signals)
 
             # setup initial state
             y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
                 y0, self.model
             )
-
-            if signals is not None:
-                # if Lindblad model and signals are given as a list
-                # set as just the Hamiltonian part of the signals
-                if isinstance(self.model, LindbladModel) and isinstance(
-                    signals, (list, SignalList)
-                ):
-                    signals = (signals, None)
-
-                if self._rwa_signal_map:
-                    signals = self._rwa_signal_map(signals)
-                self.model.signals = signals
 
             results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
             results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
@@ -665,37 +641,29 @@ class Solver:
         self,
         t_span_list: List[Array],
         y0_list: List[Union[Array, QuantumState, BaseOperator]],
-        signals_list: Optional[
-            Union[List[Schedule], List[List[Signal]], List[Tuple[List[Signal], List[Signal]]]]
-        ] = None,
+        schedule_list: List[Schedule],
         convert_results: bool = True,
         **kwargs,
     ) -> List[OdeResult]:
-        """Helper function for simulating a list of schedules using JAX with automatic jitting.
-        The jitting strategy is to define a function whose inputs are t_span, y0, and the
-        samples for all channels in a single large array. To avoid recompilation for schedules
-        with samples of different lengths, all are padded to be the length of the schedule
-        with the max duration.
+        """Run a list of schedule simulations utilizing JAX compilation.
+        The jitting strategy is to define a function whose inputs are t_span, y0 as an array, the
+        samples for all channels in a single large array, and other initial state information.
+        To avoid recompilation for schedules with samples of different lengths, all are padded
+        to be the length of the schedule with the max duration.
         """
 
-        # determine max duration and convert all schedules to signals
+        # determine fixed array shape for containing all samples
         max_duration = 0
-        all_signals_list = []
-        for sched in signals_list:
-            if isinstance(sched, ScheduleBlock):
-                sched = block_to_schedule(sched)
+        for idx, sched in enumerate(schedule_list):
             max_duration = max(sched.duration, max_duration)
-            all_signals_list.append(self._schedule_converter.get_signals(sched))
-
-        # fixed shape of array of all samples for each schedule
         all_samples_shape = (len(self._all_channels), max_duration)
 
-        # define function to simulate a single schedule that we will jit
+        # define sim function to jit
         def sim_function(t_span, y0, all_samples, y0_input, y0_cls):
             # store signals to ensure purity
             model_sigs = self.model.signals
 
-            # construct signals from the samples
+            # re-construct signals from the samples
             signals = []
             for idx, samples in enumerate(all_samples):
                 carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
@@ -712,17 +680,7 @@ class Solver:
                 self._dissipator_channels,
             )
 
-            if signals is not None:
-                # if Lindblad model and signals are given as a list
-                # set as just the Hamiltonian part of the signals
-                if isinstance(self.model, LindbladModel) and isinstance(
-                    signals, (list, SignalList)
-                ):
-                    signals = (signals, None)
-
-                if self._rwa_signal_map:
-                    signals = self._rwa_signal_map(signals)
-                self.model.signals = signals
+            self._set_new_signals(signals)
 
             results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
             results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
@@ -736,13 +694,17 @@ class Solver:
 
         # run simulations
         all_results = []
-        for t_span, y0, all_signals in zip(t_span_list, y0_list, all_signals_list):
+        for t_span, y0, sched in zip(t_span_list, y0_list, schedule_list):
             # setup initial state
             y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
                 y0, self.model
             )
 
             # setup array of all samples
+            if isinstance(sched, ScheduleBlock):
+                sched = block_to_schedule(sched)
+            all_signals = self._schedule_converter.get_signals(sched)
+
             all_samples = np.zeros(all_samples_shape, dtype=complex)
             for idx, sig in enumerate(all_signals):
                 all_samples[idx, 0 : len(sig.samples)] = np.array(sig.samples)
@@ -758,6 +720,33 @@ class Solver:
             all_results.append(results)
 
         return all_results
+
+    def _set_new_signals(self, signals):
+        """Helper function for setting new signals in self.model."""
+        if signals is not None:
+            # if Lindblad model and signals are given as a list set as Hamiltonian part of signals
+            if isinstance(self.model, LindbladModel) and isinstance(signals, (list, SignalList)):
+                signals = (signals, None)
+
+            if self._rwa_signal_map:
+                signals = self._rwa_signal_map(signals)
+            self.model.signals = signals
+
+    def _schedule_to_signals(self, schedule):
+        """Convert a schedule into the signal format required by the model."""
+        if self._schedule_converter is None:
+            raise QiskitError("Solver instance not configured for pulse Schedule simulation.")
+
+        if isinstance(schedule, ScheduleBlock):
+            schedule = block_to_schedule(schedule)
+
+        return organize_signals_to_channels(
+            self._schedule_converter.get_signals(schedule),
+            self._all_channels,
+            self.model.__class__,
+            self._hamiltonian_channels,
+            self._dissipator_channels,
+        )
 
 
 def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
