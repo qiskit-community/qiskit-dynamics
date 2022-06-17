@@ -1112,48 +1112,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-14, rtol=1e-14)
         self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-14, rtol=1e-14)
 
-    def _compare_schedule_to_signals(self, solver, t_span, y0, schedules, signals, **kwargs):
-        """Run comparison of schedule simulation to manually build signals.
-
-        The expectation of this function is that schedules and signals should represent
-        exactly the same time-dependence, so that the solutions agree exactly regardless of
-        tolerance.
-        """
-
-        pulse_results = solver.solve(
-            t_span=t_span,
-            y0=y0,
-            signals=schedules,
-            convert_results=False,
-            method=self.method,
-            **kwargs,
-        )
-        signal_results = solver.solve(
-            t_span=t_span,
-            y0=y0,
-            signals=signals,
-            convert_results=False,
-            method=self.method,
-            **kwargs,
-        )
-
-        if not isinstance(pulse_results, list):
-            pulse_results = [pulse_results]
-            signal_results = [signal_results]
-
-        for pulse_res, signal_res in zip(pulse_results, signal_results):
-            self.assertAllClose(pulse_res.t, signal_res.t, atol=1e-14, rtol=1e-14)
-            self.assertAllClose(pulse_res.y, signal_res.y, atol=1e-14, rtol=1e-14)
-
-
-class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
-    """Test class for pulse simulation with JAX."""
-
-    def setUp(self):
-        super().setUp()
-        self.method = "jax_odeint"
-
-    def test_list_simulation_jitting(self):
+    def test_list_simulation_mixing_types(self):
         """Test correct formatting when input states have the same shape.
 
         This catches an edge case bug that occurred during implementation.
@@ -1203,6 +1162,47 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
             schedules=[sched0, sched1],
             signals=signals,
         )
+
+    def _compare_schedule_to_signals(self, solver, t_span, y0, schedules, signals, **kwargs):
+        """Run comparison of schedule simulation to manually build signals.
+
+        The expectation of this function is that schedules and signals should represent
+        exactly the same time-dependence, so that the solutions agree exactly regardless of
+        tolerance.
+        """
+
+        pulse_results = solver.solve(
+            t_span=t_span,
+            y0=y0,
+            signals=schedules,
+            convert_results=False,
+            method=self.method,
+            **kwargs,
+        )
+        signal_results = solver.solve(
+            t_span=t_span,
+            y0=y0,
+            signals=signals,
+            convert_results=False,
+            method=self.method,
+            **kwargs,
+        )
+
+        if not isinstance(pulse_results, list):
+            pulse_results = [pulse_results]
+            signal_results = [signal_results]
+
+        for pulse_res, signal_res in zip(pulse_results, signal_results):
+            self.assertAllClose(pulse_res.t, signal_res.t, atol=1e-14, rtol=1e-14)
+            self.assertAllClose(pulse_res.y, signal_res.y, atol=1e-14, rtol=1e-14)
+
+
+class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
+    """Test class for pulse simulation with JAX."""
+
+    def setUp(self):
+        super().setUp()
+        self.method = "jax_odeint"
 
 
 @ddt
