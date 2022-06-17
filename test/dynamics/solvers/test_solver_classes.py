@@ -659,6 +659,20 @@ class TestSolverSimulation(QiskitDynamicsTestCase):
         self.assertTrue(isinstance(results.y[-1], DensityMatrix))
         self.assertTrue(np.abs(results.y[-1].data[0, 0]) > 0.999)
 
+    def test_hamiltonian_array(self):
+        """Test correct simulation of an array for Hamiltonian-based simulation."""
+        results = self.ham_solver.solve(
+            t_span=[0.0, 1.0],
+            y0=np.array([[1.0, 0.0], [0.0, 1.0]], dtype=complex),
+            signals=[Signal(1.0, 5.0)],
+            atol=1e-10,
+            rtol=1e-10,
+            method=self.method,
+        )
+        self.assertTrue(
+            (np.abs(results.y[-1][0, 1]) > 0.999) and (np.abs(results.y[-1][1, 0]) > 0.999)
+        )
+
     def test_hamiltonian_SuperOp(self):
         """Test Hamiltonian-based SuperOp simulation."""
         results = self.rwa_ham_solver.solve(
@@ -1296,7 +1310,7 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         solver = getattr(self, model)
 
-        y0 = [Statevector([0.0, 1.0]), Statevector([1.0, 0.0])]
+        y0 = [np.eye(2, dtype=complex), DensityMatrix([1.0, 0.0])]
         t_span = [0.0, 0.4232]
         signals = [[Signal(1.0, 5.0)], [Signal(0.5, 5.0)]]
 
