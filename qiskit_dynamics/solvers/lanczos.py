@@ -125,7 +125,22 @@ def lanczos_expm(
     Returns:
         y_dt : Action of matrix exponential on state.
     """
-
-    q_basis, eigen_values, eigen_vectors_t, _ = lanczos_eig(array, v_0, k_dim)
-    y_dt = q_basis @ eigen_vectors_t @ (np.exp(-1j * max_dt * eigen_values) * eigen_vectors_t[0, :])
-    return y_dt
+    if len(v_0.shape) != 2:
+        q_basis, eigen_values, eigen_vectors_t, _ = lanczos_eig(array, v_0, k_dim)
+        y_dt = (
+            q_basis
+            @ eigen_vectors_t
+            @ (np.exp(-1j * max_dt * eigen_values) * eigen_vectors_t[0, :])
+        )
+        return y_dt
+    else:
+        y_dt = []
+        for y0 in v_0:
+            q_basis, eigen_values, eigen_vectors_t, _ = lanczos_eig(array, y0, k_dim)
+            yi_dt = (
+                q_basis
+                @ eigen_vectors_t
+                @ (np.exp(-1j * max_dt * eigen_values) * eigen_vectors_t[0, :])
+            )
+            y_dt.append(yi_dt)
+        return np.array(y_dt)
