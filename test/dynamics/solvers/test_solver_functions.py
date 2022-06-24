@@ -274,6 +274,32 @@ class Testscipy_expm(TestSolverMethod):
         )
 
 
+class Testlanczos_diag(TestSolverMethod):
+    """Test class for lanczos_diag_solver."""
+
+    def test_w_GeneratorModel(self):
+        """Override GeneratorModel test since lanczos only works on anti-hermitan generators."""
+        pass
+
+    def test_pseudo_random_model(self):
+        """Override pseudo_random_model test since lanczos only works on
+        anti-hermitan generators."""
+        pass
+
+    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
+        print(rhs, y0)
+        return solve_lmde(
+            generator=rhs,
+            t_span=t_span,
+            y0=-y0,
+            method="lanczos_diag",
+            t_eval=t_eval,
+            max_dt=0.01,
+            k_dim=max(y0.shape),
+            **kwargs,
+        )
+
+
 class Testjax_expm(TestSolverMethodJax):
     """Test class for jax_expm_solver."""
 
