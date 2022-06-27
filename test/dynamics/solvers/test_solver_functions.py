@@ -264,10 +264,6 @@ class TestRK4(TestSolverMethod):
 class Testjax_RK4(TestSolverMethodJax):
     """Test class for jax_RK4_solver."""
 
-    # def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-    #     return solve_ode(
-    #         rhs=rhs, t_span=t_span, y0=y0, method="jax_RK4", t_eval=t_eval, max_dt=0.001, **kwargs
-    #     )
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func="ode", **kwargs):
         if solver_func == "ode":
             return solve_ode(
