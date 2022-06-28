@@ -111,6 +111,13 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
     @abstractmethod
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
         """Call the solver to test."""
+    
+    def solver_wrapper(self, ode, **kwargs):
+        """Call an lmde or ode solver"""
+        if ode:
+            return solve_ode(**kwargs)
+        else:
+            return solve_lmde(**kwargs)
 
     @property
     def is_ode_method(self):
