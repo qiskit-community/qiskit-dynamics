@@ -45,7 +45,11 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 
 from .solver_functions import solve_lmde
-from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized, setup_arg_lists
+from .solver_utils import (
+    is_lindblad_model_vectorized,
+    is_lindblad_model_not_vectorized,
+    setup_args_lists,
+)
 
 
 class Solver:
@@ -599,10 +603,10 @@ def setup_simulation_lists(
 
         return t_span, was_list
 
-    return setup_arg_lists(
-        input_list=[t_span_input, y0_input, signals_input],
-        input_names=['t_span', 'y0', 'signals'],
-        input_to_list=[t_span_to_list, y0_to_list, signals_to_list]
+    return setup_args_lists(
+        args_list=[t_span_input, y0_input, signals_input],
+        args_names=["t_span", "y0", "signals"],
+        args_to_list=[t_span_to_list, y0_to_list, signals_to_list],
     )
 
 
