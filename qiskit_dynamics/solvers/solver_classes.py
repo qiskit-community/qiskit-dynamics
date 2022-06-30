@@ -396,8 +396,11 @@ class Solver:
                 stacklevel=2,
             )
 
-        [t_span_list, y0_list, signals_list], multiple_sims = setup_simulation_lists(
-            t_span, y0, signals
+        # validate and setup list of simulations
+        [t_span_list, y0_list, signals_list], multiple_sims = setup_args_lists(
+            args_list=[t_span, y0, signals],
+            args_names=["t_span", "y0", "signals"],
+            args_to_list=[t_span_to_list, y0_to_list, signals_to_list],
         )
 
         all_results = [
@@ -550,64 +553,57 @@ def format_final_states(y, model, y_input, y0_cls):
     return y
 
 
-def setup_simulation_lists(
-    t_span_input: Array,
-    y0_input: Union[Array, QuantumState, BaseOperator],
-    signals_input: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]],
-) -> Tuple[List, List, List, bool]:
-    """Setup t_span, y0, and signals for doing a list of simulations. Utilizes
-    solver_utils.setup_arg_lists.
-    """
+def t_span_to_list(t_span):
+    """Check if t_span is validly specified as a single interval or a list of intervals,
+    and return as a list in either case."""
+    was_list = False
+    t_span_ndim = nested_ndim(t_span)
+    if t_span_ndim > 2:
+        raise QiskitError("t_span must be either 1d or 2d.")
+    if t_span_ndim == 1:
+        t_span = [t_span]
+    else:
+        was_list = True
 
-    def signals_to_list(signals):
-        was_list = False
-        if signals is None:
-            signals = [signals]
-        elif isinstance(signals, tuple):
-            # single Lindblad
-            signals = [signals]
-        elif isinstance(signals, list) and isinstance(signals[0], tuple):
-            # multiple lindblad
-            was_list = True
-        elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
-            # multiple Hamiltonian signals lists
-            was_list = True
-        elif isinstance(signals, SignalList) or (
-            isinstance(signals, list) and not isinstance(signals[0], (list, SignalList))
-        ):
-            # single Hamiltonian signals list
-            signals = [signals]
-        else:
-            raise QiskitError("Signals specified in invalid format.")
+    return t_span, was_list
 
-        return signals, was_list
 
-    def y0_to_list(y0):
-        was_list = False
-        if not isinstance(y0, list):
-            y0 = [y0]
-        else:
-            was_list = True
+def y0_to_list(y0):
+    """Check if y0 is validly specified as a single initial state or a list of initial states,
+    and return as a list in either case."""
+    was_list = False
+    if not isinstance(y0, list):
+        y0 = [y0]
+    else:
+        was_list = True
 
-        return y0, was_list
+    return y0, was_list
 
-    def t_span_to_list(t_span):
-        was_list = False
-        t_span_ndim = nested_ndim(t_span)
-        if t_span_ndim > 2:
-            raise QiskitError("t_span must be either 1d or 2d.")
-        if t_span_ndim == 1:
-            t_span = [t_span]
-        else:
-            was_list = True
 
-        return t_span, was_list
+def signals_to_list(signals):
+    """Check if signals is validly specified as a single signal specification or a list of
+    such specifications, and return as a list in either case."""
+    was_list = False
+    if signals is None:
+        signals = [signals]
+    elif isinstance(signals, tuple):
+        # single Lindblad
+        signals = [signals]
+    elif isinstance(signals, list) and isinstance(signals[0], tuple):
+        # multiple lindblad
+        was_list = True
+    elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
+        # multiple Hamiltonian signals lists
+        was_list = True
+    elif isinstance(signals, SignalList) or (
+        isinstance(signals, list) and not isinstance(signals[0], (list, SignalList))
+    ):
+        # single Hamiltonian signals list
+        signals = [signals]
+    else:
+        raise QiskitError("Signals specified in invalid format.")
 
-    return setup_args_lists(
-        args_list=[t_span_input, y0_input, signals_input],
-        args_names=["t_span", "y0", "signals"],
-        args_to_list=[t_span_to_list, y0_to_list, signals_to_list],
-    )
+    return signals, was_list
 
 
 def nested_ndim(x):
