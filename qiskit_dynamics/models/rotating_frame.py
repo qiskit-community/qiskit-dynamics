@@ -660,7 +660,4 @@ def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optio
                 return mat
 
         # raise error if execution has made it this far
-        raise QiskitError(
-            """frame_operator must be either a Hermitian or
-                           anti-Hermitian matrix."""
-        )
+        raise QiskitError("""frame_operator must be either a Hermitian or anti-Hermitian matrix.""")
