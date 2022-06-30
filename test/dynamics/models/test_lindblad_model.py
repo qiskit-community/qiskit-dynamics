@@ -34,100 +34,87 @@ class TestLindbladModelErrors(QiskitDynamicsTestCase):
     def test_all_operators_None(self):
         """Test error raised if no operators set."""
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "requires at least one of"):
             LindbladModel()
-        self.assertTrue("requires at least one of" in str(qe.exception))
 
     def test_operators_None_signals_not_None(self):
         """Test setting signals with operators being None."""
 
         # test Hamiltonian signals
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "Hamiltonian signals must be None"):
             LindbladModel(
                 static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]), hamiltonian_signals=[1.0]
             )
-        self.assertTrue("Hamiltonian signals must be None" in str(qe.exception))
 
         # test after initial instantiation
         model = LindbladModel(static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "Hamiltonian signals must be None"):
             model.signals = ([1.0], None)
-        self.assertTrue("Hamiltonian signals must be None" in str(qe.exception))
 
         # test dissipator signals
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "Dissipator signals must be None"):
             LindbladModel(
                 static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]), dissipator_signals=[1.0]
             )
-        self.assertTrue("Dissipator signals must be None" in str(qe.exception))
 
         # test after initial instantiation
         model = LindbladModel(static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "Dissipator signals must be None"):
             model.signals = (None, [1.0])
-        self.assertTrue("Dissipator signals must be None" in str(qe.exception))
 
     def test_operators_signals_length_mismatch(self):
         """Test setting operators and signals to incompatible lengths."""
 
         # Test Hamiltonian signals
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "same length"):
             LindbladModel(
                 hamiltonian_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
                 hamiltonian_signals=[1.0, 1.0],
             )
-        self.assertTrue("same length" in str(qe.exception))
 
         # test after initial instantiation
         model = LindbladModel(hamiltonian_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "same length"):
             model.signals = ([1.0, 1.0], None)
-        self.assertTrue("same length" in str(qe.exception))
 
         # Test dissipator signals
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "same length"):
             LindbladModel(
                 dissipator_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
                 dissipator_signals=[1.0, 1.0],
             )
-        self.assertTrue("same length" in str(qe.exception))
 
         # test after initial instantiation
         model = LindbladModel(dissipator_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "same length"):
             model.signals = (None, [1.0, 1.0])
-        self.assertTrue("same length" in str(qe.exception))
 
     def test_signals_bad_format(self):
         """Test setting signals in an unacceptable format."""
 
         # test Hamiltonian signals
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "unaccepted format."):
             LindbladModel(
                 hamiltonian_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
                 hamiltonian_signals=lambda t: t,
             )
-        self.assertTrue("unaccepted format." in str(qe.exception))
 
         # test after initial instantiation
         model = LindbladModel(hamiltonian_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "unaccepted format."):
             model.signals = (lambda t: t, None)
-        self.assertTrue("unaccepted format." in str(qe.exception))
 
         # test dissipator signals
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "unaccepted format."):
             LindbladModel(
                 dissipator_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]),
                 dissipator_signals=lambda t: t,
             )
-        self.assertTrue("unaccepted format." in str(qe.exception))
 
         # test after initial instantiation
         model = LindbladModel(dissipator_operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "unaccepted format."):
             model.signals = (None, lambda t: t)
-        self.assertTrue("unaccepted format." in str(qe.exception))
 
 
 class TestLindbladModelValidation(QiskitDynamicsTestCase):
@@ -138,9 +125,8 @@ class TestLindbladModelValidation(QiskitDynamicsTestCase):
 
         hamiltonian_operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "hamiltonian_operators must be Hermitian."):
             LindbladModel(hamiltonian_operators=hamiltonian_operators)
-        self.assertTrue("hamiltonian_operators must be Hermitian." in str(qe.exception))
 
     def test_static_operator_not_hermitian(self):
         """Test raising error if static_hamiltonian is not Hermitian."""
@@ -148,11 +134,10 @@ class TestLindbladModelValidation(QiskitDynamicsTestCase):
         static_hamiltonian = np.array([[0.0, 1.0], [0.0, 0.0]])
         hamiltonian_operators = [np.array([[0.0, 1.0], [1.0, 0.0]])]
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "static_hamiltonian must be Hermitian."):
             LindbladModel(
                 hamiltonian_operators=hamiltonian_operators, static_hamiltonian=static_hamiltonian
             )
-        self.assertTrue("static_hamiltonian must be Hermitian." in str(qe.exception))
 
     def test_validate_false(self):
         """Verify setting validate=False avoids error raising."""

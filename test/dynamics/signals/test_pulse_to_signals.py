@@ -291,5 +291,5 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
 
         converter = InstructionToSignals(dt=0.222)
 
-        with self.assertRaises(QiskitError):
+        with self.assertRaisesRegex(QiskitError, f"channel name {channel_name}"):
             converter._get_channel(channel_name)
