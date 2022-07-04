@@ -36,48 +36,41 @@ class TestGeneratorModelErrors(QiskitDynamicsTestCase):
     def test_both_static_operator_operators_None(self):
         """Test errors raising for a mal-formed GeneratorModel."""
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "at least one of static_operator or operators"):
             GeneratorModel(static_operator=None, operators=None)
-        self.assertTrue("at least one of static_operator or operators" in str(qe.exception))
 
     def test_operators_None_signals_not_None(self):
         """Test setting signals with operators being None."""
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "Signals must be None if operators is None."):
             GeneratorModel(
                 static_operator=np.array([[1.0, 0.0], [0.0, -1.0]]), operators=None, signals=[1.0]
             )
-        self.assertTrue("Signals must be None if operators is None." in str(qe.exception))
 
         # test after initial instantiation
         model = GeneratorModel(static_operator=np.array([[1.0, 0.0], [0.0, -1.0]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "Signals must be None if operators is None."):
             model.signals = [1.0]
-        self.assertTrue("Signals must be None if operators is None." in str(qe.exception))
 
     def test_operators_signals_length_mismatch(self):
         """Test setting operators and signals to incompatible lengths."""
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "same length as operators."):
             GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]), signals=[1.0, 1.0])
-        self.assertTrue("same length as operators." in str(qe.exception))
 
         # test after initial instantiation
         model = GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "same length as operators."):
             model.signals = [1.0, 1.0]
-        self.assertTrue("same length as operators." in str(qe.exception))
 
     def test_signals_bad_format(self):
         """Test setting signals in an unacceptable format."""
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "unaccepted format."):
             GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]), signals=lambda t: t)
-        self.assertTrue("unaccepted format." in str(qe.exception))
 
         # test after initial instantiation
         model = GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "unaccepted format."):
             model.signals = lambda t: t
-        self.assertTrue("unaccepted format." in str(qe.exception))
 
 
 class TestGeneratorModel(QiskitDynamicsTestCase):
