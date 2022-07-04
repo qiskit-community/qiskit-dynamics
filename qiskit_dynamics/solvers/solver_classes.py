@@ -73,8 +73,8 @@ class Solver:
 
         H(t) = H_0 + \sum_i s_i(t) H_i,
 
-    where :math:`H_0` is the static component, the :math:`H_i` are the operator part
-    of the time-dependent part of the Hamiltonian, and the :math:`s_i(t)` are the
+    where :math:`H_0` is the static component, the :math:`H_i` are the
+    time-dependent components of the Hamiltonian, and the :math:`s_i(t)` are the
     time-dependent signals, specifiable as either :class:`~qiskit_dynamics.signals.Signal`
     objects, or constructed from Qiskit Pulse schedules if :class:`~qiskit_dynamics.solvers.Solver`
     is configured for Pulse simulation (see below).
