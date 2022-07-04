@@ -66,12 +66,11 @@ class Solver:
     level type-handling of input states.
 
     If only Hamiltonian information is provided, this class will internally construct
-    a :class:`~qiskit_dynamics.models.HamiltonianModel` instance, and simulate the model
+    a :class:`.HamiltonianModel` instance, and simulate the model
     using the Schrodinger equation :math:`\dot{y}(t) = -iH(t)y(t)`
-    (see the :meth:`~qiskit_dynamics.solvers.Solver.solve` method documentation for details
+    (see the :meth:`.Solver.solve` method documentation for details
     on how different initial state types are handled).
-    :class:`~qiskit_dynamics.models.HamiltonianModel` represents a
-    decomposition of the Hamiltonian of the form:
+    :class:`.HamiltonianModel` represents a decomposition of the Hamiltonian of the form:
 
     .. math::
 
@@ -79,12 +78,12 @@ class Solver:
 
     where :math:`H_0` is the static component, the :math:`H_i` are the
     time-dependent components of the Hamiltonian, and the :math:`s_i(t)` are the
-    time-dependent signals, specifiable as either :class:`~qiskit_dynamics.signals.Signal`
-    objects, or constructed from Qiskit Pulse schedules if :class:`~qiskit_dynamics.solvers.Solver`
+    time-dependent signals, specifiable as either :class:`.Signal`
+    objects, or constructed from Qiskit Pulse schedules if :class:`.Solver`
     is configured for Pulse simulation (see below).
 
     If dissipators are specified as part of the model, then a
-    :class:`~qiskit_dynamics.models.LindbladModel` is constructed, and simulations are performed
+    :class:`.LindbladModel` is constructed, and simulations are performed
     by solving the Lindblad equation:
 
     .. math::
@@ -109,8 +108,8 @@ class Solver:
 
     with :math:`N_j` the static dissipators, :math:`L_j` the time-dependent dissipator
     operators, and :math:`\gamma_j(t)` the time-dependent signals
-    specifiable as either :class:`~qiskit_dynamics.signals.Signal`
-    objects, or constructed from Qiskit Pulse schedules if :class:`~qiskit_dynamics.solvers.Solver`
+    specifiable as either :class:`.Signal`
+    objects, or constructed from Qiskit Pulse schedules if :class:`.Solver`
     is configured for Pulse simulation (see below).
 
     Transformations on the model can be specified via the optional arguments:
@@ -123,7 +122,7 @@ class Solver:
       to transforming the solution as :math:`y(t) \mapsto exp(-tF)y(t)`, and for the
       Lindblad equation it corresponds to transforming the solution as
       :math:`y(t) \mapsto exp(-tF)y(t)exp(tF)`.
-      See :class:`~qiskit_dynamics.models.RotatingFrame` for more details.
+      See :class:`.RotatingFrame` for more details.
     * ``in_frame_basis``: Whether to represent the model in the basis in which the frame
       operator is diagonal, henceforth called the "frame basis".
       If ``rotating_frame`` is ``None`` or was supplied as a 1d array,
@@ -143,17 +142,17 @@ class Solver:
       ``rwa_carrier_freqs`` must be a ``tuple`` of lists of floats, with the first entry
       the list of carrier frequencies for ``hamiltonian_operators``, and the second
       entry the list of carrier frequencies for ``dissipator_operators``.
-      See :func:`~qiskit_dynamics.models.rotating_wave_approximation` for details on
+      See :func:`.rotating_wave_approximation` for details on
       the mathematical approximation.
 
       .. note::
             When using the ``rwa_cutoff_freq`` optional argument,
-            :class:`~qiskit_dynamics.solvers.solver_classes.Solver` cannot be instantiated within
+            :class:`.Solver` cannot be instantiated within
             a JAX-transformable function. However, after construction, instances can
             still be used within JAX-transformable functions regardless of whether an
             ``rwa_cutoff_freq`` is set.
 
-    :class:`~qiskit_dynamics.solvers.Solver` can be configured to simulate Qiskit Pulse schedules
+    :class:`.Solver` can be configured to simulate Qiskit Pulse schedules
     by setting all of the following parameters, which determine how Pulse schedules are
     interpreted:
 
@@ -172,12 +171,11 @@ class Solver:
     * ``dt``: The envelope sample width.
 
     If configured to simulate Pulse schedules while ``Array.default_backend() == 'jax'``,
-    calling :meth:`~qiskit_dynamics.solvers.Solver.solve` will automatically compile
+    calling :meth:`.Solver.solve` will automatically compile
     simulation runs when calling with a JAX-based solver method.
 
-    The evolution given by the model can be simulated by calling
-    :meth:`~qiskit_dynamics.solvers.Solver.solve`, which calls
-    calls :func:`~qiskit_dynamics.solve.solve_lmde`, and does various automatic
+    The evolution given by the model can be simulated by calling :meth:`.Solver.solve`, which
+    calls :func:`.solve_lmde`, and does various automatic
     type handling operations for :mod:`qiskit.quantum_info` state and super operator types.
     """
 
@@ -262,15 +260,15 @@ class Solver:
 
             if hamiltonian_channels is not None:
                 hamiltonian_channels = [chan.lower() for chan in hamiltonian_channels]
-                for chan in hamiltonian_channels:
-                    if chan not in all_channels:
-                        all_channels.append(chan)
                 if hamiltonian_operators is None or len(hamiltonian_operators) != len(
                     hamiltonian_channels
                 ):
                     raise QiskitError(
                         """hamiltonian_channels must have same length as hamiltonian_operators"""
                     )
+                for chan in hamiltonian_channels:
+                    if chan not in all_channels:
+                        all_channels.append(chan)
 
             self._hamiltonian_channels = hamiltonian_channels
 
@@ -461,7 +459,7 @@ class Solver:
     ) -> Union[OdeResult, List[OdeResult]]:
         r"""Solve a dynamical problem, or a set of dynamical problems.
 
-        Calls :func:`~qiskit_dynamics.solvers.solve_lmde`, and returns an ``OdeResult``
+        Calls :func:`.solve_lmde`, and returns an ``OdeResult``
         object in the style of ``scipy.integrate.solve_ivp``, with results
         formatted to be the same types as the input. See Additional Information
         for special handling of various input types, and for specifying multiple
@@ -479,7 +477,7 @@ class Solver:
             convert_results: If ``True``, convert returned solver state results to the same class
                              as y0. If ``False``, states will be returned in the native array type
                              used by the specified solver method.
-            **kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
+            **kwargs: Keyword args passed to :func:`.solve_lmde`.
 
         Returns:
             OdeResult: object with formatted output types.
