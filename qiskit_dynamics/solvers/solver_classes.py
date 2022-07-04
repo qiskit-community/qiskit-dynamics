@@ -47,7 +47,7 @@ from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 
-from .solver_functions import solve_lmde
+from .solver_functions import solve_lmde, is_jax_method
 from .solver_utils import (
     is_lindblad_model_vectorized,
     is_lindblad_model_not_vectorized,
@@ -216,10 +216,13 @@ class Solver:
                                 dissipators. If ``None``, coefficients are assumed to be the
                                 constant ``1.``. This argument has been deprecated, signals
                                 should be passed to the solve method.
-            hamiltonian_channels: List of channel names in pulse schedules corresponding to Hamiltonian operators.
-            dissipator_channels: List of channel names in pulse schedules corresponding to dissipator operators.
-            channel_carrier_freqs: Dictionary mapping channel names to floats which represent the carrier frequency
-                of the pulse channel with the corresponding name.
+            hamiltonian_channels: List of channel names in pulse schedules corresponding to
+                                  Hamiltonian operators.
+            dissipator_channels: List of channel names in pulse schedules corresponding to
+                                 dissipator operators.
+            channel_carrier_freqs: Dictionary mapping channel names to floats which represent
+                                   the carrier frequency of the pulse channel with the
+                                   corresponding name.
             dt: Sample rate for simulating pulse schedules.
             rotating_frame: Rotating frame to transform the model into. Rotating frames which
                             are diagonal can be supplied as a 1d array of the diagonal elements,
