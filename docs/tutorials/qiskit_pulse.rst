@@ -101,7 +101,7 @@ virtual ``Z`` gate is applied.
 --------------------------
 
 We now setup a ``Solver`` instance with the desired Hamiltonian information,
-and configure it to simulate pulse schedules with. This requires specifying
+and configure it to simulate pulse schedules. This requires specifying
 which channels act on which operators, channel carrier frequencies, and sample width ``dt``.
 Additionally, we setup this solver in the rotating frame and perform the
 rotating wave approximation.
