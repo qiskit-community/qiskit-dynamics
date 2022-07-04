@@ -897,8 +897,9 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=Statevector([1.0, 0.0]),
             schedules=sched,
             signals=[sig],
-            atol=1e-8,
-            rtol=1e-8,
+            test_tol=1e-9,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     @unpack
@@ -1042,6 +1043,9 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=Statevector([1.0, 0.0]),
             schedules=schedule,
             signals=signals,
+            test_tol=1e-9,
+            atol=1e-13,
+            rtol=1e-13,
         )
 
     def test_rwa_ham_solver(self):
@@ -1114,6 +1118,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             signals=schedule,
             method=self.method,
             convert_results=False,
+            atol=1e-12,
+            rtol=1e-12,
         )
         res_signal = lindblad_solver.solve(
             t_span=[0, 0.4],
@@ -1121,6 +1127,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             signals=[sig],
             method=self.method,
             convert_results=False,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
         self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-14, rtol=1e-14)
@@ -1177,12 +1185,17 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             signals=signals,
         )
 
-    def _compare_schedule_to_signals(self, solver, t_span, y0, schedules, signals, **kwargs):
+    def _compare_schedule_to_signals(
+        self, solver, t_span, y0, schedules, signals, test_tol=1e-14, **kwargs
+    ):
         """Run comparison of schedule simulation to manually build signals.
 
-        The expectation of this function is that schedules and signals should represent
+        The original expectation of this function was that schedules and signals should represent
         exactly the same time-dependence, so that the solutions agree exactly regardless of
-        tolerance.
+        tolerance. Nevertheless, the test_tol argument enables modification of the tolerance
+        of the tests here, in situations in which exact correspondence of time-dependence
+        cannot be gauranteed (even machine-epsilon rounding errors based on order of operations
+        is enough to break this assumption in practical simulation settings).
         """
 
         pulse_results = solver.solve(
@@ -1207,8 +1220,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             signal_results = [signal_results]
 
         for pulse_res, signal_res in zip(pulse_results, signal_results):
-            self.assertAllClose(pulse_res.t, signal_res.t, atol=1e-14, rtol=1e-14)
-            self.assertAllClose(pulse_res.y, signal_res.y, atol=1e-14, rtol=1e-14)
+            self.assertAllClose(pulse_res.t, signal_res.t, atol=test_tol, rtol=test_tol)
+            self.assertAllClose(pulse_res.y, signal_res.y, atol=test_tol, rtol=test_tol)
 
 
 class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
