@@ -871,6 +871,9 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=Statevector([0.0, 1.0]),
             schedules=sched,
             signals=None,
+            test_tol=1e-9,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     @unpack
@@ -955,6 +958,9 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=[Statevector([1.0, 0.0]), DensityMatrix([0.0, 1.0])],
             schedules=[sched0, sched1],
             signals=signals,
+            test_tol=1e-9,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     @unpack
@@ -991,6 +997,9 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=SuperOp(np.eye(4, dtype=complex)),
             schedules=sched,
             signals=signals,
+            test_tol=1e-9,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     def test_4_channel_schedule(self):
@@ -1183,6 +1192,9 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=[np.eye(2, dtype=complex), DensityMatrix([0.0, 1.0])],
             schedules=[sched0, sched1],
             signals=signals,
+            test_tol=1e-9,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     def _compare_schedule_to_signals(
@@ -1220,8 +1232,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             signal_results = [signal_results]
 
         for pulse_res, signal_res in zip(pulse_results, signal_results):
-            self.assertAllClose(pulse_res.t, signal_res.t, atol=test_tol, rtol=test_tol)
-            self.assertAllClose(pulse_res.y, signal_res.y, atol=test_tol, rtol=test_tol)
+            self.assertAllClose(pulse_res.y[-1], signal_res.y[-1], atol=test_tol, rtol=test_tol)
 
 
 class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
