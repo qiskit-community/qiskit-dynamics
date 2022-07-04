@@ -307,7 +307,7 @@ class Solver:
                     dt=self._dt, carriers=self._channel_carrier_freqs, channels=self._all_channels
                 )
             else:
-                raise QiskitError("dt must be specified if channel information provided.")
+                raise QiskitError("dt must be specified if channel information is provided.")
 
         if hamiltonian_signals or dissipator_signals:
             warnings.warn(
