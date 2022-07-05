@@ -8,10 +8,9 @@ In this tutorial we walk through how to use perturbation-theory based solvers.
     This is an advanced topic --- utilizing perturbation-theory based solvers
     requires detailed knowledge of the structure of the differential equations
     involved, as well as manual tuning of the solver parameters.
-    See the :class:`~qiskit_dynamics.solvers.DysonSolver` and
-    :class:`~qiskit_dynamics.solvers.MagnusSolver` documentation for API details. Also, see
-    [:footcite:`puzzuoli_sensitivity_2022`] for a detailed explanation of the solvers,
-    which varies and builds on the core idea introduced in [:footcite:`shillito_fast_2020`].
+    See the :class:`.DysonSolver` and :class:`.MagnusSolver` documentation for API details.
+    Also, see :footcite:`puzzuoli_sensitivity_2022` for a detailed explanation of the solvers,
+    which varies and builds on the core idea introduced in :footcite:`shillito_fast_2020`.
 
     We note further that the circumstances under which perturbative solvers outperform
     traditional solvers, and which parameter sets to use, is nuanced.
@@ -102,21 +101,21 @@ higher dimension to observe a difference between the solvers.
 Constructing the Dyson-based perturbative solver requires specifying several
 configuration parameters, as well as specifying the structure of the
 differential equation more explicitly than using the standard
-:class:`~qiskit_dynamics.solvers.Solver` object in qiskit-dynamics, which automatically builds
+:class:`.Solver` object in qiskit-dynamics, which automatically builds
 either the Schrodinger or Lindblad equation based on the inputs.
 
-See the API docs for :class:`~qiskit_dynamics.solvers.DysonSolver` for a more detailed
+See the API docs for :class:`.DysonSolver` for a more detailed
 explanation, but some general comments on its instantiation and usage:
 
-- :class:`~qiskit_dynamics.solvers.DysonSolver` requires direct specification of the LMDE to the
+- :class:`.DysonSolver` requires direct specification of the LMDE to the
   solver. As we are simulating the Schrodinger equation, we need to
   multiply the Hamiltonian terms by ``-1j``.
-- :class:`~qiskit_dynamics.solvers.DysonSolver` is a fixed step solver, with the step size
+- :class:`.DysonSolver` is a fixed step solver, with the step size
   being fixed at instantiation. This step size must be chosen in conjunction
   with the ``expansion_order``, to ensure that a suitable accuracy is attained.
 - Over each fixed time-step:
 
-  - :class:`~qiskit_dynamics.solvers.DysonSolver` solves by computing a truncated perturbative
+  - :class:`.DysonSolver` solves by computing a truncated perturbative
     expansion.
   - To compute the truncated perturbative expansion, the signal envelopes are
     approximated as a linear combination of Chebyshev polynomials.
@@ -197,11 +196,10 @@ accuracy and simulation speed.
     # specify tolerance as an argument to run the simulation at different tolerances
     def ode_sim(amp, tol):
         drive_signal = Signal(lambda t: Array(amp) * envelope_func(t), carrier_freq=v)
-        solver_copy = solver.copy()
-        solver_copy.signals = [drive_signal]
-        res = solver_copy.solve(
+        res = solver.solve(
             t_span=[0., int(T // dt) * dt],
             y0=np.eye(dim, dtype=complex),
+            signals=[drive_signal],
             method='jax_odeint',
             atol=tol,
             rtol=tol
@@ -231,7 +229,7 @@ Measure compiled time.
     %time yf_ode = jit_ode_sim(1.).block_until_ready()
 
 
-Confirm simular accuracy solution.
+Confirm similar accuracy solution.
 
 .. jupyter-execute::
 
@@ -239,15 +237,13 @@ Confirm simular accuracy solution.
 
 Here we see that, once compiled, the Dyson-based solver has a
 significant speed advantage over the traditional solver, at the expense
-of the initial compilation time and the technical aspect of using the
-solver.
+of the initial compilation time and the technical aspect of using the solver.
 
 5. How-to construct and simulate using the Magnus-based perturbation solver
 ---------------------------------------------------------------------------
 
-Next, build the Magnus-based perturbative solver.
-The :class:`~qiskit_dynamics.solvers.MagnusSolver` uses the same scheme as
-:class:`~qiskit_dynamics.solvers.DysonSolver`, but uses the Magnus expansion and
+Next, build the Magnus-based perturbative solver. The :class:`.MagnusSolver` uses the
+same scheme as :class:`.DysonSolver`, but uses the Magnus expansion and
 matrix exponentiation to simulate over each fixed time step.
 Note that the Magnus expansion typically requires going to fewer orders to achieve accuracy,
 with the trade-off being that, after construction, the solving step itself is more expensive.

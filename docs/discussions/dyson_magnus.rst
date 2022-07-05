@@ -3,9 +3,9 @@
 Time-dependent perturbation theory and multi-variable series expansions review
 ==============================================================================
 
-The :mod:`~qiskit_dynamics.perturbation` module contains functionality for
+The :mod:`.perturbation` module contains functionality for
 numerically computing perturbation theory expansions used in the study of the
-dynamics of quantum systems. Following [:footcite:`puzzuoli_sensitivity_2022`],
+dynamics of quantum systems. Following :footcite:`puzzuoli_sensitivity_2022`,
 this discussion reviews key concepts required
 to understand and utilize the module, including the Dyson series and Magnus expansion,
 their generalization to a multi-variable setting, and the notation used to represent
@@ -15,8 +15,8 @@ multi-variable power series in terms of multisets.
 The Dyson series and Magnus expansion
 -------------------------------------
 
-The Dyson series [:footcite:`dyson_radiation_1949`] and Magnus expansion
-[:footcite:`magnus_exponential_1954`, :footcite:`blanes_magnus_2009`]
+The Dyson series :footcite:`dyson_radiation_1949` and Magnus expansion
+:footcite:`magnus_exponential_1954,blanes_magnus_2009`
 are time-dependent perturbation theory expansions for solutions of linear matrix differential
 equations (LMDEs). For an LMDE :math:`\dot{U}(t) = G(t)U(t)`,
 with :math:`U(0) = I` the identity matrix, the Dyson series directly expands the solution:
@@ -29,7 +29,7 @@ for :math:`D_k(t) = \int_0^t dt_1 \dots \int_0^{t_{k-1}} dt_k G(t_1) \dots G(t_k
 
 The Magnus expansion alternatively seeks to construct a time-averaged generator, i.e. an operator
 :math:`\Omega(t)` for which :math:`U(t) = \exp(\Omega(t))`. The Magnus expansion provides
-a series expansion, which, under certain conditions [:footcite:`blanes_magnus_2009`],
+a series expansion, which, under certain conditions :footcite:`blanes_magnus_2009`,
 converges to :math:`\Omega(t)`:
 
 .. math::
@@ -37,7 +37,7 @@ converges to :math:`\Omega(t)`:
     \Omega(t) = \sum_{k=1}^\infty \Omega_k(t),
 
 where explicit expressions for the :math:`\Omega_k(t)` are given in the literature
-[:footcite:`blanes_magnus_2009`].
+:footcite:`blanes_magnus_2009`.
 
 
 Generalizing to the multi-variable case
@@ -68,7 +68,7 @@ depends linearly on the variables, e.g. when representing couplings between quan
 
 Before defining the multi-variable Dyson series and Magnus expansions, we transform
 the generator into the *toggling frame* of :math:`G_\emptyset(t)`
-[:footcite:`evans_timedependent_1967`, :footcite:`haeberlen_1968`]. Denoting
+:footcite:`evans_timedependent_1967,haeberlen_1968`. Denoting
 :math:`V(t) = \mathcal{T}\exp(\int_{t_0}^t ds G_\emptyset(s))`,
 the generator :math:`G` in the toggling frame of :math:`G_\emptyset(t)`,
 the unperturbed generator, is given by:
@@ -90,7 +90,7 @@ generator :math:`\tilde{G}`, note that
 
 and hence solution for :math:`G` and :math:`\tilde{G}` are simply related by :math:`V(t)`.
 
-Using this, [:footcite:`puzzuoli_sensitivity_2022`] defines the multi-variable Dyson series
+Using this, :footcite:`puzzuoli_sensitivity_2022` defines the multi-variable Dyson series
 for the generator :math:`\tilde{G}(t, c_0, \dots, c_{r-1})` as:
 
 .. math::
@@ -117,11 +117,11 @@ Computing multi-variable Dyson series and Magnus expansion terms
 ----------------------------------------------------------------
 
 Given a power series decomposition of the generator as above,
-the function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` computes,
+the function :func:`.solve_lmde_perturbation` computes,
 in the toggling frame of the unperturbed generator, either multi-variable
 Dyson series or Magnus expansion terms via the algorithms in
-[:footcite:`puzzuoli_sensitivity_2022`]. It can also be used to compute Dyson-like terms via
-the algorithm in [:footcite:`haas_engineering_2019`]. In the presentation here and elsewhere,
+:footcite:`puzzuoli_sensitivity_2022`. It can also be used to compute Dyson-like terms via
+the algorithm in :footcite:`haas_engineering_2019`. In the presentation here and elsewhere,
 the expansions are phrased as infinite series, but of course in practice truncated
 versions must be specified and computed.
 
@@ -133,7 +133,7 @@ understanding the notation and data structures used to represent power series.
 Multiset power series notation
 ------------------------------
 
-Following [:footcite:`puzzuoli_sensitivity_2022`], the :mod:`~qiskit_dynamics.perturbation`
+Following :footcite:`puzzuoli_sensitivity_2022`, the :mod:`.perturbation`
 module utilizes a *multiset* notation to more compactly represent and work with power series.
 
 Consider the power series expansion above for the generator :math:`G(t, c_0, \dots, c_{r-1})`.

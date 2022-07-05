@@ -57,21 +57,21 @@ def solve_lmde_perturbation(
     r"""Compute time-dependent perturbation theory terms for an LMDE.
 
     This function computes multi-variable Dyson or Magnus expansion terms
-    via the algorithm in [:footcite:`puzzuoli_sensitivity_2022`], or Dyson-like terms
-    via the algorithm in [:footcite:`haas_engineering_2019`]. See the
+    via the algorithm in :footcite:`puzzuoli_sensitivity_2022`, or Dyson-like terms
+    via the algorithm in :footcite:`haas_engineering_2019`. See the
     :ref:`review on time-dependent perturbation theory <perturbation review>`
     to understand the details and notation used in this documentation.
 
     Which expansion is used is specified by the ``expansion_method`` argument, which impacts
     the interpretation of several of the function arguments (described below).
     Regardless of ``expansion_method``, the main computation is performed by
-    solving a differential equation, utilizing :func:`~qiskit_dynamics.solvers.solve_ode`,
+    solving a differential equation, utilizing :func:`.solve_ode`,
     and as such several of the function arguments are direct inputs into this function:
 
         - ``integration_method`` is the ODE method used (passed as ``method``
-          to :func:`~qiskit_dynamics.solvers.solve_ode`), ``t_span`` is the integration interval,
+          to :func:`.solve_ode`), ``t_span`` is the integration interval,
           and ``t_eval`` is an optional set of points to evaluate the perturbation terms at.
-        - ``kwargs`` are passed directly to :func:`~qiskit_dynamics.solvers.solve_ode`, enabling
+        - ``kwargs`` are passed directly to :func:`.solve_ode`, enabling
           passing through of tolerance or step size arguments.
 
     Other arguments which are treated the same regardless off ``expansion_method`` are:
@@ -156,11 +156,10 @@ def solve_lmde_perturbation(
           matrix multiplication.
 
     Regardless of the value of ``expansion_method``, results are returned in an
-    ``OdeResult`` instance in the same manner as :func:`~qiskit_dynamics.solvers.solve_ode`.
-    The result object stores the results of the LMDE for ``generator`` and ``y0``
-    in the ``y`` attribute as in :func:`~qiskit_dynamics.solvers.solve_ode` before,
-    and the perturbation results are in the ``perturbation_results`` attribute storing a
-    :class:`~qiskit_dynamics.perturbation.PerturbationResults` object, which is a
+    ``OdeResult`` instance in the same manner as :func:`.solve_ode`. The result object
+    stores the results of the LMDE for ``generator`` and ``y0`` in the ``y`` attribute as in
+    :func:`.solve_ode` before, and the perturbation results are in the ``perturbation_results``
+    attribute storing a :class:`.PerturbationResults` object, which is a
     data container with attributes:
 
         - ``expansion_method``: Method as specified by the user.
@@ -172,8 +171,7 @@ def solve_lmde_perturbation(
           and the second axis indexes the perturbation terms evaluated
           at the times in ``results.t`` in the same manner as ``results.y``.
 
-    Additionally, to retrieve the term with a given label, a
-    :class:`~qiskit_dynamics.perturbation.PerturbationResults` instance
+    Additionally, to retrieve the term with a given label, a :class:`.PerturbationResults` instance
     can be subscripted, e.g. the results for the computation for the term with indices
     ``[0, 1]`` is retrievable via ``results.perturbation_results[[0, 1]]``.
 

@@ -60,7 +60,7 @@ class ArrayPolynomial:
     See the :ref:`multiset and power series notation section <multiset power series>`
     of the perturbation review for an explanation of the multiset notation.
 
-    An :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` is instantiated with the arguments:
+    An :class:`.ArrayPolynomial` is instantiated with the arguments:
 
         - ``constant_term`` specifying the array :math:`A_\emptyset`.
         - ``array_coefficients`` specifying a list of the arrays :math:`A_I`, or as a single array
@@ -69,8 +69,7 @@ class ArrayPolynomial:
           ``Multiset`` instances ordered in
           correspondence with ``array_coefficients``.
 
-    For example, the :class:`~qiskit_dynamics.perturbation.ArrayPolynomial`
-    corresponding to the mathematical polynomial
+    For example, the :class:`.ArrayPolynomial` corresponding to the mathematical polynomial
 
     .. math::
 
@@ -95,21 +94,18 @@ class ArrayPolynomial:
         c = np.array([c0, c1])
         ap(c) # polynomial evaluated on variables
 
-    :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` supports some array properties,
-    e.g. ``ap.shape`` and ``ap.ndim`` return the shape and number of dimensions of the output
-    of the polynomial. Some array methods are also supported, such as ``transpose`` and
-    ``trace``, and their output produces a new
-    :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` which evaluates to the array
-    one would obtain by first evaluating the original, then calling the array method.
-    E.g.
+    :class:`.ArrayPolynomial` supports some array properties, e.g. ``ap.shape`` and ``ap.ndim``
+    return the shape and number of dimensions of the output of the polynomial. Some array
+    methods are also supported, such as ``transpose`` and ``trace``, and their output produces
+    a new :class:`.ArrayPolynomial` which evaluates to the array one would obtain by first
+    evaluating the original, then calling the array method. E.g.
 
     .. code-block:: python
 
         ap2 = ap1.transpose()
         ap2(c) == ap1(c).transpose()
 
-    Finally, :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` supports algebraic operations,
-    e.g.
+    Finally, :class:`.ArrayPolynomial` supports algebraic operations, e.g.
 
     .. code-block:: python
 
@@ -123,9 +119,8 @@ class ArrayPolynomial:
 
         ap1.matmul(ap2, monomial_filter=lambda x: len(x) <= 3)
 
-    is similar to ``ap1 @ ap2``, but will result in an
-    :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` in which all terms of degree
-    larger than ``3`` will not be included in the results.
+    is similar to ``ap1 @ ap2``, but will result in an :class:`.ArrayPolynomial` in which all
+    terms of degree larger than ``3`` will not be included in the results.
     """
     __array_priority__ = 20
 

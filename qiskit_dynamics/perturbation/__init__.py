@@ -30,20 +30,20 @@ series expansions review <perturbation review>` discussion.
 Time-dependent perturbation theory
 ==================================
 
-The function :func:`~qiskit_dynamics.perturbation.solve_lmde_perturbation` computes
-Dyson series [:footcite:`dyson_radiation_1949`] and
-Magnus expansion [:footcite:`magnus_exponential_1954`, :footcite:`blanes_magnus_2009`] terms
-in a multi-variable setting via algorithms in [:footcite:`puzzuoli_sensitivity_2022`].
+The function :func:`.solve_lmde_perturbation` computes
+Dyson series :footcite:`dyson_radiation_1949` and
+Magnus expansion :footcite:`magnus_exponential_1954,blanes_magnus_2009` terms
+in a multi-variable setting via algorithms in :footcite:`puzzuoli_sensitivity_2022`.
 It can also be used to compute Dyson-like integrals using the algorithm in
-[:footcite:`haas_engineering_2019`]. Results are returned in a :class:`PerturbationResults`
+:footcite:`haas_engineering_2019`. Results are returned in a :class:`PerturbationResults`
 object, which is a data container with some functionality for indexing and accessing specific
 perturbation terms. See the function documentation for further details.
 
 Truncated power-series representation and multisets
 ===================================================
 
-The class :class:`~qiskit_dynamics.perturbation.ArrayPolynomial` represents an array-valued
-multivariable polynomial (i.e. a truncated power series), and provides functionality for
+The class :class:`.ArrayPolynomial` represents an array-valued multivariable polynomial
+(i.e. a truncated power series), and provides functionality for
 both evaluating and transforming array-valued polynomials.
 
 This module makes use of the `multiset package <https://pypi.org/project/multiset/>`_ for
