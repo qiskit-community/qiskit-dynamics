@@ -312,4 +312,4 @@ def solve_lmde_perturbation(
             )
 
     # raise error if none apply
-    raise QiskitError("expansion_method " + str(expansion_method) + " not supported.")
+    raise QiskitError(f"expansion_method {expansion_method} not supported.")
