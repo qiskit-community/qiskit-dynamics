@@ -94,10 +94,11 @@ def diffrax_solver(
 
     sol_dict = vars(results)
     ys = sol_dict.pop("ys")
+    ts = sol_dict.pop("ts")
 
     ys = jnp.swapaxes(r2c(jnp.swapaxes(ys, 0, 1)), 0, 1)
 
-    results_out = OdeResult(t=t_eval, y=Array(ys, backend="jax", dtype=complex), **sol_dict)
+    results_out = OdeResult(t=ts, y=Array(ys, backend="jax", dtype=complex), **sol_dict)
 
     return results_out
 

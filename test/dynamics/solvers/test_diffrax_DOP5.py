@@ -41,6 +41,23 @@ class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
 
         self.simple_rhs = simple_rhs
 
+    def test_no_t_eval(self):
+        """Test case for basic model without t_eval."""
+        t_span = np.array([0.0, 2.0])
+        y0 = jnp.array([1.0])
+
+        stepsize_controller = PIDController(rtol=1e-10, atol=1e-10)
+        results = diffrax_solver(
+            self.simple_rhs,
+            t_span,
+            y0,
+            method=Dopri5(),
+            t_eval=None,
+            stepsize_controller=stepsize_controller,
+        )
+
+        self.assertAllClose(results.t, t_span[-1])
+
     def test_t_eval_arg_no_overlap(self):
         """Test handling of t_eval when no overlap with t_span."""
 
