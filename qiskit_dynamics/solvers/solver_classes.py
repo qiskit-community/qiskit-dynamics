@@ -657,8 +657,8 @@ class Solver:
         """Run a list of schedule simulations utilizing JAX compilation.
         The jitting strategy is to define a function whose inputs are t_span, y0 as an array, the
         samples for all channels in a single large array, and other initial state information.
-        To avoid recompilation for schedules with samples of different lengths, all are padded
-        to be the length of the schedule with the max duration.
+        To avoid recompilation for schedules with a different number of samples, i.e. a different duration,
+        all schedules are padded to be the length of the schedule with the max duration.
         """
 
         # determine fixed array shape for containing all samples
