@@ -31,10 +31,13 @@ from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
 from qiskit_dynamics import Signal, RotatingFrame
-from qiskit_dynamics.perturbation.solve_lmde_perturbation import solve_lmde_perturbation
-from qiskit_dynamics.perturbation.array_polynomial import ArrayPolynomial
+from qiskit_dynamics.signals import SignalList
+from qiskit_dynamics.perturbation import solve_lmde_perturbation, ArrayPolynomial
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
+from qiskit_dynamics.dispatch.dispatch import Dispatch
+
+from .solver_utils import setup_args_lists
 
 try:
     import jax.numpy as jnp
@@ -62,18 +65,70 @@ class PerturbativeSolver(ABC):
         """Model object storing expansion details."""
         return self._model
 
-    @abstractmethod
-    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> OdeResult:
-        """Solve for a list of signals, initial state, initial time, and number of steps.
+    def solve(
+        self,
+        t0: Union[float, List[float]],
+        n_steps: Union[int, List[int]],
+        y0: Union[Array, List[Array]],
+        signals: Union[List[Signal], List[List[Signal]]],
+    ) -> Union[OdeResult, List[OdeResult]]:
+        """Solve given an initial time, number of steps, signals, and initial state.
+
+        Note that this method can be used to solve a list of simulations at once, by specifying
+        one or more of the arguments ``t0``, ``n_steps``, ``y0``, or ``signals`` as a list of
+        valid inputs. For this mode of operation, all of these arguments must be either lists of
+        the same length, or a single valid input, which will be used repeatedly.
 
         Args:
-            signals: List of signals.
-            y0: Initial state at time t0.
             t0: Initial time.
             n_steps: Number of time steps to solve for.
+            y0: Initial state at time t0.
+            signals: List of signals.
 
         Returns:
-            np.ndarray: State after n_steps.
+            OdeResult: Results object, or list of results objects.
+
+        Raises:
+            QiskitError: If improperly formatted arguments.
+        """
+
+        # validate and setup list of simulations
+        [t0_list, n_steps_list, y0_list, signals_list], multiple_sims = setup_args_lists(
+            args_list=[t0, n_steps, y0, signals],
+            args_names=["t0", "n_steps", "y0", "signals"],
+            args_to_list=[
+                lambda x: scalar_to_list(x, "t0"),
+                lambda x: scalar_to_list(x, "n_steps"),
+                y0_to_list,
+                signals_to_list,
+            ],
+        )
+
+        all_results = []
+        for args in zip(t0_list, n_steps_list, y0_list, signals_list):
+            if len(args[-1]) != len(self.model.operators):
+                raise QiskitError("Signals must be the same length as the operators in the model.")
+            all_results.append(
+                self._solve(t0=args[0], n_steps=args[1], y0=args[2], signals=args[3])
+            )
+
+        if multiple_sims is False:
+            return all_results[0]
+
+        return all_results
+
+    @abstractmethod
+    def _solve(self, t0: float, n_steps: int, y0: Array, signals: List[Signal]) -> OdeResult:
+        """Solve once for a list of signals, initial state, initial time, and number of steps.
+
+        Args:
+            t0: Initial time.
+            n_steps: Number of time steps to solve for.
+            y0: Initial state at time t0.
+            signals: List of signals.
+
+        Returns:
+            OdeResult: Results object.
         """
         pass
 
@@ -195,8 +250,7 @@ class DysonSolver(PerturbativeSolver):
         r"""Initialize.
 
         Args:
-            operators: List of constant operators specifying the operators with
-                                     signal coefficients.
+            operators: List of constant operators specifying the operators with signal coefficients.
             rotating_frame: Rotating frame to setup the solver in.
                             Must be Hermitian or anti-Hermitian.
             dt: Fixed step size to compile to.
@@ -232,7 +286,7 @@ class DysonSolver(PerturbativeSolver):
         )
         super().__init__(model=model)
 
-    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> OdeResult:
+    def _solve(self, t0: float, n_steps: int, y0: Array, signals: List[Signal]) -> OdeResult:
         ys = None
         if Array.default_backend() == "jax":
             single_step = lambda x: self.model.evaluate(x).data
@@ -275,8 +329,7 @@ class MagnusSolver(PerturbativeSolver):
         r"""Initialize.
 
         Args:
-            operators: List of constant operators specifying the operators with
-                                     signal coefficients.
+            operators: List of constant operators specifying the operators with signal coefficients.
             rotating_frame: Rotating frame to setup the solver in.
                             Must be Hermitian or anti-Hermitian.
             dt: Fixed step size to compile to.
@@ -312,7 +365,7 @@ class MagnusSolver(PerturbativeSolver):
         )
         super().__init__(model=model)
 
-    def solve(self, signals: List[Signal], y0: np.ndarray, t0: float, n_steps: int) -> OdeResult:
+    def _solve(self, t0: float, n_steps: int, y0: Array, signals: List[Signal]) -> OdeResult:
         ys = None
         if Array.default_backend() == "jax":
             single_step = lambda x: self.model.Udt @ jexpm(self.model.evaluate(x).data)
@@ -347,8 +400,7 @@ class ExpansionModel:
         r"""Initialize.
 
         Args:
-            operators: List of constant operators specifying the operators with
-                                     signal coefficients.
+            operators: List of constant operators specifying the operators with signal coefficients.
             rotating_frame: Rotating frame to setup the solver in.
                             Must be Hermitian or anti-Hermitian.
             dt: Fixed step size to compile to.
@@ -400,6 +452,7 @@ class ExpansionModel:
         # setup rotating frame and single time-step frame change operator
         self._rotating_frame = RotatingFrame(rotating_frame)
         operators = to_array(operators)
+        self._operators = operators
         self._Udt = Array(
             self.rotating_frame.state_out_of_frame(dt, np.eye(operators[0].shape[0], dtype=complex))
         ).data
@@ -462,6 +515,11 @@ class ExpansionModel:
     def Udt(self):
         """Single step frame transformation."""
         return self._Udt
+
+    @property
+    def operators(self):
+        """Original operators in the generator."""
+        return self._operators
 
     @property
     def rotating_frame(self):
@@ -877,3 +935,61 @@ def construct_DCT(degree: int, domain: Optional[List] = None) -> Tuple:
     dct_mat[1:] /= 0.5 * order
 
     return dct_mat, xcheb_shifted
+
+
+def scalar_to_list(x, name):
+    """Check if x is a scalar or a list of scalars, and convert to a list in either case."""
+    was_list = False
+    x_ndim = nested_ndim(x)
+    if x_ndim > 1:
+        raise QiskitError(f"{name} must be either 0d or 1d.")
+
+    if x_ndim == 1:
+        was_list = True
+    else:
+        x = [x]
+
+    return x, was_list
+
+
+def y0_to_list(y0):
+    """Check if y0 is a single array or list of arrays, and return as a list in either case."""
+    was_list = False
+    if not isinstance(y0, list):
+        y0 = [y0]
+    else:
+        was_list = True
+
+    return y0, was_list
+
+
+def signals_to_list(signals):
+    """Check if signals is a single signal specification or a list of
+    such specifications, and return as a list in either case.
+    """
+    was_list = False
+    if signals is None:
+        signals = [signals]
+    elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
+        # multiple lists
+        was_list = True
+    elif isinstance(signals, SignalList) or (
+        isinstance(signals, list) and not isinstance(signals[0], (list, SignalList))
+    ):
+        # single signals list
+        signals = [signals]
+    else:
+        raise QiskitError("Signals specified in invalid format.")
+
+    return signals, was_list
+
+
+def nested_ndim(x):
+    """Determine the 'ndim' of x, which could be composed of nested lists and array types."""
+    if isinstance(x, (list, tuple)):
+        return 1 + nested_ndim(x[0])
+    elif issubclass(type(x), Dispatch.REGISTERED_TYPES) or isinstance(x, Array):
+        return x.ndim
+
+    # assume scalar
+    return 0

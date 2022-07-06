@@ -16,6 +16,8 @@
 import numpy as np
 from numpy.polynomial.chebyshev import Chebyshev
 
+from qiskit import QiskitError
+
 from qiskit_dynamics import Signal, Solver, DysonSolver, MagnusSolver
 from qiskit_dynamics.array import Array
 
@@ -74,12 +76,12 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
             rotating_frame=static_hamiltonian,
-            hamiltonian_signals=[obj.gauss_signal],
         )
 
         obj.simple_yf = reg_solver.solve(
             t_span=[0.0, dt * obj.n_steps],
             y0=np.eye(2, dtype=complex),
+            signals=[obj.gauss_signal],
             method=integration_method,
             atol=1e-12,
             rtol=1e-12,
@@ -147,7 +149,6 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         dense_solver = Solver(
             static_hamiltonian=H0,
             hamiltonian_operators=[Hdc, Hdt],
-            hamiltonian_signals=[obj.gauss_signal, obj.gauss_signal],
             rotating_frame=H0,
         )
 
@@ -158,6 +159,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         obj.yf_2q = dense_solver.solve(
             t_span=[0.0, dt * obj.n_steps_2q],
             y0=np.eye(dim**2, dtype=complex),
+            signals=[obj.gauss_signal, obj.gauss_signal],
             method=integration_method,
             atol=1e-12,
             rtol=1e-12,
@@ -198,11 +200,22 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
             rtol=1e-10,
         )
 
+    def test_signal_length_validation(self):
+        """Test correct validation of signal length."""
+        with self.assertRaisesRegex(QiskitError, "must be the same length"):
+            # pylint: disable=expression-not-assigned
+            self.simple_dyson_solver.solve(
+                t0=0.0,
+                n_steps=self.n_steps,
+                y0=np.eye(2, dtype=complex),
+                signals=[self.gauss_signal, self.gauss_signal],
+            )
+
     def test_simple_dyson_solver(self):
         """Test dyson solver on a simple qubit model."""
 
         dyson_yf = self.simple_dyson_solver.solve(
-            signals=[self.gauss_signal], y0=np.eye(2, dtype=complex), t0=0.0, n_steps=self.n_steps
+            t0=0.0, n_steps=self.n_steps, y0=np.eye(2, dtype=complex), signals=[self.gauss_signal]
         ).y[-1]
 
         self.assertAllClose(dyson_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
@@ -211,7 +224,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         """Test magnus solver on a simple qubit model."""
 
         magnus_yf = self.simple_magnus_solver.solve(
-            signals=[self.gauss_signal], y0=np.eye(2, dtype=complex), t0=0.0, n_steps=self.n_steps
+            t0=0.0, n_steps=self.n_steps, y0=np.eye(2, dtype=complex), signals=[self.gauss_signal]
         ).y[-1]
 
         self.assertAllClose(magnus_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
@@ -220,10 +233,10 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         """Test dyson solver on a two transmon model."""
 
         dyson_yf = self.dyson_solver_2q.solve(
-            signals=[self.gauss_signal, self.gauss_signal],
-            y0=np.eye(self.dim_2q**2, dtype=complex),
             t0=0.0,
             n_steps=self.n_steps_2q,
+            y0=np.eye(self.dim_2q**2, dtype=complex),
+            signals=[self.gauss_signal, self.gauss_signal],
         ).y[-1]
         # measure similarity with fidelity
         self.assertTrue(
@@ -235,10 +248,10 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         """Test dyson solver on a two transmon model."""
 
         dyson_yf = self.dyson_solver_2q_0_carrier.solve(
-            signals=[self.gauss_signal, self.gauss_signal],
-            y0=np.eye(self.dim_2q**2, dtype=complex),
             t0=0.0,
             n_steps=self.n_steps_2q,
+            y0=np.eye(self.dim_2q**2, dtype=complex),
+            signals=[self.gauss_signal, self.gauss_signal],
         ).y[-1]
 
         # measure similarity with fidelity
@@ -251,16 +264,29 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         """Test magnus solver on a two transmon model."""
 
         magnus_yf = self.magnus_solver_2q.solve(
-            signals=[self.gauss_signal, self.gauss_signal],
-            y0=np.eye(self.dim_2q**2, dtype=complex),
             t0=0.0,
             n_steps=self.n_steps_2q,
+            y0=np.eye(self.dim_2q**2, dtype=complex),
+            signals=[self.gauss_signal, self.gauss_signal],
         ).y[-1]
         # measure similarity with fidelity
         self.assertTrue(
             np.abs(1.0 - np.abs((magnus_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
             < 1e-6
         )
+
+    def test_list_simulation(self):
+        """Test running lists of simulations."""
+
+        y00 = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+        y01 = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+
+        dyson_results = self.simple_dyson_solver.solve(
+            t0=0.0, n_steps=self.n_steps, y0=[y00, y01], signals=[self.gauss_signal]
+        )
+
+        self.assertAllClose(dyson_results[0].y[-1], self.simple_yf @ y00, rtol=1e-6, atol=1e-6)
+        self.assertAllClose(dyson_results[1].y[-1], self.simple_yf @ y01, rtol=1e-6, atol=1e-6)
 
 
 class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
@@ -278,10 +304,10 @@ class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
 
         def func(c):
             dyson_yf = self.simple_dyson_solver.solve(
-                signals=[Signal(Array(c), carrier_freq=5.0)],
-                y0=np.eye(2, dtype=complex),
                 t0=0.0,
                 n_steps=self.n_steps,
+                y0=np.eye(2, dtype=complex),
+                signals=[Signal(Array(c), carrier_freq=5.0)],
             ).y[-1]
             return dyson_yf
 
@@ -296,10 +322,10 @@ class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
 
         def func(c):
             magnus_yf = self.simple_magnus_solver.solve(
-                signals=[Signal(Array(c), carrier_freq=5.0)],
-                y0=np.eye(2, dtype=complex),
                 t0=0.0,
                 n_steps=self.n_steps,
+                y0=np.eye(2, dtype=complex),
+                signals=[Signal(Array(c), carrier_freq=5.0)],
             ).y[-1]
             return magnus_yf
 
