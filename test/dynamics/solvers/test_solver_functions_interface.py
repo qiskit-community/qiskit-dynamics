@@ -38,10 +38,8 @@ class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
     def test_method_does_not_exist(self):
         """Test method does not exist exception."""
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "not supported"):
             solve_ode(lambda t, y: y, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
-
-        self.assertTrue("not supported" in str(qe.exception))
 
 
 class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
@@ -55,19 +53,16 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
     def test_lmde_method_non_vectorized_lindblad(self):
         """Test error raising if LMDE method is specified for non-vectorized Lindblad."""
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "vectorized evaluation"):
             solve_lmde(
                 self.lindblad_model, t_span=[0.0, 1.0], y0=np.diag([1.0, 0.0]), method="scipy_expm"
             )
-        self.assertTrue("vectorized evaluation" in str(qe.exception))
 
     def test_method_does_not_exist(self):
         """Test method does not exist exception."""
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "not supported"):
             solve_lmde(lambda t: t, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
-
-        self.assertTrue("not supported" in str(qe.exception))
 
     def test_jax_expm_sparse_mode(self):
         """Verify an error gets raised if the jax expm solver is attempted to be used
@@ -77,12 +72,10 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
             static_operator=np.array([[0.0, 1.0], [1.0, 0.0]]), evaluation_mode="sparse"
         )
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "jax_expm cannot be used"):
             solve_lmde(
                 model, t_span=[0.0, 1.0], y0=np.array([1.0, 1.0]), method="jax_expm", max_dt=0.1
             )
-
-        self.assertTrue("jax_expm cannot be used" in str(qe.exception))
 
 
 class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):

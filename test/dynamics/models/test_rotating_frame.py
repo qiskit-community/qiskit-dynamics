@@ -35,13 +35,13 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def test_instantiation_errors(self):
         """Check different modes of error raising for frame setting."""
 
-        with self.assertRaises(QiskitError):
+        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
             RotatingFrame(Array([1.0, 1j]))
 
-        with self.assertRaises(QiskitError):
+        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
             RotatingFrame(Array([[1.0, 0.0], [0.0, 1j]]))
 
-        with self.assertRaises(QiskitError):
+        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
             RotatingFrame(self.Z + 1j * self.X)
 
     def test_state_out_of_frame_basis(self):
