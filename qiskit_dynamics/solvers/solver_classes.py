@@ -452,7 +452,11 @@ class Solver:
         t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
         signals: Optional[
-            Union[List[Schedule], List[Signal], Tuple[List[Signal], List[Signal]]]
+            Union[
+                List[Union[Schedule, ScheduleBlock]],
+                List[Signal],
+                Tuple[List[Signal], List[Signal]],
+            ]
         ] = None,
         convert_results: bool = True,
         **kwargs,
@@ -577,6 +581,12 @@ class Solver:
                 stacklevel=2,
             )
 
+        # convert any ScheduleBlocks to Schedules
+        if isinstance(signals, ScheduleBlock):
+            signals = block_to_schedule(signals)
+        elif isinstance(signals, list):
+            signals = [block_to_schedule(x) if isinstance(x, ScheduleBlock) else x for x in signals]
+
         # validate and setup list of simulations
         [t_span_list, y0_list, signals_list], multiple_sims = setup_args_lists(
             args_list=[t_span, y0, signals],
@@ -588,7 +598,7 @@ class Solver:
         if (
             Array.default_backend() == "jax"
             and is_jax_method(kwargs.get("method", ""))
-            and all(isinstance(x, (Schedule, ScheduleBlock)) for x in signals_list)
+            and all(isinstance(x, Schedule) for x in signals_list)
         ):
             all_results = self._solve_schedule_list_jax(
                 t_span_list=t_span_list,
@@ -626,7 +636,7 @@ class Solver:
         all_results = []
         for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
 
-            if isinstance(signals, (Schedule, ScheduleBlock)):
+            if isinstance(signals, Schedule):
                 signals = self._schedule_to_signals(signals)
 
             self._set_new_signals(signals)
@@ -657,8 +667,8 @@ class Solver:
         """Run a list of schedule simulations utilizing JAX compilation.
         The jitting strategy is to define a function whose inputs are t_span, y0 as an array, the
         samples for all channels in a single large array, and other initial state information.
-        To avoid recompilation for schedules with a different number of samples, i.e. a different duration,
-        all schedules are padded to be the length of the schedule with the max duration.
+        To avoid recompilation for schedules with a different number of samples, i.e. a different
+        duration, all schedules are padded to be the length of the schedule with the max duration.
         """
 
         # determine fixed array shape for containing all samples
@@ -710,8 +720,6 @@ class Solver:
             )
 
             # setup array of all samples
-            if isinstance(sched, ScheduleBlock):
-                sched = block_to_schedule(sched)
             all_signals = self._schedule_converter.get_signals(sched)
 
             all_samples = np.zeros(all_samples_shape, dtype=complex)
@@ -741,13 +749,10 @@ class Solver:
                 signals = self._rwa_signal_map(signals)
             self.model.signals = signals
 
-    def _schedule_to_signals(self, schedule):
+    def _schedule_to_signals(self, schedule: Schedule):
         """Convert a schedule into the signal format required by the model."""
         if self._schedule_converter is None:
             raise QiskitError("Solver instance not configured for pulse Schedule simulation.")
-
-        if isinstance(schedule, ScheduleBlock):
-            schedule = block_to_schedule(schedule)
 
         return organize_signals_to_channels(
             self._schedule_converter.get_signals(schedule),
@@ -912,10 +917,10 @@ def signals_to_list(signals):
     elif isinstance(signals, list) and isinstance(signals[0], tuple):
         # multiple lindblad
         was_list = True
-    elif isinstance(signals, (Schedule, ScheduleBlock)):
+    elif isinstance(signals, Schedule):
         # pulse simulation
         signals = [signals]
-    elif isinstance(signals, list) and isinstance(signals[0], (Schedule, ScheduleBlock)):
+    elif isinstance(signals, list) and isinstance(signals[0], Schedule):
         # multiple pulse simulation
         was_list = True
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
