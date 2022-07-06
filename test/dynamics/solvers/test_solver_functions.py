@@ -140,7 +140,9 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         """Test case for basic model."""
 
         if self.is_ode_method:
-            results = self.solve(self.basic_rhs, t_span=self.t_span, y0=self.y0, solver_func=solve_lmde)
+            results = self.solve(
+                self.basic_rhs, t_span=self.t_span, y0=self.y0, solver_func=solve_lmde
+            )
 
             expected = expm(-1j * np.pi * self.X.data)
 
@@ -272,10 +274,10 @@ class Testjax_RK4(TestSolverMethodJax):
 class Testjax_RK4_parallel(TestSolverMethodJax):
     """Test class for jax_RK4_parallel_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
         # ensure that warning is raised as tests are run on CPU
         with self.assertWarns(Warning) as w:
-            results = solve_lmde(
+            results = solver_func(
                 generator=rhs,
                 t_span=t_span,
                 y0=y0,
@@ -292,8 +294,8 @@ class Testjax_RK4_parallel(TestSolverMethodJax):
 class Testscipy_expm(TestSolverMethod):
     """Test class for scipy_expm_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
-        return solve_lmde(
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
             generator=rhs,
             t_span=t_span,
             y0=y0,
@@ -307,8 +309,8 @@ class Testscipy_expm(TestSolverMethod):
 class Testjax_expm(TestSolverMethodJax):
     """Test class for jax_expm_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
-        return solve_lmde(
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
             generator=rhs,
             t_span=t_span,
             y0=y0,
@@ -322,10 +324,10 @@ class Testjax_expm(TestSolverMethodJax):
 class Testjax_expm_parallel(TestSolverMethodJax):
     """Test class for jax_expm_parallel_solver."""
 
-    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=None, **kwargs):
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
         # ensure that warning is raised as tests are run on CPU
         with self.assertWarns(Warning) as w:
-            results = solve_lmde(
+            results = solver_func(
                 generator=rhs,
                 t_span=t_span,
                 y0=y0,
