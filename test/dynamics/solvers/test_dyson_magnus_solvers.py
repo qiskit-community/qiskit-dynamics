@@ -66,7 +66,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
 
         obj.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.0)
 
-        dt = 0.025
+        dt = 0.0125
         obj.n_steps = int(T // dt) // 3
 
         hamiltonian_operators = 2 * np.pi * r * np.array([[[0.0, 1.0], [1.0, 0.0]]]) / 2
@@ -278,8 +278,13 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
     def test_list_simulation(self):
         """Test running lists of simulations."""
 
-        y00 = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
-        y01 = np.random.rand(2, 2) + 1j * np.random.rand(2, 2)
+        rng = np.random.default_rng(21342)
+        y00 = rng.uniform(low=-1, high=1, size=(2, 2)) + 1j * rng.uniform(
+            low=-1, high=1, size=(2, 2)
+        )
+        y01 = rng.uniform(low=-1, high=1, size=(2, 2)) + 1j * rng.uniform(
+            low=-1, high=1, size=(2, 2)
+        )
 
         dyson_results = self.simple_dyson_solver.solve(
             t0=0.0, n_steps=self.n_steps, y0=[y00, y01], signals=[self.gauss_signal]
