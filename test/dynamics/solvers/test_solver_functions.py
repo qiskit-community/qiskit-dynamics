@@ -236,7 +236,7 @@ class TestRK4(TestSolverMethod):
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
         return solver_func(
-            rhs=rhs,
+            rhs,
             t_span=t_span,
             y0=y0,
             method="RK4",
@@ -255,7 +255,7 @@ class Testjax_RK4(TestSolverMethodJax):
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
         return solver_func(
-            rhs=rhs,
+            rhs,
             t_span=t_span,
             y0=y0,
             method="jax_RK4",
@@ -343,9 +343,8 @@ class Testscipy_RK45(TestSolverMethod):
     """Tests for scipy solve_ivp RK45 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
-        return self.solver_func(
-            solver_func=solver_func,
-            rhs=rhs,
+        return solver_func(
+            rhs,
             t_span=t_span,
             y0=y0,
             method="RK45",
@@ -364,9 +363,8 @@ class Testscipy_RK23(TestSolverMethod):
     """Tests for scipy solve_ivp RK23 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
-        return self.solver_func(
-            solver_func=solver_func,
-            rhs=rhs,
+        return solver_func(
+            rhs,
             t_span=t_span,
             y0=y0,
             method="RK23",
@@ -385,9 +383,8 @@ class Testscipy_BDF(TestSolverMethod):
     """Tests for scipy solve_ivp BDF method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
-        return self.solver_func(
-            solver_func=solver_func,
-            rhs=rhs,
+        return solver_func(
+            rhs,
             t_span=t_span,
             y0=y0,
             method="BDF",
@@ -406,9 +403,8 @@ class Testscipy_DOP853(TestSolverMethod):
     """Tests for scipy solve_ivp DOP853 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
-        return self.solver_func(
-            solver_func=solver_func,
-            rhs=rhs,
+        return solver_func(
+            rhs,
             t_span=t_span,
             y0=y0,
             method="BDF",
@@ -427,9 +423,8 @@ class Testjax_odeint(TestSolverMethodJax):
     """Tests for jax odeint method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
-        return self.solver_func(
-            solver_func=solver_func,
-            rhs=rhs,
+        return solver_func(
+            rhs,
             t_span=t_span,
             y0=y0,
             method="jax_odeint",
@@ -449,9 +444,8 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
-        return self.solver_func(
-            solver_func=solver_func,
-            rhs=rhs,
+        return solver_func(
+            rhs,
             t_span=t_span,
             y0=y0,
             method=Dopri5(),
@@ -470,7 +464,7 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
         stepsize_controller = PIDController(atol=1e-10, rtol=1e-10)
         return solver_func(
-            rhs=rhs,
+            rhs,
             t_span=t_span,
             y0=y0,
             method=Tsit5(),
