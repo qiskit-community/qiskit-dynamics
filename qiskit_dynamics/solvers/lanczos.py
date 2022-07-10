@@ -57,6 +57,10 @@ def lanczos_basis(A: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int)
     error = np.finfo(np.float64).eps
 
     for i in range(1, k_dim, 1):
+        if beta[i-1] < error:
+            k_dim = i
+            break
+
         v_p = q_basis[i - 1, :]
 
         q_basis[[i], :] = projection.T / beta[i - 1]
@@ -69,10 +73,6 @@ def lanczos_basis(A: Union[csr_matrix, np.ndarray], v_0: np.ndarray, k_dim: int)
         delta = q_basis[i, :].conj().T @ projection
         projection -= delta * q_basis[i, :]
         alpha[i] += delta
-
-        if beta[i] < error:
-            k_dim = i
-            break
 
     tridiagonal = (
         np.diag(alpha[:k_dim], k=0)
