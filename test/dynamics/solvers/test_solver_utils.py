@@ -29,29 +29,29 @@ class TestTimeArgsHandling(QiskitDynamicsTestCase):
 
     def test_merge_t_args_dim_error(self):
         """Test raising of ValueError for non-1d t_eval."""
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "t_eval must be 1 dimensional."):
             merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([[0.0]]))
 
     def test_merge_t_args_interval_error(self):
         """Test raising ValueError if t_eval not in t_span."""
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "t_eval entries must lie in t_span."):
             merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([1.5]))
 
     def test_merge_t_args_interval_error_backwards(self):
         """Test raising ValueError if t_eval not in t_span for backwards integration."""
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "t_eval entries must lie in t_span."):
             merge_t_args(t_span=np.array([0.0, -1.0]), t_eval=np.array([-1.5]))
 
     def test_merge_t_args_sort_error(self):
         """Test raising ValueError if t_eval is not correctly sorted."""
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "t_eval must be ordered"):
             merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([0.75, 0.25]))
 
     def test_merge_t_args_sort_error_backwards(self):
         """Test raising ValueError if t_eval is not correctly sorted for
         backwards integration.
         """
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "t_eval must be ordered"):
             merge_t_args(t_span=np.array([0.0, -1.0]), t_eval=np.array([-0.75, -0.25]))
 
     def test_merge_t_args_no_overlap(self):
