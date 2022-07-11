@@ -111,7 +111,7 @@ def lanczos_expm(
     A: Union[csr_matrix, np.ndarray],
     y0: np.ndarray,
     k_dim: int,
-    max_dt: Optional[float] = 1,
+    scale_factor: Optional[float] = 1,
 ):
     """Calculates action of matrix exponential of an anti-hermitian array on the state using
     Lanczos algorithm.
@@ -120,7 +120,7 @@ def lanczos_expm(
         A : Array to exponentiate. Must be anti-hermitian.
         y0 : Initial state.
         k_dim : Dimension of the krylov subspace.
-        max_dt : Maximum step size.
+        scale_factor : Maximum step size.
 
     Returns:
         y_dt : Action of matrix exponential on state.
@@ -135,11 +135,11 @@ def lanczos_expm(
         y_dt = (
             q_basis
             @ eigen_vectors_t
-            @ (np.exp(-1j * max_dt * eigen_values) * eigen_vectors_t[0, :])
+            @ (np.exp(-1j * scale_factor * eigen_values) * eigen_vectors_t[0, :])
         )
 
     elif y0.ndim == 2:
-        y_dt = [lanczos_expm(A, yi, k_dim, max_dt) for yi in y0.T]
+        y_dt = [lanczos_expm(A, yi, k_dim, scale_factor) for yi in y0.T]
         y_dt = np.array(y_dt).T
 
     else:
