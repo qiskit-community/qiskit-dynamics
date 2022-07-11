@@ -318,12 +318,11 @@ class Testlanczos_diag(TestSolverMethod):
         anti-hermitan generators."""
         pass
 
-    def solve(self, rhs, t_span, y0, t_eval=None, **kwargs):
-        print(rhs, y0)
-        return solve_lmde(
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
             generator=rhs,
             t_span=t_span,
-            y0=-y0,
+            y0=y0,
             method="lanczos_diag",
             t_eval=t_eval,
             max_dt=0.01,
