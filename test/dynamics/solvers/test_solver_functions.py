@@ -24,7 +24,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from scipy.linalg import expm
 
-from qiskit_dynamics.models import GeneratorModel
+from qiskit_dynamics.models import GeneratorModel, HamiltonianModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.array import Array
@@ -309,10 +309,39 @@ class Testscipy_expm(TestSolverMethod):
 class Testlanczos_diag(TestSolverMethod):
     """Test class for lanczos_diag_solver."""
 
-    # def test_pseudo_random_model(self):
-    #     """Override pseudo_random_model test since lanczos only works on
-    #     anti-hermitan generators."""
-    #     pass
+    def setUp(self):
+        super().setUp()
+
+        self.simple_model = HamiltonianModel(
+            operators=1j * self.simple_model.operators, signals=self.simple_model.signals
+        )
+
+        operators = self.pseudo_random_model.operators.data
+        signals = self.pseudo_random_model.signals[0][0]
+        static_operator = self.pseudo_random_model.static_operator.data
+        frame_op = self.pseudo_random_model.rotating_frame.frame_operator
+
+        # make hermitian
+        operators[0, :, :] = operators[0, :, :].conj().T + operators[0, :, :]
+        static_operator = static_operator.conj().T + static_operator
+
+        self.pseudo_random_model = HamiltonianModel(
+            operators=operators,
+            signals=[signals],
+            static_operator=static_operator,
+            rotating_frame=frame_op,
+        )
+
+        # simulate directly out of frame
+        def pseudo_random_rhs(t, y=None):
+            op = static_operator + self.pseudo_random_signal(t) * operators[0]
+            op = -1j * op
+            if y is None:
+                return op
+            else:
+                return op @ y
+
+        self.pseudo_random_rhs = pseudo_random_rhs
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
         return solver_func(
@@ -321,7 +350,7 @@ class Testlanczos_diag(TestSolverMethod):
             y0=y0,
             method="lanczos_diag",
             t_eval=t_eval,
-            max_dt=0.01,
+            max_dt=0.005,
             k_dim=max(y0.shape),
             **kwargs,
         )
