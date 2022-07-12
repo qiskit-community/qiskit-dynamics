@@ -126,7 +126,7 @@ def lanczos_expm(
         y_dt : Action of matrix exponential on state.
 
     Raises:
-        QiskitError: If ``y0`` is not 1d or 2d
+        ValueError : If ``y0`` is not 1d or 2d
     """
 
     if y0.ndim == 1:
@@ -143,6 +143,6 @@ def lanczos_expm(
         y_dt = np.array(y_dt).T
 
     else:
-        ValueError("y0 must be 1d or 2d")
+        raise ValueError("y0 must be 1d or 2d")
 
     return y_dt
