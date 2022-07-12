@@ -290,7 +290,7 @@ def solve_lmde(
                 stacklevel=5,
             )
             # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
-        if isinstance(solver_generator, (LindbladModel, GeneratorModel)) or (
+        if type(solver_generator) in [LindbladModel, GeneratorModel] or (
             not is_hermitian(1j * solver_generator(t_span[0]))
         ):
             raise QiskitError(
