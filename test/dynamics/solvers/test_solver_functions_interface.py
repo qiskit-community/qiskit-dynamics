@@ -13,7 +13,7 @@
 
 """Tests error handling of solve_ode and solve_lmde, and helper functions.
 
-Tests for results of solvers are in test_solve_functions.py.
+Tests for results of solvers are in test_solver_functions.py.
 """
 
 import numpy as np
@@ -49,6 +49,7 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
         self.lindblad_model = LindbladModel(
             hamiltonian_operators=[np.diag([1.0, -1.0])], hamiltonian_signals=[1.0]
         )
+        # self.hamiltonian_model = HamiltonianModel(operators=[])
 
     def test_lmde_method_non_vectorized_lindblad(self):
         """Test error raising if LMDE method is specified for non-vectorized Lindblad."""
@@ -56,6 +57,46 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "vectorized evaluation"):
             solve_lmde(
                 self.lindblad_model, t_span=[0.0, 1.0], y0=np.diag([1.0, 0.0]), method="scipy_expm"
+            )
+
+    def test_lanczos_antihermitian(self):
+        """Test error raising when lanczos is used for non anti-Hermitian generators."""
+
+        with self.assertRaisesRegex(QiskitError, "anti-Hermitian generators"):
+            solve_lmde(
+                lambda t: np.array([[0, 1], [1, 0]]),
+                t_span=[0.0, 1.0],
+                y0=np.array([1.0, 0.0]),
+                method="lanczos_diag",
+                max_dt=0.1,
+                k_dim=2,
+            )
+
+    def test_lanczos_k_dim(self):
+        """Test error raising when number of lanczos vectors is greater than dimension of
+        generator."""
+
+        with self.assertRaisesRegex(QiskitError, "greater than dimension of generator"):
+            solve_lmde(
+                lambda t: np.array([[0, 1], [-1, 0]]),
+                t_span=[0.0, 1.0],
+                y0=np.array([1.0, 0.0]),
+                method="lanczos_diag",
+                max_dt=0.1,
+                k_dim=4,
+            )
+
+    def test_lanczos_y0_dim(self):
+        """Test error raising when y0 is not 1d or 2d in lanczos."""
+
+        with self.assertRaisesRegex(ValueError, "y0 must be 1d or 2d"):
+            solve_lmde(
+                lambda t: np.array([[0, 1], [-1, 0]]),
+                t_span=[0.0, 1.0],
+                y0=np.random.rand(2, 2, 2),
+                method="lanczos_diag",
+                max_dt=0.1,
+                k_dim=2,
             )
 
     def test_method_does_not_exist(self):
