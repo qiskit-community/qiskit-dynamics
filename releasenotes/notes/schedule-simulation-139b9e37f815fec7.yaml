@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    The ``Solver`` class has been upgraded to enable Qiskit Pulse schedule simulation.
+    Configuration information for interpeting pulse schedules is provided at instantiation,
+    and schedules can be solved by passing them via the ``signals`` argument to ``Solver.solve``.
