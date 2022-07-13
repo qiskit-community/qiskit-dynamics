@@ -45,7 +45,11 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 
 from .solver_functions import solve_lmde
-from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
+from .solver_utils import (
+    is_lindblad_model_vectorized,
+    is_lindblad_model_not_vectorized,
+    setup_args_lists,
+)
 
 
 class Solver:
@@ -392,8 +396,11 @@ class Solver:
                 stacklevel=2,
             )
 
-        t_span_list, y0_list, signals_list, multiple_sims = setup_simulation_lists(
-            t_span, y0, signals
+        # validate and setup list of simulations
+        [t_span_list, y0_list, signals_list], multiple_sims = setup_args_lists(
+            args_list=[t_span, y0, signals],
+            args_names=["t_span", "y0", "signals"],
+            args_to_list=[t_span_to_list, y0_to_list, signals_to_list],
         )
 
         all_results = [
@@ -546,37 +553,37 @@ def format_final_states(y, model, y_input, y0_cls):
     return y
 
 
-def setup_simulation_lists(
-    t_span: Array,
-    y0: Union[Array, QuantumState, BaseOperator],
-    signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]],
-) -> Tuple[List, List, List, bool]:
-    """Helper function for setting up lists of simulations.
+def t_span_to_list(t_span):
+    """Check if t_span is validly specified as a single interval or a list of intervals,
+    and return as a list in either case."""
+    was_list = False
+    t_span_ndim = nested_ndim(t_span)
+    if t_span_ndim > 2:
+        raise QiskitError("t_span must be either 1d or 2d.")
+    if t_span_ndim == 1:
+        t_span = [t_span]
+    else:
+        was_list = True
 
-    Transform input signals, t_span, and y0 into lists of the same length.
-    Arguments are given as either lists of valid specifications, or as a singleton of a valid
-    specification. Singletons are transformed into a list of length one, then all arguments
-    are expanded to be the same length as the longest argument max_len:
-        - If len(arg) == 1, it will be repeated max_len times
-        - if len(arg) == max_len, nothing is done
-        - If len(arg) not in (1, max_len), an error is raised
+    return t_span, was_list
 
-    Args:
-        t_span: Time interval specification.
-        y0: Initial state specification.
-        signals: Signal specification.
 
-    Returns:
-        Tuple: tuple of lists of arguments of the same length, along with a bool specifying whether
-        the arguments specified multiple simulations or not.
+def y0_to_list(y0):
+    """Check if y0 is validly specified as a single initial state or a list of initial states,
+    and return as a list in either case."""
+    was_list = False
+    if not isinstance(y0, list):
+        y0 = [y0]
+    else:
+        was_list = True
 
-    Raises:
-        QiskitError: If the length of any arguments are incompatible, or if any singleton
-        is an invalid shape.
-    """
+    return y0, was_list
 
-    multiple_sims = False
 
+def signals_to_list(signals):
+    """Check if signals is validly specified as a single signal specification or a list of
+    such specifications, and return as a list in either case."""
+    was_list = False
     if signals is None:
         signals = [signals]
     elif isinstance(signals, tuple):
@@ -584,10 +591,10 @@ def setup_simulation_lists(
         signals = [signals]
     elif isinstance(signals, list) and isinstance(signals[0], tuple):
         # multiple lindblad
-        multiple_sims = True
+        was_list = True
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
         # multiple Hamiltonian signals lists
-        multiple_sims = True
+        was_list = True
     elif isinstance(signals, SignalList) or (
         isinstance(signals, list) and not isinstance(signals[0], (list, SignalList))
     ):
@@ -596,38 +603,7 @@ def setup_simulation_lists(
     else:
         raise QiskitError("Signals specified in invalid format.")
 
-    if not isinstance(y0, list):
-        y0 = [y0]
-    else:
-        multiple_sims = True
-
-    t_span_ndim = nested_ndim(t_span)
-
-    if t_span_ndim > 2:
-        raise QiskitError("t_span must be either 1d or 2d.")
-    if t_span_ndim == 1:
-        t_span = [t_span]
-    else:
-        multiple_sims = True
-
-    # consolidate lengths and raise error if incompatible
-    args = [t_span, y0, signals]
-    arg_names = ["t_span", "y0", "signals"]
-    arg_lens = [len(x) for x in args]
-    max_len = max(arg_lens)
-    for idx, arg_len in enumerate(arg_lens):
-        if arg_len not in (1, max_len):
-            max_name = arg_names[arg_lens.index(max_len)]
-            raise QiskitError(
-                f"""If one of signals, y0, and t_span is given as a list of valid inputs,
-                then the others must specify only a single input, or a list of the same length.
-                {max_name} specifies {max_len} inputs, but {arg_names[idx]} is of length {arg_len},
-                which is incompatible."""
-            )
-
-    args = [arg * max_len if arg_len == 1 else arg for arg, arg_len in zip(args, arg_lens)]
-
-    return args[0], args[1], args[2], multiple_sims
+    return signals, was_list
 
 
 def nested_ndim(x):

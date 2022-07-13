@@ -17,9 +17,11 @@
 Utility functions for solvers.
 """
 
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Callable
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
+
+from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import LindbladModel
@@ -126,3 +128,65 @@ def trim_t_results(
         results.y = Array(results.y[:-1])
 
     return results
+
+
+def setup_args_lists(
+    args_list: List[any], args_names: List[str], args_to_list: List[Callable]
+) -> Tuple[List[List[any]], bool]:
+    """Transform each entry of ``args_list`` into lists of the same length.
+
+    All elements of args_list must be either given as lists of valid specifications,
+    or as a singleton of a valid specification. ``args_to_list`` contains a list of functions
+    that maps its corresponding entry in args_list to a valid list of singletons, along
+    with a bool indicating whether the corresponding argument was already a list of singletons.
+    All args are expanded to be the same length as the longest argument. For input in args_list:
+        - If len(arg) == 1, it will be repeated max_len times
+        - if len(arg) == max_len, nothing is done
+        - If len(arg) not in (1, max_len), an error is raised
+
+    Args:
+        args_list: List of 'inputs'.
+        args_names: Names of inputs, used for error raising.
+        args_to_list: As described in the main function doc. Specialized error handling for
+                      the entries in args_list should be part of these functions in the
+                      case that the arg is neither a valid singleton, nor a valid list
+                      of singletons.
+
+    Returns:
+        Tuple: First entry is the transformed version of args_list so that all entries are the
+               lists of the same length. Second entry is a boolean stating whether the inputs
+               were given all as single instances (False), or one was a list (True).
+
+    Raises:
+        QiskitError: If inputs have incompatible lengths.
+    """
+
+    args_as_lists = []
+    args_were_lists = False
+    for arg, to_list in zip(args_list, args_to_list):
+        arg_as_list, arg_was_list = to_list(arg)
+        args_as_lists.append(arg_as_list)
+        args_were_lists = args_were_lists or arg_was_list
+
+    arg_lens = [len(x) for x in args_as_lists]
+    max_len = max(arg_lens)
+    for idx, arg_len in enumerate(arg_lens):
+        if arg_len not in (1, max_len):
+            max_name = args_names[arg_lens.index(max_len)]
+
+            arg_name_sequence = ""
+            for name in args_names[:-1]:
+                arg_name_sequence += f"{name}, "
+            arg_name_sequence += f"and {args_names[-1]}"
+
+            raise QiskitError(
+                f"""If one of {arg_name_sequence} is given as a list of valid inputs, then the
+                others must specify only a single input, or a list of the same length.
+                {max_name} specifies {max_len} inputs, but {args_names[idx]} is of length {arg_len},
+                which is incompatible."""
+            )
+
+    args_as_lists = [
+        x * max_len if arg_len == 1 else x for x, arg_len in zip(args_as_lists, arg_lens)
+    ]
+    return args_as_lists, args_were_lists

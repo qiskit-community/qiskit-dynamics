@@ -105,6 +105,8 @@ def solve_ode(
     - ``'jax_RK4'``: JAX backend implementation of ``'RK4'`` method.
     - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
       solver.
+    - ``diffrax.diffeqsolve`` - a JAX solver function, called by passing ``method``
+      as a valid ``diffrax.solver.AbstractSolver`` instance. Requires the ``diffrax`` library.
 
     Results are returned as a :class:`OdeResult` object.
 
@@ -209,7 +211,7 @@ def solve_lmde(
       but uses using Lanczos algorithm. Requires additional kwargs ``max_dt`` and ``k_dim``
       indicating the maximum step size to take and Krylov subspace dimension, respectively.
       ``k_dim`` acts an adjustable accuracy parameter and ``k_dim`` < ``model.dim``. Note
-      that the generator must be necessarily hermitian and preferably in sparse evaluation
+      that the generator must be necessarily anti-hermitian and preferably in sparse evaluation
       mode for better performance.
     - ``'jax_lanczos_diag'`` JAX implementation of ``'lanczos_diag'``
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
@@ -252,12 +254,10 @@ def solve_lmde(
     """
 
     # delegate to solve_ode if necessary
-    if method in ODE_METHODS or (
-        isinstance(method, type)
-        and (
-            issubclass(method, OdeSolver)
-            or (diffrax_installed and issubclass(method, AbstractSolver))
-        )
+    if (
+        method in ODE_METHODS
+        or (isinstance(method, type) and (issubclass(method, OdeSolver)))
+        or (diffrax_installed and isinstance(method, AbstractSolver))
     ):
         if isinstance(generator, BaseGeneratorModel):
             rhs = generator
@@ -292,15 +292,20 @@ def solve_lmde(
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     if method == "lanczos_diag":
-        if "sparse" not in generator.evaluation_mode:
+        if isinstance(generator, BaseGeneratorModel) and "sparse" not in generator.evaluation_mode:
             warn(
                 "lanczos_diag must be used with a generator in sparse mode for better performance.",
                 category=Warning,
                 stacklevel=5,
             )
             # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
-        if not is_hermitian(1j * solver_generator(1.12)):
-            raise QiskitError("lanczos_diag must be used with hermitian generators.")
+        if type(solver_generator) in [LindbladModel, GeneratorModel] or (
+            not is_hermitian(1j * solver_generator(t_span[0]))
+        ):
+            raise QiskitError(
+                """Lanczos solver can only be used for HamiltonianModel or function-based
+                   anti-Hermitian generators."""
+            )
         results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
         if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
