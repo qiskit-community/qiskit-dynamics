@@ -179,20 +179,25 @@ def jax_lanczos_diag_solver(
         max_dt: Maximum step size.
         t_eval: Optional list of time points at which to return the solution.
         k_dim: Integer which specifies the dimension of Krylov subspace used for
-               lanczos iteration. Acts as an accuracy parameter. ``k_dim < dim(generator)``.
+               lanczos iteration. Acts as an accuracy parameter. ``k_dim`` must
+               always be less than or equal to dimension of generator.
 
     Returns:
         OdeResult: Results object.
+
+    Raises:
+        QiskitError: If ``k_dim`` is greater than dimension of generator
     """
 
-    # k_dim = kwargs.get("k_dim", max(2, generator(0).shape[0] // 4))
+    dim = generator(0).shape[0]
     if k_dim is None:
-        k_dim = generator(0).shape[0] // 4
+        k_dim = dim // 4
+    if k_dim > dim:
+        raise QiskitError(f"k_dim value {k_dim} is greater than dimension of generator {dim}")
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
-        # since qiskt-dynamics generator is -1j*H but lanczos only works on hermitian arrays
-        return jax_lanczos_expm(1j * generator(eval_time), y, k_dim, h)
+        return jax_lanczos_expm(generator(eval_time), y, k_dim, h)
 
     return fixed_step_solver_template_jax(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval

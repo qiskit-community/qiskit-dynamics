@@ -158,38 +158,41 @@ def lanczos_expm(
 
 
 @requires_backend("jax")
-def jax_lanczos_basis(array: Array, v_0: Array, k_dim: int):
+def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
     """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
-    using Lanczos algorithm implemented with ``jax``.
+    using Lanczos algorithm. Implemented with ``jax``.
+    reference: https://tensornetwork.org/mps/algorithms/timeevo/global-krylov.html
 
     Args:
-        array : Array to tridiagonalise.
-        v_0 : Initial state.
+        A : Array to tridiagonalise. Must be hermitian.
+        y0 : Vector to initialise Lanczos iteration.
         k_dim : Dimension of the krylov subspace.
 
     Returns:
-        tridiagonal : Tridiagonal projection of ``array``.
+        tridiagonal : Tridiagonal projection of ``A``.
         q_basis : Basis of the krylov subspace.
     """
 
-    data_type = jnp.result_type(array.dtype, v_0.dtype)
-    v_0 = v_0.astype(data_type)
+    data_type = jnp.result_type(A.dtype, y0.dtype)
+    y0 = y0.astype(data_type)
 
-    projection_0 = array @ v_0
-    alpha_0 = v_0.conj().T @ projection_0
-    projection_0 = projection_0 - alpha_0 * v_0
-    beta_0 = jnp.sqrt(jnp.abs(projection_0.conj().T @ projection_0))
+    y0 = y0 / jnp.linalg.norm(y0)
 
-    initial = [v_0, projection_0, beta_0]
+    projection_0 = A @ y0
+    alpha_0 = y0.conj().T @ projection_0
+    projection_0 = projection_0 - alpha_0 * y0
+    beta_0 = jnp.linalg.norm(projection_0)
+
+    initial = [y0, projection_0, beta_0]
 
     def lanczos_iter(carry, _):
         q_p, projection, beta_p = carry
 
         q_i = projection.T / beta_p
-        projection = array @ q_i
+        projection = A @ q_i
         alpha_i = q_i.conj().T @ projection
         projection = projection - alpha_i * q_i - beta_p * q_p
-        beta_i = jnp.sqrt(jnp.abs(projection.conj().T @ projection))
+        beta_i = jnp.linalg.norm(projection)
 
         delta = q_i.conj().T @ projection
         projection = projection - delta * q_i
@@ -204,7 +207,7 @@ def jax_lanczos_basis(array: Array, v_0: Array, k_dim: int):
 
     alpha = jnp.array([alpha_0, *alpha])
     beta = jnp.array([beta_0, *beta])
-    q_basis = jnp.array([v_0, *q_basis])
+    q_basis = jnp.array([y0, *q_basis])
 
     tridiagonal = (
         jnp.diag(alpha, k=0) + jnp.diag(beta[: k_dim - 1], k=-1) + jnp.diag(beta[: k_dim - 1], k=1)
@@ -214,52 +217,66 @@ def jax_lanczos_basis(array: Array, v_0: Array, k_dim: int):
 
 
 @requires_backend("jax")
-def jax_lanczos_eig(array: Array, v_0: Array, k_dim: int):
-    """
-    Finds the lowest k_dim eigenvalues and corresponding eigenvectors of a hermitian array
-    using Lanczos algorithm implemented with ``jax``.
+def jax_lanczos_eigh(A: Array, y0: Array, k_dim: int):
+    """Finds the lowest (Algebraic) ``k_dim`` eigenvalues and corresponding eigenvectors of a
+    hermitian array using Lanczos algorithm. Implemented with ``jax``.
     Args:
-        array : Array to diagonalize.
-        v_0 : Initial state.
+        A : Array to diagonalize. Must be hermitian.
+        y0 : Vector to initialise Lanczos iteration.
         k_dim : Dimension of the krylov subspace.
 
     Returns:
         q_basis : Basis of the krylov subspace.
         eigen_values : lowest ``k_dim`` Eigenvalues.
-        eigen_vectors_t : Eigenvectors in both krylov-space.
-        eigen_vectors_a : Eigenvectors in both hilbert-space.
+        eigen_vectors_t : Eigenvectors in krylov-space.
     """
 
-    tridiagonal, q_basis = jax_lanczos_basis(array, v_0, k_dim)
+    tridiagonal, q_basis = jax_lanczos_basis(A, y0, k_dim)
     eigen_values, eigen_vectors_t = jnp.linalg.eigh(tridiagonal)
 
-    eigen_vectors_a = q_basis @ eigen_vectors_t
+    # Eigenvectors in hilbert-space.
+    # eigen_vectors_a = q_basis @ eigen_vectors_t
 
-    return q_basis, eigen_values, eigen_vectors_t, eigen_vectors_a
+    return q_basis, eigen_values, eigen_vectors_t
 
 
 @requires_backend("jax")
 def jax_lanczos_expm(
-    array: Array,
-    v_0: Array,
+    A: Array,
+    y0: Array,
     k_dim: int,
-    max_dt: float,
+    scale_factor: Optional[float] = 1,
 ):
-    """Calculates action of matrix exponential on the state using Lanczos algorithm
-    implemented with ``jax``.
+    """Calculates action of matrix exponential of an anti-hermitian array on the state using
+    Lanczos algorithm. Implemented with ``jax``.
 
     Args:
-        array : Array to exponentiate.
-        v_0 : Initial state.
+        A : Array to exponentiate. Must be anti-hermitian.
+        y0 : Initial state.
         k_dim : Dimension of the krylov subspace.
-        max_dt : Maximum step size.
+        scale_factor : Maximum step size.
 
     Returns:
         y_dt : Action of matrix exponential on state.
+
+    Raises:
+        ValueError : If ``y0`` is not 1d or 2d
     """
 
-    q_basis, eigen_values, eigen_vectors_t, _ = jax_lanczos_eig(array, v_0, k_dim)
-    y_dt = (
-        q_basis @ eigen_vectors_t @ (jnp.exp(-1j * max_dt * eigen_values) * eigen_vectors_t[0, :])
-    )
+    if y0.ndim == 1:
+        A = 1j * A  # make hermitian
+        q_basis, eigen_values, eigen_vectors_t = jax_lanczos_eigh(A, y0, k_dim)
+        y_dt = (
+            q_basis
+            @ eigen_vectors_t
+            @ (jnp.exp(-1j * scale_factor * eigen_values) * eigen_vectors_t[0, :])
+        )
+
+    elif y0.ndim == 2:
+        y_dt = [jax_lanczos_expm(A, yi, k_dim, scale_factor) for yi in y0.T]
+        y_dt = jnp.array(y_dt).T
+
+    else:
+        raise ValueError("y0 must be 1d or 2d")
+
     return y_dt

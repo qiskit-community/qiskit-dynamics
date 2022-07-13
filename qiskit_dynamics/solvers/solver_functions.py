@@ -213,7 +213,8 @@ def solve_lmde(
       ``k_dim`` acts an adjustable accuracy parameter and ``k_dim`` < ``model.dim``. Note
       that the generator must be necessarily anti-hermitian and preferably in sparse evaluation
       mode for better performance.
-    - ``'jax_lanczos_diag'`` JAX implementation of ``'lanczos_diag'``
+    - ``'jax_lanczos_diag'`` JAX implementation of ``'lanczos_diag'``, with the same arguments
+      and behaviour.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
@@ -312,15 +313,19 @@ def solve_lmde(
             raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
         results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_lanczos_diag":
-        if "sparse" not in generator.evaluation_mode:
+        if isinstance(generator, BaseGeneratorModel) and "sparse" not in generator.evaluation_mode:
             warn(
                 "lanczos_diag must be used with a generator in sparse mode for better performance.",
                 category=Warning,
                 stacklevel=5,
             )
-            # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
-        # if not is_hermitian(1j * solver_generator(sum(t_eval) / 2.121)):
-        # raise QiskitError("lanczos_diag must be used with hermitian generators.")
+        if type(generator) in [LindbladModel, GeneratorModel] or (
+            not is_hermitian(1j * solver_generator(t_span[0]))
+        ):
+            raise QiskitError(
+                """Lanczos solver can only be used for HamiltonianModel or function-based
+                   anti-Hermitian generators."""
+            )
         results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm_parallel":
         results = jax_expm_parallel_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
