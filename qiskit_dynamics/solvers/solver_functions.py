@@ -319,9 +319,7 @@ def solve_lmde(
                 category=Warning,
                 stacklevel=5,
             )
-        if type(generator) in [LindbladModel, GeneratorModel] or (
-            not is_hermitian(1j * solver_generator(t_span[0]))
-        ):
+        if type(generator) in [LindbladModel, GeneratorModel]:
             raise QiskitError(
                 """Lanczos solver can only be used for HamiltonianModel or function-based
                    anti-Hermitian generators."""
