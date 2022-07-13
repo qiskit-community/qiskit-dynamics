@@ -84,7 +84,7 @@ def lanczos_basis(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
     return tridiagonal, q_basis
 
 
-def lanczos_eig(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
+def lanczos_eigh(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
     """Finds the lowest (Algebraic) ``k_dim`` eigenvalues and corresponding eigenvectors of a
     hermitian array using Lanczos algorithm.
     Args:
@@ -96,15 +96,15 @@ def lanczos_eig(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
         q_basis : Basis of the krylov subspace.
         eigen_values : lowest ``k_dim`` Eigenvalues.
         eigen_vectors_t : Eigenvectors in krylov-space.
-        eigen_vectors_a : Eigenvectors in hilbert-space.
     """
 
     tridiagonal, q_basis = lanczos_basis(A, y0, k_dim)
     eigen_values, eigen_vectors_t = np.linalg.eigh(tridiagonal)
 
-    eigen_vectors_a = q_basis @ eigen_vectors_t
+    # Eigenvectors in hilbert-space.
+    # eigen_vectors_a = q_basis @ eigen_vectors_t
 
-    return q_basis, eigen_values, eigen_vectors_t, eigen_vectors_a
+    return q_basis, eigen_values, eigen_vectors_t
 
 
 def lanczos_expm(
@@ -131,7 +131,7 @@ def lanczos_expm(
 
     if y0.ndim == 1:
         A = 1j * A  # make hermitian
-        q_basis, eigen_values, eigen_vectors_t, _ = lanczos_eig(A, y0, k_dim)
+        q_basis, eigen_values, eigen_vectors_t = lanczos_eigh(A, y0, k_dim)
         y_dt = (
             q_basis
             @ eigen_vectors_t
