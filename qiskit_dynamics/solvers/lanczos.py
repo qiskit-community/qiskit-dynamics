@@ -179,11 +179,11 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
     y0 = y0.astype(data_type)
     y0 = y0 / jnp.linalg.norm(y0)
 
-    alpha = jnp.zeros((k_dim,), dtype = data_type)
-    beta = jnp.zeros((k_dim,), dtype = data_type)
-    q_basis = jnp.zeros((k_dim, dim), dtype = data_type)
+    alpha = jnp.zeros((k_dim,), dtype=data_type)
+    beta = jnp.zeros((k_dim,), dtype=data_type)
+    q_basis = jnp.zeros((k_dim, dim), dtype=data_type)
 
-    q_basis = q_basis.at[[0],:].set(y0.T)
+    q_basis = q_basis.at[[0], :].set(y0.T)
     projection_0 = A @ y0
     alpha = alpha.at[0].set((y0.conj().T @ projection_0))
     projection_0 = projection_0 - alpha[0] * y0
@@ -193,7 +193,7 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
     initial_val = [q_basis, projection_0, alpha, beta, idx_0]
 
     def lanczos_iter_cond(val):
-        *_,beta_i, idx = val
+        *_, beta_i, idx = val
         return (idx < k_dim) * (beta_i[idx - 1] > 0.0)
 
     def lanczos_iter(val):
@@ -202,7 +202,7 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
         q_p = q_i[idx - 1, :]
         beta_p = beta_i[idx - 1]
 
-        q_i = q_i.at[[idx],:].set(projection.T / beta_p)
+        q_i = q_i.at[[idx], :].set(projection.T / beta_p)
         projection = A @ q_i[idx, :]
         alpha_i = alpha_i.at[idx].set(q_i[idx, :].conj().T @ projection)
         projection = projection - alpha_i[idx] * q_i[idx, :] - beta_p * q_p
@@ -220,7 +220,7 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
     (q_basis, _, alpha, beta, _) = while_loop(lanczos_iter_cond, lanczos_iter, initial_val)
 
     tridiagonal = (
-        jnp.diag(alpha, k=0) + jnp.diag(beta[:k_dim-1], k=-1) + jnp.diag(beta[:k_dim-1], k=1)
+        jnp.diag(alpha, k=0) + jnp.diag(beta[: k_dim - 1], k=-1) + jnp.diag(beta[: k_dim - 1], k=1)
     )
     q_basis = q_basis.T
     return tridiagonal, q_basis
