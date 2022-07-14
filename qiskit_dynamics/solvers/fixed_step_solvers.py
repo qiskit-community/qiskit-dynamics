@@ -202,6 +202,8 @@ def jax_lanczos_diag_solver(
         eval_time = t0 + (h / 2)
         return jax_lanczos_expm(generator(eval_time), y, k_dim, h).data
 
+    y0 = Array(y0, dtype=complex)
+
     return fixed_step_solver_template_jax(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
