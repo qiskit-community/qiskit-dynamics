@@ -324,7 +324,7 @@ class TestScipyExpmSolver(TestFixedStepBase):
         return scipy_expm_solver(rhs, t_span, y0, max_dt, t_eval)
 
 
-class TestLanczosDiagSolver(QiskitDynamicsTestCase, TestJaxBase):
+class TestLanczosDiagSolver(QiskitDynamicsTestCase):
     """Test cases for lanczos_diag."""
 
     def setUp(self):
