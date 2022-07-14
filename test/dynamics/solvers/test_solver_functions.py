@@ -322,7 +322,7 @@ class Testlanczos_diag(TestSolverMethod):
         frame_op = self.pseudo_random_model.rotating_frame.frame_operator
 
         # make hermitian
-        operators[0, :, :] = operators[0, :, :].conj().T + operators[0, :, :]
+        operators = operators.conj().transpose(0, 2, 1) + operators
         static_operator = static_operator.conj().T + static_operator
 
         self.pseudo_random_model = HamiltonianModel(
@@ -334,7 +334,7 @@ class Testlanczos_diag(TestSolverMethod):
 
         # simulate directly out of frame
         def pseudo_random_rhs(t, y=None):
-            op = static_operator + self.pseudo_random_signal(t) * operators[0]
+            op = static_operator + self.pseudo_random_signal(t).data * operators[0]
             op = -1j * op
             if y is None:
                 return op
@@ -354,6 +354,40 @@ class Testlanczos_diag(TestSolverMethod):
             k_dim=max(y0.shape),
             **kwargs,
         )
+
+
+class Testjax_lanczos_diag(Testlanczos_diag, TestJaxBase):
+    """Test class for jax_expm_solver."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="jax_lanczos_diag",
+            t_eval=t_eval,
+            max_dt=0.005,
+            k_dim=max(y0.shape),
+            **kwargs,
+        )
+
+    def test_pseudo_random_jit_grad(self):
+        """Validate jitting and gradding through the method at the level of
+        solve_ode/solve_lmde.
+        """
+
+        def func(a):
+            model_copy = self.pseudo_random_model.copy()
+            model_copy.signals = [Signal(Array(a), carrier_freq=1.0)]
+            results = self.solve(model_copy, t_span=[0.0, 0.1], y0=self.pseudo_random_y0)
+            return results.y[-1]
+
+        jit_func = self.jit_wrap(func)
+        self.assertAllClose(jit_func(1.0), func(1.0))
+
+        # # just verify that this runs without error
+        # jit_grad_func = self.jit_grad_wrap(func)
+        # jit_grad_func(1.0)
 
 
 class Testjax_expm(TestSolverMethodJax):
