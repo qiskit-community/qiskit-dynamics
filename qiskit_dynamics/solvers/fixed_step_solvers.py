@@ -200,9 +200,9 @@ def jax_lanczos_diag_solver(
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
-        return jax_lanczos_expm(generator(eval_time), y, k_dim, h)
+        return jax_lanczos_expm(generator(eval_time), y, k_dim, h).data
 
-    return fixed_step_solver_template_jax2(
+    return fixed_step_solver_template_jax(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
@@ -464,9 +464,6 @@ def fixed_step_solver_template_jax(
     results = OdeResult(t=t_list, y=ys)
 
     return trim_t_results(results, t_span, t_eval)
-
-
-fixed_step_solver_template_jax2 = wrap(fixed_step_solver_template_jax)
 
 
 def fixed_step_lmde_solver_parallel_template_jax(
