@@ -29,7 +29,7 @@ from qiskit_dynamics.solvers.solver_functions import (
     results_y_out_of_frame_basis,
 )
 
-from ..common import QiskitDynamicsTestCase
+from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
@@ -42,7 +42,7 @@ class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
             solve_ode(lambda t, y: y, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
 
 
-class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
+class Testsolve_lmde_exceptions(QiskitDynamicsTestCase, TestJaxBase):
     """Test for solve_lmde error raising."""
 
     def setUp(self):
@@ -72,6 +72,16 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
                 k_dim=2,
             )
 
+        with self.assertRaisesRegex(QiskitError, "anti-Hermitian generators"):
+            solve_lmde(
+                GeneratorModel(static_operator=np.array([[0, 1], [-1, 0]])),
+                t_span=[0.0, 1.0],
+                y0=np.array([1.0, 0.0]),
+                method="lanczos_diag",
+                max_dt=0.1,
+                k_dim=2,
+            )
+
     def test_lanczos_k_dim(self):
         """Test error raising when number of lanczos vectors is greater than dimension of
         generator."""
@@ -86,6 +96,16 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
                 k_dim=4,
             )
 
+        with self.assertRaisesRegex(QiskitError, "greater than dimension of generator"):
+            solve_lmde(
+                lambda t: np.array([[0, 1], [-1, 0]]),
+                t_span=[0.0, 1.0],
+                y0=np.array([1.0, 0.0]),
+                method="jax_lanczos_diag",
+                max_dt=0.1,
+                k_dim=4,
+            )
+
     def test_lanczos_y0_dim(self):
         """Test error raising when y0 is not 1d or 2d in lanczos."""
 
@@ -95,6 +115,16 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
                 t_span=[0.0, 1.0],
                 y0=np.random.rand(2, 2, 2),
                 method="lanczos_diag",
+                max_dt=0.1,
+                k_dim=2,
+            )
+
+        with self.assertRaisesRegex(ValueError, "y0 must be 1d or 2d"):
+            solve_lmde(
+                lambda t: np.array([[0, 1], [-1, 0]]),
+                t_span=[0.0, 1.0],
+                y0=np.random.rand(2, 2, 2),
+                method="jax_lanczos_diag",
                 max_dt=0.1,
                 k_dim=2,
             )
