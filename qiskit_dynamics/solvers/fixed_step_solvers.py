@@ -23,7 +23,7 @@ from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
 
 from qiskit_dynamics.dispatch import requires_backend
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.array import Array, wrap
 
 try:
     import jax
@@ -35,7 +35,10 @@ except ImportError:
     pass
 
 from .solver_utils import merge_t_args, trim_t_results
-from .lanczos import lanczos_expm, jax_lanczos_expm
+from .lanczos import lanczos_expm
+from .lanczos import jax_lanczos_expm as jax_lanczos_expm_
+
+jax_lanczos_expm = wrap(jax_lanczos_expm_)
 
 
 def RK4_solver(
