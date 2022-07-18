@@ -170,7 +170,7 @@ First run includes compile time.
     %time yf_dyson = jit_dyson_sim(1.).block_until_ready()
 
 
-Second run demonstrates the speed of the solver.
+Once JIT compilation has been performance we can benchmark the performance of the jit-compiled solver:
 
 .. jupyter-execute::
 
