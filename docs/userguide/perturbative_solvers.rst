@@ -80,6 +80,7 @@ higher dimension to observe a difference between the solvers.
     anharm = -0.33  # Transmon anharmonicity in GHz
     r = 0.02  # Transmon drive coupling in GHz
 
+    # Construct cavity operators
     a = np.diag(np.sqrt(np.arange(1, dim)), 1)
     adag = np.diag(np.sqrt(np.arange(1, dim)), -1)
     N = np.diag(np.arange(dim))
