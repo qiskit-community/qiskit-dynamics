@@ -77,7 +77,7 @@ higher dimension to observe a difference between the solvers.
     dim = 10  # Oscillator dimension
 
     v = 5.  # Transmon frequency in GHz
-    anharm = -0.33
+    anharm = -0.33  # Transmon anharmonicity in GHz
     r = 0.02
 
     a = np.diag(np.sqrt(np.arange(1, dim)), 1)
