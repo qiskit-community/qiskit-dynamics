@@ -74,7 +74,7 @@ higher dimension to observe a difference between the solvers.
 
     import numpy as np
 
-    dim = 10
+    dim = 10  # Oscillator dimension
 
     v = 5.
     anharm = -0.33
