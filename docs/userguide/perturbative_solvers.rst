@@ -87,7 +87,7 @@ higher dimension to observe a difference between the solvers.
 
     # Static part of Hamiltonian
     static_hamiltonian = 2 * np.pi * v * N + np.pi * anharm * N * (N - np.eye(dim))
-    # drive term
+    # Drive term of Hamiltonian
     drive_hamiltonian = 2 * np.pi * r * (a + adag)
 
     # total simulation time
