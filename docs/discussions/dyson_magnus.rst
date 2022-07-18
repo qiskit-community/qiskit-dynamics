@@ -18,7 +18,12 @@ The Dyson series and Magnus expansion
 The Dyson series :footcite:`dyson_radiation_1949` and Magnus expansion
 :footcite:`magnus_exponential_1954,blanes_magnus_2009`
 are time-dependent perturbation theory expansions for solutions of linear matrix differential
-equations (LMDEs). For an LMDE :math:`\dot{U}(t) = G(t)U(t)`,
+equations (LMDEs). For an LMDE
+
+.. math::
+    
+    \dot{U}(t) = G(t)U(t)
+
 with :math:`U(0) = I` the identity matrix, the Dyson series directly expands the solution:
 
 .. math::
