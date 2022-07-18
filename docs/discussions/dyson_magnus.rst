@@ -79,7 +79,10 @@ depends linearly on the variables, e.g. when representing couplings between quan
 Before defining the multi-variable Dyson series and Magnus expansions, we transform
 the generator into the *toggling frame* of :math:`G_\emptyset(t)`
 :footcite:`evans_timedependent_1967,haeberlen_1968`. Denoting
-:math:`V(t) = \mathcal{T}\exp(\int_{t_0}^t ds G_\emptyset(s))`,
+
+.. math::
+
+    V(t) = \mathcal{T}\exp(\int_{t_0}^t ds G_\emptyset(s)),
 the generator :math:`G` in the toggling frame of :math:`G_\emptyset(t)`,
 the unperturbed generator, is given by:
 
