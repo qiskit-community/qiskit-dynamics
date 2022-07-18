@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name, no-member
 
-"""Tests for perturbative_solver.py"""
+"""Tests for perturbative solvers."""
 
 import numpy as np
 from numpy.polynomial.chebyshev import Chebyshev
