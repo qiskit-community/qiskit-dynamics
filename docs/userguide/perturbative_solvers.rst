@@ -78,7 +78,7 @@ higher dimension to observe a difference between the solvers.
 
     v = 5.  # Transmon frequency in GHz
     anharm = -0.33  # Transmon anharmonicity in GHz
-    r = 0.02
+    r = 0.02  # Transmon drive coupling in GHz
 
     a = np.diag(np.sqrt(np.arange(1, dim)), 1)
     adag = np.diag(np.sqrt(np.arange(1, dim)), -1)
