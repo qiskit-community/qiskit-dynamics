@@ -171,9 +171,10 @@ def solve_lmde_perturbation(
           and the second axis indexes the perturbation terms evaluated
           at the times in ``results.t`` in the same manner as ``results.y``.
 
-    Additionally, to retrieve the term with a given label, a :class:`.PerturbationResults` instance
-    can be subscripted, e.g. the results for the computation for the term with indices
-    ``[0, 1]`` is retrievable via ``results.perturbation_results[[0, 1]]``.
+    Additionally, to retrieve the term with a given label, the :meth:`.PerturbationResults.get_term`
+    method of a :class:`.PerturbationResults` instance can be called
+    e.g. the results for the computation for the term with label
+    ``[0, 1]`` is retrievable via ``results.perturbation_results.get_term([0, 1])``.
 
     Args:
         perturbations: List of matrix-valued callables.

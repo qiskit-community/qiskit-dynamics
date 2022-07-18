@@ -30,27 +30,25 @@ class PerturbationResults:
     Attributes are:
 
         - ``expansion_method``: Which perturbative expansion the terms correspond to.
-        - ``expansion_labels``: A list of labels for the stored expanion terms.
+        - ``expansion_labels``: A list of labels for the stored expansion terms.
         - ``expansion_terms``: A single array containing all expansion terms, whose first
           index is assumed to have corresponding ordering with ``expansion_labels``.
 
-    Aside storing the above, this class can be subscripted to retrieve an entry of
-    ``expansion_terms`` at the location at which a given ``label`` appears in
-    ``expansion_labels``. E.g. the perturbation term with label ``[0, 1, 2]``
+    An entry of ``expansion_term`` can be retrieved with its corresponding label by calling
+    the ``get_term`` method of this class. E.g. the perturbation term with label ``[0, 1, 2]``
     can be retrieved from an instance named ``perturbation_results`` via:
 
     .. code:: python
 
-        perturbation_results[[0, 1, 2]]
+        perturbation_results.get_term([0, 1, 2])
 
-    .. automethod:: __getitem__
     """
 
     expansion_method: str
     expansion_labels: Union[List[List[int]], List[Multiset]]
     expansion_terms: Array
 
-    def __getitem__(self, label: Union[list, Multiset]) -> Array:
+    def get_term(self, label: Union[list, Multiset]) -> Array:
         """Return the expansion term with a given label.
 
         Return the entry of ``self.expansion_terms`` at the index at which

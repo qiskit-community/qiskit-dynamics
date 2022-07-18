@@ -154,17 +154,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         expected_D0001 = U @ np.array([[0], [T10 / 700]], dtype=complex)
         expected_D0011 = U @ np.array([[T9 / 504], [0]], dtype=complex)
 
-        self.assertAllClose(expected_D0, results.perturbation_results[[0]][-1])
-        self.assertAllClose(expected_D1, results.perturbation_results[[1]][-1])
-        self.assertAllClose(expected_D00, results.perturbation_results[[0, 0]][-1])
-        self.assertAllClose(expected_D01, results.perturbation_results[[0, 1]][-1])
-        self.assertAllClose(expected_D10, results.perturbation_results[[1, 0]][-1])
-        self.assertAllClose(expected_D11, results.perturbation_results[[1, 1]][-1])
-        self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
-        self.assertAllClose(expected_D010, results.perturbation_results[[0, 1, 0]][-1])
-        self.assertAllClose(expected_D100, results.perturbation_results[[1, 0, 0]][-1])
-        self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
-        self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
+        self.assertAllClose(expected_D0, results.perturbation_results.get_term([0])[-1])
+        self.assertAllClose(expected_D1, results.perturbation_results.get_term([1])[-1])
+        self.assertAllClose(expected_D00, results.perturbation_results.get_term([0, 0])[-1])
+        self.assertAllClose(expected_D01, results.perturbation_results.get_term([0, 1])[-1])
+        self.assertAllClose(expected_D10, results.perturbation_results.get_term([1, 0])[-1])
+        self.assertAllClose(expected_D11, results.perturbation_results.get_term([1, 1])[-1])
+        self.assertAllClose(expected_D001, results.perturbation_results.get_term([0, 0, 1])[-1])
+        self.assertAllClose(expected_D010, results.perturbation_results.get_term([0, 1, 0])[-1])
+        self.assertAllClose(expected_D100, results.perturbation_results.get_term([1, 0, 0])[-1])
+        self.assertAllClose(expected_D0001, results.perturbation_results.get_term([0, 0, 0, 1])[-1])
+        self.assertAllClose(expected_D0011, results.perturbation_results.get_term([0, 0, 1, 1])[-1])
 
     def test_dyson_like_analytic_case1(self):
         """Analytic test of computing dyson_like terms.
@@ -217,17 +217,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         expected_D0001 = np.array([[0, T10 / 1200], [T10 / 700, 0]], dtype=complex)
         expected_D0011 = np.array([[T9 / 504, 0], [0, T11 / 1584]], dtype=complex)
 
-        self.assertAllClose(expected_D0, results.perturbation_results[[0]][-1])
-        self.assertAllClose(expected_D1, results.perturbation_results[[1]][-1])
-        self.assertAllClose(expected_D00, results.perturbation_results[[0, 0]][-1])
-        self.assertAllClose(expected_D01, results.perturbation_results[[0, 1]][-1])
-        self.assertAllClose(expected_D10, results.perturbation_results[[1, 0]][-1])
-        self.assertAllClose(expected_D11, results.perturbation_results[[1, 1]][-1])
-        self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
-        self.assertAllClose(expected_D010, results.perturbation_results[[0, 1, 0]][-1])
-        self.assertAllClose(expected_D100, results.perturbation_results[[1, 0, 0]][-1])
-        self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
-        self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
+        self.assertAllClose(expected_D0, results.perturbation_results.get_term([0])[-1])
+        self.assertAllClose(expected_D1, results.perturbation_results.get_term([1])[-1])
+        self.assertAllClose(expected_D00, results.perturbation_results.get_term([0, 0])[-1])
+        self.assertAllClose(expected_D01, results.perturbation_results.get_term([0, 1])[-1])
+        self.assertAllClose(expected_D10, results.perturbation_results.get_term([1, 0])[-1])
+        self.assertAllClose(expected_D11, results.perturbation_results.get_term([1, 1])[-1])
+        self.assertAllClose(expected_D001, results.perturbation_results.get_term([0, 0, 1])[-1])
+        self.assertAllClose(expected_D010, results.perturbation_results.get_term([0, 1, 0])[-1])
+        self.assertAllClose(expected_D100, results.perturbation_results.get_term([1, 0, 0])[-1])
+        self.assertAllClose(expected_D0001, results.perturbation_results.get_term([0, 0, 0, 1])[-1])
+        self.assertAllClose(expected_D0011, results.perturbation_results.get_term([0, 0, 1, 1])[-1])
 
     def test_dyson_like_analytic_case1_reduced(self):
         """Analytic test of computing dyson_like terms, with reduced perturbation terms requested
@@ -273,10 +273,10 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         expected_D001 = np.array([[T7 / 70, 0], [0, T8 / 120]], dtype=complex)
         expected_D0001 = np.array([[0, T10 / 1200], [T10 / 700, 0]], dtype=complex)
 
-        self.assertAllClose(expected_D1, results.perturbation_results[[1]][-1])
-        self.assertAllClose(expected_D01, results.perturbation_results[[0, 1]][-1])
-        self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
-        self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
+        self.assertAllClose(expected_D1, results.perturbation_results.get_term([1])[-1])
+        self.assertAllClose(expected_D01, results.perturbation_results.get_term([0, 1])[-1])
+        self.assertAllClose(expected_D001, results.perturbation_results.get_term([0, 0, 1])[-1])
+        self.assertAllClose(expected_D0001, results.perturbation_results.get_term([0, 0, 0, 1])[-1])
 
     def test_dyson_like_semi_analytic_case1(self):
         """Semi-analytic test case 1 for computing dyson_like terms.
@@ -387,31 +387,40 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(
-            expected_D0, results.perturbation_results[[0]][-1], rtol=1e-10, atol=1e-10
+            expected_D0, results.perturbation_results.get_term([0])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D1, results.perturbation_results[[1]][-1], rtol=1e-10, atol=1e-10
+            expected_D1, results.perturbation_results.get_term([1])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D00, results.perturbation_results[[0, 0]][-1], rtol=1e-10, atol=1e-10
+            expected_D00, results.perturbation_results.get_term([0, 0])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D01, results.perturbation_results[[0, 1]][-1], rtol=1e-10, atol=1e-10
+            expected_D01, results.perturbation_results.get_term([0, 1])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D10, results.perturbation_results[[1, 0]][-1], rtol=1e-10, atol=1e-10
+            expected_D10, results.perturbation_results.get_term([1, 0])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D11, results.perturbation_results[[1, 1]][-1], rtol=1e-10, atol=1e-10
+            expected_D11, results.perturbation_results.get_term([1, 1])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D001, results.perturbation_results[[0, 0, 1]][-1], rtol=1e-10, atol=1e-10
+            expected_D001,
+            results.perturbation_results.get_term([0, 0, 1])[-1],
+            rtol=1e-10,
+            atol=1e-10,
         )
         self.assertAllClose(
-            expected_D010, results.perturbation_results[[0, 1, 0]][-1], rtol=1e-10, atol=1e-10
+            expected_D010,
+            results.perturbation_results.get_term([0, 1, 0])[-1],
+            rtol=1e-10,
+            atol=1e-10,
         )
         self.assertAllClose(
-            expected_D100, results.perturbation_results[[1, 0, 0]][-1], rtol=1e-10, atol=1e-10
+            expected_D100,
+            results.perturbation_results.get_term([1, 0, 0])[-1],
+            rtol=1e-10,
+            atol=1e-10,
         )
 
     def test_dyson_analytic_case1_1d(self):
@@ -483,14 +492,14 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             dtype=complex,
         )
 
-        self.assertAllClose(expected_D0, results.perturbation_results[[0]][-1])
-        self.assertAllClose(expected_D1, results.perturbation_results[[1]][-1])
-        self.assertAllClose(expected_D00, results.perturbation_results[[0, 0]][-1])
-        self.assertAllClose(expected_D01, results.perturbation_results[[0, 1]][-1])
-        self.assertAllClose(expected_D11, results.perturbation_results[[1, 1]][-1])
-        self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
-        self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
-        self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
+        self.assertAllClose(expected_D0, results.perturbation_results.get_term([0])[-1])
+        self.assertAllClose(expected_D1, results.perturbation_results.get_term([1])[-1])
+        self.assertAllClose(expected_D00, results.perturbation_results.get_term([0, 0])[-1])
+        self.assertAllClose(expected_D01, results.perturbation_results.get_term([0, 1])[-1])
+        self.assertAllClose(expected_D11, results.perturbation_results.get_term([1, 1])[-1])
+        self.assertAllClose(expected_D001, results.perturbation_results.get_term([0, 0, 1])[-1])
+        self.assertAllClose(expected_D0001, results.perturbation_results.get_term([0, 0, 0, 1])[-1])
+        self.assertAllClose(expected_D0011, results.perturbation_results.get_term([0, 0, 1, 1])[-1])
 
     def test_dyson_analytic_case1(self):
         """Analytic test of computing dyson terms.
@@ -559,14 +568,14 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             dtype=complex,
         )
 
-        self.assertAllClose(expected_D0, results.perturbation_results[[0]][-1])
-        self.assertAllClose(expected_D1, results.perturbation_results[[1]][-1])
-        self.assertAllClose(expected_D00, results.perturbation_results[[0, 0]][-1])
-        self.assertAllClose(expected_D01, results.perturbation_results[[0, 1]][-1])
-        self.assertAllClose(expected_D11, results.perturbation_results[[1, 1]][-1])
-        self.assertAllClose(expected_D001, results.perturbation_results[[0, 0, 1]][-1])
-        self.assertAllClose(expected_D0001, results.perturbation_results[[0, 0, 0, 1]][-1])
-        self.assertAllClose(expected_D0011, results.perturbation_results[[0, 0, 1, 1]][-1])
+        self.assertAllClose(expected_D0, results.perturbation_results.get_term([0])[-1])
+        self.assertAllClose(expected_D1, results.perturbation_results.get_term([1])[-1])
+        self.assertAllClose(expected_D00, results.perturbation_results.get_term([0, 0])[-1])
+        self.assertAllClose(expected_D01, results.perturbation_results.get_term([0, 1])[-1])
+        self.assertAllClose(expected_D11, results.perturbation_results.get_term([1, 1])[-1])
+        self.assertAllClose(expected_D001, results.perturbation_results.get_term([0, 0, 1])[-1])
+        self.assertAllClose(expected_D0001, results.perturbation_results.get_term([0, 0, 0, 1])[-1])
+        self.assertAllClose(expected_D0011, results.perturbation_results.get_term([0, 0, 1, 1])[-1])
 
     def test_magnus_analytic_case1(self):
         """Analytic test of computing magnus terms.
@@ -646,14 +655,14 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
             dtype=complex,
         )
 
-        self.assertAllClose(expected_M0, results.perturbation_results[[0]][-1])
-        self.assertAllClose(expected_M1, results.perturbation_results[[1]][-1])
-        self.assertAllClose(expected_M00, results.perturbation_results[[0, 0]][-1])
-        self.assertAllClose(expected_M01, results.perturbation_results[[0, 1]][-1])
-        self.assertAllClose(expected_M11, results.perturbation_results[[1, 1]][-1])
-        self.assertAllClose(expected_M001, results.perturbation_results[[0, 0, 1]][-1])
-        self.assertAllClose(expected_M0001, results.perturbation_results[[0, 0, 0, 1]][-1])
-        self.assertAllClose(expected_M0011, results.perturbation_results[[0, 0, 1, 1]][-1])
+        self.assertAllClose(expected_M0, results.perturbation_results.get_term([0])[-1])
+        self.assertAllClose(expected_M1, results.perturbation_results.get_term([1])[-1])
+        self.assertAllClose(expected_M00, results.perturbation_results.get_term([0, 0])[-1])
+        self.assertAllClose(expected_M01, results.perturbation_results.get_term([0, 1])[-1])
+        self.assertAllClose(expected_M11, results.perturbation_results.get_term([1, 1])[-1])
+        self.assertAllClose(expected_M001, results.perturbation_results.get_term([0, 0, 1])[-1])
+        self.assertAllClose(expected_M0001, results.perturbation_results.get_term([0, 0, 0, 1])[-1])
+        self.assertAllClose(expected_M0011, results.perturbation_results.get_term([0, 0, 1, 1])[-1])
 
     def test_dyson_semi_analytic_case1(self):
         """Semi-analytic test case 1 for computing dyson terms.
@@ -756,22 +765,25 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(
-            expected_D0, results.perturbation_results[[0]][-1], rtol=1e-10, atol=1e-10
+            expected_D0, results.perturbation_results.get_term([0])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D1, results.perturbation_results[[1]][-1], rtol=1e-10, atol=1e-10
+            expected_D1, results.perturbation_results.get_term([1])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D00, results.perturbation_results[[0, 0]][-1], rtol=1e-10, atol=1e-10
+            expected_D00, results.perturbation_results.get_term([0, 0])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D01, results.perturbation_results[[1, 0]][-1], rtol=1e-10, atol=1e-10
+            expected_D01, results.perturbation_results.get_term([1, 0])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D11, results.perturbation_results[[1, 1]][-1], rtol=1e-10, atol=1e-10
+            expected_D11, results.perturbation_results.get_term([1, 1])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_D001, results.perturbation_results[[0, 0, 1]][-1], rtol=1e-10, atol=1e-10
+            expected_D001,
+            results.perturbation_results.get_term([0, 0, 1])[-1],
+            rtol=1e-10,
+            atol=1e-10,
         )
 
     def test_magnus_semi_analytic_case1(self):
@@ -835,19 +847,19 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(
-            expected_M0, results.perturbation_results[[0]][-1], rtol=1e-10, atol=1e-10
+            expected_M0, results.perturbation_results.get_term([0])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_M1, results.perturbation_results[[1]][-1], rtol=1e-10, atol=1e-10
+            expected_M1, results.perturbation_results.get_term([1])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_M00, results.perturbation_results[[0, 0]][-1], rtol=1e-10, atol=1e-10
+            expected_M00, results.perturbation_results.get_term([0, 0])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_M01, results.perturbation_results[[0, 1]][-1], rtol=1e-10, atol=1e-10
+            expected_M01, results.perturbation_results.get_term([0, 1])[-1], rtol=1e-10, atol=1e-10
         )
         self.assertAllClose(
-            expected_M11, results.perturbation_results[[1, 1]][-1], rtol=1e-10, atol=1e-10
+            expected_M11, results.perturbation_results.get_term([1, 1])[-1], rtol=1e-10, atol=1e-10
         )
 
     def test_dyson_power_series_case1(self):
@@ -914,56 +926,62 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
 
         # 1st order consistency
         self.assertAllClose(
-            results_dyson.perturbation_results[[0]][-1],
-            results_sym_dyson.perturbation_results[[0]][-1],
+            results_dyson.perturbation_results.get_term([0])[-1],
+            results_sym_dyson.perturbation_results.get_term([0])[-1],
         )
         self.assertAllClose(
-            results_dyson.perturbation_results[[0]][-1],
-            results_sym_dyson_ps.perturbation_results[[0]][-1],
+            results_dyson.perturbation_results.get_term([0])[-1],
+            results_sym_dyson_ps.perturbation_results.get_term([0])[-1],
         )
         self.assertAllClose(
-            results_dyson.perturbation_results[[1]][-1],
-            results_sym_dyson.perturbation_results[[1]][-1],
+            results_dyson.perturbation_results.get_term([1])[-1],
+            results_sym_dyson.perturbation_results.get_term([1])[-1],
         )
         self.assertAllClose(
-            results_dyson.perturbation_results[[1]][-1],
-            results_sym_dyson_ps.perturbation_results[[1]][-1],
+            results_dyson.perturbation_results.get_term([1])[-1],
+            results_sym_dyson_ps.perturbation_results.get_term([1])[-1],
         )
 
         # 2nd order consistency
         dyson00 = (
-            results_dyson.perturbation_results[[0, 0]][-1]
-            + results_dyson.perturbation_results[[2]][-1]
+            results_dyson.perturbation_results.get_term([0, 0])[-1]
+            + results_dyson.perturbation_results.get_term([2])[-1]
         )
         sym_dyson00 = (
-            results_sym_dyson.perturbation_results[[0, 0]][-1]
-            + results_sym_dyson.perturbation_results[[2]][-1]
+            results_sym_dyson.perturbation_results.get_term([0, 0])[-1]
+            + results_sym_dyson.perturbation_results.get_term([2])[-1]
         )
-        self.assertAllClose(dyson00, results_sym_dyson_ps.perturbation_results[[0, 0]][-1])
-        self.assertAllClose(sym_dyson00, results_sym_dyson_ps.perturbation_results[[0, 0]][-1])
+        self.assertAllClose(dyson00, results_sym_dyson_ps.perturbation_results.get_term([0, 0])[-1])
+        self.assertAllClose(
+            sym_dyson00, results_sym_dyson_ps.perturbation_results.get_term([0, 0])[-1]
+        )
 
         dyson01 = (
-            results_dyson.perturbation_results[[0, 1]][-1]
-            + results_dyson.perturbation_results[[1, 0]][-1]
-            + results_dyson.perturbation_results[[3]][-1]
+            results_dyson.perturbation_results.get_term([0, 1])[-1]
+            + results_dyson.perturbation_results.get_term([1, 0])[-1]
+            + results_dyson.perturbation_results.get_term([3])[-1]
         )
         sym_dyson01 = (
-            results_sym_dyson.perturbation_results[[0, 1]][-1]
-            + results_sym_dyson.perturbation_results[[3]][-1]
+            results_sym_dyson.perturbation_results.get_term([0, 1])[-1]
+            + results_sym_dyson.perturbation_results.get_term([3])[-1]
         )
-        self.assertAllClose(dyson01, results_sym_dyson_ps.perturbation_results[[0, 1]][-1])
-        self.assertAllClose(sym_dyson01, results_sym_dyson_ps.perturbation_results[[0, 1]][-1])
+        self.assertAllClose(dyson01, results_sym_dyson_ps.perturbation_results.get_term([0, 1])[-1])
+        self.assertAllClose(
+            sym_dyson01, results_sym_dyson_ps.perturbation_results.get_term([0, 1])[-1]
+        )
 
         dyson11 = (
-            results_dyson.perturbation_results[[1, 1]][-1]
-            + results_dyson.perturbation_results[[4]][-1]
+            results_dyson.perturbation_results.get_term([1, 1])[-1]
+            + results_dyson.perturbation_results.get_term([4])[-1]
         )
         sym_dyson11 = (
-            results_sym_dyson.perturbation_results[[1, 1]][-1]
-            + results_sym_dyson.perturbation_results[[4]][-1]
+            results_sym_dyson.perturbation_results.get_term([1, 1])[-1]
+            + results_sym_dyson.perturbation_results.get_term([4])[-1]
         )
-        self.assertAllClose(dyson11, results_sym_dyson_ps.perturbation_results[[1, 1]][-1])
-        self.assertAllClose(sym_dyson11, results_sym_dyson_ps.perturbation_results[[1, 1]][-1])
+        self.assertAllClose(dyson11, results_sym_dyson_ps.perturbation_results.get_term([1, 1])[-1])
+        self.assertAllClose(
+            sym_dyson11, results_sym_dyson_ps.perturbation_results.get_term([1, 1])[-1]
+        )
 
     def test_dyson_power_series_case2(self):
         """Test consistency of computing power series decompositions across different methods."""
@@ -1030,11 +1048,13 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         sym_dyson = (
-            results_sym_dyson.perturbation_results[[0, 0, 1, 2]][-1]
-            + results_sym_dyson.perturbation_results[[1, 2, 3]][-1]
-            + results_sym_dyson.perturbation_results[[0, 2, 4]][-1]
+            results_sym_dyson.perturbation_results.get_term([0, 0, 1, 2])[-1]
+            + results_sym_dyson.perturbation_results.get_term([1, 2, 3])[-1]
+            + results_sym_dyson.perturbation_results.get_term([0, 2, 4])[-1]
         )
-        self.assertAllClose(sym_dyson, results_sym_dyson_ps.perturbation_results[[0, 0, 1, 2]][-1])
+        self.assertAllClose(
+            sym_dyson, results_sym_dyson_ps.perturbation_results.get_term([0, 0, 1, 2])[-1]
+        )
 
     def test_magnus_power_series_case1(self):
         """Test consistency of computing power series decompositions across different methods."""
@@ -1089,32 +1109,38 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
 
         # 1st order consistency
         self.assertAllClose(
-            results_sym_magnus.perturbation_results[[0]][-1],
-            results_sym_magnus_ps.perturbation_results[[0]][-1],
+            results_sym_magnus.perturbation_results.get_term([0])[-1],
+            results_sym_magnus_ps.perturbation_results.get_term([0])[-1],
         )
         self.assertAllClose(
-            results_sym_magnus.perturbation_results[[1]][-1],
-            results_sym_magnus_ps.perturbation_results[[1]][-1],
+            results_sym_magnus.perturbation_results.get_term([1])[-1],
+            results_sym_magnus_ps.perturbation_results.get_term([1])[-1],
         )
 
         # 2nd order consistency
         sym_magnus00 = (
-            results_sym_magnus.perturbation_results[[0, 0]][-1]
-            + results_sym_magnus.perturbation_results[[2]][-1]
+            results_sym_magnus.perturbation_results.get_term([0, 0])[-1]
+            + results_sym_magnus.perturbation_results.get_term([2])[-1]
         )
-        self.assertAllClose(sym_magnus00, results_sym_magnus_ps.perturbation_results[[0, 0]][-1])
+        self.assertAllClose(
+            sym_magnus00, results_sym_magnus_ps.perturbation_results.get_term([0, 0])[-1]
+        )
 
         sym_magnus01 = (
-            results_sym_magnus.perturbation_results[[0, 1]][-1]
-            + results_sym_magnus.perturbation_results[[3]][-1]
+            results_sym_magnus.perturbation_results.get_term([0, 1])[-1]
+            + results_sym_magnus.perturbation_results.get_term([3])[-1]
         )
-        self.assertAllClose(sym_magnus01, results_sym_magnus_ps.perturbation_results[[0, 1]][-1])
+        self.assertAllClose(
+            sym_magnus01, results_sym_magnus_ps.perturbation_results.get_term([0, 1])[-1]
+        )
 
         sym_magnus11 = (
-            results_sym_magnus.perturbation_results[[1, 1]][-1]
-            + results_sym_magnus.perturbation_results[[4]][-1]
+            results_sym_magnus.perturbation_results.get_term([1, 1])[-1]
+            + results_sym_magnus.perturbation_results.get_term([4])[-1]
         )
-        self.assertAllClose(sym_magnus11, results_sym_magnus_ps.perturbation_results[[1, 1]][-1])
+        self.assertAllClose(
+            sym_magnus11, results_sym_magnus_ps.perturbation_results.get_term([1, 1])[-1]
+        )
 
     def test_magnus_power_series_case2(self):
         """Test consistency of computing power series decompositions across different methods."""
@@ -1181,12 +1207,12 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
         sym_magnus = (
-            results_sym_magnus.perturbation_results[[0, 0, 1, 2]][-1]
-            + results_sym_magnus.perturbation_results[[1, 2, 3]][-1]
-            + results_sym_magnus.perturbation_results[[0, 2, 4]][-1]
+            results_sym_magnus.perturbation_results.get_term([0, 0, 1, 2])[-1]
+            + results_sym_magnus.perturbation_results.get_term([1, 2, 3])[-1]
+            + results_sym_magnus.perturbation_results.get_term([0, 2, 4])[-1]
         )
         self.assertAllClose(
-            sym_magnus, results_sym_magnus_ps.perturbation_results[[0, 0, 1, 2]][-1]
+            sym_magnus, results_sym_magnus_ps.perturbation_results.get_term([0, 0, 1, 2])[-1]
         )
 
 
@@ -1218,7 +1244,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
                 atol=1e-13,
                 rtol=1e-13,
             )
-            return results.perturbation_results[[0]][-1]
+            return results.perturbation_results.get_term([0])[-1]
 
         jit_func = jit(func)
 
@@ -1260,7 +1286,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
                 atol=1e-13,
                 rtol=1e-13,
             )
-            return results.perturbation_results[[0, 1]][-1]
+            return results.perturbation_results.get_term([0, 1])[-1]
 
         jit_func = jit(func)
 

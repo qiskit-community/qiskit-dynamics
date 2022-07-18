@@ -52,14 +52,22 @@ indexing multi-variable power series. See the
 of the perturbation review for an explanation of this convention.
 
 
-Perturbation module API
-=======================
+Perturbation module functions
+=============================
+
+.. autosummary::
+    :toctree: ../stubs/
+
+    solve_lmde_perturbation
+
+
+Perturbation module classes
+===========================
 
 .. autosummary::
     :toctree: ../stubs/
 
     ArrayPolynomial
-    solve_lmde_perturbation
     PerturbationResults
 
 .. footbibliography::

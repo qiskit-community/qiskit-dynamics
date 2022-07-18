@@ -25,8 +25,8 @@ from ..common import QiskitDynamicsTestCase
 class TestPerturbationResults(QiskitDynamicsTestCase):
     """Test PerturbationResults."""
 
-    def test_subscripting(self):
-        """Test that subscripting via __getitem__ works."""
+    def test_get_term(self):
+        """Test that get_term works."""
 
         results = PerturbationResults(
             expansion_method="dyson_like",
@@ -34,10 +34,10 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
             expansion_terms=Array([5, 6, 7]),
         )
 
-        self.assertTrue(results[[1]] == Array(6))
+        self.assertTrue(results.get_term([1]) == Array(6))
 
-    def test_sorted_subscripting(self):
-        """Test that subscripting via __getitem__ works."""
+    def test_sorted_get_term(self):
+        """Test that sorting in get_item works."""
 
         results = PerturbationResults(
             expansion_method="dyson",
@@ -49,9 +49,9 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
             expansion_terms=Array([5, 6, 7]),
         )
 
-        self.assertTrue(results[[1, 0]] == Array(7))
+        self.assertTrue(results.get_term([1, 0]) == Array(7))
 
-    def test_subscripting_error(self):
+    def test_get_item_error(self):
         """Test an error gets raised when a requested term doesn't exist."""
 
         results = PerturbationResults(
@@ -62,4 +62,4 @@ class TestPerturbationResults(QiskitDynamicsTestCase):
 
         with self.assertRaises(QiskitError):
             # pylint: disable=pointless-statement
-            results[[2]]
+            results.get_term([2])
