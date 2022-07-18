@@ -21,23 +21,23 @@ are time-dependent perturbation theory expansions for solutions of linear matrix
 equations (LMDEs). For an LMDE
 
 .. math::
-    
+
     \dot{U}(t) = G(t)U(t)
 
 with :math:`U(0) = I` the identity matrix, the Dyson series directly expands the solution:
 
 .. math::
 
-    U(t) = I + \sum_{k=1}^\infty D_k(t)
-
-for :math:`D_k(t) = \int_0^t dt_1 \dots \int_0^{t_{k-1}} dt_k G(t_1) \dots G(t_k)`.
+    U(t) &= I + \sum_{k=1}^\infty D_k(t)\textnormal{, with} \\
+    D_k(t) &= \int_0^t dt_1 \dots \int_0^{t_{k-1}} dt_k G(t_1) \dots G(t_k).
 
 The Magnus expansion alternatively seeks to construct a time-averaged generator, i.e. an operator
-:math:`\Omega(t)` for which 
+:math:`\Omega(t)` for which
 
 .. math::
-    U(t) = \exp(\Omega(t))`.
-    
+
+    U(t) = \exp(\Omega(t)).
+
 The Magnus expansion provides
 a series expansion, which, under certain conditions :footcite:`blanes_magnus_2009`,
 converges to :math:`\Omega(t)`:
@@ -82,17 +82,18 @@ the generator into the *toggling frame* of :math:`G_\emptyset(t)`
 
 .. math::
 
-    V(t) = \mathcal{T}\exp(\int_{t_0}^t ds G_\emptyset(s)),
+    V(t) = \mathcal{T}\exp\left(\int_{t_0}^t ds G_\emptyset(s)\right),
+
 the generator :math:`G` in the toggling frame of :math:`G_\emptyset(t)`,
 the unperturbed generator, is given by:
 
 .. math::
 
-    \tilde{G}(t, c_0, \dots, c_{r-1}) =
+    \tilde{G}(t, c_0, \dots, c_{r-1}) &=
     \sum_{k=1}^\infty \sum_{0 \leq i_1 \leq \dots \leq i_k \leq r-1}
-    c_{i_1} \dots c_{i_k} \tilde{G}_{i_1, \dots, i_k}(t),
+    c_{i_1} \dots c_{i_k} \tilde{G}_{i_1, \dots, i_k}(t)\textnormal{, with} \\
+    \tilde{G}_{i_1, \dots, i_k}(t) &= V^{-1}(t) G_{i_1, \dots, i_k}(t)V(t)
 
-with :math:`\tilde{G}_{i_1, \dots, i_k}(t) = V^{-1}(t) G_{i_1, \dots, i_k}(t)V(t)`.
 Denoting :math:`U(t, c_0, \dots, c_{r-1})` as the solution of the LMDE with
 generator :math:`\tilde{G}`, note that
 

@@ -152,7 +152,7 @@ with a given amplitude.
     from qiskit_dynamics import Signal
 
     def dyson_sim(amp):
-        """Evaluate dyson solver over a fixed drive envelope with given amplitude"""
+        """Evaluate dyson solver over a fixed drive envelope with given amplitude."""
         drive_signal = Signal(lambda t: Array(amp) * envelope_func(t), carrier_freq=v)
         return dyson_solver.solve(
             signals=[drive_signal],
