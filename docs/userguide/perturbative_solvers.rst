@@ -93,7 +93,7 @@ higher dimension to observe a difference between the solvers.
     # total simulation time
     T = 1. / r
 
-    # envelope function
+    # Drive envelope function
     envelope_func = lambda t: t * (T - t) / (T**2 / 4)
 
 3. How-to construct and simulate using the Dyson-based perturbative solver
