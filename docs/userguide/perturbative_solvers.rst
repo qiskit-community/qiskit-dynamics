@@ -1,8 +1,6 @@
 How-to use Dyson and Magnus based solvers
 =========================================
 
-In this tutorial we walk through how to use perturbation-theory based solvers.
-
 .. note::
 
     This is an advanced topic --- utilizing perturbation-theory based solvers
@@ -12,7 +10,9 @@ In this tutorial we walk through how to use perturbation-theory based solvers.
     Also, see :footcite:`puzzuoli_sensitivity_2022` for a detailed explanation of the solvers,
     which varies and builds on the core idea introduced in :footcite:`shillito_fast_2020`.
 
-    We note further that the circumstances under which perturbative solvers outperform
+.. note::
+
+    The circumstances under which perturbative solvers outperform
     traditional solvers, and which parameter sets to use, is nuanced.
     Perturbative solvers executed with JAX are setup to use more parallelization within a
     single solver run than typical solvers, and thus it is circumstance-specific whether
@@ -21,7 +21,13 @@ In this tutorial we walk through how to use perturbation-theory based solvers.
     userguide are highly hardware-dependent.
 
 
-In this tutorial we use a simple transmon model:
+In this tutorial we walk through how to use perturbation-theory based solvers. For
+information on how these solvers work, see the :class:`.DysonSolver` and :class:`.MagnusSolver`
+class documentation, as well as the perturbative expansion background information provided in
+:ref:`Time-dependent perturbation theory and multi-variable
+series expansions review <perturbation review>`.
+
+We use a simple transmon model:
 
 .. math:: H(t) = 2 \pi \nu N + \pi \alpha N(N-I) + s(t) \times 2 \pi r (a + a^\dagger)
 
@@ -47,8 +53,8 @@ We will walk through the following steps:
 -----------------------
 
 These simulations will be done with JAX array backend to enable
-compilation. See the user guide entry on using JAX for a detailed
-breakdown of using JAX with dynamics.
+compilation. See the :ref:`userguide on using JAX <how-to use jax>` for a more detailed
+explanation of how to work with JAX in Qiskit Dynamics.
 
 .. jupyter-execute::
 
@@ -67,8 +73,13 @@ breakdown of using JAX with dynamics.
 2. Construct the model
 ----------------------
 
-First, we construct the model described in the introduction. We use a
-higher dimension to observe a difference between the solvers.
+First, we construct the model described in the introduction. We use a relatively
+high dimension for the oscillator system state space to accentuate the speed
+difference between the perturbative solvers and the traditional ODE solver. The higher
+dimensionality introduces higher frequencies into the model, which will
+slow down both the ODE solver and the initial construction of the perturbative solver. However
+after the initial construction, the higher frequencies in the model have no impact
+on the perturbative solver speed.
 
 .. jupyter-execute::
 
@@ -99,30 +110,27 @@ higher dimension to observe a difference between the solvers.
 3. How-to construct and simulate using the Dyson-based perturbative solver
 --------------------------------------------------------------------------
 
-Constructing the Dyson-based perturbative solver requires specifying several
-configuration parameters, as well as specifying the structure of the
-differential equation more explicitly than using the standard
-:class:`.Solver` object in qiskit-dynamics, which automatically builds
-either the Schrodinger or Lindblad equation based on the inputs.
+Setting up a :class:`.DysonSolver` requires more setup than the standard
+:class:`.Solver`, as the user must specify several configuration parameters,
+along with the structure of the differential equation:
 
-See the API docs for :class:`.DysonSolver` for a more detailed
-explanation, but some general comments on its instantiation and usage:
-
-- :class:`.DysonSolver` requires direct specification of the LMDE to the
-  solver. As we are simulating the Schrodinger equation, we need to
-  multiply the Hamiltonian terms by ``-1j``.
-- :class:`.DysonSolver` is a fixed step solver, with the step size
+- The :class:`.DysonSolver` requires direct specification of the LMDE to the
+  solver. If we are simulating the Schrodinger equation, we need to
+  multiply the Hamiltonian terms by ``-1j`` when describing the LMDE operators.
+- The :class:`.DysonSolver` is a fixed step solver, with the step size
   being fixed at instantiation. This step size must be chosen in conjunction
-  with the ``expansion_order``, to ensure that a suitable accuracy is attained.
-- Over each fixed time-step:
+  with the ``expansion_order`` to ensure that a suitable accuracy is attained.
+- Over each fixed time-step the :class:`.DysonSolver` solves by computing a
+  truncated perturbative expansion.
 
-  - :class:`.DysonSolver` solves by computing a truncated perturbative
-    expansion.
   - To compute the truncated perturbative expansion, the signal envelopes are
     approximated as a linear combination of Chebyshev polynomials.
   - The order of the Chebyshev approximations, along with central carrier frequencies
     for defining the “envelope” of each ``Signal``, must be provided at instantiation.
 
+See the :class:`.DysonSolver` API docs for more details.
+
+For our example Hamiltonian we configure the :class:`.DysonSolver` as follows:
 
 .. jupyter-execute::
 
@@ -143,16 +151,31 @@ explanation, but some general comments on its instantiation and usage:
         rtol=1e-12
     )
 
+The above parameters are chosen so that the :class:`.DysonSolver` is fast and produces
+high accuracy solutions (measured and confirmed after the fact). The relatively large
+step size ``dt = 0.1`` is chosen for speed: the larger the step size, the fewer steps required.
+To ensure high accuracy given the large step size, we choose a high expansion order,
+and utilize a linear envelope approximation scheme by setting the ``chebyshev_order`` to ``1``
+for the single drive signal.
 
-Construct a function that simulates the system for the pulse sequence
-with a given amplitude.
+Similar to the :class:`.Solver` interface, the :meth:`.DysonSolver.solve` method can be
+called to simulate the system for a given list of signals, initial state, start time,
+and number of time steps of length ``dt``. To compare the speed of :class:`.DysonSolver`
+to a traditional ODE solver, we build a JAX-compilable function that, given an amplitude value,
+returns the final unitary over the interval ``[0, (T // dt) * dt]`` for an on-resonance
+drive with envelope shape given by ``envelope_func`` above.
 
 .. jupyter-execute::
 
     from qiskit_dynamics import Signal
+    from jax import jit
 
+    # Jit the function to improve performance for repeated calls
+    @jit
     def dyson_sim(amp):
-        """Evaluate dyson solver over a fixed drive envelope with given amplitude."""
+        """For a given envelope amplitude, simulate the final unitary using the
+        Dyson solver.
+        """
         drive_signal = Signal(lambda t: Array(amp) * envelope_func(t), carrier_freq=v)
         return dyson_solver.solve(
             signals=[drive_signal],
@@ -161,22 +184,19 @@ with a given amplitude.
             n_steps=int(T // dt)
         ).y[-1]
 
-    from jax import jit
-
-    jit_dyson_sim = jit(dyson_sim)
-
 First run includes compile time.
 
 .. jupyter-execute::
 
-    %time yf_dyson = jit_dyson_sim(1.).block_until_ready()
+    %time yf_dyson = dyson_sim(1.).block_until_ready()
 
 
-Once JIT compilation has been performance we can benchmark the performance of the jit-compiled solver:
+Once JIT compilation has been performance we can benchmark the performance of the
+JIT-compiled solver:
 
 .. jupyter-execute::
 
-    %time yf_dyson = jit_dyson_sim(1.).block_until_ready()
+    %time yf_dyson = dyson_sim(1.).block_until_ready()
 
 
 4. Comparison to traditional ODE solver
@@ -244,11 +264,10 @@ of the initial compilation time and the technical aspect of using the solver.
 5. How-to construct and simulate using the Magnus-based perturbation solver
 ---------------------------------------------------------------------------
 
-Next, build the Magnus-based perturbative solver. The :class:`.MagnusSolver` uses the
-same scheme as :class:`.DysonSolver`, but uses the Magnus expansion and
-matrix exponentiation to simulate over each fixed time step.
-Note that the Magnus expansion typically requires going to fewer orders to achieve accuracy,
-with the trade-off being that, after construction, the solving step itself is more expensive.
+Next, we repeat our example using the Magnus-based perturbative solver.
+Setup of the :class:`.MagnusSolver` is similar to the :class:`.DysonSolver`,
+but it uses the Magnus expansion and matrix exponentiation to simulate over
+each fixed time step.
 
 .. jupyter-execute::
 
@@ -274,6 +293,7 @@ Setup simulation function.
 
 .. jupyter-execute::
 
+    @jit
     def magnus_sim(amp):
         drive_signal = Signal(lambda t: Array(amp) * envelope_func(t), carrier_freq=v)
         return magnus_solver.solve(
@@ -283,20 +303,18 @@ Setup simulation function.
             n_steps=int(T // dt)
         ).y[-1]
 
-    jit_magnus_sim = jit(magnus_sim)
-
 
 First run includes compile time.
 
 .. jupyter-execute::
 
-    %time yf_magnus = jit_magnus_sim(1.).block_until_ready()
+    %time yf_magnus = magnus_sim(1.).block_until_ready()
 
 Second run demonstrates speed of the simulation.
 
 .. jupyter-execute::
 
-    %time yf_magnus = jit_magnus_sim(1.).block_until_ready()
+    %time yf_magnus = magnus_sim(1.).block_until_ready()
 
 
 .. jupyter-execute::
