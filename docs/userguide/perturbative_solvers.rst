@@ -58,7 +58,7 @@ breakdown of using JAX with dynamics.
     import jax
     jax.config.update("jax_enable_x64", True)
 
-    # tell JAX we are using CPU
+    # tell JAX we are using CPU if using a system without a GPU
     jax.config.update('jax_platform_name', 'cpu')
 
     # set default backend
