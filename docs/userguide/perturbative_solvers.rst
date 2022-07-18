@@ -85,7 +85,7 @@ higher dimension to observe a difference between the solvers.
     adag = np.diag(np.sqrt(np.arange(1, dim)), -1)
     N = np.diag(np.arange(dim))
 
-    # static part
+    # Static part of Hamiltonian
     static_hamiltonian = 2 * np.pi * v * N + np.pi * anharm * N * (N - np.eye(dim))
     # drive term
     drive_hamiltonian = 2 * np.pi * r * (a + adag)
