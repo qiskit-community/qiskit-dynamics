@@ -67,7 +67,7 @@ breakdown of using JAX with dynamics.
 2. Construct the model
 ----------------------
 
-First, construct the model described in the introduction. Here we use a
+First, we construct the model described in the introduction. We use a
 higher dimension to observe a difference between the solvers.
 
 .. jupyter-execute::
