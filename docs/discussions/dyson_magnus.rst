@@ -33,7 +33,12 @@ with :math:`U(0) = I` the identity matrix, the Dyson series directly expands the
 for :math:`D_k(t) = \int_0^t dt_1 \dots \int_0^{t_{k-1}} dt_k G(t_1) \dots G(t_k)`.
 
 The Magnus expansion alternatively seeks to construct a time-averaged generator, i.e. an operator
-:math:`\Omega(t)` for which :math:`U(t) = \exp(\Omega(t))`. The Magnus expansion provides
+:math:`\Omega(t)` for which 
+
+.. math::
+    U(t) = \exp(\Omega(t))`.
+    
+The Magnus expansion provides
 a series expansion, which, under certain conditions :footcite:`blanes_magnus_2009`,
 converges to :math:`\Omega(t)`:
 
