@@ -76,7 +76,7 @@ higher dimension to observe a difference between the solvers.
 
     dim = 10  # Oscillator dimension
 
-    v = 5.
+    v = 5.  # Transmon frequency in GHz
     anharm = -0.33
     r = 0.02
 
