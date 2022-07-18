@@ -109,4 +109,5 @@ Solver functions
 
 from .solver_functions import solve_ode, solve_lmde
 from .solver_classes import Solver
-from .dyson_magnus_solvers import DysonSolver, MagnusSolver
+from .perturbative_solvers.dyson_solver import DysonSolver
+from .perturbative_solvers.magnus_solver import MagnusSolver

@@ -21,7 +21,7 @@ from qiskit import QiskitError
 from qiskit_dynamics import Signal, Solver, DysonSolver, MagnusSolver
 from qiskit_dynamics.array import Array
 
-from qiskit_dynamics.solvers.dyson_magnus_solvers import (
+from qiskit_dynamics.solvers.perturbative_solvers.expansion_model import (
     construct_DCT,
     multi_interval_DCT,
     signal_envelope_DCT,
