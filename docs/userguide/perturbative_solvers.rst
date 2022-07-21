@@ -1,7 +1,7 @@
 How-to use Dyson and Magnus based solvers
 =========================================
 
-.. note::
+.. warning::
 
     This is an advanced topic --- utilizing perturbation-theory based solvers
     requires detailed knowledge of the structure of the differential equations
@@ -160,10 +160,13 @@ for the single drive signal.
 
 Similar to the :class:`.Solver` interface, the :meth:`.DysonSolver.solve` method can be
 called to simulate the system for a given list of signals, initial state, start time,
-and number of time steps of length ``dt``. To compare the speed of :class:`.DysonSolver`
-to a traditional ODE solver, we build a JAX-compilable function that, given an amplitude value,
+and number of time steps of length ``dt``.
+
+To properly compare the speed of :class:`.DysonSolver` to a traditional ODE solver,
+we write JAX-compilable functions wrapping each that, given an amplitude value,
 returns the final unitary over the interval ``[0, (T // dt) * dt]`` for an on-resonance
-drive with envelope shape given by ``envelope_func`` above.
+drive with envelope shape given by ``envelope_func`` above. Running compiled versions of
+these functions gives a sense of the speeds attainable by these solvers.
 
 .. jupyter-execute::
 

@@ -14,6 +14,6 @@ features:
   - |
     Adds classes :class:`.DysonSolver` and :class:`.MagnusSolver` implementing perturbation
     expansion-based fixed-step solvers for linear matrix differential equations.
-other:
+upgrade:
   - |
     Adds ``multiset`` package as a dependency.
