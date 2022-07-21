@@ -27,13 +27,13 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation.multiset_utils import (
-    validate_non_negative_ints,
-    get_all_submultisets,
-    sorted_multisets,
-    submultisets_and_complements,
-    multiset_to_sorted_list,
+    _validate_non_negative_ints,
+    _get_all_submultisets,
+    _sorted_multisets,
+    _submultisets_and_complements,
+    _multiset_to_sorted_list,
 )
-from qiskit_dynamics.perturbation.custom_binary_op import CustomBinaryOp
+from qiskit_dynamics.perturbation.custom_binary_op import _CustomBinaryOp
 
 try:
     import jax.numpy as jnp
@@ -151,7 +151,7 @@ class ArrayPolynomial:
         if monomial_labels is not None:
             self._monomial_labels = [Multiset(m) for m in monomial_labels]
             for m in self._monomial_labels:
-                validate_non_negative_ints(m)
+                _validate_non_negative_ints(m)
         else:
             self._monomial_labels = []
 
@@ -168,7 +168,7 @@ class ArrayPolynomial:
             else:
                 self._constant_term = None
 
-            self._compute_monomials = get_monomial_compute_function_jax(self._monomial_labels)
+            self._compute_monomials = _get_monomial_compute_function_jax(self._monomial_labels)
         else:
             if constant_term is not None:
                 self._constant_term = np.array(constant_term)
@@ -180,7 +180,7 @@ class ArrayPolynomial:
             else:
                 self._array_coefficients = None
 
-            self._compute_monomials = get_monomial_compute_function(self._monomial_labels)
+            self._compute_monomials = _get_monomial_compute_function(self._monomial_labels)
 
     @property
     def monomial_labels(self) -> Union[List, None]:
@@ -376,7 +376,7 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_addition(self, other, monomial_filter=monomial_filter)
+            return _array_polynomial_addition(self, other, monomial_filter=monomial_filter)
 
         raise QiskitError(
             "Only types castable as an ArrayPolynomial can be added to an ArrayPolynomial."
@@ -407,7 +407,7 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_distributive_binary_op(
+            return _array_polynomial_distributive_binary_op(
                 self, other, lambda A, B: A @ B, monomial_filter=monomial_filter
             )
 
@@ -439,7 +439,7 @@ class ArrayPolynomial:
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
-            return array_polynomial_distributive_binary_op(
+            return _array_polynomial_distributive_binary_op(
                 self, other, lambda A, B: A * B, monomial_filter=monomial_filter
             )
 
@@ -559,7 +559,7 @@ class ArrayPolynomial:
             return self._constant_term
 
 
-def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
+def _get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
     """Construct a vectorized function for computing multivariable monomial terms indicated by
     multisets.
 
@@ -581,7 +581,7 @@ def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
     if multisets is None or len(multisets) == 0:
         return lambda c: None
 
-    complete_multiset_list = get_all_submultisets(multisets)
+    complete_multiset_list = _get_all_submultisets(multisets)
 
     (
         first_order_terms,
@@ -589,7 +589,7 @@ def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
         left_indices,
         right_indices,
         update_ranges,
-    ) = get_recursive_monomial_rule(complete_multiset_list)
+    ) = _get_recursive_monomial_rule(complete_multiset_list)
 
     multiset_len = len(complete_multiset_list)
 
@@ -615,15 +615,15 @@ def get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
 
 
 # pylint: disable=invalid-name
-def get_monomial_compute_function_jax(multisets: List) -> Callable:
-    """JAX version of get_monomial_compute_function."""
+def _get_monomial_compute_function_jax(multisets: List) -> Callable:
+    """JAX version of _get_monomial_compute_function."""
 
     if multisets is None or len(multisets) == 0:
         return lambda c: None
 
-    complete_multiset_list = get_all_submultisets(multisets)
+    complete_multiset_list = _get_all_submultisets(multisets)
 
-    first_order_terms, _, left_indices, right_indices, _ = get_recursive_monomial_rule(
+    first_order_terms, _, left_indices, right_indices, _ = _get_recursive_monomial_rule(
         complete_multiset_list
     )
     location_list = np.array(
@@ -661,8 +661,8 @@ def get_monomial_compute_function_jax(multisets: List) -> Callable:
     return trimmed_output_function
 
 
-def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
-    """Helper function for get_monomial_compute_function and get_monomial_compute_function_jax;
+def _get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
+    """Helper function for _get_monomial_compute_function and _get_monomial_compute_function_jax;
     computes a representation of the algorithm for computing monomials that is used by both
     functions.
 
@@ -673,7 +673,7 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
 
     Returns:
         Tuple: Collection of lists organizing computation for both
-        get_monomial_compute_function and get_monomial_compute_function_jax.
+        _get_monomial_compute_function and _get_monomial_compute_function_jax.
     """
 
     # first, construct representation of recursive rule explicitly in terms of multisets
@@ -685,7 +685,7 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
     current_len = 2
 
     # convert multisets to list representation
-    complete_multisets = [multiset_to_sorted_list(multiset) for multiset in complete_multisets]
+    complete_multisets = [_multiset_to_sorted_list(multiset) for multiset in complete_multisets]
 
     for multiset in complete_multisets:
         if len(multiset) == 1:
@@ -746,7 +746,7 @@ def get_recursive_monomial_rule(complete_multisets: List) -> Tuple:
     )
 
 
-def array_polynomial_distributive_binary_op(
+def _array_polynomial_distributive_binary_op(
     ap1: ArrayPolynomial,
     ap2: ArrayPolynomial,
     binary_op: Callable,
@@ -775,7 +775,7 @@ def array_polynomial_distributive_binary_op(
         if monomial_filter(IuJ) and IuJ not in all_multisets:
             all_multisets.append(IuJ)
 
-    all_multisets = sorted_multisets(all_multisets)
+    all_multisets = _sorted_multisets(all_multisets)
 
     # setup constant term
     new_constant_term = None
@@ -805,7 +805,7 @@ def array_polynomial_distributive_binary_op(
             rule_indices.append([-1, idx])
 
         if len(multiset) > 1:
-            for I, J in zip(*submultisets_and_complements(multiset)):
+            for I, J in zip(*_submultisets_and_complements(multiset)):
                 if I in ap1.monomial_labels and J in ap2.monomial_labels:
                     rule_indices.append(
                         [ap1.monomial_labels.index(I), ap2.monomial_labels.index(J)]
@@ -833,7 +833,7 @@ def array_polynomial_distributive_binary_op(
     if ap2.array_coefficients is not None:
         rmats = np.append(rmats, ap2.array_coefficients, axis=0)
 
-    custom_binary_op = CustomBinaryOp(
+    custom_binary_op = _CustomBinaryOp(
         operation_rule=operation_rule,
         binary_op=binary_op,
         index_offset=1,
@@ -847,7 +847,7 @@ def array_polynomial_distributive_binary_op(
     )
 
 
-def array_polynomial_addition(
+def _array_polynomial_addition(
     ap1: ArrayPolynomial,
     ap2: ArrayPolynomial,
     monomial_filter: Optional[Callable] = None,
@@ -884,7 +884,7 @@ def array_polynomial_addition(
     for multiset in ap1.monomial_labels + ap2.monomial_labels:
         if monomial_filter(multiset) and multiset not in new_multisets:
             new_multisets.append(multiset)
-    new_multisets = sorted_multisets(new_multisets)
+    new_multisets = _sorted_multisets(new_multisets)
 
     # construct index order mapping for each polynomial
     idx1 = []

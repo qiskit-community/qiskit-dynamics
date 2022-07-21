@@ -28,7 +28,7 @@ except ImportError:
     pass
 
 
-class CustomBinaryOp:
+class _CustomBinaryOp:
     r"""A binary operation between arrays of dimension >1d built from taking linear combinations
     of a base binary operation acting on sub-arrays.
 
@@ -87,23 +87,23 @@ class CustomBinaryOp:
         self._binary_op = binary_op
 
         if not operation_rule_compiled:
-            operation_rule = compile_custom_operation_rule(operation_rule, index_offset)
+            operation_rule = _compile_custom_operation_rule(operation_rule, index_offset)
         self._unique_evaluation_pairs, self._linear_combo_rule = operation_rule
         self._backend = backend or Array.default_backend()
 
         # establish which version of functions to use
         if self._backend == "jax":
-            self._compute_unique_evaluations = lambda A, B: compute_unique_evaluations_jax(
+            self.__compute_unique_evaluations = lambda A, B: _compute_unique_evaluations_jax(
                 A, B, self._unique_evaluation_pairs, vmap(self._binary_op)
             )
-            self._compute_linear_combos = lambda C: compute_linear_combos_jax(
+            self.__compute_linear_combos = lambda C: _compute_linear_combos_jax(
                 C, self._linear_combo_rule
             )
         else:
-            self._compute_unique_evaluations = lambda A, B: compute_unique_evaluations(
+            self.__compute_unique_evaluations = lambda A, B: _compute_unique_evaluations(
                 A, B, self._unique_evaluation_pairs, self._binary_op
             )
-            self._compute_linear_combos = lambda C: compute_linear_combos(
+            self.__compute_linear_combos = lambda C: _compute_linear_combos(
                 C, self._linear_combo_rule
             )
 
@@ -113,11 +113,11 @@ class CustomBinaryOp:
             A = Array(A).data
             B = Array(B).data
 
-        unique_evaluations = self._compute_unique_evaluations(A, B)
-        return self._compute_linear_combos(unique_evaluations)
+        unique_evaluations = self.__compute_unique_evaluations(A, B)
+        return self.__compute_linear_combos(unique_evaluations)
 
 
-class CustomMatmul(CustomBinaryOp):
+class _CustomMatmul(_CustomBinaryOp):
     """Custom matmul multiplication."""
 
     def __init__(
@@ -139,7 +139,7 @@ class CustomMatmul(CustomBinaryOp):
         )
 
 
-class CustomMul(CustomBinaryOp):
+class _CustomMul(_CustomBinaryOp):
     """Custom mul multiplication."""
 
     def __init__(
@@ -161,7 +161,7 @@ class CustomMul(CustomBinaryOp):
         )
 
 
-def compile_custom_operation_rule(
+def _compile_custom_operation_rule(
     operation_rule: List,
     index_offset: Optional[int] = 0,
     unique_evaluation_len: Optional[int] = None,
@@ -170,11 +170,11 @@ def compile_custom_operation_rule(
     """Compile the list of unique evaluations and linear combinations required
     to implement a given operation_rule.
 
-    See CustomBinaryOp doc string for formatting details.
+    See _CustomBinaryOp doc string for formatting details.
 
     Args:
         operation_rule: Custom operation rule in the sparse format in the
-                        CustomBinaryOp doc string.
+                        _CustomBinaryOp doc string.
         index_offset: Integer specifying a shift to apply in the 2nd and 3rd indices in the
                       sparse representation of :math:`a_{ijk}`.
         unique_evaluation_len: Integer specifying a minimum length to represent the
@@ -241,7 +241,7 @@ def compile_custom_operation_rule(
     return unique_evaluation_pairs, linear_combo_rule
 
 
-def compute_unique_evaluations(
+def _compute_unique_evaluations(
     A: np.array, B: np.array, unique_evaluation_pairs: np.array, binary_op: Callable
 ) -> np.array:
     """Compute ``binary_op(A[j], B[k])`` for index pairs ``[j, k]`` in
@@ -267,7 +267,7 @@ def compute_unique_evaluations(
     return unique_evaluations
 
 
-def compute_linear_combos(
+def _compute_linear_combos(
     unique_evaluations: np.array, linear_combo_rule: Tuple[np.array, np.array]
 ) -> np.array:
     r"""Compute linear combinations of the entries in the array ``unique_mults``
@@ -286,7 +286,7 @@ def compute_linear_combos(
     return C
 
 
-def compute_unique_evaluations_jax(
+def _compute_unique_evaluations_jax(
     A: np.array,
     B: np.array,
     unique_evaluation_pairs: np.array,
@@ -300,7 +300,7 @@ def compute_unique_evaluations_jax(
     return binary_op(A[unique_evaluation_pairs[:, 0]], B[unique_evaluation_pairs[:, 1]])
 
 
-def compute_single_linear_combo_jax(
+def _compute_single_linear_combo_jax(
     unique_evaluations: np.array, single_combo_rule: Tuple[np.array, np.array]
 ) -> np.array:
     """JAX version of :meth:`unique_products`."""
@@ -309,6 +309,6 @@ def compute_single_linear_combo_jax(
 
 
 try:
-    compute_linear_combos_jax = vmap(compute_single_linear_combo_jax, in_axes=(None, (0, 0)))
+    _compute_linear_combos_jax = vmap(_compute_single_linear_combo_jax, in_axes=(None, (0, 0)))
 except NameError:
     pass

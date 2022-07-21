@@ -29,10 +29,10 @@ from qiskit_dynamics import Signal, RotatingFrame
 from qiskit_dynamics.array import Array
 
 from .expansion_model import ExpansionModel
-from .perturbative_solver import PerturbativeSolver, perturbative_solve, perturbative_solve_jax
+from .perturbative_solver import _PerturbativeSolver, _perturbative_solve, _perturbative_solve_jax
 
 
-class DysonSolver(PerturbativeSolver):
+class DysonSolver(_PerturbativeSolver):
     r"""Solver for linear matrix differential equations based on the Dyson series.
 
     This class implements the Dyson-series based solver presented in
@@ -189,9 +189,9 @@ class DysonSolver(PerturbativeSolver):
         ys = None
         if Array.default_backend() == "jax":
             single_step = lambda x: self.model.evaluate(x).data
-            ys = [y0, perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)]
+            ys = [y0, _perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)]
         else:
             single_step = lambda coeffs, y: self.model.evaluate(coeffs) @ y
-            ys = [y0, perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)]
+            ys = [y0, _perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)]
 
         return OdeResult(t=[t0, t0 + n_steps * self.model.dt], y=ys)

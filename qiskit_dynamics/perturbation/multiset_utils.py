@@ -23,7 +23,7 @@ from multiset import Multiset
 from qiskit import QiskitError
 
 
-def validate_non_negative_ints(multiset: Multiset) -> bool:
+def _validate_non_negative_ints(multiset: Multiset) -> bool:
     """Validate that a multiset only contains non-negative integers."""
 
     for elem in multiset.distinct_elements():
@@ -33,7 +33,7 @@ def validate_non_negative_ints(multiset: Multiset) -> bool:
             )
 
 
-def multiset_to_sorted_list(multiset: Multiset) -> List:
+def _multiset_to_sorted_list(multiset: Multiset) -> List:
     """Convert multiset to a sorted list. Assumes elements of multiset can be sorted."""
 
     distinct_elems = list(multiset.distinct_elements())
@@ -46,20 +46,20 @@ def multiset_to_sorted_list(multiset: Multiset) -> List:
     return sorted_list
 
 
-def sorted_multisets(multisets: List[Multiset]) -> List[Multiset]:
+def _sorted_multisets(multisets: List[Multiset]) -> List[Multiset]:
     """Sort in non-decreasing order according to:
 
     ms1 <= ms2 if len(ms1) < len(ms2), or if
     len(ms1) == len(ms2) and if
-    str(multiset_to_sorted_list(ms1)) <= str(multiset_to_sorted_list(ms2)).
+    str(_multiset_to_sorted_list(ms1)) <= str(_multiset_to_sorted_list(ms2)).
     """
 
-    return sorted(multisets, key=lambda x: str(len(x)) + ", " + str(multiset_to_sorted_list(x)))
+    return sorted(multisets, key=lambda x: str(len(x)) + ", " + str(_multiset_to_sorted_list(x)))
 
 
-def clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
+def _clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
     """Given a list of multisets, remove duplicates, and sort in non-decreasing order
-    according to the sorted_multisets function.
+    according to the _sorted_multisets function.
     """
 
     unique_multisets = []
@@ -69,10 +69,10 @@ def clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
         if multiset not in unique_multisets:
             unique_multisets.append(multiset)
 
-    return sorted_multisets(unique_multisets)
+    return _sorted_multisets(unique_multisets)
 
 
-def submultiset_filter(
+def _submultiset_filter(
     multiset_candidates: List[Multiset], multiset_list: List[Multiset]
 ) -> List[Multiset]:
     """Filter the list of multiset_candidates based on whether they are a
@@ -89,7 +89,7 @@ def submultiset_filter(
     return filtered_multisets
 
 
-def submultisets_and_complements(
+def _submultisets_and_complements(
     multiset: Multiset, submultiset_bound: Optional[int] = None
 ) -> Tuple[List[Multiset], List[Multiset]]:
     """Return a pair of lists giving all submultisets of size smaller than
@@ -109,7 +109,7 @@ def submultisets_and_complements(
     if submultiset_bound is None or submultiset_bound > len(multiset):
         submultiset_bound = len(multiset)
 
-    multiset_list = multiset_to_sorted_list(multiset)
+    multiset_list = _multiset_to_sorted_list(multiset)
 
     submultisets = []
     complements = []
@@ -137,11 +137,11 @@ def submultisets_and_complements(
     return formatted_submultisets, formatted_complements
 
 
-def get_all_submultisets(multisets: List[Multiset]) -> List[Multiset]:
+def _get_all_submultisets(multisets: List[Multiset]) -> List[Multiset]:
     """Given a list of multisets, return a list of all possible submultisets
     of multisets in the list, including the original multisets.
 
-    This returned list is sorted according to the ordering of the sorted_multisets function.
+    This returned list is sorted according to the ordering of the _sorted_multisets function.
 
     Args:
         multisets: List of multisets (not necessarilly correctly formatted).
@@ -154,7 +154,7 @@ def get_all_submultisets(multisets: List[Multiset]) -> List[Multiset]:
         return []
 
     # clean list to unique list of properly formatted terms
-    multisets = clean_multisets(multisets)
+    multisets = _clean_multisets(multisets)
 
     max_order = max(map(len, multisets))
 
@@ -169,7 +169,7 @@ def get_all_submultisets(multisets: List[Multiset]) -> List[Multiset]:
     for order in range(max_order, 1, -1):
 
         for multiset in order_dict[order]:
-            submultisets = submultisets_and_complements(multiset, 2)[1]
+            submultisets = _submultisets_and_complements(multiset, 2)[1]
 
             for submultiset in submultisets:
                 if submultiset not in order_dict[order - 1]:
@@ -179,4 +179,4 @@ def get_all_submultisets(multisets: List[Multiset]) -> List[Multiset]:
     for submultisets in order_dict.values():
         full_list += submultisets
 
-    return sorted_multisets(full_list)
+    return _sorted_multisets(full_list)

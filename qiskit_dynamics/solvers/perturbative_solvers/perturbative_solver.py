@@ -41,7 +41,7 @@ except ImportError:
     pass
 
 
-class PerturbativeSolver(ABC):
+class _PerturbativeSolver(ABC):
     """Abstract base class for perturbation-based solvers."""
 
     @abstractmethod
@@ -90,10 +90,10 @@ class PerturbativeSolver(ABC):
             args_list=[t0, n_steps, y0, signals],
             args_names=["t0", "n_steps", "y0", "signals"],
             args_to_list=[
-                lambda x: scalar_to_list(x, "t0"),
-                lambda x: scalar_to_list(x, "n_steps"),
-                y0_to_list,
-                signals_to_list,
+                lambda x: _scalar_to_list(x, "t0"),
+                lambda x: _scalar_to_list(x, "n_steps"),
+                _y0_to_list,
+                _signals_to_list,
             ],
         )
 
@@ -126,7 +126,7 @@ class PerturbativeSolver(ABC):
         pass
 
 
-def perturbative_solve(
+def _perturbative_solve(
     single_step: Callable,
     model: "ExpansionModel",
     signals: List[Signal],
@@ -149,7 +149,7 @@ def perturbative_solve(
     return Uf @ y
 
 
-def perturbative_solve_jax(
+def _perturbative_solve_jax(
     single_step: Callable,
     model: "ExpansionModel",
     signals: List[Signal],
@@ -157,7 +157,7 @@ def perturbative_solve_jax(
     t0: float,
     n_steps: int,
 ) -> np.ndarray:
-    """JAX version of perturbative_solve."""
+    """JAX version of _perturbative_solve."""
     U0 = model.rotating_frame.state_out_of_frame(
         t0, jnp.eye(model.Udt.shape[0], dtype=complex)
     ).data
@@ -175,10 +175,10 @@ def perturbative_solve_jax(
     return Uf @ y
 
 
-def scalar_to_list(x, name):
+def _scalar_to_list(x, name):
     """Check if x is a scalar or a list of scalars, and convert to a list in either case."""
     was_list = False
-    x_ndim = nested_ndim(x)
+    x_ndim = _nested_ndim(x)
     if x_ndim > 1:
         raise QiskitError(f"{name} must be either 0d or 1d.")
 
@@ -190,7 +190,7 @@ def scalar_to_list(x, name):
     return x, was_list
 
 
-def y0_to_list(y0):
+def _y0_to_list(y0):
     """Check if y0 is a single array or list of arrays, and return as a list in either case."""
     was_list = False
     if not isinstance(y0, list):
@@ -201,7 +201,7 @@ def y0_to_list(y0):
     return y0, was_list
 
 
-def signals_to_list(signals):
+def _signals_to_list(signals):
     """Check if signals is a single signal specification or a list of
     such specifications, and return as a list in either case.
     """
@@ -222,10 +222,10 @@ def signals_to_list(signals):
     return signals, was_list
 
 
-def nested_ndim(x):
+def _nested_ndim(x):
     """Determine the 'ndim' of x, which could be composed of nested lists and array types."""
     if isinstance(x, (list, tuple)):
-        return 1 + nested_ndim(x[0])
+        return 1 + _nested_ndim(x[0])
     elif issubclass(type(x), Dispatch.REGISTERED_TYPES) or isinstance(x, Array):
         return x.ndim
 

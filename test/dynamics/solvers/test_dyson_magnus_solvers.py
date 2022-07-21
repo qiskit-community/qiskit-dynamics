@@ -22,12 +22,12 @@ from qiskit_dynamics import Signal, Solver, DysonSolver, MagnusSolver
 from qiskit_dynamics.array import Array
 
 from qiskit_dynamics.solvers.perturbative_solvers.expansion_model import (
-    construct_DCT,
-    multi_interval_DCT,
-    signal_envelope_DCT,
-    signal_list_envelope_DCT,
-    evaluate_cheb_series,
-    evaluate_cheb_series_jax,
+    _construct_DCT,
+    _multi_interval_DCT,
+    _signal_envelope_DCT,
+    _signal_list_envelope_DCT,
+    _evaluate_cheb_series,
+    _evaluate_cheb_series_jax,
 )
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -38,7 +38,7 @@ except ImportError:
     pass
 
 
-class TestPerturbativeSolver(QiskitDynamicsTestCase):
+class Test_PerturbativeSolver(QiskitDynamicsTestCase):
     """Tests for perturbative solver."""
 
     @classmethod
@@ -294,7 +294,7 @@ class TestPerturbativeSolver(QiskitDynamicsTestCase):
         self.assertAllClose(dyson_results[1].y[-1], self.simple_yf @ y01, rtol=1e-6, atol=1e-6)
 
 
-class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
+class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
     """Tests for perturbative solver operating in JAX mode."""
 
     @classmethod
@@ -302,7 +302,7 @@ class TestPerturbativeSolverJAX(TestJaxBase, TestPerturbativeSolver):
         # calls TestJaxBase setUpClass
         super().setUpClass()
         # builds common objects
-        TestPerturbativeSolver.build_testing_objects(cls, integration_method="jax_odeint")
+        Test_PerturbativeSolver.build_testing_objects(cls, integration_method="jax_odeint")
 
     def test_simple_dyson_solve_grad_jit(self):
         """Test jitting and gradding of dyson solve."""
@@ -347,15 +347,15 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
     def setUp(self):
         """Set Chebyshev evaluation function."""
 
-        self.cheb_eval_func = evaluate_cheb_series
+        self.cheb_eval_func = _evaluate_cheb_series
 
-    def test_construct_DCT(self):
+    def test__construct_DCT(self):
         """Verify consistency with numpy functions."""
 
         f = lambda t: 1.0 + t**2 + t**3
 
         expected = Chebyshev.interpolate(f, deg=2)
-        M, x_vals = construct_DCT(degree=2)
+        M, x_vals = _construct_DCT(degree=2)
 
         self.assertAllClose(expected.coef, M @ f(x_vals))
 
@@ -369,7 +369,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int2 = [t0 + 2 * dt, t0 + 3 * dt]
 
         f = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
-        multi_int_coeffs = multi_interval_DCT(f, degree=4, t0=t0, dt=dt, n_intervals=3)
+        multi_int_coeffs = _multi_interval_DCT(f, degree=4, t0=t0, dt=dt, n_intervals=3)
 
         # force to resolve to numpy arrays for comparison to numpy functions
         f = lambda t: 1.0 + t**2 + t**3 + np.sin(3.123 * t)
@@ -384,7 +384,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         expected = Chebyshev.interpolate(f, deg=4, domain=int2)
         self.assertAllClose(expected.coef, multi_int_coeffs[:, 2])
 
-    def test_signal_envelope_DCT(self):
+    def test__signal_envelope_DCT(self):
         """Test correct approximation of a signal envelope relative to a reference
         frequency.
         """
@@ -401,7 +401,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         carrier_freq = 1.0
         reference_freq = 0.23
         signal = Signal(f, carrier_freq)
-        env_dct = signal_envelope_DCT(
+        env_dct = _signal_envelope_DCT(
             signal, reference_freq=reference_freq, degree=5, t0=t0, dt=dt, n_intervals=3
         )
 
@@ -422,7 +422,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         expected = Chebyshev.interpolate(shifted_env, deg=5, domain=int2)
         self.assertAllClose(expected.coef * final_phase_shift[2], env_dct[:, 2])
 
-    def test_signal_list_envelope_DCT(self):
+    def test__signal_list_envelope_DCT(self):
         """Test correct approximation of the envelopes of a list of signals
         with reference frequencies.
         """
@@ -446,7 +446,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
 
-        list_dct = signal_list_envelope_DCT(
+        list_dct = _signal_list_envelope_DCT(
             [signal1, signal2],
             [reference_freq1, reference_freq2],
             degrees=[3, 4],
@@ -499,7 +499,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         coeffs = np.append(coeffs.real, coeffs.imag, axis=0)
         self.assertAllClose(coeffs, list_dct[8:, 2])
 
-    def test_signal_list_envelope_DCT_include_imag_case1(self):
+    def test__signal_list_envelope_DCT_include_imag_case1(self):
         """Test correct approximation of the envelopes of a list of signals
         with reference frequencies, including an instruction to not include
         the imaginary component for a signal.
@@ -524,7 +524,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
 
-        list_dct = signal_list_envelope_DCT(
+        list_dct = _signal_list_envelope_DCT(
             [signal1, signal2],
             [reference_freq1, reference_freq2],
             degrees=[3, 4],
@@ -578,7 +578,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         coeffs = np.append(coeffs.real, coeffs.imag, axis=0)
         self.assertAllClose(coeffs, list_dct[4:, 2])
 
-    def test_signal_list_envelope_DCT_include_imag_case2(self):
+    def test__signal_list_envelope_DCT_include_imag_case2(self):
         """Test correct approximation of the envelopes of a list of signals
         with reference frequencies, including an instruction to not include
         the imaginary component for a signal.
@@ -603,7 +603,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
 
-        list_dct = signal_list_envelope_DCT(
+        list_dct = _signal_list_envelope_DCT(
             [signal1, signal2],
             [reference_freq1, reference_freq2],
             degrees=[3, 4],
@@ -657,7 +657,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         coeffs = coeffs.real
         self.assertAllClose(coeffs, list_dct[8:, 2])
 
-    def test_evaluate_cheb_series_case1(self):
+    def test__evaluate_cheb_series_case1(self):
         """Test Chebyshev evaluation function, linear case."""
 
         coeffs = np.array([0.231, 1.1])
@@ -669,7 +669,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
 
         self.assertAllClose(expected, output)
 
-    def test_evaluate_cheb_series_case2(self):
+    def test__evaluate_cheb_series_case2(self):
         """Test Chebyshev evaluation function, higher order case."""
 
         coeffs = np.array([0.231, 1.1, 2.1, 3.0])
@@ -681,7 +681,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
 
         self.assertAllClose(expected, output)
 
-    def test_evaluate_cheb_series_case3(self):
+    def test__evaluate_cheb_series_case3(self):
         """Test Chebyshev evaluation function, non-vectorized."""
 
         coeffs = np.array([0.231, 1.1, 2.1, 3.0, 5.1, 2.2])
@@ -700,10 +700,10 @@ class TestChebyshevFunctionsJax(TestChebyshevFunctions, TestJaxBase):
     def setUp(self):
         """Set Chebyshev evaluation function."""
 
-        self.cheb_eval_func = evaluate_cheb_series_jax
+        self.cheb_eval_func = _evaluate_cheb_series_jax
 
-    def test_evaluate_cheb_series_jit(self):
-        """Test jitting of evaluate_cheb_series_jax."""
+    def test__evaluate_cheb_series_jit(self):
+        """Test jitting of _evaluate_cheb_series_jax."""
 
         coeffs = np.array([0.231, 1.1, 2.1, 3.0])
         domain = [0.0, 4.0]
@@ -716,8 +716,8 @@ class TestChebyshevFunctionsJax(TestChebyshevFunctions, TestJaxBase):
         output = jit_func(x)
         self.assertAllClose(expected, output)
 
-    def test_evaluate_cheb_series_jit_grad(self):
-        """Test jitting of grad of evaluate_cheb_series_jax."""
+    def test__evaluate_cheb_series_jit_grad(self):
+        """Test jitting of grad of _evaluate_cheb_series_jax."""
 
         coeffs = np.array([0.231, 1.1, 2.1, 3.0])
         domain = [0.0, 4.0]
@@ -733,7 +733,7 @@ class TestChebyshevFunctionsJax(TestChebyshevFunctions, TestJaxBase):
 
         def func(a):
             sig = Signal(lambda t: a * t, carrier_freq=1.0)
-            return signal_list_envelope_DCT(
+            return _signal_list_envelope_DCT(
                 [sig], reference_freqs=[1.0], degrees=[2], t0=0.0, dt=0.5, n_intervals=3
             ).data
 

@@ -88,7 +88,7 @@ class ExpansionModel:
 
         if expansion_method not in ["dyson", "magnus"]:
             raise QiskitError(
-                "PerturbativeSolver only accepts expansion_method 'dyson' or 'magnus'."
+                "_PerturbativeSolver only accepts expansion_method 'dyson' or 'magnus'."
             )
 
         if include_imag is None:
@@ -96,7 +96,7 @@ class ExpansionModel:
 
         # construct signal approximation function
         def collective_dct(signal_list, t0, n_steps):
-            return signal_list_envelope_DCT(
+            return _signal_list_envelope_DCT(
                 signal_list,
                 reference_freqs=carrier_freqs,
                 degrees=chebyshev_orders,
@@ -120,12 +120,12 @@ class ExpansionModel:
         # set jax-logic dependent components
         if Array.default_backend() == "jax":
             # compute perturbative terms
-            perturbations = construct_cheb_perturbations_jax(
+            perturbations = _construct_cheb_perturbations_jax(
                 operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame, include_imag
             )
             integration_method = integration_method or "jax_odeint"
         else:
-            perturbations = construct_cheb_perturbations(
+            perturbations = _construct_cheb_perturbations(
                 operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame, include_imag
             )
             integration_method = integration_method or "DOP853"
@@ -210,7 +210,7 @@ class ExpansionModel:
         return self.expansion_polynomial(coeffs)
 
 
-def construct_cheb_perturbations(
+def _construct_cheb_perturbations(
     operators: np.ndarray,
     chebyshev_orders: List[int],
     carrier_freqs: np.ndarray,
@@ -219,7 +219,7 @@ def construct_cheb_perturbations(
     include_imag: Optional[bool] = None,
 ) -> List[Callable]:
     r"""Helper function for constructing perturbation terms in the expansions used by
-    PerturbativeSolver.
+    _PerturbativeSolver.
 
     Constructs a list of operator-valued functions of the form:
 
@@ -251,7 +251,7 @@ def construct_cheb_perturbations(
 
     # define functions for constructing perturbations
     def cheb_func(t, deg):
-        return evaluate_cheb_series(t, [0] * deg + [1], domain=[0, dt])
+        return _evaluate_cheb_series(t, [0] * deg + [1], domain=[0, dt])
 
     def get_cheb_func_cos_op(deg, freq, op):
         rad_freq = 2 * np.pi * freq
@@ -288,10 +288,10 @@ def construct_cheb_perturbations(
     return perturbations
 
 
-def construct_cheb_perturbations_jax(
+def _construct_cheb_perturbations_jax(
     operators, chebyshev_orders, carrier_freqs, dt, rotating_frame, include_imag=None
 ):
-    """JAX version of construct_cheb_perturbations."""
+    """JAX version of _construct_cheb_perturbations."""
 
     if include_imag is None:
         include_imag = [True] * len(operators)
@@ -301,7 +301,7 @@ def construct_cheb_perturbations_jax(
         c = jnp.array([0] * deg + [1], dtype=float)
 
         def cheb_func(t):
-            return evaluate_cheb_series_jax(t, c, domain=[0, dt])
+            return _evaluate_cheb_series_jax(t, c, domain=[0, dt])
 
         return cheb_func
 
@@ -342,7 +342,7 @@ def construct_cheb_perturbations_jax(
     return perturbations
 
 
-def evaluate_cheb_series(
+def _evaluate_cheb_series(
     x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = None
 ) -> Union[float, np.ndarray]:
     """Evaluate a Chebyshev series on a given domain.
@@ -362,7 +362,7 @@ def evaluate_cheb_series(
     return chebval(x, c)
 
 
-def evaluate_cheb_series_jax(
+def _evaluate_cheb_series_jax(
     x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = None
 ) -> Union[float, np.ndarray]:
     """Evaluate Chebyshev series on a on a given domain using JAX looping logic.
@@ -404,7 +404,7 @@ def evaluate_cheb_series_jax(
     return c0 + c1 * x
 
 
-def signal_list_envelope_DCT(
+def _signal_list_envelope_DCT(
     signal_list: List[Signal],
     reference_freqs: Array,
     degrees: List[int],
@@ -433,7 +433,7 @@ def signal_list_envelope_DCT(
     if include_imag is None:
         include_imag = [True] * len(signal_list)
 
-    envelope_DCT = lambda sig, freq, degree: signal_envelope_DCT(
+    envelope_DCT = lambda sig, freq, degree: _signal_envelope_DCT(
         sig, freq, degree, t0, dt, n_intervals
     )
 
@@ -456,7 +456,7 @@ def signal_list_envelope_DCT(
     return coeffs
 
 
-def signal_envelope_DCT(
+def _signal_envelope_DCT(
     signal: Signal, reference_freq: float, degree: int, t0: float, dt: float, n_intervals: int
 ) -> Array:
     """Perform multi-interval DCT on the envelope of a Signal relative to a reference frequency.
@@ -482,12 +482,12 @@ def signal_envelope_DCT(
     def shifted_env(t):
         return signal.complex_value(t) * np.exp(phase_arg * t)
 
-    return multi_interval_DCT(shifted_env, degree, t0, dt, n_intervals) * np.expand_dims(
+    return _multi_interval_DCT(shifted_env, degree, t0, dt, n_intervals) * np.expand_dims(
         final_phase_shift, axis=0
     )
 
 
-def multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_intervals: int) -> Array:
+def _multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_intervals: int) -> Array:
     """Evaluate the multi-interval DCT of a function f over contiguous intervals of size dt
     starting at t0.
 
@@ -506,7 +506,7 @@ def multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_interva
         Array: Multi-interval DCT stored as a 2d array.
     """
 
-    dct_mat, xcheb = construct_DCT(degree, domain=[0, dt])
+    dct_mat, xcheb = _construct_DCT(degree, domain=[0, dt])
 
     # compute all times at which the function needs to be evaluated
     interval_start_times = t0 + np.arange(n_intervals) * dt
@@ -517,7 +517,7 @@ def multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_interva
     return dct_mat @ f(x_vals)
 
 
-def construct_DCT(degree: int, domain: Optional[List] = None) -> Tuple:
+def _construct_DCT(degree: int, domain: Optional[List] = None) -> Tuple:
     """Construct the matrix and evaluation points for performing the Discrete Chebyshev
     Transform (DCT) over an interval specified by ``domain``. This utilizes code from
     :mod:`numpy.polynomial.chebyshev.chebinterpolate`, but modified to allow for interval

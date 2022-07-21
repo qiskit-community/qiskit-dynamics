@@ -26,17 +26,17 @@ from multiset import Multiset
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.perturbation.multiset_utils import clean_multisets
+from qiskit_dynamics.perturbation.multiset_utils import _clean_multisets
 from qiskit_dynamics.perturbation.perturbation_utils import (
-    merge_multiset_expansion_order_labels,
-    merge_list_expansion_order_labels,
+    _merge_multiset_expansion_order_labels,
+    _merge_list_expansion_order_labels,
 )
 
 from qiskit_dynamics.perturbation.dyson_magnus import (
-    solve_lmde_dyson,
-    solve_lmde_magnus,
-    solve_lmde_dyson_jax,
-    solve_lmde_magnus_jax,
+    _solve_lmde_dyson,
+    _solve_lmde_magnus,
+    _solve_lmde_dyson_jax,
+    _solve_lmde_magnus_jax,
 )
 
 
@@ -240,17 +240,17 @@ def solve_lmde_perturbation(
         else:
             # validate perturbation_labels
             perturbations_len = len(perturbation_labels)
-            perturbation_labels = clean_multisets(perturbation_labels)
+            perturbation_labels = _clean_multisets(perturbation_labels)
             if len(perturbation_labels) != perturbations_len:
                 raise QiskitError("perturbation_labels argument contains duplicates as multisets.")
 
-        expansion_labels = merge_multiset_expansion_order_labels(
+        expansion_labels = _merge_multiset_expansion_order_labels(
             perturbation_labels=perturbation_labels,
             expansion_order=expansion_order,
             expansion_labels=expansion_labels,
         )
     elif expansion_method in ["dyson_like"]:
-        expansion_labels = merge_list_expansion_order_labels(
+        expansion_labels = _merge_list_expansion_order_labels(
             perturbation_num=len(perturbations),
             expansion_order=expansion_order,
             expansion_labels=expansion_labels,
@@ -259,7 +259,7 @@ def solve_lmde_perturbation(
     if expansion_method in ["dyson", "dyson_like"]:
         dyson_like = expansion_method == "dyson_like"
         if not Array.default_backend() == "jax":
-            return solve_lmde_dyson(
+            return _solve_lmde_dyson(
                 perturbations=perturbations,
                 t_span=t_span,
                 dyson_terms=expansion_labels,
@@ -273,7 +273,7 @@ def solve_lmde_perturbation(
                 **kwargs,
             )
         else:
-            return solve_lmde_dyson_jax(
+            return _solve_lmde_dyson_jax(
                 perturbations=perturbations,
                 t_span=t_span,
                 dyson_terms=expansion_labels,
@@ -288,7 +288,7 @@ def solve_lmde_perturbation(
             )
     elif expansion_method == "magnus":
         if not Array.default_backend() == "jax":
-            return solve_lmde_magnus(
+            return _solve_lmde_magnus(
                 perturbations=perturbations,
                 t_span=t_span,
                 magnus_terms=expansion_labels,
@@ -300,7 +300,7 @@ def solve_lmde_perturbation(
                 **kwargs,
             )
         else:
-            return solve_lmde_magnus_jax(
+            return _solve_lmde_magnus_jax(
                 perturbations=perturbations,
                 t_span=t_span,
                 magnus_terms=expansion_labels,

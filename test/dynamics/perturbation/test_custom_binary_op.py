@@ -17,18 +17,18 @@ import numpy as np
 from ddt import ddt, data, unpack
 
 from qiskit_dynamics.perturbation.custom_binary_op import (
-    compile_custom_operation_rule,
-    CustomBinaryOp,
-    CustomMatmul,
-    CustomMul,
+    _compile_custom_operation_rule,
+    _CustomBinaryOp,
+    _CustomMatmul,
+    _CustomMul,
 )
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 @ddt
-class TestCustomBinaryOp(QiskitDynamicsTestCase):
-    """Test CustomBinaryOp in the cases of matmul and mul."""
+class Test_CustomBinaryOp(QiskitDynamicsTestCase):
+    """Test _CustomBinaryOp in the cases of matmul and mul."""
 
     def setUp(self):
         self.mult_rule1 = [
@@ -52,7 +52,7 @@ class TestCustomBinaryOp(QiskitDynamicsTestCase):
         prod20 = binary_op(A[2], B[0])
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
-        custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
+        custom_op = _CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
@@ -69,7 +69,7 @@ class TestCustomBinaryOp(QiskitDynamicsTestCase):
         prod00 = binary_op(A[0], B[0])
         expected = np.array([prod02 + 5 * prod00])
 
-        custom_op = CustomBinaryOp(operation_rule=self.mult_rule2, binary_op=binary_op)
+        custom_op = _CustomBinaryOp(operation_rule=self.mult_rule2, binary_op=binary_op)
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
@@ -88,7 +88,7 @@ class TestCustomBinaryOp(QiskitDynamicsTestCase):
         prod20 = binary_op(A[2], B[0])
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
-        custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
+        custom_op = _CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
@@ -106,7 +106,7 @@ class TestCustomBinaryOp(QiskitDynamicsTestCase):
         prod20 = binary_op(A[2], B[0])
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
-        custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
+        custom_op = _CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
@@ -124,22 +124,22 @@ class TestCustomBinaryOp(QiskitDynamicsTestCase):
         prod20 = binary_op(A[2], B[0])
         expected = np.array([prod02 + 2 * prod11 + 3 * prod20, prod02, 3 * prod11])
 
-        custom_op = CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
+        custom_op = _CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
         self.assertAllClose(expected, output)
 
 
-class TestCustomBinaryOpJAX(TestCustomBinaryOp, TestJaxBase):
-    """JAX version of TestCustomBinaryOp."""
+class Test_CustomBinaryOpJAX(Test_CustomBinaryOp, TestJaxBase):
+    """JAX version of Test_CustomBinaryOp."""
 
     def test_jit_grad_matmul(self):
-        """Verify jitting and gradding works through CustomMatmul."""
+        """Verify jitting and gradding works through _CustomMatmul."""
 
         from jax import jit, grad
 
         def func(A, B):
-            custom_matmul = CustomMatmul(self.mult_rule1)
+            custom_matmul = _CustomMatmul(self.mult_rule1)
             return custom_matmul(A, B).real.sum()
 
         jit_grad_func = jit(grad(func))
@@ -150,12 +150,12 @@ class TestCustomBinaryOpJAX(TestCustomBinaryOp, TestJaxBase):
         jit_grad_func(A, B)
 
     def test_jit_grad_mul(self):
-        """Verify jitting and gradding works through CustomMul."""
+        """Verify jitting and gradding works through _CustomMul."""
 
         from jax import jit, grad
 
         def func(A, B):
-            custom_mul = CustomMul(self.mult_rule1)
+            custom_mul = _CustomMul(self.mult_rule1)
             return custom_mul(A, B).real.sum()
 
         jit_grad_func = jit(grad(func))
@@ -166,7 +166,7 @@ class TestCustomBinaryOpJAX(TestCustomBinaryOp, TestJaxBase):
         jit_grad_func(A, B)
 
 
-class Testcompile_custom_operation_rule(QiskitDynamicsTestCase):
+class Test_compile_custom_operation_rule(QiskitDynamicsTestCase):
     """Tests for custom operation rule compilation."""
 
     def setUp(self):
@@ -176,11 +176,11 @@ class Testcompile_custom_operation_rule(QiskitDynamicsTestCase):
             (np.array([3.0]), np.array([[1, 1]])),
         ]
 
-        self.compiled_rule1 = compile_custom_operation_rule(operation_rule)
+        self.compiled_rule1 = _compile_custom_operation_rule(operation_rule)
 
         operation_rule = [(np.array([1.0, 2.0, 3.0]), np.array([[0, 2], [0, 0], [0, 0]]))]
 
-        self.compiled_rule2 = compile_custom_operation_rule(operation_rule)
+        self.compiled_rule2 = _compile_custom_operation_rule(operation_rule)
 
     def test_unique_mult_pairs(self):
         """Test construction of internal unique multiplication pairs."""
@@ -217,7 +217,7 @@ class Testcompile_custom_operation_rule(QiskitDynamicsTestCase):
             (np.array([3.0]), np.array([[1, 1]])),
         ]
 
-        compiled_rule = compile_custom_operation_rule(
+        compiled_rule = _compile_custom_operation_rule(
             operation_rule, unique_evaluation_len=5, linear_combo_len=6
         )
 
@@ -245,7 +245,7 @@ class Testcompile_custom_operation_rule(QiskitDynamicsTestCase):
             (np.array([3.0]), np.array([[1, 1]])),
         ]
 
-        compiled_rule = compile_custom_operation_rule(operation_rule, index_offset=1)
+        compiled_rule = _compile_custom_operation_rule(operation_rule, index_offset=1)
 
         expected_unique_mults = np.array([[1, 3], [2, 2], [3, 1]])
         expected_coeffs = np.array([[1.0, 2.0, 3.0], [1.0, 0.0, 0.0], [3.0, 0.0, 0.0]])

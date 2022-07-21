@@ -23,12 +23,12 @@ from multiset import Multiset
 from qiskit import QiskitError
 
 from qiskit_dynamics.perturbation.multiset_utils import (
-    validate_non_negative_ints,
-    clean_multisets,
+    _validate_non_negative_ints,
+    _clean_multisets,
 )
 
 
-def merge_multiset_expansion_order_labels(
+def _merge_multiset_expansion_order_labels(
     perturbation_labels: Union[List[int], List[Multiset]],
     expansion_order: Optional[int] = None,
     expansion_labels: Optional[List[Multiset]] = None,
@@ -60,9 +60,9 @@ def merge_multiset_expansion_order_labels(
 
     # clean expansion_labels if specified
     if expansion_labels is not None:
-        expansion_labels = clean_multisets(expansion_labels)
+        expansion_labels = _clean_multisets(expansion_labels)
         for label in expansion_labels:
-            validate_non_negative_ints(label)
+            _validate_non_negative_ints(label)
 
     # if no expansion_order passed, just return expansion_labels
     if expansion_order is None:
@@ -77,13 +77,13 @@ def merge_multiset_expansion_order_labels(
             unique_labels = unique_labels.union({perturbation_label})
         else:
             perturbation_label = Multiset(perturbation_label)
-            validate_non_negative_ints(perturbation_label)
+            _validate_non_negative_ints(perturbation_label)
             unique_labels = unique_labels.union(perturbation_label.distinct_elements())
     unique_labels = list(unique_labels)
     unique_labels.sort()
 
     # get all possible counts for multisets of a given size with a given number of labels
-    all_multiset_counts = ordered_partitions(expansion_order, len(unique_labels))
+    all_multiset_counts = _ordered_partitions(expansion_order, len(unique_labels))
 
     # create all such multisets
     output_multisets = []
@@ -93,10 +93,10 @@ def merge_multiset_expansion_order_labels(
     if expansion_labels is not None:
         output_multisets = output_multisets + expansion_labels
 
-    return clean_multisets(output_multisets)
+    return _clean_multisets(output_multisets)
 
 
-def merge_list_expansion_order_labels(
+def _merge_list_expansion_order_labels(
     perturbation_num: int,
     expansion_order: Optional[int] = None,
     expansion_labels: Optional[List[List[int]]] = None,
@@ -145,7 +145,7 @@ def merge_list_expansion_order_labels(
     return output_lists
 
 
-def ordered_partitions(n: int, length: int) -> List[List[int]]:
+def _ordered_partitions(n: int, length: int) -> List[List[int]]:
     """Return the ordered integer partitions of n of a given length, including zeros.
 
     Args:
@@ -160,6 +160,6 @@ def ordered_partitions(n: int, length: int) -> List[List[int]]:
 
     full_list = []
     for k in range(n + 1):
-        full_list = full_list + [[k] + part for part in ordered_partitions(n - k, length - 1)]
+        full_list = full_list + [[k] + part for part in _ordered_partitions(n - k, length - 1)]
 
     return full_list
