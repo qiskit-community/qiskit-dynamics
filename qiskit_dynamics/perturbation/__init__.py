@@ -35,9 +35,9 @@ Dyson series :footcite:`dyson_radiation_1949` and
 Magnus expansion :footcite:`magnus_exponential_1954,blanes_magnus_2009` terms
 in a multi-variable setting via algorithms in :footcite:`puzzuoli_sensitivity_2022`.
 It can also be used to compute Dyson-like integrals using the algorithm in
-:footcite:`haas_engineering_2019`. Results are returned in a :class:`PerturbationResults`
-object, which is a data container with some functionality for indexing and accessing specific
-perturbation terms. See the function documentation for further details.
+:footcite:`haas_engineering_2019`. Results are returned in either a :class:`PowerSeriesData`
+or :class:`DysonLikeData` class, which are data classes with functionality for indexing
+and accessing specific perturbation terms. See the function documentation for further details.
 
 Truncated power-series representation and multisets
 ===================================================
@@ -68,11 +68,12 @@ Perturbation module classes
     :toctree: ../stubs/
 
     ArrayPolynomial
-    PerturbationResults
+    PowerSeriesData
+    DysonLikeData
 
 .. footbibliography::
 """
 
 from .array_polynomial import ArrayPolynomial
 from .solve_lmde_perturbation import solve_lmde_perturbation
-from .perturbation_results import PerturbationResults
+from .perturbation_data import PowerSeriesData, DysonLikeData

@@ -145,19 +145,17 @@ class ExpansionModel:
 
         if self.expansion_method == "dyson":
             # if Dyson multiply by single step frame transformation
-            results.perturbation_results.expansion_terms = (
-                Array(self.Udt) @ results.perturbation_results.expansion_terms
-            )
-            new_coeffs = results.perturbation_results.expansion_terms[:, -1]
+            results.perturbation_data.data = Array(self.Udt) @ results.perturbation_data.data
+            new_coeffs = results.perturbation_data.data[:, -1]
             self._expansion_polynomial = ArrayPolynomial(
                 array_coefficients=new_coeffs,
-                monomial_labels=results.perturbation_results.expansion_labels,
+                monomial_labels=results.perturbation_data.labels,
                 constant_term=self.Udt,
             )
         elif self.expansion_method == "magnus":
             self._expansion_polynomial = ArrayPolynomial(
-                array_coefficients=results.perturbation_results.expansion_terms[:, -1],
-                monomial_labels=results.perturbation_results.expansion_labels,
+                array_coefficients=results.perturbation_data.data[:, -1],
+                monomial_labels=results.perturbation_data.labels,
             )
 
     @property

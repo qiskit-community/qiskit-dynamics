@@ -52,7 +52,7 @@ from qiskit_dynamics.perturbation.multiset_utils import (
     _submultisets_and_complements,
 )
 
-from .perturbation_results import PerturbationResults
+from .perturbation_data import PowerSeriesData, DysonLikeData
 
 try:
     import jax.numpy as jnp
@@ -144,14 +144,16 @@ def _solve_lmde_dyson(
         for idx, dyson_term in enumerate(dyson_terms):
             dyson_terms[idx] = np.linalg.solve(results.y, dyson_term)
 
-    expansion_method = "dyson"
+    expansion_type = "dyson"
+    DataClass = PowerSeriesData
     if dyson_like:
-        expansion_method = "dyson_like"
+        expansion_type = "dyson_like"
+        DataClass = DysonLikeData
 
-    results.perturbation_results = PerturbationResults(
-        expansion_method=expansion_method,
-        expansion_labels=complete_term_list,
-        expansion_terms=Array(dyson_terms),
+    results.perturbation_data = DataClass(
+        data=Array(dyson_terms),
+        labels=complete_term_list,
+        metadata={"expansion_type": expansion_type},
     )
 
     return results
@@ -203,10 +205,10 @@ def _solve_lmde_magnus(
 
     # compute Magnus terms from Dyson and update the results
     magnus_terms = _magnus_from_dyson(
-        results.perturbation_results.expansion_labels, results.perturbation_results.expansion_terms
+        results.perturbation_data.labels, results.perturbation_data.data
     )
-    results.perturbation_results.expansion_method = "magnus"
-    results.perturbation_results.expansion_terms = Array(magnus_terms)
+    results.perturbation_data.metadata = {"expansion_type": "magnus"}
+    results.perturbation_data.data = Array(magnus_terms)
 
     return results
 
@@ -304,14 +306,16 @@ def _solve_lmde_dyson_jax(
     if dyson_in_frame:
         dyson_terms = vmap(lambda x: jnp.linalg.solve(results.y, x))(dyson_terms)
 
-    expansion_method = "dyson"
+    expansion_type = "dyson"
+    DataClass = PowerSeriesData
     if dyson_like:
-        expansion_method = "dyson_like"
+        expansion_type = "dyson_like"
+        DataClass = DysonLikeData
 
-    results.perturbation_results = PerturbationResults(
-        expansion_method=expansion_method,
-        expansion_labels=complete_term_list,
-        expansion_terms=Array(dyson_terms, backend="jax"),
+    results.perturbation_data = DataClass(
+        data=Array(dyson_terms, backend="jax"),
+        labels=complete_term_list,
+        metadata={"expansion_type": expansion_type},
     )
 
     return results
@@ -360,13 +364,13 @@ def _solve_lmde_magnus_jax(
         t_eval=t_eval,
         **kwargs,
     )
+
     # compute Magnus terms from Dyson and update the results
-    dyson_terms = results.perturbation_results.expansion_terms.data
     magnus_terms = _magnus_from_dyson_jax(
-        results.perturbation_results.expansion_labels, dyson_terms
+        results.perturbation_data.labels, Array(results.perturbation_data.data).data
     )
-    results.perturbation_results.expansion_method = "magnus"
-    results.perturbation_results.expansion_terms = Array(magnus_terms, backend="jax")
+    results.perturbation_data.metadata = {"expansion_type": "magnus"}
+    results.perturbation_data.data = Array(magnus_terms, backend="jax")
 
     return results
 
