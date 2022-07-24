@@ -23,6 +23,8 @@ from ..common import QiskitDynamicsTestCase
 
 
 class TestLanczos(QiskitDynamicsTestCase):
+    """Tests for lanczos.py"""
+
     def setUp(self):
         super().setUp()
         rng = np.random.default_rng(5213)
