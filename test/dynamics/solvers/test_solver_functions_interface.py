@@ -49,7 +49,6 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
         self.lindblad_model = LindbladModel(
             hamiltonian_operators=[np.diag([1.0, -1.0])], hamiltonian_signals=[1.0]
         )
-        # self.hamiltonian_model = HamiltonianModel(operators=[])
 
     def test_lmde_method_non_vectorized_lindblad(self):
         """Test error raising if LMDE method is specified for non-vectorized Lindblad."""
