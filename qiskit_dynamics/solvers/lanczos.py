@@ -176,7 +176,6 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
     data_type = jnp.result_type(A.dtype, y0.dtype)
 
     y0 = y0.astype(data_type)
-    y0 = y0 / jnp.linalg.norm(y0)
 
     alpha = jnp.zeros((k_dim,), dtype=data_type)
     beta = jnp.zeros((k_dim,), dtype=data_type)
@@ -274,12 +273,13 @@ def jax_lanczos_expm(
 
     if y0.ndim == 1:
         A = 1j * A  # make hermitian
-        q_basis, eigen_values, eigen_vectors_t = jax_lanczos_eigh(A, y0, k_dim)
+        y0_norm = jnp.linalg.norm(y0)
+        q_basis, eigen_values, eigen_vectors_t = jax_lanczos_eigh(A, y0 / y0_norm, k_dim)
         y_dt = (
             q_basis
             @ eigen_vectors_t
             @ (jnp.exp(-1j * scale_factor * eigen_values) * eigen_vectors_t[0, :])
-        )
+        ) * y0_norm
 
     elif y0.ndim == 2:
         y_dt = [jax_lanczos_expm(A, yi, k_dim, scale_factor) for yi in y0.T]
