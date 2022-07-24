@@ -31,7 +31,7 @@ from qiskit_dynamics.solvers.fixed_step_solvers import (
     jax_expm_solver,
     jax_expm_parallel_solver,
 )
-from qiskit_dynamics.solvers.lanczos import lanczos_basis, lanczos_eigh, lanczos_expm
+from qiskit_dynamics.solvers.lanczos import lanczos_expm
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -324,70 +324,32 @@ class TestScipyExpmSolver(TestFixedStepBase):
         return scipy_expm_solver(rhs, t_span, y0, max_dt, t_eval)
 
 
-class TestLanczosDiagSolver(QiskitDynamicsTestCase):
+class TestLanczosDiagSolver(TestFixedStepBase):
     """Test cases for lanczos_diag."""
 
-    def setUp(self):
+    def take_step(self, rhs, t, y, h):
+        """In this case treat rhs like a generator."""
+        return lanczos_expm(rhs(t + 0.5 * h) * h, y, 2)
 
-        rng = np.random.default_rng(5213)
-        rand_op = rng.uniform(-0.5, 0.5, (8, 8))
-        # make hermitian
-        rand_op = rand_op.conj().T + rand_op
-        rand_y0 = rng.uniform(-0.5, 0.5, (8,))
-        rand_y0 = rand_y0 / np.linalg.norm(rand_y0)
-
-        self.rand_op = rand_op
-        self.rand_y0 = rand_y0
-        self.rand_y0_2d = rng.uniform(-0.5, 0.5, (8, 3))
-
-        # self.simple_rhs = simple_rhs
-
-    def test_decomposition(self):
-        """Test lanczos_basis function for correct projection."""
-
-        tridiagonal, q_basis = lanczos_basis(self.rand_op, self.rand_y0, 8)
-        op = q_basis @ tridiagonal @ q_basis.T
-        self.assertAllClose(self.rand_op, op)
-
-    def test_ground_state(self):
-        """Test lanczos_eigh function for ground state calculation."""
-
-        q_basis, eigen_values_l, eigen_vectors_t = lanczos_eigh(self.rand_op, self.rand_y0, 8)
-        eigen_vectors_l = q_basis @ eigen_vectors_t
-        eigen_values_np, eigen_vectors_np = np.linalg.eigh(self.rand_op)
-
-        self.assertAllClose(eigen_vectors_np[:, 0], eigen_vectors_l[:, 0])
-        self.assertAllClose(eigen_values_np[0], eigen_values_l[0])
-
-    def test_expm(self):
-        """Test lanczos_expm function."""
-
-        expAy_l = lanczos_expm(-1j * self.rand_op, self.rand_y0, 8, 1)
-        expAy_s = expm(-1j * self.rand_op) @ self.rand_y0
-
-        self.assertAllClose(expAy_s, expAy_l)
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, 2)
 
     def test_1d_2d_consistency(self):
         """Test that checks consistency of y0 being 1d v.s. 2d."""
 
         t_span = [0.0, 1.0]
-        gen = lambda t: -1j * self.rand_op
+        gen = self.random_rhs
         results = np.array(
             [
                 lanczos_diag_solver(
-                    gen, t_span=t_span, y0=self.rand_y0_2d[:, 0], max_dt=0.1, k_dim=8
-                ).y,
-                lanczos_diag_solver(
-                    gen, t_span=t_span, y0=self.rand_y0_2d[:, 1], max_dt=0.1, k_dim=8
-                ).y,
-                lanczos_diag_solver(
-                    gen, t_span=t_span, y0=self.rand_y0_2d[:, 2], max_dt=0.1, k_dim=8
-                ).y,
+                    gen, t_span=t_span, y0=self.random_y0[:, idx], max_dt=0.1, k_dim=5
+                ).y
+                for idx in range(5)
             ]
         ).transpose(1, 2, 0)
 
         results2d = lanczos_diag_solver(
-            gen, t_span=t_span, y0=self.rand_y0_2d, max_dt=0.1, k_dim=8
+            gen, t_span=t_span, y0=self.random_y0, max_dt=0.1, k_dim=5
         ).y
 
         self.assertAllClose(results, results2d)
