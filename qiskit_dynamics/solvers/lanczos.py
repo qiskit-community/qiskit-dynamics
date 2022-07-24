@@ -55,9 +55,7 @@ def lanczos_basis(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
     beta = np.zeros((k_dim,), dtype=data_type)
     alpha = np.zeros((k_dim,), dtype=data_type)
 
-    y0 = y0 / np.linalg.norm(y0)
     q_basis[[0], :] = y0.T
-
     projection = A @ y0
     alpha[0] = y0.conj().T @ projection
     projection = projection - alpha[0] * y0
@@ -140,12 +138,13 @@ def lanczos_expm(
 
     if y0.ndim == 1:
         A = 1j * A  # make hermitian
-        q_basis, eigen_values, eigen_vectors_t = lanczos_eigh(A, y0, k_dim)
+        y0_norm = np.linalg.norm(y0)
+        q_basis, eigen_values, eigen_vectors_t = lanczos_eigh(A, y0 / y0_norm, k_dim)
         y_dt = (
             q_basis
             @ eigen_vectors_t
             @ (np.exp(-1j * scale_factor * eigen_values) * eigen_vectors_t[0, :])
-        )
+        ) * y0_norm
 
     elif y0.ndim == 2:
         y_dt = [lanczos_expm(A, yi, k_dim, scale_factor) for yi in y0.T]
