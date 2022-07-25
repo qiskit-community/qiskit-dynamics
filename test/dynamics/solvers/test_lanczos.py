@@ -16,7 +16,6 @@ Direct tests of helper functions in lanczos.py
 """
 
 import numpy as np
-
 from scipy.linalg import expm
 from qiskit_dynamics.solvers.lanczos import lanczos_basis, lanczos_eigh, lanczos_expm
 from ..common import QiskitDynamicsTestCase
@@ -25,13 +24,21 @@ from ..common import QiskitDynamicsTestCase
 class TestLanczos(QiskitDynamicsTestCase):
     """Tests for lanczos.py"""
 
+    def lanczos_functions(self):
+        """NumPy functions in lanczos.py"""
+        self.basis = lanczos_basis
+        self.eigh = lanczos_eigh
+        self.expm = lanczos_expm
+
     def setUp(self):
-        super().setUp()
+        self.lanczos_functions()
+
+        self.dim = 8
         rng = np.random.default_rng(5213)
-        rand_op = rng.uniform(-0.5, 0.5, (8, 8))
+        rand_op = rng.uniform(-0.5, 0.5, (self.dim, self.dim))
         # make hermitian
         rand_op = rand_op.conj().T + rand_op
-        rand_y0 = rng.uniform(-0.5, 0.5, (8,))
+        rand_y0 = rng.uniform(-0.5, 0.5, (self.dim,))
 
         self.rand_op = rand_op
         self.rand_y0 = rand_y0
@@ -39,8 +46,8 @@ class TestLanczos(QiskitDynamicsTestCase):
     def test_decomposition(self):
         """Test lanczos_basis function for correct projection."""
 
-        tridiagonal, q_basis = lanczos_basis(
-            self.rand_op, self.rand_y0 / np.linalg.norm(self.rand_y0), 8
+        tridiagonal, q_basis = self.basis(
+            self.rand_op, self.rand_y0 / np.linalg.norm(self.rand_y0), self.dim
         )
         op = q_basis @ tridiagonal @ q_basis.T
         self.assertAllClose(self.rand_op, op)
@@ -48,8 +55,8 @@ class TestLanczos(QiskitDynamicsTestCase):
     def test_ground_state(self):
         """Test lanczos_eigh function for ground state calculation."""
 
-        q_basis, eigen_values_l, eigen_vectors_t = lanczos_eigh(
-            self.rand_op, self.rand_y0 / np.linalg.norm(self.rand_y0), 8
+        q_basis, eigen_values_l, eigen_vectors_t = self.eigh(
+            self.rand_op, self.rand_y0 / np.linalg.norm(self.rand_y0), self.dim
         )
         eigen_vectors_l = q_basis @ eigen_vectors_t
         eigen_values_np, eigen_vectors_np = np.linalg.eigh(self.rand_op)
@@ -60,7 +67,7 @@ class TestLanczos(QiskitDynamicsTestCase):
     def test_expm(self):
         """Test lanczos_expm function."""
 
-        expAy_l = lanczos_expm(-1j * self.rand_op, self.rand_y0, 8, 1)
+        expAy_l = self.expm(-1j * self.rand_op, self.rand_y0, self.dim)
         expAy_s = expm(-1j * self.rand_op) @ self.rand_y0
 
         self.assertAllClose(expAy_s, expAy_l)
