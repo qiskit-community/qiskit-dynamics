@@ -224,7 +224,7 @@ def solve_lmde(
       ``k_dim`` acts an adjustable accuracy parameter and ``k_dim`` < ``model.dim``. Note
       that the generator must be necessarily anti-hermitian and preferably in sparse evaluation
       mode for better performance.
-    - ``'jax_lanczos_diag'`` JAX implementation of ``'lanczos_diag'``, with the same arguments
+    - ``'jax_lanczos_diag'``: JAX implementation of ``'lanczos_diag'``, with the same arguments
       and behaviour.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
