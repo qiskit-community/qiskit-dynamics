@@ -385,6 +385,7 @@ class Testjax_lanczos_diag(Testlanczos_diag, TestJaxBase):
         jit_func = self.jit_wrap(func)
         self.assertAllClose(jit_func(1.0), func(1.0))
 
+        # commented out since jax.lax.while_loop does not suport grad
         # # just verify that this runs without error
         # jit_grad_func = self.jit_grad_wrap(func)
         # jit_grad_func(1.0)
