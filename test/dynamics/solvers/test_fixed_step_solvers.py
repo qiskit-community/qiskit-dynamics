@@ -467,15 +467,15 @@ class TestJaxExpmParallelSolver(TestJaxExpmSolver):
         return results
 
 
-class TestJaxLanczosDiagSolver(TestJaxFixedStepBase):
+class TestJaxLanczosDiagSolver(TestLanczosDiagSolver, TestJaxFixedStepBase):
     """Test cases for jax_lanczos_diag."""
 
     def take_step(self, rhs, t, y, h):
         """In this case treat rhs like a generator."""
-        return jax_lanczos_expm(rhs(t + 0.5 * h) * h, y, 2)
+        return jax_lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return jax_lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, 2)
+        return jax_lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval)
 
     def test_t_span_with_jax_transformations(self):
         """Test handling of t_span as a list with jax transformations."""

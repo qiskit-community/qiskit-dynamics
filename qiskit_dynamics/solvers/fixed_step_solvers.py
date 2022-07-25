@@ -194,7 +194,7 @@ def jax_lanczos_diag_solver(
 
     dim = generator(0).shape[0]
     if k_dim is None:
-        k_dim = dim // 4
+        k_dim = dim
     if k_dim > dim:
         raise QiskitError(f"k_dim value {k_dim} is greater than dimension of generator {dim}")
 
