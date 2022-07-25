@@ -332,7 +332,7 @@ class TestLanczosDiagSolver(TestFixedStepBase):
         return lanczos_expm(rhs(t + 0.5 * h) * h, y, 2)
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, 2)
+        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, k_dim=2)
 
     def test_1d_2d_consistency(self):
         """Test that checks consistency of y0 being 1d v.s. 2d."""
@@ -341,16 +341,12 @@ class TestLanczosDiagSolver(TestFixedStepBase):
         gen = self.random_rhs
         results = np.array(
             [
-                lanczos_diag_solver(
-                    gen, t_span=t_span, y0=self.random_y0[:, idx], max_dt=0.1, k_dim=5
-                ).y
+                self.solve(gen, t_span=t_span, y0=self.random_y0[:, idx], max_dt=0.1).y
                 for idx in range(5)
             ]
         ).transpose(1, 2, 0)
 
-        results2d = lanczos_diag_solver(
-            gen, t_span=t_span, y0=self.random_y0, max_dt=0.1, k_dim=5
-        ).y
+        results2d = self.solve(gen, t_span=t_span, y0=self.random_y0, max_dt=0.1).y
 
         self.assertAllClose(results, results2d)
 
