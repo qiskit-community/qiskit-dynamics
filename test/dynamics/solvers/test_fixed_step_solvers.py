@@ -329,10 +329,10 @@ class TestLanczosDiagSolver(TestFixedStepBase):
 
     def take_step(self, rhs, t, y, h):
         """In this case treat rhs like a generator."""
-        return lanczos_expm(rhs(t + 0.5 * h) * h, y, 2)
+        return lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, k_dim=2)
+        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval)
 
     def test_1d_2d_consistency(self):
         """Test that checks consistency of y0 being 1d v.s. 2d."""
