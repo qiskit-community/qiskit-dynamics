@@ -492,26 +492,6 @@ class TestJaxLanczosDiagSolver(TestLanczosDiagSolver, TestJaxFixedStepBase):
         expected_y = self.take_n_steps(self.constant_rhs, t=0.0, y=self.id2, h=0.1, n_steps=10)
         self.assertAllClose(expected_y, output)
 
-    def test_1d_2d_consistency(self):
-        """Test that checks consistency of y0 being 1d v.s. 2d."""
-
-        t_span = [0.0, 1.0]
-        gen = self.random_rhs
-        results = np.array(
-            [
-                jax_lanczos_diag_solver(
-                    gen, t_span=t_span, y0=self.random_y0[:, idx], max_dt=0.1, k_dim=5
-                ).y
-                for idx in range(5)
-            ]
-        ).transpose(1, 2, 0)
-
-        results2d = jax_lanczos_diag_solver(
-            gen, t_span=t_span, y0=self.random_y0, max_dt=0.1, k_dim=5
-        ).y
-
-        self.assertAllClose(results, results2d)
-
 
 # to ensure unittest doesn't try to run the abstract classes
 del TestFixedStepBase, TestJaxFixedStepBase
