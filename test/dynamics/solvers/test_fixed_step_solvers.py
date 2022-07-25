@@ -333,10 +333,10 @@ class TestLanczosDiagSolver(TestFixedStepBase):
 
     def take_step(self, rhs, t, y, h):
         """In this case treat rhs like a generator."""
-        return lanczos_expm(rhs(t + 0.5 * h) * h, y, 2)
+        return lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, 2)
+        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval)
 
     def test_1d_2d_consistency(self):
         """Test that checks consistency of y0 being 1d v.s. 2d."""
@@ -345,18 +345,50 @@ class TestLanczosDiagSolver(TestFixedStepBase):
         gen = self.random_rhs
         results = np.array(
             [
-                lanczos_diag_solver(
-                    gen, t_span=t_span, y0=self.random_y0[:, idx], max_dt=0.1, k_dim=5
-                ).y
+                self.solve(gen, t_span=t_span, y0=self.random_y0[:, idx], max_dt=0.1).y
                 for idx in range(5)
             ]
         ).transpose(1, 2, 0)
 
-        results2d = lanczos_diag_solver(
-            gen, t_span=t_span, y0=self.random_y0, max_dt=0.1, k_dim=5
-        ).y
+        results2d = self.solve(gen, t_span=t_span, y0=self.random_y0, max_dt=0.1).y
 
         self.assertAllClose(results, results2d)
+
+    def test_case_ix(self):
+        """Standalone test case 1"""
+        gen = lambda t: -1j * np.array([[0.0, 1.0], [1.0, 0.0]])
+        y0 = np.array([0.0, 1.0])
+        t_span = [0.0, np.pi / 4]
+        result = self.solve(
+            rhs=gen,
+            t_span=t_span,
+            y0=y0,
+            max_dt=0.1,
+        ).y
+
+        self.assertAllClose(result[-1], expm(gen(0) * t_span[-1]) @ y0)
+
+    def test_case_iz(self):
+        """Standalone test case 2"""
+        gen = lambda t: -1j * np.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, -1]])
+        y01 = np.array([0.0, 0.0, 1.0])
+        y02 = np.array([0.0, 1.0, 1.0])
+        t_span = [0.0, np.pi / 4]
+        result1 = self.solve(
+            rhs=gen,
+            t_span=t_span,
+            y0=y01,
+            max_dt=0.1,
+        ).y
+        result2 = self.solve(
+            rhs=gen,
+            t_span=t_span,
+            y0=y02,
+            max_dt=0.1,
+        ).y
+
+        self.assertAllClose(result1[-1], expm(gen(0) * t_span[-1]) @ y01)
+        self.assertAllClose(result2[-1], expm(gen(0) * t_span[-1]) @ y02)
 
 
 class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
