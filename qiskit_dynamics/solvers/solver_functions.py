@@ -303,27 +303,7 @@ def solve_lmde(
 
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
-    if method == "lanczos_diag":
-        if isinstance(generator, BaseGeneratorModel) and "sparse" not in generator.evaluation_mode:
-            warn(
-                "lanczos_diag must be used with a generator in sparse mode for better performance.",
-                category=Warning,
-                stacklevel=5,
-            )
-            # raise QiskitError("lanczos_diag must be used with a generator in sparse mode.")
-        if type(generator) in [LindbladModel, GeneratorModel] or (
-            not is_hermitian(1j * solver_generator(t_span[0]))
-        ):
-            raise QiskitError(
-                """Lanczos solver can only be used for HamiltonianModel or function-based
-                   anti-Hermitian generators."""
-            )
-        results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
-    elif method == "jax_expm":
-        if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
-            raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
-        results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
-    elif method == "jax_lanczos_diag":
+    elif "lanczos_diag" in method:
         if isinstance(generator, BaseGeneratorModel) and "sparse" not in generator.evaluation_mode:
             warn(
                 "lanczos_diag must be used with a generator in sparse mode for better performance.",
@@ -333,9 +313,16 @@ def solve_lmde(
         if type(generator) in [LindbladModel, GeneratorModel]:
             raise QiskitError(
                 """Lanczos solver can only be used for HamiltonianModel or function-based
-                   anti-Hermitian generators."""
+                    anti-Hermitian generators."""
             )
-        results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+        if method == "lanczos_diag":
+            results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+        elif method == "jax_lanczos_diag":
+            results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+    elif method == "jax_expm":
+        if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
+            raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
+        results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm_parallel":
         results = jax_expm_parallel_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_RK4_parallel":
