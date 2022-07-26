@@ -155,19 +155,7 @@ def lanczos_expm(
 
 @requires_backend("jax")
 def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
-    """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
-    using Lanczos algorithm. Implemented with ``jax``.
-    reference: https://tensornetwork.org/mps/algorithms/timeevo/global-krylov.html
-
-    Args:
-        A : Array to tridiagonalise. Must be hermitian.
-        y0 : Vector to initialise Lanczos iteration.
-        k_dim : Dimension of the krylov subspace.
-
-    Returns:
-        tridiagonal : Tridiagonal projection of ``A``.
-        q_basis : Basis of the krylov subspace.
-    """
+    """JAX version of lanczos_basis."""
 
     dim = A.shape[0]
     data_type = jnp.result_type(A.dtype, y0.dtype)
@@ -223,18 +211,7 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
 
 @requires_backend("jax")
 def jax_lanczos_eigh(A: Array, y0: Array, k_dim: int):
-    """Finds the lowest (Algebraic) ``k_dim`` eigenvalues and corresponding eigenvectors of a
-    hermitian array using Lanczos algorithm. Implemented with ``jax``.
-    Args:
-        A : Array to diagonalize. Must be hermitian.
-        y0 : Vector to initialise Lanczos iteration.
-        k_dim : Dimension of the krylov subspace.
-
-    Returns:
-        q_basis : Basis of the krylov subspace.
-        eigen_values : lowest ``k_dim`` Eigenvalues.
-        eigen_vectors_t : Eigenvectors in krylov-space.
-    """
+    """JAX version of lanczos_eigh."""
 
     tridiagonal, q_basis = jax_lanczos_basis(A, y0, k_dim)
     eigen_values, eigen_vectors_t = jnp.linalg.eigh(tridiagonal)
@@ -249,21 +226,7 @@ def jax_lanczos_expm(
     k_dim: int,
     scale_factor: Optional[float] = 1,
 ):
-    """Calculates action of matrix exponential of an anti-hermitian array on the state using
-    Lanczos algorithm. Implemented with ``jax``.
-
-    Args:
-        A : Array to exponentiate. Must be anti-hermitian.
-        y0 : Initial state.
-        k_dim : Dimension of the krylov subspace.
-        scale_factor : Maximum step size.
-
-    Returns:
-        y_dt : Action of matrix exponential on state.
-
-    Raises:
-        ValueError : If ``y0`` is not 1d or 2d
-    """
+    """JAX version of lanczos_expm."""
 
     if y0.ndim == 1:
         A = 1j * A  # make hermitian
