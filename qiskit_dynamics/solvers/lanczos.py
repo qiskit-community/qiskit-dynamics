@@ -24,7 +24,7 @@ from qiskit_dynamics.array import Array
 
 try:
     import jax.numpy as jnp
-    from jax.lax import while_loop
+    from jax.lax import while_loop, scan
 except ImportError:
     pass
 
@@ -282,7 +282,9 @@ def jax_lanczos_expm(
         ) * y0_norm
 
     elif y0.ndim == 2:
-        y_dt = [jax_lanczos_expm(A, yi, k_dim, scale_factor) for yi in y0.T]
+        _, y_dt = scan(
+            lambda _, yi: (None, jax_lanczos_expm(A, yi, k_dim, scale_factor)), None, y0.T
+        )
         y_dt = jnp.array(y_dt).T
 
     else:
