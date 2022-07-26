@@ -108,9 +108,6 @@ def lanczos_eigh(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
     tridiagonal, q_basis = lanczos_basis(A, y0, k_dim)
     eigen_values, eigen_vectors_t = np.linalg.eigh(tridiagonal)
 
-    # Eigenvectors in hilbert-space.
-    # eigen_vectors_a = q_basis @ eigen_vectors_t
-
     return q_basis, eigen_values, eigen_vectors_t
 
 
@@ -241,9 +238,6 @@ def jax_lanczos_eigh(A: Array, y0: Array, k_dim: int):
 
     tridiagonal, q_basis = jax_lanczos_basis(A, y0, k_dim)
     eigen_values, eigen_vectors_t = jnp.linalg.eigh(tridiagonal)
-
-    # Eigenvectors in hilbert-space.
-    # eigen_vectors_a = q_basis @ eigen_vectors_t
 
     return q_basis, eigen_values, eigen_vectors_t
 
