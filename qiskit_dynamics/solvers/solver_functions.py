@@ -316,6 +316,12 @@ def solve_lmde(
                     anti-Hermitian generators."""
             )
         if method == "lanczos_diag":
+            # test seperated since is_hermitian is not jax jitable
+            if not is_hermitian(1j * solver_generator(t_span[0])):
+                raise QiskitError(
+                    """Lanczos solver can only be used for HamiltonianModel or function-based
+                    anti-Hermitian generators."""
+                )
             results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
         elif method == "jax_lanczos_diag":
             results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
