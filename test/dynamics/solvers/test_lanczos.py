@@ -31,14 +31,10 @@ from ..common import QiskitDynamicsTestCase, TestJaxBase
 class TestLanczos(QiskitDynamicsTestCase):
     """Tests for lanczos.py"""
 
-    def lanczos_functions(self):
-        """NumPy functions in lanczos.py"""
+    def setUp(self):
         self.basis = lanczos_basis
         self.eigh = lanczos_eigh
         self.expm = lanczos_expm
-
-    def setUp(self):
-        self.lanczos_functions()
 
         self.dim = 8
         rng = np.random.default_rng(5213)
@@ -83,8 +79,8 @@ class TestLanczos(QiskitDynamicsTestCase):
 class TestJaxLanczos(TestLanczos, TestJaxBase):
     """Tests for jax functions in lanczos.py"""
 
-    def lanczos_functions(self):
-        """NumPy functions in lanczos.py"""
+    def setUp(self):
+        super().setUp()
         self.basis = jax_lanczos_basis
         self.eigh = jax_lanczos_eigh
         self.expm = jax_lanczos_expm
