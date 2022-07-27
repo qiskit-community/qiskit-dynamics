@@ -24,7 +24,7 @@ from qiskit_dynamics.array import Array
 
 try:
     import jax.numpy as jnp
-    from jax.lax import while_loop, scan
+    from jax.lax import scan, cond
 except ImportError:
     pass
 
@@ -157,50 +157,50 @@ def lanczos_expm(
 def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
     """JAX version of lanczos_basis."""
 
-    dim = A.shape[0]
     data_type = jnp.result_type(A.dtype, y0.dtype)
-
     y0 = y0.astype(data_type)
 
-    alpha = jnp.zeros((k_dim,), dtype=data_type)
-    beta = jnp.zeros((k_dim,), dtype=data_type)
-    q_basis = jnp.zeros((k_dim, dim), dtype=data_type)
-
-    q_basis = q_basis.at[[0], :].set(y0.T)
     projection_0 = A @ y0
-    alpha = alpha.at[0].set((y0.conj().T @ projection_0))
-    projection_0 = projection_0 - alpha[0] * y0
-    beta = beta.at[0].set(jnp.linalg.norm(projection_0))
+    alpha_0 = y0.conj().T @ projection_0
+    projection_0 = projection_0 - alpha_0 * y0
+    beta_0 = jnp.sqrt(jnp.abs(projection_0.conj().T @ projection_0))
 
-    idx_0 = 1
-    initial_val = [q_basis, projection_0, alpha, beta, idx_0]
+    initial = [y0, projection_0, beta_0]
 
-    def lanczos_iter_cond(val):
-        *_, beta_i, idx = val
-        return (idx < k_dim) * (beta_i[idx - 1] > 0.0)
+    def lanczos_iter(carry, _):
+        q_p, projection, beta_p = carry
 
-    def lanczos_iter(val):
-        q_i, projection, alpha_i, beta_i, idx = val
+        q_i = projection.T / beta_p
+        projection = A @ q_i
+        alpha_i = q_i.conj().T @ projection
+        projection = projection - alpha_i * q_i - beta_p * q_p
+        beta_i = jnp.sqrt(jnp.abs(projection.conj().T @ projection))
 
-        q_p = q_i[idx - 1, :]
-        beta_p = beta_i[idx - 1]
+        delta = q_i.conj().T @ projection
+        projection = projection - delta * q_i
+        alpha_i = alpha_i + delta
 
-        q_i = q_i.at[[idx], :].set(projection.T / beta_p)
-        projection = A @ q_i[idx, :]
-        alpha_i = alpha_i.at[idx].set(q_i[idx, :].conj().T @ projection)
-        projection = projection - alpha_i[idx] * q_i[idx, :] - beta_p * q_p
-        beta_i = beta_i.at[idx].set(jnp.linalg.norm(projection))
+        carry_next = [q_i, projection, beta_i]
+        accumulate = [alpha_i, beta_i, q_i]
 
-        delta = q_i[idx, :].conj().T @ projection
-        projection = projection - delta * q_i[idx, :]
-        alpha_i = alpha_i.at[idx].set(alpha_i[idx] + delta)
+        return carry_next, accumulate
 
-        idx = idx + 1
+    def cond_func(qpb, _):
+        _, _, beta_i = qpb
+        zeros_func = lambda _: (
+            [jnp.zeros_like(y0), jnp.zeros_like(y0), 0.0],
+            [jnp.zeros(1, dtype=data_type)[0], 0.0, jnp.zeros_like(y0)],
+        )
+        carry_next2, accumulate2 = cond(
+            beta_i > 0, lambda carry: lanczos_iter(carry, _), zeros_func, qpb
+        )
+        return carry_next2, accumulate2
 
-        val_next = [q_i, projection, alpha_i, beta_i, idx]
-        return val_next
+    _, (alpha, beta, q_basis) = scan(cond_func, initial, None, length=k_dim - 1)
 
-    (q_basis, _, alpha, beta, _) = while_loop(lanczos_iter_cond, lanczos_iter, initial_val)
+    alpha = jnp.array([alpha_0, *alpha])
+    beta = jnp.array([beta_0, *beta])
+    q_basis = jnp.array([y0, *q_basis])
 
     tridiagonal = (
         jnp.diag(alpha, k=0) + jnp.diag(beta[: k_dim - 1], k=-1) + jnp.diag(beta[: k_dim - 1], k=1)
