@@ -316,25 +316,24 @@ class Testlanczos_diag(TestSolverMethod):
             operators=1j * self.simple_model.operators, signals=self.simple_model.signals
         )
 
-        operators = self.pseudo_random_model.operators.data
-        signals = self.pseudo_random_model.signals[0][0]
-        static_operator = self.pseudo_random_model.static_operator.data
-        frame_op = self.pseudo_random_model.rotating_frame.frame_operator
+        self.operators = self.pseudo_random_model.operators.data
+        self.static_operator = self.pseudo_random_model.static_operator.data
 
         # make hermitian
-        operators = operators.conj().transpose(0, 2, 1) + operators
-        static_operator = static_operator.conj().T + static_operator
+        self.operators = self.operators.conj().transpose(0, 2, 1) + self.operators
+        self.static_operator = self.static_operator.conj().T + self.static_operator
+        self.frame_op = self.pseudo_random_model.rotating_frame.frame_operator
 
         self.pseudo_random_model = HamiltonianModel(
-            operators=operators,
-            signals=[signals],
-            static_operator=static_operator,
-            rotating_frame=frame_op,
+            operators=self.operators,
+            signals=[self.pseudo_random_signal],
+            static_operator=self.static_operator,
+            rotating_frame=self.frame_op,
         )
 
         # simulate directly out of frame
         def pseudo_random_rhs(t, y=None):
-            op = static_operator + self.pseudo_random_signal(t).data * operators[0]
+            op = self.static_operator + self.pseudo_random_signal(t).data * self.operators[0]
             op = -1j * op
             if y is None:
                 return op
