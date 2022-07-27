@@ -52,7 +52,7 @@ class TestLanczos(QiskitDynamicsTestCase):
         tridiagonal, q_basis = self.basis(
             self.rand_op, self.rand_y0 / np.linalg.norm(self.rand_y0), self.dim
         )
-        op = q_basis @ tridiagonal @ q_basis.T
+        op = q_basis @ tridiagonal @ q_basis.T.conj()
         self.assertAllClose(self.rand_op, op)
 
     def test_ground_state(self):
