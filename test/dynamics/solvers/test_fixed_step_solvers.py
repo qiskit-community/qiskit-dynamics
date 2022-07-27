@@ -477,25 +477,6 @@ class TestJaxLanczosDiagSolver(TestLanczosDiagSolver, TestJaxFixedStepBase):
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
         return jax_lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval)
 
-    def test_t_span_with_jax_transformations(self):
-        """Test handling of t_span as a list with jax transformations."""
-        t_span = [0.0, 1.0]
-
-        def func(amp):
-            results = self.solve(
-                lambda *args: amp * self.constant_rhs(*args), t_span, self.id2, max_dt=0.1
-            )
-            return Array(results.y[-1]).data
-
-        jit_func = self.jit_wrap(func)
-        output = jit_func(1.0)
-        expected_y = self.take_n_steps(self.constant_rhs, t=0.0, y=self.id2, h=0.1, n_steps=10)
-        self.assertAllClose(expected_y, output)
-
-        # commented out since jax.lax.while_loop does not suport grad
-        # grad_func = self.jit_grad_wrap(func)
-        # grad_func(1.0)
-
 
 # to ensure unittest doesn't try to run the abstract classes
 del TestFixedStepBase, TestJaxFixedStepBase

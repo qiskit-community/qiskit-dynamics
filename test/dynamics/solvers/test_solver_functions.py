@@ -355,7 +355,7 @@ class Testlanczos_diag(TestSolverMethod):
         )
 
 
-class Testjax_lanczos_diag(Testlanczos_diag, TestJaxBase):
+class Testjax_lanczos_diag(Testlanczos_diag, TestSolverMethodJax):
     """Test class for jax_expm_solver."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -369,25 +369,6 @@ class Testjax_lanczos_diag(Testlanczos_diag, TestJaxBase):
             k_dim=max(y0.shape),
             **kwargs,
         )
-
-    def test_pseudo_random_jit_grad(self):
-        """Validate jitting and gradding through the method at the level of
-        solve_ode/solve_lmde.
-        """
-
-        def func(a):
-            model_copy = self.pseudo_random_model.copy()
-            model_copy.signals = [Signal(Array(a), carrier_freq=1.0)]
-            results = self.solve(model_copy, t_span=[0.0, 0.1], y0=self.pseudo_random_y0)
-            return results.y[-1]
-
-        jit_func = self.jit_wrap(func)
-        self.assertAllClose(jit_func(1.0), func(1.0))
-
-        # commented out since jax.lax.while_loop does not suport grad
-        # # just verify that this runs without error
-        # jit_grad_func = self.jit_grad_wrap(func)
-        # jit_grad_func(1.0)
 
 
 class Testsparse_jax_lanczos_diag(Testjax_lanczos_diag):
