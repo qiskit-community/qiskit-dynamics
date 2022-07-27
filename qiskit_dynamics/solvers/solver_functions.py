@@ -73,7 +73,14 @@ LMDE_METHODS = [
 
 def is_jax_method(method: any) -> bool:
     """Check if method is a jax solver method."""
-    if method in ["jax_odeint", "jax_RK4", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]:
+    if method in [
+        "jax_odeint",
+        "jax_RK4",
+        "jax_expm",
+        "jax_expm_parallel",
+        "jax_RK4_parallel",
+        "jax_lanczos_diag",
+    ]:
         return True
 
     if diffrax_installed and isinstance(method, AbstractSolver):
