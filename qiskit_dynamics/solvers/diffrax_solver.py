@@ -26,14 +26,9 @@ from qiskit_dynamics.array import Array, wrap
 
 from .solver_utils import merge_t_args
 
-
 try:
-    from diffrax import ODETerm, SaveAt
-    from diffrax import diffeqsolve as _diffeqsolve
-
-    from diffrax.solver import AbstractSolver  # pylint: disable=unused-import
     import jax.numpy as jnp
-except ImportError as err:
+except ImportError:
     pass
 
 
@@ -63,6 +58,11 @@ def diffrax_solver(
         QiskitError: Passing both `SaveAt` argument and `t_eval` argument.
     """
 
+    from diffrax import ODETerm, SaveAt
+    from diffrax import diffeqsolve as _diffeqsolve
+
+    diffeqsolve = wrap(_diffeqsolve)
+
     t_list = merge_t_args(t_span, t_eval)
 
     # convert rhs and y0 to real
@@ -70,8 +70,6 @@ def diffrax_solver(
     y0 = c2r(y0)
 
     term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
-
-    diffeqsolve = wrap(_diffeqsolve)
 
     if "saveat" in kwargs and t_eval is not None:
         raise QiskitError(
