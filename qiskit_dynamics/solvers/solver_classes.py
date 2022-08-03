@@ -47,7 +47,7 @@ from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 
-from .solver_functions import solve_lmde, is_jax_method
+from .solver_functions import solve_lmde, _is_jax_method
 from .solver_utils import (
     is_lindblad_model_vectorized,
     is_lindblad_model_not_vectorized,
@@ -597,7 +597,7 @@ class Solver:
         all_results = None
         if (
             Array.default_backend() == "jax"
-            and is_jax_method(kwargs.get("method", ""))
+            and _is_jax_method(kwargs.get("method", ""))
             and all(isinstance(x, Schedule) for x in signals_list)
         ):
             all_results = self._solve_schedule_list_jax(
