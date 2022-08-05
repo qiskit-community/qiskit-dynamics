@@ -17,7 +17,7 @@ r"""
 Solver functions.
 """
 
-from typing import Optional, Union, Callable, Tuple, List
+from typing import Optional, Union, Callable, Tuple, List, TypeVar
 from warnings import warn
 
 from scipy.integrate import OdeSolver
@@ -49,13 +49,6 @@ from .scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .jax_odeint import jax_odeint
 from .diffrax_solver import diffrax_solver
 
-try:
-    from diffrax.solver import AbstractSolver
-
-    diffrax_installed = True
-except ImportError:
-    diffrax_installed = False
-
 ODE_METHODS = (
     ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"]  # scipy solvers
     + ["RK4"]  # fixed step solvers
@@ -70,8 +63,11 @@ LMDE_METHODS = [
     "jax_RK4_parallel",
 ]
 
+# diffrax solver type placeholder
+DiffraxAbstractSolver = TypeVar("AbstractSolver")
 
-def is_jax_method(method: any) -> bool:
+
+def _is_jax_method(method: any) -> bool:
     """Check if method is a jax solver method."""
     if method in [
         "jax_odeint",
@@ -83,17 +79,25 @@ def is_jax_method(method: any) -> bool:
     ]:
         return True
 
-    if diffrax_installed and isinstance(method, AbstractSolver):
-        return True
+    # only other jax methods are diffrax methods
+    return _is_diffrax_method(method)
 
-    return False
+
+def _is_diffrax_method(method: any) -> bool:
+    """Check if method is a diffrax method."""
+    try:
+        from diffrax.solver import AbstractSolver
+
+        return isinstance(method, AbstractSolver)
+    except ImportError:
+        return False
 
 
 def solve_ode(
     rhs: Union[Callable, BaseGeneratorModel],
     t_span: Array,
     y0: Array,
-    method: Optional[Union[str, OdeSolver, "AbstractSolver"]] = "DOP853",
+    method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
@@ -145,8 +149,7 @@ def solve_ode(
     """
 
     if method not in ODE_METHODS and not (
-        (isinstance(method, type) and (issubclass(method, OdeSolver)))
-        or (diffrax_installed and isinstance(method, AbstractSolver))
+        (isinstance(method, type) and (issubclass(method, OdeSolver))) or _is_diffrax_method(method)
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
@@ -162,14 +165,14 @@ def solve_ode(
     # solve the problem using specified method
     if method in SOLVE_IVP_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
         results = scipy_solve_ivp(solver_rhs, t_span, y0, method, t_eval=t_eval, **kwargs)
-    elif diffrax_installed and isinstance(method, AbstractSolver):
-        results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "RK4":
         results = RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "jax_RK4":
         results = jax_RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "jax_odeint":
         results = jax_odeint(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
+    elif _is_diffrax_method(method):
+        results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
 
     # convert results out of frame basis if necessary
     if isinstance(rhs, BaseGeneratorModel):
@@ -186,7 +189,7 @@ def solve_lmde(
     generator: Union[Callable, BaseGeneratorModel],
     t_span: Array,
     y0: Array,
-    method: Optional[Union[str, OdeSolver, "AbstractSolver"]] = "DOP853",
+    method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
@@ -276,7 +279,7 @@ def solve_lmde(
     if (
         method in ODE_METHODS
         or (isinstance(method, type) and (issubclass(method, OdeSolver)))
-        or (diffrax_installed and isinstance(method, AbstractSolver))
+        or _is_diffrax_method(method)
     ):
         if isinstance(generator, BaseGeneratorModel):
             rhs = generator

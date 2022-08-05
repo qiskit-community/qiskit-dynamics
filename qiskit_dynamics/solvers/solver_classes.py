@@ -47,7 +47,7 @@ from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 
-from .solver_functions import solve_lmde, is_jax_method
+from .solver_functions import solve_lmde, _is_jax_method
 from .solver_utils import (
     is_lindblad_model_vectorized,
     is_lindblad_model_not_vectorized,
@@ -591,13 +591,13 @@ class Solver:
         [t_span_list, y0_list, signals_list], multiple_sims = setup_args_lists(
             args_list=[t_span, y0, signals],
             args_names=["t_span", "y0", "signals"],
-            args_to_list=[t_span_to_list, y0_to_list, signals_to_list],
+            args_to_list=[t_span_to_list, _y0_to_list, _signals_to_list],
         )
 
         all_results = None
         if (
             Array.default_backend() == "jax"
-            and is_jax_method(kwargs.get("method", ""))
+            and _is_jax_method(kwargs.get("method", ""))
             and all(isinstance(x, Schedule) for x in signals_list)
         ):
             all_results = self._solve_schedule_list_jax(
@@ -882,7 +882,7 @@ def t_span_to_list(t_span):
     """Check if t_span is validly specified as a single interval or a list of intervals,
     and return as a list in either case."""
     was_list = False
-    t_span_ndim = nested_ndim(t_span)
+    t_span_ndim = _nested_ndim(t_span)
     if t_span_ndim > 2:
         raise QiskitError("t_span must be either 1d or 2d.")
     if t_span_ndim == 1:
@@ -893,7 +893,7 @@ def t_span_to_list(t_span):
     return t_span, was_list
 
 
-def y0_to_list(y0):
+def _y0_to_list(y0):
     """Check if y0 is validly specified as a single initial state or a list of initial states,
     and return as a list in either case."""
     was_list = False
@@ -905,7 +905,7 @@ def y0_to_list(y0):
     return y0, was_list
 
 
-def signals_to_list(signals):
+def _signals_to_list(signals):
     """Check if signals is validly specified as a single signal specification or a list of
     such specifications, and return as a list in either case."""
     was_list = False
@@ -964,10 +964,10 @@ def organize_signals_to_channels(
         return (hamiltonian_signals, dissipator_signals)
 
 
-def nested_ndim(x):
+def _nested_ndim(x):
     """Determine the 'ndim' of x, which could be composed of nested lists and array types."""
     if isinstance(x, (list, tuple)):
-        return 1 + nested_ndim(x[0])
+        return 1 + _nested_ndim(x[0])
     elif issubclass(type(x), Dispatch.REGISTERED_TYPES) or isinstance(x, Array):
         return x.ndim
 
