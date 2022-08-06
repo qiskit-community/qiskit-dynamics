@@ -407,8 +407,6 @@ def fixed_step_solver_template_jax(
         OdeResult: Results object.
     """
 
-
-
     y0 = Array(y0).data
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
