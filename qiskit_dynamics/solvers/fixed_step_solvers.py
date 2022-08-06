@@ -144,7 +144,7 @@ def lanczos_diag_solver(
         OdeResult: Results object.
 
     Raises:
-        QiskitError: If ``k_dim`` is greater than dimension of generator
+        QiskitError: If ``k_dim`` is greater than dimension of generator.
     """
 
     dim = generator(0).shape[0]
@@ -171,26 +171,7 @@ def jax_lanczos_diag_solver(
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     k_dim: Optional[int] = None,
 ):
-    """Fixed-step size matrix exponential based solver implemented using
-    lanczos algorithm implemented with ``jax``. Solves the specified problem
-    by taking steps of size no larger than ``max_dt``.
-
-    Args:
-        generator: Generator for the LMDE.
-        t_span: Interval to solve over.
-        y0: Initial state.
-        max_dt: Maximum step size.
-        t_eval: Optional list of time points at which to return the solution.
-        k_dim: Integer which specifies the dimension of Krylov subspace used for
-               lanczos iteration. Acts as an accuracy parameter. ``k_dim`` must
-               always be less than or equal to dimension of generator.
-
-    Returns:
-        OdeResult: Results object.
-
-    Raises:
-        QiskitError: If ``k_dim`` is greater than dimension of generator
-    """
+    """JAX version of lanczos_diag_solver."""
 
     dim = generator(0).shape[0]
     if k_dim is None:
