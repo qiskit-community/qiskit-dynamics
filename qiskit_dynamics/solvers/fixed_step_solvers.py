@@ -407,9 +407,7 @@ def fixed_step_solver_template_jax(
         OdeResult: Results object.
     """
 
-    # ensure the output of rhs_func is a raw array
-    def wrapped_rhs_func(*args):
-        return rhs_func(*args)  # Array(rhs_func(*args), backend="jax").data
+
 
     y0 = Array(y0).data
 
@@ -428,7 +426,7 @@ def fixed_step_solver_template_jax(
 
         def scan_take_step(carry, step):
             t, y = carry
-            y = cond(step < n_steps, lambda y: take_step(wrapped_rhs_func, t, y, h), identity, y)
+            y = cond(step < n_steps, lambda y: take_step(rhs_func, t, y, h), identity, y)
             t = t + h
             return (t, y), None
 
