@@ -63,16 +63,6 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase, TestJaxBase):
 
         with self.assertRaisesRegex(QiskitError, "anti-Hermitian generators"):
             solve_lmde(
-                lambda t: np.array([[0, 1], [1, 0]]),
-                t_span=[0.0, 1.0],
-                y0=np.array([1.0, 0.0]),
-                method="lanczos_diag",
-                max_dt=0.1,
-                k_dim=2,
-            )
-
-        with self.assertRaisesRegex(QiskitError, "anti-Hermitian generators"):
-            solve_lmde(
                 GeneratorModel(static_operator=np.array([[0, 1], [-1, 0]])),
                 t_span=[0.0, 1.0],
                 y0=np.array([1.0, 0.0]),
