@@ -313,9 +313,7 @@ class Testlanczos_diag(TestSolverMethod):
         super().setUp()
 
         self.simple_model = HamiltonianModel(
-            operators=1j * self.simple_model.operators,
-            signals=self.simple_model.signals,
-            evaluation_mode="sparse",
+            operators=1j * self.simple_model.operators, signals=self.simple_model.signals
         )
 
         self.operators = self.pseudo_random_model.operators.data
@@ -331,7 +329,6 @@ class Testlanczos_diag(TestSolverMethod):
             signals=[self.pseudo_random_signal],
             static_operator=self.static_operator,
             rotating_frame=self.frame_op,
-            evaluation_mode="sparse",
         )
 
         # simulate directly out of frame
@@ -371,6 +368,27 @@ class Testjax_lanczos_diag(Testlanczos_diag, TestSolverMethodJax):
             max_dt=0.005,
             k_dim=max(y0.shape),
             **kwargs,
+        )
+
+
+class Testsparse_jax_lanczos_diag(Testjax_lanczos_diag):
+    """Test class for jax_expm_solver with jax.sparse.BCOO input."""
+
+    def setUp(self):
+        super().setUp()
+
+        self.simple_model = HamiltonianModel(
+            operators=self.simple_model.operators,
+            signals=self.simple_model.signals,
+            evaluation_mode="sparse",
+        )
+
+        self.pseudo_random_model = HamiltonianModel(
+            operators=self.operators,
+            signals=[self.pseudo_random_signal],
+            static_operator=self.static_operator,
+            rotating_frame=self.frame_op,
+            evaluation_mode="sparse",
         )
 
 
