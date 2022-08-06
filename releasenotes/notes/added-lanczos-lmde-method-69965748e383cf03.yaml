@@ -1,8 +1,9 @@
 ---
 features:
   - |
-    New method ``'lanczos_diag'`` has been added to solver methods. This is an approximate
-    lmde method that diagonalises a smaller subspace (the Krylov Subspace). The advantage is
-    a speedup. The size of this subspace ``k_dim``, controls the accuracy of this algorithm 
-    at the cose of runtime. To use this method, an addtional kwarg ``k_dim`` must be suplied 
-    to ``solve``. There is also a jax implementation of the same.
+    New methods ``'lanczos_diag'`` and the JAX version ``'jax_lanczos_diag'`` have been
+    added to `solve_lmde`. This is an approximate matrix-exponentiation method, based 
+    on diagonalizing an approximate projection of the generator to a small subspace (the Krylov Subspace),
+    obtained via the Lanczos algorithm.  The size of this subspace is determined by the parameter ``k_dim``, 
+    which controls the accuracy of the approximation. The method is recommended for sparse systems with 
+    large dimension.
