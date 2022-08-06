@@ -102,7 +102,7 @@ def _lanczos_validation(generator: Union[Callable, BaseGeneratorModel]):
             )
         if "sparse" not in generator.evaluation_mode:
             warn(
-                "lanczos_diag must be used with a generator in sparse mode for better performance.",
+                "lanczos_diag should be used with a generator in sparse mode for better performance.",
                 category=Warning,
                 stacklevel=2,
             )
