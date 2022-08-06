@@ -32,7 +32,7 @@ from qiskit_dynamics.models import (
     GeneratorModel,
     LindbladModel,
 )
-from qiskit_dynamics.models.hamiltonian_model import is_hermitian
+from qiskit_dynamics.models.hamiltonian_model import HamiltonianModel, is_hermitian
 
 from .solver_utils import is_lindblad_model_not_vectorized
 from .fixed_step_solvers import (
@@ -91,6 +91,21 @@ def _is_diffrax_method(method: any) -> bool:
         return isinstance(method, AbstractSolver)
     except ImportError:
         return False
+
+
+def _lanczos_validation(generator: Union[Callable, BaseGeneratorModel]):
+    if isinstance(generator, BaseGeneratorModel):
+        if type(generator) is not HamiltonianModel:
+            raise QiskitError(
+                """Lanczos solver can only be used for HamiltonianModel or function-based
+                    anti-Hermitian generators."""
+            )
+        if "sparse" not in generator.evaluation_mode:
+            warn(
+                "lanczos_diag must be used with a generator in sparse mode for better performance.",
+                category=Warning,
+                stacklevel=2,
+            )
 
 
 def solve_ode(
@@ -316,24 +331,8 @@ def solve_lmde(
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif "lanczos_diag" in method:
-        if isinstance(generator, BaseGeneratorModel) and "sparse" not in generator.evaluation_mode:
-            warn(
-                "lanczos_diag must be used with a generator in sparse mode for better performance.",
-                category=Warning,
-                stacklevel=5,
-            )
-        if type(generator) in [LindbladModel, GeneratorModel]:
-            raise QiskitError(
-                """Lanczos solver can only be used for HamiltonianModel or function-based
-                    anti-Hermitian generators."""
-            )
+        _lanczos_validation(generator)
         if method == "lanczos_diag":
-            # test seperated since is_hermitian is not jax jitable
-            if not is_hermitian(1j * solver_generator(t_span[0])):
-                raise QiskitError(
-                    """Lanczos solver can only be used for HamiltonianModel or function-based
-                    anti-Hermitian generators."""
-                )
             results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
         elif method == "jax_lanczos_diag":
             results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
