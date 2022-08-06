@@ -32,7 +32,7 @@ from qiskit_dynamics.models import (
     GeneratorModel,
     LindbladModel,
 )
-from qiskit_dynamics.models.hamiltonian_model import HamiltonianModel, is_hermitian
+from qiskit_dynamics.models.hamiltonian_model import HamiltonianModel
 
 from .solver_utils import is_lindblad_model_not_vectorized
 from .fixed_step_solvers import (
@@ -95,14 +95,15 @@ def _is_diffrax_method(method: any) -> bool:
 
 def _lanczos_validation(generator: Union[Callable, BaseGeneratorModel]):
     if isinstance(generator, BaseGeneratorModel):
-        if type(generator) is not HamiltonianModel:
+        if not isinstance(generator, HamiltonianModel):
             raise QiskitError(
                 """Lanczos solver can only be used for HamiltonianModel or function-based
                     anti-Hermitian generators."""
             )
         if "sparse" not in generator.evaluation_mode:
             warn(
-                "lanczos_diag should be used with a generator in sparse mode for better performance.",
+                """lanczos_diag should be used with a generator in sparse mode
+                for better performance.""",
                 category=Warning,
                 stacklevel=2,
             )
