@@ -174,42 +174,60 @@ class RotatingFrame:
         return self.frame_basis @ y
 
     def operator_into_frame_basis(
-        self, op: Union[Operator, List[Operator], Array, csr_matrix, None]
+        self,
+        op: Union[Operator, List[Operator], Array, csr_matrix, None],
+        convert_type: bool = True,
     ) -> Array:
         r"""Take an operator into the frame basis, i.e. return
         ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
         Args:
             op: The operator or array of operators.
+            convert_type: Whether or not to initially convert ``op`` into an expected type.
+                          Should only be set to ``False`` in situations in which it is gauranteed
+                          that ``op`` is a handled input type.
         Returns:
             Array: The operator in the frame basis.
         """
-        op = to_numeric_matrix_type(op)
+        if convert_type:
+            op = to_numeric_matrix_type(op)
+
         if self.frame_basis is None or op is None:
             return op
 
-        if type(op).__name__ == "BCOO":
+        if isinstance(op, list):
+            return [self.operator_into_frame_basis(x, convert_type=False) for x in op]
+        elif type(op).__name__ == "BCOO":
             return self.frame_basis_adjoint @ jsparse_matmul(op, self.frame_basis.data)
         else:
             # parentheses are necessary for sparse op evaluation
             return self.frame_basis_adjoint @ (op @ self.frame_basis)
 
     def operator_out_of_frame_basis(
-        self, op: Union[Operator, List[Operator], Array, csr_matrix, None]
+        self,
+        op: Union[Operator, List[Operator], Array, csr_matrix, None],
+        convert_type: bool = True,
     ) -> Array:
         r"""Take an operator out of the frame basis, i.e. return
         ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
 
         Args:
             op: The operator or array of operators.
+            convert_type: Whether or not to initially convert ``op`` into an expected type.
+                          Should only be set to ``False`` in situations in which it is gauranteed
+                          that ``op`` is a handled input type.
         Returns:
             Array: The operator in the frame basis.
         """
-        op = to_numeric_matrix_type(op)
+        if convert_type:
+            op = to_numeric_matrix_type(op)
+
         if self.frame_basis is None or op is None:
             return op
 
-        if type(op).__name__ == "BCOO":
+        if isinstance(op, list):
+            return [self.operator_out_of_frame_basis(x, convert_type=False) for x in op]
+        elif type(op).__name__ == "BCOO":
             return self.frame_basis @ jsparse_matmul(op, self.frame_basis_adjoint.data)
         else:
             # parentheses are necessary for sparse op evaluation
