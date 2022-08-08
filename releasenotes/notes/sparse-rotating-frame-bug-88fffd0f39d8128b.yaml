@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    ``RotatingFrame.operator_into_frame_basis`` and ``RotatingFrame.operator_out_of_frame_basis``
+    was fixed to work on lists of scipy CSR matrices.
