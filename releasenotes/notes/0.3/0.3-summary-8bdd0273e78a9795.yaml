@@ -4,7 +4,7 @@ prelude: >
     and Magnus expansion in a multi-variable setting.
 features:
   - |
-    Added support for running with Python 3.10. Starting with this release
+    Adds support for Python 3.10. Starting with this release
     Qiskit Dynamics now supports running with Python 3.7 through 3.10.
   - |
     Adds :class:`.ArrayPolynomial` for representing multi-variable array-valued polynomials.
