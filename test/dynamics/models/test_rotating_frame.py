@@ -97,6 +97,30 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         expected = U @ y0 @ Uadj
         self.assertAllClose(val, expected)
 
+    def test_operator_into_frame_basis_sparse_list(self):
+        """Test state_into_frame_basis for a list of sparse arrays."""
+
+        ops = [csr_matrix([[0.0, 1.0], [1.0, 0.0]]), csr_matrix([[1.0, 0.0], [0.0, -1.0]])]
+        rotating_frame = RotatingFrame(np.array([[0.0, 1.0], [1.0, 0.0]]))
+
+        val = rotating_frame.operator_into_frame_basis(ops)
+        U = rotating_frame.frame_basis
+        Uadj = rotating_frame.frame_basis_adjoint
+        expected = [U @ (op @ Uadj) for op in ops]
+        self.assertAllClose(val, expected)
+
+    def test_operator_out_of_frame_basis_sparse_list(self):
+        """Test state_out_of_frame_basis for a list of sparse arrays."""
+
+        ops = [csr_matrix([[0.0, 1.0], [1.0, 0.0]]), csr_matrix([[1.0, 0.0], [0.0, -1.0]])]
+        rotating_frame = RotatingFrame(np.array([[0.0, 1.0], [1.0, 0.0]]))
+
+        val = rotating_frame.operator_out_of_frame_basis(ops)
+        U = rotating_frame.frame_basis
+        Uadj = rotating_frame.frame_basis_adjoint
+        expected = [Uadj @ (op @ U) for op in ops]
+        self.assertAllClose(val, expected)
+
     def test_state_transformations_no_frame(self):
         """Test frame transformations with no frame."""
 
