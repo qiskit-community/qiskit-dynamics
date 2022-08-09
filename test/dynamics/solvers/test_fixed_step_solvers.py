@@ -336,7 +336,7 @@ class TestLanczosDiagSolver(TestFixedStepBase):
         return lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval)
+        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, 5)
 
     def test_1d_2d_consistency(self):
         """Test that checks consistency of y0 being 1d v.s. 2d."""
@@ -475,7 +475,7 @@ class TestJaxLanczosDiagSolver(TestLanczosDiagSolver, TestJaxFixedStepBase):
         return jax_lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return jax_lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval)
+        return jax_lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, 5)
 
 
 # to ensure unittest doesn't try to run the abstract classes
