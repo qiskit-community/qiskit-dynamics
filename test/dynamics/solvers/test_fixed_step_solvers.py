@@ -83,6 +83,7 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
         # build additional random generator and initial state
         rng = np.random.default_rng(5213)
         dim = 5
+        self.dim = dim
         b = 1.0  # bound on size of random terms
         rand_ops = rng.uniform(low=-b, high=b, size=(3, dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(3, dim, dim)
@@ -336,7 +337,7 @@ class TestLanczosDiagSolver(TestFixedStepBase):
         return lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, 5)
+        return lanczos_diag_solver(rhs, t_span, y0, max_dt, self.dim, t_eval)
 
     def test_1d_2d_consistency(self):
         """Test that checks consistency of y0 being 1d v.s. 2d."""
@@ -475,7 +476,7 @@ class TestJaxLanczosDiagSolver(TestLanczosDiagSolver, TestJaxFixedStepBase):
         return jax_lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
-        return jax_lanczos_diag_solver(rhs, t_span, y0, max_dt, t_eval, 5)
+        return jax_lanczos_diag_solver(rhs, t_span, y0, max_dt, self.dim, t_eval)
 
 
 # to ensure unittest doesn't try to run the abstract classes

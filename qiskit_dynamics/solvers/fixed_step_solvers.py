@@ -122,8 +122,8 @@ def lanczos_diag_solver(
     t_span: Array,
     y0: Array,
     max_dt: float,
+    k_dim: int,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    k_dim: Optional[int] = None,
 ):
     """Fixed-step size matrix exponential based solver implemented using
     lanczos algorithm. Solves the specified problem by taking steps of
@@ -134,10 +134,10 @@ def lanczos_diag_solver(
         t_span: Interval to solve over.
         y0: Initial state.
         max_dt: Maximum step size.
-        t_eval: Optional list of time points at which to return the solution.
         k_dim: Integer which specifies the dimension of Krylov subspace used for
                lanczos iteration. Acts as an accuracy parameter. ``k_dim`` must
                always be less than or equal to dimension of generator.
+        t_eval: Optional list of time points at which to return the solution.
 
     Returns:
         OdeResult: Results object.
@@ -158,8 +158,8 @@ def jax_lanczos_diag_solver(
     t_span: Array,
     y0: Array,
     max_dt: float,
+    k_dim: int,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    k_dim: Optional[int] = None,
 ):
     """JAX version of lanczos_diag_solver."""
 
