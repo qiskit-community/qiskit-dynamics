@@ -24,7 +24,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from scipy.linalg import expm
 
-from qiskit_dynamics.models import GeneratorModel
+from qiskit_dynamics.models import GeneratorModel, HamiltonianModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.array import Array
@@ -302,6 +302,74 @@ class Testscipy_expm(TestSolverMethod):
             method="scipy_expm",
             t_eval=t_eval,
             max_dt=0.01,
+            **kwargs,
+        )
+
+
+class Testlanczos_diag(TestSolverMethod):
+    """Test class for lanczos_diag_solver."""
+
+    def setUp(self):
+        super().setUp()
+
+        self.simple_model = HamiltonianModel(
+            operators=1j * self.simple_model.operators,
+            signals=self.simple_model.signals,
+            evaluation_mode="sparse",
+        )
+
+        self.operators = self.pseudo_random_model.operators.data
+        self.static_operator = self.pseudo_random_model.static_operator.data
+
+        # make hermitian
+        self.operators = self.operators.conj().transpose(0, 2, 1) + self.operators
+        self.static_operator = self.static_operator.conj().T + self.static_operator
+        self.frame_op = self.pseudo_random_model.rotating_frame.frame_operator
+
+        self.pseudo_random_model = HamiltonianModel(
+            operators=self.operators,
+            signals=[self.pseudo_random_signal],
+            static_operator=self.static_operator,
+            rotating_frame=self.frame_op,
+            evaluation_mode="sparse",
+        )
+
+        # simulate directly out of frame
+        def pseudo_random_rhs(t, y=None):
+            op = self.static_operator + self.pseudo_random_signal(t).data * self.operators[0]
+            op = -1j * op
+            if y is None:
+                return op
+            else:
+                return op @ y
+
+        self.pseudo_random_rhs = pseudo_random_rhs
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="lanczos_diag",
+            t_eval=t_eval,
+            max_dt=0.005,
+            k_dim=max(y0.shape),
+            **kwargs,
+        )
+
+
+class Testjax_lanczos_diag(Testlanczos_diag, TestSolverMethodJax):
+    """Test class for jax_expm_solver."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="jax_lanczos_diag",
+            t_eval=t_eval,
+            max_dt=0.005,
+            k_dim=max(y0.shape),
             **kwargs,
         )
 

@@ -18,6 +18,7 @@ Solver functions.
 """
 
 from typing import Optional, Union, Callable, Tuple, List, TypeVar
+from warnings import warn
 
 from scipy.integrate import OdeSolver
 
@@ -31,12 +32,15 @@ from qiskit_dynamics.models import (
     GeneratorModel,
     LindbladModel,
 )
+from qiskit_dynamics.models.hamiltonian_model import HamiltonianModel
 
 from .solver_utils import is_lindblad_model_not_vectorized
 from .fixed_step_solvers import (
     RK4_solver,
     jax_RK4_solver,
     scipy_expm_solver,
+    lanczos_diag_solver,
+    jax_lanczos_diag_solver,
     jax_expm_solver,
     jax_RK4_parallel_solver,
     jax_expm_parallel_solver,
@@ -50,7 +54,14 @@ ODE_METHODS = (
     + ["RK4"]  # fixed step solvers
     + ["jax_odeint", "jax_RK4"]  # jax solvers
 )
-LMDE_METHODS = ["scipy_expm", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]
+LMDE_METHODS = [
+    "scipy_expm",
+    "lanczos_diag",
+    "jax_lanczos_diag",
+    "jax_expm",
+    "jax_expm_parallel",
+    "jax_RK4_parallel",
+]
 
 # diffrax solver type placeholder
 DiffraxAbstractSolver = TypeVar("AbstractSolver")
@@ -58,7 +69,14 @@ DiffraxAbstractSolver = TypeVar("AbstractSolver")
 
 def _is_jax_method(method: any) -> bool:
     """Check if method is a jax solver method."""
-    if method in ["jax_odeint", "jax_RK4", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]:
+    if method in [
+        "jax_odeint",
+        "jax_RK4",
+        "jax_expm",
+        "jax_expm_parallel",
+        "jax_RK4_parallel",
+        "jax_lanczos_diag",
+    ]:
         return True
 
     # only other jax methods are diffrax methods
@@ -73,6 +91,35 @@ def _is_diffrax_method(method: any) -> bool:
         return isinstance(method, AbstractSolver)
     except ImportError:
         return False
+
+
+def _lanczos_validation(
+    rhs: Union[Callable, BaseGeneratorModel],
+    t_span: Array,
+    y0: Array,
+    k_dim: int,
+):
+    """Validation checks to run lanczos based solvers."""
+    if isinstance(rhs, BaseGeneratorModel):
+        if not isinstance(rhs, HamiltonianModel):
+            raise QiskitError(
+                """Lanczos solver can only be used for HamiltonianModel or function-based
+                    anti-Hermitian generators."""
+            )
+        if "sparse" not in rhs.evaluation_mode:
+            warn(
+                """lanczos_diag should be used with a generator in sparse mode
+                for better performance.""",
+                category=Warning,
+                stacklevel=2,
+            )
+
+    dim = rhs(t_span[0]).shape[0]
+    if k_dim > dim:
+        raise QiskitError("k_dim can be no larger than the dimension of the generator.")
+
+    if y0.ndim not in [1, 2]:
+        raise QiskitError("y0 must be 1d or 2d.")
 
 
 def solve_ode(
@@ -210,6 +257,17 @@ def solve_lmde(
       size to take. This solver will break integration periods into even
       sub-intervals no larger than ``max_dt``, and solve over each sub-interval via
       matrix exponentiation of the generator sampled at the midpoint.
+    - ``'lanczos_diag'``: A fixed-step matrix-exponential solver, similar to ``'scipy_expm'``
+      but restricted to anti-Hermitian generators. The matrix exponential is performed by
+      diagonalizing an approximate projection of the generator to a small subspace (the
+      Krylov Subspace), obtained via the Lanczos algorithm, and then exponentiating the
+      eigenvalues. Requires additional kwargs ``max_dt`` and ``k_dim`` indicating the maximum
+      step size to take and Krylov subspace dimension, respectively. ``k_dim`` acts as an
+      adjustable accuracy parameter and can be no larger than the dimension of the generator.
+      The method is recommended for sparse systems with large dimension.
+    - ``'jax_lanczos_diag'``: JAX implementation of ``'lanczos_diag'``, with the same arguments
+      and behaviour. Note that this method contains calls to ``jax.numpy.eigh``, which may have
+      limited validity when automatically differentiated.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
@@ -287,6 +345,12 @@ def solve_lmde(
 
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+    elif "lanczos_diag" in method:
+        _lanczos_validation(generator, t_span, y0, kwargs["k_dim"])
+        if method == "lanczos_diag":
+            results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+        elif method == "jax_lanczos_diag":
+            results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
         if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
             raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
