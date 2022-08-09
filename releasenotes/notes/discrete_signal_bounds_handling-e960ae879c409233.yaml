@@ -1,6 +1,0 @@
----
-other:
-  - |
-    The `DiscreteSignal.envelope` function has been changed so that if `t` is 
-    outside the interval defined by `start_time` and `start_time + dt * 
-    len(samples)` it will return `0.0`.
