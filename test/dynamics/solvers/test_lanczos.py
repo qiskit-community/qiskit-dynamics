@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Direct tests of helper functions in lanczos.py
+Direct tests of helper functions in lanczos.py.
 """
 
 import numpy as np
@@ -29,7 +29,7 @@ from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class TestLanczos(QiskitDynamicsTestCase):
-    """Tests for lanczos.py"""
+    """Tests for lanczos.py."""
 
     def setUp(self):
         self.basis = lanczos_basis
@@ -77,7 +77,7 @@ class TestLanczos(QiskitDynamicsTestCase):
 
 
 class TestJaxLanczos(TestLanczos, TestJaxBase):
-    """Tests for jax functions in lanczos.py"""
+    """Tests for jax functions in lanczos.py."""
 
     def setUp(self):
         super().setUp()
