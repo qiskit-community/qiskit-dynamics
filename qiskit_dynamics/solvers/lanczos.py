@@ -128,9 +128,6 @@ def lanczos_expm(
 
     Returns:
         y_dt : Action of matrix exponential on state.
-
-    Raises:
-        ValueError : If ``y0`` is not 1d or 2d.
     """
 
     if y0.ndim == 1:
@@ -143,12 +140,9 @@ def lanczos_expm(
             @ (np.exp(-1j * scale_factor * eigen_values) * eigen_vectors_t[0, :])
         ) * y0_norm
 
-    elif y0.ndim == 2:
+    else:
         y_dt = [lanczos_expm(A, yi, k_dim, scale_factor) for yi in y0.T]
         y_dt = np.array(y_dt).T
-
-    else:
-        raise ValueError("y0 must be 1d or 2d")
 
     return y_dt
 
@@ -238,13 +232,10 @@ def jax_lanczos_expm(
             @ (jnp.exp(-1j * scale_factor * eigen_values) * eigen_vectors_t[0, :])
         ) * y0_norm
 
-    elif y0.ndim == 2:
+    else:
         _, y_dt = scan(
             lambda _, yi: (None, jax_lanczos_expm(A, yi, k_dim, scale_factor)), None, y0.T
         )
         y_dt = jnp.array(y_dt).T
-
-    else:
-        raise ValueError("y0 must be 1d or 2d")
 
     return y_dt

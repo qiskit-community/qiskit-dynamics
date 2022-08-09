@@ -93,20 +93,33 @@ def _is_diffrax_method(method: any) -> bool:
         return False
 
 
-def _lanczos_validation(generator: Union[Callable, BaseGeneratorModel]):
-    if isinstance(generator, BaseGeneratorModel):
-        if not isinstance(generator, HamiltonianModel):
+def _lanczos_validation(
+    rhs: Union[Callable, BaseGeneratorModel],
+    t_span: Array,
+    y0: Array,
+    k_dim: int,
+):
+    """Validation checks to run lanczos based solvers."""
+    if isinstance(rhs, BaseGeneratorModel):
+        if not isinstance(rhs, HamiltonianModel):
             raise QiskitError(
                 """Lanczos solver can only be used for HamiltonianModel or function-based
                     anti-Hermitian generators."""
             )
-        if "sparse" not in generator.evaluation_mode:
+        if "sparse" not in rhs.evaluation_mode:
             warn(
                 """lanczos_diag should be used with a generator in sparse mode
                 for better performance.""",
                 category=Warning,
                 stacklevel=2,
             )
+
+    dim = rhs(t_span[0]).shape[0]
+    if k_dim > dim:
+        raise QiskitError("k_dim can be no larger than the dimension of the generator.")
+
+    if y0.ndim not in [1, 2]:
+        raise QiskitError("y0 must be 1d or 2d.")
 
 
 def solve_ode(
@@ -333,7 +346,7 @@ def solve_lmde(
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif "lanczos_diag" in method:
-        _lanczos_validation(generator)
+        _lanczos_validation(generator, t_span, y0, kwargs["k_dim"])
         if method == "lanczos_diag":
             results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
         elif method == "jax_lanczos_diag":

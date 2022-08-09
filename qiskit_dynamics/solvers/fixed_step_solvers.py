@@ -18,7 +18,6 @@ Custom fixed step solvers.
 from typing import Callable, Optional, Union, Tuple, List
 from warnings import warn
 import numpy as np
-from qiskit import QiskitError
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
 
@@ -142,16 +141,7 @@ def lanczos_diag_solver(
 
     Returns:
         OdeResult: Results object.
-
-    Raises:
-        QiskitError: If ``k_dim`` is greater than dimension of generator.
     """
-
-    dim = generator(t_span[0]).shape[0]
-    if k_dim is None:
-        k_dim = dim
-    if k_dim > dim:
-        raise QiskitError(f"k_dim value {k_dim} is greater than dimension of generator {dim}")
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
@@ -172,12 +162,6 @@ def jax_lanczos_diag_solver(
     k_dim: Optional[int] = None,
 ):
     """JAX version of lanczos_diag_solver."""
-
-    dim = generator(t_span[0]).shape[0]
-    if k_dim is None:
-        k_dim = dim
-    if k_dim > dim:
-        raise QiskitError(f"k_dim value {k_dim} is greater than dimension of generator {dim}")
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)

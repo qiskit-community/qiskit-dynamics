@@ -29,7 +29,7 @@ from qiskit_dynamics.solvers.solver_functions import (
     results_y_out_of_frame_basis,
 )
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase
 
 
 class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
