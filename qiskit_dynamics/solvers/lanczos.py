@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Module containing Lanczos diagonalization and time evolution algorithms
+Module containing Lanczos diagonalization and time evolution algorithms.
 """
 
 from typing import Union, Optional
@@ -130,7 +130,7 @@ def lanczos_expm(
         y_dt : Action of matrix exponential on state.
 
     Raises:
-        ValueError : If ``y0`` is not 1d or 2d
+        ValueError : If ``y0`` is not 1d or 2d.
     """
 
     if y0.ndim == 1:

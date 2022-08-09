@@ -245,18 +245,16 @@ def solve_lmde(
       sub-intervals no larger than ``max_dt``, and solve over each sub-interval via
       matrix exponentiation of the generator sampled at the midpoint.
     - ``'lanczos_diag'``: A fixed-step matrix-exponential solver, similar to ``'scipy_expm'``
-      but restricted to anti-Hermitian generators. The method works by diagonalizing an
-      approximate projection of the generator to a small subspace (the Krylov Subspace),
-      obtained via the Lanczos algorithm, and then exponentiating the eigenvalues. Requires
-      additional kwargs ``max_dt`` and ``k_dim`` indicating the maximum step size to take
-      and Krylov subspace dimension, respectively. ``k_dim`` acts as an adjustable accuracy
-      parameter and can be no larger than the dimension of the generator. The method is
-      recommended for sparse systems with large dimension.
+      but restricted to anti-Hermitian generators. The matrix exponential is performed by
+      diagonalizing an approximate projection of the generator to a small subspace (the
+      Krylov Subspace), obtained via the Lanczos algorithm, and then exponentiating the
+      eigenvalues. Requires additional kwargs ``max_dt`` and ``k_dim`` indicating the maximum
+      step size to take and Krylov subspace dimension, respectively. ``k_dim`` acts as an
+      adjustable accuracy parameter and can be no larger than the dimension of the generator.
+      The method is recommended for sparse systems with large dimension.
     - ``'jax_lanczos_diag'``: JAX implementation of ``'lanczos_diag'``, with the same arguments
-      and behaviour. Although the jax.grad transformation works with this method, since lanczos
-      uses `eigh` in it, the validity of this is limited by the validity of differentiating `eigh`,
-      for instance, when the spectrum is degenerate or near-degenerate derivatives of eigen-values
-      return nan.
+      and behaviour. Note that this method contains calls to ``jax.numpy.eigh``, which may have
+      limited validity when automatically differentiated.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using

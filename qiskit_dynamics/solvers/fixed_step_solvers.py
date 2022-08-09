@@ -147,7 +147,7 @@ def lanczos_diag_solver(
         QiskitError: If ``k_dim`` is greater than dimension of generator.
     """
 
-    dim = generator(0).shape[0]
+    dim = generator(t_span[0]).shape[0]
     if k_dim is None:
         k_dim = dim
     if k_dim > dim:
@@ -173,7 +173,7 @@ def jax_lanczos_diag_solver(
 ):
     """JAX version of lanczos_diag_solver."""
 
-    dim = generator(0).shape[0]
+    dim = generator(t_span[0]).shape[0]
     if k_dim is None:
         k_dim = dim
     if k_dim > dim:
