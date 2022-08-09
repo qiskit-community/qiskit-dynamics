@@ -253,7 +253,10 @@ def solve_lmde(
       parameter and can be no larger than the dimension of the generator. The method is
       recommended for sparse systems with large dimension.
     - ``'jax_lanczos_diag'``: JAX implementation of ``'lanczos_diag'``, with the same arguments
-      and behaviour.
+      and behaviour. Although the jax.grad transformation works with this method, since lanczos
+      uses `eigh` in it, the validity of this is limited by the validity of differentiating `eigh`,
+      for instance, when the spectrum is degenerate or near-degenerate derivatives of eigen-values
+      return nan.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
