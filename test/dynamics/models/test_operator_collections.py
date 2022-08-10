@@ -58,9 +58,8 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         """Verify that evaluating with no operators or static_operator raises an error."""
 
         collection = DenseOperatorCollection(operators=None, static_operator=None)
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "cannot be evaluated."):
             collection(None)
-        self.assertTrue("cannot be evaluated." in str(qe.exception))
 
     def test_known_values_basic_functionality(self):
         """Test DenseOperatorCollection evaluation against
@@ -133,13 +132,11 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         """Verify that evaluating with no operators or static_operator raises an error."""
 
         collection = SparseOperatorCollection(operators=None, static_operator=None)
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "cannot be evaluated."):
             collection(None)
-        self.assertTrue("cannot be evaluated." in str(qe.exception))
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "cannot be evaluated."):
             collection(None, np.array([1.0, 0.0]))
-        self.assertTrue("cannot be evaluated." in str(qe.exception))
 
     def test_evaluate_simple_case(self):
         """Simple test case."""
@@ -229,9 +226,8 @@ class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):
         """Verify that evaluating with no operators or static_operator raises an error."""
 
         collection = JAXSparseOperatorCollection(operators=None, static_operator=None)
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "cannot be evaluated."):
             collection(None)
-        self.assertTrue("cannot be evaluated." in str(qe.exception))
 
     def test_known_values_basic_functionality(self):
         """Test JAXSparseOperatorCollection evaluation against
@@ -329,13 +325,11 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
     def test_empty_collection_error(self):
         """Test errors get raised for empty collection."""
         collection = self.construct_collection()
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "cannot evaluate rhs"):
             collection(None, None, np.array([[1.0, 0.0], [0.0, 0.0]]))
-        self.assertTrue("cannot evaluate rhs" in str(qe.exception))
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, "cannot evaluate Hamiltonian"):
             collection.evaluate_hamiltonian(None)
-        self.assertTrue("cannot evaluate Hamiltonian" in str(qe.exception))
 
     def test_no_static_hamiltonian_no_dissipator(self):
         """Test evaluation with just hamiltonian operators."""
@@ -640,13 +634,11 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
     def test_empty_collection_error(self):
         """Test errors get raised for empty collection."""
         collection = self.vectorized_class()
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, self.vectorized_class.__name__ + " with None"):
             collection(None, None, np.array([[1.0, 0.0], [0.0, 0.0]]))
-        self.assertTrue(self.vectorized_class.__name__ + " with None" in str(qe.exception))
 
-        with self.assertRaises(QiskitError) as qe:
+        with self.assertRaisesRegex(QiskitError, self.vectorized_class.__name__ + " with None"):
             collection.evaluate_hamiltonian(None)
-        self.assertTrue(self.vectorized_class.__name__ + " with None" in str(qe.exception))
 
     def test_consistency_all_terms(self):
         """Check consistency with non-vectorized class when hamiltonian,
