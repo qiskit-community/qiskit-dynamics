@@ -2,16 +2,18 @@
 prelude: >
     This release has several major changes:
       - Adds perturbation theory sub module for computing and utilizing the Dyson series
-        and Magnus expansion in a multi-variable setting.
-      - Introduces functionality for simulating Qiskit Pulse schedules using the :class:`.Solver`
-        class.
+        and Magnus expansion in a multi-variable setting. These tools can be applied to both
+        Hamiltonian and Lindblad dynamics, and more generally to any linear matrix differential
+        equation.
+      - Introduces functionality for simulating Qiskit Pulse schedules using the
+        :class:`.Solver` class.
       - Adds new solver methods accessible through :func:`.solve_ode` and :func:`.solve_lmde`.
 features:
   - |
     Adds support for Python 3.10. Starting with this release
     Qiskit Dynamics now supports running with Python 3.7 through 3.10.
   - |
-    The  :meth:`.Solver.solve` method can now run multiple simulations in a single call by
+    The :meth:`.Solver.solve` method can now run multiple simulations in a single call by
     specifying one or more of the ``t_span``, ``y0``, and ``signals``
     arguments as lists of valid single inputs. This supports specifying all as a list of the
     same length (with a different value for each to be used in each simulation), or a subset
@@ -21,24 +23,21 @@ features:
     in a serial loop.
   - |
     The :class:`.Solver` class has been upgraded to enable Qiskit Pulse schedule simulation.
-    Configuration information for interpeting pulse schedules must be provided at instantiation,
-    and schedules can be solved by passing them via the ``signals`` argument to
+    :class:`.Solver` can be configured to interpet pulse schedules at instantiation,
+    and schedules can be simulated by passing them via the ``signals`` argument to
     :meth:`.Solver.solve`.
   - |
-    Adds :class:`.ArrayPolynomial` for representing multi-variable array-valued polynomials.
-  - |
     Adds function :func:`.solve_lmde_perturbation` for computing Dyson series and Magnus
-    expansion terms for solutions to linear matrix differential equations.
-  - |
-    Adds data container class :class:`.PerturbationResults` for storing and accessing the
-    results of :func:`.solve_lmde_perturbation`.
+    expansion terms, a results container class :class:`.PerturbationResults`, and the
+    class :class:`.ArrayPolynomial` for evaluating and performing computations with
+    multi-variable array-valued polynomials (used in the solver classes of the next item).
   - |
     Adds classes :class:`.DysonSolver` and :class:`.MagnusSolver` implementing perturbation
     expansion-based fixed-step solvers for linear matrix differential equations.
   - |
-    Adds support for solvers from the diffrax package:
-    https://github.com/patrick-kidger/diffrax. To call a diffrax solver, pass it as the
-    ``method`` kwarg to :func:`solve_lmde`. For example::
+    Adds support for solvers from the `diffrax package
+    <https://github.com/patrick-kidger/diffrax>`_.
+    To call a diffrax solver, pass it as the ``method`` kwarg to :func:`solve_lmde`. For example::
 
       from diffrax import Dopri5
       from qiskit-dynamics import solve_ode
@@ -51,14 +50,10 @@ features:
     (the Krylov Subspace), obtained via the Lanczos algorithm.  The size of this
     subspace is determined by the parameter ``k_dim``, which controls the accuracy of the
     approximation. The method is recommended for sparse systems with large dimension.
-  - |
-    Updates the ``Solver.solve`` method to preserve dimensionality data of the input
-    states when producing output states. E.g. if ``y0`` is a ``Statevector``, the output
-    states ``yf`` will satisfy ``yf.dims() == y0.dims()``.
 upgrade:
   - |
-    The :class:`~.Solver` API has been updated so that ``signals`` are passed
-    as a kwarg to the :meth:`.Solver.solve` method rather than being set as at
+    The :class:`.Solver` API has been updated so that ``signals`` are passed
+    as a kwarg to the :meth:`.Solver.solve` method rather than being set at
     instantiation. A new instantiation argument, ``rwa_carrier_freqs``, has been
     added to control behaviour of the rotating wave approximation in the absence
     of signals being specified.
@@ -81,7 +76,7 @@ upgrade:
 
     ``Array`` and ``wrap`` and must now be imported from the
     :mod:`qiskit_dynamics.array` module, and the other functions must be
-    accessed as :class:`~qiskit_dynamics.array.Array` class methods.
+    accessed as :class:`.Array` class methods.
   - |
     Adds ``multiset`` package as a dependency.
 deprecations:
@@ -96,9 +91,13 @@ deprecations:
     :meth:`.Solver.solve` method. The deprecated functionality is scheduled to be removed in the
     0.4.0 release.
   - |
-    The :meth:`~.Solver.copy` method has been deprecated and is scheduled to be removed
+    The :meth:`.Solver.copy` method has been deprecated and is scheduled to be removed
     in the 0.4.0 release.
 fixes:
+  - |
+    Fixes the :meth:`.Solver.solve` method to preserve dimensionality data of the input
+    states when producing output states. E.g. if ``y0`` is a ``Statevector``, the output
+    states ``yf`` will satisfy ``yf.dims() == y0.dims()``.
   - |
     The ``rotating_wave_approximation`` function has been fixed in the case of
     the ``model`` argument being a ``LindbladModel`` with ``return_signal_map=True``.
