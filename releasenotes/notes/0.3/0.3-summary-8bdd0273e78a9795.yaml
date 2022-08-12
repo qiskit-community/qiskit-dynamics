@@ -1,0 +1,115 @@
+---
+prelude: >
+    This release has several major changes:
+      - Adds perturbation theory sub module for computing and utilizing the Dyson series
+        and Magnus expansion in a multi-variable setting. These tools can be applied to both
+        Hamiltonian and Lindblad dynamics, and more generally to any linear matrix differential
+        equation.
+      - Introduces functionality for simulating Qiskit Pulse schedules using the
+        :class:`.Solver` class.
+      - Adds new solver methods accessible through :func:`.solve_ode` and :func:`.solve_lmde`.
+features:
+  - |
+    Adds support for Python 3.10. Starting with this release
+    Qiskit Dynamics now supports running with Python 3.7 through 3.10.
+  - |
+    The :meth:`.Solver.solve` method can now run multiple simulations in a single call by
+    specifying one or more of the ``t_span``, ``y0``, and ``signals``
+    arguments as lists of valid single inputs. This supports specifying all as a list of the
+    same length (with a different value for each to be used in each simulation), or a subset
+    can be specified with lists of the same length, with the other arguments giving only a single
+    value (to be used repeatedly while varying the other parameters). Results are returned as a
+    list of the results of the individual simulations. The list of simulations is performed
+    in a serial loop.
+  - |
+    The :class:`.Solver` class has been upgraded to enable Qiskit Pulse schedule simulation.
+    :class:`.Solver` can be configured to interpet pulse schedules at instantiation,
+    and schedules can be simulated by passing them via the ``signals`` argument to
+    :meth:`.Solver.solve`.
+  - |
+    Adds function :func:`.solve_lmde_perturbation` for computing Dyson series and Magnus
+    expansion terms, a results container class :class:`.PerturbationResults`, and the
+    class :class:`.ArrayPolynomial` for evaluating and performing computations with
+    multi-variable array-valued polynomials (used in the solver classes of the next item).
+  - |
+    Adds classes :class:`.DysonSolver` and :class:`.MagnusSolver` implementing perturbation
+    expansion-based fixed-step solvers for linear matrix differential equations.
+  - |
+    Adds support for solvers from the `diffrax package
+    <https://github.com/patrick-kidger/diffrax>`_.
+    To call a diffrax solver, pass it as the ``method`` kwarg to :func:`solve_lmde`. For example::
+
+      from diffrax import Dopri5
+      from qiskit-dynamics import solve_ode
+
+      results = solve_ode(rhs=rhs, t_span=t_span, y0=y0, method=Dopri5())
+  - |
+    Adds new methods ``'lanczos_diag'`` and the JAX version ``'jax_lanczos_diag'``
+    to `solve_lmde`. This is an approximate matrix-exponentiation method, based
+    on diagonalizing an approximate projection of the generator to a small subspace
+    (the Krylov Subspace), obtained via the Lanczos algorithm.  The size of this
+    subspace is determined by the parameter ``k_dim``, which controls the accuracy of the
+    approximation. The method is recommended for sparse systems with large dimension.
+upgrade:
+  - |
+    The :class:`.Solver` API has been updated so that ``signals`` are passed
+    as a kwarg to the :meth:`.Solver.solve` method rather than being set at
+    instantiation. A new instantiation argument, ``rwa_carrier_freqs``, has been
+    added to control behaviour of the rotating wave approximation in the absence
+    of signals being specified.
+  - |
+    The ``InstructionsToSignals`` converter has been updated to allow channel
+    filtering via an optional instantiation argument named ``channels``.
+    If set, the converter only returns signals for those channels, specified by name such
+    as ``"d0"``, in the same order in which they are given. Furthermore, the
+    ``carriers`` argument is updated to a dictionary to make the mapping from
+    channel names to carrier frequencies more obvious.
+  - |
+    The following deprecated imports from the dispatch module have have been
+    removed from the package:
+    ``qiskit_dynamics.dispatch.Array``,
+    ``qiskit_dynamics.dispatch.wrap``,
+    ``qiskit_dynamics.dispatch.set_default_backend``,
+    ``qiskit_dynamics.dispatch.default_backend``,
+    ``qiskit_dynamics.dispatch.available_backends``,
+    ``qiskit_dynamics.dispatch.backend_types``.
+
+    ``Array`` and ``wrap`` and must now be imported from the
+    :mod:`qiskit_dynamics.array` module, and the other functions must be
+    accessed as :class:`.Array` class methods.
+  - |
+    Adds ``multiset`` package as a dependency.
+deprecations:
+  - |
+    Passing the ``carriers`` argument to ``InstructionToSignals`` as a ``list``
+    has been deprecated and will be removed next release. The ``carriers`` argument
+    should now be passed as a dictionary with channel names as keys and carrier
+    frequencies as values. This option will be removed in the 0.4.0 release.
+  - |
+    The ``signals`` property and ``hamiltonian_signals`` and ``dissipator_signals`` init kwargs
+    of :class:`.Solver` have been deprecated. Signals are now specified as a kwarg to the
+    :meth:`.Solver.solve` method. The deprecated functionality is scheduled to be removed in the
+    0.4.0 release.
+  - |
+    The :meth:`.Solver.copy` method has been deprecated and is scheduled to be removed
+    in the 0.4.0 release.
+fixes:
+  - |
+    Fixes the :meth:`.Solver.solve` method to preserve dimensionality data of the input
+    states when producing output states. E.g. if ``y0`` is a ``Statevector``, the output
+    states ``yf`` will satisfy ``yf.dims() == y0.dims()``.
+  - |
+    The ``rotating_wave_approximation`` function has been fixed in the case of
+    the ``model`` argument being a ``LindbladModel`` with ``return_signal_map=True``.
+    The returned signal mapping function was erroneously defined to take two inputs,
+    one for Hamiltonian signals and one for dissipator signals. This behaviour has been updated
+    to be consistent with the documentation, which states that, in general, this function accepts
+    only a single argument (in this case a tuple storing both sets of signals).
+  - |
+    ``RotatingFrame.operator_into_frame_basis`` and ``RotatingFrame.operator_out_of_frame_basis``
+    were fixed to work on lists of scipy CSR matrices.
+other:
+  - |
+    The ``DiscreteSignal.envelope`` function has been changed so that if ``t`` is
+    outside the interval defined by ``start_time`` and ``start_time + dt * len(samples)``
+    it will return ``0.0``.

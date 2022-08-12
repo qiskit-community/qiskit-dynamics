@@ -1,6 +1,0 @@
----
-upgrade:
-  - |
-    The ``Solver.solve`` method has been updated to preserve dimensionality data of the input
-    states when producing output states. E.g. if ``y0`` is a ``Statevector``, the output
-    states ``yf`` will satisfy ``yf.dims() == y0.dims()``.

@@ -22,7 +22,7 @@ from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
 
 from qiskit_dynamics.dispatch import requires_backend
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.array import Array, wrap
 
 try:
     import jax
@@ -34,6 +34,10 @@ except ImportError:
     pass
 
 from .solver_utils import merge_t_args, trim_t_results
+from .lanczos import lanczos_expm
+from .lanczos import jax_lanczos_expm as jax_lanczos_expm_
+
+jax_lanczos_expm = wrap(jax_lanczos_expm_)
 
 
 def RK4_solver(
@@ -69,8 +73,12 @@ def RK4_solver(
 
         return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
 
+    # ensure the output of rhs_func is a raw array
+    def wrapped_rhs_func(*args):
+        return Array(rhs(*args)).data
+
     return fixed_step_solver_template(
-        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
@@ -100,7 +108,68 @@ def scipy_expm_solver(
         eval_time = t0 + (h / 2)
         return expm(generator(eval_time) * h) @ y
 
+    # ensure the output of rhs_func is a raw array
+    def wrapped_rhs_func(*args):
+        return Array(generator(*args)).data
+
     return fixed_step_solver_template(
+        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
+def lanczos_diag_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    k_dim: int,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """Fixed-step size matrix exponential based solver implemented using
+    lanczos algorithm. Solves the specified problem by taking steps of
+    size no larger than ``max_dt``.
+
+    Args:
+        generator: Generator for the LMDE.
+        t_span: Interval to solve over.
+        y0: Initial state.
+        max_dt: Maximum step size.
+        k_dim: Integer which specifies the dimension of Krylov subspace used for
+               lanczos iteration. Acts as an accuracy parameter. ``k_dim`` must
+               always be less than or equal to dimension of generator.
+        t_eval: Optional list of time points at which to return the solution.
+
+    Returns:
+        OdeResult: Results object.
+    """
+
+    def take_step(generator, t0, y, h):
+        eval_time = t0 + (h / 2)
+        return lanczos_expm(generator(eval_time), y, k_dim, h)
+
+    return fixed_step_solver_template(
+        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+    )
+
+
+@requires_backend("jax")
+def jax_lanczos_diag_solver(
+    generator: Callable,
+    t_span: Array,
+    y0: Array,
+    max_dt: float,
+    k_dim: int,
+    t_eval: Optional[Union[Tuple, List, Array]] = None,
+):
+    """JAX version of lanczos_diag_solver."""
+
+    def take_step(generator, t0, y, h):
+        eval_time = t0 + (h / 2)
+        return jax_lanczos_expm(generator(eval_time), y, k_dim, h).data
+
+    y0 = Array(y0, dtype=complex)
+
+    return fixed_step_solver_template_jax(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
@@ -139,8 +208,11 @@ def jax_RK4_solver(
 
         return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
 
+    def wrapped_rhs_func(*args):
+        return Array(rhs(*args), backend="jax").data
+
     return fixed_step_solver_template_jax(
-        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
@@ -212,8 +284,11 @@ def jax_expm_solver(
         eval_time = t + (h / 2)
         return jexpm(generator(eval_time) * h) @ y
 
+    def wrapped_rhs_func(*args):
+        return Array(generator(*args), backend="jax").data
+
     return fixed_step_solver_template_jax(
-        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
@@ -273,10 +348,6 @@ def fixed_step_solver_template(
         OdeResult: Results object.
     """
 
-    # ensure the output of rhs_func is a raw array
-    def wrapped_rhs_func(*args):
-        return Array(rhs_func(*args)).data
-
     y0 = Array(y0).data
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
@@ -286,7 +357,7 @@ def fixed_step_solver_template(
         y = ys[-1]
         inner_t = current_t
         for _ in range(n_steps):
-            y = take_step(wrapped_rhs_func, inner_t, y, h)
+            y = take_step(rhs_func, inner_t, y, h)
             inner_t = inner_t + h
         ys.append(y)
     ys = Array(ys)
@@ -320,10 +391,6 @@ def fixed_step_solver_template_jax(
         OdeResult: Results object.
     """
 
-    # ensure the output of rhs_func is a raw array
-    def wrapped_rhs_func(*args):
-        return Array(rhs_func(*args), backend="jax").data
-
     y0 = Array(y0).data
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
@@ -341,7 +408,7 @@ def fixed_step_solver_template_jax(
 
         def scan_take_step(carry, step):
             t, y = carry
-            y = cond(step < n_steps, lambda y: take_step(wrapped_rhs_func, t, y, h), identity, y)
+            y = cond(step < n_steps, lambda y: take_step(rhs_func, t, y, h), identity, y)
             t = t + h
             return (t, y), None
 

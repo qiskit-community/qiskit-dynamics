@@ -27,6 +27,8 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import QiskitError
+from qiskit.pulse import Schedule, ScheduleBlock
+from qiskit.pulse.transforms.canonicalization import block_to_schedule
 
 from qiskit.circuit import Gate, QuantumCircuit
 from qiskit.quantum_info.operators.base_operator import BaseOperator
@@ -40,28 +42,87 @@ from qiskit_dynamics.models import (
     RotatingFrame,
     rotating_wave_approximation,
 )
-from qiskit_dynamics.signals import Signal, SignalList
+from qiskit_dynamics.signals import Signal, DiscreteSignal, SignalList
+from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch.dispatch import Dispatch
 
-from .solver_functions import solve_lmde
-from .solver_utils import is_lindblad_model_vectorized, is_lindblad_model_not_vectorized
+from .solver_functions import solve_lmde, _is_jax_method
+from .solver_utils import (
+    is_lindblad_model_vectorized,
+    is_lindblad_model_not_vectorized,
+    setup_args_lists,
+)
+
+
+try:
+    from jax import jit
+except ImportError:
+    pass
 
 
 class Solver:
-    """Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
+    r"""Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
     level type-handling of input states.
 
-    Given the components of a Hamiltonian and optional dissipators, this class will
-    internally construct either a :class:`HamiltonianModel` or :class:`LindbladModel`
-    instance.
+    If only Hamiltonian information is provided, this class will internally construct
+    a :class:`.HamiltonianModel` instance, and simulate the model
+    using the Schrodinger equation :math:`\dot{y}(t) = -iH(t)y(t)`
+    (see the :meth:`.Solver.solve` method documentation for details
+    on how different initial state types are handled).
+    :class:`.HamiltonianModel` represents a decomposition of the Hamiltonian of the form:
+
+    .. math::
+
+        H(t) = H_0 + \sum_i s_i(t) H_i,
+
+    where :math:`H_0` is the static component, the :math:`H_i` are the
+    time-dependent components of the Hamiltonian, and the :math:`s_i(t)` are the
+    time-dependent signals, specifiable as either :class:`.Signal`
+    objects, or constructed from Qiskit Pulse schedules if :class:`.Solver`
+    is configured for Pulse simulation (see below).
+
+    If dissipators are specified as part of the model, then a
+    :class:`.LindbladModel` is constructed, and simulations are performed
+    by solving the Lindblad equation:
+
+    .. math::
+
+        \dot{y}(t) = -i[H(t), y(t)] + \mathcal{D}_0(y(t)) + \mathcal{D}(t)(y(t)),
+
+    where :math:`H(t)` is the Hamiltonian part, specified as above, and :math:`\mathcal{D}_0`
+    and :math:`\mathcal{D}(t)` are the static and time-dependent portions of the dissipator,
+    given by:
+
+    .. math::
+
+        \mathcal{D}_0(y(t)) = \sum_j N_j y(t) N_j^\dagger
+                                      - \frac{1}{2} \{N_j^\dagger N_j, y(t)\},
+
+    and
+
+    .. math::
+
+        \mathcal{D}(t)(y(t)) = \sum_j \gamma_j(t) L_j y(t) L_j^\dagger
+                                  - \frac{1}{2} \{L_j^\dagger L_j, y(t)\},
+
+    with :math:`N_j` the static dissipators, :math:`L_j` the time-dependent dissipator
+    operators, and :math:`\gamma_j(t)` the time-dependent signals
+    specifiable as either :class:`.Signal`
+    objects, or constructed from Qiskit Pulse schedules if :class:`.Solver`
+    is configured for Pulse simulation (see below).
 
     Transformations on the model can be specified via the optional arguments:
 
-    * ``rotating_frame``: Transforms the model into a rotating frame. Note that
+    * ``rotating_frame``: Transforms the model into a rotating frame. Note that the
       operator specifying the frame will be substracted from the ``static_hamiltonian``.
       If supplied as a 1d array, ``rotating_frame`` is interpreted as the diagonal
-      elements of a diagonal matrix. See :class:`~qiskit_dynamics.models.RotatingFrame` for details.
+      elements of a diagonal matrix. Given a frame operator :math:`F = -i H_0`,
+      for the Schrodinger equation entering the rotating frame of :math:`F`, corresponds
+      to transforming the solution as :math:`y(t) \mapsto exp(-tF)y(t)`, and for the
+      Lindblad equation it corresponds to transforming the solution as
+      :math:`y(t) \mapsto exp(-tF)y(t)exp(tF)`.
+      See :class:`.RotatingFrame` for more details.
     * ``in_frame_basis``: Whether to represent the model in the basis in which the frame
       operator is diagonal, henceforth called the "frame basis".
       If ``rotating_frame`` is ``None`` or was supplied as a 1d array,
@@ -81,19 +142,40 @@ class Solver:
       ``rwa_carrier_freqs`` must be a ``tuple`` of lists of floats, with the first entry
       the list of carrier frequencies for ``hamiltonian_operators``, and the second
       entry the list of carrier frequencies for ``dissipator_operators``.
-      See :func:`~qiskit_dynamics.models.rotating_wave_approximation` for details on
+      See :func:`.rotating_wave_approximation` for details on
       the mathematical approximation.
 
       .. note::
             When using the ``rwa_cutoff_freq`` optional argument,
-            :class:`~qiskit_dynamics.solvers.solver_classes.Solver` cannot be instantiated within
+            :class:`.Solver` cannot be instantiated within
             a JAX-transformable function. However, after construction, instances can
             still be used within JAX-transformable functions regardless of whether an
             ``rwa_cutoff_freq`` is set.
 
-    The evolution given by the model can be simulated by calling
-    :meth:`~qiskit_dynamics.solvers.Solver.solve`, which calls
-    calls :func:`~qiskit_dynamics.solve.solve_lmde`, and does various automatic
+    :class:`.Solver` can be configured to simulate Qiskit Pulse schedules
+    by setting all of the following parameters, which determine how Pulse schedules are
+    interpreted:
+
+    * ``hamiltonian_channels``: List of channels in string format corresponding to the
+      time-dependent coefficients of ``hamiltonian_operators``.
+    * ``dissipator_channels``: List of channels in string format corresponding to time-dependent
+      coefficients of ``dissipator_operators``.
+    * ``channel_carrier_freqs``: Dictionary mapping channel names to frequencies. A frequency
+      must be specified for every channel appearing in ``hamiltonian_channels`` and
+      ``dissipator_channels``. When simulating ``schedule``\s, these frequencies are
+      interpreted as the analog carrier frequencies associated with the channel; deviations from
+      these frequencies due to ``SetFrequency`` or ``ShiftFrequency`` instructions are
+      implemented by digitally modulating the samples for the channel envelope.
+      If an ``rwa_cutoff_freq`` is specified, and no ``rwa_carrier_freqs`` is specified, these
+      frequencies will be used for the RWA.
+    * ``dt``: The envelope sample width.
+
+    If configured to simulate Pulse schedules while ``Array.default_backend() == 'jax'``,
+    calling :meth:`.Solver.solve` will automatically compile
+    simulation runs when calling with a JAX-based solver method.
+
+    The evolution given by the model can be simulated by calling :meth:`.Solver.solve`, which
+    calls :func:`.solve_lmde`, and does various automatic
     type handling operations for :mod:`qiskit.quantum_info` state and super operator types.
     """
 
@@ -105,6 +187,10 @@ class Solver:
         static_dissipators: Optional[Array] = None,
         dissipator_operators: Optional[Array] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
+        hamiltonian_channels: Optional[List[str]] = None,
+        dissipator_channels: Optional[List[str]] = None,
+        channel_carrier_freqs: Optional[dict] = None,
+        dt: Optional[float] = None,
         rotating_frame: Optional[Union[Array, RotatingFrame]] = None,
         in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
@@ -128,6 +214,14 @@ class Solver:
                                 dissipators. If ``None``, coefficients are assumed to be the
                                 constant ``1.``. This argument has been deprecated, signals
                                 should be passed to the solve method.
+            hamiltonian_channels: List of channel names in pulse schedules corresponding to
+                                  Hamiltonian operators.
+            dissipator_channels: List of channel names in pulse schedules corresponding to
+                                 dissipator operators.
+            channel_carrier_freqs: Dictionary mapping channel names to floats which represent
+                                   the carrier frequency of the pulse channel with the
+                                   corresponding name.
+            dt: Sample rate for simulating pulse schedules.
             rotating_frame: Rotating frame to transform the model into. Rotating frames which
                             are diagonal can be supplied as a 1d array of the diagonal elements,
                             to explicitly indicate that they are diagonal.
@@ -147,7 +241,78 @@ class Solver:
                                present specify as a tuple of lists of frequencies, one for
                                Hamiltonian operators and one for dissipators.
             validate: Whether or not to validate Hamiltonian operators as being Hermitian.
+
+        Raises:
+            QiskitError: If arguments concerning pulse-schedule interpretation are insufficiently
+            specified.
         """
+
+        # set pulse specific information if specified
+        self._hamiltonian_channels = None
+        self._dissipator_channels = None
+        self._all_channels = None
+        self._channel_carrier_freqs = None
+        self._dt = None
+        self._schedule_converter = None
+
+        if any([dt, channel_carrier_freqs, hamiltonian_channels, dissipator_channels]):
+            all_channels = []
+
+            if hamiltonian_channels is not None:
+                hamiltonian_channels = [chan.lower() for chan in hamiltonian_channels]
+                if hamiltonian_operators is None or len(hamiltonian_operators) != len(
+                    hamiltonian_channels
+                ):
+                    raise QiskitError(
+                        """hamiltonian_channels must have same length as hamiltonian_operators"""
+                    )
+                for chan in hamiltonian_channels:
+                    if chan not in all_channels:
+                        all_channels.append(chan)
+
+            self._hamiltonian_channels = hamiltonian_channels
+
+            if dissipator_channels is not None:
+                dissipator_channels = [chan.lower() for chan in dissipator_channels]
+                for chan in dissipator_channels:
+                    if chan not in all_channels:
+                        all_channels.append(chan)
+                if dissipator_operators is None or len(dissipator_operators) != len(
+                    dissipator_channels
+                ):
+                    raise QiskitError(
+                        """dissipator_channels must have same length as dissipator_operators"""
+                    )
+
+            self._dissipator_channels = dissipator_channels
+            self._all_channels = all_channels
+
+            if channel_carrier_freqs is None:
+                channel_carrier_freqs = {}
+            else:
+                channel_carrier_freqs = {
+                    key.lower(): val for key, val in channel_carrier_freqs.items()
+                }
+
+            for chan in all_channels:
+                if chan not in channel_carrier_freqs:
+                    raise QiskitError(
+                        f"""Channel '{chan}' does not have carrier frequency specified in
+                        channel_carrier_freqs."""
+                    )
+
+            if len(channel_carrier_freqs) == 0:
+                channel_carrier_freqs = None
+            self._channel_carrier_freqs = channel_carrier_freqs
+
+            if dt is not None:
+                self._dt = dt
+
+                self._schedule_converter = InstructionToSignals(
+                    dt=self._dt, carriers=self._channel_carrier_freqs, channels=self._all_channels
+                )
+            else:
+                raise QiskitError("dt must be specified if channel information is provided.")
 
         if hamiltonian_signals or dissipator_signals:
             warnings.warn(
@@ -158,6 +323,7 @@ class Solver:
                 stacklevel=2,
             )
 
+        # setup model
         model = None
         if static_dissipators is None and dissipator_operators is None:
             model = HamiltonianModel(
@@ -189,6 +355,20 @@ class Solver:
         if rwa_cutoff_freq:
 
             original_signals = model.signals
+            # if configured in pulse mode and rwa_carrier_freqs is None, use the channel
+            # carrier freqs
+            if rwa_carrier_freqs is None and self._channel_carrier_freqs is not None:
+                rwa_carrier_freqs = None
+                if self._hamiltonian_channels is not None:
+                    rwa_carrier_freqs = [
+                        self._channel_carrier_freqs[c] for c in self._hamiltonian_channels
+                    ]
+
+                if self._dissipator_channels is not None:
+                    rwa_carrier_freqs = (
+                        rwa_carrier_freqs,
+                        [self._channel_carrier_freqs[c] for c in self._dissipator_channels],
+                    )
 
             if rwa_carrier_freqs is not None:
                 if isinstance(rwa_carrier_freqs, tuple):
@@ -271,13 +451,19 @@ class Solver:
         self,
         t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
-        signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
+        signals: Optional[
+            Union[
+                List[Union[Schedule, ScheduleBlock]],
+                List[Signal],
+                Tuple[List[Signal], List[Signal]],
+            ]
+        ] = None,
         convert_results: bool = True,
         **kwargs,
     ) -> Union[OdeResult, List[OdeResult]]:
         r"""Solve a dynamical problem, or a set of dynamical problems.
 
-        Calls :func:`~qiskit_dynamics.solvers.solve_lmde`, and returns an ``OdeResult``
+        Calls :func:`.solve_lmde`, and returns an ``OdeResult``
         object in the style of ``scipy.integrate.solve_ivp``, with results
         formatted to be the same types as the input. See Additional Information
         for special handling of various input types, and for specifying multiple
@@ -286,21 +472,24 @@ class Solver:
         Args:
             t_span: Time interval to integrate over.
             y0: Initial state.
-            signals: Specification of time-dependent coefficients to simulate.
-                     If ``dissipator_operators is None``, specify as a list of signals for the
-                     Hamiltonian component, otherwise specify as a tuple of two lists, one
-                     for Hamiltonian components, and one for the ``dissipator_operators``
-                     coefficients.
+            signals: Specification of time-dependent coefficients to simulate, either in
+                     Signal format or as Qiskit Pulse Pulse schedules.
+                     If specifying in Signal format, if ``dissipator_operators is None``,
+                     specify as a list of signals for the Hamiltonian component, otherwise
+                     specify as a tuple of two lists, one for Hamiltonian components, and
+                     one for the ``dissipator_operators`` coefficients.
             convert_results: If ``True``, convert returned solver state results to the same class
                              as y0. If ``False``, states will be returned in the native array type
                              used by the specified solver method.
-            **kwargs: Keyword args passed to :func:`~qiskit_dynamics.solvers.solve_lmde`.
+            **kwargs: Keyword args passed to :func:`.solve_lmde`.
 
         Returns:
             OdeResult: object with formatted output types.
 
         Raises:
-            QiskitError: Initial state ``y0`` is of invalid shape.
+            QiskitError: Initial state ``y0`` is of invalid shape. If ``signals`` specifies
+                         ``Schedule`` simulation but ``Solver`` hasn't been configured to
+                         simulate pulse schedules.
 
         Additional Information:
 
@@ -392,89 +581,167 @@ class Solver:
                 stacklevel=2,
             )
 
-        t_span_list, y0_list, signals_list, multiple_sims = setup_simulation_lists(
-            t_span, y0, signals
+        # convert any ScheduleBlocks to Schedules
+        if isinstance(signals, ScheduleBlock):
+            signals = block_to_schedule(signals)
+        elif isinstance(signals, list):
+            signals = [block_to_schedule(x) if isinstance(x, ScheduleBlock) else x for x in signals]
+
+        # validate and setup list of simulations
+        [t_span_list, y0_list, signals_list], multiple_sims = setup_args_lists(
+            args_list=[t_span, y0, signals],
+            args_names=["t_span", "y0", "signals"],
+            args_to_list=[t_span_to_list, _y0_to_list, _signals_to_list],
         )
 
-        all_results = [
-            self._solve(
-                t_span=current_t_span,
-                y0=current_y0,
-                signals=current_signals,
+        all_results = None
+        if (
+            Array.default_backend() == "jax"
+            and _is_jax_method(kwargs.get("method", ""))
+            and all(isinstance(x, Schedule) for x in signals_list)
+        ):
+            all_results = self._solve_schedule_list_jax(
+                t_span_list=t_span_list,
+                y0_list=y0_list,
+                schedule_list=signals_list,
                 convert_results=convert_results,
                 **kwargs,
             )
-            for current_t_span, current_y0, current_signals in zip(
-                t_span_list, y0_list, signals_list
+        else:
+            all_results = self._solve_list(
+                t_span_list=t_span_list,
+                y0_list=y0_list,
+                signals_list=signals_list,
+                convert_results=convert_results,
+                **kwargs,
             )
-        ]
-
-        # replace copy of original signals for deprecated behavior
-        self.model.signals = original_signals
 
         if multiple_sims is False:
             return all_results[0]
 
         return all_results
 
-    def _solve(
+    def _solve_list(
         self,
-        t_span: Array,
-        y0: Union[Array, QuantumState, BaseOperator],
-        signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]] = None,
-        convert_results: Optional[bool] = True,
+        t_span_list: List[Array],
+        y0_list: List[Union[Array, QuantumState, BaseOperator]],
+        signals_list: Optional[
+            Union[List[Schedule], List[List[Signal]], List[Tuple[List[Signal], List[Signal]]]]
+        ] = None,
+        convert_results: bool = True,
         **kwargs,
-    ) -> OdeResult:
-        """Helper function solve for running a single simulation."""
-        # convert types
-        if isinstance(y0, QuantumState) and isinstance(self.model, LindbladModel):
-            y0 = DensityMatrix(y0)
+    ) -> List[OdeResult]:
+        """Run a list of simulations."""
 
-        y0, y0_cls, state_type_wrapper = initial_state_converter(y0)
+        all_results = []
+        for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
 
-        # validate types
-        if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(self.model):
-            raise QiskitError(
-                """Simulating SuperOp for a LindbladModel requires setting
-                vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
-                """
+            if isinstance(signals, Schedule):
+                signals = self._schedule_to_signals(signals)
+
+            self._set_new_signals(signals)
+
+            # setup initial state
+            y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
+                y0, self.model
             )
 
-        # modify initial state for some custom handling of certain scenarios
-        y_input = y0
+            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+            results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
 
-        # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
-        if y0_cls in [DensityMatrix, SuperOp] and isinstance(self.model, HamiltonianModel):
-            y0 = np.eye(self.model.dim, dtype=complex)
-        # if LindbladModel is vectorized and simulating a density matrix, flatten
-        elif (
-            (y0_cls is DensityMatrix)
-            and isinstance(self.model, LindbladModel)
-            and "vectorized" in self.model.evaluation_mode
-        ):
-            y0 = y0.flatten(order="F")
+            if y0_cls is not None and convert_results:
+                results.y = [state_type_wrapper(yi) for yi in results.y]
 
-        # validate y0 shape before passing to solve_lmde
-        if isinstance(self.model, HamiltonianModel) and (
-            y0.shape[0] != self.model.dim or y0.ndim > 2
-        ):
-            raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
-        if is_lindblad_model_vectorized(self.model) and (
-            y0.shape[0] != self.model.dim**2 or y0.ndim > 2
-        ):
-            raise QiskitError(
-                """Shape mismatch for initial state y0 and LindbladModel
-                                 in vectorized evaluation mode."""
+            all_results.append(results)
+
+        return all_results
+
+    def _solve_schedule_list_jax(
+        self,
+        t_span_list: List[Array],
+        y0_list: List[Union[Array, QuantumState, BaseOperator]],
+        schedule_list: List[Schedule],
+        convert_results: bool = True,
+        **kwargs,
+    ) -> List[OdeResult]:
+        """Run a list of schedule simulations utilizing JAX compilation.
+        The jitting strategy is to define a function whose inputs are t_span, y0 as an array, the
+        samples for all channels in a single large array, and other initial state information.
+        To avoid recompilation for schedules with a different number of samples, i.e. a different
+        duration, all schedules are padded to be the length of the schedule with the max duration.
+        """
+
+        # determine fixed array shape for containing all samples
+        max_duration = 0
+        for idx, sched in enumerate(schedule_list):
+            max_duration = max(sched.duration, max_duration)
+        all_samples_shape = (len(self._all_channels), max_duration)
+
+        # define sim function to jit
+        def sim_function(t_span, y0, all_samples, y0_input, y0_cls):
+            # store signals to ensure purity
+            model_sigs = self.model.signals
+
+            # re-construct signals from the samples
+            signals = []
+            for idx, samples in enumerate(all_samples):
+                carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
+                signals.append(
+                    DiscreteSignal(dt=self._dt, samples=samples, carrier_freq=carrier_freq)
+                )
+
+            # map signals to correct structure for model
+            signals = organize_signals_to_channels(
+                signals,
+                self._all_channels,
+                self.model.__class__,
+                self._hamiltonian_channels,
+                self._dissipator_channels,
             )
-        if is_lindblad_model_not_vectorized(self.model) and y0.shape[-2:] != (
-            self.model.dim,
-            self.model.dim,
-        ):
-            raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
 
+            self._set_new_signals(signals)
+
+            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+            results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
+
+            # reset signals to ensure purity
+            self.model.signals = model_sigs
+
+            return Array(results.t).data, Array(results.y).data
+
+        jit_sim_function = jit(sim_function, static_argnums=(4,))
+
+        # run simulations
+        all_results = []
+        for t_span, y0, sched in zip(t_span_list, y0_list, schedule_list):
+            # setup initial state
+            y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
+                y0, self.model
+            )
+
+            # setup array of all samples
+            all_signals = self._schedule_converter.get_signals(sched)
+
+            all_samples = np.zeros(all_samples_shape, dtype=complex)
+            for idx, sig in enumerate(all_signals):
+                all_samples[idx, 0 : len(sig.samples)] = np.array(sig.samples)
+
+            results_t, results_y = jit_sim_function(
+                Array(t_span).data, Array(y0).data, all_samples, Array(y0_input).data, y0_cls
+            )
+            results = OdeResult(t=results_t, y=Array(results_y, backend="jax", dtype=complex))
+
+            if y0_cls is not None and convert_results:
+                results.y = [state_type_wrapper(yi) for yi in results.y]
+
+            all_results.append(results)
+
+        return all_results
+
+    def _set_new_signals(self, signals):
+        """Helper function for setting new signals in self.model."""
         if signals is not None:
-            # if Lindblad model and signals are given as a list
-            # set as just the Hamiltonian part of the signals
+            # if Lindblad model and signals are given as a list set as Hamiltonian part of signals
             if isinstance(self.model, LindbladModel) and isinstance(signals, (list, SignalList)):
                 signals = (signals, None)
 
@@ -482,13 +749,18 @@ class Solver:
                 signals = self._rwa_signal_map(signals)
             self.model.signals = signals
 
-        results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
-        results.y = format_final_states(results.y, self.model, y_input, y0_cls)
+    def _schedule_to_signals(self, schedule: Schedule):
+        """Convert a schedule into the signal format required by the model."""
+        if self._schedule_converter is None:
+            raise QiskitError("Solver instance not configured for pulse Schedule simulation.")
 
-        if y0_cls is not None and convert_results:
-            results.y = [state_type_wrapper(yi) for yi in results.y]
-
-        return results
+        return organize_signals_to_channels(
+            self._schedule_converter.get_signals(schedule),
+            self._all_channels,
+            self.model.__class__,
+            self._hamiltonian_channels,
+            self._dissipator_channels,
+        )
 
 
 def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
@@ -524,59 +796,119 @@ def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
     return y0, y0_cls, wrapper
 
 
-def format_final_states(y, model, y_input, y0_cls):
+def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, LindbladModel]):
+    """Format initial state for simulation. This function encodes the logic of how
+    simulations are run based on initial state type.
+
+    Args:
+        y0: The user-specified input state.
+        model: The model contained in the solver.
+
+    Returns:
+        Tuple containing the input state to pass to the solver, the user-specified input
+        as an array, the class of the user specified input, and a function for converting
+        the output states to the right class.
+
+    Raises:
+        QiskitError: Initial state ``y0`` is of invalid shape relative to the model.
+    """
+
+    if isinstance(y0, QuantumState) and isinstance(model, LindbladModel):
+        y0 = DensityMatrix(y0)
+
+    y0, y0_cls, wrapper = initial_state_converter(y0)
+
+    y0_input = y0
+
+    # validate types
+    if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(model):
+        raise QiskitError(
+            """Simulating SuperOp for a LindbladModel requires setting
+            vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
+            """
+        )
+
+    # if Simulating density matrix or SuperOp with a HamiltonianModel, simulate the unitary
+    if y0_cls in [DensityMatrix, SuperOp] and isinstance(model, HamiltonianModel):
+        y0 = np.eye(model.dim, dtype=complex)
+    # if LindbladModel is vectorized and simulating a density matrix, flatten
+    elif (
+        (y0_cls is DensityMatrix)
+        and isinstance(model, LindbladModel)
+        and "vectorized" in model.evaluation_mode
+    ):
+        y0 = y0.flatten(order="F")
+
+    # validate y0 shape before passing to solve_lmde
+    if isinstance(model, HamiltonianModel) and (y0.shape[0] != model.dim or y0.ndim > 2):
+        raise QiskitError("""Shape mismatch for initial state y0 and HamiltonianModel.""")
+    if is_lindblad_model_vectorized(model) and (y0.shape[0] != model.dim**2 or y0.ndim > 2):
+        raise QiskitError(
+            """Shape mismatch for initial state y0 and LindbladModel
+                             in vectorized evaluation mode."""
+        )
+    if is_lindblad_model_not_vectorized(model) and y0.shape[-2:] != (
+        model.dim,
+        model.dim,
+    ):
+        raise QiskitError("""Shape mismatch for initial state y0 and LindbladModel.""")
+
+    return y0, y0_input, y0_cls, wrapper
+
+
+def format_final_states(y, model, y0_input, y0_cls):
     """Format final states for a single simulation."""
 
     y = Array(y)
 
     if y0_cls is DensityMatrix and isinstance(model, HamiltonianModel):
         # conjugate by unitary
-        return y @ y_input @ y.conj().transpose((0, 2, 1))
+        return y @ y0_input @ y.conj().transpose((0, 2, 1))
     elif y0_cls is SuperOp and isinstance(model, HamiltonianModel):
         # convert to SuperOp and compose
         return (
             np.einsum("nka,nlb->nklab", y.conj(), y).reshape(
                 y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2
             )
-            @ y_input
+            @ y0_input
         )
     elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(model):
-        return y.reshape((len(y),) + y_input.shape, order="F")
+        return y.reshape((len(y),) + y0_input.shape, order="F")
 
     return y
 
 
-def setup_simulation_lists(
-    t_span: Array,
-    y0: Union[Array, QuantumState, BaseOperator],
-    signals: Optional[Union[List[Signal], Tuple[List[Signal], List[Signal]]]],
-) -> Tuple[List, List, List, bool]:
-    """Helper function for setting up lists of simulations.
+def t_span_to_list(t_span):
+    """Check if t_span is validly specified as a single interval or a list of intervals,
+    and return as a list in either case."""
+    was_list = False
+    t_span_ndim = _nested_ndim(t_span)
+    if t_span_ndim > 2:
+        raise QiskitError("t_span must be either 1d or 2d.")
+    if t_span_ndim == 1:
+        t_span = [t_span]
+    else:
+        was_list = True
 
-    Transform input signals, t_span, and y0 into lists of the same length.
-    Arguments are given as either lists of valid specifications, or as a singleton of a valid
-    specification. Singletons are transformed into a list of length one, then all arguments
-    are expanded to be the same length as the longest argument max_len:
-        - If len(arg) == 1, it will be repeated max_len times
-        - if len(arg) == max_len, nothing is done
-        - If len(arg) not in (1, max_len), an error is raised
+    return t_span, was_list
 
-    Args:
-        t_span: Time interval specification.
-        y0: Initial state specification.
-        signals: Signal specification.
 
-    Returns:
-        Tuple: tuple of lists of arguments of the same length, along with a bool specifying whether
-        the arguments specified multiple simulations or not.
+def _y0_to_list(y0):
+    """Check if y0 is validly specified as a single initial state or a list of initial states,
+    and return as a list in either case."""
+    was_list = False
+    if not isinstance(y0, list):
+        y0 = [y0]
+    else:
+        was_list = True
 
-    Raises:
-        QiskitError: If the length of any arguments are incompatible, or if any singleton
-        is an invalid shape.
-    """
+    return y0, was_list
 
-    multiple_sims = False
 
+def _signals_to_list(signals):
+    """Check if signals is validly specified as a single signal specification or a list of
+    such specifications, and return as a list in either case."""
+    was_list = False
     if signals is None:
         signals = [signals]
     elif isinstance(signals, tuple):
@@ -584,10 +916,16 @@ def setup_simulation_lists(
         signals = [signals]
     elif isinstance(signals, list) and isinstance(signals[0], tuple):
         # multiple lindblad
-        multiple_sims = True
+        was_list = True
+    elif isinstance(signals, Schedule):
+        # pulse simulation
+        signals = [signals]
+    elif isinstance(signals, list) and isinstance(signals[0], Schedule):
+        # multiple pulse simulation
+        was_list = True
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
         # multiple Hamiltonian signals lists
-        multiple_sims = True
+        was_list = True
     elif isinstance(signals, SignalList) or (
         isinstance(signals, list) and not isinstance(signals[0], (list, SignalList))
     ):
@@ -596,44 +934,40 @@ def setup_simulation_lists(
     else:
         raise QiskitError("Signals specified in invalid format.")
 
-    if not isinstance(y0, list):
-        y0 = [y0]
+    return signals, was_list
+
+
+def organize_signals_to_channels(
+    all_signals, all_channels, model_class, hamiltonian_channels, dissipator_channels
+):
+    """Restructures a list of signals with order corresponding to all_channels, into the correctly
+    formatted data structure to pass into model.signals, according to the ordering specified
+    by hamiltonian_channels and dissipator_channels.
+    """
+
+    if model_class == HamiltonianModel:
+        if hamiltonian_channels is not None:
+            return [all_signals[all_channels.index(chan)] for chan in hamiltonian_channels]
+        else:
+            return None
     else:
-        multiple_sims = True
-
-    t_span_ndim = nested_ndim(t_span)
-
-    if t_span_ndim > 2:
-        raise QiskitError("t_span must be either 1d or 2d.")
-    if t_span_ndim == 1:
-        t_span = [t_span]
-    else:
-        multiple_sims = True
-
-    # consolidate lengths and raise error if incompatible
-    args = [t_span, y0, signals]
-    arg_names = ["t_span", "y0", "signals"]
-    arg_lens = [len(x) for x in args]
-    max_len = max(arg_lens)
-    for idx, arg_len in enumerate(arg_lens):
-        if arg_len not in (1, max_len):
-            max_name = arg_names[arg_lens.index(max_len)]
-            raise QiskitError(
-                f"""If one of signals, y0, and t_span is given as a list of valid inputs,
-                then the others must specify only a single input, or a list of the same length.
-                {max_name} specifies {max_len} inputs, but {arg_names[idx]} is of length {arg_len},
-                which is incompatible."""
-            )
-
-    args = [arg * max_len if arg_len == 1 else arg for arg, arg_len in zip(args, arg_lens)]
-
-    return args[0], args[1], args[2], multiple_sims
+        hamiltonian_signals = None
+        dissipator_signals = None
+        if hamiltonian_channels is not None:
+            hamiltonian_signals = [
+                all_signals[all_channels.index(chan)] for chan in hamiltonian_channels
+            ]
+        if dissipator_channels is not None:
+            dissipator_signals = [
+                all_signals[all_channels.index(chan)] for chan in dissipator_channels
+            ]
+        return (hamiltonian_signals, dissipator_signals)
 
 
-def nested_ndim(x):
+def _nested_ndim(x):
     """Determine the 'ndim' of x, which could be composed of nested lists and array types."""
     if isinstance(x, (list, tuple)):
-        return 1 + nested_ndim(x[0])
+        return 1 + _nested_ndim(x[0])
     elif issubclass(type(x), Dispatch.REGISTERED_TYPES) or isinstance(x, Array):
         return x.ndim
 

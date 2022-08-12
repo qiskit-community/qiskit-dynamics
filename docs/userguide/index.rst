@@ -11,6 +11,7 @@ Qiskit Dynamics User Guide
 
    how_to_use_jax.rst
    how_to_configure_simulations.rst
+   perturbative_solvers.rst
 
 
 .. Hiding - Indices and tables
