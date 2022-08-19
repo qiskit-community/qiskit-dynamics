@@ -101,6 +101,23 @@ class TestJaxBase(unittest.TestCase):
         return wf(f)
 
 
+class TestDiffraxBase(unittest.TestCase):
+    """Base class with setUpClass and tearDownClass for importing diffrax solvers
+
+    Test cases that inherit from this class will automatically work with diffrax solvers
+    backend.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                import diffrax  # pylint: disable=import-outside-toplevel,unused-import
+        except Exception as err:
+            raise unittest.SkipTest("Skipping diffrax tests.") from err
+
+
 class TestQutipBase(unittest.TestCase):
     """Base class for tests that utilize Qutip."""
 

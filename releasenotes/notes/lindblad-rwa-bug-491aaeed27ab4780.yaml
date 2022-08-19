@@ -1,9 +1,0 @@
----
-fixes:
-  - |
-    The ``rotating_wave_approximation`` function has been fixed in the case of
-    the ``model`` argument being a ``LindbladModel`` with ``return_signal_map=True``.
-    The returned signal mapping function was erroneously defined to take two inputs,
-    one for Hamiltonian signals and one for dissipator signals. This behaviour has been updated
-    to be consistent with the documentation, which states that in general this function accepts
-    only a single argument (in this case a tuple storing both sets of signals).

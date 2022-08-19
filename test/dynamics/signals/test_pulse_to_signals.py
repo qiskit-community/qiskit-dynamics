@@ -157,6 +157,78 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         self.assertTrue(signals[0].carrier_freq == 2.0)
         self.assertTrue(signals[1].carrier_freq == 3.0)
 
+    def test_different_start_times(self):
+        """Test pulse schedule containing channels with first instruction at different times."""
+
+        with pulse.build() as schedule:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(1))
+
+        schedule = pulse.transforms.block_to_schedule(schedule)
+
+        converter = InstructionToSignals(
+            dt=0.1, channels=["d0", "d1"], carriers={"d0": 5.0, "d1": 3.1}
+        )
+        signals = converter.get_signals(schedule)
+
+        # construct samples
+        constant_samples = np.ones(5, dtype=float) * 0.9
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
+        samples1 = np.append(np.zeros(10), gauss_samples)
+
+        self.assertAllClose(signals[0].samples, samples0, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[1].samples, samples1, atol=1e-14, rtol=1e-14)
+        self.assertTrue(signals[0].carrier_freq == 5.0)
+        self.assertTrue(signals[1].carrier_freq == 3.1)
+
+    def test_multiple_channels_with_gaps(self):
+        """Test building a schedule with multiple channels and gaps."""
+
+        with pulse.build() as schedule:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(1))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(2))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(3))
+                pulse.shift_phase(np.pi / 2.98, pulse.DriveChannel(0))
+                pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+
+        schedule = pulse.transforms.block_to_schedule(schedule)
+
+        converter = InstructionToSignals(
+            dt=0.1,
+            channels=["d0", "d1", "d2", "d3"],
+            carriers={"d0": 5.0, "d1": 3.1, "d2": 0, "d3": 4.0},
+        )
+        signals = converter.get_signals(schedule)
+
+        # construct samples
+        constant_samples = np.ones(5, dtype=float) * 0.9
+        phase = np.exp(1j * np.pi / 2.98)
+        gauss_samples = pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(15))
+        phase2 = np.exp(2 * 1j * np.pi / 2.98)
+        samples0 = np.append(samples0, gauss_samples * phase2)
+        samples1 = np.append(np.append(np.zeros(10), gauss_samples), np.zeros(15))
+        samples2 = np.append(np.zeros(15), np.append(gauss_samples, np.zeros(10)))
+        samples3 = np.append(np.zeros(20), np.append(gauss_samples, np.zeros(5)))
+
+        self.assertAllClose(signals[0].samples, samples0, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[1].samples, samples1, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[2].samples, samples2, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[3].samples, samples3, atol=1e-14, rtol=1e-14)
+        self.assertTrue(signals[0].carrier_freq == 5.0)
+        self.assertTrue(signals[1].carrier_freq == 3.1)
+        self.assertTrue(signals[2].carrier_freq == 0.0)
+        self.assertTrue(signals[3].carrier_freq == 4.0)
+
 
 @ddt
 class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
@@ -219,5 +291,5 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
 
         converter = InstructionToSignals(dt=0.222)
 
-        with self.assertRaises(QiskitError):
+        with self.assertRaisesRegex(QiskitError, f"channel name {channel_name}"):
             converter._get_channel(channel_name)
