@@ -24,8 +24,6 @@ from qiskit import QiskitError
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array, wrap
 
-from .solver_utils import merge_t_args
-
 try:
     import jax.numpy as jnp
 except ImportError:
