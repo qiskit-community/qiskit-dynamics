@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    Passing the ``carriers`` argument to ``InstructionToSignals`` as a ``list`` is no longer
+    supported.
