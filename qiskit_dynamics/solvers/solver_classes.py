@@ -19,8 +19,6 @@ Solver classes.
 
 
 from typing import Optional, Union, Tuple, Any, Type, List, Callable
-from copy import copy
-import warnings
 
 import numpy as np
 
@@ -384,18 +382,6 @@ class Solver:
     def model(self) -> Union[HamiltonianModel, LindbladModel]:
         """The model of the system, either a Hamiltonian or Lindblad model."""
         return self._model
-
-    def copy(self) -> "Solver":
-        """(Deprecated) Return a copy of self."""
-        warnings.warn(
-            """The copy method is deprecated and will be removed in the next release.
-            This deprecation is associated with the deprecation of the signals property;
-            the copy method will no longer be needed once the signal property is removed.""",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return copy(self)
 
     def solve(
         self,

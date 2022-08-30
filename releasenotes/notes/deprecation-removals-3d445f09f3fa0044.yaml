@@ -5,3 +5,4 @@ upgrade:
     supported.
   - The ``Solver.signals`` property, and :class:`.Solver` init arguments ``hamiltonian_signals``
     and ``dissipator_signals``, have been removed.
+  - The ``Solver.copy`` method has been removed.

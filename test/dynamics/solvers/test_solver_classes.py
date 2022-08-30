@@ -30,21 +30,6 @@ from qiskit_dynamics.solvers.solver_classes import organize_signals_to_channels
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
-class TestSolverDeprecations(QiskitDynamicsTestCase):
-    """Test deprecation warnings and deprecated behaviour."""
-
-    def setUp(self):
-        self.X = Operator.from_label("X")
-
-    def test_copy_deprecated(self):
-        """Test copy method raises deprecation warning."""
-
-        solver = Solver(hamiltonian_operators=[self.X])
-
-        with self.assertWarnsRegex(DeprecationWarning, "copy method is deprecated"):
-            solver.copy()
-
-
 class TestSolverValidation(QiskitDynamicsTestCase):
     """Test validation checks."""
 
