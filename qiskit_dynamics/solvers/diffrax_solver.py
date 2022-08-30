@@ -63,8 +63,6 @@ def diffrax_solver(
 
     diffeqsolve = wrap(_diffeqsolve)
 
-    t_list = merge_t_args(t_span, t_eval)
-
     # convert rhs and y0 to real
     rhs = real_rhs(rhs)
     y0 = c2r(y0)
@@ -83,8 +81,8 @@ def diffrax_solver(
     results = diffeqsolve(
         term,
         solver=method,
-        t0=t_list[0],
-        t1=t_list[-1],
+        t0=t_span[0],
+        t1=t_span[-1],
         dt0=None,
         y0=Array(y0, dtype=float),
         **kwargs,
