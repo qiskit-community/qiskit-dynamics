@@ -82,7 +82,7 @@ def merge_t_args(
 
     diff = np.diff(t_eval)
 
-    if np.any(t_direction * diff <= 0.0):
+    if np.any(t_direction * diff < 0.0):
         raise ValueError("t_eval must be ordered according to the direction of integration.")
 
     # if endpoints are not included in t_span, add them
