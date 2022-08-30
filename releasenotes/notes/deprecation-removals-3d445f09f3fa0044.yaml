@@ -3,3 +3,5 @@ upgrade:
   - |
     Passing the ``carriers`` argument to ``InstructionToSignals`` as a ``list`` is no longer
     supported.
+  - The ``Solver.signals`` property, and :class:`.Solver` init arguments ``hamiltonian_signals``
+    and ``dissipator_signals``, have been removed.
