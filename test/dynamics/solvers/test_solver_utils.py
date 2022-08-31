@@ -67,61 +67,29 @@ class TestTimeArgsHandling(QiskitDynamicsTestCase):
     def test_merge_t_args_with_overlap(self):
         """Test merging with with overlaps."""
         times = merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([0.0, 0.25, 0.75]))
-        self.assertAllClose(times, np.array([0.0, 0.25, 0.75, 1.0]))
+        self.assertAllClose(times, np.array([0.0, 0.0, 0.25, 0.75, 1.0]))
 
         times = merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([0.25, 0.75, 1.0]))
-        self.assertAllClose(times, np.array([0.0, 0.25, 0.75, 1.0]))
+        self.assertAllClose(times, np.array([0.0, 0.25, 0.75, 1.0, 1.0]))
 
         times = merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([0.0, 0.25, 0.75, 1.0]))
-        self.assertAllClose(times, np.array([0.0, 0.25, 0.75, 1.0]))
+        self.assertAllClose(times, np.array([0.0, 0.0, 0.25, 0.75, 1.0, 1.0]))
 
     def test_merge_t_args_with_overlap_backwards(self):
         """Test merging with with overlaps for backwards integration."""
         times = merge_t_args(t_span=np.array([1.0, -1.0]), t_eval=np.array([1.0, -0.25, -0.75]))
-        self.assertAllClose(times, np.array([1.0, -0.25, -0.75, -1.0]))
+        self.assertAllClose(times, np.array([1.0, 1.0, -0.25, -0.75, -1.0]))
 
         times = merge_t_args(t_span=np.array([1.0, -1.0]), t_eval=np.array([-0.25, -0.75, -1.0]))
-        self.assertAllClose(times, np.array([1.0, -0.25, -0.75, -1.0]))
+        self.assertAllClose(times, np.array([1.0, -0.25, -0.75, -1.0, -1.0]))
 
         times = merge_t_args(
             t_span=np.array([1.0, -1.0]), t_eval=np.array([1.0, -0.25, -0.75, -1.0])
         )
-        self.assertAllClose(times, np.array([1.0, -0.25, -0.75, -1.0]))
+        self.assertAllClose(times, np.array([1.0, 1.0, -0.25, -0.75, -1.0, -1.0]))
 
-    def test_trim_t_results_overlap(self):
-        """Test trim_t_results does nothing if endpoints are in t_eval."""
-
-        # empty object to assign attributes to
-        empty_obj = type("", (), {})()
-
-        empty_obj.t = np.array([0.0, 1.0, 2.0])
-        empty_obj.y = np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]])
-
-        t_span = np.array([0.0, 2.0])
-        t_eval = np.array([0.0, 1.0, 2.0])
-        trimmed_obj = trim_t_results(empty_obj, t_span, t_eval)
-
-        self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0, 2.0]))
-        self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))
-
-    def test_trim_t_results_overlap_backwards(self):
-        """Test trim_t_results does nothing if endpoints are in t_eval for backwards integration."""
-
-        # empty object to assign attributes to
-        empty_obj = type("", (), {})()
-
-        empty_obj.t = np.array([1.0, -1.0, -2.0])
-        empty_obj.y = np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]])
-
-        t_span = np.array([1.0, -2.0])
-        t_eval = np.array([1.0, -1.0, -2.0])
-        trimmed_obj = trim_t_results(empty_obj, t_span, t_eval)
-
-        self.assertAllClose(trimmed_obj.t, np.array([1.0, -1.0, -2.0]))
-        self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))
-
-    def test_trim_t_results_no_overlap(self):
-        """Test trim_t_results removes endpoints if not in t_eval."""
+    def test_trim_t_results(self):
+        """Test trim_t_results works if t_eval is not None."""
 
         # empty object to assign attributes to
         empty_obj = type("", (), {})()
@@ -131,23 +99,39 @@ class TestTimeArgsHandling(QiskitDynamicsTestCase):
 
         t_span = np.array([0.0, 2.0])
         t_eval = np.array([1.0])
-        trimmed_obj = trim_t_results(empty_obj, t_span, t_eval)
+        trimmed_obj = trim_t_results(empty_obj, t_eval)
 
         self.assertAllClose(trimmed_obj.t, np.array([1.0]))
         self.assertAllClose(trimmed_obj.y, np.array([[0.5, 0.5]]))
 
-    def test_trim_t_results_no_overlap_backwards(self):
-        """Test trim_t_results removes endpoints if not in t_eval for backwards integration."""
+    def test_trim_t_results_backwards(self):
+        """Test trim_t_results works if t_eval is not None and backwards integration."""
 
         # empty object to assign attributes to
         empty_obj = type("", (), {})()
 
-        empty_obj.t = np.array([0.0, -1.0, -2.0])
+        empty_obj.t = np.array([1.0, -1.0, -2.0])
         empty_obj.y = np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]])
 
-        t_span = np.array([0.0, -2.0])
+        t_span = np.array([1.0, -2.0])
         t_eval = np.array([-1.0])
-        trimmed_obj = trim_t_results(empty_obj, t_span, t_eval)
+        trimmed_obj = trim_t_results(empty_obj, t_eval)
 
         self.assertAllClose(trimmed_obj.t, np.array([-1.0]))
         self.assertAllClose(trimmed_obj.y, np.array([[0.5, 0.5]]))
+
+    def test_trim_t_results_t_eval_is_None(self):
+        """Test trim_t_results when t_eval is None."""
+
+        # empty object to assign attributes to
+        empty_obj = type("", (), {})()
+
+        empty_obj.t = np.array([0.0, 1.0, 2.0])
+        empty_obj.y = np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]])
+
+        t_span = np.array([0.0, 2.0])
+        t_eval = None
+        trimmed_obj = trim_t_results(empty_obj, t_eval)
+
+        self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0, 2.0]))
+        self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))

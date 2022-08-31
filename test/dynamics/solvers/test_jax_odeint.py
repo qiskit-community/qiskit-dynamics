@@ -123,5 +123,5 @@ class TestJaxOdeint(QiskitDynamicsTestCase, TestJaxBase):
                 [1 + 0.5],
             ]
         )
-
+        import pdb; pdb.set_trace()
         self.assertAllClose(expected_y, results.y)
