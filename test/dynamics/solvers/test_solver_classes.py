@@ -1242,6 +1242,63 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
         super().setUp()
         self.method = "jax_odeint"
 
+    def test_t_eval_t_span_jax_odeint(self):
+        """Test internal jitting works when specifying t_eval and t_span. This catches a bug
+        that was missed on initial implementation. This test just checks that it runs,
+        with the correctness assumed to be verified elsewhere.
+        """
+
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        self.ham_solver.solve(
+            signals=sched,
+            t_span=[0.0, 0.1],
+            y0=np.array([0.0, 1.0]),
+            t_eval=[0.0, 0.05, 0.1],
+            method="jax_odeint",
+        )
+
+    def test_t_eval_t_span_diffrax(self):
+        """Test internal jitting works when specifying t_eval and t_span for diffrax.
+        This catches a bug that was missed on initial implementation. This test just checks
+        that it runs, with the correctness assumed to be verified elsewhere.
+        """
+
+        from diffrax import Dopri5, PIDController
+
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        self.ham_solver.solve(
+            signals=sched,
+            t_span=[0.0, 0.1],
+            y0=np.array([0.0, 1.0]),
+            t_eval=[0.0, 0.05, 0.1],
+            method=Dopri5(),
+            stepsize_controller=PIDController(rtol=1e-10, atol=1e-10),
+            max_steps=1000000,
+        )
+
+    def test_t_eval_t_span_jax_expm(self):
+        """Test internal jitting works when specifying t_eval and t_span for jax_expm,
+        which serves as a place-holder for internally developed fixed-step solvers.
+        This catches a bug that was missed on initial implementation. This test just checks
+        that it runs, with the correctness assumed to be verified elsewhere.
+        """
+
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        self.ham_solver.solve(
+            signals=sched,
+            t_span=[0.0, 0.1],
+            y0=np.array([0.0, 1.0]),
+            t_eval=[0.0, 0.05, 0.1],
+            method="jax_expm",
+            max_dt=0.05,
+        )
+
 
 @ddt
 class TestSolverListSimulation(QiskitDynamicsTestCase):
