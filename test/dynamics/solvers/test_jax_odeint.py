@@ -153,4 +153,4 @@ class TestJaxOdeint(QiskitDynamicsTestCase, TestJaxBase):
 
         jit_grad_func = self.jit_grad_wrap(lambda a: func(t_span, a)[1][-1])
         out = jit_grad_func(t_eval)
-        self.assertAllClose(out, np.array([0., 0., 1.7**2]))
+        self.assertAllClose(out, np.array([0.0, 0.0, 1.7**2]))
