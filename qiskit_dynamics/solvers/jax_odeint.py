@@ -69,5 +69,5 @@ def jax_odeint(
     )
 
     results = OdeResult(t=t_list, y=Array(results, backend="jax", dtype=complex))
-    import pdb; pdb.set_trace()
+
     return trim_t_results(results, t_eval)
