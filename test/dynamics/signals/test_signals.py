@@ -516,7 +516,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
     """Test evaluation functions for ``SignalSum``."""
 
     def setUp(self):
-        self.signal0 = DiscreteSignal(dt=1., samples=Array([[]])) 
+        self.signal0 = DiscreteSignal(dt=1.0, samples=Array([[]]))
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -728,12 +728,12 @@ class TestSignalSum(QiskitDynamicsTestCase):
         self.assertAllClose(
             sig_sum1_conj.complex_value(0.1232), np.conjugate(self.sig_sum1.complex_value(0.1232))
         )
-    
+
     def test_empty_signal(self):
         """Verify signal sums on empty inputs"""
         try:
-            sig0 = self.signal0 + self.signal0
-            sig0Sum = to_SignalSum(self.signal0)
+            self.signal0 + self.signal0  # pylint: disable=pointless-statement
+            to_SignalSum(self.signal0)  # pylint: disable=pointless-statement
         except ValueError:
             self.fail("Signal addition raised ValueError")
 
@@ -742,7 +742,7 @@ class TestDiscreteSignalSum(TestSignalSum):
     """Tests for DiscreteSignalSum."""
 
     def setUp(self):
-        self.signal0 = DiscreteSignal(dt=1., samples=Array([[]])) 
+        self.signal0 = DiscreteSignal(dt=1.0, samples=Array([[]]))
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -823,7 +823,6 @@ class TestSignalList(QiskitDynamicsTestCase):
         self.assertFalse(sig_list[2][0].is_constant)
 
         self.assertAllClose(sig_list(3.0), np.array([4.0, 2.0, 3.0]))
-    
 
 
 class TestSignalCollection(QiskitDynamicsTestCase):

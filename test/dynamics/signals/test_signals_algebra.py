@@ -38,10 +38,10 @@ class TestSignalAddition(QiskitDynamicsTestCase):
         self.assertTrue(isinstance(sig_sum, SignalSum))
 
         self.assertAllClose(sig_sum(3.0), 4.0)
-    
+
     def test_empty_SignalSum(self):
         """Test construction of signal sum with empty element."""
-        sig_sum = 1.0 + DiscreteSignal(samples=[], dt=1.)
+        sig_sum = 1.0 + DiscreteSignal(samples=[], dt=1.0)
         self.assertTrue(isinstance(sig_sum, SignalSum))
         self.assertAllClose(sig_sum(3.0), 1.0)
 

@@ -1135,7 +1135,7 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
     if isinstance(sig, (int, float, complex)) or (isinstance(sig, Array) and sig.ndim == 0):
         return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
-        if Array(sig.samples.data).shape in [(0,), (1,0)]:
+        if Array(sig.samples.data).shape in [(0,), (1, 0)]:
             return DiscreteSignalSum(
                 dt=sig.dt,
                 samples=Array([sig.samples.data]),
