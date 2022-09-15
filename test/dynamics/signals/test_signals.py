@@ -812,6 +812,7 @@ class TestSignalList(QiskitDynamicsTestCase):
         self.assertFalse(sig_list[2][0].is_constant)
 
         self.assertAllClose(sig_list(3.0), np.array([4.0, 2.0, 3.0]))
+    
 
 
 class TestSignalCollection(QiskitDynamicsTestCase):
