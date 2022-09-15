@@ -19,6 +19,7 @@ import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
 from qiskit_dynamics.array import Array
+from qiskit_dynamics.signals.signals import to_SignalSum
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -515,6 +516,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
     """Test evaluation functions for ``SignalSum``."""
 
     def setUp(self):
+        self.signal0 = DiscreteSignal(dt=1., samples=Array([[]])) 
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -726,12 +728,21 @@ class TestSignalSum(QiskitDynamicsTestCase):
         self.assertAllClose(
             sig_sum1_conj.complex_value(0.1232), np.conjugate(self.sig_sum1.complex_value(0.1232))
         )
+    
+    def test_empty_signal(self):
+        """Verify signal sums on empty inputs"""
+        try:
+            sig0 = self.signal0 + self.signal0
+            sig0Sum = to_SignalSum(self.signal0)
+        except ValueError:
+            self.fail("Signal addition raised ValueError")
 
 
 class TestDiscreteSignalSum(TestSignalSum):
     """Tests for DiscreteSignalSum."""
 
     def setUp(self):
+        self.signal0 = DiscreteSignal(dt=1., samples=Array([[]])) 
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
