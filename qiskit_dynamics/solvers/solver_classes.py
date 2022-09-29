@@ -19,8 +19,6 @@ Solver classes.
 
 
 from typing import Optional, Union, Tuple, Any, Type, List, Callable
-from copy import copy
-import warnings
 
 import numpy as np
 
@@ -183,10 +181,8 @@ class Solver:
         self,
         static_hamiltonian: Optional[Array] = None,
         hamiltonian_operators: Optional[Array] = None,
-        hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
         static_dissipators: Optional[Array] = None,
         dissipator_operators: Optional[Array] = None,
-        dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
         hamiltonian_channels: Optional[List[str]] = None,
         dissipator_channels: Optional[List[str]] = None,
         channel_carrier_freqs: Optional[dict] = None,
@@ -205,15 +201,8 @@ class Solver:
                                 is specified, the ``frame_operator`` will be subtracted from
                                 the static_hamiltonian.
             hamiltonian_operators: Hamiltonian operators.
-            hamiltonian_signals: (Deprecated) Coefficients for the Hamiltonian operators.
-                                 This argument has been deprecated, signals should be passed
-                                 to the solve method.
             static_dissipators: Constant dissipation operators.
             dissipator_operators: Dissipation operators with time-dependent coefficients.
-            dissipator_signals: (Deprecated) Optional time-dependent coefficients for the
-                                dissipators. If ``None``, coefficients are assumed to be the
-                                constant ``1.``. This argument has been deprecated, signals
-                                should be passed to the solve method.
             hamiltonian_channels: List of channel names in pulse schedules corresponding to
                                   Hamiltonian operators.
             dissipator_channels: List of channel names in pulse schedules corresponding to
@@ -314,138 +303,85 @@ class Solver:
             else:
                 raise QiskitError("dt must be specified if channel information is provided.")
 
-        if hamiltonian_signals or dissipator_signals:
-            warnings.warn(
-                """hamiltonian_signals and dissipator_signals are deprecated arguments
-                and will be removed in a subsequent release.
-                Signals should be passed directly to the solve method.""",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
         # setup model
         model = None
         if static_dissipators is None and dissipator_operators is None:
             model = HamiltonianModel(
                 static_operator=static_hamiltonian,
                 operators=hamiltonian_operators,
-                signals=hamiltonian_signals,
                 rotating_frame=rotating_frame,
                 in_frame_basis=in_frame_basis,
                 evaluation_mode=evaluation_mode,
                 validate=validate,
             )
-            self._signals = hamiltonian_signals
         else:
             model = LindbladModel(
                 static_hamiltonian=static_hamiltonian,
                 hamiltonian_operators=hamiltonian_operators,
-                hamiltonian_signals=hamiltonian_signals,
                 static_dissipators=static_dissipators,
                 dissipator_operators=dissipator_operators,
-                dissipator_signals=dissipator_signals,
                 rotating_frame=rotating_frame,
                 in_frame_basis=in_frame_basis,
                 evaluation_mode=evaluation_mode,
                 validate=validate,
             )
-            self._signals = (hamiltonian_signals, dissipator_signals)
 
         self._rwa_signal_map = None
+        self._model = model
         if rwa_cutoff_freq:
 
-            original_signals = model.signals
-            # if configured in pulse mode and rwa_carrier_freqs is None, use the channel
-            # carrier freqs
-            if rwa_carrier_freqs is None and self._channel_carrier_freqs is not None:
-                rwa_carrier_freqs = None
-                if self._hamiltonian_channels is not None:
-                    rwa_carrier_freqs = [
-                        self._channel_carrier_freqs[c] for c in self._hamiltonian_channels
+            # if rwa_carrier_freqs is None, take from channel_carrier_freqs or set all to 0.
+            if rwa_carrier_freqs is None:
+                if self._channel_carrier_freqs is not None:
+                    if self._hamiltonian_channels is not None:
+                        rwa_carrier_freqs = [
+                            self._channel_carrier_freqs[c] for c in self._hamiltonian_channels
+                        ]
+
+                    if self._dissipator_channels is not None:
+                        rwa_carrier_freqs = (
+                            rwa_carrier_freqs,
+                            [self._channel_carrier_freqs[c] for c in self._dissipator_channels],
+                        )
+                else:
+                    rwa_carrier_freqs = []
+                    if hamiltonian_operators is not None:
+                        rwa_carrier_freqs = [0.0] * len(hamiltonian_operators)
+
+                    if dissipator_operators is not None:
+                        rwa_carrier_freqs = (rwa_carrier_freqs, [0.0] * len(dissipator_operators))
+
+            if isinstance(rwa_carrier_freqs, tuple):
+                rwa_ham_sigs = None
+                rwa_lindblad_sigs = None
+                if rwa_carrier_freqs[0]:
+                    rwa_ham_sigs = [Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs[0]]
+                if rwa_carrier_freqs[1]:
+                    rwa_lindblad_sigs = [
+                        Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs[1]
                     ]
 
-                if self._dissipator_channels is not None:
-                    rwa_carrier_freqs = (
-                        rwa_carrier_freqs,
-                        [self._channel_carrier_freqs[c] for c in self._dissipator_channels],
-                    )
+                self._model.signals = (rwa_ham_sigs, rwa_lindblad_sigs)
+            else:
+                rwa_sigs = [Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs]
 
-            if rwa_carrier_freqs is not None:
-                if isinstance(rwa_carrier_freqs, tuple):
-                    rwa_ham_sigs = None
-                    rwa_lindblad_sigs = None
-                    if rwa_carrier_freqs[0]:
-                        rwa_ham_sigs = [
-                            Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs[0]
-                        ]
-                    if rwa_carrier_freqs[1]:
-                        rwa_lindblad_sigs = [
-                            Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs[1]
-                        ]
+                if isinstance(model, LindbladModel):
+                    rwa_sigs = (rwa_sigs, None)
 
-                    model.signals = (rwa_ham_sigs, rwa_lindblad_sigs)
-                else:
-                    rwa_sigs = [Signal(1.0, carrier_freq=freq) for freq in rwa_carrier_freqs]
+                self._model.signals = rwa_sigs
 
-                    if isinstance(model, LindbladModel):
-                        rwa_sigs = (rwa_sigs, None)
-
-                    model.signals = rwa_sigs
-
-            model, rwa_signal_map = rotating_wave_approximation(
-                model, rwa_cutoff_freq, return_signal_map=True
+            self._model, rwa_signal_map = rotating_wave_approximation(
+                self._model, rwa_cutoff_freq, return_signal_map=True
             )
             self._rwa_signal_map = rwa_signal_map
 
-            if hamiltonian_signals or dissipator_signals:
-                model.signals = self._rwa_signal_map(original_signals)
-
-        self._model = model
+            # clear signals
+            self._set_new_signals(None)
 
     @property
     def model(self) -> Union[HamiltonianModel, LindbladModel]:
         """The model of the system, either a Hamiltonian or Lindblad model."""
         return self._model
-
-    @property
-    def signals(self) -> SignalList:
-        """(Deprecated) The signals used in the solver."""
-        warnings.warn(
-            """The signals property is deprecated and will be removed in the next release.
-            Signals should be passed directly to the solve method.""",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self._signals
-
-    @signals.setter
-    def signals(
-        self, new_signals: Union[List[Signal], SignalList, Tuple[List[Signal]], Tuple[SignalList]]
-    ):
-        """(Deprecated) Set signals for the solver, and pass to the model."""
-        warnings.warn(
-            """The signals property is deprecated and will be removed in the next release.
-            Signals should be passed directly to the solve method.""",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        self._signals = new_signals
-        if self._rwa_signal_map is not None:
-            new_signals = self._rwa_signal_map(new_signals)
-        self.model.signals = new_signals
-
-    def copy(self) -> "Solver":
-        """(Deprecated) Return a copy of self."""
-        warnings.warn(
-            """The copy method is deprecated and will be removed in the next release.
-            This deprecation is associated with the deprecation of the signals property;
-            the copy method will no longer be needed once the signal property is removed.""",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return copy(self)
 
     def solve(
         self,
@@ -567,19 +503,6 @@ class Solver:
 
             results = solver.solve(t_span=t_span, y0=y0, signals=signals)
         """
-        # hold copy of signals in model for deprecated behavior
-        original_signals = self.model.signals
-
-        # raise deprecation warning if signals is None and non-trivial signals to fall back on
-        if signals is None and not original_signals in (None, (None, None)):
-            warnings.warn(
-                """No signals specified to solve, falling back on signals stored in model.
-                Passing signals to Solver at instantiation and setting Solver.signals have been
-                deprecated and will be removed in the next release. Instead pass signals
-                directly to the solve method.""",
-                DeprecationWarning,
-                stacklevel=2,
-            )
 
         # convert any ScheduleBlocks to Schedules
         if isinstance(signals, ScheduleBlock):
@@ -616,6 +539,9 @@ class Solver:
                 convert_results=convert_results,
                 **kwargs,
             )
+
+        # ensure model signals are empty
+        self._set_new_signals(None)
 
         if multiple_sims is False:
             return all_results[0]
@@ -654,6 +580,8 @@ class Solver:
                 results.y = [state_type_wrapper(yi) for yi in results.y]
 
             all_results.append(results)
+
+        self._set_new_signals(None)
 
         return all_results
 
@@ -749,6 +677,11 @@ class Solver:
             if self._rwa_signal_map:
                 signals = self._rwa_signal_map(signals)
             self.model.signals = signals
+        else:
+            if isinstance(self.model, LindbladModel):
+                self.model.signals = (None, None)
+            else:
+                self.model.signals = None
 
     def _schedule_to_signals(self, schedule: Schedule):
         """Convert a schedule into the signal format required by the model."""
