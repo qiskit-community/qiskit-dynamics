@@ -516,7 +516,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
     """Test evaluation functions for ``SignalSum``."""
 
     def setUp(self):
-        self.signal0 = DiscreteSignal(dt=1.0, samples=Array([[]]))
+        self.signal0 = DiscreteSignal(dt=1.0, samples=Array([]))
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -742,7 +742,7 @@ class TestDiscreteSignalSum(TestSignalSum):
     """Tests for DiscreteSignalSum."""
 
     def setUp(self):
-        self.signal0 = DiscreteSignal(dt=1.0, samples=Array([[]]))
+        self.signal0 = DiscreteSignal(dt=1.0, samples=Array([]))
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
