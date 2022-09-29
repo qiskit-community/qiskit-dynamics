@@ -18,7 +18,7 @@ Sphinx documentation builder
 
 # General options:
 
-project = 'Qiskit Dynamics Solvers'
+project = 'Qiskit Dynamics'
 copyright = '2020, Qiskit Development Team'  # pylint: disable=redefined-builtin
 author = 'Qiskit Development Team'
 
