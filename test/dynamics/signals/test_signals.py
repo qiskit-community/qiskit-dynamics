@@ -516,7 +516,6 @@ class TestSignalSum(QiskitDynamicsTestCase):
     """Test evaluation functions for ``SignalSum``."""
 
     def setUp(self):
-        self.signal0 = DiscreteSignal(dt=1.0, samples=Array([]))
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -729,20 +728,11 @@ class TestSignalSum(QiskitDynamicsTestCase):
             sig_sum1_conj.complex_value(0.1232), np.conjugate(self.sig_sum1.complex_value(0.1232))
         )
 
-    def test_empty_signal(self):
-        """Verify signal sums on empty inputs"""
-        try:
-            self.signal0 + self.signal0  # pylint: disable=pointless-statement
-            to_SignalSum(self.signal0)  # pylint: disable=pointless-statement
-        except ValueError:
-            self.fail("Signal addition raised ValueError")
-
 
 class TestDiscreteSignalSum(TestSignalSum):
     """Tests for DiscreteSignalSum."""
 
     def setUp(self):
-        self.signal0 = DiscreteSignal(dt=1.0, samples=Array([]))
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -759,6 +749,13 @@ class TestDiscreteSignalSum(TestSignalSum):
         self.signal3 = DiscreteSignal.from_Signal(self.signal3, dt=0.5, start_time=0, n_samples=10)
 
         self.double_sig_sum = self.sig_sum1 - self.sig_sum2
+
+    def test_empty_DiscreteSignal_to_sum(self):
+        """Verify empty DiscreteSignal is converted to empty DiscreteSignalSum."""
+
+        empty_sum = to_SignalSum(DiscreteSignal(dt=1.0, samples=[]))
+        self.assertTrue(isinstance(empty_sum, DiscreteSignalSum))
+        self.assertTrue(empty_sum.samples.shape == (1, 0))
 
 
 class TestSignalList(QiskitDynamicsTestCase):
