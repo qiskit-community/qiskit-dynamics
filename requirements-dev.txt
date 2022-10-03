@@ -3,7 +3,7 @@ astroid==2.9.3
 pylint==2.12.2
 black~=22.0
 qiskit-sphinx-theme>=1.6
-sphinx-autodoc-typehints
+sphinx-autodoc-typehints~=1.18,!=1.19.3
 jupyter-sphinx
 pygments>=2.4
 reno>=3.4.0

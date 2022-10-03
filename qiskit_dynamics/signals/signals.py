@@ -101,7 +101,7 @@ class Signal:
                 self._is_constant = True
 
             if envelope.backend == "jax":
-                self._envelope = lambda t: envelope * jnp.ones_like(t)
+                self._envelope = lambda t: envelope * jnp.ones_like(Array(t).data)
             else:
                 self._envelope = lambda t: envelope * np.ones_like(t)
         elif callable(envelope):
