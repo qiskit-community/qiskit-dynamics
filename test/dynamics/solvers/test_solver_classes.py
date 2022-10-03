@@ -1137,6 +1137,30 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             rtol=1e-12,
         )
 
+    def test_channel_without_instructions(self):
+        """Test pulse simulation with a channel in the model having no instructions."""
+
+        # construct schedule
+        with pulse.build() as sched:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        # construct equivalent DiscreteSignal manually
+        sig0 = DiscreteSignal(dt=0.1, samples=np.ones(5, dtype=float) * 0.9, carrier_freq=5.0)
+        sig1 = DiscreteSignal(dt=0.1, samples=[], carrier_freq=3.1)
+        signals = [sig0, sig1]
+
+        self._compare_schedule_to_signals(
+            solver=self.ham_solver_2_channels,
+            t_span=[0.0, 0.5],
+            y0=np.eye(2),
+            schedules=sched,
+            signals=signals,
+            test_tol=1e-8,
+            atol=1e-12,
+            rtol=1e-12,
+        )
+
     def _compare_schedule_to_signals(
         self, solver, t_span, y0, schedules, signals, test_tol=1e-14, **kwargs
     ):
