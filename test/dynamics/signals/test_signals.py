@@ -17,13 +17,8 @@ Tests for signals.
 
 import numpy as np
 
-from qiskit_dynamics.signals import (
-    Signal,
-    DiscreteSignal,
-    DiscreteSignalSum,
-    SignalList,
-    to_SignalSum,
-)
+from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
+from qiskit_dynamics.signals.signals import to_SignalSum
 from qiskit_dynamics.array import Array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
