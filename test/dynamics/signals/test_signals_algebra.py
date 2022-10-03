@@ -45,7 +45,6 @@ class TestSignalAddition(QiskitDynamicsTestCase):
         self.assertTrue(isinstance(sig_sum, SignalSum))
         self.assertAllClose(sig_sum(3.0), 1.0)
 
-
     def test_DiscreteSignalSum_construction(self):
         """Verify that DiscreteSignals with the same sample structure produce
         a DiscreteSignalSum.

@@ -1138,7 +1138,7 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
         if Array(sig.samples.data).shape == (0,):
             new_samples = Array([sig.samples.data])
         else:
-            new_samples = Array([sig.samples.data]).transpose(1,0)
+            new_samples = Array([sig.samples.data]).transpose(1, 0)
         return DiscreteSignalSum(
             dt=sig.dt,
             samples=new_samples,
