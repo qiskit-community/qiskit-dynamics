@@ -364,7 +364,7 @@ def fixed_step_solver_template(
 
     results = OdeResult(t=t_list, y=ys)
 
-    return trim_t_results(results, t_span, t_eval)
+    return trim_t_results(results, t_eval)
 
 
 def fixed_step_solver_template_jax(
@@ -426,7 +426,7 @@ def fixed_step_solver_template_jax(
 
     results = OdeResult(t=t_list, y=ys)
 
-    return trim_t_results(results, t_span, t_eval)
+    return trim_t_results(results, t_eval)
 
 
 def fixed_step_lmde_solver_parallel_template_jax(
@@ -519,7 +519,7 @@ def fixed_step_lmde_solver_parallel_template_jax(
 
     results = OdeResult(t=t_list, y=Array(ys, backend="jax"))
 
-    return trim_t_results(results, t_span, t_eval)
+    return trim_t_results(results, t_eval)
 
 
 def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[Array, Array, Array]:
