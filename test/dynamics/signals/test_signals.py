@@ -749,6 +749,13 @@ class TestDiscreteSignalSum(TestSignalSum):
 
         self.double_sig_sum = self.sig_sum1 - self.sig_sum2
 
+    def test_empty_DiscreteSignal_to_sum(self):
+        """Verify empty DiscreteSignal is converted to empty DiscreteSignalSum."""
+
+        empty_sum = to_SignalSum(DiscreteSignal(dt=1.0, samples=[]))
+        self.assertTrue(isinstance(empty_sum, DiscreteSignalSum))
+        self.assertTrue(empty_sum.samples.shape == (1, 0))
+
 
 class TestSignalList(QiskitDynamicsTestCase):
     """Test cases for SignalList class."""
