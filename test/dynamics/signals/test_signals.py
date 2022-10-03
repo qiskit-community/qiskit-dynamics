@@ -18,6 +18,7 @@ Tests for signals.
 import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
+from qiskit_dynamics.signals.signals import to_SignalSum
 from qiskit_dynamics.array import Array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -748,6 +749,13 @@ class TestDiscreteSignalSum(TestSignalSum):
         self.signal3 = DiscreteSignal.from_Signal(self.signal3, dt=0.5, start_time=0, n_samples=10)
 
         self.double_sig_sum = self.sig_sum1 - self.sig_sum2
+
+    def test_empty_DiscreteSignal_to_sum(self):
+        """Verify empty DiscreteSignal is converted to empty DiscreteSignalSum."""
+
+        empty_sum = to_SignalSum(DiscreteSignal(dt=1.0, samples=[]))
+        self.assertTrue(isinstance(empty_sum, DiscreteSignalSum))
+        self.assertTrue(empty_sum.samples.shape == (1, 0))
 
 
 class TestSignalList(QiskitDynamicsTestCase):
