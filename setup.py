@@ -21,6 +21,11 @@ requirements = [
     "matplotlib>=3.0",
     "qiskit-terra>=0.16.0",
     "multiset>=3.0.1",
+    # Hack around stevedore being broken by importlib_metadata 5.0; we need to pin
+    # the requirements rather than the constraints if we need to cut a release
+    # before stevedore is fixed.  `importlib_metadata` is not (currently) a direct
+    # requirement of Dynamics.
+    "importlib_metadata<5.0; python_version<'3.8'"
 ]
 
 jax_extras = ['jax>=0.2.26',

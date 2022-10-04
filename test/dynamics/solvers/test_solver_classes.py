@@ -1137,6 +1137,30 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             rtol=1e-12,
         )
 
+    def test_channel_without_instructions(self):
+        """Test pulse simulation with a channel in the model having no instructions."""
+
+        # construct schedule
+        with pulse.build() as sched:
+            with pulse.align_sequential():
+                pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        # construct equivalent DiscreteSignal manually
+        sig0 = DiscreteSignal(dt=0.1, samples=np.ones(5, dtype=float) * 0.9, carrier_freq=5.0)
+        sig1 = DiscreteSignal(dt=0.1, samples=[], carrier_freq=3.1)
+        signals = [sig0, sig1]
+
+        self._compare_schedule_to_signals(
+            solver=self.ham_solver_2_channels,
+            t_span=[0.0, 0.5],
+            y0=np.eye(2),
+            schedules=sched,
+            signals=signals,
+            test_tol=1e-8,
+            atol=1e-12,
+            rtol=1e-12,
+        )
+
     def _compare_schedule_to_signals(
         self, solver, t_span, y0, schedules, signals, test_tol=1e-14, **kwargs
     ):
@@ -1181,6 +1205,63 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
     def setUp(self):
         super().setUp()
         self.method = "jax_odeint"
+
+    def test_t_eval_t_span_jax_odeint(self):
+        """Test internal jitting works when specifying t_eval and t_span. This catches a bug
+        that was missed on initial implementation. This test just checks that it runs,
+        with the correctness assumed to be verified elsewhere.
+        """
+
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        self.ham_solver.solve(
+            signals=sched,
+            t_span=[0.0, 0.1],
+            y0=np.array([0.0, 1.0]),
+            t_eval=[0.0, 0.05, 0.1],
+            method="jax_odeint",
+        )
+
+    def test_t_eval_t_span_diffrax(self):
+        """Test internal jitting works when specifying t_eval and t_span for diffrax.
+        This catches a bug that was missed on initial implementation. This test just checks
+        that it runs, with the correctness assumed to be verified elsewhere.
+        """
+
+        from diffrax import Dopri5, PIDController
+
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        self.ham_solver.solve(
+            signals=sched,
+            t_span=[0.0, 0.1],
+            y0=np.array([0.0, 1.0]),
+            t_eval=[0.0, 0.05, 0.1],
+            method=Dopri5(),
+            stepsize_controller=PIDController(rtol=1e-10, atol=1e-10),
+            max_steps=1000000,
+        )
+
+    def test_t_eval_t_span_jax_expm(self):
+        """Test internal jitting works when specifying t_eval and t_span for jax_expm,
+        which serves as a place-holder for internally developed fixed-step solvers.
+        This catches a bug that was missed on initial implementation. This test just checks
+        that it runs, with the correctness assumed to be verified elsewhere.
+        """
+
+        with pulse.build() as sched:
+            pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
+
+        self.ham_solver.solve(
+            signals=sched,
+            t_span=[0.0, 0.1],
+            y0=np.array([0.0, 1.0]),
+            t_eval=[0.0, 0.05, 0.1],
+            method="jax_expm",
+            max_dt=0.05,
+        )
 
 
 @ddt

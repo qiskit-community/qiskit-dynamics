@@ -672,6 +672,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             name: name of the signal.
         """
 
+        samples = Array(samples)
         if carrier_freq is None:
             carrier_freq = np.zeros(samples.shape[-1], dtype=float)
 
@@ -1134,9 +1135,13 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
     if isinstance(sig, (int, float, complex)) or (isinstance(sig, Array) and sig.ndim == 0):
         return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
+        if Array(sig.samples.data).shape == (0,):
+            new_samples = Array([sig.samples.data])
+        else:
+            new_samples = Array([sig.samples.data]).transpose(1, 0)
         return DiscreteSignalSum(
             dt=sig.dt,
-            samples=Array([sig.samples.data]).transpose(1, 0),
+            samples=new_samples,
             start_time=sig.start_time,
             carrier_freq=Array([sig.carrier_freq.data]),
             phase=Array([sig.phase.data]),
