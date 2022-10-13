@@ -20,14 +20,14 @@ Array Module (:mod:`qiskit_dynamics.array`)
 .. currentmodule:: qiskit_dynamics.array
 
 This module contains an :class:`Array` class that wraps N-dimensional array
-objects from different libraries for use with Numpy functions through a common
+objects from different libraries for use with NumPy functions through a common
 interface and functions for working with Array objects and other libraries.
 
 Array Class
 ===========
 
-The :class:`Array` class provides a Numpy compatible wrapper to supported Python
-array libraries. When applying Numpy functions to the array class these will be
+The :class:`Array` class provides a NumPy compatible wrapper to supported Python
+array libraries. When applying NumPy functions to the array class these will be
 dispatched to the corresponding function for the current Array backend, if a
 compatible function has been specified in the :mod:`qiskit_dynamics.dispatch`
 system.
@@ -35,14 +35,14 @@ system.
 The following array libraries have built in support for the
 :mod:`qiskit_dynamics.dispatch` module
 
-* `Numpy <https://numpy.org/>`_
+* `NumPy <https://numpy.org/>`_
 * `JAX <https://github.com/google/jax>`_
 
 Basic Usage
 -----------
 
-When using the default ``numpy`` backend :class:`Array` objects can be used
-interchangable ``numpy.ndarray``. When ``numpy`` functions are applied to
+When using the default ``numpy`` backend, :class:`Array` objects can be used
+interchangably with ``numpy.ndarray``. When ``numpy`` functions are applied to
 an :class:`Array` object the return type will be an :class:`Array`
 instead of an ``ndarray``
 
@@ -57,18 +57,17 @@ instead of an ``ndarray``
     # Apply numpy ufuncs
     np.cos(a) + 1j * np.sin(a)
 
-For the JAX Array backend only Numpy functions that have a corresponding function
-in the ``jax`` library that has been registed with the dispatch module can be
+For the JAX Array backend, only NumPy functions that have a corresponding function
+in the ``jax`` library that has been registered with the dispatch module can be
 applied to the functions. Trying to apply an unsupported ``numpy`` function to
 these arrays will raise an exception.
-
 
 Default Backend
 ---------------
 
-When initializing a new :class:`Array` the ``backend`` kwarg is used to specify
+When initializing a new :class:`Array`, the ``backend`` kwarg is used to specify
 the array backend. This will convert the input data to an array of this backend
-if required. If ``backend=None`` the default backend will be used.
+if required. If ``backend=None``, the default backend will be used.
 The initial default backend is always set to ``"numpy"``.
 
 The current default backend can be viewed by using the class method
@@ -91,7 +90,7 @@ through this class, but with any array return types wrapped into
 
 .. jupyter-execute::
 
-    # Call numpy.ndarray method
+    # Call an numpy.ndarray method
     a.reshape((2, 5))
 
 
@@ -99,7 +98,7 @@ through this class, but with any array return types wrapped into
 Array Initialization
 --------------------
 
-An :class:`Array` object can be initialized as `Array(data)` from any ``data`` that is
+An :class:`Array` object can be initialized as ``Array(data)`` from any ``data`` that is
 
 1. An ``array`` object of one of the supported backends.
 2. An object that can be used to initialize the backend array.
@@ -153,10 +152,10 @@ the :func:`wrap` function as
     a = Array([0, 1, 2, 4])
     b = f(a)
 
-The wrapped function will automatically unwrapping any :class:`Array` args and kwargs
+The wrapped function will automatically unwrap any :class:`Array` args and kwargs
 for calling the wrapped function. If the result of the function is a backend array
-or an instance of a class that defines a ``__qiskit_array__`` method the wrapped
-function will return this as an Array object. Similarly if the result is a tuple
+or an instance of a class that defines a ``__qiskit_array__`` method, the wrapped
+function will return this as an Array object. Similarly, if the result is a tuple
 this conversion will be applied to each element of the tuple where appropriate.
 
 Wrapping Decorators
@@ -165,8 +164,8 @@ Wrapping Decorators
 The :func:`wrap` function can also be used to wrap function decorators by setting
 the ``decorator=True`` kwarg.
 
-For example to wrap autograd and jit decorators from the JAX library to work with
-Array functions we can do the following
+For example, to wrap autograd and jit decorators from the JAX library to work with
+Array functions, we can do the following
 
 .. code-block:: python
 

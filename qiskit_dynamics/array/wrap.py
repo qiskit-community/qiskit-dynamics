@@ -42,7 +42,7 @@ def wrap(
 
 
 def _wrap_array_function(func: Callable) -> Callable:
-    """Wrap a function to handle Array-like inputs and returns"""
+    """Wrap a function to handle Array-like inputs and returns."""
 
     @functools.wraps(func)
     def wrapped_function(*args, **kwargs):
@@ -72,12 +72,12 @@ def _wrap_array_function(func: Callable) -> Callable:
 
 
 def _wrap_args(args):
-    """Return wrapped args"""
+    """Return wrapped args."""
     return tuple(_wrap_array_function(x) if isinstance(x, FunctionType) else x for x in args)
 
 
 def _wrap_kwargs(kwargs):
-    """Return wrapped kwargs"""
+    """Return wrapped kwargs."""
     return dict(
         (key, _wrap_array_function(val)) if isinstance(val, FunctionType) else (key, val)
         for key, val in kwargs.items()

@@ -14,7 +14,7 @@
 # pylint: disable=invalid-name
 
 """
-Magnus expansion based solver.
+Magnus expansion-based solver.
 """
 
 from typing import Optional, List, Union

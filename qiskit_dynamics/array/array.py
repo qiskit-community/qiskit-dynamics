@@ -28,8 +28,8 @@ __all__ = ["Array"]
 class Array(NDArrayOperatorsMixin):
     """Qiskit Array class.
 
-    This class provides a Numpy compatible wrapper to supported Python
-    array libraries. Supported backends are 'numpy' and 'jax'.
+    This class provides a NumPy compatible wrapper to supported Python
+    array libraries. Supported backends are ``numpy`` and ``jax``.
     """
 
     def __init__(
@@ -87,22 +87,22 @@ class Array(NDArrayOperatorsMixin):
 
     @property
     def data(self):
-        """Return the wrapped array data object"""
+        """Return the wrapped array data object."""
         return self._data
 
     @data.setter
     def data(self, value):
-        """Update the wrapped array data object"""
+        """Update the wrapped array data object."""
         self._data[:] = value
 
     @property
     def backend(self):
-        """Return the backend of the wrapped array class"""
+        """Return the backend of the wrapped array class."""
         return self._backend
 
     @backend.setter
     def backend(self, value: str):
-        """Set the backend of the wrapped array class"""
+        """Set the backend of the wrapped array class."""
         Dispatch.validate_backend(value)
         self._data = asarray(self._data, backend=value)
         self._backend = value
@@ -121,7 +121,7 @@ class Array(NDArrayOperatorsMixin):
 
     @classmethod
     def available_backends(cls) -> Set[str]:
-        """Return a tuple of available array backends"""
+        """Return a tuple of available array backends."""
         return Dispatch.REGISTERED_BACKENDS
 
     def __repr__(self):
@@ -266,7 +266,7 @@ class Array(NDArrayOperatorsMixin):
             return NotImplemented
         result = dispatch_func(*inputs, **kwargs)
 
-        # Not sure what this case from Numpy docs is?
+        # Not sure what this case from NumPy docs is?
         if method == "at":
             return None
 

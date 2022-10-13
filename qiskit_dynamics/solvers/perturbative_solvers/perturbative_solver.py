@@ -75,7 +75,7 @@ class _PerturbativeSolver(ABC):
         Args:
             t0: Initial time.
             n_steps: Number of time steps to solve for.
-            y0: Initial state at time t0.
+            y0: Initial state at time ``t0``.
             signals: List of signals.
 
         Returns:
