@@ -14,6 +14,7 @@
 
 import time
 import datetime
+import uuid
 
 from typing import Dict, Iterable, List, Optional, Union
 import numpy as np
@@ -32,6 +33,7 @@ from qiskit_dynamics import Solver
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel
 
+from .dynamics_job import DynamicsJob
 from .pulse_utils import _get_dressed_state_data
 
 
@@ -169,6 +171,27 @@ class PulseSimulator(BackendV2):
             measurement_subsystems_list.append([inst.channel.index for inst in schedule_acquires])
             measurement_subsystems_list[-1].sort()
 
+
+        # Submit job
+        job_id = str(uuid.uuid4())
+        dynamics_job = DynamicsJob(
+            backend=self,
+            job_id=job_id,
+            fn=self._run,
+            fn_kwargs={
+                't_span': t_span, 'y0': y0, 'schedules': schedules,
+                'solver_options': solver_options,
+                'measurement_subsystems_list': measurement_subsystems_list,
+                'shots': shots
+            }
+        )
+        dynamics_job.submit()
+
+        return dynamics_job
+
+    def _run(self, t_span, y0, schedules, solver_options, measurement_subsystems_list, shots):
+        """Not sure here what the right delineation of arguments is to put in _run.
+        """
         # map measurement subsystems from labels to correct index
         if self.subsystem_labels:
             new_measurement_subsystems_list = []
