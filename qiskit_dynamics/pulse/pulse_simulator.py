@@ -34,7 +34,7 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel
 
 from .dynamics_job import DynamicsJob
-from .pulse_utils import _get_dressed_state_data
+from .pulse_utils import _get_dressed_state_decomposition
 
 
 class PulseSimulator(BackendV2):
@@ -101,9 +101,10 @@ class PulseSimulator(BackendV2):
         # get the dressed states
         ##############################################################################################
         # Make these into properties?
-        dressed_evals, dressed_states = _get_dressed_state_data(static_hamiltonian, subsystem_dims)
+        dressed_evals, dressed_states = _get_dressed_state_decomposition(static_hamiltonian)
         self._dressed_evals = dressed_evals
         self._dressed_states = dressed_states
+        self._dressed_states_adjoint = self._dressed_states.conj().transpose()
 
     def run(
         self,
@@ -148,7 +149,7 @@ class PulseSimulator(BackendV2):
             solver_options = {}
 
         if y0 is None:
-            y0 = Statevector(self._dressed_states[0])
+            y0 = Statevector(self._dressed_states[:, 0])
 
         # to do: add handling of circuits
         schedules = _to_schedule_list(run_input)
@@ -227,11 +228,13 @@ class PulseSimulator(BackendV2):
         for ts, result, measurement_subsystems in zip(t_span, solver_results, measurement_subsystems_list):
             yf = result.y[-1]
             if isinstance(yf, Statevector):
-                yf = self.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf)
-                yf = Statevector(np.array(yf), dims=self.subsystem_dims)
+                yf = np.array(self.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf))
+                yf = self._dressed_states_adjoint @ yf
+                yf = Statevector(yf, dims=self.subsystem_dims)
             elif isinstance(yf, DensityMatrix):
-                yf = self.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], y=yf)
-                yf = DensityMatrix(np.array(yf), dims=self.subsystem_dims)
+                yf = np.array(self.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], y=yf))
+                yf = self._dressed_states_adjoint @ yf @ self.dressed_states
+                yf = DensityMatrix(yf, dims=self.subsystem_dims)
 
             outputs.append({'counts': yf.sample_counts(shots=shots, qargs=measurement_subsystems)})
 

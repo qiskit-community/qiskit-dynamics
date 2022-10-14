@@ -18,85 +18,52 @@ Utility functions for pulse simulation.
 from typing import Optional, Union, List, Dict
 
 import numpy as np
-import numpy.linalg as la
 from qiskit import QiskitError
-from qiskit.quantum_info import DensityMatrix, Statevector
+
+from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 
 
-def _tensor_state_label_generator(
-    subsystem_dims: List[int], as_str: Optional[bool] = True
-) -> List[Union[str, List[int]]]:
-    """Generate ordered classical state labels for a tensor product system.
-
-    Subsystem ordering in the labels is the reverse of the dimensions given in ``subsystem_dims``.
-    E.g. with ``subsystem_dims = [3, 2]``, the returned labels are
-    ``['00', '01', '02', '10', '11', '12']``. The ``as_str`` optional argument indicates whether
-    to return as a list or as a string. This defaults to ``True``, but if ``False``, individual
-    labels are returned in a list format, e.g. the string-formatted label ``'01'`` will be
-    returned as the list ``[0, 1]``.
-
-    Args:
-        subsystem_dims: The dimensions of each subsystem.
-        as_str: Return labels as string, defaults to True.
-
-    Returns:
-        List of system labels either in a string or list format.
-    """
-    # initialize labels list
-    zero_prefactor = [0] * (len(subsystem_dims) - 1)
-    labels = [zero_prefactor + [x] for x in range(subsystem_dims[0])]
-
-    for idx, dim in enumerate(subsystem_dims[1:]):
-        new_labels = []
-        for counter in range(1, dim):
-            for label in labels:
-                new_label = label.copy()
-                new_label[-(idx + 2)] = counter
-                new_labels.append(new_label)
-        labels += new_labels
-
-    if as_str:
-        labels = [[str(x) for x in lab] for lab in labels]
-        labels = ["".join(lab) for lab in labels]
-
-    return labels
-
-
-def _get_dressed_state_data(
-    static_hamiltonian: np.ndarray, subsystem_dims: List[int]
+def _get_dressed_state_decomposition(
+    operator: np.ndarray, rtol=1e-8, atol=1e-8
 ) -> Union[Dict[str, np.ndarray], List[float], Dict[str, float]]:
-    """Assuming it is nearly diagonal, get the eigenvalues and corresponding dressed states for
-    a Hamiltonian.
+    """Get the eigenvalues and eigenvectors of a nearly-diagonal hermitian operator, sorted
+    according to overlap with the elementary basis.
 
     This function is essentially a wrapper around ``numpy.linalg.eigh``, but
     sorts the eigenvectors according to the value of ``np.argmax(np.abs(evec))``. It also
     validates that this is unique for each eigenvector.
 
     Args:
-        static_hamiltonian: Static part of a Hamiltonian.
+        operator: Hermitian operator.
         subsystem_dims: Dimensions of the subsystems composing the system.
+        rtol: Relative tolerance for Hermiticity check.
+        atol: Absolute tolerance for Hermiticity check.
     Raises:
-        QiskitError: If ``np.argmax(np.abs(evec))`` is non-unique across eigenvectors.
+        QiskitError: If ``np.argmax(np.abs(evec))`` is non-unique across eigenvectors, or if
+        operator is not Hermitian.
     Returns:
         Tuple: a pair of arrays, one containing eigenvalues and one containing corresponding
         eigenvectors.
     """
 
-    evals, evecs = la.eigh(np.array(static_hamiltonian))
+    if not is_hermitian_matrix(operator, rtol=rtol, atol=atol):
+        raise QiskitError("_get_dressed_state_decomposition received non-Hermitian operator.")
+
+    evals, evecs = np.linalg.eigh(np.array(operator))
 
     dressed_evals = np.zeros_like(evals)
     dressed_states = np.zeros_like(evecs)
 
     found_positions = []
-    for eval, evec in zip(evals, evecs):
+    for eval, evec in zip(evals, evecs.transpose()):
 
         position = np.argmax(np.abs(evec))
         if position in found_positions:
-            raise QiskitError("Dressed-state sorting failed due to overlap.")
+            raise QiskitError("Dressed-state sorting failed due to non-unique np.argmax(np.abs(evec)) for eigenvectors.")
         else:
             found_positions.append(position)
 
-        dressed_states[position] = evec
+        dressed_states[:, position] = evec
         dressed_evals[position] = eval
 
     return dressed_evals, dressed_states
