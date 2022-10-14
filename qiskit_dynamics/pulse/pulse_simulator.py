@@ -172,7 +172,7 @@ class PulseSimulator(BackendV2):
             measurement_subsystems_list[-1].sort()
 
 
-        # Submit job
+        # Build and submit job
         job_id = str(uuid.uuid4())
         dynamics_job = DynamicsJob(
             backend=self,
@@ -189,9 +189,21 @@ class PulseSimulator(BackendV2):
 
         return dynamics_job
 
-    def _run(self, t_span, y0, schedules, solver_options, measurement_subsystems_list, shots):
+    def _run(
+        self,
+        job_id,
+        t_span,
+        y0,
+        schedules,
+        solver_options,
+        measurement_subsystems_list,
+        shots
+    ) -> Result:
         """Not sure here what the right delineation of arguments is to put in _run.
+        This feels somewhat hacky/arbitrary.
         """
+        start = time.time()
+
         # map measurement subsystems from labels to correct index
         if self.subsystem_labels:
             new_measurement_subsystems_list = []
@@ -206,12 +218,13 @@ class PulseSimulator(BackendV2):
 
             measurement_subsystems_list = new_measurement_subsystems_list
 
-        start = time.time()
-        results = self.solver.solve(t_span=t_span, y0=y0, signals=schedules, **solver_options)
+        solver_results = self.solver.solve(t_span=t_span, y0=y0, signals=schedules, **solver_options)
 
         # construct counts for each experiment
-        counts_dicts = []
-        for ts, result, measurement_subsystems in zip(t_span, results, measurement_subsystems_list):
+        ##############################################################################################
+        # Change to if statement depending on types of outputs
+        outputs = []
+        for ts, result, measurement_subsystems in zip(t_span, solver_results, measurement_subsystems_list):
             yf = result.y[-1]
             if isinstance(yf, Statevector):
                 yf = self.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf)
@@ -220,9 +233,23 @@ class PulseSimulator(BackendV2):
                 yf = self.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], y=yf)
                 yf = DensityMatrix(np.array(yf), dims=self.subsystem_dims)
 
-            counts_dicts.append(yf.sample_counts(shots=shots, qargs=measurement_subsystems))
+            outputs.append({'counts': yf.sample_counts(shots=shots, qargs=measurement_subsystems)})
 
-        return counts_dicts
+        results_list = []
+        for schedule, output in zip(schedules, outputs):
+            results_list.append(
+                Result(
+                    backend_name=self.name,
+                    backend_version=self.backend_version,
+                    qobj_id=None, # Should we subclass result or something because qobj_id doesn't exist?
+                    job_id=job_id,
+                    success=True,
+                    results=output,
+                    date=datetime.datetime.now().isoformat()
+                )
+            )
+
+        return results_list
 
     @property
     def meas_map(self) -> List[List[int]]:
@@ -250,14 +277,14 @@ class PulseSimulator(BackendV2):
         pass
 
 
-def _validate_run_input(experiment, accept_list=True):
+def _validate_run_input(run_input, accept_list=True):
     """Raise errors if the run_input is invalid."""
-    if isinstance(experiment, list) and accept_list:
+    if isinstance(run_input, list) and accept_list:
         # if list apply recursively, but no longer accept lists
-        for e in experiments:
-            _validate_experiments(e, accept_list=False)
-    elif not isinstance(experiment, (Schedule, ScheduleBlock)):
-        raise QiskitError(f"Experiment type {type(experiment)} not supported by PulseSimulator.run.")
+        for x in run_input:
+            _validate_experiments(x, accept_list=False)
+    elif not isinstance(run_input, (Schedule, ScheduleBlock)):
+        raise QiskitError(f"Input type {type(run_input)} not supported by PulseSimulator.run.")
 
 #######################################################################################################
 # this should be rolled into _validate_experiments?

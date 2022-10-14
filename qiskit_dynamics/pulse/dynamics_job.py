@@ -54,7 +54,7 @@ class DynamicsJob(Job):
         """
         if self._result is not None:
             raise JobError("Dynamics job has already been submitted.")
-        self._result = self._fn(**self._fn_kwargs)
+        self._result = self._fn(job_id=self.job_id(), **self._fn_kwargs)
 
     def result(self):
         """Get job result.
