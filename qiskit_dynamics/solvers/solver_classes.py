@@ -176,6 +176,17 @@ class Solver:
     calls :func:`.solve_lmde`, and does various automatic
     type handling operations for :mod:`qiskit.quantum_info` state and super operator types.
     """
+    _JIT_MAX_CACHE_SIZE = 16
+    """Maximum allowed entries inside the ``_jit_cache``."""
+
+    _JIT_MIN_PADDING_FRAC = 0.2
+    """Smallest allowed maximum duration of a schedule list to allow ``_jit_cache`` fetching. This is 
+    used to limit excessive zero-padding. For example, if the longest schedule in a schedule list is 100 
+    and the ``_jit_cache`` contains entries at 50 and 10000, then neither would be fetched because 
+    the former is smaller than 100, and the latter is greater than `_JIT_MIN_PADDING_FRAC * 10000``."""
+
+    _JIT_DURATION_PADDING = 1.5
+    """By how much to pad new entries in the ``_jit_cache``."""
 
     def __init__(
         self,
@@ -243,6 +254,9 @@ class Solver:
         self._channel_carrier_freqs = None
         self._dt = None
         self._schedule_converter = None
+
+        # cache of jit simulation functions
+        self._jit_cache = {}
 
         if any([dt, channel_carrier_freqs, hamiltonian_channels, dissipator_channels]):
             all_channels = []
@@ -585,26 +599,20 @@ class Solver:
 
         return all_results
 
-    def _solve_schedule_list_jax(
-        self,
-        t_span_list: List[Array],
-        y0_list: List[Union[Array, QuantumState, BaseOperator]],
-        schedule_list: List[Schedule],
-        convert_results: bool = True,
-        **kwargs,
-    ) -> List[OdeResult]:
-        """Run a list of schedule simulations utilizing JAX compilation.
-        The jitting strategy is to define a function whose inputs are t_span, y0 as an array, the
-        samples for all channels in a single large array, and other initial state information.
-        To avoid recompilation for schedules with a different number of samples, i.e. a different
-        duration, all schedules are padded to be the length of the schedule with the max duration.
-        """
+    def _get_jit_sim_function(self, duration: int, **kwargs):
+        """Return a pair ``(fn, new_duration)`` where `fn`` is a JIT'd simulation function and
+        ``new_duration>=duration``. The function is pulled from the ``_jit_cache`` if an
+        appropriate existing duration exists, otherwise a new one is added to the cache and
+        returned."""
 
-        # determine fixed array shape for containing all samples
-        max_duration = 0
-        for idx, sched in enumerate(schedule_list):
-            max_duration = max(sched.duration, max_duration)
-        all_samples_shape = (len(self._all_channels), max_duration)
+        for entry, jit_sim_function in sorted(self._jit_cache.items()):
+            if entry >= duration and entry * self._JIT_MIN_PADDING_FRAC < duration:
+                # something appropriate was found in the cache
+                return jit_sim_function, entry
+
+        # nothing was found in the cache, so we make a new entry. we add a bit of buffer to the
+        # duration to hedge against recompiling in future calls that are just a bit bigger
+        duration = round(self._JIT_DURATION_PADDING * duration)
 
         # define sim function to jit
         def sim_function(t_span, y0, all_samples, y0_input, y0_cls):
@@ -638,7 +646,35 @@ class Solver:
 
             return Array(results.t).data, Array(results.y).data
 
-        jit_sim_function = jit(sim_function, static_argnums=(4,))
+        self._jit_cache[duration] = jit_sim_function = jit(sim_function, static_argnums=(4,))
+        if len(self._jit_cache) > self._JIT_MAX_CACHE_SIZE:
+            # remove oldest cache element
+            self._jit_cache.pop(next(iter(self._jit_cache)))
+        return jit_sim_function, duration
+
+    def _solve_schedule_list_jax(
+        self,
+        t_span_list: List[Array],
+        y0_list: List[Union[Array, QuantumState, BaseOperator]],
+        schedule_list: List[Schedule],
+        convert_results: bool = True,
+        **kwargs,
+    ) -> List[OdeResult]:
+        """Run a list of schedule simulations utilizing JAX compilation.
+        The jitting strategy is to define a function whose inputs are t_span, y0 as an array, the
+        samples for all channels in a single large array, and other initial state information.
+        To avoid recompilation for schedules with a different number of samples, i.e. a different
+        duration, all schedules are padded to be the length of the schedule with the max duration.
+        """
+
+        # determine the minimum sufficient duration we need for a jit
+        max_duration = max(schedule.duration for schedule in schedule_list)
+
+        # get a jit with at least this duration, building a new one if necessary
+        jit_sim_function, duration = self._get_jit_sim_function(max_duration, **kwargs)
+
+        # now, by construction, every schedule should be able to fit into this shape
+        all_samples_shape = (len(self._all_channels), duration)
 
         # run simulations
         all_results = []
