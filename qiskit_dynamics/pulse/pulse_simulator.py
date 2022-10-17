@@ -34,7 +34,7 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel
 
 from .dynamics_job import DynamicsJob
-from .pulse_utils import _get_dressed_state_decomposition
+from .pulse_utils import _get_dressed_state_decomposition, _get_lab_frame_static_hamiltonian
 
 
 class PulseSimulator(BackendV2):
@@ -49,8 +49,8 @@ class PulseSimulator(BackendV2):
 
         Assumptions
             - Solver is well-formed.
-            - Solver Hamiltonian operators are specified in undressed basis using standard
-              tensor-product convention (whether dense or sparse evaluation)
+            - The no-rotating frame Solver Hamiltonian operators are specified in undressed
+              basis using standard tensor-product convention (whether dense or sparse evaluation)
 
         Design questions
             - Simulating measurement requires subsystem dims and labels, should we allow this
@@ -75,36 +75,31 @@ class PulseSimulator(BackendV2):
             backend_version=0.1
         )
 
-        ##############################################################################################
-        # Make these into properties?
-        self.solver = solver
-        self.subsystem_dims = subsystem_dims or [solver.model.dim]
-        self.subsystem_labels = subsystem_labels or np.arange(len(subsystem_dims), dtype=int)
-
-        # get the static hamiltonian in the lab frame and undressed basis
-        # assumes that the solver was constructed with operators specified in lab frame
-        # using standard tensor product structure
-        static_hamiltonian = None
-        if isinstance(self.solver.model, HamiltonianModel):
-            static_hamiltonian = self.solver.model.static_operator
-        else:
-            static_hamiltonian = self.solver.model.static_hamiltonian
-
-        rotating_frame = self.solver.model.rotating_frame
-        static_hamiltonian = 1j * rotating_frame.generator_out_of_frame(
-            t=0., operator=-1j * static_hamiltonian
-        )
-
-        # convert to numpy array
-        static_hamiltonian = np.array(Array(static_hamiltonian).data)
+        self._solver = solver
+        self._subsystem_dims = subsystem_dims or [solver.model.dim]
+        self._subsystem_labels = subsystem_labels or np.arange(len(subsystem_dims), dtype=int)
 
         # get the dressed states
-        ##############################################################################################
-        # Make these into properties?
+        static_hamiltonian = _get_lab_frame_static_hamiltonian(solver.model)
         dressed_evals, dressed_states = _get_dressed_state_decomposition(static_hamiltonian)
         self._dressed_evals = dressed_evals
         self._dressed_states = dressed_states
         self._dressed_states_adjoint = self._dressed_states.conj().transpose()
+
+    @property
+    def solver(self):
+        """The internal Solver."""
+        return self._solver
+
+    @property
+    def subsystem_dims(self):
+        """Subsystem dimensions."""
+        return self._subsystem_dims
+
+    @property
+    def subsystem_labels(self):
+        """Subsystem labels."""
+        return self._subsystem_labels
 
     def run(
         self,
@@ -318,5 +313,5 @@ def _to_schedule_list(schedules):
         elif isinstance(sched, pulse.Schedule):
             new_schedules.append(sched)
         else:
-            raise Exception('invalid Schedule type')
+            raise QiskitError("Invalid Schedule type.")
     return new_schedules

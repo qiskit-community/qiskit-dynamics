@@ -19,6 +19,8 @@ from typing import Optional, Union, List, Dict
 
 import numpy as np
 from qiskit import QiskitError
+from qiskit_dynamics.array import Array
+from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 
@@ -38,12 +40,12 @@ def _get_dressed_state_decomposition(
         subsystem_dims: Dimensions of the subsystems composing the system.
         rtol: Relative tolerance for Hermiticity check.
         atol: Absolute tolerance for Hermiticity check.
-    Raises:
-        QiskitError: If ``np.argmax(np.abs(evec))`` is non-unique across eigenvectors, or if
-        operator is not Hermitian.
     Returns:
         Tuple: a pair of arrays, one containing eigenvalues and one containing corresponding
         eigenvectors.
+    Raises:
+        QiskitError: If ``np.argmax(np.abs(evec))`` is non-unique across eigenvectors, or if
+        operator is not Hermitian.
     """
 
     if not is_hermitian_matrix(operator, rtol=rtol, atol=atol):
@@ -67,3 +69,27 @@ def _get_dressed_state_decomposition(
         dressed_evals[position] = eval
 
     return dressed_evals, dressed_states
+
+
+def _get_lab_frame_static_hamiltonian(model: Union[HamiltonianModel, LindbladModel]) -> np.ndarray:
+    """Get the static Hamiltonian in the lab frame and standard basis.
+
+    This function assumes that the model was constructed with operators specified in the lab frame
+    (regardless of the rotating frame) and in the standard basis.
+
+    Args:
+        model: The model.
+    Returns:
+        np.ndarray
+    """
+    static_hamiltonian = None
+    if isinstance(model, HamiltonianModel):
+        static_hamiltonian = model.static_operator
+    else:
+        static_hamiltonian = model.static_hamiltonian
+
+    static_hamiltonian = 1j * model.rotating_frame.generator_out_of_frame(
+        t=0., operator=-1j * static_hamiltonian
+    )
+
+    return np.array(Array(static_hamiltonian).data)

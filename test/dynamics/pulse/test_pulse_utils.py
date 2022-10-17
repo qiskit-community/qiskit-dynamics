@@ -18,7 +18,8 @@ import numpy as np
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.pulse.pulse_utils import _get_dressed_state_decomposition
+from qiskit_dynamics.models import HamiltonianModel, LindbladModel
+from qiskit_dynamics.pulse.pulse_utils import _get_dressed_state_decomposition, _get_lab_frame_static_hamiltonian
 from ..common import QiskitDynamicsTestCase
 
 
@@ -55,3 +56,66 @@ class TestDressedStateDecomposition(QiskitDynamicsTestCase):
         dressed_evals, dressed_states = _get_dressed_state_decomposition(mat)
         self.assertAllClose(dressed_evals, expected_dressed_evals)
         self.assertAllClose(dressed_states, expected_dressed_states)
+
+
+@ddt
+class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
+    """Tests _get_lab_frame_static_hamiltonian."""
+
+    def setUp(self):
+        self.Z = np.array([[1., 0.], [0., -1.]])
+        self.X = np.array([[0., 1.], [1., 0.]])
+
+    @unpack
+    @data(("dense",), ("sparse",))
+    def test_HamiltonianModel(self, evaluation_mode):
+        """Test correct functioning on HamiltonianModel."""
+
+        model = HamiltonianModel(
+            static_operator=self.Z + self.X,
+            operators=[self.X],
+            rotating_frame=self.X,
+            evaluation_mode=evaluation_mode
+        )
+
+        output = _get_lab_frame_static_hamiltonian(model)
+        self.assertAllClose(output, self.Z + self.X)
+
+    def test_HamiltonianModel_None(self):
+        """Test correct functioning on HamiltonianModel if static_operator=None."""
+
+        model = HamiltonianModel(
+            static_operator=None,
+            operators=[self.X],
+            rotating_frame=self.X
+        )
+
+        output = _get_lab_frame_static_hamiltonian(model)
+        self.assertAllClose(output, np.zeros((2, 2)))
+
+    @unpack
+    @data(("dense",), ("sparse",), ("dense_vectorized",), ("sparse_vectorized",))
+    def test_LindbladModel(self, evaluation_mode):
+        """Test correct functioning on LindbladModel."""
+
+        model = LindbladModel(
+            static_hamiltonian=self.Z + self.X,
+            hamiltonian_operators=[self.X],
+            rotating_frame=self.X,
+            evaluation_mode=evaluation_mode
+        )
+
+        output = _get_lab_frame_static_hamiltonian(model)
+        self.assertAllClose(output, self.Z + self.X)
+
+    def test_LindbladModel_None(self):
+        """Test correct functioning on Lindblad if static_hamiltonian=None."""
+
+        model = LindbladModel(
+            static_hamiltonian=None,
+            hamiltonian_operators=[self.X],
+            rotating_frame=self.X
+        )
+
+        output = _get_lab_frame_static_hamiltonian(model)
+        self.assertAllClose(output, np.zeros((2, 2)))
