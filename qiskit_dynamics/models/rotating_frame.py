@@ -279,7 +279,7 @@ class RotatingFrame:
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Take a state out of the rotating frame, i.e. return ``(tF) @ y``.
+        r"""Take a state out of the rotating frame, i.e. return ``exp(tF) @ y``.
 
         Calls ``self.state_into_frame`` with time reversed.
 
