@@ -494,7 +494,7 @@ class SignalCollection:
     def __getitem__(
         self, idx: Union[int, List, np.array, slice]
     ) -> Union[Signal, "SignalCollection"]:
-        """Get item with Numpy-style subscripting, as if this class were a 1d array."""
+        """Get item with NumPy-style subscripting, as if this class were a 1d array."""
 
         if type(idx) == np.ndarray and idx.ndim > 0:
             idx = list(idx)

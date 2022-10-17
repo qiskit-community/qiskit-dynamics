@@ -29,12 +29,12 @@ __all__ = []
 
 
 def __qiskit_array__(self, dtype=None, backend=None):
-    """Convert qi operator to an Array"""
+    """Convert qi operator to an Array."""
     return Array(self.data, dtype=dtype, backend=backend)
 
 
 def __to_matrix_array__(self, dtype=None, backend=None):
-    """Convert object to array through to_matrix method"""
+    """Convert object to array through to_matrix method."""
     return Array(self.to_matrix(), dtype=dtype, backend=backend)
 
 

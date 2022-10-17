@@ -417,7 +417,7 @@ class GeneratorModel(BaseGeneratorModel):
         )
 
     def evaluate_rhs(self, time: float, y: Array) -> Array:
-        r"""Evaluate `G(t) @ y`.
+        r"""Evaluate ``G(t) @ y``.
 
         Args:
             time: Time to evaluate the model.

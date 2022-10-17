@@ -383,7 +383,7 @@ def setup_generator_model_rhs_y0_in_frame_basis(
         y0: Initial state.
 
     Returns:
-        Callable for generator in frame basis, Callable for RHS in frame basis, y0
+        Callable for generator in frame basis, callable for RHS in frame basis, y0
         in frame basis, and boolean indicating whether model was already specified in frame basis.
     """
 

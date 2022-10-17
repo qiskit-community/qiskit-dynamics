@@ -279,7 +279,7 @@ class RotatingFrame:
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Take a state out of the rotating frame, i.e. ``return exp(tF) @ y``.
+        r"""Take a state out of the rotating frame, i.e. return ``exp(tF) @ y``.
 
         Calls ``self.state_into_frame`` with time reversed.
 
@@ -611,15 +611,15 @@ class RotatingFrame:
 
 
 def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10):
-    r"""Given `mat`, the logic of this function is:
-        - if `mat` is hermitian, return `-1j * mat`
-        - if `mat` is anti-hermitian, return `mat`
+    r"""Given ``mat``, the logic of this function is:
+        - if ``mat`` is hermitian, return ``-1j * mat``
+        - if ``mat`` is anti-hermitian, return ``mat``
         - otherwise:
-            - if `mat.backend == 'jax'` return `jnp.inf * mat`
+            - if ``mat.backend == 'jax'`` return ``jnp.inf * mat``
             - otherwise raise an error
 
     The main purpose of this function is to hide the pecularities of the
-    implementing the above logic in a compileable way in `jax`.
+    implementing the above logic in a compileable way in ``jax``.
 
     Args:
         mat: array to check
@@ -627,11 +627,11 @@ def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optio
         rtol: relative tolerance
 
     Returns:
-        Array: anti-hermitian version of `mat` if applicable
+        Array: anti-hermitian version of ``mat`` if applicable.
 
     Raises:
         ImportError: if backend is jax and jax is not installed.
-        QiskitError: if `mat` is not Hermitian or anti-Hermitian
+        QiskitError: if ``mat`` is not Hermitian or anti-Hermitian.
     """
     mat = to_array(mat)
     mat = Array(mat, dtype=complex)
