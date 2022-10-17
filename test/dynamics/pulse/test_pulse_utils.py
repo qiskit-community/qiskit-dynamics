@@ -38,8 +38,8 @@ class TestDressedStateDecomposition(QiskitDynamicsTestCase):
             _get_dressed_state_decomposition(np.array([[0., 1.], [1., 0.]]))
 
     def test_reordering_eigenvalues(self):
-        """Test that it re-orders when the eigenvalues not ordered according to dressed state
-        overlap.
+        """Test correct ordering when the real-number ordering of the eigenvalues does not
+        coincide with dressed-state-overlap ordering.
         """
 
         a = 0.2j
