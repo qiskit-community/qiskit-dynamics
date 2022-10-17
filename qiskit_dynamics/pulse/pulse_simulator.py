@@ -214,7 +214,7 @@ class PulseSimulator(BackendV2):
                     if subsystem in self.subsystem_labels:
                         new_measurement_subsystems.append(self.subsystem_labels.index(subsystem))
                     else:
-                        raise QiskitError(f'Attempted to measure subsystem {subsystem}, but it is not in subsystem_list.')
+                        raise QiskitError(f"Attempted to measure subsystem {subsystem}, but it is not in subsystem_list.")
                 new_measurement_subsystems_list.append(new_measurement_subsystems)
 
             measurement_subsystems_list = new_measurement_subsystems_list
@@ -223,10 +223,12 @@ class PulseSimulator(BackendV2):
 
         # construct counts for each experiment
         ##############################################################################################
-        # Change to if statement depending on types of outputs
+        # Change to if statement depending on types of outputs, e.g. counts vs IQ data
         outputs = []
         for ts, result, measurement_subsystems in zip(t_span, solver_results, measurement_subsystems_list):
             yf = result.y[-1]
+
+            # Put state in dressed basis and sample counts
             if isinstance(yf, Statevector):
                 yf = np.array(self.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf))
                 yf = self._dressed_states_adjoint @ yf
@@ -285,7 +287,7 @@ def _validate_run_input(run_input, accept_list=True):
     if isinstance(run_input, list) and accept_list:
         # if list apply recursively, but no longer accept lists
         for x in run_input:
-            _validate_experiments(x, accept_list=False)
+            _validate_run_input(x, accept_list=False)
     elif not isinstance(run_input, (Schedule, ScheduleBlock)):
         raise QiskitError(f"Input type {type(run_input)} not supported by PulseSimulator.run.")
 
