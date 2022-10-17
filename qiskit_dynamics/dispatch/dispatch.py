@@ -18,7 +18,7 @@ from .exceptions import DispatchError
 
 
 class Dispatch:
-    """Dispatch Numpy ufuncs to multiple array backends."""
+    """Dispatch NumPy ufuncs to multiple array backends."""
 
     # Registered backend names
     REGISTERED_BACKENDS = tuple()
@@ -210,7 +210,7 @@ class Dispatch:
     ) -> callable:
         """Decorator to register a ufunc dispatch function.
 
-        This is used for handling of dispatch of Numpy ufuncs using
+        This is used for handling of dispatch of NumPy ufuncs using
         `__array_ufunc__`. The function being wrapped must have
         signature `f(ufunc, method) -> callable(*args, **kwargs)`
 
@@ -237,7 +237,7 @@ class Dispatch:
     ) -> callable:
         """Decorator to register an array function dispatch function.
 
-        This is used for handling of dispatch of Numpy functions using
+        This is used for handling of dispatch of NumPy functions using
         `__array_function__`. The function being wrapped must have
         signature `f(func) -> callable(*args, **kwargs)`.
 
