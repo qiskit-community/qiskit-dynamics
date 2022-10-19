@@ -17,9 +17,10 @@ r"""
 Solver classes.
 """
 
-
 from typing import Optional, Union, Tuple, Any, Type, List, Callable
 
+from contextlib import contextmanager
+from functools import partial
 import numpy as np
 
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
@@ -56,7 +57,10 @@ from .solver_utils import (
 try:
     from jax import jit
 except ImportError:
-    pass
+
+    def jit(fn, **_):
+        """Dummy jit decorator when jax is not present."""
+        return fn
 
 
 class Solver:
@@ -176,9 +180,6 @@ class Solver:
     calls :func:`.solve_lmde`, and does various automatic
     type handling operations for :mod:`qiskit.quantum_info` state and super operator types.
     """
-    _JIT_MAX_CACHE_SIZE = 16
-    """Maximum allowed entries inside the ``_jit_cache``."""
-
     _JIT_MIN_PADDING_FRAC = 0.2
     """Smallest allowed maximum duration of a schedule list to allow ``_jit_cache`` fetching. This is 
     used to limit excessive zero-padding. For example, if the longest schedule in a schedule list is 100 
@@ -255,8 +256,8 @@ class Solver:
         self._dt = None
         self._schedule_converter = None
 
-        # cache of jit simulation functions
-        self._jit_cache = {}
+        # cache of which jit depths have been used so far
+        self._jit_cache = set()
 
         if any([dt, channel_carrier_freqs, hamiltonian_channels, dissipator_channels]):
             all_channels = []
@@ -389,9 +390,6 @@ class Solver:
             )
             self._rwa_signal_map = rwa_signal_map
 
-            # clear signals
-            self._set_new_signals(None)
-
     @property
     def model(self) -> Union[HamiltonianModel, LindbladModel]:
         """The model of the system, either a Hamiltonian or Lindblad model."""
@@ -517,13 +515,6 @@ class Solver:
 
             results = solver.solve(t_span=t_span, y0=y0, signals=signals)
         """
-
-        # convert any ScheduleBlocks to Schedules
-        if isinstance(signals, ScheduleBlock):
-            signals = block_to_schedule(signals)
-        elif isinstance(signals, list):
-            signals = [block_to_schedule(x) if isinstance(x, ScheduleBlock) else x for x in signals]
-
         # validate and setup list of simulations
         [t_span_list, y0_list, signals_list], multiple_sims = setup_args_lists(
             args_list=[t_span, y0, signals],
@@ -531,195 +522,111 @@ class Solver:
             args_to_list=[t_span_to_list, _y0_to_list, _signals_to_list],
         )
 
-        all_results = None
+        # turn any present schedules into signals and find longest DiscreteSignal present
+        max_samples = 0
+        for idx, signals in enumerate(signals_list):
+            if isinstance(signals, ScheduleBlock):
+                signals = block_to_schedule(signals)
+            if isinstance(signals, Schedule):
+                signals = self._schedule_converter.get_signals(signals)
+            if all(isinstance(signal, DiscreteSignal) for signal in signals):
+                max_samples = max(max_samples, max(signal.duration for signal in signals))
+            signals_list[idx] = signals
+
+        # decide on whether jax compilation is a possibility
         method = kwargs.get("method", "")
-        if (
-            Array.default_backend() == "jax"
-            and (method == "jax_odeint" or _is_diffrax_method(method))
-            and all(isinstance(x, Schedule) for x in signals_list)
-        ):
-            all_results = self._solve_schedule_list_jax(
-                t_span_list=t_span_list,
-                y0_list=y0_list,
-                schedule_list=signals_list,
-                convert_results=convert_results,
-                **kwargs,
-            )
-        else:
-            all_results = self._solve_list(
-                t_span_list=t_span_list,
-                y0_list=y0_list,
-                signals_list=signals_list,
-                convert_results=convert_results,
-                **kwargs,
-            )
-
-        # ensure model signals are empty
-        self._set_new_signals(None)
-
-        if multiple_sims is False:
-            return all_results[0]
-
-        return all_results
-
-    def _solve_list(
-        self,
-        t_span_list: List[Array],
-        y0_list: List[Union[Array, QuantumState, BaseOperator]],
-        signals_list: Optional[
-            Union[List[Schedule], List[List[Signal]], List[Tuple[List[Signal], List[Signal]]]]
-        ] = None,
-        convert_results: bool = True,
-        **kwargs,
-    ) -> List[OdeResult]:
-        """Run a list of simulations."""
+        can_use_jax = Array.default_backend() == "jax"
+        can_use_jax &= method == "jax_odeint" or _is_diffrax_method(method)
 
         all_results = []
         for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
-
-            if isinstance(signals, Schedule):
-                signals = self._schedule_to_signals(signals)
-
-            self._set_new_signals(signals)
-
             # setup initial state
             y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
                 y0, self.model
             )
 
-            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
-            results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
+            results = None
+            if can_use_jax and all(isinstance(signal, DiscreteSignal) for signal in signals):
+                samples = np.zeros(self._jit_shape(max_samples), dtype=complex)
+                for idx, signal in enumerate(signals):
+                    samples[idx, : signal.duration] = signal.samples
 
-            if y0_cls is not None and convert_results:
-                results.y = [state_type_wrapper(yi) for yi in results.y]
-
-            all_results.append(results)
-
-        self._set_new_signals(None)
-
-        return all_results
-
-    def _get_jit_sim_function(self, duration: int, **kwargs):
-        """Return a pair ``(fn, new_duration)`` where `fn`` is a JIT'd simulation function and
-        ``new_duration>=duration``. The function is pulled from the ``_jit_cache`` if an
-        appropriate existing duration exists, otherwise a new one is added to the cache and
-        returned."""
-
-        for entry, jit_sim_function in sorted(self._jit_cache.items()):
-            if entry >= duration and entry * self._JIT_MIN_PADDING_FRAC < duration:
-                # something appropriate was found in the cache
-                return jit_sim_function, entry
-
-        # nothing was found in the cache, so we make a new entry. we add a bit of buffer to the
-        # duration to hedge against recompiling in future calls that are just a bit bigger
-        duration = round(self._JIT_DURATION_PADDING * duration)
-
-        # define sim function to jit
-        def sim_function(t_span, y0, all_samples, y0_input, y0_cls):
-            # store signals to ensure purity
-            model_sigs = self.model.signals
-
-            # re-construct signals from the samples
-            signals = []
-            for idx, samples in enumerate(all_samples):
-                carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
-                signals.append(
-                    DiscreteSignal(dt=self._dt, samples=samples, carrier_freq=carrier_freq)
+                # FIXME passing no kwargs to get around hashing issue for now
+                results_t, results_y = self._jit_sim(
+                    Array(t_span).data, Array(y0).data, samples, Array(y0_input).data, y0_cls, ()
                 )
-
-            # map signals to correct structure for model
-            signals = organize_signals_to_channels(
-                signals,
-                self._all_channels,
-                self.model.__class__,
-                self._hamiltonian_channels,
-                self._dissipator_channels,
-            )
-
-            self._set_new_signals(signals)
-
-            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
-            results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
-
-            # reset signals to ensure purity
-            self.model.signals = model_sigs
-
-            return Array(results.t).data, Array(results.y).data
-
-        self._jit_cache[duration] = jit_sim_function = jit(sim_function, static_argnums=(4,))
-        if len(self._jit_cache) > self._JIT_MAX_CACHE_SIZE:
-            # remove oldest cache element
-            self._jit_cache.pop(next(iter(self._jit_cache)))
-        return jit_sim_function, duration
-
-    def _solve_schedule_list_jax(
-        self,
-        t_span_list: List[Array],
-        y0_list: List[Union[Array, QuantumState, BaseOperator]],
-        schedule_list: List[Schedule],
-        convert_results: bool = True,
-        **kwargs,
-    ) -> List[OdeResult]:
-        """Run a list of schedule simulations utilizing JAX compilation.
-        The jitting strategy is to define a function whose inputs are t_span, y0 as an array, the
-        samples for all channels in a single large array, and other initial state information.
-        To avoid recompilation for schedules with a different number of samples, i.e. a different
-        duration, all schedules are padded to be the length of the schedule with the max duration.
-        """
-
-        # determine the minimum sufficient duration we need for a jit
-        max_duration = max(schedule.duration for schedule in schedule_list)
-
-        # get a jit with at least this duration, building a new one if necessary
-        jit_sim_function, duration = self._get_jit_sim_function(max_duration, **kwargs)
-
-        # now, by construction, every schedule should be able to fit into this shape
-        all_samples_shape = (len(self._all_channels), duration)
-
-        # run simulations
-        all_results = []
-        for t_span, y0, sched in zip(t_span_list, y0_list, schedule_list):
-            # setup initial state
-            y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
-                y0, self.model
-            )
-
-            # setup array of all samples
-            all_signals = self._schedule_converter.get_signals(sched)
-
-            all_samples = np.zeros(all_samples_shape, dtype=complex)
-            for idx, sig in enumerate(all_signals):
-                all_samples[idx, 0 : len(sig.samples)] = np.array(sig.samples)
-
-            results_t, results_y = jit_sim_function(
-                Array(t_span).data, Array(y0).data, all_samples, Array(y0_input).data, y0_cls
-            )
-            results = OdeResult(t=results_t, y=Array(results_y, backend="jax", dtype=complex))
+                results = OdeResult(t=results_t, y=Array(results_y, dtype=complex))
+            else:
+                with self.signal_assignment(signals):
+                    results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+                    results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
 
             if y0_cls is not None and convert_results:
                 results.y = [state_type_wrapper(yi) for yi in results.y]
 
             all_results.append(results)
 
-        return all_results
+        return all_results if multiple_sims else all_results[0]
 
-    def _set_new_signals(self, signals):
-        """Helper function for setting new signals in self.model."""
-        if signals is not None:
-            # if Lindblad model and signals are given as a list set as Hamiltonian part of signals
-            if isinstance(self.model, LindbladModel) and isinstance(signals, (list, SignalList)):
-                signals = (signals, None)
+    @contextmanager
+    def signal_assignment(self, signals: Union[Tuple[List[Signal], List[Signal]], List[Signal]]):
+        """Context manager with temporarily changes the model's signals to those provided
+        and changes them back when the context is exited."""
+        old_signals = self.model.signals
 
-            if self._rwa_signal_map:
-                signals = self._rwa_signal_map(signals)
-            self.model.signals = signals
+        # if Lindblad model and signals are given as a list set as Hamiltonian part of signals
+        if isinstance(self.model, LindbladModel) and isinstance(signals, (list, SignalList)):
+            signals = (signals, None)
+
+        if self._rwa_signal_map:
+            signals = self._rwa_signal_map(signals)
+        self.model.signals = signals
+
+        yield
+
+        self.model.signals = old_signals
+
+    def _jit_shape(self, required_duration: int):
+        """If possible, return a nearby samples shape so that we don't have to recompile. Otherwise,
+        add a new one to the cache."""
+        for duration in sorted(self._jit_cache):
+            if duration * self._JIT_MIN_PADDING_FRAC < required_duration <= duration:
+                # something appropriate was found in the cache
+                break
         else:
-            if isinstance(self.model, LindbladModel):
-                self.model.signals = (None, None)
-            else:
-                self.model.signals = None
+            duration = round(self._JIT_DURATION_PADDING * required_duration)
+            self._jit_cache.add(duration)
 
-    def _schedule_to_signals(self, schedule: Schedule):
+        return len(self._all_channels), duration
+
+    @partial(jit, static_argnums=(0, 5, 6))
+    def _jit_sim(self, t_span, y0, all_samples, y_input, y_cls, kwargs):
+        """"""
+        # re-construct signals from the samples
+        signals = []
+        for idx, samples in enumerate(all_samples):
+            carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
+            signals.append(DiscreteSignal(dt=self._dt, samples=samples, carrier_freq=carrier_freq))
+
+        # map signals to correct structure for model
+        signals = organize_signals_to_channels(
+            signals,
+            self._all_channels,
+            self.model.__class__,
+            self._hamiltonian_channels,
+            self._dissipator_channels,
+        )
+
+        # FIXME
+        kwargs = {"method": "jax_odeint"}
+
+        with self.signal_assignment(signals):
+            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+            results.y = format_final_states(results.y, self.model, y_input, y_cls)
+
+        return Array(results.t).data, Array(results.y).data
+
+    def _schedule_to_signals(self, schedule: Union[List[Signal], Schedule]):
         """Convert a schedule into the signal format required by the model."""
         if self._schedule_converter is None:
             raise QiskitError("Solver instance not configured for pulse Schedule simulation.")
@@ -887,10 +794,10 @@ def _signals_to_list(signals):
     elif isinstance(signals, list) and isinstance(signals[0], tuple):
         # multiple lindblad
         was_list = True
-    elif isinstance(signals, Schedule):
+    elif isinstance(signals, (Schedule, ScheduleBlock)):
         # pulse simulation
         signals = [signals]
-    elif isinstance(signals, list) and isinstance(signals[0], Schedule):
+    elif isinstance(signals, list) and isinstance(signals[0], (Schedule, ScheduleBlock)):
         # multiple pulse simulation
         was_list = True
     elif isinstance(signals, list) and isinstance(signals[0], (list, SignalList)):
