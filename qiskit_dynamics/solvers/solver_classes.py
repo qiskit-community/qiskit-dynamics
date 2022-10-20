@@ -535,8 +535,8 @@ class Solver:
 
         # decide on whether jax compilation is a possibility
         method = kwargs.get("method", "")
-        can_use_jax = Array.default_backend() == "jax"
-        can_use_jax &= method == "jax_odeint" or _is_diffrax_method(method)
+        can_jit_compile = Array.default_backend() == "jax"
+        can_jit_compile &= method == "jax_odeint" or _is_diffrax_method(method)
 
         all_results = []
         for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
@@ -546,7 +546,7 @@ class Solver:
             )
 
             results = None
-            if can_use_jax and all(isinstance(signal, DiscreteSignal) for signal in signals):
+            if can_jit_compile and all(isinstance(signal, DiscreteSignal) for signal in signals):
                 samples = np.zeros(self._jit_shape(max_samples), dtype=complex)
                 for idx, signal in enumerate(signals):
                     samples[idx, : signal.duration] = signal.samples
