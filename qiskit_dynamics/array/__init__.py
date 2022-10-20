@@ -23,6 +23,7 @@ This module contains an :class:`Array` class that wraps N-dimensional array obje
 libraries for use with NumPy functions through a common interface and functions for working with
 Array objects and other libraries.
 
+
 Array Class
 ===========
 
@@ -81,7 +82,7 @@ two additional attributes:
 * :attr:`~Array.backend` which returns the backend string of the wrapped array.
 
 All other attributes and methods of the wrapped array are accessible through this class, but with
-any array return types wrapped into :class:`Array` objects. For example
+any array return types wrapped into :class:`Array` objects. For example:
 
 .. jupyter-execute::
 
