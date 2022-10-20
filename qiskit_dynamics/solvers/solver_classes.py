@@ -570,7 +570,7 @@ class Solver:
 
     @contextmanager
     def signal_assignment(self, signals: Union[Tuple[List[Signal], List[Signal]], List[Signal]]):
-        """Context manager with temporarily changes the model's signals to those provided
+        """Context manager which temporarily changes the model's signals to those provided
         and changes them back when the context is exited."""
         old_signals = self.model.signals
 
