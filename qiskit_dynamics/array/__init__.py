@@ -19,21 +19,20 @@ Array Module (:mod:`qiskit_dynamics.array`)
 
 .. currentmodule:: qiskit_dynamics.array
 
-This module contains an :class:`Array` class that wraps N-dimensional array
-objects from different libraries for use with NumPy functions through a common
-interface and functions for working with Array objects and other libraries.
+This module contains an :class:`Array` class that wraps N-dimensional array objects from different
+libraries for use with NumPy functions through a common interface and functions for working with
+Array objects and other libraries.
 
 Array Class
 ===========
 
-The :class:`Array` class provides a NumPy compatible wrapper to supported Python
-array libraries. When applying NumPy functions to the array class these will be
-dispatched to the corresponding function for the current Array backend, if a
-compatible function has been specified in the :mod:`qiskit_dynamics.dispatch`
-system.
+The :class:`Array` class provides a NumPy compatible wrapper to supported Python array libraries.
+When applying NumPy functions to the array class these will be dispatched to the corresponding
+function for the current Array backend, if a compatible function has been specified in the
+:mod:`qiskit_dynamics.dispatch` system.
 
 The following array libraries have built in support for the
-:mod:`qiskit_dynamics.dispatch` module
+:mod:`qiskit_dynamics.dispatch` module:
 
 * `NumPy <https://numpy.org/>`_
 * `JAX <https://github.com/google/jax>`_
@@ -41,10 +40,9 @@ The following array libraries have built in support for the
 Basic Usage
 -----------
 
-When using the default ``numpy`` backend, :class:`Array` objects can be used
-interchangably with ``numpy.ndarray``. When ``numpy`` functions are applied to
-an :class:`Array` object the return type will be an :class:`Array`
-instead of an ``ndarray``
+When using the default ``numpy`` backend :class:`Array`, objects can be used interchangably with
+``numpy.ndarray``. When ``numpy`` functions are applied to an :class:`Array` object the return type
+will be an :class:`Array` instead of an ``numpy.ndarray``.
 
 .. jupyter-execute::
 
@@ -57,36 +55,33 @@ instead of an ``ndarray``
     # Apply numpy ufuncs
     np.cos(a) + 1j * np.sin(a)
 
-For the JAX Array backend, only NumPy functions that have a corresponding function
-in the ``jax`` library that has been registered with the dispatch module can be
-applied to the functions. Trying to apply an unsupported ``numpy`` function to
-these arrays will raise an exception.
+For the JAX Array backend, only Numpy functions that have a corresponding function in the ``jax``
+library that has been registed with the dispatch module can be applied to the functions. Trying to
+apply an unsupported ``numpy`` function to these arrays will raise an exception.
 
 Default Backend
 ---------------
 
-When initializing a new :class:`Array`, the ``backend`` kwarg is used to specify
-the array backend. This will convert the input data to an array of this backend
-if required. If ``backend=None``, the default backend will be used.
-The initial default backend is always set to ``"numpy"``.
+When initializing a new :class:`Array`, the ``backend`` kwarg is used to specify which array backend
+to use. This will convert the input data to an array of this backend if required. If
+``backend=None``, the default backend will be used. The initial default backend is always set to
+``"numpy"``.
 
-The current default backend can be viewed by using the class method
-:meth:`Array.default_backend`. A different
-default backend can be set for all :meth:`Array` instances by using the
+The current default backend can be viewed by using the class method :meth:`Array.default_backend`. A
+different default backend can be set for all :meth:`Array` instances by using the
 :meth:`Array.set_default_backend` class method.
 
 Attributes and Methods
 ----------------------
 
-The :class:`Array` class exposes the same methods and attributes of the wrapped
-array class and adds two additional attributes
+The :class:`Array` class exposes the same methods and attributes of the wrapped array class and adds
+two additional attributes:
 
 * :attr:`~Array.data` which returns the wrapped array object
 * :attr:`~Array.backend` which returns the backend string of the wrapped array.
 
-All other attributes and methods of the wrapped array are accessable
-through this class, but with any array return types wrapped into
-:class:`Array` objects. For example
+All other attributes and methods of the wrapped array are accessible through this class, but with
+any array return types wrapped into :class:`Array` objects. For example
 
 .. jupyter-execute::
 
@@ -94,16 +89,15 @@ through this class, but with any array return types wrapped into
     a.reshape((2, 5))
 
 
-
 Array Initialization
 --------------------
 
-An :class:`Array` object can be initialized as ``Array(data)`` from any ``data`` that is
+An :class:`Array` object can be initialized as ``Array(data)`` from any ``data`` that is:
 
-1. An ``array`` object of one of the supported backends.
+1. An :class:`Array` object of one of the supported backends.
 2. An object that can be used to initialize the backend array.
 3. An object of a class that defines a ``__qiskit_array__`` method with the
-   following signature
+   following signature:
 
     .. code-block:: python
 
@@ -112,18 +106,16 @@ An :class:`Array` object can be initialized as ``Array(data)`` from any ``data``
                              backend: Optional[str]=None) -> Array:
             # conversion from class to Array
 
-The :meth:`Array.__init__` method has optional kwargs
+The :meth:`Array.__init__` method has optional kwargs:
 
-* ``dtype`` (``any``): Equivalent to the ``numpy.array`` ``dtype`` kwarg.
-  For other array backends the specified dtype must be supported on the
-  array backend. If not specified the dytpe will be inferred from the
-  input data.
-* ``order`` (``str``): Equivalent to the ``numpy.array`` ``order`` kwarg.
-  For other array backendsthe specified order value must be supported on
-  the array backend.
-* ``backend`` (``str``): The array backend to use. If not specified this
-  will be inferred from the input data type if it is a backend array
-  instance, otherwise it will be the :func:`default_backend`.
+* ``dtype`` (``any``): Equivalent to the ``numpy.array`` ``dtype`` kwarg. For other array backends,
+  the specified dtype must be supported on the array backend. If not specified, the ``dytpe`` will
+  be inferred from the input data.
+* ``order`` (``str``): Equivalent to the ``numpy.array`` ``order`` kwarg. For other array
+  backendsthe specified order value must be supported on the array backend.
+* ``backend`` (``str``): The array backend to use. If not specified this will be inferred from the
+  input data type if it is a backend array instance, otherwise it will be the
+  :func:`default_backend`.
 
 
 Using Arrays with other Libraries
