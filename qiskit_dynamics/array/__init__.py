@@ -57,7 +57,7 @@ will be an :class:`Array` instead of an ``numpy.ndarray``.
     np.cos(a) + 1j * np.sin(a)
 
 For the JAX Array backend, only Numpy functions that have a corresponding function in the ``jax``
-library that has been registed with the dispatch module can be applied to the functions. Trying to
+library that have been registered with the dispatch module can be applied to the functions. Trying to
 apply an unsupported ``numpy`` function to these arrays will raise an exception.
 
 Default Backend
