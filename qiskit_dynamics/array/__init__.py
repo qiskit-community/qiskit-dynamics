@@ -20,8 +20,8 @@ Array Module (:mod:`qiskit_dynamics.array`)
 .. currentmodule:: qiskit_dynamics.array
 
 This module contains an :class:`Array` class that wraps N-dimensional array objects from different
-libraries for use with NumPy functions through a common interface and functions for working with
-Array objects and other libraries.
+libraries. It enables working with different array libraries through a common NumPy-based interface, 
+along with other functionality for writing array-library agnostic code.
 
 
 Array Class
@@ -95,7 +95,7 @@ Array Initialization
 
 An :class:`Array` object can be initialized as ``Array(data)`` from any ``data`` that is:
 
-1. An :class:`Array` object of one of the supported backends.
+1. An ``array`` object of one of the supported backends.
 2. An object that can be used to initialize the backend array.
 3. An object of a class that defines a ``__qiskit_array__`` method with the
    following signature:
