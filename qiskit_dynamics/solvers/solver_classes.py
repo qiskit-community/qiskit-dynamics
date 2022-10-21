@@ -522,16 +522,15 @@ class Solver:
             args_to_list=[t_span_to_list, _y0_to_list, _signals_to_list],
         )
 
-        # turn any present schedules into signals and find longest DiscreteSignal present
+        # turn any present schedules into signals and find longest DiscreteSignal
         max_samples = 0
         for idx, signals in enumerate(signals_list):
             if isinstance(signals, ScheduleBlock):
                 signals = block_to_schedule(signals)
             if isinstance(signals, Schedule):
-                signals = self._schedule_converter.get_signals(signals)
+                signals_list[idx] = signals = self._schedule_converter.get_signals(signals)
             if all(isinstance(signal, DiscreteSignal) for signal in signals):
                 max_samples = max(max_samples, max(signal.duration for signal in signals))
-            signals_list[idx] = signals
 
         # decide on whether jax compilation is a possibility
         method = kwargs.get("method", "")
