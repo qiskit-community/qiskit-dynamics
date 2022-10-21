@@ -28,7 +28,7 @@ Array Class
 ===========
 
 The :class:`Array` class provides a NumPy compatible wrapper to supported Python array libraries.
-When applying NumPy functions to the array class these will be dispatched to the corresponding
+NumPy functions applied to an :class:`Array` class instance will be dispatched to the corresponding
 function for the current Array backend, if a compatible function has been specified in the
 :mod:`qiskit_dynamics.dispatch` system.
 
