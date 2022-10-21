@@ -110,7 +110,7 @@ An :class:`Array` object can be initialized as ``Array(data)`` from any ``data``
 The :meth:`Array.__init__` method has optional kwargs:
 
 * ``dtype`` (``any``): Equivalent to the ``numpy.array`` ``dtype`` kwarg. For other array backends,
-  the specified dtype must be supported on the array backend. If not specified, the ``dytpe`` will
+  the specified ``dtype`` must be supported. If not specified, the ``dtype`` will
   be inferred from the input data.
 * ``order`` (``str``): Equivalent to the ``numpy.array`` ``order`` kwarg. For other array
   backends, the specified order value must be supported.
