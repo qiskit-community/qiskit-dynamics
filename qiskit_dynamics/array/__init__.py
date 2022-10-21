@@ -113,7 +113,7 @@ The :meth:`Array.__init__` method has optional kwargs:
   the specified dtype must be supported on the array backend. If not specified, the ``dytpe`` will
   be inferred from the input data.
 * ``order`` (``str``): Equivalent to the ``numpy.array`` ``order`` kwarg. For other array
-  backendsthe specified order value must be supported on the array backend.
+  backends, the specified order value must be supported.
 * ``backend`` (``str``): The array backend to use. If not specified this will be inferred from the
   input data type if it is a backend array instance, otherwise it will be the
   :func:`default_backend`.
