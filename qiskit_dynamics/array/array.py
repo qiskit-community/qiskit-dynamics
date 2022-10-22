@@ -9,12 +9,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """Array Class"""
 
 import copy
 from functools import wraps
 from types import BuiltinMethodType, MethodType
-from typing import Optional, Union, Tuple, Set
+from typing import Any, Optional, Union, Tuple, Set
 from numbers import Number
 
 import numpy
@@ -26,34 +27,33 @@ __all__ = ["Array"]
 
 
 class Array(NDArrayOperatorsMixin):
-    """Qiskit Array class.
+    """Qiskit array class.
 
-    This class provides a NumPy compatible wrapper to supported Python
-    array libraries. Supported backends are ``numpy`` and ``jax``.
+    This class provides a Numpy compatible wrapper to supported Python array libraries. Supported
+    backends are ``"numpy"`` and ``"jax"``.
     """
 
     def __init__(
         self,
-        data: any,
-        dtype: Optional[any] = None,
+        data: Any,
+        dtype: Optional[Any] = None,
         order: Optional[str] = None,
         backend: Optional[str] = None,
     ):
-        """Initialize an Array container.
+        """Initialize an :class:`Array` container.
 
         Args:
-            data: An array_like input. This can be an object of any type
-                  supported by the registered `asarray` method for the
-                  specified backend.
-            dtype: Optional. The dtype of the returned array. This value
-                   must be supported by the specified array backend.
-            order: Optional. The array order. This value must be supported
-                   by the specified array backend.
-            backend: A registered array backend name. If None the
-                     default array backend will be used.
+            data: An ``array_like`` input. This can be an object of any type supported by the
+                  registered :math:`asarray` method for the specified backend.
+            dtype: Optional. The dtype of the returned array. This value must be supported by the
+                   specified array backend.
+            order: Optional. The array order. This value must be supported by the specified array
+                   backend.
+            backend: A registered array backend name. If ``None`` the default array backend will
+                     be used.
 
         Raises:
-            ValueError: if input cannot be converted to an Array.
+            ValueError: If input cannot be converted to an :class:`Array`.
         """
 
         # Check if we can override setattr and
@@ -87,7 +87,7 @@ class Array(NDArrayOperatorsMixin):
 
     @property
     def data(self):
-        """Return the wrapped array data object."""
+        """The wrapped array data object."""
         return self._data
 
     @data.setter
@@ -97,7 +97,7 @@ class Array(NDArrayOperatorsMixin):
 
     @property
     def backend(self):
-        """Return the backend of the wrapped array class."""
+        """The backend of the wrapped array class."""
         return self._backend
 
     @backend.setter
@@ -150,23 +150,23 @@ class Array(NDArrayOperatorsMixin):
         self._backend = state["_backend"]
         self._data = state["_data"]
 
-    def __getitem__(self, key: str) -> any:
-        """Return value from wrapped array"""
+    def __getitem__(self, key: str) -> Any:
+        """Return value from wrapped array."""
         return self._data[key]
 
-    def __setitem__(self, key: str, value: any):
-        """Return value of wrapped array"""
+    def __setitem__(self, key: str, value: Any):
+        """Return value of wrapped array."""
         self._data[key] = value
 
-    def __setattr__(self, name: str, value: any):
+    def __setattr__(self, name: str, value: Any):
         """Set attribute of wrapped array."""
         if name in ("_data", "data", "_backend", "backend"):
             super().__setattr__(name, value)
         else:
             setattr(self._data, name, value)
 
-    def __getattr__(self, name: str) -> any:
-        """Get attribute of wrapped array and convert to an Array."""
+    def __getattr__(self, name: str) -> Any:
+        """Get attribute of wrapped array and convert to an :class:`Array`."""
         # Call attribute on inner array object
         attr = getattr(self._data, name)
 
@@ -204,24 +204,24 @@ class Array(NDArrayOperatorsMixin):
     def __int__(self):
         """Convert size 1 array to an int."""
         if numpy.size(self) != 1:
-            raise TypeError("only size-1 Arrays can be converted to Python scalars")
+            raise TypeError("only size-1 Arrays can be converted to Python scalars.")
         return int(self._data)
 
     def __float__(self):
         """Convert size 1 array to a float."""
         if numpy.size(self) != 1:
-            raise TypeError("only size-1 Arrays can be converted to Python scalars")
+            raise TypeError("only size-1 Arrays can be converted to Python scalars.")
         return float(self._data)
 
     def __complex__(self):
         """Convert size 1 array to a complex."""
         if numpy.size(self) != 1:
-            raise TypeError("only size-1 Arrays can be converted to Python scalars")
+            raise TypeError("only size-1 Arrays can be converted to Python scalars.")
         return complex(self._data)
 
     @staticmethod
-    def _wrap(obj: Union[any, Tuple[any]], backend: Optional[str] = None) -> Union[any, Tuple[any]]:
-        """Wrap return array backend objects as Array objects"""
+    def _wrap(obj: Union[Any, Tuple[Any]], backend: Optional[str] = None) -> Union[Any, Tuple[Any]]:
+        """Wrap return array backend objects as :class:`Array` objects."""
         if isinstance(obj, tuple):
             return tuple(
                 Array(x, backend=backend) if isinstance(x, Dispatch.REGISTERED_TYPES) else x
@@ -233,7 +233,7 @@ class Array(NDArrayOperatorsMixin):
 
     @classmethod
     def _unwrap(cls, obj):
-        """Unwrap an Array or list of Array objects"""
+        """Unwrap an Array or list of :class:`Array` objects."""
         if isinstance(obj, Array):
             return obj._data
         if isinstance(obj, tuple):
@@ -243,7 +243,7 @@ class Array(NDArrayOperatorsMixin):
         return obj
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        """Dispatcher for numpy ufuncs to support the wrapped array backend."""
+        """Dispatcher for NumPy ufuncs to support the wrapped array backend."""
         out = kwargs.get("out", tuple())
 
         for i in inputs + out:
@@ -274,7 +274,7 @@ class Array(NDArrayOperatorsMixin):
         return self._wrap(result, backend=self.backend)
 
     def __array_function__(self, func, types, args, kwargs):
-        """Dispatcher for numpy array function to support the wrapped array backend."""
+        """Dispatcher for NumPy array function to support the wrapped :class:`Array` backend."""
         if not all(issubclass(t, (Array,) + Dispatch.REGISTERED_TYPES) for t in types):
             return NotImplemented
 
@@ -297,7 +297,7 @@ def _is_numpy_backend(backend: Optional[str] = None):
     return backend == "numpy" or (not backend and Dispatch.DEFAULT_BACKEND == "numpy")
 
 
-def _is_equivalent_numpy_array(data: any, dtype: Optional[any] = None, order: Optional[str] = None):
+def _is_equivalent_numpy_array(data: Any, dtype: Optional[Any] = None, order: Optional[str] = None):
     return (not dtype or dtype == data.dtype) and (
         not order
         or (order == "C" and data.flags["C_CONTIGUOUS"])
