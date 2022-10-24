@@ -30,18 +30,18 @@ except ImportError:
 
 
 def lanczos_basis(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
-    """Tridiagonalises a hermitian array in a krylov subspace of dimension k_dim
+    """Tridiagonalises a hermitian array in a Krylov subspace of dimension ``k_dim``
     using Lanczos algorithm.
     reference: https://tensornetwork.org/mps/algorithms/timeevo/global-krylov.html
 
     Args:
         A : Array to tridiagonalise. Must be hermitian.
         y0 : Vector to initialise Lanczos iteration.
-        k_dim : Dimension of the krylov subspace.
+        k_dim : Dimension of the Krylov subspace.
 
     Returns:
         tridiagonal : Tridiagonal projection of ``A``.
-        q_basis : Basis of the krylov subspace.
+        q_basis : Basis of the Krylov subspace.
     """
 
     data_type = np.result_type(A.dtype, y0.dtype)
@@ -97,12 +97,12 @@ def lanczos_eigh(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
     Args:
         A : Array to diagonalize. Must be hermitian.
         y0 : Vector to initialise Lanczos iteration.
-        k_dim : Dimension of the krylov subspace.
+        k_dim : Dimension of the Krylov subspace.
 
     Returns:
-        q_basis : Basis of the krylov subspace.
-        eigen_values : lowest ``k_dim`` Eigenvalues.
-        eigen_vectors_t : Eigenvectors in krylov-space.
+        q_basis : Basis of the Krylov subspace.
+        eigen_values : Lowest ``k_dim`` eigenvalues.
+        eigen_vectors_t : Eigenvectors in Krylov-space.
     """
 
     tridiagonal, q_basis = lanczos_basis(A, y0, k_dim)
@@ -123,7 +123,7 @@ def lanczos_expm(
     Args:
         A : Array to exponentiate. Must be anti-hermitian.
         y0 : Initial state.
-        k_dim : Dimension of the krylov subspace.
+        k_dim : Dimension of the Krylov subspace.
         scale_factor : Maximum step size.
 
     Returns:

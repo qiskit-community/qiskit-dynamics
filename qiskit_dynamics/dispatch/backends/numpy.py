@@ -35,7 +35,7 @@ def _numpy_asarray(array, dtype=None, order=None):
 
 @Dispatch.register_repr("numpy")
 def _numpy_repr(array, prefix="", suffix=""):
-    """Wrapper for showing Numpy array in custom class"""
+    """Wrapper for showing NumPy array in custom class"""
     max_line_width = numpy.get_printoptions()["linewidth"]
     array_str = numpy.array2string(
         array,

@@ -15,7 +15,7 @@ from qiskit.exceptions import QiskitError
 
 
 class DispatchError(QiskitError):
-    """Class for dispatch module errors"""
+    """Class for dispatch module errors."""
 
     def __init__(self, *msg):
         """Set the error message."""
