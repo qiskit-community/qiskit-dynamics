@@ -77,7 +77,7 @@ class PulseSimulator(BackendV2):
 
         self._solver = solver
         self._subsystem_dims = subsystem_dims or [solver.model.dim]
-        self._subsystem_labels = subsystem_labels or np.arange(len(subsystem_dims), dtype=int)
+        self._subsystem_labels = subsystem_labels or list(range(len(subsystem_dims)))
 
         # get the dressed states
         static_hamiltonian = _get_lab_frame_static_hamiltonian(solver.model)
