@@ -107,10 +107,14 @@ class PulseSimulator(BackendV2):
         shots: int = 1,
         y0 = None,
         validate: Optional[bool] = False,
+        normalize_states: Optional[bool] = True,
         solver_options: Optional[dict] = None,
         **options
     ) -> Result:
         """Run on the backend.
+
+        normalize_states ensures that, when sampling, the state is normalized, to avoid errors
+        being raised due to numerical tolerance issues.
 
         Notes/questions:
         - Should we force y0 to be a quantum_info state? This currently assumes that
@@ -135,6 +139,7 @@ class PulseSimulator(BackendV2):
         To test:
         - Measuring a subset of qubits when more than one present
         - If t_span=[0, 0] it seems that NaNs appear for JAX simulation - should solve this.
+        - Normalizing the state.
         """
 
         if validate:
@@ -178,6 +183,7 @@ class PulseSimulator(BackendV2):
                 't_span': t_span, 'y0': y0, 'schedules': schedules,
                 'solver_options': solver_options,
                 'measurement_subsystems_list': measurement_subsystems_list,
+                'normalize_states': normalize_states,
                 'shots': shots
             }
         )
@@ -192,6 +198,7 @@ class PulseSimulator(BackendV2):
         y0,
         schedules,
         solver_options,
+        normalize_states,
         measurement_subsystems_list,
         shots
     ) -> Result:
@@ -228,10 +235,16 @@ class PulseSimulator(BackendV2):
                 yf = np.array(self.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf))
                 yf = self._dressed_states_adjoint @ yf
                 yf = Statevector(yf, dims=self.subsystem_dims)
+
+                if normalize_states:
+                    yf = yf / np.linalg.norm(yf.data)
             elif isinstance(yf, DensityMatrix):
                 yf = np.array(self.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], y=yf))
                 yf = self._dressed_states_adjoint @ yf @ self.dressed_states
                 yf = DensityMatrix(yf, dims=self.subsystem_dims)
+
+                if normalize_states:
+                    yf = yf / np.diag(yf.data).sum()
 
             outputs.append({'counts': yf.sample_counts(shots=shots, qargs=measurement_subsystems)})
 
