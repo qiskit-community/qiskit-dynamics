@@ -17,12 +17,15 @@ import datetime
 import uuid
 
 from typing import Dict, Iterable, List, Optional, Union
+import copy
 import numpy as np
 
 from qiskit import pulse
+from qiskit.transpiler import Target
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.channels import AcquireChannel, DriveChannel, MeasureChannel, ControlChannel
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
+from qiskit.providers.options import Options
 from qiskit.providers.backend import BackendV2
 from qiskit.result import Result
 
@@ -41,9 +44,9 @@ class PulseSimulator(BackendV2):
     def __init__(
         self,
         solver: Solver,
-        subsystem_dims,
-        subsystem_labels: Optional[List[int]] = None,
-        name: Optional[str] = 'PulseSimulator',
+        name: Optional[str] = "PulseSimulator",
+        target: Optional[Target] = None,
+        **options,
     ):
         """This init needs fleshing out. Need to determine all that is necessary for each use case.
 
@@ -71,45 +74,58 @@ class PulseSimulator(BackendV2):
         super().__init__(
             provider=None,
             name=name,
-            description='Pulse enabled simulator backend.',
-            backend_version=0.1
+            description="Pulse enabled simulator backend.",
+            backend_version=0.1,
+        )
+        # TODO: We should have a default configuration of a target if
+        # none is provided, and a modification of a provided one to change any
+        # simulator specific attrbiutes to make it compatible
+        self._target = target or Target()
+
+        # Dressed states of solver, will be calculated when solver option is set
+        self._dressed_evals = None
+        self._dressed_states = None
+        self._dressed_states_adjoint = None
+
+        # Set simulator options
+        self.set_options(solver=solver, **options)
+
+    def _default_options(self):
+        return Options(
+            shots=1024,
+            solver=None,
+            solver_options={},
+            subsystem_labels=None,
+            subsystem_dims=None,
+            normalize_states=True,
+            initial_state="ground_state",
         )
 
-        self._solver = solver
-        self._subsystem_dims = subsystem_dims or [solver.model.dim]
-        self._subsystem_labels = subsystem_labels or list(range(len(subsystem_dims)))
+    def set_options(self, **fields):
+        for key, value in fields.items():
+            if not hasattr(self._options, key):
+                raise AttributeError("Invalid option %s" % key)
+            if key == "solver":
+                # Special handling for solver setting
+                self._set_solver(value)
+            else:
+                setattr(self._options, key, value)
 
-        # get the dressed states
+    def _set_solver(self, solver):
+        """Configure simulator based on provided solver."""
+        self._options.solver = solver
+        # Get dressed states
         static_hamiltonian = _get_lab_frame_static_hamiltonian(solver.model)
         dressed_evals, dressed_states = _get_dressed_state_decomposition(static_hamiltonian)
         self._dressed_evals = dressed_evals
         self._dressed_states = dressed_states
         self._dressed_states_adjoint = self._dressed_states.conj().transpose()
 
-    @property
-    def solver(self):
-        """The internal Solver."""
-        return self._solver
-
-    @property
-    def subsystem_dims(self):
-        """Subsystem dimensions."""
-        return self._subsystem_dims
-
-    @property
-    def subsystem_labels(self):
-        """Subsystem labels."""
-        return self._subsystem_labels
-
     def run(
         self,
         run_input: Union[Schedule, ScheduleBlock],
-        shots: int = 1,
-        y0 = None,
         validate: Optional[bool] = False,
-        normalize_states: Optional[bool] = True,
-        solver_options: Optional[dict] = None,
-        **options
+        **options,
     ) -> Result:
         """Run on the backend.
 
@@ -145,11 +161,18 @@ class PulseSimulator(BackendV2):
         if validate:
             _validate_run_input(run_input)
 
-        if solver_options is None:
-            solver_options = {}
+        # Configure run options for simulation
+        if options:
+            # TODO: We might need to implement a copy or __copy__ method
+            # to make sure this copying works correctly without a deepcopy
+            backend = copy.copy(self)
+            backend.set_options(**options)
+        else:
+            backend = self
 
-        if y0 is None:
-            y0 = Statevector(self._dressed_states[:, 0])
+        initial_state = backend.options.initial_state
+        if initial_state == "ground_state":
+            initial_state = Statevector(backend._dressed_states[:, 0])
 
         # to do: add handling of circuits
         schedules = _to_schedule_list(run_input)
@@ -172,20 +195,21 @@ class PulseSimulator(BackendV2):
             measurement_subsystems_list.append([inst.channel.index for inst in schedule_acquires])
             measurement_subsystems_list[-1].sort()
 
-
         # Build and submit job
         job_id = str(uuid.uuid4())
         dynamics_job = DynamicsJob(
-            backend=self,
+            backend=backend,
             job_id=job_id,
-            fn=self._run,
+            fn=backend._run,
             fn_kwargs={
-                't_span': t_span, 'y0': y0, 'schedules': schedules,
-                'solver_options': solver_options,
-                'measurement_subsystems_list': measurement_subsystems_list,
-                'normalize_states': normalize_states,
-                'shots': shots
-            }
+                "t_span": t_span,
+                "y0": initial_state,
+                "schedules": schedules,
+                "solver_options": backend.options.solver_options,
+                "measurement_subsystems_list": measurement_subsystems_list,
+                "normalize_states": backend.options.normalize_states,
+                "shots": backend.options.shots,
+            },
         )
         dynamics_job.submit()
 
@@ -200,53 +224,65 @@ class PulseSimulator(BackendV2):
         solver_options,
         normalize_states,
         measurement_subsystems_list,
-        shots
+        shots,
     ) -> Result:
         """Not sure here what the right delineation of arguments is to put in _run.
         This feels somewhat hacky/arbitrary.
         """
         start = time.time()
+        subsystem_dims = self.options.subsystem_dims or [self.options.solver.model.dim]
+        subsystem_labels = self.options.subsystem_labels or list(range(len(subsystem_dims)))
 
         # map measurement subsystems from labels to correct index
-        if self.subsystem_labels:
+        if subsystem_labels:
             new_measurement_subsystems_list = []
             for measurement_subsystems in measurement_subsystems_list:
                 new_measurement_subsystems = []
                 for subsystem in measurement_subsystems:
-                    if subsystem in self.subsystem_labels:
-                        new_measurement_subsystems.append(self.subsystem_labels.index(subsystem))
+                    if subsystem in subsystem_labels:
+                        new_measurement_subsystems.append(subsystem_labels.index(subsystem))
                     else:
-                        raise QiskitError(f"Attempted to measure subsystem {subsystem}, but it is not in subsystem_list.")
+                        raise QiskitError(
+                            f"Attempted to measure subsystem {subsystem}, but it is not in subsystem_list."
+                        )
                 new_measurement_subsystems_list.append(new_measurement_subsystems)
 
             measurement_subsystems_list = new_measurement_subsystems_list
 
-        solver_results = self.solver.solve(t_span=t_span, y0=y0, signals=schedules, **solver_options)
+        solver_results = self.options.solver.solve(
+            t_span=t_span, y0=y0, signals=schedules, **solver_options
+        )
 
         # construct counts for each experiment
         ##############################################################################################
         # Change to if statement depending on types of outputs, e.g. counts vs IQ data
         outputs = []
-        for ts, result, measurement_subsystems in zip(t_span, solver_results, measurement_subsystems_list):
+        for ts, result, measurement_subsystems in zip(
+            t_span, solver_results, measurement_subsystems_list
+        ):
             yf = result.y[-1]
 
             # Put state in dressed basis and sample counts
             if isinstance(yf, Statevector):
-                yf = np.array(self.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf))
+                yf = np.array(
+                    self.options.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf)
+                )
                 yf = self._dressed_states_adjoint @ yf
-                yf = Statevector(yf, dims=self.subsystem_dims)
+                yf = Statevector(yf, dims=subsystem_dims)
 
                 if normalize_states:
                     yf = yf / np.linalg.norm(yf.data)
             elif isinstance(yf, DensityMatrix):
-                yf = np.array(self.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], y=yf))
+                yf = np.array(
+                    self.options.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], y=yf)
+                )
                 yf = self._dressed_states_adjoint @ yf @ self.dressed_states
-                yf = DensityMatrix(yf, dims=self.subsystem_dims)
+                yf = DensityMatrix(yf, dims=subsystem_dims)
 
                 if normalize_states:
                     yf = yf / np.diag(yf.data).sum()
 
-            outputs.append({'counts': yf.sample_counts(shots=shots, qargs=measurement_subsystems)})
+            outputs.append({"counts": yf.sample_counts(shots=shots, qargs=measurement_subsystems)})
 
         results_list = []
         for schedule, output in zip(schedules, outputs):
@@ -254,11 +290,11 @@ class PulseSimulator(BackendV2):
                 Result(
                     backend_name=self.name,
                     backend_version=self.backend_version,
-                    qobj_id=None, # Should we subclass result or something because qobj_id doesn't exist?
+                    qobj_id=None,  # Should we subclass result or something because qobj_id doesn't exist?
                     job_id=job_id,
                     success=True,
                     results=output,
-                    date=datetime.datetime.now().isoformat()
+                    date=datetime.datetime.now().isoformat(),
                 )
             )
 
@@ -280,14 +316,11 @@ class PulseSimulator(BackendV2):
     def measure_channel(self, qubit: int) -> Union[int, MeasureChannel, None]:
         pass
 
-    def _default_options(self):
-        pass
-
     def max_circuits(self):
         return None
 
-    def target(self):
-        pass
+    def target(self) -> Target:
+        return self._target
 
 
 def _validate_run_input(run_input, accept_list=True):
@@ -298,6 +331,7 @@ def _validate_run_input(run_input, accept_list=True):
             _validate_run_input(x, accept_list=False)
     elif not isinstance(run_input, (Schedule, ScheduleBlock)):
         raise QiskitError(f"Input type {type(run_input)} not supported by PulseSimulator.run.")
+
 
 #######################################################################################################
 # this should be rolled into _validate_experiments?
