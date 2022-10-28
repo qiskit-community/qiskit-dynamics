@@ -81,7 +81,6 @@ class PulseSimulator(BackendV2):
         # none is provided, and a modification of a provided one to change any
         # simulator specific attrbiutes to make it compatible
         self._target = target or Target()
-        self._options_target = {}
 
         # Dressed states of solver, will be calculated when solver option is set
         self._dressed_evals = None
@@ -97,18 +96,16 @@ class PulseSimulator(BackendV2):
             solver=None,
             solver_options={},
             subsystem_labels=None,
-            subsystem_dims=None,  # Is this needed as explicit option?
+            subsystem_dims=None,
             normalize_states=True,
-            initial_state=None,  # Do we need this? (y0)
+            initial_state="ground_state",
         )
 
     def set_options(self, **fields):
         for key, value in fields.items():
-            if hasattr(self._target, key):
-                self._set_target_option(key, value)
-            elif not hasattr(self._options, key):
+            if not hasattr(self._options, key):
                 raise AttributeError("Invalid option %s" % key)
-            elif key == "solver":
+            if key == "solver":
                 # Special handling for solver setting
                 self._set_solver(value)
             else:
@@ -123,14 +120,6 @@ class PulseSimulator(BackendV2):
         self._dressed_evals = dressed_evals
         self._dressed_states = dressed_states
         self._dressed_states_adjoint = self._dressed_states.conj().transpose()
-
-    def _set_target_option(self, key: str, value: any):
-        """"""
-        if value is not None:
-            self._options_target[key] = value
-        elif key in self._options_target:
-            # if value is None reset to default target value
-            self._options_target.pop(key)
 
     def run(
         self,
@@ -173,11 +162,17 @@ class PulseSimulator(BackendV2):
             _validate_run_input(run_input)
 
         # Configure run options for simulation
-        run_options = copy.copy(self.options.__dict__)
-        for key, value in options.items():
-            run_options[key] = value
-        if run_options["initial_state"] is None:
-            run_options["initial_state"] = Statevector(self._dressed_states[:, 0])
+        if options:
+            # TODO: We might need to implement a copy or __copy__ method
+            # to make sure this copying works correctly without a deepcopy
+            backend = copy.copy(self)
+            backend.set_options(**options)
+        else:
+            backend = self
+
+        initial_state = backend.options.initial_state
+        if initial_state == "ground_state":
+            initial_state = Statevector(backend._dressed_states[:, 0])
 
         # to do: add handling of circuits
         schedules = _to_schedule_list(run_input)
@@ -203,17 +198,17 @@ class PulseSimulator(BackendV2):
         # Build and submit job
         job_id = str(uuid.uuid4())
         dynamics_job = DynamicsJob(
-            backend=self,
+            backend=backend,
             job_id=job_id,
-            fn=self._run,
+            fn=backend._run,
             fn_kwargs={
                 "t_span": t_span,
-                "y0": run_options["initial_state"],
+                "y0": initial_state,
                 "schedules": schedules,
-                "solver_options": run_options["solver_options"],
+                "solver_options": backend.options.solver_options,
                 "measurement_subsystems_list": measurement_subsystems_list,
-                "normalize_states": run_options["normalize_states"],
-                "shots": run_options["shots"],
+                "normalize_states": backend.options.normalize_states,
+                "shots": backend.options.shots,
             },
         )
         dynamics_job.submit()
@@ -325,12 +320,7 @@ class PulseSimulator(BackendV2):
         return None
 
     def target(self) -> Target:
-        target = copy.copy(self._target)
-        # Override default target with any currently set option values
-        for key, val in self._options_target.items():
-            setattr(target, key, val)
-        # Any extra custom simulator handling of target can be done here
-        return target
+        return self._target
 
 
 def _validate_run_input(run_input, accept_list=True):
