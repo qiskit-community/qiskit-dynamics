@@ -284,7 +284,7 @@ class PulseSimulator(BackendV2):
         pass
 
     def max_circuits(self):
-        pass
+        return None
 
     def target(self):
         pass
