@@ -29,7 +29,8 @@ from qiskit.providers.options import Options
 from qiskit.providers.backend import BackendV2
 from qiskit.result import Result
 
-from qiskit import QiskitError
+from qiskit import QiskitError, QuantumCircuit
+from qiskit import schedule as build_schedule
 from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics import Solver
@@ -44,7 +45,6 @@ class PulseSimulator(BackendV2):
     def __init__(
         self,
         solver: Solver,
-        name: Optional[str] = "PulseSimulator",
         target: Optional[Target] = None,
         **options,
     ):
@@ -73,14 +73,10 @@ class PulseSimulator(BackendV2):
         # what to put for provider?
         super().__init__(
             provider=None,
-            name=name,
+            name="PulseSimulator",
             description="Pulse enabled simulator backend.",
             backend_version=0.1,
         )
-        # TODO: We should have a default configuration of a target if
-        # none is provided, and a modification of a provided one to change any
-        # simulator specific attrbiutes to make it compatible
-        self._target = target or Target()
 
         # Dressed states of solver, will be calculated when solver option is set
         self._dressed_evals = None
@@ -90,6 +86,37 @@ class PulseSimulator(BackendV2):
         # Set simulator options
         self.set_options(solver=solver, **options)
 
+        # set required options defaults
+        if self.options.subsystem_dims is None:
+            self.set_options(subsystem_dims=[self.options.solver.model.dim])
+
+        if self.options.subsystem_labels is None:
+            labels = list(range(len(self.options.subsystem_dims)))
+            self.set_options(subsystem_labels=labels)
+
+        if self.options.meas_map is None:
+            meas_map = [[idx] for idx in self.options.subsystem_labels]
+            self.set_options(meas_map=meas_map)
+
+        # TODO: We should have a default configuration of a target if
+        # none is provided, and a modification of a provided one to change any
+        # simulator specific attrbiutes to make it compatible
+        if target is None:
+            target = Target()
+
+        self._target = target
+        
+        # add default simulator measure instructions
+        # TODO: what register/memory slots?
+        instruction_schedule_map = self.target.instruction_schedule_map()
+        for qubit in self.options.subsystem_labels:
+            if not instruction_schedule_map.has(instruction='measure', qubits=0):
+                with pulse.build() as meas_sched:
+                    pulse.acquire(duration=1, qubit_or_channel=qubit, register=pulse.RegisterSlot(0))
+
+            instruction_schedule_map.add(instruction='measure', qubits=0, schedule=meas_sched)
+
+
     def _default_options(self):
         return Options(
             shots=1024,
@@ -97,11 +124,16 @@ class PulseSimulator(BackendV2):
             solver_options={},
             subsystem_labels=None,
             subsystem_dims=None,
+            meas_map=None,
             normalize_states=True,
             initial_state="ground_state",
         )
 
     def set_options(self, **fields):
+        # TODO: add validation for
+        # - subsystem_dims
+        # - subsystem_labels
+        # - meas_map
         for key, value in fields.items():
             if not hasattr(self._options, key):
                 raise AttributeError("Invalid option %s" % key)
@@ -123,7 +155,7 @@ class PulseSimulator(BackendV2):
 
     def run(
         self,
-        run_input: Union[Schedule, ScheduleBlock],
+        run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
         validate: Optional[bool] = False,
         **options,
     ) -> Result:
@@ -175,7 +207,7 @@ class PulseSimulator(BackendV2):
             initial_state = Statevector(backend._dressed_states[:, 0])
 
         # to do: add handling of circuits
-        schedules = _to_schedule_list(run_input)
+        schedules = _to_schedule_list(run_input, backend=self)
 
         # get the acquires instructions and simulation times
         t_span = []
@@ -300,27 +332,16 @@ class PulseSimulator(BackendV2):
 
         return results_list
 
-    @property
-    def meas_map(self) -> List[List[int]]:
-        pass
-
-    def acquire_channel(self, qubit: Iterable[int]) -> Union[int, AcquireChannel, None]:
-        pass
-
-    def drive_channel(self, qubit: int) -> Union[int, DriveChannel, None]:
-        pass
-
-    def control_channel(self, qubit: int) -> Union[int, ControlChannel, None]:
-        pass
-
-    def measure_channel(self, qubit: int) -> Union[int, MeasureChannel, None]:
-        pass
-
     def max_circuits(self):
         return None
 
+    @property
     def target(self) -> Target:
         return self._target
+
+    @property
+    def meas_map(self) -> List[List[int]]:
+        return self.options.meas_map
 
 
 def _validate_run_input(run_input, accept_list=True):
@@ -334,7 +355,7 @@ def _validate_run_input(run_input, accept_list=True):
 
 
 #######################################################################################################
-# this should be rolled into _validate_experiments?
+# this should be rolled into _validate_run_input?
 def _validate_acquires(schedule_acquire_times, schedule_acquires):
     """Validate the acquire instructions.
     For now, make sure all acquires happen at one time.
@@ -349,16 +370,21 @@ def _validate_acquires(schedule_acquire_times, schedule_acquires):
             raise QiskitError("PulseSimulator.run only supports measurements at one time.")
 
 
-def _to_schedule_list(schedules):
-    if not isinstance(schedules, list):
-        schedules = [schedules]
+def _to_schedule_list(
+    run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
+    backend: BackendV2
+):
+    if not isinstance(run_input, list):
+        run_input = [run_input]
 
-    new_schedules = []
-    for sched in schedules:
-        if isinstance(sched, pulse.ScheduleBlock):
-            new_schedules.append(block_to_schedule(sched))
-        elif isinstance(sched, pulse.Schedule):
-            new_schedules.append(sched)
+    schedules = []
+    for sched in run_input:
+        if isinstance(sched, ScheduleBlock):
+            schedules.append(block_to_schedule(sched))
+        elif isinstance(sched, Schedule):
+            schedules.append(sched)
+        elif isinstance(sched, QuantumCircuit):
+            schedules.append(build_schedule(sched, backend))
         else:
-            raise QiskitError("Invalid Schedule type.")
-    return new_schedules
+            raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
+    return schedules
