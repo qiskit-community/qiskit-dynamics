@@ -17,7 +17,10 @@
 Utility functions for solvers.
 """
 
-from typing import Optional, Union, List, Tuple, Callable
+from typing import Callable, Iterable, List, Optional, Tuple, Union
+
+from functools import lru_cache, partial, wraps
+import inspect
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
@@ -27,6 +30,7 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import LindbladModel
 
 try:
+    from jax import jit
     from jax.lax import cond
     import jax.numpy as jnp
 except ImportError:
@@ -237,3 +241,102 @@ def setup_args_lists(
         x * max_len if arg_len == 1 else x for x, arg_len in zip(args_as_lists, arg_lens)
     ]
     return args_as_lists, args_were_lists
+
+
+class HashWrapper:
+    """Thin hashable wrapper over any object."""
+
+    def __init__(self, obj):
+        self.obj = obj
+        try:
+            self._hash = hash(obj)
+        except TypeError:
+            # force hash collisions on unhashable objects; whenever this HashWrapper
+            # is used in a hash table, it will have to fall back to __eq__
+            self._hash = 0
+
+    def __hash__(self):
+        return self._hash
+
+    def __eq__(self, other):
+        return self.obj == other
+
+    def __repr__(self):
+        return f"HashWrapper({repr(self.obj)})"
+
+
+def jit_with_static_mutables(
+    fn: Callable,
+    maxsize: int = 128,
+    static_mutable_argnames: Union[str, Iterable[str], None] = None,
+    **jit_kwargs,
+) -> Callable:
+    r"""A drop-in replacement for ``jax.jit`` that additionally allows mutable static arguments.
+
+    .. code-block::
+
+        from functools import partial
+        from qiskit_dynamics.solvers.solver_utils import jit_with_static_mutables
+        import numpy as np
+
+        # with jax.jit alone, the following would not be possible because dicts are mutable
+        @partial(jit_with_static_mutables, static_argnames="cls", static_mutable_argnames="kwargs")
+        def my_jit(arr, cls, kwargs: dict):
+            return arr
+
+        my_jit(np.array([1,2,3]), int, dict(foo=True))
+        my_jit(np.array([1,2,3]), int, dict(foo=True))
+        my_jit(np.array([1,2,3]), int, dict(foo=True))
+
+        # for mutable argnames, we get access to the same cache mechanisms as functools.lru_cache
+        print(my_jit.cache_info)
+
+    Args:
+        fn: The input function to JIT.
+        maxsize: The maximum size of the internal LRU cache for static mutable arguments.
+        static_mutable_argnames: One or more argument name of ``fn`` to treat as a static mutable.
+        jit_kwargs: Arguments to be forwarded to ``jax.jit``.
+
+    Returns:
+        A JITed callable with the same signature as ``fn``.
+
+    Raises:
+        ValueError: If one of the ``static_mutable_argnames`` is not in ``fn``s signature.
+    """
+    sig = inspect.signature(fn)
+    static_mutable_argnames = set(
+        [static_mutable_argnames]
+        if isinstance(static_mutable_argnames, str)
+        else static_mutable_argnames
+    )
+    if any(name not in sig.parameters for name in static_mutable_argnames):
+        raise ValueError(f"A name in {static_mutable_argnames} is not present in fn's signature.")
+
+    # we can lru_cache this function because its inputs are HashWrappers
+    @lru_cache(maxsize=maxsize)
+    def get_jit_fn(**mutable_args):
+        # unwrap the HashWrappers and pass them to the underlying function
+        mutable_args = {name: val.obj for name, val in mutable_args.items()}
+        fn_static = partial(fn, **mutable_args)
+        return jit(fn_static, **jit_kwargs)
+
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        # divide the arguments into static_mutable_argname ones, and all others
+        all_args = sig.bind(*args, **kwargs)
+        all_args.apply_defaults()
+        mutable_args = {}
+        static_args = {}
+        for name, arg in all_args.arguments.items():
+            if name in static_mutable_argnames:
+                mutable_args[name] = HashWrapper(arg)
+            else:
+                static_args[name] = arg
+        return get_jit_fn(**mutable_args)(**static_args)
+
+    # attach cache information to the output function in case it is helpful
+    wrapped.cache_info = get_jit_fn.cache_info
+    wrapped.cache_parameters = get_jit_fn.cache_parameters
+    wrapped.cache_clear = get_jit_fn.cache_clear
+
+    return wrapped

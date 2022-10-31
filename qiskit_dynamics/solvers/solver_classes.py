@@ -17,11 +17,10 @@ r"""
 Solver classes.
 """
 
-from typing import Iterable, Optional, Union, Tuple, Any, Type, List, Callable
+from typing import Optional, Union, Tuple, Any, Type, List, Callable
 
 from contextlib import contextmanager
-from functools import lru_cache, partial, wraps
-from inspect import signature
+from functools import partial
 import numpy as np
 
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
@@ -51,93 +50,9 @@ from .solver_functions import solve_lmde, _is_diffrax_method
 from .solver_utils import (
     is_lindblad_model_vectorized,
     is_lindblad_model_not_vectorized,
+    jit_with_static_mutables,
     setup_args_lists,
 )
-
-
-try:
-    from jax import jit
-except ImportError:
-
-    def jit(fn, **_):
-        """Dummy jit decorator when jax is not present."""
-        return fn
-
-
-class HashWrapper:
-    def __init__(self, obj):
-        self.obj = obj
-        try:
-            self._hash = hash(obj)
-        except TypeError:
-            # force hash collisions so that to fall back to equality
-            self._hash = 0
-
-    def __hash__(self):
-        return self._hash
-
-    def __eq__(self, other):
-        return self.obj == other
-
-    def __repr__(self):
-        return f"HashWrapper({repr(self.obj)})"
-
-
-def lru_cache_ext(maxsize=128, typed=False):
-    """Extends lru_cache to accept and cache unhashable arguments. This incurs a penalty of extra layers
-    of indirection in the cache for all arguments, and having a 100% rate of hash collision for
-    those arguments which are not hashable."""
-
-    def wrapper(fn):
-        @lru_cache(maxsize=maxsize, typed=typed)
-        def unpack(*args, **kwargs):
-            return fn(*(arg.obj for arg in args), **{kw: arg.obj for kw, arg in kwargs.items()})
-
-        @wraps(fn)
-        def pack(*args, **kwargs):
-            return unpack(
-                *map(HashWrapper, args), **{kw: HashWrapper(arg) for kw, arg in kwargs.items()}
-            )
-
-        pack.cache_info = unpack.cache_info
-        pack.cache_parameters = unpack.cache_parameters
-        pack.cache_clear = unpack.cache_clear
-
-        return pack
-
-    return wrapper
-
-
-def jit_with_static_mutables(
-    fn,
-    *,
-    maxsize: int = 128,
-    static_mutable_argnames: Union[str, Iterable[str], None] = None,
-    **jit_kwargs,
-):
-    sig = signature(fn)
-
-    @lru_cache(maxsize=maxsize)
-    def get_jit_fn(**mutable_args):
-        mutable_args = {name: val.obj for name, val in mutable_args.items()}
-        fn_static = partial(fn, **mutable_args)
-        return jit(fn_static, **jit_kwargs)
-
-    @wraps(fn)
-    def wrapped(*args, **kwargs):
-        """Divides the arguments into static-mutable ones and other ones, and invokes a JITed function
-        from the cache."""
-        all_args = sig.bind(*args, **kwargs).apply_defaults()
-        mutable_args = {}
-        static_args = {}
-        for name, arg in all_args.arguments.items():
-            if name in static_mutable_argnames:
-                mutable_args[name] = HashWrapper(arg)
-            else:
-                static_args[name] = arg
-        return get_jit_fn(**mutable_args)(**static_args)
-
-    return wrapped
 
 
 class Solver:
@@ -334,7 +249,6 @@ class Solver:
 
         # cache of which jit depths have been used so far
         self._jit_cache = set()
-        self._jit_sim = self._make_jit_sim_cache()
 
         if any([dt, channel_carrier_freqs, hamiltonian_channels, dissipator_channels]):
             all_channels = []
@@ -629,13 +543,15 @@ class Solver:
                     dts.append(signal.dt)
                     start_times.append(signal.start_time)
 
-                results_t, results_y = self._jit_sim(y0_cls, **kwargs)(
+                results_t, results_y = self._jit_sim(
                     Array(t_span).data,
                     Array(y0).data,
                     samples,
                     Array(dts).data,
                     Array(start_times).data,
                     Array(y0_input).data,
+                    y0_cls,
+                    kwargs,
                 )
                 results = OdeResult(t=results_t, y=Array(results_y, dtype=complex))
             else:
@@ -681,41 +597,36 @@ class Solver:
 
         return len(self._all_channels), duration
 
-    def _make_jit_sim_cache(self, maxsize=128):
-        """"""
-
-        @lru_cache_ext(maxsize=maxsize)
-        def _jit_sim_wrapper(y_cls, **kwargs):
-            @jit
-            def _jit_sim(t_span, y0, all_samples, dts, start_times, y_input):
-                # re-construct signals from the samples
-                signals = []
-                for idx, (samples, dt, start_time) in enumerate(zip(all_samples, dts, start_times)):
-                    carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
-                    signals.append(
-                        DiscreteSignal(
-                            samples=samples, dt=dt, start_time=start_time, carrier_freq=carrier_freq
-                        )
-                    )
-
-                # map signals to correct structure for model
-                signals = organize_signals_to_channels(
-                    signals,
-                    self._all_channels,
-                    self.model.__class__,
-                    self._hamiltonian_channels,
-                    self._dissipator_channels,
+    @partial(
+        jit_with_static_mutables,
+        static_argnames=["self", "y_cls"],
+        static_mutable_argnames=["kwargs"],
+    )
+    def _jit_sim(self, t_span, y0, all_samples, dts, start_times, y_input, y_cls, kwargs):
+        # re-construct signals from the samples
+        signals = []
+        for idx, (samples, dt, start_time) in enumerate(zip(all_samples, dts, start_times)):
+            carrier_freq = self._channel_carrier_freqs[self._all_channels[idx]]
+            signals.append(
+                DiscreteSignal(
+                    samples=samples, dt=dt, start_time=start_time, carrier_freq=carrier_freq
                 )
+            )
 
-                with self.signal_assignment(signals):
-                    results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
-                    results.y = format_final_states(results.y, self.model, y_input, y_cls)
+        # map signals to correct structure for model
+        signals = organize_signals_to_channels(
+            signals,
+            self._all_channels,
+            self.model.__class__,
+            self._hamiltonian_channels,
+            self._dissipator_channels,
+        )
 
-                return Array(results.t).data, Array(results.y).data
+        with self.signal_assignment(signals):
+            results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+            results.y = format_final_states(results.y, self.model, y_input, y_cls)
 
-            return _jit_sim
-
-        return _jit_sim_wrapper
+        return Array(results.t).data, Array(results.y).data
 
     def _schedule_to_signals(self, schedule: Union[List[Signal], Schedule]):
         """Convert a schedule into the signal format required by the model."""
