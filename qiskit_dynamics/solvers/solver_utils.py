@@ -289,7 +289,7 @@ def jit_with_static_mutables(
         my_jit(np.array([1,2,3]), int, dict(foo=True))
 
         # for mutable argnames, we get access to the same cache mechanisms as functools.lru_cache
-        print(my_jit.cache_info)
+        print(my_jit.cache_info()))
 
     Args:
         fn: The input function to JIT.
