@@ -207,26 +207,10 @@ class PulseSimulator(BackendV2):
         if initial_state == "ground_state":
             initial_state = Statevector(backend._dressed_states[:, 0])
 
-        schedules = _to_schedule_list(run_input, backend=self)
+        schedules, schedules_memslot_nums = _to_schedule_list(run_input, backend=self)
 
         # get the acquires instructions and simulation times
-        # To do: also record memory slots
-        t_span = []
-        measurement_subsystems_list = []
-        for schedule in schedules:
-            schedule_acquires = []
-            schedule_acquire_times = []
-            for start_time, inst in schedule.instructions:
-                if isinstance(inst, pulse.Acquire):
-                    schedule_acquires.append(inst)
-                    schedule_acquire_times.append(start_time)
-
-            # maybe need to validate more here
-            _validate_acquires(schedule_acquire_times, schedule_acquires)
-
-            t_span.append([0, schedule_acquire_times[0]])
-            measurement_subsystems_list.append([inst.channel.index for inst in schedule_acquires])
-            measurement_subsystems_list[-1].sort()
+        t_span, measurement_subsystems_list, memory_slots_list = _get_acquire_data(schedules, self.options.subsystem_labels)
 
         # Build and submit job
         job_id = str(uuid.uuid4())
@@ -242,6 +226,8 @@ class PulseSimulator(BackendV2):
                 "measurement_subsystems_list": measurement_subsystems_list,
                 "normalize_states": backend.options.normalize_states,
                 "shots": backend.options.shots,
+                "schedules_memslot_nums": schedules_memslot_nums,
+                "memory_slots_list": memory_slots_list
             },
         )
         dynamics_job.submit()
@@ -258,29 +244,13 @@ class PulseSimulator(BackendV2):
         normalize_states,
         measurement_subsystems_list,
         shots,
+        schedules_memslot_nums,
+        memory_slots_list
     ) -> Result:
         """Not sure here what the right delineation of arguments is to put in _run.
         This feels somewhat hacky/arbitrary.
         """
         start = time.time()
-        subsystem_dims = self.options.subsystem_dims or [self.options.solver.model.dim]
-        subsystem_labels = self.options.subsystem_labels or list(range(len(subsystem_dims)))
-
-        # map measurement subsystems from labels to correct index
-        if subsystem_labels:
-            new_measurement_subsystems_list = []
-            for measurement_subsystems in measurement_subsystems_list:
-                new_measurement_subsystems = []
-                for subsystem in measurement_subsystems:
-                    if subsystem in subsystem_labels:
-                        new_measurement_subsystems.append(subsystem_labels.index(subsystem))
-                    else:
-                        raise QiskitError(
-                            f"Attempted to measure subsystem {subsystem}, but it is not in subsystem_list."
-                        )
-                new_measurement_subsystems_list.append(new_measurement_subsystems)
-
-            measurement_subsystems_list = new_measurement_subsystems_list
 
         solver_results = self.options.solver.solve(
             t_span=t_span, y0=y0, signals=schedules, **solver_options
@@ -290,8 +260,8 @@ class PulseSimulator(BackendV2):
         ##############################################################################################
         # Change to if statement depending on types of outputs, e.g. counts vs IQ data
         outputs = []
-        for ts, result, measurement_subsystems in zip(
-            t_span, solver_results, measurement_subsystems_list
+        for ts, result, measurement_subsystems, memory_slots, num_memory_slots in zip(
+            t_span, solver_results, measurement_subsystems_list, memory_slots_list, schedules_memslot_nums
         ):
             yf = result.y[-1]
 
@@ -301,7 +271,7 @@ class PulseSimulator(BackendV2):
                     self.options.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf)
                 )
                 yf = self._dressed_states_adjoint @ yf
-                yf = Statevector(yf, dims=subsystem_dims)
+                yf = Statevector(yf, dims=self.options.subsystem_dims)
 
                 if normalize_states:
                     yf = yf / np.linalg.norm(yf.data)
@@ -310,12 +280,22 @@ class PulseSimulator(BackendV2):
                     self.options.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], y=yf)
                 )
                 yf = self._dressed_states_adjoint @ yf @ self.dressed_states
-                yf = DensityMatrix(yf, dims=subsystem_dims)
+                yf = DensityMatrix(yf, dims=self.options.subsystem_dims)
 
                 if normalize_states:
                     yf = yf / np.diag(yf.data).sum()
 
-            outputs.append({"counts": yf.sample_counts(shots=shots, qargs=measurement_subsystems)})
+            outputs.append({"counts":
+                _sample_counts(
+                    yf,
+                    shots,
+                    self.options.subsystem_labels,
+                    measurement_subsystems,
+                    memory_slots,
+                    num_memory_slots
+                )
+            })
+            #outputs.append({"counts": yf.sample_counts(shots=shots, qargs=measurement_subsystems)})
 
         results_list = []
         for schedule, output in zip(schedules, outputs):
@@ -355,37 +335,108 @@ def _validate_run_input(run_input, accept_list=True):
         raise QiskitError(f"Input type {type(run_input)} not supported by PulseSimulator.run.")
 
 
-#######################################################################################################
-# this should be rolled into _validate_run_input?
-def _validate_acquires(schedule_acquire_times, schedule_acquires):
-    """Validate the acquire instructions.
-    For now, make sure all acquires happen at one time.
+def _get_acquire_data(schedules, valid_subsystem_labels):
+    """Get the required data from the acquire commands in each schedule.
+
+    Additionally validates that each schedule has acquire instructions occuring at one time,
+    at least one memory slot is being listed, and all measured subsystems exist in
+    subsystem_labels.
     """
+    t_span_list = []
+    measurement_subsystems_list = []
+    memory_slots_list = []
+    for schedule in schedules:
+        schedule_acquires = []
+        schedule_acquire_times = []
+        for start_time, inst in schedule.instructions:
+            # only track acquires saving in a memory slot
+            if isinstance(inst, pulse.Acquire) and inst.mem_slot is not None:
+                schedule_acquires.append(inst)
+                schedule_acquire_times.append(start_time)
 
-    if len(schedule_acquire_times) == 0:
-        raise QiskitError("At least one measurement must be present in each schedule.")
+        # validate
+        if len(schedule_acquire_times) == 0:
+            raise QiskitError("At least one measurement must be present in each schedule.")
 
-    start_time = schedule_acquire_times[0]
-    for time in schedule_acquire_times[1:]:
-        if time != start_time:
-            raise QiskitError("PulseSimulator.run only supports measurements at one time.")
+        start_time = schedule_acquire_times[0]
+        for time in schedule_acquire_times[1:]:
+            if time != start_time:
+                raise QiskitError("PulseSimulator.run only supports measurements at one time.")
+
+        t_span_list.append([0, schedule_acquire_times[0]])
+        measurement_subsystems = []
+        memory_slots = []
+        for inst in schedule_acquires:
+            if inst.channel.index in valid_subsystem_labels:
+                measurement_subsystems.append(inst.channel.index)
+            else:
+                raise QiskitError(
+                    f"Attempted to measure subsystem {inst.channel.index}, but it is not in subsystem_list."
+                )
+
+            memory_slots.append(inst.mem_slot.index)
+
+        measurement_subsystems_list.append(measurement_subsystems)
+        memory_slots_list.append(memory_slots)
+
+    return t_span_list, measurement_subsystems_list, memory_slots_list
 
 
 def _to_schedule_list(
     run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
     backend: BackendV2
 ):
+    """Convert all inputs to schedules, and store the number of classical registers present
+    in any circuits.
+    """
     if not isinstance(run_input, list):
         run_input = [run_input]
 
     schedules = []
+    num_memslots = []
     for sched in run_input:
+        num_memslots.append(None)
         if isinstance(sched, ScheduleBlock):
             schedules.append(block_to_schedule(sched))
         elif isinstance(sched, Schedule):
             schedules.append(sched)
         elif isinstance(sched, QuantumCircuit):
+            num_memslots[-1] = sched.cregs[0].size
             schedules.append(build_schedule(sched, backend))
         else:
             raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
-    return schedules
+    return schedules, num_memslots
+
+
+def _sample_counts(
+    y: Union[Statevector, DensityMatrix],
+    shots: int,
+    subsystem_labels: List[int],
+    measurement_subsystems: List[int],
+    memory_slots: List[int],
+    num_memory_slots: Optional[int] = None):
+    """Sample counts from the state y, storing the results in the correct memory slots.
+
+    Assumes every element of measurement_subsystems is in subsystem_labels, and that
+    num_memory_slots >= max(memory_slots) + 1.
+    """
+
+    # map measurement_subsystems from subsystem_labels to subsystem location
+    measurement_subsystems = [subsystem_labels.index(x) for x in measurement_subsystems]
+
+    # compute counts indexed by subsystem location
+    counts = y.sample_counts(shots=shots, qargs=measurement_subsystems)
+
+    # store count results in correct memory slots format
+    num_memory_slots = num_memory_slots or (max(memory_slots) + 1)
+
+    memory_slot_counts = {}
+    for meas_result, count in counts.items():
+        memory_slot_result = ['0'] * num_memory_slots
+
+        for idx, res in zip(memory_slots, meas_result):
+            memory_slot_result[-(idx + 1)] = res
+
+        memory_slot_counts["".join(memory_slot_result)] = count
+
+    return memory_slot_counts
