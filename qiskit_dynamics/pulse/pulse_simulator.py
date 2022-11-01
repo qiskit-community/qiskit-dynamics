@@ -101,18 +101,19 @@ class PulseSimulator(BackendV2):
         # TODO: We should have a default configuration of a target if
         # none is provided, and a modification of a provided one to change any
         # simulator specific attrbiutes to make it compatible
+        # ********************************************************************************************
+        # Note: self._target = target or Target() doesn't work as bool(target) is False
         if target is None:
             target = Target()
 
         self._target = target
-        
+
         # add default simulator measure instructions
-        # TODO: what register/memory slots?
         instruction_schedule_map = self.target.instruction_schedule_map()
         for qubit in self.options.subsystem_labels:
             if not instruction_schedule_map.has(instruction='measure', qubits=0):
                 with pulse.build() as meas_sched:
-                    pulse.acquire(duration=1, qubit_or_channel=qubit, register=pulse.RegisterSlot(0))
+                    pulse.acquire(duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(0))
 
             instruction_schedule_map.add(instruction='measure', qubits=0, schedule=meas_sched)
 
@@ -206,10 +207,10 @@ class PulseSimulator(BackendV2):
         if initial_state == "ground_state":
             initial_state = Statevector(backend._dressed_states[:, 0])
 
-        # to do: add handling of circuits
         schedules = _to_schedule_list(run_input, backend=self)
 
         # get the acquires instructions and simulation times
+        # To do: also record memory slots
         t_span = []
         measurement_subsystems_list = []
         for schedule in schedules:
