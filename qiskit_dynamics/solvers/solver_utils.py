@@ -295,7 +295,7 @@ def jit_with_static_mutables(
         fn: The input function to JIT.
         maxsize: The maximum size of the internal LRU cache for static mutable arguments.
         static_mutable_argnames: One or more argument name of ``fn`` to treat as a static mutable.
-        jit_kwargs: Arguments to be forwarded to ``jax.jit``.
+        **jit_kwargs: Arguments to be forwarded to ``jax.jit``.
 
     Returns:
         A JITed callable with the same signature as ``fn``.

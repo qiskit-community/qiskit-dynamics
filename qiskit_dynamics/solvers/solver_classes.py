@@ -173,10 +173,11 @@ class Solver:
     type handling operations for :mod:`qiskit.quantum_info` state and super operator types.
     """
     _JIT_MIN_PADDING_FRAC = 0.2
-    """Smallest allowed maximum duration of a schedule list to allow ``_jit_cache`` fetching. This is 
-    used to limit excessive zero-padding. For example, if the longest schedule in a schedule list is 100 
-    and the ``_jit_cache`` contains entries at 50 and 10000, then neither would be fetched because 
-    the former is smaller than 100, and the latter is greater than `_JIT_MIN_PADDING_FRAC * 10000``."""
+    """Smallest allowed maximum duration of a schedule list to allow ``_jit_cache`` fetching. This
+    is used to limit excessive zero-padding. For example, if the longest schedule in a schedule list
+    is 100 and the ``_jit_cache`` contains entries at 50 and 10000, then neither would be fetched
+    because the former is smaller than 100, and the latter is greater than 
+    ``_JIT_MIN_PADDING_FRAC * 10000``."""
 
     _JIT_DURATION_PADDING = 1.5
     """By how much to pad new entries in the ``_jit_cache``."""
@@ -513,13 +514,13 @@ class Solver:
 
         # turn any present schedules into signals and find longest DiscreteSignal
         max_samples = 0
-        for idx, signals in enumerate(signals_list):
-            if isinstance(signals, ScheduleBlock):
-                signals = block_to_schedule(signals)
-            if isinstance(signals, Schedule):
-                signals_list[idx] = signals = self._schedule_converter.get_signals(signals)
-            if all(isinstance(signal, DiscreteSignal) for signal in signals):
-                max_samples = max(max_samples, max(signal.duration for signal in signals))
+        for idx, sigs in enumerate(signals_list):
+            if isinstance(sigs, ScheduleBlock):
+                signals = block_to_schedule(sigs)
+            if isinstance(sigs, Schedule):
+                signals_list[idx] = sigs = self._schedule_converter.get_signals(sigs)
+            if all(isinstance(signal, DiscreteSignal) for signal in sigs):
+                max_samples = max(max_samples, max(signal.duration for signal in sigs))
 
         # decide on whether jax compilation is a possibility
         method = kwargs.get("method", "")
@@ -527,25 +528,25 @@ class Solver:
         can_jit_compile &= method == "jax_odeint" or _is_diffrax_method(method)
 
         all_results = []
-        for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
+        for t_span_elem, y0_elem, sigs in zip(t_span_list, y0_list, signals_list):
             # setup initial state
             y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
                 y0, self.model
             )
 
             results = None
-            if can_jit_compile and all(isinstance(signal, DiscreteSignal) for signal in signals):
+            if can_jit_compile and all(isinstance(signal, DiscreteSignal) for signal in sigs):
                 samples = np.zeros(self._jit_shape(max_samples), dtype=complex)
                 dts = []
                 start_times = []
-                for idx, signal in enumerate(signals):
+                for idx, signal in enumerate(sigs):
                     samples[idx, : signal.duration] = signal.samples
                     dts.append(signal.dt)
                     start_times.append(signal.start_time)
 
                 results_t, results_y = self._jit_sim(
-                    Array(t_span).data,
-                    Array(y0).data,
+                    Array(t_span_elem).data,
+                    Array(y0_elem).data,
                     samples,
                     Array(dts).data,
                     Array(start_times).data,
@@ -555,8 +556,10 @@ class Solver:
                 )
                 results = OdeResult(t=results_t, y=Array(results_y, dtype=complex))
             else:
-                with self.signal_assignment(signals):
-                    results = solve_lmde(generator=self.model, t_span=t_span, y0=y0, **kwargs)
+                with self.signal_assignment(sigs):
+                    results = solve_lmde(
+                        generator=self.model, t_span=t_span_elem, y0=y0_elem, **kwargs
+                    )
                     results.y = format_final_states(results.y, self.model, y0_input, y0_cls)
 
             if y0_cls is not None and convert_results:
