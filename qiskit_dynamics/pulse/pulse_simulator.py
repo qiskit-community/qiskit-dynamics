@@ -21,6 +21,8 @@ import copy
 import numpy as np
 
 from qiskit import pulse
+from qiskit.qobj.utils import MeasLevel
+from qiskit.qobj.common import QobjHeader
 from qiskit.transpiler import Target
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.channels import AcquireChannel, DriveChannel, MeasureChannel, ControlChannel
@@ -28,6 +30,7 @@ from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit.providers.options import Options
 from qiskit.providers.backend import BackendV2
 from qiskit.result import Result
+from qiskit.result.models import ExperimentResult, ExperimentResultData
 
 from qiskit import QiskitError, QuantumCircuit
 from qiskit import schedule as build_schedule
@@ -128,6 +131,9 @@ class PulseSimulator(BackendV2):
             meas_map=None,
             normalize_states=True,
             initial_state="ground_state",
+            meas_level=MeasLevel.CLASSIFIED,
+            memory=True,
+            seed_simulator=None
         )
 
     def set_options(self, **fields):
@@ -220,12 +226,8 @@ class PulseSimulator(BackendV2):
             fn=backend._run,
             fn_kwargs={
                 "t_span": t_span,
-                "y0": initial_state,
                 "schedules": schedules,
-                "solver_options": backend.options.solver_options,
                 "measurement_subsystems_list": measurement_subsystems_list,
-                "normalize_states": backend.options.normalize_states,
-                "shots": backend.options.shots,
                 "schedules_memslot_nums": schedules_memslot_nums,
                 "memory_slot_indices_list": memory_slot_indices_list
             },
@@ -238,12 +240,8 @@ class PulseSimulator(BackendV2):
         self,
         job_id,
         t_span,
-        y0,
         schedules,
-        solver_options,
-        normalize_states,
         measurement_subsystems_list,
-        shots,
         schedules_memslot_nums,
         memory_slot_indices_list
     ) -> Result:
@@ -252,16 +250,25 @@ class PulseSimulator(BackendV2):
         """
         start = time.time()
 
+        y0 = self.options.initial_state
+        if y0 == "ground_state":
+            y0 = Statevector(self._dressed_states[:, 0])
+
         solver_results = self.options.solver.solve(
-            t_span=t_span, y0=y0, signals=schedules, **solver_options
+            t_span=t_span, y0=y0, signals=schedules, **self.options.solver_options
         )
+
+        schedule_names = [schedule.name for schedule in schedules]
+
+        # build random number generator for count sampling
+        rng = np.random.default_rng(self.options.seed_simulator)
 
         # construct counts for each experiment
         ##############################################################################################
         # Change to if statement depending on types of outputs, e.g. counts vs IQ data
-        outputs = []
-        for ts, result, measurement_subsystems, memory_slot_indices, num_memory_slots in zip(
-            t_span, solver_results, measurement_subsystems_list, memory_slot_indices_list, schedules_memslot_nums
+        experiment_results = []
+        for ts, result, measurement_subsystems, memory_slot_indices, num_memory_slots, schedule_name in zip(
+            t_span, solver_results, measurement_subsystems_list, memory_slot_indices_list, schedules_memslot_nums, schedule_names
         ):
             yf = result.y[-1]
 
@@ -273,7 +280,7 @@ class PulseSimulator(BackendV2):
                 yf = self._dressed_states_adjoint @ yf
                 yf = Statevector(yf, dims=self.options.subsystem_dims)
 
-                if normalize_states:
+                if self.options.normalize_states:
                     yf = yf / np.linalg.norm(yf.data)
             elif isinstance(yf, DensityMatrix):
                 yf = np.array(
@@ -286,37 +293,47 @@ class PulseSimulator(BackendV2):
                     yf = yf / np.diag(yf.data).sum()
 
 
-            #############################################################################################
-            # to do: add some meas_level handling
+            # construct experiment results
+            if self.options.meas_level == MeasLevel.CLASSIFIED:
 
-            # compute memory slot outcome probabilities
-            # to do: add handling of max_outcome_value based on meas_level
-            measurement_subsystems = [self.options.subsystem_labels.index(x) for x in measurement_subsystems]
-            memory_slot_probabilities = _get_memory_slot_probabilities(
-                probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
-                memory_slot_indices=memory_slot_indices,
-                num_memory_slots=num_memory_slots
-            )
-
-            # to do: add seed passing
-            memory_samples = _sample_probability_dict(memory_slot_probabilities, shots=shots)
-            outputs.append({"counts": _get_counts_from_samples(memory_samples)})
-
-        results_list = []
-        for schedule, output in zip(schedules, outputs):
-            results_list.append(
-                Result(
-                    backend_name=self.name,
-                    backend_version=self.backend_version,
-                    qobj_id=None,  # Should we subclass result or something because qobj_id doesn't exist?
-                    job_id=job_id,
-                    success=True,
-                    results=output,
-                    date=datetime.datetime.now().isoformat(),
+                # compute probabilities for measurement slot values
+                measurement_subsystems = [self.options.subsystem_labels.index(x) for x in measurement_subsystems]
+                memory_slot_probabilities = _get_memory_slot_probabilities(
+                    probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
+                    memory_slot_indices=memory_slot_indices,
+                    num_memory_slots=num_memory_slots,
+                    max_outcome_value=1
                 )
-            )
 
-        return results_list
+                # sample
+                seed = rng.integers(low=0, high=9223372036854775807)
+                memory_samples = _sample_probability_dict(memory_slot_probabilities, shots=self.options.shots, seed=seed)
+                counts = _get_counts_from_samples(memory_samples)
+
+                exp_data = ExperimentResultData(
+                    counts=counts,
+                    memory=memory_samples if self.options.memory else None
+                )
+                experiment_results.append(ExperimentResult(
+                    shots=self.options.shots,
+                    success=True,
+                    data=exp_data,
+                    meas_level=MeasLevel.CLASSIFIED,
+                    seed=seed,
+                    header=QobjHeader(name=schedule_name)
+                ))
+            else:
+                raise QiskitError(f"Only meas_level=={MeasLevel.CLASSIFIED} is supported by PulseSimulator.")
+
+        return Result(
+            backend_name=self.name,
+            backend_version=self.backend_version,
+            qobj_id="",
+            job_id=job_id,
+            success=True,
+            results=experiment_results,
+            date=datetime.datetime.now().isoformat()
+        )
 
     def max_circuits(self):
         return None
