@@ -17,9 +17,11 @@
 Tests to convert from pulse schedules to signals.
 """
 
+from functools import partial
 import numpy as np
 
 from qiskit_dynamics.solvers.solver_utils import (
+    jit_with_static_mutables,
     merge_t_args,
     trim_t_results,
     merge_t_args_jax,
@@ -210,3 +212,51 @@ class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
 
         self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0]))
         self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5]]))
+
+
+class TestJitWithStaticMutables(QiskitDynamicsTestCase):
+    """
+    Tests the ``jit_with_static_mutables`` decorator function.
+    """
+
+    def test_cache(self):
+        """Test that lru_cache mechanics are working."""
+        # with jax.jit alone, the following would not be possible because dicts are mutable
+        @partial(jit_with_static_mutables, static_argnames="cls", static_mutable_argnames="kwargs")
+        def my_jit(arr, cls, kwargs):
+            mult = 1 if cls is int else 2
+            mult *= 2 if kwargs["a"] else 1
+            return mult * arr
+
+        self.assertAllClose(my_jit(np.array([1, 2, 3]), int, dict(a=True)), [2, 4, 6])
+        self.assertEqual(tuple(my_jit.cache_info()), (0, 1, 128, 1))
+        self.assertAllClose(my_jit(np.array([1, 2, 3]), float, dict(a=True)), [4, 8, 12])
+        self.assertEqual(tuple(my_jit.cache_info()), (1, 1, 128, 1))
+        self.assertAllClose(my_jit(np.array([1, 2, 3]), int, dict(a=True)), [2, 4, 6])
+        self.assertEqual(tuple(my_jit.cache_info()), (2, 1, 128, 1))
+
+        self.assertAllClose(my_jit(np.array([1, 2, 3]), float, dict(a=False)), [2, 4, 6])
+        self.assertEqual(tuple(my_jit.cache_info()), (2, 2, 128, 2))
+        self.assertAllClose(my_jit(np.array([1, 2, 3]), int, dict(a=False)), [1, 2, 3])
+        self.assertEqual(tuple(my_jit.cache_info()), (3, 2, 128, 2))
+        self.assertAllClose(my_jit(np.array([1, 2, 3]), int, dict(a=False)), [1, 2, 3])
+        self.assertEqual(tuple(my_jit.cache_info()), (4, 2, 128, 2))
+
+        my_jit.cache_clear()
+        self.assertEqual(tuple(my_jit.cache_info()), (0, 0, 128, 0))
+
+    def test_static_mutable_argnames(self):
+        """Test that static_mutable_argnames accepts values as expected."""
+
+        def my_jit(arr, a, b, c):  # pylint: disable=unused-argument,invalid-name
+            return arr
+
+        jit_with_static_mutables(my_jit)
+        jit_with_static_mutables(my_jit, static_mutable_argnames="a")
+        jit_with_static_mutables(my_jit, static_mutable_argnames=["a", "c"])
+
+        with self.assertRaisesRegex(ValueError, "is not present"):
+            jit_with_static_mutables(my_jit, static_mutable_argnames="d")
+
+        with self.assertRaisesRegex(ValueError, "is not present"):
+            jit_with_static_mutables(my_jit, static_mutable_argnames=["a", "d"])

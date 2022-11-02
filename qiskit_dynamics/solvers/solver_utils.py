@@ -268,7 +268,7 @@ class HashWrapper:
 def jit_with_static_mutables(
     fn: Callable,
     maxsize: int = 128,
-    static_mutable_argnames: Union[str, Iterable[str], None] = None,
+    static_mutable_argnames: Union[str, Iterable[str], None] = (),
     **jit_kwargs,
 ) -> Callable:
     r"""A drop-in replacement for ``jax.jit`` that additionally allows mutable static arguments.
@@ -289,7 +289,7 @@ def jit_with_static_mutables(
         my_jit(np.array([1,2,3]), int, dict(foo=True))
 
         # for mutable argnames, we get access to the same cache mechanisms as functools.lru_cache
-        print(my_jit.cache_info()))
+        print(my_jit.cache_info())
 
     Args:
         fn: The input function to JIT.
