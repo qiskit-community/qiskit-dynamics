@@ -263,9 +263,7 @@ class PulseSimulator(BackendV2):
         # build random number generator for count sampling
         rng = np.random.default_rng(self.options.seed_simulator)
 
-        # construct counts for each experiment
-        ##############################################################################################
-        # Change to if statement depending on types of outputs, e.g. counts vs IQ data
+        # construct outputs for each experiment
         experiment_results = []
         for ts, result, measurement_subsystems, memory_slot_indices, num_memory_slots, schedule_name in zip(
             t_span, solver_results, measurement_subsystems_list, memory_slot_indices_list, schedules_memslot_nums, schedule_names
@@ -314,14 +312,16 @@ class PulseSimulator(BackendV2):
                     counts=counts,
                     memory=memory_samples if self.options.memory else None
                 )
-                experiment_results.append(ExperimentResult(
-                    shots=self.options.shots,
-                    success=True,
-                    data=exp_data,
-                    meas_level=MeasLevel.CLASSIFIED,
-                    seed=seed,
-                    header=QobjHeader(name=schedule_name)
-                ))
+                experiment_results.append(
+                    ExperimentResult(
+                        shots=self.options.shots,
+                        success=True,
+                        data=exp_data,
+                        meas_level=MeasLevel.CLASSIFIED,
+                        seed=seed,
+                        header=QobjHeader(name=schedule_name)
+                    )
+                )
             else:
                 raise QiskitError(f"Only meas_level=={MeasLevel.CLASSIFIED} is supported by PulseSimulator.")
 
