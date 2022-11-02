@@ -19,6 +19,9 @@ from typing import Optional, Union, List, Dict
 
 import numpy as np
 from qiskit import QiskitError
+from qiskit.result.counts import Counts
+from qiskit.quantum_info.states.quantum_state import QuantumState
+
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 
@@ -93,3 +96,70 @@ def _get_lab_frame_static_hamiltonian(model: Union[HamiltonianModel, LindbladMod
     )
 
     return np.array(Array(static_hamiltonian).data)
+
+
+def _get_memory_slot_probabilities(
+    probability_dict: Dict,
+    memory_slot_indices: List[int],
+    num_memory_slots: Optional[int] = None,
+    max_outcome_value: Optional[int] = None
+) -> Dict:
+    """Construct probability dictionary for memory slot outcomes from a probability dictionary for
+    state level measurement outcomes.
+
+    Args:
+        probability_dict: A list of probabilities for the otucomes of state measurement. Keys
+            are assumed to all be strings of integers of the same length.
+        memory_slot_indices: Indices of which memory slots storing the digits of the keys of
+            probability_dict.
+        num_memory_slots: Total number of memory slots for results. If None,
+            defaults to the maximum index in memory_slot_indices. The default value of unused
+            memory slots is 0.
+        max_outcome_value: Maximum value that can be stored in a memory slot. All outcomes higher
+            than this will be rounded down.
+    Returns:
+        Dict: Keys are memory slot outcomes, values are the probabilities of those outcomes.
+    """
+    num_memory_slots = num_memory_slots or (max(memory_slot_indices) + 1)
+    memory_slot_probs = {}
+    for level_str, prob in probability_dict.items():
+        memory_slot_result = ['0'] * num_memory_slots
+
+        for idx, level in zip(memory_slot_indices, reversed(level_str)):
+            if max_outcome_value and int(level) > max_outcome_value:
+                level = str(max_outcome_value)
+            memory_slot_result[-(idx + 1)] = level
+
+        memory_slot_result = "".join(memory_slot_result)
+        if memory_slot_result in memory_slot_probs:
+            memory_slot_probs[memory_slot_result] += prob
+        else:
+            memory_slot_probs[memory_slot_result] = prob
+
+    return memory_slot_probs
+
+
+def _sample_probability_dict(
+    probability_dict: Dict,
+    shots: int,
+    seed: Optional[int] = None
+) -> List[str]:
+    """Sample outcomes based on probability dictionary.
+
+    Args:
+        probability_dict: The probability dictionary, with keys being outcomes, values being
+                          probabilities.
+        shots: Number of shots.
+        seed: Seed to use in rng construction.
+
+    Return:
+        List: of entries of probability_dict, sampled according to the probabilities.
+    """
+    rng = np.random.default_rng(seed=seed)
+    alphabet, probs = zip(*probability_dict.items())
+    return rng.choice(alphabet, size=shots, replace=True, p=probs)
+
+
+def _get_counts_from_samples(samples: list) -> Counts:
+    """Count items in list."""
+    return Counts(zip(*np.unique(samples, return_counts=True)), memory_slots=len(samples[0]))

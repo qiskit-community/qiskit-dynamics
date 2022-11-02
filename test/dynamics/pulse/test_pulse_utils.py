@@ -17,9 +17,10 @@ from ddt import ddt, data, unpack
 import numpy as np
 
 from qiskit import QiskitError
+from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
-from qiskit_dynamics.pulse.pulse_utils import _get_dressed_state_decomposition, _get_lab_frame_static_hamiltonian
+from qiskit_dynamics.pulse.pulse_utils import _get_dressed_state_decomposition, _get_lab_frame_static_hamiltonian, _sample_counts
 from ..common import QiskitDynamicsTestCase
 
 
@@ -119,3 +120,12 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, np.zeros((2, 2)))
+
+
+class TestSampleCounts(QiskitDynamicsTestCase):
+    """Test the _sample_counts method."""
+
+    def test_basic_case(self):
+        """Test a basic case."""
+
+        y = Statevector(np.sqrt([0.0, 0.1, 0.2, 0.3, 0.4, 0.0, 0.0, 0.0]), dims=[2, 2, 2])

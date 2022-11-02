@@ -38,7 +38,7 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel
 
 from .dynamics_job import DynamicsJob
-from .pulse_utils import _get_dressed_state_decomposition, _get_lab_frame_static_hamiltonian
+from .pulse_utils import _get_dressed_state_decomposition, _get_lab_frame_static_hamiltonian, _get_memory_slot_probabilities, _sample_probability_dict, _get_counts_from_samples
 
 
 class PulseSimulator(BackendV2):
@@ -210,7 +210,7 @@ class PulseSimulator(BackendV2):
         schedules, schedules_memslot_nums = _to_schedule_list(run_input, backend=self)
 
         # get the acquires instructions and simulation times
-        t_span, measurement_subsystems_list, memory_slots_list = _get_acquire_data(schedules, self.options.subsystem_labels)
+        t_span, measurement_subsystems_list, memory_slot_indices_list = _get_acquire_data(schedules, self.options.subsystem_labels)
 
         # Build and submit job
         job_id = str(uuid.uuid4())
@@ -227,7 +227,7 @@ class PulseSimulator(BackendV2):
                 "normalize_states": backend.options.normalize_states,
                 "shots": backend.options.shots,
                 "schedules_memslot_nums": schedules_memslot_nums,
-                "memory_slots_list": memory_slots_list
+                "memory_slot_indices_list": memory_slot_indices_list
             },
         )
         dynamics_job.submit()
@@ -245,7 +245,7 @@ class PulseSimulator(BackendV2):
         measurement_subsystems_list,
         shots,
         schedules_memslot_nums,
-        memory_slots_list
+        memory_slot_indices_list
     ) -> Result:
         """Not sure here what the right delineation of arguments is to put in _run.
         This feels somewhat hacky/arbitrary.
@@ -260,8 +260,8 @@ class PulseSimulator(BackendV2):
         ##############################################################################################
         # Change to if statement depending on types of outputs, e.g. counts vs IQ data
         outputs = []
-        for ts, result, measurement_subsystems, memory_slots, num_memory_slots in zip(
-            t_span, solver_results, measurement_subsystems_list, memory_slots_list, schedules_memslot_nums
+        for ts, result, measurement_subsystems, memory_slot_indices, num_memory_slots in zip(
+            t_span, solver_results, measurement_subsystems_list, memory_slot_indices_list, schedules_memslot_nums
         ):
             yf = result.y[-1]
 
@@ -285,17 +285,22 @@ class PulseSimulator(BackendV2):
                 if normalize_states:
                     yf = yf / np.diag(yf.data).sum()
 
-            outputs.append({"counts":
-                _sample_counts(
-                    yf,
-                    shots,
-                    self.options.subsystem_labels,
-                    measurement_subsystems,
-                    memory_slots,
-                    num_memory_slots
-                )
-            })
-            #outputs.append({"counts": yf.sample_counts(shots=shots, qargs=measurement_subsystems)})
+
+            #############################################################################################
+            # to do: add some meas_level handling
+
+            # compute memory slot outcome probabilities
+            # to do: add handling of max_outcome_value based on meas_level
+            measurement_subsystems = [self.options.subsystem_labels.index(x) for x in measurement_subsystems]
+            memory_slot_probabilities = _get_memory_slot_probabilities(
+                probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
+                memory_slot_indices=memory_slot_indices,
+                num_memory_slots=num_memory_slots
+            )
+
+            # to do: add seed passing
+            memory_samples = _sample_probability_dict(memory_slot_probabilities, shots=shots)
+            outputs.append({"counts": _get_counts_from_samples(memory_samples)})
 
         results_list = []
         for schedule, output in zip(schedules, outputs):
@@ -344,7 +349,7 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
     """
     t_span_list = []
     measurement_subsystems_list = []
-    memory_slots_list = []
+    memory_slot_indices_list = []
     for schedule in schedules:
         schedule_acquires = []
         schedule_acquire_times = []
@@ -365,7 +370,7 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
 
         t_span_list.append([0, schedule_acquire_times[0]])
         measurement_subsystems = []
-        memory_slots = []
+        memory_slot_indices = []
         for inst in schedule_acquires:
             if inst.channel.index in valid_subsystem_labels:
                 measurement_subsystems.append(inst.channel.index)
@@ -374,12 +379,12 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
                     f"Attempted to measure subsystem {inst.channel.index}, but it is not in subsystem_list."
                 )
 
-            memory_slots.append(inst.mem_slot.index)
+            memory_slot_indices.append(inst.mem_slot.index)
 
         measurement_subsystems_list.append(measurement_subsystems)
-        memory_slots_list.append(memory_slots)
+        memory_slot_indices_list.append(memory_slot_indices)
 
-    return t_span_list, measurement_subsystems_list, memory_slots_list
+    return t_span_list, measurement_subsystems_list, memory_slot_indices_list
 
 
 def _to_schedule_list(
@@ -406,37 +411,3 @@ def _to_schedule_list(
         else:
             raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
     return schedules, num_memslots
-
-
-def _sample_counts(
-    y: Union[Statevector, DensityMatrix],
-    shots: int,
-    subsystem_labels: List[int],
-    measurement_subsystems: List[int],
-    memory_slots: List[int],
-    num_memory_slots: Optional[int] = None):
-    """Sample counts from the state y, storing the results in the correct memory slots.
-
-    Assumes every element of measurement_subsystems is in subsystem_labels, and that
-    num_memory_slots >= max(memory_slots) + 1.
-    """
-
-    # map measurement_subsystems from subsystem_labels to subsystem location
-    measurement_subsystems = [subsystem_labels.index(x) for x in measurement_subsystems]
-
-    # compute counts indexed by subsystem location
-    counts = y.sample_counts(shots=shots, qargs=measurement_subsystems)
-
-    # store count results in correct memory slots format
-    num_memory_slots = num_memory_slots or (max(memory_slots) + 1)
-
-    memory_slot_counts = {}
-    for meas_result, count in counts.items():
-        memory_slot_result = ['0'] * num_memory_slots
-
-        for idx, res in zip(memory_slots, meas_result):
-            memory_slot_result[-(idx + 1)] = res
-
-        memory_slot_counts["".join(memory_slot_result)] = count
-
-    return memory_slot_counts
