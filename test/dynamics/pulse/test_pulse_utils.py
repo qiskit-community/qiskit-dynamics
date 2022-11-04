@@ -17,6 +17,7 @@ from ddt import ddt, data, unpack
 import numpy as np
 
 from qiskit import QiskitError
+from qiskit.result.counts import Counts
 from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
@@ -170,3 +171,29 @@ class Test_get_memory_slot_probabilities(QiskitDynamicsTestCase):
             max_outcome_value=1
         )
         self.assertDictEqual(output, {'0000': 0.25, '0100': 0.3, '0010': 0.4, '0001': 0.05})
+
+
+class Test_sample_probability_dict(QiskitDynamicsTestCase):
+    """Test _sample_probability_dict."""
+
+    def test_correct_formatting(self):
+        """Basic test case."""
+        probability_dict = {'a': 0.1, 'b': 0.12, 'c': 0.78}
+        seed = 3948737
+        outcome = _sample_probability_dict(probability_dict, shots=100, seed=seed)
+
+        rng = np.random.default_rng(seed=seed)
+        expected = rng.choice(['a', 'b', 'c'], size=100, replace=True, p=[0.1, 0.12, 0.78])
+
+        for a, b in zip(outcome, expected):
+            self.assertTrue(a == b)
+
+
+class Test_get_counts_from_samples(QiskitDynamicsTestCase):
+    """Test _get_counts_from_samples."""
+
+    def test_basic_counting(self):
+        """Basic test case."""
+        samples = ['00', '01', '00', '20', '01', '01', '20']
+        output = _get_counts_from_samples(samples)
+        self.assertDictEqual(output, {'00': 2, '01': 3, '20': 2})

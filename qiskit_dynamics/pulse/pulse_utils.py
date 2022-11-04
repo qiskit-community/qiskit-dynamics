@@ -160,6 +160,6 @@ def _sample_probability_dict(
     return rng.choice(alphabet, size=shots, replace=True, p=probs)
 
 
-def _get_counts_from_samples(samples: list) -> Counts:
+def _get_counts_from_samples(samples: list) -> Dict:
     """Count items in list."""
-    return Counts(zip(*np.unique(samples, return_counts=True)), memory_slots=len(samples[0]))
+    return dict(zip(*np.unique(samples, return_counts=True)))
