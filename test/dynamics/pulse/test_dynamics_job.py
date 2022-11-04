@@ -29,11 +29,7 @@ class TestDynamicsJob(QiskitDynamicsTestCase):
             return x**2
 
         self.simple_job = DynamicsJob(
-            backend="",
-            job_id="123",
-            fn=fn,
-            fn_kwargs={'x': 2},
-            other_kwarg="for testing"
+            backend="", job_id="123", fn=fn, fn_kwargs={"x": 2}, other_kwarg="for testing"
         )
 
     def test_submit_and_get_result(self):

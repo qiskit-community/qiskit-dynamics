@@ -25,12 +25,8 @@ class DynamicsJob(Job):
 
     _async = False
 
-    def __init__(self,
-        backend: Backend,
-        job_id: str,
-        fn: Callable,
-        fn_kwargs: Dict,
-        **kwargs
+    def __init__(
+        self, backend: Backend, job_id: str, fn: Callable, fn_kwargs: Dict, **kwargs
     ) -> None:
         """Initializes the job.
 

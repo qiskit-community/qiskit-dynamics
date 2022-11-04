@@ -20,7 +20,13 @@ from qiskit import QiskitError
 from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
-from qiskit_dynamics.pulse.pulse_utils import _get_dressed_state_decomposition, _get_lab_frame_static_hamiltonian, _sample_counts
+from qiskit_dynamics.pulse.pulse_utils import (
+    _get_dressed_state_decomposition,
+    _get_lab_frame_static_hamiltonian,
+    _get_memory_slot_probabilities,
+    _sample_probability_dict,
+    _get_counts_from_samples,
+)
 from ..common import QiskitDynamicsTestCase
 
 
@@ -31,13 +37,13 @@ class TestDressedStateDecomposition(QiskitDynamicsTestCase):
         """Test error is raised with non-Hermitian operator."""
 
         with self.assertRaisesRegex(QiskitError, "received non-Hermitian operator."):
-            _get_dressed_state_decomposition(np.array([[0., 1.], [0., 0.]]))
+            _get_dressed_state_decomposition(np.array([[0.0, 1.0], [0.0, 0.0]]))
 
     def test_failed_sorting(self):
         """Test failed dressed state sorting."""
 
         with self.assertRaisesRegex(QiskitError, "sorting failed"):
-            _get_dressed_state_decomposition(np.array([[0., 1.], [1., 0.]]))
+            _get_dressed_state_decomposition(np.array([[0.0, 1.0], [1.0, 0.0]]))
 
     def test_reordering_eigenvalues(self):
         """Test correct ordering when the real-number ordering of the eigenvalues does not
@@ -46,7 +52,7 @@ class TestDressedStateDecomposition(QiskitDynamicsTestCase):
 
         a = 0.2j
         abar = -0.2j
-        mat = np.array([[0., a, 0.], [abar, 1., a], [0., abar, -1.]])
+        mat = np.array([[0.0, a, 0.0], [abar, 1.0, a], [0.0, abar, -1.0]])
 
         # compute and manually re-order
         evals, evecs = np.linalg.eigh(mat)
@@ -64,8 +70,8 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
     """Tests _get_lab_frame_static_hamiltonian."""
 
     def setUp(self):
-        self.Z = np.array([[1., 0.], [0., -1.]])
-        self.X = np.array([[0., 1.], [1., 0.]])
+        self.Z = np.array([[1.0, 0.0], [0.0, -1.0]])
+        self.X = np.array([[0.0, 1.0], [1.0, 0.0]])
 
     @unpack
     @data(("dense",), ("sparse",))
@@ -76,7 +82,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
             static_operator=self.Z + self.X,
             operators=[self.X],
             rotating_frame=self.X,
-            evaluation_mode=evaluation_mode
+            evaluation_mode=evaluation_mode,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
@@ -85,11 +91,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
     def test_HamiltonianModel_None(self):
         """Test correct functioning on HamiltonianModel if static_operator=None."""
 
-        model = HamiltonianModel(
-            static_operator=None,
-            operators=[self.X],
-            rotating_frame=self.X
-        )
+        model = HamiltonianModel(static_operator=None, operators=[self.X], rotating_frame=self.X)
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, np.zeros((2, 2)))
@@ -103,7 +105,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
             static_hamiltonian=self.Z + self.X,
             hamiltonian_operators=[self.X],
             rotating_frame=self.X,
-            evaluation_mode=evaluation_mode
+            evaluation_mode=evaluation_mode,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
@@ -113,19 +115,58 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
         """Test correct functioning on Lindblad if static_hamiltonian=None."""
 
         model = LindbladModel(
-            static_hamiltonian=None,
-            hamiltonian_operators=[self.X],
-            rotating_frame=self.X
+            static_hamiltonian=None, hamiltonian_operators=[self.X], rotating_frame=self.X
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, np.zeros((2, 2)))
 
 
-class TestSampleCounts(QiskitDynamicsTestCase):
-    """Test the _sample_counts method."""
+class Test_get_memory_slot_probabilities(QiskitDynamicsTestCase):
+    """Test _get_memory_slot_probabilities."""
 
-    def test_basic_case(self):
-        """Test a basic case."""
+    def test_trivial_case(self):
+        """Test trivial case where no re-ordering is done."""
 
-        y = Statevector(np.sqrt([0.0, 0.1, 0.2, 0.3, 0.4, 0.0, 0.0, 0.0]), dims=[2, 2, 2])
+        probability_dict = {'000': 0.25, '001': 0.3, '200': 0.4, '010': 0.05}
+
+        output = _get_memory_slot_probabilities(
+            probability_dict=probability_dict,
+            memory_slot_indices=[0, 1, 2]
+        )
+        self.assertDictEqual(output, probability_dict)
+
+    def test_basic_reordering(self):
+        """Test case with simple re-ordering."""
+
+        probability_dict = {'000': 0.25, '001': 0.3, '200': 0.4, '010': 0.05}
+
+        output = _get_memory_slot_probabilities(
+            probability_dict=probability_dict,
+            memory_slot_indices=[2, 0, 1]
+        )
+        self.assertDictEqual(output, {'000': 0.25, '100': 0.3, '020': 0.4, '001': 0.05})
+
+    def test_extra_memory_slots(self):
+        """Test case with more memory slots than there are digits in probability_dict keys."""
+
+        probability_dict = {'000': 0.25, '001': 0.3, '200': 0.4, '010': 0.05}
+
+        output = _get_memory_slot_probabilities(
+            probability_dict=probability_dict,
+            memory_slot_indices=[3, 0, 1],
+        )
+        self.assertDictEqual(output, {'0000': 0.25, '1000': 0.3, '0020': 0.4, '0001': 0.05})
+
+    def test_bound_and_merging(self):
+        """Test case with max outcome bound."""
+
+        probability_dict = {'000': 0.25, '001': 0.3, '200': 0.2, '100': 0.2, '010': 0.05}
+
+        output = _get_memory_slot_probabilities(
+            probability_dict=probability_dict,
+            memory_slot_indices=[2, 0, 1],
+            num_memory_slots=4,
+            max_outcome_value=1
+        )
+        self.assertDictEqual(output, {'0000': 0.25, '0100': 0.3, '0010': 0.4, '0001': 0.05})

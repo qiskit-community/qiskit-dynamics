@@ -41,7 +41,13 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel
 
 from .dynamics_job import DynamicsJob
-from .pulse_utils import _get_dressed_state_decomposition, _get_lab_frame_static_hamiltonian, _get_memory_slot_probabilities, _sample_probability_dict, _get_counts_from_samples
+from .pulse_utils import (
+    _get_dressed_state_decomposition,
+    _get_lab_frame_static_hamiltonian,
+    _get_memory_slot_probabilities,
+    _sample_probability_dict,
+    _get_counts_from_samples,
+)
 
 
 class PulseSimulator(BackendV2):
@@ -114,12 +120,11 @@ class PulseSimulator(BackendV2):
         # add default simulator measure instructions
         instruction_schedule_map = self.target.instruction_schedule_map()
         for qubit in self.options.subsystem_labels:
-            if not instruction_schedule_map.has(instruction='measure', qubits=0):
+            if not instruction_schedule_map.has(instruction="measure", qubits=0):
                 with pulse.build() as meas_sched:
                     pulse.acquire(duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(0))
 
-            instruction_schedule_map.add(instruction='measure', qubits=0, schedule=meas_sched)
-
+            instruction_schedule_map.add(instruction="measure", qubits=0, schedule=meas_sched)
 
     def _default_options(self):
         return Options(
@@ -133,7 +138,7 @@ class PulseSimulator(BackendV2):
             initial_state="ground_state",
             meas_level=MeasLevel.CLASSIFIED,
             memory=True,
-            seed_simulator=None
+            seed_simulator=None,
         )
 
     def set_options(self, **fields):
@@ -216,7 +221,9 @@ class PulseSimulator(BackendV2):
         schedules, schedules_memslot_nums = _to_schedule_list(run_input, backend=self)
 
         # get the acquires instructions and simulation times
-        t_span, measurement_subsystems_list, memory_slot_indices_list = _get_acquire_data(schedules, self.options.subsystem_labels)
+        t_span, measurement_subsystems_list, memory_slot_indices_list = _get_acquire_data(
+            schedules, self.options.subsystem_labels
+        )
 
         # Build and submit job
         job_id = str(uuid.uuid4())
@@ -229,7 +236,7 @@ class PulseSimulator(BackendV2):
                 "schedules": schedules,
                 "measurement_subsystems_list": measurement_subsystems_list,
                 "schedules_memslot_nums": schedules_memslot_nums,
-                "memory_slot_indices_list": memory_slot_indices_list
+                "memory_slot_indices_list": memory_slot_indices_list,
             },
         )
         dynamics_job.submit()
@@ -243,7 +250,7 @@ class PulseSimulator(BackendV2):
         schedules,
         measurement_subsystems_list,
         schedules_memslot_nums,
-        memory_slot_indices_list
+        memory_slot_indices_list,
     ) -> Result:
         """Not sure here what the right delineation of arguments is to put in _run.
         This feels somewhat hacky/arbitrary.
@@ -265,8 +272,20 @@ class PulseSimulator(BackendV2):
 
         # construct outputs for each experiment
         experiment_results = []
-        for ts, result, measurement_subsystems, memory_slot_indices, num_memory_slots, schedule_name in zip(
-            t_span, solver_results, measurement_subsystems_list, memory_slot_indices_list, schedules_memslot_nums, schedule_names
+        for (
+            ts,
+            result,
+            measurement_subsystems,
+            memory_slot_indices,
+            num_memory_slots,
+            schedule_name,
+        ) in zip(
+            t_span,
+            solver_results,
+            measurement_subsystems_list,
+            memory_slot_indices_list,
+            schedules_memslot_nums,
+            schedule_names,
         ):
             yf = result.y[-1]
 
@@ -290,27 +309,29 @@ class PulseSimulator(BackendV2):
                 if normalize_states:
                     yf = yf / np.diag(yf.data).sum()
 
-
             # construct experiment results
             if self.options.meas_level == MeasLevel.CLASSIFIED:
 
                 # compute probabilities for measurement slot values
-                measurement_subsystems = [self.options.subsystem_labels.index(x) for x in measurement_subsystems]
+                measurement_subsystems = [
+                    self.options.subsystem_labels.index(x) for x in measurement_subsystems
+                ]
                 memory_slot_probabilities = _get_memory_slot_probabilities(
                     probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
                     memory_slot_indices=memory_slot_indices,
                     num_memory_slots=num_memory_slots,
-                    max_outcome_value=1
+                    max_outcome_value=1,
                 )
 
                 # sample
                 seed = rng.integers(low=0, high=9223372036854775807)
-                memory_samples = _sample_probability_dict(memory_slot_probabilities, shots=self.options.shots, seed=seed)
+                memory_samples = _sample_probability_dict(
+                    memory_slot_probabilities, shots=self.options.shots, seed=seed
+                )
                 counts = _get_counts_from_samples(memory_samples)
 
                 exp_data = ExperimentResultData(
-                    counts=counts,
-                    memory=memory_samples if self.options.memory else None
+                    counts=counts, memory=memory_samples if self.options.memory else None
                 )
                 experiment_results.append(
                     ExperimentResult(
@@ -319,11 +340,13 @@ class PulseSimulator(BackendV2):
                         data=exp_data,
                         meas_level=MeasLevel.CLASSIFIED,
                         seed=seed,
-                        header=QobjHeader(name=schedule_name)
+                        header=QobjHeader(name=schedule_name),
                     )
                 )
             else:
-                raise QiskitError(f"Only meas_level=={MeasLevel.CLASSIFIED} is supported by PulseSimulator.")
+                raise QiskitError(
+                    f"Only meas_level=={MeasLevel.CLASSIFIED} is supported by PulseSimulator."
+                )
 
         return Result(
             backend_name=self.name,
@@ -332,7 +355,7 @@ class PulseSimulator(BackendV2):
             job_id=job_id,
             success=True,
             results=experiment_results,
-            date=datetime.datetime.now().isoformat()
+            date=datetime.datetime.now().isoformat(),
         )
 
     def max_circuits(self):
@@ -405,8 +428,7 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
 
 
 def _to_schedule_list(
-    run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
-    backend: BackendV2
+    run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]], backend: BackendV2
 ):
     """Convert all inputs to schedules, and store the number of classical registers present
     in any circuits.

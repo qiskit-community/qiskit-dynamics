@@ -64,7 +64,9 @@ def _get_dressed_state_decomposition(
 
         position = np.argmax(np.abs(evec))
         if position in found_positions:
-            raise QiskitError("Dressed-state sorting failed due to non-unique np.argmax(np.abs(evec)) for eigenvectors.")
+            raise QiskitError(
+                "Dressed-state sorting failed due to non-unique np.argmax(np.abs(evec)) for eigenvectors."
+            )
         else:
             found_positions.append(position)
 
@@ -92,17 +94,17 @@ def _get_lab_frame_static_hamiltonian(model: Union[HamiltonianModel, LindbladMod
         static_hamiltonian = model.static_hamiltonian
 
     static_hamiltonian = 1j * model.rotating_frame.generator_out_of_frame(
-        t=0., operator=-1j * static_hamiltonian
+        t=0.0, operator=-1j * static_hamiltonian
     )
 
-    return Array(static_hamiltonian, backend='numpy').data
+    return Array(static_hamiltonian, backend="numpy").data
 
 
 def _get_memory_slot_probabilities(
     probability_dict: Dict,
     memory_slot_indices: List[int],
     num_memory_slots: Optional[int] = None,
-    max_outcome_value: Optional[int] = None
+    max_outcome_value: Optional[int] = None,
 ) -> Dict:
     """Construct probability dictionary for memory slot outcomes from a probability dictionary for
     state level measurement outcomes.
@@ -123,7 +125,7 @@ def _get_memory_slot_probabilities(
     num_memory_slots = num_memory_slots or (max(memory_slot_indices) + 1)
     memory_slot_probs = {}
     for level_str, prob in probability_dict.items():
-        memory_slot_result = ['0'] * num_memory_slots
+        memory_slot_result = ["0"] * num_memory_slots
 
         for idx, level in zip(memory_slot_indices, reversed(level_str)):
             if max_outcome_value and int(level) > max_outcome_value:
@@ -140,9 +142,7 @@ def _get_memory_slot_probabilities(
 
 
 def _sample_probability_dict(
-    probability_dict: Dict,
-    shots: int,
-    seed: Optional[int] = None
+    probability_dict: Dict, shots: int, seed: Optional[int] = None
 ) -> List[str]:
     """Sample outcomes based on probability dictionary.
 
