@@ -95,7 +95,7 @@ def _get_lab_frame_static_hamiltonian(model: Union[HamiltonianModel, LindbladMod
         t=0., operator=-1j * static_hamiltonian
     )
 
-    return np.array(Array(static_hamiltonian).data)
+    return Array(static_hamiltonian, backend='numpy').data
 
 
 def _get_memory_slot_probabilities(
@@ -109,14 +109,14 @@ def _get_memory_slot_probabilities(
 
     Args:
         probability_dict: A list of probabilities for the otucomes of state measurement. Keys
-            are assumed to all be strings of integers of the same length.
-        memory_slot_indices: Indices of which memory slots storing the digits of the keys of
-            probability_dict.
+                          are assumed to all be strings of integers of the same length.
+        memory_slot_indices: Indices of which memory slots store the digits of the keys of
+                             probability_dict.
         num_memory_slots: Total number of memory slots for results. If None,
-            defaults to the maximum index in memory_slot_indices. The default value of unused
-            memory slots is 0.
+                          defaults to the maximum index in memory_slot_indices. The default value
+                          of unused memory slots is 0.
         max_outcome_value: Maximum value that can be stored in a memory slot. All outcomes higher
-            than this will be rounded down.
+                           than this will be rounded down.
     Returns:
         Dict: Keys are memory slot outcomes, values are the probabilities of those outcomes.
     """
@@ -147,8 +147,8 @@ def _sample_probability_dict(
     """Sample outcomes based on probability dictionary.
 
     Args:
-        probability_dict: The probability dictionary, with keys being outcomes, values being
-                          probabilities.
+        probability_dict: Dictionary representing probability distribution, with keys being
+                          outcomes, values being probabilities.
         shots: Number of shots.
         seed: Seed to use in rng construction.
 
