@@ -74,7 +74,9 @@ Qiskit Pulse
 .. autosummary::
    :toctree: ../stubs/
 
+   PulseSimulator
    InstructionToSignals
 """
 
 from .pulse_to_signals import InstructionToSignals
+from .pulse_simulator import PulseSimulator

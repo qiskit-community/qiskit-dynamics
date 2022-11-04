@@ -55,6 +55,7 @@ class PulseSimulator(BackendV2):
         self,
         solver: Solver,
         target: Optional[Target] = None,
+        provider: Optional = None
         **options,
     ):
         """This init needs fleshing out. Need to determine all that is necessary for each use case.
@@ -78,13 +79,12 @@ class PulseSimulator(BackendV2):
             - Add validation of the Solver object, verifying that its configured to simulate pulse
               schedules
         """
-        ##############################################################################################
-        # what to put for provider?
+        
         super().__init__(
-            provider=None,
             name="PulseSimulator",
             description="Pulse enabled simulator backend.",
             backend_version=0.1,
+            provider=provider
         )
 
         # Dressed states of solver, will be calculated when solver option is set
@@ -107,11 +107,7 @@ class PulseSimulator(BackendV2):
             meas_map = [[idx] for idx in self.options.subsystem_labels]
             self.set_options(meas_map=meas_map)
 
-        # TODO: We should have a default configuration of a target if
-        # none is provided, and a modification of a provided one to change any
-        # simulator specific attrbiutes to make it compatible
-        # ********************************************************************************************
-        # Note: self._target = target or Target() doesn't work as bool(target) is False
+        # self._target = target or Target() doesn't work as bool(target) can be False
         if target is None:
             target = Target()
 
@@ -168,7 +164,7 @@ class PulseSimulator(BackendV2):
     def run(
         self,
         run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
-        validate: Optional[bool] = False,
+        validate: Optional[bool] = True,
         **options,
     ) -> Result:
         """Run on the backend.
@@ -289,7 +285,7 @@ class PulseSimulator(BackendV2):
         ):
             yf = result.y[-1]
 
-            # Put state in dressed basis and sample counts
+            # Take state out of frame, put in dressed basis, and normalize
             if isinstance(yf, Statevector):
                 yf = np.array(
                     self.options.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf)
@@ -371,12 +367,14 @@ class PulseSimulator(BackendV2):
 
 
 def _validate_run_input(run_input, accept_list=True):
-    """Raise errors if the run_input is invalid."""
+    """Raise errors if the run_input is not one of QuantumCircuit, Schedule, ScheduleBlock, or
+    a list of these.
+    """
     if isinstance(run_input, list) and accept_list:
         # if list apply recursively, but no longer accept lists
         for x in run_input:
             _validate_run_input(x, accept_list=False)
-    elif not isinstance(run_input, (Schedule, ScheduleBlock)):
+    elif not isinstance(run_input, (QuantumCircuit, Schedule, ScheduleBlock)):
         raise QiskitError(f"Input type {type(run_input)} not supported by PulseSimulator.run.")
 
 
