@@ -17,7 +17,7 @@ import numpy as np
 
 from qiskit.providers import JobStatus, JobError
 
-from qiskit_dynamics.pulse.dynamics_job import DynamicsJob
+from qiskit_dynamics.pulse_simulator.dynamics_job import DynamicsJob
 from ..common import QiskitDynamicsTestCase
 
 

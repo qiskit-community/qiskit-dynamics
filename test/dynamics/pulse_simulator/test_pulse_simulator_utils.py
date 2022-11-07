@@ -21,7 +21,7 @@ from qiskit.result.counts import Counts
 from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
-from qiskit_dynamics.pulse.pulse_utils import (
+from qiskit_dynamics.pulse_simulator.pulse_simulator_utils import (
     _get_dressed_state_decomposition,
     _get_lab_frame_static_hamiltonian,
     _get_memory_slot_probabilities,

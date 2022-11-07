@@ -9,19 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
-Test PulseSimulator.
+Pulse interfacing module tests.
 """
-
-import numpy as np
-
-from qiskit import QiskitError
-
-from qiskit_dynamics import Solver, PulseSimulator
-
-from qiskit_dynamics.pulse.pulse_simulator import (
-    _validate_run_input,
-    _validate_acquires,
-    _to_schedule_list,
-)
-from ..common import QiskitDynamicsTestCase

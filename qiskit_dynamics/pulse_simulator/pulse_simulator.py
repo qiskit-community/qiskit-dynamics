@@ -36,12 +36,12 @@ from qiskit import QiskitError, QuantumCircuit
 from qiskit import schedule as build_schedule
 from qiskit.quantum_info import Statevector, DensityMatrix
 
-from qiskit_dynamics import Solver
+from qiskit_dynamics.solvers.solver_classes import Solver
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel
 
 from .dynamics_job import DynamicsJob
-from .pulse_utils import (
+from .pulse_simulator_utils import (
     _get_dressed_state_decomposition,
     _get_lab_frame_static_hamiltonian,
     _get_memory_slot_probabilities,
@@ -55,7 +55,7 @@ class PulseSimulator(BackendV2):
         self,
         solver: Solver,
         target: Optional[Target] = None,
-        provider: Optional = None
+        provider: Optional = None,
         **options,
     ):
         """This init needs fleshing out. Need to determine all that is necessary for each use case.
@@ -79,7 +79,7 @@ class PulseSimulator(BackendV2):
             - Add validation of the Solver object, verifying that its configured to simulate pulse
               schedules
         """
-        
+
         super().__init__(
             name="PulseSimulator",
             description="Pulse enabled simulator backend.",
@@ -153,6 +153,9 @@ class PulseSimulator(BackendV2):
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
+        if solver._dt is None:
+            raise QiskitError("Solver passed to PulseSimulator is not configured for Pulse simulation.")
+
         self._options.solver = solver
         # Get dressed states
         static_hamiltonian = _get_lab_frame_static_hamiltonian(solver.model)
