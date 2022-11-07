@@ -15,7 +15,8 @@ Test PulseSimulator.
 
 import numpy as np
 
-from qiskit import QiskitError, pulse
+from qiskit import QiskitError, pulse, QuantumCircuit
+from qiskit.transpiler import Target
 
 from qiskit_dynamics import Solver, PulseSimulator
 
@@ -100,7 +101,7 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
 
 
 class TestPulseSimulator(QiskitDynamicsTestCase):
-    """Basic tests for PulseSimulator."""
+    """Tests ensuring basic workflows work correctly for PulseSimulator."""
 
     def setUp(self):
         """Build reusable models."""
@@ -117,7 +118,26 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
             rotating_frame=static_ham
         )
 
+        self.simple_solver = solver
         self.simple_simulator = PulseSimulator(solver=solver)
+
+        id = np.eye(2, dtype=complex)
+        static_ham_2q = (2 * np.pi * 4.99 * np.kron(id, np.array([[-1., 0.], [0., 1.]])) / 2
+                        + 2 * np.pi * 5.01 * np.kron(np.array([[-1., 0.], [0., 1.]]), id) / 2
+                        + 2 * np.pi * 0.002 * np.kron(np.array([[0., 1.], [0., 0.]]), np.array([[0., 0.], [1., 0.]]))
+                        + 2 * np.pi * 0.002 * np.kron(np.array([[0., 0.], [1., 0.]]), np.array([[0., 1.], [0., 0.]])))
+        drive_op0 = 2 * np.pi * 0.1 * np.kron(id, np.array([[0., 1.], [1., 0.]])) / 2
+        drive_op1 = 2 * np.pi * 0.1 * np.kron(np.array([[0., 1.], [1., 0.]]), id) / 2
+        solver_2q = Solver(
+            static_hamiltonian=static_ham_2q,
+            hamiltonian_operators=[drive_op0, drive_op1],
+            hamiltonian_channels=['d0', 'd1'],
+            channel_carrier_freqs={'d0': 4.99, 'd1': 5.01},
+            dt=0.1,
+            rotating_frame=static_ham_2q
+        )
+        self.simulator_2q = PulseSimulator(solver=solver_2q, subsystem_dims=[2, 2])
+
 
     def test_pi_pulse(self):
         """Test simulation of a pi pulse."""
@@ -154,3 +174,85 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
 
         result = self.simple_simulator.run(schedule, seed_simulator=398472).result()
         self.assertDictEqual(result.get_counts(), {'00': 505, '10': 519})
+
+    def test_circuit_with_pulse_defs(self):
+        """Test simulating a circuit with pulse definitions."""
+
+        circ = QuantumCircuit(1, 1)
+        circ.x(0)
+        circ.measure([0], [0])
+
+        with pulse.build() as x_sched0:
+            pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
+
+        circ.add_calibration('x', [0], x_sched0)
+
+        result = self.simple_simulator.run(circ, seed_simulator=1234567).result()
+        self.assertDictEqual(result.get_counts(), {"1": 1024})
+        self.assertTrue(result.get_memory() == ["1"] * 1024)
+
+    def test_circuit_with_target_pulse_instructions(self):
+        """Test running a circuit on a simulator with defined instructions."""
+
+        # build target into simulator
+        with pulse.build() as x_sched0:
+            pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
+
+        target = Target()
+        inst_sched_map = target.instruction_schedule_map()
+        inst_sched_map.add('x', qubits=0, schedule=x_sched0)
+
+        pulse_simulator = PulseSimulator(solver=self.simple_solver, target=target)
+
+        # build and run circuit
+        circ = QuantumCircuit(1, 1)
+        circ.x(0)
+        circ.measure([0], [0])
+
+        result = pulse_simulator.run(circ, seed_simulator=1234567).result()
+        self.assertDictEqual(result.get_counts(), {"1": 1024})
+        self.assertTrue(result.get_memory() == ["1"] * 1024)
+
+    def test_circuit_memory_slot_num(self):
+        """Test correct memory_slot number based on quantum circuit."""
+
+        # build a pair of non-trivial 2q circuits with 5 memoryslots, saving measurements
+        # in different memory slots
+        circ0 = QuantumCircuit(2, 5)
+        circ0.x(0)
+        circ0.h(1)
+        circ0.measure([0, 1], [0, 1])
+
+        circ1 = QuantumCircuit(2, 5)
+        circ1.x(0)
+        circ1.h(1)
+        circ1.measure([0, 1], [2, 4])
+
+        # add definitions to instruction_schedule_map
+        inst_map = self.simulator_2q.instruction_schedule_map
+        with pulse.build() as x_sched0:
+            pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
+
+        with pulse.build() as h_sched1:
+            pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(1))
+
+        inst_map.add('x', qubits=0, schedule=x_sched0)
+        inst_map.add('h', qubits=1, schedule=h_sched1)
+
+        # run both
+        result0 = self.simulator_2q.run(circ0, seed_simulator=1234567).result()
+        result1 = self.simulator_2q.run(circ1, seed_simulator=1234567).result()
+
+        # extract results form memory slots and validate all others are 0
+        result0_dict = {}
+        for string, count in result0.get_counts().items():
+            self.assertTrue(string[:3] == "000")
+            result0_dict = {string[3:]: count}
+
+        result1_dict = {}
+        for string, count in result1.get_counts().items():
+            self.assertTrue(string[-4] + string[-2] + string[-1] == "000")
+            result1_dict = {string[-5] + string[-3]: count}
+
+        # validate consistent results
+        self.assertDictEqual(result0_dict, result1_dict)

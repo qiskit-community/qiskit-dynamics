@@ -116,11 +116,11 @@ class PulseSimulator(BackendV2):
         # add default simulator measure instructions
         instruction_schedule_map = self.target.instruction_schedule_map()
         for qubit in self.options.subsystem_labels:
-            if not instruction_schedule_map.has(instruction="measure", qubits=0):
+            if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
                 with pulse.build() as meas_sched:
-                    pulse.acquire(duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(0))
+                    pulse.acquire(duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit))
 
-            instruction_schedule_map.add(instruction="measure", qubits=0, schedule=meas_sched)
+            instruction_schedule_map.add(instruction="measure", qubits=qubit, schedule=meas_sched)
 
     def _default_options(self):
         return Options(
@@ -452,7 +452,7 @@ def _to_schedule_list(
             schedules.append(sched)
         elif isinstance(sched, QuantumCircuit):
             num_memslots[-1] = sched.cregs[0].size
-            schedules.append(build_schedule(sched, backend))
+            schedules.append(build_schedule(sched, backend, dt=backend.options.solver._dt))
         else:
             raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
     return schedules, num_memslots
