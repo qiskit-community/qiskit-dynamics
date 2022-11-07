@@ -12,8 +12,7 @@
 
 """This module implements the job class used for PulseSimulator objects."""
 
-from typing import Optional, Callable, Dict
-import numpy as np
+from typing import Callable, Dict
 
 from qiskit.providers.backend import Backend
 from qiskit.providers import JobV1 as Job

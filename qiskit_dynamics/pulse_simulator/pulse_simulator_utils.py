@@ -9,6 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
 Utility functions for pulse simulation.
@@ -19,13 +20,10 @@ from typing import Optional, Union, List, Dict
 
 import numpy as np
 from qiskit import QiskitError
-from qiskit.result.counts import Counts
-from qiskit.quantum_info.states.quantum_state import QuantumState
+from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
-
-from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 
 
 def _get_dressed_state_decomposition(
@@ -60,18 +58,19 @@ def _get_dressed_state_decomposition(
     dressed_states = np.zeros_like(evecs)
 
     found_positions = []
-    for eval, evec in zip(evals, evecs.transpose()):
+    for eigval, evec in zip(evals, evecs.transpose()):
 
         position = np.argmax(np.abs(evec))
         if position in found_positions:
             raise QiskitError(
-                "Dressed-state sorting failed due to non-unique np.argmax(np.abs(evec)) for eigenvectors."
+                """Dressed-state sorting failed due to non-unique np.argmax(np.abs(evec))
+                for eigenvectors."""
             )
-        else:
-            found_positions.append(position)
+
+        found_positions.append(position)
 
         dressed_states[:, position] = evec
-        dressed_evals[position] = eval
+        dressed_evals[position] = eigval
 
     return dressed_evals, dressed_states
 

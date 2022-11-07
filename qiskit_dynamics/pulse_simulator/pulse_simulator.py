@@ -11,6 +11,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
+"""
+Pulse-enabled simulator backend.
+"""
 
 import time
 import datetime
@@ -137,11 +142,12 @@ class PulseSimulator(BackendV2):
 
         for key, value in fields.items():
             if not hasattr(self._options, key):
-                raise AttributeError("Invalid option %s" % key)
+                raise AttributeError(f"Invalid option {key}")
             if key == "initial_state":
                 if value != "ground_state" and not isinstance(value, (Statevector, DensityMatrix)):
                     raise QiskitError(
-                        'initial_state must be either "ground_state", or a Statevector or DensityMatrix instance.'
+                        """initial_state must be either "ground_state",
+                        or a Statevector or DensityMatrix instance."""
                     )
             elif key == "meas_level":
                 if value != 2:
@@ -191,6 +197,7 @@ class PulseSimulator(BackendV2):
             run_input: A list of simulations, specified by ``QuantumCircuit``, ``Schedule``, or
                        ``ScheduleBlock`` instances.
             validate: Whether or not to run validation checks on the input.
+            **options: Additional run options to temporarily override current backend options.
         Returns:
             DynamicsJob object containing results and status.
         Raises:
@@ -293,12 +300,12 @@ class PulseSimulator(BackendV2):
                     yf = yf / np.linalg.norm(yf.data)
             elif isinstance(yf, DensityMatrix):
                 yf = np.array(
-                    self.options.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], y=yf)
+                    self.options.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], operator=yf)
                 )
-                yf = self._dressed_states_adjoint @ yf @ self.dressed_states
+                yf = self._dressed_states_adjoint @ yf @ self._dressed_states
                 yf = DensityMatrix(yf, dims=self.options.subsystem_dims)
 
-                if normalize_states:
+                if self.options.normalize_states:
                     yf = yf / np.diag(yf.data).sum()
 
             # construct experiment results
@@ -396,7 +403,8 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
         # validate
         if len(schedule_acquire_times) == 0:
             raise QiskitError(
-                "At least one measurement saving a a result in a MemorySlot must be present in each schedule."
+                """At least one measurement saving a a result in a MemorySlot
+                must be present in each schedule."""
             )
 
         start_time = schedule_acquire_times[0]
@@ -412,7 +420,8 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
                 measurement_subsystems.append(inst.channel.index)
             else:
                 raise QiskitError(
-                    f"Attempted to measure subsystem {inst.channel.index}, but it is not in subsystem_list."
+                    f"""Attempted to measure subsystem {inst.channel.index},
+                    but it is not in subsystem_list."""
                 )
 
             memory_slot_indices.append(inst.mem_slot.index)

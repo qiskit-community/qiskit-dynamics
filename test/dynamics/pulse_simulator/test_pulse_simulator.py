@@ -17,7 +17,7 @@ import numpy as np
 
 from qiskit import QiskitError, pulse, QuantumCircuit
 from qiskit.transpiler import Target
-from qiskit.quantum_info import Statevector
+from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics import Solver, PulseSimulator
 
@@ -196,15 +196,15 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
         self.assertDictEqual(result.get_counts(), {"0": 1024})
         self.assertTrue(result.get_memory() == ["0"] * 1024)
 
-    def test_pi_half_pulse(self):
-        """Test simulation of a pi/2 pulse."""
+    def test_pi_half_pulse_density_matrix(self):
+        """Test simulation of a pi/2 pulse with a DensityMatrix."""
 
         with pulse.build() as schedule:
             with pulse.align_right():
                 pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(0))
                 pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
 
-        result = self.simple_simulator.run(schedule, seed_simulator=398472).result()
+        result = self.simple_simulator.run(schedule, seed_simulator=398472, initial_state=DensityMatrix([1., 0.])).result()
         self.assertDictEqual(result.get_counts(), {"0": 505, "1": 519})
 
     def test_pi_half_pulse_relabelled(self):
