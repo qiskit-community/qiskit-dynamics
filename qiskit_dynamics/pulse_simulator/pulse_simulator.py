@@ -145,6 +145,10 @@ class PulseSimulator(BackendV2):
         for key, value in fields.items():
             if not hasattr(self._options, key):
                 raise AttributeError("Invalid option %s" % key)
+            if key == 'initial_state':
+                if value != "ground_state" and not isinstance(value, (Statevector, DensityMatrix)):
+                    raise QiskitError('initial_state must be either "ground_state", or a Statevector or DensityMatrix instance.')
+
             if key == "solver":
                 self._set_solver(value)
                 validate_subsystem_dims = True

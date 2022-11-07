@@ -17,6 +17,7 @@ import numpy as np
 
 from qiskit import QiskitError, pulse, QuantumCircuit
 from qiskit.transpiler import Target
+from qiskit.quantum_info import Statevector
 
 from qiskit_dynamics import Solver, PulseSimulator
 
@@ -99,6 +100,12 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "Attempted to measure subsystem 1"):
             self.simple_simulator.run(schedule)
 
+    def test_invalid_initial_state(self):
+        """Test seeting an invalid initial state."""
+
+        with self.assertRaisesRegex(QiskitError, "initial_state must be either"):
+            self.simple_simulator.set_options(initial_state=1)
+
 
 class TestPulseSimulator(QiskitDynamicsTestCase):
     """Tests ensuring basic workflows work correctly for PulseSimulator."""
@@ -150,6 +157,18 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
         result = self.simple_simulator.run(schedule, seed_simulator=1234567).result()
         self.assertDictEqual(result.get_counts(), {"1": 1024})
         self.assertTrue(result.get_memory() == ["1"] * 1024)
+
+    def test_pi_pulse_initial_state(self):
+        """Test simulation of a pi pulse with a different initial state."""
+
+        with pulse.build() as schedule:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
+                pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
+
+        result = self.simple_simulator.run(schedule, seed_simulator=1234567, initial_state=Statevector([0., 1.])).result()
+        self.assertDictEqual(result.get_counts(), {"0": 1024})
+        self.assertTrue(result.get_memory() == ["0"] * 1024)
 
     def test_pi_half_pulse(self):
         """Test simulation of a pi/2 pulse."""
