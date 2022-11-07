@@ -54,6 +54,12 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "not configured for Pulse"):
             PulseSimulator(solver=solver)
 
+    def test_run_input_error(self):
+        """Test submission of invalid run input."""
+
+        with self.assertRaisesRegex(QiskitError, "not supported by PulseSimulator.run."):
+            self.simple_simulator.run([1])
+
     def test_subsystem_dims_inconsistency(self):
         """Test that setting subsystem_dims inconsistently with solver.model.dim raises error."""
 
@@ -91,3 +97,60 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "Attempted to measure subsystem 1"):
             self.simple_simulator.run(schedule)
+
+
+class TestPulseSimulator(QiskitDynamicsTestCase):
+    """Basic tests for PulseSimulator."""
+
+    def setUp(self):
+        """Build reusable models."""
+
+        static_ham = 2 * np.pi * 5 * np.array([[-1., 0.], [0., 1.]]) / 2
+        drive_op = 2 * np.pi * 0.1 * np.array([[0., 1.], [1., 0.]]) / 2
+
+        solver = Solver(
+            static_hamiltonian=static_ham,
+            hamiltonian_operators=[drive_op],
+            hamiltonian_channels=['d0'],
+            channel_carrier_freqs={'d0': 5.},
+            dt=0.1,
+            rotating_frame=static_ham
+        )
+
+        self.simple_simulator = PulseSimulator(solver=solver)
+
+    def test_pi_pulse(self):
+        """Test simulation of a pi pulse."""
+
+        with pulse.build() as schedule:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
+                pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
+
+        result = self.simple_simulator.run(schedule, seed_simulator=1234567).result()
+        self.assertDictEqual(result.get_counts(), {"1": 1024})
+        self.assertTrue(result.get_memory() == ["1"] * 1024)
+
+    def test_pi_half_pulse(self):
+        """Test simulation of a pi/2 pulse."""
+
+        with pulse.build() as schedule:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(0))
+                pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
+
+        result = self.simple_simulator.run(schedule, seed_simulator=398472).result()
+        self.assertDictEqual(result.get_counts(), {'0': 505, '1': 519})
+
+    def test_pi_half_pulse_relabelled(self):
+        """Test simulation of a pi/2 pulse with qubit relabelled."""
+
+        self.simple_simulator.set_options(subsystem_labels=[1])
+
+        with pulse.build() as schedule:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(0))
+                pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(1))
+
+        result = self.simple_simulator.run(schedule, seed_simulator=398472).result()
+        self.assertDictEqual(result.get_counts(), {'00': 505, '10': 519})
