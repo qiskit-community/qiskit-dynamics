@@ -247,12 +247,47 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
         result0_dict = {}
         for string, count in result0.get_counts().items():
             self.assertTrue(string[:3] == "000")
-            result0_dict = {string[3:]: count}
+            result0_dict[string[3:]] = count
 
         result1_dict = {}
         for string, count in result1.get_counts().items():
             self.assertTrue(string[-4] + string[-2] + string[-1] == "000")
-            result1_dict = {string[-5] + string[-3]: count}
+            result1_dict[string[-5] + string[-3]] = count
+
+        # validate consistent results
+        self.assertDictEqual(result0_dict, result1_dict)
+
+    def test_schedule_memory_slot_num(self):
+        """Test correct memory_slot number in schedule."""
+
+        with pulse.build() as schedule0:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
+                pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(1))
+                pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
+                pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(1))
+
+        with pulse.build() as schedule1:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
+                pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(1))
+                pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(2))
+                pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(4))
+
+
+        # run both
+        result0 = self.simulator_2q.run(schedule0, seed_simulator=1234567).result()
+        result1 = self.simulator_2q.run(schedule1, seed_simulator=1234567).result()
+
+        # extract results form memory slots and validate all others are 0
+        result0_dict = result0.get_counts()
+        for string in result0_dict:
+            self.assertTrue(len(string) == 2)
+
+        result1_dict = {}
+        for string, count in result1.get_counts().items():
+            self.assertTrue(string[-4] + string[-2] + string[-1] == "000")
+            result1_dict[string[-5] + string[-3]] = count
 
         # validate consistent results
         self.assertDictEqual(result0_dict, result1_dict)
