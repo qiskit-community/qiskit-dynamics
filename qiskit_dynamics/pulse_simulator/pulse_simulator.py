@@ -92,12 +92,12 @@ class PulseSimulator(BackendV2):
         self._dressed_states = None
         self._dressed_states_adjoint = None
 
+        # add subsystem_dims to options so set_options validation works
+        if "subsystem_dims" not in options:
+            options["subsystem_dims"] = [solver.model.dim]
+
         # Set simulator options
         self.set_options(solver=solver, **options)
-
-        # set required options defaults
-        if self.options.subsystem_dims is None:
-            self.set_options(subsystem_dims=[self.options.solver.model.dim])
 
         if self.options.subsystem_labels is None:
             labels = list(range(len(self.options.subsystem_dims)))
@@ -138,18 +138,23 @@ class PulseSimulator(BackendV2):
         )
 
     def set_options(self, **fields):
-        # TODO: add validation for
-        # - subsystem_dims
-        # - subsystem_labels
-        # - meas_map
+        """Set options for PulseSimulator."""
+
+        validate_subsystem_dims = False
+
         for key, value in fields.items():
             if not hasattr(self._options, key):
                 raise AttributeError("Invalid option %s" % key)
             if key == "solver":
-                # Special handling for solver setting
                 self._set_solver(value)
+                validate_subsystem_dims = True
             else:
+                if key == 'subsystem_dims':
+                    validate_subsystem_dims = True
                 setattr(self._options, key, value)
+
+        if validate_subsystem_dims and np.prod(self._options.subsystem_dims) != self._options.solver.model.dim:
+            raise QiskitError("PulseSimulator options subsystem_dims and solver.model.dim are inconsistent.")
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
