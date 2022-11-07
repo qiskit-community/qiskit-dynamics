@@ -36,11 +36,11 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
         """Build simple simulator for multiple tests."""
 
         solver = Solver(
-            static_hamiltonian=np.array([[1., 0.], [0., -1.]]),
-            hamiltonian_operators=[np.array([[0., 1.], [1., 0.]])],
-            hamiltonian_channels=['d0'],
-            channel_carrier_freqs={'d0': 1.},
-            dt=1.
+            static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]),
+            hamiltonian_operators=[np.array([[0.0, 1.0], [1.0, 0.0]])],
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 1.0},
+            dt=1.0,
         )
 
         self.simple_simulator = PulseSimulator(solver=solver)
@@ -49,8 +49,8 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
         """Test error is raised if solver not configured for pulse simulation."""
 
         solver = Solver(
-            static_hamiltonian=np.array([[1., 0.], [0., -1.]]),
-            hamiltonian_operators=[np.array([[0., 1.], [1., 0.]])],
+            static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]),
+            hamiltonian_operators=[np.array([[0.0, 1.0], [1.0, 0.0]])],
         )
 
         with self.assertRaisesRegex(QiskitError, "not configured for Pulse"):
@@ -73,6 +73,17 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
 
         with pulse.build() as schedule:
             pulse.play(pulse.Waveform([0.5, 0.5, 0.5]), pulse.DriveChannel(0))
+
+        with self.assertRaisesRegex(QiskitError, "At least one measurement"):
+            self.simple_simulator.run(schedule)
+
+    def test_no_measurements_with_memory_slots_in_schedule(self):
+        """Test that running a schedule without measurements saving results in a MemorySlot
+        raises an error."""
+
+        with pulse.build() as schedule:
+            pulse.play(pulse.Waveform([0.5, 0.5, 0.5]), pulse.DriveChannel(0))
+            pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.RegisterSlot(0))
 
         with self.assertRaisesRegex(QiskitError, "At least one measurement"):
             self.simple_simulator.run(schedule)
@@ -101,10 +112,16 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
             self.simple_simulator.run(schedule)
 
     def test_invalid_initial_state(self):
-        """Test seeting an invalid initial state."""
+        """Test setting an invalid initial state."""
 
         with self.assertRaisesRegex(QiskitError, "initial_state must be either"):
             self.simple_simulator.set_options(initial_state=1)
+
+    def test_invalid_meas_level(self):
+        """Test setting an invalid meas_level."""
+
+        with self.assertRaisesRegex(QiskitError, "Only meas_level == 2 is supported"):
+            self.simple_simulator.set_options(meas_level=1)
 
 
 class TestPulseSimulator(QiskitDynamicsTestCase):
@@ -113,38 +130,45 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
     def setUp(self):
         """Build reusable models."""
 
-        static_ham = 2 * np.pi * 5 * np.array([[-1., 0.], [0., 1.]]) / 2
-        drive_op = 2 * np.pi * 0.1 * np.array([[0., 1.], [1., 0.]]) / 2
+        static_ham = 2 * np.pi * 5 * np.array([[-1.0, 0.0], [0.0, 1.0]]) / 2
+        drive_op = 2 * np.pi * 0.1 * np.array([[0.0, 1.0], [1.0, 0.0]]) / 2
 
         solver = Solver(
             static_hamiltonian=static_ham,
             hamiltonian_operators=[drive_op],
-            hamiltonian_channels=['d0'],
-            channel_carrier_freqs={'d0': 5.},
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
-            rotating_frame=static_ham
+            rotating_frame=static_ham,
         )
 
         self.simple_solver = solver
         self.simple_simulator = PulseSimulator(solver=solver)
 
         id = np.eye(2, dtype=complex)
-        static_ham_2q = (2 * np.pi * 4.99 * np.kron(id, np.array([[-1., 0.], [0., 1.]])) / 2
-                        + 2 * np.pi * 5.01 * np.kron(np.array([[-1., 0.], [0., 1.]]), id) / 2
-                        + 2 * np.pi * 0.002 * np.kron(np.array([[0., 1.], [0., 0.]]), np.array([[0., 0.], [1., 0.]]))
-                        + 2 * np.pi * 0.002 * np.kron(np.array([[0., 0.], [1., 0.]]), np.array([[0., 1.], [0., 0.]])))
-        drive_op0 = 2 * np.pi * 0.1 * np.kron(id, np.array([[0., 1.], [1., 0.]])) / 2
-        drive_op1 = 2 * np.pi * 0.1 * np.kron(np.array([[0., 1.], [1., 0.]]), id) / 2
+        static_ham_2q = (
+            2 * np.pi * 4.99 * np.kron(id, np.array([[-1.0, 0.0], [0.0, 1.0]])) / 2
+            + 2 * np.pi * 5.01 * np.kron(np.array([[-1.0, 0.0], [0.0, 1.0]]), id) / 2
+            + 2
+            * np.pi
+            * 0.002
+            * np.kron(np.array([[0.0, 1.0], [0.0, 0.0]]), np.array([[0.0, 0.0], [1.0, 0.0]]))
+            + 2
+            * np.pi
+            * 0.002
+            * np.kron(np.array([[0.0, 0.0], [1.0, 0.0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
+        )
+        drive_op0 = 2 * np.pi * 0.1 * np.kron(id, np.array([[0.0, 1.0], [1.0, 0.0]])) / 2
+        drive_op1 = 2 * np.pi * 0.1 * np.kron(np.array([[0.0, 1.0], [1.0, 0.0]]), id) / 2
         solver_2q = Solver(
             static_hamiltonian=static_ham_2q,
             hamiltonian_operators=[drive_op0, drive_op1],
-            hamiltonian_channels=['d0', 'd1'],
-            channel_carrier_freqs={'d0': 4.99, 'd1': 5.01},
+            hamiltonian_channels=["d0", "d1"],
+            channel_carrier_freqs={"d0": 4.99, "d1": 5.01},
             dt=0.1,
-            rotating_frame=static_ham_2q
+            rotating_frame=static_ham_2q,
         )
         self.simulator_2q = PulseSimulator(solver=solver_2q, subsystem_dims=[2, 2])
-
 
     def test_pi_pulse(self):
         """Test simulation of a pi pulse."""
@@ -166,7 +190,9 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
                 pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
                 pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
 
-        result = self.simple_simulator.run(schedule, seed_simulator=1234567, initial_state=Statevector([0., 1.])).result()
+        result = self.simple_simulator.run(
+            schedule, seed_simulator=1234567, initial_state=Statevector([0.0, 1.0])
+        ).result()
         self.assertDictEqual(result.get_counts(), {"0": 1024})
         self.assertTrue(result.get_memory() == ["0"] * 1024)
 
@@ -179,7 +205,7 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
                 pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
 
         result = self.simple_simulator.run(schedule, seed_simulator=398472).result()
-        self.assertDictEqual(result.get_counts(), {'0': 505, '1': 519})
+        self.assertDictEqual(result.get_counts(), {"0": 505, "1": 519})
 
     def test_pi_half_pulse_relabelled(self):
         """Test simulation of a pi/2 pulse with qubit relabelled."""
@@ -192,7 +218,7 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
                 pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(1))
 
         result = self.simple_simulator.run(schedule, seed_simulator=398472).result()
-        self.assertDictEqual(result.get_counts(), {'00': 505, '10': 519})
+        self.assertDictEqual(result.get_counts(), {"00": 505, "10": 519})
 
     def test_circuit_with_pulse_defs(self):
         """Test simulating a circuit with pulse definitions."""
@@ -204,7 +230,7 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
         with pulse.build() as x_sched0:
             pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
 
-        circ.add_calibration('x', [0], x_sched0)
+        circ.add_calibration("x", [0], x_sched0)
 
         result = self.simple_simulator.run(circ, seed_simulator=1234567).result()
         self.assertDictEqual(result.get_counts(), {"1": 1024})
@@ -219,7 +245,7 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
 
         target = Target()
         inst_sched_map = target.instruction_schedule_map()
-        inst_sched_map.add('x', qubits=0, schedule=x_sched0)
+        inst_sched_map.add("x", qubits=0, schedule=x_sched0)
 
         pulse_simulator = PulseSimulator(solver=self.simple_solver, target=target)
 
@@ -255,8 +281,8 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
         with pulse.build() as h_sched1:
             pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(1))
 
-        inst_map.add('x', qubits=0, schedule=x_sched0)
-        inst_map.add('h', qubits=1, schedule=h_sched1)
+        inst_map.add("x", qubits=0, schedule=x_sched0)
+        inst_map.add("h", qubits=1, schedule=h_sched1)
 
         # run both
         result0 = self.simulator_2q.run(circ0, seed_simulator=1234567).result()
@@ -292,7 +318,6 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
                 pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(1))
                 pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(2))
                 pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(4))
-
 
         # run both
         result0 = self.simulator_2q.run(schedule0, seed_simulator=1234567).result()

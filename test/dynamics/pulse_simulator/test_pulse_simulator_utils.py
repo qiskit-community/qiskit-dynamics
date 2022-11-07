@@ -129,48 +129,46 @@ class Test_get_memory_slot_probabilities(QiskitDynamicsTestCase):
     def test_trivial_case(self):
         """Test trivial case where no re-ordering is done."""
 
-        probability_dict = {'000': 0.25, '001': 0.3, '200': 0.4, '010': 0.05}
+        probability_dict = {"000": 0.25, "001": 0.3, "200": 0.4, "010": 0.05}
 
         output = _get_memory_slot_probabilities(
-            probability_dict=probability_dict,
-            memory_slot_indices=[0, 1, 2]
+            probability_dict=probability_dict, memory_slot_indices=[0, 1, 2]
         )
         self.assertDictEqual(output, probability_dict)
 
     def test_basic_reordering(self):
         """Test case with simple re-ordering."""
 
-        probability_dict = {'000': 0.25, '001': 0.3, '200': 0.4, '010': 0.05}
+        probability_dict = {"000": 0.25, "001": 0.3, "200": 0.4, "010": 0.05}
 
         output = _get_memory_slot_probabilities(
-            probability_dict=probability_dict,
-            memory_slot_indices=[2, 0, 1]
+            probability_dict=probability_dict, memory_slot_indices=[2, 0, 1]
         )
-        self.assertDictEqual(output, {'000': 0.25, '100': 0.3, '020': 0.4, '001': 0.05})
+        self.assertDictEqual(output, {"000": 0.25, "100": 0.3, "020": 0.4, "001": 0.05})
 
     def test_extra_memory_slots(self):
         """Test case with more memory slots than there are digits in probability_dict keys."""
 
-        probability_dict = {'000': 0.25, '001': 0.3, '200': 0.4, '010': 0.05}
+        probability_dict = {"000": 0.25, "001": 0.3, "200": 0.4, "010": 0.05}
 
         output = _get_memory_slot_probabilities(
             probability_dict=probability_dict,
             memory_slot_indices=[3, 0, 1],
         )
-        self.assertDictEqual(output, {'0000': 0.25, '1000': 0.3, '0020': 0.4, '0001': 0.05})
+        self.assertDictEqual(output, {"0000": 0.25, "1000": 0.3, "0020": 0.4, "0001": 0.05})
 
     def test_bound_and_merging(self):
         """Test case with max outcome bound."""
 
-        probability_dict = {'000': 0.25, '001': 0.3, '200': 0.2, '100': 0.2, '010': 0.05}
+        probability_dict = {"000": 0.25, "001": 0.3, "200": 0.2, "100": 0.2, "010": 0.05}
 
         output = _get_memory_slot_probabilities(
             probability_dict=probability_dict,
             memory_slot_indices=[2, 0, 1],
             num_memory_slots=4,
-            max_outcome_value=1
+            max_outcome_value=1,
         )
-        self.assertDictEqual(output, {'0000': 0.25, '0100': 0.3, '0010': 0.4, '0001': 0.05})
+        self.assertDictEqual(output, {"0000": 0.25, "0100": 0.3, "0010": 0.4, "0001": 0.05})
 
 
 class Test_sample_probability_dict(QiskitDynamicsTestCase):
@@ -178,12 +176,12 @@ class Test_sample_probability_dict(QiskitDynamicsTestCase):
 
     def test_correct_formatting(self):
         """Basic test case."""
-        probability_dict = {'a': 0.1, 'b': 0.12, 'c': 0.78}
+        probability_dict = {"a": 0.1, "b": 0.12, "c": 0.78}
         seed = 3948737
         outcome = _sample_probability_dict(probability_dict, shots=100, seed=seed)
 
         rng = np.random.default_rng(seed=seed)
-        expected = rng.choice(['a', 'b', 'c'], size=100, replace=True, p=[0.1, 0.12, 0.78])
+        expected = rng.choice(["a", "b", "c"], size=100, replace=True, p=[0.1, 0.12, 0.78])
 
         for a, b in zip(outcome, expected):
             self.assertTrue(a == b)
@@ -194,6 +192,6 @@ class Test_get_counts_from_samples(QiskitDynamicsTestCase):
 
     def test_basic_counting(self):
         """Basic test case."""
-        samples = ['00', '01', '00', '20', '01', '01', '20']
+        samples = ["00", "01", "00", "20", "01", "01", "20"]
         output = _get_counts_from_samples(samples)
-        self.assertDictEqual(output, {'00': 2, '01': 3, '20': 2})
+        self.assertDictEqual(output, {"00": 2, "01": 3, "20": 2})

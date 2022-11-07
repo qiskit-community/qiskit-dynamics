@@ -51,40 +51,31 @@ from .pulse_simulator_utils import (
 
 
 class PulseSimulator(BackendV2):
+    """Pulse enabled simulator backend."""
+
     def __init__(
         self,
         solver: Solver,
         target: Optional[Target] = None,
-        provider: Optional = None,
+        provider: Optional["Provider"] = None,
         **options,
     ):
-        """This init needs fleshing out. Need to determine all that is necessary for each use case.
+        """Instantiate with a :class:`.Solver` instance and additional options.
 
-        Assumptions
-            - Solver is well-formed.
-            - The no-rotating frame Solver Hamiltonian operators are specified in undressed
-              basis using standard tensor-product convention (whether dense or sparse evaluation)
-
-        Design questions
-            - Simulating measurement requires subsystem dims and labels, should we allow this
-              to be constructed without them, and then measurement is just not possible?
-            - Should we add the ability to do custom measurements?
-            - Should we fill out defaults by extracting them from Solver?
-            - If no set frequency commands are set in the schedule, what should the channel
-              frequencies be?
-                - How are control channel frequencies handled these days?
-            - Fill out properties
-
-        Notes:
-            - Add validation of the Solver object, verifying that its configured to simulate pulse
-              schedules
+        Args:
+            solver: Solver instance configured for pulse simulation.
+            target: Target object.
+            provider: Provider of the backend.
+            options: Additional configuration options for the simulator.
+        Raises:
+            QiskitError: If any instantiation arguments fail validation checks.
         """
 
         super().__init__(
             name="PulseSimulator",
             description="Pulse enabled simulator backend.",
             backend_version=0.1,
-            provider=provider
+            provider=provider,
         )
 
         # Dressed states of solver, will be calculated when solver option is set
@@ -118,7 +109,9 @@ class PulseSimulator(BackendV2):
         for qubit in self.options.subsystem_labels:
             if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
                 with pulse.build() as meas_sched:
-                    pulse.acquire(duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit))
+                    pulse.acquire(
+                        duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit)
+                    )
 
             instruction_schedule_map.add(instruction="measure", qubits=qubit, schedule=meas_sched)
 
@@ -145,25 +138,38 @@ class PulseSimulator(BackendV2):
         for key, value in fields.items():
             if not hasattr(self._options, key):
                 raise AttributeError("Invalid option %s" % key)
-            if key == 'initial_state':
+            if key == "initial_state":
                 if value != "ground_state" and not isinstance(value, (Statevector, DensityMatrix)):
-                    raise QiskitError('initial_state must be either "ground_state", or a Statevector or DensityMatrix instance.')
+                    raise QiskitError(
+                        'initial_state must be either "ground_state", or a Statevector or DensityMatrix instance.'
+                    )
+            elif key == "meas_level":
+                if value != 2:
+                    raise QiskitError("Only meas_level == 2 is supported by PulseSimulator.")
 
             if key == "solver":
                 self._set_solver(value)
                 validate_subsystem_dims = True
             else:
-                if key == 'subsystem_dims':
+                if key == "subsystem_dims":
                     validate_subsystem_dims = True
                 setattr(self._options, key, value)
 
-        if validate_subsystem_dims and np.prod(self._options.subsystem_dims) != self._options.solver.model.dim:
-            raise QiskitError("PulseSimulator options subsystem_dims and solver.model.dim are inconsistent.")
+        # perform additional validation if certain options were modified
+        if (
+            validate_subsystem_dims
+            and np.prod(self._options.subsystem_dims) != self._options.solver.model.dim
+        ):
+            raise QiskitError(
+                "PulseSimulator options subsystem_dims and solver.model.dim are inconsistent."
+            )
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
         if solver._dt is None:
-            raise QiskitError("Solver passed to PulseSimulator is not configured for Pulse simulation.")
+            raise QiskitError(
+                "Solver passed to PulseSimulator is not configured for Pulse simulation."
+            )
 
         self._options.solver = solver
         # Get dressed states
@@ -178,36 +184,17 @@ class PulseSimulator(BackendV2):
         run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
         validate: Optional[bool] = True,
         **options,
-    ) -> Result:
-        """Run on the backend.
+    ) -> DynamicsJob:
+        """Run a list of simulations.
 
-        normalize_states ensures that, when sampling, the state is normalized, to avoid errors
-        being raised due to numerical tolerance issues.
-
-        Notes/questions:
-        - Should we force y0 to be a quantum_info state? This currently assumes that
-        - Should we provide optional arguments to run that allow the user to specify different
-          modes of simulation? E.g.
-            - Just simulate the state
-            - Simulate the unitary or process
-            - Return probabilities
-            - Return counts
-          For now, assuming just counts
-        - Validate which channels are available on device before running? Can the BackendV2 be
-          set up to do this automatically somehow?
-        - What is the formatting for the results when measuring a subset of qubits? E.g. if
-          you measure qubits [0, 2, 3], do you get counts for 3-bit strings out?
-        - Add validation that only qubits present in the model are being measured. This may
-          happen automatically as the measurement code will fail, but would be good to raise
-          a proper error.
-        - How to handle binning of higher level measurements? E.g. should everything above 0
-          count as 1?
-        - What to do with memory and register slots?
-
-        To test:
-        - Measuring a subset of qubits when more than one present
-        - If t_span=[0, 0] it seems that NaNs appear for JAX simulation - should solve this.
-        - Normalizing the state.
+        Args:
+            run_input: A list of simulations, specified by ``QuantumCircuit``, ``Schedule``, or
+                       ``ScheduleBlock`` instances.
+            validate: Whether or not to run validation checks on the input.
+        Returns:
+            DynamicsJob object containing results and status.
+        Raises:
+            QiskitError: If invalid options are set.
         """
 
         if validate:
@@ -260,10 +247,7 @@ class PulseSimulator(BackendV2):
         schedules_memslot_nums,
         memory_slot_indices_list,
     ) -> Result:
-        """Not sure here what the right delineation of arguments is to put in _run.
-        This feels somewhat hacky/arbitrary.
-        """
-        start = time.time()
+        """Simulate a list of schedules."""
 
         y0 = self.options.initial_state
         if y0 == "ground_state":
@@ -411,7 +395,9 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
 
         # validate
         if len(schedule_acquire_times) == 0:
-            raise QiskitError("At least one measurement must be present in each schedule.")
+            raise QiskitError(
+                "At least one measurement saving a a result in a MemorySlot must be present in each schedule."
+            )
 
         start_time = schedule_acquire_times[0]
         for time in schedule_acquire_times[1:]:
