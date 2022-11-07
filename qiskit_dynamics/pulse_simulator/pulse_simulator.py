@@ -17,11 +17,10 @@
 Pulse-enabled simulator backend.
 """
 
-import time
 import datetime
 import uuid
 
-from typing import Dict, Iterable, List, Optional, Union
+from typing import List, Optional, Union
 import copy
 import numpy as np
 
@@ -30,7 +29,6 @@ from qiskit.qobj.utils import MeasLevel
 from qiskit.qobj.common import QobjHeader
 from qiskit.transpiler import Target
 from qiskit.pulse import Schedule, ScheduleBlock
-from qiskit.pulse.channels import AcquireChannel, DriveChannel, MeasureChannel, ControlChannel
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit.providers.options import Options
 from qiskit.providers.backend import BackendV2
@@ -42,8 +40,6 @@ from qiskit import schedule as build_schedule
 from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics.solvers.solver_classes import Solver
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.models import HamiltonianModel
 
 from .dynamics_job import DynamicsJob
 from .pulse_simulator_utils import (
@@ -159,7 +155,7 @@ class PulseSimulator(BackendV2):
             else:
                 if key == "subsystem_dims":
                     validate_subsystem_dims = True
-                setattr(self._options, key, value)
+                self._options.update_options(**{key: value})
 
         # perform additional validation if certain options were modified
         if (
@@ -177,7 +173,7 @@ class PulseSimulator(BackendV2):
                 "Solver passed to PulseSimulator is not configured for Pulse simulation."
             )
 
-        self._options.solver = solver
+        self._options.update_options(solver=solver)
         # Get dressed states
         static_hamiltonian = _get_lab_frame_static_hamiltonian(solver.model)
         dressed_evals, dressed_states = _get_dressed_state_decomposition(static_hamiltonian)
@@ -185,6 +181,7 @@ class PulseSimulator(BackendV2):
         self._dressed_states = dressed_states
         self._dressed_states_adjoint = self._dressed_states.conj().transpose()
 
+    # pylint: disable=arguments-differ
     def run(
         self,
         run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
@@ -300,7 +297,9 @@ class PulseSimulator(BackendV2):
                     yf = yf / np.linalg.norm(yf.data)
             elif isinstance(yf, DensityMatrix):
                 yf = np.array(
-                    self.options.solver.model.rotating_frame.operator_out_of_frame(t=ts[-1], operator=yf)
+                    self.options.solver.model.rotating_frame.operator_out_of_frame(
+                        t=ts[-1], operator=yf
+                    )
                 )
                 yf = self._dressed_states_adjoint @ yf @ self._dressed_states
                 yf = DensityMatrix(yf, dims=self.options.subsystem_dims)
@@ -357,6 +356,7 @@ class PulseSimulator(BackendV2):
             date=datetime.datetime.now().isoformat(),
         )
 
+    @property
     def max_circuits(self):
         return None
 
@@ -407,9 +407,8 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
                 must be present in each schedule."""
             )
 
-        start_time = schedule_acquire_times[0]
-        for time in schedule_acquire_times[1:]:
-            if time != start_time:
+        for acquire_time in schedule_acquire_times[1:]:
+            if acquire_time != schedule_acquire_times[0]:
                 raise QiskitError("PulseSimulator.run only supports measurements at one time.")
 
         t_span_list.append([0, schedule_acquire_times[0]])

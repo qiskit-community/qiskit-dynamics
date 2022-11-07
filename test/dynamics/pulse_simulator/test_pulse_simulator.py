@@ -20,12 +20,6 @@ from qiskit.transpiler import Target
 from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics import Solver, PulseSimulator
-
-from qiskit_dynamics.pulse_simulator.pulse_simulator import (
-    _validate_run_input,
-    _get_acquire_data,
-    _to_schedule_list,
-)
 from ..common import QiskitDynamicsTestCase
 
 
@@ -145,10 +139,10 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
         self.simple_solver = solver
         self.simple_simulator = PulseSimulator(solver=solver)
 
-        id = np.eye(2, dtype=complex)
+        ident = np.eye(2, dtype=complex)
         static_ham_2q = (
-            2 * np.pi * 4.99 * np.kron(id, np.array([[-1.0, 0.0], [0.0, 1.0]])) / 2
-            + 2 * np.pi * 5.01 * np.kron(np.array([[-1.0, 0.0], [0.0, 1.0]]), id) / 2
+            2 * np.pi * 4.99 * np.kron(ident, np.array([[-1.0, 0.0], [0.0, 1.0]])) / 2
+            + 2 * np.pi * 5.01 * np.kron(np.array([[-1.0, 0.0], [0.0, 1.0]]), ident) / 2
             + 2
             * np.pi
             * 0.002
@@ -158,8 +152,8 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
             * 0.002
             * np.kron(np.array([[0.0, 0.0], [1.0, 0.0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
         )
-        drive_op0 = 2 * np.pi * 0.1 * np.kron(id, np.array([[0.0, 1.0], [1.0, 0.0]])) / 2
-        drive_op1 = 2 * np.pi * 0.1 * np.kron(np.array([[0.0, 1.0], [1.0, 0.0]]), id) / 2
+        drive_op0 = 2 * np.pi * 0.1 * np.kron(ident, np.array([[0.0, 1.0], [1.0, 0.0]])) / 2
+        drive_op1 = 2 * np.pi * 0.1 * np.kron(np.array([[0.0, 1.0], [1.0, 0.0]]), ident) / 2
         solver_2q = Solver(
             static_hamiltonian=static_ham_2q,
             hamiltonian_operators=[drive_op0, drive_op1],
@@ -204,7 +198,9 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
                 pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(0))
                 pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
 
-        result = self.simple_simulator.run(schedule, seed_simulator=398472, initial_state=DensityMatrix([1., 0.])).result()
+        result = self.simple_simulator.run(
+            schedule, seed_simulator=398472, initial_state=DensityMatrix([1.0, 0.0])
+        ).result()
         self.assertDictEqual(result.get_counts(), {"0": 505, "1": 519})
 
     def test_pi_half_pulse_relabelled(self):

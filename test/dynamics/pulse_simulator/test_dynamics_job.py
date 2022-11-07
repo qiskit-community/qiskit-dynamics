@@ -13,8 +13,6 @@
 Test DynamicsJob object.
 """
 
-import numpy as np
-
 from qiskit.providers import JobStatus, JobError
 
 from qiskit_dynamics.pulse_simulator.dynamics_job import DynamicsJob
@@ -25,11 +23,11 @@ class TestDynamicsJob(QiskitDynamicsTestCase):
     """Tests DynamicsJob."""
 
     def setUp(self):
-        def fn(job_id, x):
+        def eval_func(_, x):
             return x**2
 
         self.simple_job = DynamicsJob(
-            backend="", job_id="123", fn=fn, fn_kwargs={"x": 2}, other_kwarg="for testing"
+            backend="", job_id="123", fn=eval_func, fn_kwargs={"x": 2}, other_kwarg="for testing"
         )
 
     def test_submit_and_get_result(self):

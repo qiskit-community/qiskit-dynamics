@@ -9,6 +9,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
 """
 Test pulse simulation utility functions.
 """
@@ -17,8 +19,6 @@ from ddt import ddt, data, unpack
 import numpy as np
 
 from qiskit import QiskitError
-from qiskit.result.counts import Counts
-from qiskit.quantum_info import Statevector, DensityMatrix
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.pulse_simulator.pulse_simulator_utils import (
