@@ -23,7 +23,8 @@ class TestDynamicsJob(QiskitDynamicsTestCase):
     """Tests DynamicsJob."""
 
     def setUp(self):
-        def eval_func(_, x):
+        # pylint: disable=unused-argument
+        def eval_func(job_id, x):
             return x**2
 
         self.simple_job = DynamicsJob(
