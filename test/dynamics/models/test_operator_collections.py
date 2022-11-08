@@ -16,7 +16,7 @@
 import numpy as np
 import numpy.random as rand
 from scipy.sparse import issparse
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator

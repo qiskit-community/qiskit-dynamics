@@ -17,8 +17,7 @@ Hamiltonian models module.
 
 from typing import Union, List, Optional
 import numpy as np
-from scipy.sparse import issparse
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix, issparse
 from scipy.sparse.linalg import norm as spnorm
 
 from qiskit import QiskitError

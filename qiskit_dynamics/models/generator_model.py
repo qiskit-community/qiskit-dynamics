@@ -20,8 +20,7 @@ from typing import Tuple, Union, List, Optional
 from warnings import warn
 from copy import copy
 import numpy as np
-from scipy.sparse.csr import csr_matrix
-from scipy.sparse import issparse, diags
+from scipy.sparse import csr_matrix, issparse, diags
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
