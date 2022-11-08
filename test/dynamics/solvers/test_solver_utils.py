@@ -246,17 +246,19 @@ class TestJitWithStaticMutables(QiskitDynamicsTestCase):
         self.assertEqual(tuple(my_jit.cache_info()), (0, 0, 128, 0))
 
     def test_static_mutable_argnames(self):
-        """Test that static_mutable_argnames accepts values as expected."""
+        """Test that static_mutable_argnames accepts values as documented."""
 
         def my_jit(arr, a, b, c):  # pylint: disable=unused-argument,invalid-name
             return arr
 
-        jit_with_static_mutables(my_jit)
-        jit_with_static_mutables(my_jit, static_mutable_argnames="a")
-        jit_with_static_mutables(my_jit, static_mutable_argnames=["a", "c"])
+        jit_with_static_mutables(my_jit)(*np.array([1, 2, 3, 4]))
+        jit_with_static_mutables(my_jit, static_mutable_argnames="a")(*np.array([1, 2, 3, 4]))
+        jit_with_static_mutables(my_jit, static_mutable_argnames=["a", "c"])(
+            *np.array([1, 2, 3, 4])
+        )
 
         with self.assertRaisesRegex(ValueError, "is not present"):
             jit_with_static_mutables(my_jit, static_mutable_argnames="d")
 
         with self.assertRaisesRegex(ValueError, "is not present"):
-            jit_with_static_mutables(my_jit, static_mutable_argnames=["a", "d"])
+            jit_with_static_mutables(my_jit, static_mutable_argnames=["b", "d"])

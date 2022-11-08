@@ -515,9 +515,13 @@ class Solver:
         # turn any present schedules into signals and find longest DiscreteSignal
         max_samples = 0
         for idx, sigs in enumerate(signals_list):
+            if sigs is None:
+                continue
             if isinstance(sigs, ScheduleBlock):
-                signals = block_to_schedule(sigs)
+                sigs = block_to_schedule(sigs)
             if isinstance(sigs, Schedule):
+                if self._schedule_converter is None:
+                    raise QiskitError("Solver instance not configured for Schedule simulation.")
                 signals_list[idx] = sigs = self._schedule_converter.get_signals(sigs)
             if all(isinstance(signal, DiscreteSignal) for signal in sigs):
                 max_samples = max(max_samples, max(signal.duration for signal in sigs))
@@ -530,8 +534,8 @@ class Solver:
         all_results = []
         for t_span_elem, y0_elem, sigs in zip(t_span_list, y0_list, signals_list):
             # setup initial state
-            y0, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
-                y0, self.model
+            y0_elem, y0_input, y0_cls, state_type_wrapper = validate_and_format_initial_state(
+                y0_elem, self.model
             )
 
             results = None
@@ -576,8 +580,11 @@ class Solver:
         old_signals = self.model.signals
 
         # if Lindblad model and signals are given as a list set as Hamiltonian part of signals
-        if isinstance(self.model, LindbladModel) and isinstance(signals, (list, SignalList)):
-            signals = (signals, None)
+        if isinstance(self.model, LindbladModel):
+            if signals is None:
+                signals = (None, None)
+            elif isinstance(signals, (list, SignalList)):
+                signals = (signals, None)
 
         if self._rwa_signal_map:
             signals = self._rwa_signal_map(signals)
@@ -630,19 +637,6 @@ class Solver:
             results.y = format_final_states(results.y, self.model, y_input, y_cls)
 
         return Array(results.t).data, Array(results.y).data
-
-    def _schedule_to_signals(self, schedule: Union[List[Signal], Schedule]):
-        """Convert a schedule into the signal format required by the model."""
-        if self._schedule_converter is None:
-            raise QiskitError("Solver instance not configured for pulse Schedule simulation.")
-
-        return organize_signals_to_channels(
-            self._schedule_converter.get_signals(schedule),
-            self._all_channels,
-            self.model.__class__,
-            self._hamiltonian_channels,
-            self._dissipator_channels,
-        )
 
 
 def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:

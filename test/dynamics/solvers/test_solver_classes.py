@@ -145,7 +145,7 @@ class TestPulseSolverValidation(QiskitDynamicsTestCase):
         with pulse.build() as sched:
             pulse.play(pulse.Constant(duration=5, amp=0.9), pulse.DriveChannel(0))
 
-        with self.assertRaisesRegex(QiskitError, "not configured for pulse"):
+        with self.assertRaisesRegex(QiskitError, "not configured for Schedule"):
             solver.solve(t_span=[0.0, 1.0], y0=np.array([0.0, 1.0]), signals=sched)
 
 
