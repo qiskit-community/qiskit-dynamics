@@ -30,6 +30,7 @@ from qiskit.qobj.common import QobjHeader
 from qiskit.transpiler import Target
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
+from qiskit.providers import Provider
 from qiskit.providers.options import Options
 from qiskit.providers.backend import BackendV2
 from qiskit.result import Result
@@ -58,7 +59,7 @@ class PulseSimulator(BackendV2):
         self,
         solver: Solver,
         target: Optional[Target] = None,
-        provider: Optional["Provider"] = None,
+        provider: Optional[Provider] = None,
         **options,
     ):
         """Instantiate with a :class:`.Solver` instance and additional options.
