@@ -53,7 +53,32 @@ from .pulse_simulator_utils import (
 
 
 class PulseSimulator(BackendV2):
-    """Pulse enabled simulator backend."""
+    r"""Pulse enabled simulator backend.
+
+    **Supported options**
+
+    * ``shots``: Number of shots per experiment. Defaults to ``1024``.
+    * ``solver``: The Qiskit Dynamics :class:`.Solver` instance used for simulation.
+    * ``solver_options``: Dictionary containing optional kwargs for passing to :meth:`Solver.solve`,
+      indicating solver methods and options. Defaults to the empty dictionary ``{}``.
+    * ``subsystem_dims``: Dimensions of subsystems making up the system in ``solver``. Defaults
+      to ``[solver.model.dim]``.
+    * ``subsystem_labels``: Integer labels for subsystems. Defaults to
+      ``[0, ..., len(subsystem_dims) - 1]``.
+    * ``meas_map``: Measurement map. Defaults to ``[[idx] for idx in subsystem_labels]``.
+    * ``normalize_states``: Boolean indicating whether to normalize states before computing
+      outcome probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if
+      the solution tolerance results in probabilities with significant numerical deviation from
+      proper probability distributions.
+    * ``initial_state``: Initial state for simulation, either the string ``"ground_state"``,
+      indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
+      ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
+    * ``meas_level``: Form of measurement return. Only supported value is ``2``, indicating that
+      counts should be returned. Defaults to ``meas_level==2``.
+    * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
+      every experimental shot. Defaults to ``True``.
+    * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.
+    """
 
     def __init__(
         self,
@@ -122,8 +147,8 @@ class PulseSimulator(BackendV2):
             shots=1024,
             solver=None,
             solver_options={},
-            subsystem_labels=None,
             subsystem_dims=None,
+            subsystem_labels=None,
             meas_map=None,
             normalize_states=True,
             initial_state="ground_state",
