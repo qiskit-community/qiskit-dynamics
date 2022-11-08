@@ -62,6 +62,15 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "inconsistent"):
             self.simple_simulator.set_options(subsystem_dims=[4])
 
+    def test_max_outcome_level_error(self):
+        """Test that invalid max_outcome_level results in error."""
+
+        with self.assertRaisesRegex(QiskitError, "must be a positive integer"):
+            self.simple_simulator.set_options(max_outcome_level=0)
+
+        with self.assertRaisesRegex(QiskitError, "must be a positive integer"):
+            self.simple_simulator.set_options(max_outcome_level="hi")
+
     def test_no_measurements_in_schedule(self):
         """Test that running a schedule with no measurements raises an error."""
 
@@ -331,3 +340,18 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
 
         # validate consistent results
         self.assertDictEqual(result0_dict, result1_dict)
+
+    def test_measure_higher_levels(self):
+        """Test measurement of higher levels."""
+
+        solver = Solver(static_hamiltonian=np.diag([-1.0, 0.0, 1.0]), dt=0.1)
+        qutrit_simulator = PulseSimulator(
+            solver=solver, max_outcome_level=None, initial_state=Statevector([0.0, 0.0, 1.0])
+        )
+
+        circ = QuantumCircuit(1, 1)
+        circ.measure([0], [0])
+
+        res = qutrit_simulator.run(circ).result()
+
+        self.assertDictEqual(res.get_counts(), {"2": 1024})

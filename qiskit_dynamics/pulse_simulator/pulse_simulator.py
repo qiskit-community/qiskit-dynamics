@@ -75,6 +75,9 @@ class PulseSimulator(BackendV2):
       ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
     * ``meas_level``: Form of measurement return. Only supported value is ``2``, indicating that
       counts should be returned. Defaults to ``meas_level==2``.
+    * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem.
+      Values will be rounded down to be no larger than ``max_outcome_level``. Must be a positive
+      integer or ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
     * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
       every experimental shot. Defaults to ``True``.
     * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.
@@ -153,6 +156,7 @@ class PulseSimulator(BackendV2):
             normalize_states=True,
             initial_state="ground_state",
             meas_level=MeasLevel.CLASSIFIED,
+            max_outcome_level=1,
             memory=True,
             seed_simulator=None,
         )
@@ -165,6 +169,7 @@ class PulseSimulator(BackendV2):
         for key, value in fields.items():
             if not hasattr(self._options, key):
                 raise AttributeError(f"Invalid option {key}")
+
             if key == "initial_state":
                 if value != "ground_state" and not isinstance(value, (Statevector, DensityMatrix)):
                     raise QiskitError(
@@ -174,6 +179,9 @@ class PulseSimulator(BackendV2):
             elif key == "meas_level":
                 if value != 2:
                     raise QiskitError("Only meas_level == 2 is supported by PulseSimulator.")
+            elif key == "max_outcome_level":
+                if (value is not None) and (not isinstance(value, int) or (value <= 0)):
+                    raise QiskitError("max_outcome_level must be a positive integer or None.")
 
             if key == "solver":
                 self._set_solver(value)
@@ -338,7 +346,7 @@ class PulseSimulator(BackendV2):
                     probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
                     memory_slot_indices=memory_slot_indices,
                     num_memory_slots=num_memory_slots,
-                    max_outcome_value=1,
+                    max_outcome_value=self.options.max_outcome_level,
                 )
 
                 # sample
