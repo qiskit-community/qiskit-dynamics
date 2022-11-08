@@ -113,9 +113,7 @@ class PulseSimulator(BackendV2):
                         duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit)
                     )
 
-            instruction_schedule_map.add(
-                instruction="measure", qubits=qubit, schedule=meas_sched
-            )
+            instruction_schedule_map.add(instruction="measure", qubits=qubit, schedule=meas_sched)
 
         self._target = target
 
