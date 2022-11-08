@@ -13,9 +13,9 @@
 # that they have been altered from the originals.
 
 """
-==============================================
+========================================================
 Pulse Simulator (:mod:`qiskit_dynamics.pulse_simulator`)
-==============================================
+========================================================
 
 .. currentmodule:: qiskit_dynamics.pulse_simulator
 
