@@ -20,10 +20,9 @@ reshaping arrays, and handling qiskit types that wrap arrays.
 from typing import Union, List
 from collections.abc import Iterable
 import numpy as np
-from scipy.sparse import issparse, spmatrix
+from scipy.sparse import csr_matrix, issparse, spmatrix
 from scipy.sparse import kron as sparse_kron
 from scipy.sparse import identity as sparse_identity
-from scipy.sparse.csr import csr_matrix
 
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.array import Array
