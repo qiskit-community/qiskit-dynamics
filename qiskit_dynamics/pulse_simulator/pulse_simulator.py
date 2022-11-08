@@ -104,18 +104,18 @@ class PulseSimulator(BackendV2):
         if target is None:
             target = Target()
 
-            # add default simulator measure instructions
-            instruction_schedule_map = self.target.instruction_schedule_map()
-            for qubit in self.options.subsystem_labels:
-                if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
-                    with pulse.build() as meas_sched:
-                        pulse.acquire(
-                            duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit)
-                        )
+        # add default simulator measure instructions
+        instruction_schedule_map = target.instruction_schedule_map()
+        for qubit in self.options.subsystem_labels:
+            if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
+                with pulse.build() as meas_sched:
+                    pulse.acquire(
+                        duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit)
+                    )
 
-                instruction_schedule_map.add(
-                    instruction="measure", qubits=qubit, schedule=meas_sched
-                )
+            instruction_schedule_map.add(
+                instruction="measure", qubits=qubit, schedule=meas_sched
+            )
 
         self._target = target
 
