@@ -207,22 +207,16 @@ class PulseSimulator(BackendV2):
 
         # Configure run options for simulation
         if options:
-            # TODO: We might need to implement a copy or __copy__ method
-            # to make sure this copying works correctly without a deepcopy
             backend = copy.copy(self)
             backend.set_options(**options)
         else:
             backend = self
 
-        initial_state = backend.options.initial_state
-        if initial_state == "ground_state":
-            initial_state = Statevector(backend._dressed_states[:, 0])
-
-        schedules, schedules_memslot_nums = _to_schedule_list(run_input, backend=self)
+        schedules, schedules_memslot_nums = _to_schedule_list(run_input, backend=backend)
 
         # get the acquires instructions and simulation times
         t_span, measurement_subsystems_list, memory_slot_indices_list = _get_acquire_data(
-            schedules, self.options.subsystem_labels
+            schedules, backend.options.subsystem_labels
         )
 
         # Build and submit job
