@@ -17,7 +17,7 @@ from typing import Union, List, Optional
 from copy import copy
 import numpy as np
 from scipy.sparse import issparse
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
