@@ -36,10 +36,22 @@ from qiskit.pulse import (
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit import QiskitError
 
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.pulse import InstructionToSignals
+from qiskit_dynamics.pulse.pulse_to_signals import (
+    get_samples,
+    _lru_cache_expr,
+)
 from qiskit_dynamics.signals import DiscreteSignal
 
-from ..common import QiskitDynamicsTestCase
+from ..common import QiskitDynamicsTestCase, TestJaxBase
+
+try:
+    import jax
+    import jax.numpy as jnp
+# pylint: disable=broad-except
+except Exception:
+    pass
 
 
 class TestPulseToSignals(QiskitDynamicsTestCase):
@@ -256,7 +268,6 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
             dt=0.1, channels=["d0", "d1"], carriers={"d0": 5.0, "d1": 3.1}
         )
         signals = converter.get_signals(schedule)
-
         # construct samples
         constant_samples = np.ones(5, dtype=float) * 0.9
         phase = np.exp(1j * np.pi / 2.98)
@@ -264,8 +275,8 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
         samples1 = np.append(np.zeros(10), gauss_samples)
 
-        self.assertAllClose(signals[0].samples, samples0, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(signals[1].samples, samples1, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[0].samples, samples0, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(signals[1].samples, samples1, atol=1e-7, rtol=1e-7)
         self.assertTrue(signals[0].carrier_freq == 5.0)
         self.assertTrue(signals[1].carrier_freq == 3.1)
 
@@ -303,14 +314,58 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         samples2 = np.append(np.zeros(15), np.append(gauss_samples, np.zeros(10)))
         samples3 = np.append(np.zeros(20), np.append(gauss_samples, np.zeros(5)))
 
-        self.assertAllClose(signals[0].samples, samples0, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(signals[1].samples, samples1, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(signals[2].samples, samples2, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(signals[3].samples, samples3, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[0].samples, samples0, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(signals[1].samples, samples1, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(signals[2].samples, samples2, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(signals[3].samples, samples3, atol=1e-7, rtol=1e-7)
         self.assertTrue(signals[0].carrier_freq == 5.0)
         self.assertTrue(signals[1].carrier_freq == 3.1)
         self.assertTrue(signals[2].carrier_freq == 0.0)
         self.assertTrue(signals[3].carrier_freq == 4.0)
+
+    def test_get_samples(self):
+        """Test get samples of Pulse not get_waveform but get_samples function."""
+        gauss_get_waveform_samples = (
+            pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        )
+        gauss_get_samples = get_samples(Gaussian(duration=5, amp=0.983, sigma=2.0))
+        self.assertTrue(isinstance(gauss_get_samples, np.ndarray))
+        self.assertAllClose(gauss_get_samples, gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
+
+    def test_lru_cache_expr(self):
+        """Test lru_cache of lru_cache_expr function."""
+        gauss_envelop = Gaussian(duration=5, amp=0.983, sigma=2.0).envelope
+        self.assertTrue(
+            _lru_cache_expr(gauss_envelop, Array.default_backend())
+            is _lru_cache_expr(gauss_envelop, Array.default_backend())
+        )
+
+
+class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
+    """Tests get_samples function by using Jax."""
+
+    def setUp(self):
+        """Set up gaussian waveform samples for comparison."""
+        self.gauss_get_waveform_samples = (
+            pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        )
+
+    def test_get_samples_with_jax(self):
+        """Test get samples of Pulse not get_waveform but get_samples function in Jax case."""
+        gauss_get_samples = get_samples(Gaussian(duration=5, amp=0.983, sigma=2.0))
+        self.assertTrue(isinstance(gauss_get_samples, jnp.ndarray))
+        self.assertAllClose(
+            gauss_get_samples, self.gauss_get_waveform_samples, atol=1e-7, rtol=1e-7
+        )
+
+    def test_jit_get_samples(self):
+        """Test compiling to get samples of Pulse."""
+
+        def jit_func(amp, sigma):
+            return get_samples(Gaussian(duration=5, amp=amp, sigma=sigma))
+
+        jit_samples = jax.jit(jit_func, static_argnums=(0, 1))(0.983, 2)
+        self.assertAllClose(jit_samples, self.gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
 
 
 @ddt
