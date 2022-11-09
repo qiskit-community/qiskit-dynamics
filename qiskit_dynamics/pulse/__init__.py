@@ -76,5 +76,4 @@ Qiskit Pulse
 
    InstructionToSignals
 """
-
 from .pulse_to_signals import InstructionToSignals

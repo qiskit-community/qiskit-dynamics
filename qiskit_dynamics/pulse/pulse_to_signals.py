@@ -15,7 +15,10 @@ Pulse schedule to Signals converter.
 """
 
 from typing import Dict, List, Optional
+import functools
+
 import numpy as np
+import sympy as sym
 
 from qiskit.pulse import (
     Schedule,
@@ -30,9 +33,17 @@ from qiskit.pulse import (
     ControlChannel,
     AcquireChannel,
 )
+from qiskit.pulse.exceptions import PulseError
+from qiskit.pulse.library import SymbolicPulse
 from qiskit import QiskitError
 
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import DiscreteSignal
+
+try:
+    import jax.numpy as jnp
+except ImportError:
+    pass
 
 
 class InstructionToSignals:
@@ -122,7 +133,7 @@ class InstructionToSignals:
                 if isinstance(inst.pulse, Waveform):
                     inst_samples = inst.pulse.samples
                 else:
-                    inst_samples = inst.pulse.get_waveform().samples
+                    inst_samples = get_samples(inst.pulse)
 
                 # build sample array to append to signal
                 samples = []
@@ -250,3 +261,71 @@ class InstructionToSignals:
             raise QiskitError(
                 f"Invalid channel name {channel_name} given to {self.__class__.__name__}."
             ) from error
+
+
+def get_samples(pulse: SymbolicPulse, backend=Array.default_backend()):
+    """Return samples filled according to the formula that the pulse
+    represents and the parameter values it contains.
+
+    Args:
+        pulse: SymbolicPulse class.
+        backend: Array backend.
+    Returns:
+        Samples of the pulse.
+    Raises:
+        PulseError: When parameters are not assigned.
+        PulseError: When expression for pulse envelope is not assigned.
+    """
+    envelope = pulse.envelope
+    if pulse.is_parameterized():
+        raise PulseError("Unassigned parameter exists. All parameters must be assigned.")
+
+    if envelope is None:
+        raise PulseError("Pulse envelope expression is not assigned.")
+    return _lru_cache_expr(envelope, backend)(*_get_expression_args(envelope, pulse.parameters))
+
+
+@functools.lru_cache(maxsize=None)
+def _lru_cache_expr(expr: sym.Expr, backend):
+    """A helper function to get lambdified expression.
+
+    Args:
+        expr: Symbolic expression to evaluate.
+        backend: Array backend.
+    Returns:
+        lambdified expression.
+    """
+    params = []
+    for p in sorted(expr.free_symbols, key=lambda s: s.name):
+        if p.name == "t":
+            params.insert(0, p)
+            continue
+        params.append(p)
+    return sym.lambdify(params, expr, modules=backend)
+
+
+def _get_expression_args(expr: sym.Expr, params: Dict[str, float]) -> List[float]:
+    """A helper function to get argument to evaluate expression.
+
+    Args:
+        expr: Symbolic expression to evaluate.
+        params: Dictionary of parameter, which is a superset of expression arguments.
+    Returns:
+        Arguments passed to the lambdified expression.
+    Raises:
+        PulseError: When a free symbol value is not defined in the pulse instance parameters.
+    """
+    args = []
+    for symbol in sorted(expr.free_symbols, key=lambda s: s.name):
+        if symbol.name == "t":
+            times = jnp.arange(0, params["duration"]) + 1 / 2
+            args.insert(0, times)
+            continue
+        try:
+            args.append(params[symbol.name])
+        except KeyError as ex:
+            raise PulseError(
+                f"Pulse parameter '{symbol.name}' is not defined for this instance. "
+                "Please check your waveform expression is correct."
+            ) from ex
+    return args
