@@ -17,7 +17,7 @@ Lindblad models module.
 
 from typing import Tuple, Union, List, Optional
 from warnings import warn
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
