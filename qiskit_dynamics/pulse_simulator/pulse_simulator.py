@@ -20,7 +20,7 @@ Pulse-enabled simulator backend.
 import datetime
 import uuid
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Callable
 import copy
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
@@ -82,7 +82,10 @@ class PulseSimulator(BackendV2):
     * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
       every experimental shot. Defaults to ``True``.
     * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.
-    * ``result_function``: Function for result computation.
+    * ``result_function``: Function for computing output results of individual
+      simulations. The purpose of this function is to enable a user to completely control how
+      the results of each simulation are constructed. The function should have the same
+      signature as the default function :func:`compute_experiment_result`
     """
 
     def __init__(
@@ -118,6 +121,9 @@ class PulseSimulator(BackendV2):
         # add subsystem_dims to options so set_options validation works
         if "subsystem_dims" not in options:
             options["subsystem_dims"] = [solver.model.dim]
+
+        if "result_function" not in options:
+            options["result_function"] = default_result_function
 
         # Set simulator options
         self.set_options(solver=solver, **options)
@@ -161,6 +167,7 @@ class PulseSimulator(BackendV2):
             max_outcome_level=1,
             memory=True,
             seed_simulator=None,
+            result_function=None
         )
 
     def set_options(self, **fields):
@@ -247,7 +254,7 @@ class PulseSimulator(BackendV2):
         else:
             backend = self
 
-        schedules, schedules_memslot_nums = _to_schedule_list(run_input, backend=backend)
+        schedules, num_memory_slots_list = _to_schedule_list(run_input, backend=backend)
 
         # get the acquires instructions and simulation times
         t_span, measurement_subsystems_list, memory_slot_indices_list = _get_acquire_data(
@@ -264,8 +271,8 @@ class PulseSimulator(BackendV2):
                 "t_span": t_span,
                 "schedules": schedules,
                 "measurement_subsystems_list": measurement_subsystems_list,
-                "schedules_memslot_nums": schedules_memslot_nums,
                 "memory_slot_indices_list": memory_slot_indices_list,
+                "num_memory_slots_list": num_memory_slots_list,
             },
         )
         dynamics_job.submit()
@@ -278,11 +285,12 @@ class PulseSimulator(BackendV2):
         t_span,
         schedules,
         measurement_subsystems_list,
-        schedules_memslot_nums,
         memory_slot_indices_list,
+        num_memory_slots_list
     ) -> Result:
         """Simulate a list of schedules."""
 
+        # simulate all schedules
         y0 = self.options.initial_state
         if y0 == "ground_state":
             y0 = Statevector(self._dressed_states[:, 0])
@@ -291,46 +299,15 @@ class PulseSimulator(BackendV2):
             t_span=t_span, y0=y0, signals=schedules, **self.options.solver_options
         )
 
-        schedule_names = [schedule.name for schedule in schedules]
-
-        # build random number generator for count sampling
-        rng = np.random.default_rng(self.options.seed_simulator)
-
-        # construct outputs for each experiment
-        experiment_results = []
-        for (
-            solver_result,
-            measurement_subsystems,
-            memory_slot_indices,
-            num_memory_slots,
-            schedule_name,
-        ) in zip(
-            solver_results,
-            measurement_subsystems_list,
-            memory_slot_indices_list,
-            schedules_memslot_nums,
-            schedule_names,
-        ):
-            experiment_results.append(
-                experiment_result(
-                    schedule_name,
-                    solver_result,
-                    measurement_subsystems,
-                    memory_slot_indices,
-                    num_memory_slots,
-                    self,
-                    seed=rng.integers(low=0, high=9223372036854775807)
-                )
-            )
-
-        return Result(
-            backend_name=self.name,
-            backend_version=self.backend_version,
-            qobj_id="",
+        # compute results
+        return self.options.result_function(
             job_id=job_id,
-            success=True,
-            results=experiment_results,
-            date=datetime.datetime.now().isoformat(),
+            experiment_names=[schedule.name for schedule in schedules],
+            solver_results=solver_results,
+            measurement_subsystems_list=measurement_subsystems_list,
+            memory_slot_indices_list=memory_slot_indices_list,
+            num_memory_slots_list=num_memory_slots_list,
+            backend=self
         )
 
     @property
@@ -433,7 +410,61 @@ def _to_schedule_list(
     return schedules, num_memslots
 
 
-def experiment_result(
+def default_result_function(
+    job_id: str,
+    experiment_names: List[str],
+    solver_results: List[OdeResult],
+    measurement_subsystems_list: List[List[int]],
+    memory_slot_indices_list: List[List[int]],
+    num_memory_slots_list: int,
+    backend: PulseSimulator,
+    experiment_result_function: Optional[Callable] = None,
+) -> Result:
+    """Default routine for generating results."""
+
+    experiment_result_function = experiment_result_function or default_experiment_result_function
+
+    rng = np.random.default_rng(backend.options.seed_simulator)
+
+    # construct outputs for each experiment
+    experiment_results = []
+    for (
+        experiment_name,
+        solver_result,
+        measurement_subsystems,
+        memory_slot_indices,
+        num_memory_slots,
+    ) in zip(
+        experiment_names,
+        solver_results,
+        measurement_subsystems_list,
+        memory_slot_indices_list,
+        num_memory_slots_list,
+    ):
+        experiment_results.append(
+            experiment_result_function(
+                experiment_name,
+                solver_result,
+                measurement_subsystems,
+                memory_slot_indices,
+                num_memory_slots,
+                backend,
+                seed=rng.integers(low=0, high=9223372036854775807)
+            )
+        )
+
+    return Result(
+        backend_name=backend.name,
+        backend_version=backend.backend_version,
+        qobj_id="",
+        job_id=job_id,
+        success=True,
+        results=experiment_results,
+        date=datetime.datetime.now().isoformat(),
+    )
+
+
+def default_experiment_result_function(
     experiment_name: str,
     solver_result: OdeResult,
     measurement_subsystems: List[int],
@@ -442,7 +473,7 @@ def experiment_result(
     backend: PulseSimulator,
     seed: Optional[int] = None,
 ) -> ExperimentResult:
-    """Construct experiment results given final state and measurement information."""
+    """Default routine for computing individual experiment results."""
 
     yf = solver_result.y[-1]
     tf = solver_result.t[-1]
