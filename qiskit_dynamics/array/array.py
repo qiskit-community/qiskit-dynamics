@@ -92,7 +92,6 @@ class Array(NDArrayOperatorsMixin):
 
     @data.setter
     def data(self, value):
-        """Update the wrapped array data object."""
         self._data[:] = value
 
     @property
@@ -102,7 +101,6 @@ class Array(NDArrayOperatorsMixin):
 
     @backend.setter
     def backend(self, value: str):
-        """Set the backend of the wrapped array class."""
         Dispatch.validate_backend(value)
         self._data = asarray(self._data, backend=value)
         self._backend = value
