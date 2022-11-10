@@ -23,6 +23,7 @@ import uuid
 from typing import List, Optional, Union
 import copy
 import numpy as np
+from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import pulse
 from qiskit.qobj.utils import MeasLevel
@@ -81,6 +82,7 @@ class PulseSimulator(BackendV2):
     * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
       every experimental shot. Defaults to ``True``.
     * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.
+    * ``result_function``: Function for result computation.
     """
 
     def __init__(
@@ -297,82 +299,29 @@ class PulseSimulator(BackendV2):
         # construct outputs for each experiment
         experiment_results = []
         for (
-            ts,
-            result,
+            solver_result,
             measurement_subsystems,
             memory_slot_indices,
             num_memory_slots,
             schedule_name,
         ) in zip(
-            t_span,
             solver_results,
             measurement_subsystems_list,
             memory_slot_indices_list,
             schedules_memslot_nums,
             schedule_names,
         ):
-            yf = result.y[-1]
-
-            # Take state out of frame, put in dressed basis, and normalize
-            if isinstance(yf, Statevector):
-                yf = np.array(
-                    self.options.solver.model.rotating_frame.state_out_of_frame(t=ts[-1], y=yf)
+            experiment_results.append(
+                experiment_result(
+                    schedule_name,
+                    solver_result,
+                    measurement_subsystems,
+                    memory_slot_indices,
+                    num_memory_slots,
+                    self,
+                    seed=rng.integers(low=0, high=9223372036854775807)
                 )
-                yf = self._dressed_states_adjoint @ yf
-                yf = Statevector(yf, dims=self.options.subsystem_dims)
-
-                if self.options.normalize_states:
-                    yf = yf / np.linalg.norm(yf.data)
-            elif isinstance(yf, DensityMatrix):
-                yf = np.array(
-                    self.options.solver.model.rotating_frame.operator_out_of_frame(
-                        t=ts[-1], operator=yf
-                    )
-                )
-                yf = self._dressed_states_adjoint @ yf @ self._dressed_states
-                yf = DensityMatrix(yf, dims=self.options.subsystem_dims)
-
-                if self.options.normalize_states:
-                    yf = yf / np.diag(yf.data).sum()
-
-            # construct experiment results
-            if self.options.meas_level == MeasLevel.CLASSIFIED:
-
-                # compute probabilities for measurement slot values
-                measurement_subsystems = [
-                    self.options.subsystem_labels.index(x) for x in measurement_subsystems
-                ]
-                memory_slot_probabilities = _get_memory_slot_probabilities(
-                    probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
-                    memory_slot_indices=memory_slot_indices,
-                    num_memory_slots=num_memory_slots,
-                    max_outcome_value=self.options.max_outcome_level,
-                )
-
-                # sample
-                seed = rng.integers(low=0, high=9223372036854775807)
-                memory_samples = _sample_probability_dict(
-                    memory_slot_probabilities, shots=self.options.shots, seed=seed
-                )
-                counts = _get_counts_from_samples(memory_samples)
-
-                exp_data = ExperimentResultData(
-                    counts=counts, memory=memory_samples if self.options.memory else None
-                )
-                experiment_results.append(
-                    ExperimentResult(
-                        shots=self.options.shots,
-                        success=True,
-                        data=exp_data,
-                        meas_level=MeasLevel.CLASSIFIED,
-                        seed=seed,
-                        header=QobjHeader(name=schedule_name),
-                    )
-                )
-            else:
-                raise QiskitError(
-                    f"Only meas_level=={MeasLevel.CLASSIFIED} is supported by PulseSimulator."
-                )
+            )
 
         return Result(
             backend_name=self.name,
@@ -482,3 +431,74 @@ def _to_schedule_list(
         else:
             raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
     return schedules, num_memslots
+
+
+def experiment_result(
+    experiment_name: str,
+    solver_result: OdeResult,
+    measurement_subsystems: List[int],
+    memory_slot_indices: List[int],
+    num_memory_slots: int,
+    backend: PulseSimulator,
+    seed: Optional[int] = None,
+) -> ExperimentResult:
+    """Construct experiment results given final state and measurement information."""
+
+    yf = solver_result.y[-1]
+    tf = solver_result.t[-1]
+
+    # Take state out of frame, put in dressed basis, and normalize
+    if isinstance(yf, Statevector):
+        yf = np.array(
+            backend.options.solver.model.rotating_frame.state_out_of_frame(t=tf, y=yf)
+        )
+        yf = backend._dressed_states_adjoint @ yf
+        yf = Statevector(yf, dims=backend.options.subsystem_dims)
+
+        if backend.options.normalize_states:
+            yf = yf / np.linalg.norm(yf.data)
+    elif isinstance(yf, DensityMatrix):
+        yf = np.array(
+            backend.options.solver.model.rotating_frame.operator_out_of_frame(
+                t=tf, operator=yf
+            )
+        )
+        yf = backend._dressed_states_adjoint @ yf @ backend._dressed_states
+        yf = DensityMatrix(yf, dims=backend.options.subsystem_dims)
+
+        if backend.options.normalize_states:
+            yf = yf / np.diag(yf.data).sum()
+
+    if backend.options.meas_level == MeasLevel.CLASSIFIED:
+
+        # compute probabilities for measurement slot values
+        measurement_subsystems = [
+            backend.options.subsystem_labels.index(x) for x in measurement_subsystems
+        ]
+        memory_slot_probabilities = _get_memory_slot_probabilities(
+            probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
+            memory_slot_indices=memory_slot_indices,
+            num_memory_slots=num_memory_slots,
+            max_outcome_value=backend.options.max_outcome_level,
+        )
+
+        # sample
+        memory_samples = _sample_probability_dict(
+            memory_slot_probabilities, shots=backend.options.shots, seed=seed
+        )
+        counts = _get_counts_from_samples(memory_samples)
+
+        # construct results object
+        exp_data = ExperimentResultData(
+            counts=counts, memory=memory_samples if backend.options.memory else None
+        )
+        return ExperimentResult(
+            shots=backend.options.shots,
+            success=True,
+            data=exp_data,
+            meas_level=MeasLevel.CLASSIFIED,
+            seed=seed,
+            header=QobjHeader(name=experiment_name),
+        )
+    else:
+        raise QiskitError(f"meas_level=={backend.options.meas_level} not implemented.")
