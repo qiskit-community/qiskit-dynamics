@@ -275,6 +275,8 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
         samples1 = np.append(np.zeros(10), gauss_samples)
 
+        # set tolerance from 1e-14 to 1e-7 to match the accuracy of clipping samples in class WaveForm.
+        # see https://github.com/Qiskit/qiskit-terra/blob/ee0b0368e72913cddf1c80ed95bc55e174c65046/qiskit/pulse/library/waveform.py#L56
         self.assertAllClose(signals[0].samples, samples0, atol=1e-7, rtol=1e-7)
         self.assertAllClose(signals[1].samples, samples1, atol=1e-7, rtol=1e-7)
         self.assertTrue(signals[0].carrier_freq == 5.0)
