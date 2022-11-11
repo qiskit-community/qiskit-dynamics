@@ -9,17 +9,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
+
 """
 Test PulseSimulator.
 """
 
 import numpy as np
+from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError, pulse, QuantumCircuit
 from qiskit.transpiler import Target
 from qiskit.quantum_info import Statevector, DensityMatrix
+from qiskit.result.models import ExperimentResult, ExperimentResultData
 
 from qiskit_dynamics import Solver, PulseSimulator
+from qiskit_dynamics.pulse_simulator import default_experiment_result_function
 from ..common import QiskitDynamicsTestCase
 
 
@@ -125,6 +130,12 @@ class TestPulseSimulatorValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "Only meas_level == 2 is supported"):
             self.simple_simulator.set_options(meas_level=1)
+
+    def test_invalid_experiment_result_function(self):
+        """Test setting a non-callable experiment_result_function."""
+
+        with self.assertRaisesRegex(QiskitError, "must be callable."):
+            self.simple_simulator.set_options(experiment_result_function=1)
 
 
 class TestPulseSimulator(QiskitDynamicsTestCase):
@@ -355,3 +366,72 @@ class TestPulseSimulator(QiskitDynamicsTestCase):
         res = qutrit_simulator.run(circ).result()
 
         self.assertDictEqual(res.get_counts(), {"2": 1024})
+
+    def test_setting_experiment_result_function(self):
+        """Test overriding default experiment_result_function."""
+
+        # trivial result function
+        # pylint: disable=unused-argument
+        def exp_result_function(*args, **kwargs):
+            return ExperimentResult(
+                data=ExperimentResultData(counts={"3": 1}), shots=1, success=True
+            )
+
+        # minimal simulation schedule
+        with pulse.build() as schedule:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 1), pulse.DriveChannel(0))
+                pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
+
+        result = self.simple_simulator.run(
+            schedule,
+            seed_simulator=1234567,
+            initial_state=Statevector([0.0, 1.0]),
+            experiment_result_function=exp_result_function,
+        ).result()
+        self.assertDictEqual(result.get_counts(), {"3": 1})
+
+
+class Test_default_experiment_result_function(QiskitDynamicsTestCase):
+    """Test default_experiment_result_function."""
+
+    def setUp(self):
+        """Build reusable models."""
+
+        static_ham = 2 * np.pi * 5 * np.array([[-1.0, 0.0], [0.0, 1.0]]) / 2
+        drive_op = 2 * np.pi * 0.1 * np.array([[0.0, 1.0], [1.0, 0.0]]) / 2
+
+        solver = Solver(
+            static_hamiltonian=static_ham,
+            hamiltonian_operators=[drive_op],
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
+            dt=0.1,
+            rotating_frame=static_ham,
+        )
+
+        self.simple_solver = solver
+        self.simple_simulator = PulseSimulator(solver=solver)
+
+    def test_invalid_meas_level(self):
+        """Test calling of invalid meas level."""
+
+        with self.assertRaisesRegex(QiskitError, "Only meas_level == 2 is supported"):
+            self.simple_simulator.set_options(meas_level=1)
+
+    def test_simple_example(self):
+        """Test a simple example."""
+
+        output = default_experiment_result_function(
+            experiment_name="exp123",
+            solver_result=OdeResult(
+                t=[0.0, 1.0], y=[Statevector([1.0, 0.0]), Statevector(np.sqrt([0.5, 0.5]))]
+            ),
+            measurement_subsystems=[0],
+            memory_slot_indices=[1],
+            num_memory_slots=3,
+            backend=self.simple_simulator,
+            seed=1234567,
+        )
+
+        self.assertDictEqual(output.data.counts, {"000": 513, "010": 511})

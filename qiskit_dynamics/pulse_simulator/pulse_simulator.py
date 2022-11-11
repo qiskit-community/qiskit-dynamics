@@ -20,7 +20,7 @@ Pulse-enabled simulator backend.
 import datetime
 import uuid
 
-from typing import List, Optional, Union, Callable
+from typing import List, Optional, Union
 import copy
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
@@ -183,12 +183,13 @@ class PulseSimulator(BackendV2):
                         """initial_state must be either "ground_state",
                         or a Statevector or DensityMatrix instance."""
                     )
-            elif key == "meas_level":
-                if value != 2:
-                    raise QiskitError("Only meas_level == 2 is supported by PulseSimulator.")
+            elif key == "meas_level" and value != 2:
+                raise QiskitError("Only meas_level == 2 is supported by PulseSimulator.")
             elif key == "max_outcome_level":
                 if (value is not None) and (not isinstance(value, int) or (value <= 0)):
                     raise QiskitError("max_outcome_level must be a positive integer or None.")
+            elif key == "experiment_result_function" and not callable(value):
+                raise QiskitError("experiment_result_function must be callable.")
 
             if key == "solver":
                 self._set_solver(value)
