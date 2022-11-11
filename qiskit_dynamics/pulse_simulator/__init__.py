@@ -26,6 +26,7 @@ This module contains the PulseSimulator.
    :toctree: ../stubs/
 
    PulseSimulator
+   default_experiment_result_function
 """
 
-from .pulse_simulator import PulseSimulator
+from .pulse_simulator import PulseSimulator, default_experiment_result_function

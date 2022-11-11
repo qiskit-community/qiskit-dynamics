@@ -67,13 +67,13 @@ class PulseSimulator(BackendV2):
     * ``subsystem_labels``: Integer labels for subsystems. Defaults to
       ``[0, ..., len(subsystem_dims) - 1]``.
     * ``meas_map``: Measurement map. Defaults to ``[[idx] for idx in subsystem_labels]``.
+    * ``initial_state``: Initial state for simulation, either the string ``"ground_state"``,
+      indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
+      ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
     * ``normalize_states``: Boolean indicating whether to normalize states before computing
       outcome probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if
       the solution tolerance results in probabilities with significant numerical deviation from
       proper probability distributions.
-    * ``initial_state``: Initial state for simulation, either the string ``"ground_state"``,
-      indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
-      ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
     * ``meas_level``: Form of measurement return. Only supported value is ``2``, indicating that
       counts should be returned. Defaults to ``meas_level==2``.
     * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem.
@@ -82,10 +82,11 @@ class PulseSimulator(BackendV2):
     * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
       every experimental shot. Defaults to ``True``.
     * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.
-    * ``result_function``: Function for computing output results of individual
-      simulations. The purpose of this function is to enable a user to completely control how
-      the results of each simulation are constructed. The function should have the same
-      signature as the default function :func:`compute_experiment_result`
+    * ``experiment_result_function``: Function for computing the ``ExperimentResult``
+      for each simulated experiment. This option defaults to
+      :func:`default_experiment_result_function`, and any other function set to this option
+      must have the same signature. Note that the default utilizes various other options that
+      control results computation, and hence changing it will impact the meaning of other options.
     """
 
     def __init__(
@@ -121,9 +122,6 @@ class PulseSimulator(BackendV2):
         # add subsystem_dims to options so set_options validation works
         if "subsystem_dims" not in options:
             options["subsystem_dims"] = [solver.model.dim]
-
-        if "result_function" not in options:
-            options["result_function"] = default_result_function
 
         # Set simulator options
         self.set_options(solver=solver, **options)
@@ -167,7 +165,7 @@ class PulseSimulator(BackendV2):
             max_outcome_level=1,
             memory=True,
             seed_simulator=None,
-            result_function=None
+            experiment_result_function=default_experiment_result_function,
         )
 
     def set_options(self, **fields):
@@ -286,7 +284,7 @@ class PulseSimulator(BackendV2):
         schedules,
         measurement_subsystems_list,
         memory_slot_indices_list,
-        num_memory_slots_list
+        num_memory_slots_list,
     ) -> Result:
         """Simulate a list of schedules."""
 
@@ -299,15 +297,44 @@ class PulseSimulator(BackendV2):
             t_span=t_span, y0=y0, signals=schedules, **self.options.solver_options
         )
 
-        # compute results
-        return self.options.result_function(
+        # compute results for each experiment
+        experiment_names = [schedule.name for schedule in schedules]
+        rng = np.random.default_rng(self.options.seed_simulator)
+        experiment_results = []
+        for (
+            experiment_name,
+            solver_result,
+            measurement_subsystems,
+            memory_slot_indices,
+            num_memory_slots,
+        ) in zip(
+            experiment_names,
+            solver_results,
+            measurement_subsystems_list,
+            memory_slot_indices_list,
+            num_memory_slots_list,
+        ):
+            experiment_results.append(
+                self.options.experiment_result_function(
+                    experiment_name,
+                    solver_result,
+                    measurement_subsystems,
+                    memory_slot_indices,
+                    num_memory_slots,
+                    self,
+                    seed=rng.integers(low=0, high=9223372036854775807),
+                )
+            )
+
+        # Construct full result object
+        return Result(
+            backend_name=self.name,
+            backend_version=self.backend_version,
+            qobj_id="",
             job_id=job_id,
-            experiment_names=[schedule.name for schedule in schedules],
-            solver_results=solver_results,
-            measurement_subsystems_list=measurement_subsystems_list,
-            memory_slot_indices_list=memory_slot_indices_list,
-            num_memory_slots_list=num_memory_slots_list,
-            backend=self
+            success=True,
+            results=experiment_results,
+            date=datetime.datetime.now().isoformat(),
         )
 
     @property
@@ -321,6 +348,94 @@ class PulseSimulator(BackendV2):
     @property
     def meas_map(self) -> List[List[int]]:
         return self.options.meas_map
+
+
+def default_experiment_result_function(
+    experiment_name: str,
+    solver_result: OdeResult,
+    measurement_subsystems: List[int],
+    memory_slot_indices: List[int],
+    num_memory_slots: Union[None, int],
+    backend: PulseSimulator,
+    seed: Optional[int] = None,
+) -> ExperimentResult:
+    """Default routine for generating ExperimentResult object.
+
+    Transforms state out of rotating frame into lab frame using ``backend.options.solver``,
+    normalizes if ``backend.options.normalize_states==True``, and computes measurement results
+    in the dressed basis based on measurement-related options in ``backend.options`` along with
+    the measurement specification extracted from the experiments, passed as args to this function.
+
+    Args:
+        experiment_name: Name of experiment.
+        solver_result: Result object from :class:`Solver.solve`.
+        measurement_subsystems: Labels of subsystems in the model being measured.
+        memory_slot_indices: Indices of memory slots to store the results in for each subsystem.
+        num_memory_slots: Total number of memory slots in the returned output. If ``None``,
+            ``max(memory_slot_indices)`` will be used.
+        backend: The backend instance that ran the simulation. Various options and properties
+            are utilized.
+        seed: Seed for any random number generation involved (e.g. when computing outcome samples).
+    Returns:
+        ExperimentResult object containing results.
+    Raises:
+        QiskitError: If a specified option is unsupported.
+    """
+
+    yf = solver_result.y[-1]
+    tf = solver_result.t[-1]
+
+    # Take state out of frame, put in dressed basis, and normalize
+    if isinstance(yf, Statevector):
+        yf = np.array(backend.options.solver.model.rotating_frame.state_out_of_frame(t=tf, y=yf))
+        yf = backend._dressed_states_adjoint @ yf
+        yf = Statevector(yf, dims=backend.options.subsystem_dims)
+
+        if backend.options.normalize_states:
+            yf = yf / np.linalg.norm(yf.data)
+    elif isinstance(yf, DensityMatrix):
+        yf = np.array(
+            backend.options.solver.model.rotating_frame.operator_out_of_frame(t=tf, operator=yf)
+        )
+        yf = backend._dressed_states_adjoint @ yf @ backend._dressed_states
+        yf = DensityMatrix(yf, dims=backend.options.subsystem_dims)
+
+        if backend.options.normalize_states:
+            yf = yf / np.diag(yf.data).sum()
+
+    if backend.options.meas_level == MeasLevel.CLASSIFIED:
+
+        # compute probabilities for measurement slot values
+        measurement_subsystems = [
+            backend.options.subsystem_labels.index(x) for x in measurement_subsystems
+        ]
+        memory_slot_probabilities = _get_memory_slot_probabilities(
+            probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
+            memory_slot_indices=memory_slot_indices,
+            num_memory_slots=num_memory_slots,
+            max_outcome_value=backend.options.max_outcome_level,
+        )
+
+        # sample
+        memory_samples = _sample_probability_dict(
+            memory_slot_probabilities, shots=backend.options.shots, seed=seed
+        )
+        counts = _get_counts_from_samples(memory_samples)
+
+        # construct results object
+        exp_data = ExperimentResultData(
+            counts=counts, memory=memory_samples if backend.options.memory else None
+        )
+        return ExperimentResult(
+            shots=backend.options.shots,
+            success=True,
+            data=exp_data,
+            meas_level=MeasLevel.CLASSIFIED,
+            seed=seed,
+            header=QobjHeader(name=experiment_name),
+        )
+    else:
+        raise QiskitError(f"meas_level=={backend.options.meas_level} not implemented.")
 
 
 def _validate_run_input(run_input, accept_list=True):
@@ -408,128 +523,3 @@ def _to_schedule_list(
         else:
             raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
     return schedules, num_memslots
-
-
-def default_result_function(
-    job_id: str,
-    experiment_names: List[str],
-    solver_results: List[OdeResult],
-    measurement_subsystems_list: List[List[int]],
-    memory_slot_indices_list: List[List[int]],
-    num_memory_slots_list: int,
-    backend: PulseSimulator,
-    experiment_result_function: Optional[Callable] = None,
-) -> Result:
-    """Default routine for generating results."""
-
-    experiment_result_function = experiment_result_function or default_experiment_result_function
-
-    rng = np.random.default_rng(backend.options.seed_simulator)
-
-    # construct outputs for each experiment
-    experiment_results = []
-    for (
-        experiment_name,
-        solver_result,
-        measurement_subsystems,
-        memory_slot_indices,
-        num_memory_slots,
-    ) in zip(
-        experiment_names,
-        solver_results,
-        measurement_subsystems_list,
-        memory_slot_indices_list,
-        num_memory_slots_list,
-    ):
-        experiment_results.append(
-            experiment_result_function(
-                experiment_name,
-                solver_result,
-                measurement_subsystems,
-                memory_slot_indices,
-                num_memory_slots,
-                backend,
-                seed=rng.integers(low=0, high=9223372036854775807)
-            )
-        )
-
-    return Result(
-        backend_name=backend.name,
-        backend_version=backend.backend_version,
-        qobj_id="",
-        job_id=job_id,
-        success=True,
-        results=experiment_results,
-        date=datetime.datetime.now().isoformat(),
-    )
-
-
-def default_experiment_result_function(
-    experiment_name: str,
-    solver_result: OdeResult,
-    measurement_subsystems: List[int],
-    memory_slot_indices: List[int],
-    num_memory_slots: int,
-    backend: PulseSimulator,
-    seed: Optional[int] = None,
-) -> ExperimentResult:
-    """Default routine for computing individual experiment results."""
-
-    yf = solver_result.y[-1]
-    tf = solver_result.t[-1]
-
-    # Take state out of frame, put in dressed basis, and normalize
-    if isinstance(yf, Statevector):
-        yf = np.array(
-            backend.options.solver.model.rotating_frame.state_out_of_frame(t=tf, y=yf)
-        )
-        yf = backend._dressed_states_adjoint @ yf
-        yf = Statevector(yf, dims=backend.options.subsystem_dims)
-
-        if backend.options.normalize_states:
-            yf = yf / np.linalg.norm(yf.data)
-    elif isinstance(yf, DensityMatrix):
-        yf = np.array(
-            backend.options.solver.model.rotating_frame.operator_out_of_frame(
-                t=tf, operator=yf
-            )
-        )
-        yf = backend._dressed_states_adjoint @ yf @ backend._dressed_states
-        yf = DensityMatrix(yf, dims=backend.options.subsystem_dims)
-
-        if backend.options.normalize_states:
-            yf = yf / np.diag(yf.data).sum()
-
-    if backend.options.meas_level == MeasLevel.CLASSIFIED:
-
-        # compute probabilities for measurement slot values
-        measurement_subsystems = [
-            backend.options.subsystem_labels.index(x) for x in measurement_subsystems
-        ]
-        memory_slot_probabilities = _get_memory_slot_probabilities(
-            probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
-            memory_slot_indices=memory_slot_indices,
-            num_memory_slots=num_memory_slots,
-            max_outcome_value=backend.options.max_outcome_level,
-        )
-
-        # sample
-        memory_samples = _sample_probability_dict(
-            memory_slot_probabilities, shots=backend.options.shots, seed=seed
-        )
-        counts = _get_counts_from_samples(memory_samples)
-
-        # construct results object
-        exp_data = ExperimentResultData(
-            counts=counts, memory=memory_samples if backend.options.memory else None
-        )
-        return ExperimentResult(
-            shots=backend.options.shots,
-            success=True,
-            data=exp_data,
-            meas_level=MeasLevel.CLASSIFIED,
-            seed=seed,
-            header=QobjHeader(name=experiment_name),
-        )
-    else:
-        raise QiskitError(f"meas_level=={backend.options.meas_level} not implemented.")
