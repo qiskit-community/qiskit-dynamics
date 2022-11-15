@@ -73,6 +73,45 @@ def RK4_solver(
         take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
+def get_exponential_take_step(magnus_order, expm_func):
+    
+    # second-order step size constants
+    c1=1/2+np.sqrt(3)/6
+    c2=1/2-np.sqrt(3)/6
+    c3=np.sqrt(3)/12
+
+    # if clause based on magnus order
+    if magnus_order==1:
+        def take_step(generator, t0, y, h):
+            eval_time = t0 + (h / 2)
+
+            return expm_func(generator(eval_time) * h) @ y
+
+    elif magnus_order>1:
+        
+        if magnus_order>2:
+            print("Magnus expansion is implmeneted up to the second order")
+
+        def take_step(generator, t0, y, h):  
+
+            # midpoint eval_times
+            eval_time1=t0+c1*h
+            eval_time2=t0+c2*h
+            
+            # midpoint generator call
+            g1=generator(eval_time1)
+            g2=generator(eval_time2)
+            
+            # Magnus terms
+            term1=h*(g1+g2)/2
+            term2=c3*(h**2)*(g2 @ g1 - g1 @ g2)
+            terms=term1+term2
+            
+            #solution
+            return expm_func(terms) @ y
+    
+    # return the function
+    return take_step
 
 def scipy_expm_solver(
     generator: Callable,
@@ -96,40 +135,8 @@ def scipy_expm_solver(
     Returns:
         OdeResult: Results object.
     """
-    if magnus_order==1:
-        def take_step(generator, t0, y, h):
-            eval_time = t0 + (h / 2)
-
-            return expm(generator(eval_time) * h) @ y
     
-    elif magnus_order>1:
-        
-        if magnus_order>2:
-            print("Magnus expansion is implmeneted up to the second order")
-
-        def take_step(generator, t0, y, h):  
-
-            # parameters
-            c1=1/2+np.sqrt(3)/6
-            c2=1/2-np.sqrt(3)/6
-            c3=np.sqrt(3)/12
-           
-            # midpoint eval_times
-            eval_time1=t0+c1*h
-            eval_time2=t0+c2*h
-            
-            # midpoint generator call
-            g1=generator(eval_time1)
-            g2=generator(eval_time2)
-            
-            # Magnus terms
-            term1=(1/2)*h*(g1+g2)
-            term2=c3*(h**2)*(g2 @ g1 - g1 @ g2)
-            terms=term1+term2
-            
-            #solution
-            return expm(terms) @ y
-
+    take_step = get_exponential_take_step(magnus_order, expm_func=expm)
 
     return fixed_step_solver_template(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
@@ -239,39 +246,7 @@ def jax_expm_solver(
     Returns:
         OdeResult: Results object.
     """
-    if magnus_order==1:
-        def take_step(generator, t0, y, h):
-            eval_time = t0 + (h / 2)
-
-            return jexpm(generator(eval_time) * h) @ y
-    
-    elif magnus_order>1:
-        
-        if magnus_order>2:
-            print("Magnus expansion is implmeneted up to the second order")
-
-        def take_step(generator, t0, y, h):  
-
-            # parameters
-            c1=1/2+np.sqrt(3)/6
-            c2=1/2-np.sqrt(3)/6
-            c3=np.sqrt(3)/12
-           
-            # midpoint eval_times
-            eval_time1=t0+c1*h
-            eval_time2=t0+c2*h
-            
-            # midpoint generator call
-            g1=generator(eval_time1)
-            g2=generator(eval_time2)
-            
-            # Magnus terms
-            term1=(1/2)*h*(g1+g2)
-            term2=c3*(h**2)*(g2 @ g1 - g1 @ g2)
-            terms=term1+term2
-            
-            #solution
-            return jexpm(terms) @ y
+    take_step = get_exponential_take_step(magnus_order, expm_func=jexpm)
 
     return fixed_step_solver_template_jax(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
@@ -289,39 +264,7 @@ def jax_expm_parallel_solver(
 ):
     """Parallel version of jax_expm_solver implemented with JAX parallel operations."""
 
-    if magnus_order==1:
-        def take_step(generator, t0, y, h):
-            eval_time = t0 + (h / 2)
-            # solution
-            return jexpm(generator(eval_time) * h) @ y
-    
-    elif magnus_order>1:
-        
-        if magnus_order>2:
-            print("Magnus expansion is implmeneted up to the second order")
-
-        def take_step(generator, t0, y, h):  
-
-            # parameters
-            c1=1/2+np.sqrt(3)/6
-            c2=1/2-np.sqrt(3)/6
-            c3=np.sqrt(3)/12
-           
-            # midpoint eval_times
-            eval_time1=t0+c1*h
-            eval_time2=t0+c2*h
-            
-            # midpoint generator call
-            g1=generator(eval_time1)
-            g2=generator(eval_time2)
-            
-            # Magnus terms
-            term1=(1/2)*h*(g1+g2)
-            term2=c3*(h**2)*(g2 @ g1 - g1 @ g2)
-            terms=term1+term2
-            
-            #solution
-            return jexpm(terms) @ y
+    take_step = get_exponential_take_step(magnus_order, expm_func=jexpm)
 
     return fixed_step_lmde_solver_parallel_template_jax(
         take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
