@@ -13,8 +13,6 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name,no-member,attribute-defined-outside-init
 
-# Test Pushing 
-
 r"""
 Solver functions.
 """
@@ -213,9 +211,12 @@ def solve_lmde(
       of the structure of an LMDE, utilizes the same parallelization approach as
       ``'jax_expm_parallel'``, however the single step rule is the standard 4th order
       Runge-Kutta rule, rather than matrix-exponentiation. Requires and utilizes the
-      ``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
+    -``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
       recommended for use with GPU execution.
-
+    -``magnus_order`` kwarg that determines the expansion order for fixed step exponential solvers.
+    Only order 1 and 2 are supported. The second-order solver is adopted from Hairer et al., 
+    'geometric numerical integration, (2006)'. 
+    
     Results are returned as a :class:`OdeResult` object.
 
     Args:
