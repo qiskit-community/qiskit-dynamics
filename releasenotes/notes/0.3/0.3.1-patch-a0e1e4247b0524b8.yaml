@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Fixes bug due to a dependency update.
