@@ -214,9 +214,9 @@ def solve_lmde(
     -``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
       recommended for use with GPU execution.
     -``magnus_order`` kwarg that determines the expansion order for fixed step exponential solvers.
-    Only order 1 and 2 are supported. The second-order solver is adopted from Hairer et al., 
-    'geometric numerical integration, (2006)'. 
-    
+    Only order 1 and 2 are supported. The second-order solver is adopted from 
+    :footcite:`hairer_geometric_2006` 
+
     Results are returned as a :class:`OdeResult` object.
 
     Args:
