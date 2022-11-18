@@ -10,7 +10,7 @@ Qiskit Dynamics API Reference
    :maxdepth: 2
 
    solvers
-   pulse_simulator
+   dynamics_backend
    models
    signals
    pulse
