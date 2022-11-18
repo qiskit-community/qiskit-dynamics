@@ -28,7 +28,7 @@ from qiskit_dynamics.pulse_simulator.pulse_simulator_utils import (
     _sample_probability_dict,
     _get_counts_from_samples,
 )
-from ..common import QiskitDynamicsTestCase
+from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class TestDressedStateDecomposition(QiskitDynamicsTestCase):
@@ -78,11 +78,23 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
     @data(("dense",), ("sparse",))
     def test_HamiltonianModel(self, evaluation_mode):
         """Test correct functioning on HamiltonianModel."""
-
         model = HamiltonianModel(
             static_operator=self.Z + self.X,
             operators=[self.X],
             rotating_frame=self.X,
+            evaluation_mode=evaluation_mode,
+        )
+
+        output = _get_lab_frame_static_hamiltonian(model)
+        self.assertAllClose(output, self.Z + self.X)
+
+    @unpack
+    @data(("dense",), ("sparse",))
+    def test_HamiltonianModel_lab_frame(self, evaluation_mode):
+        """Test correct functioning on HamiltonianModel if no rotating frame."""
+        model = HamiltonianModel(
+            static_operator=self.Z + self.X,
+            operators=[self.X],
             evaluation_mode=evaluation_mode,
         )
 
@@ -121,6 +133,10 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, np.zeros((2, 2)))
+
+
+class TestLabFrameStaticHamiltonianJAX(TestLabFrameStaticHamiltonian, TestJaxBase):
+    """Tests _get_lab_frame_static_hamiltonian when in JAX mode."""
 
 
 class Test_get_memory_slot_probabilities(QiskitDynamicsTestCase):

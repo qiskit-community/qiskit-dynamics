@@ -24,7 +24,7 @@ from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
-
+from qiskit_dynamics.type_utils import to_array
 
 def _get_dressed_state_decomposition(
     operator: np.ndarray, rtol=1e-8, atol=1e-8
@@ -88,9 +88,9 @@ def _get_lab_frame_static_hamiltonian(model: Union[HamiltonianModel, LindbladMod
     """
     static_hamiltonian = None
     if isinstance(model, HamiltonianModel):
-        static_hamiltonian = model.static_operator
+        static_hamiltonian = to_array(model.static_operator)
     else:
-        static_hamiltonian = model.static_hamiltonian
+        static_hamiltonian = to_array(model.static_hamiltonian)
 
     static_hamiltonian = 1j * model.rotating_frame.generator_out_of_frame(
         t=0.0, operator=-1j * static_hamiltonian
