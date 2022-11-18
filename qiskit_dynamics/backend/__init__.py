@@ -13,11 +13,11 @@
 # that they have been altered from the originals.
 
 """
-==========================================================
-Dynamics Backend (:mod:`qiskit_dynamics.dynamics_backend`)
-==========================================================
+=================================================
+Dynamics Backend (:mod:`qiskit_dynamics.backend`)
+=================================================
 
-.. currentmodule:: qiskit_dynamics.dynamics_backend
+.. currentmodule:: qiskit_dynamics.backend
 
 This module contains the DynamicsBackend.
 

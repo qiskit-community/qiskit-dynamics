@@ -43,7 +43,7 @@ from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit_dynamics.solvers.solver_classes import Solver
 
 from .dynamics_job import DynamicsJob
-from .dynamics_backend_utils import (
+from .backend_utils import (
     _get_dressed_state_decomposition,
     _get_lab_frame_static_hamiltonian,
     _get_memory_slot_probabilities,

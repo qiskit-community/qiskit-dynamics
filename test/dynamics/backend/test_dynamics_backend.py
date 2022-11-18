@@ -24,7 +24,7 @@ from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
 from qiskit_dynamics import Solver, DynamicsBackend
-from qiskit_dynamics.dynamics_backend import default_experiment_result_function
+from qiskit_dynamics.backend import default_experiment_result_function
 from ..common import QiskitDynamicsTestCase
 
 
