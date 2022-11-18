@@ -56,6 +56,7 @@ class DynamicsJob(Job):
 
         Returns:
             qiskit.Result: Result object
+
         Raises:
             JobError: If job has not been submitted.
         """

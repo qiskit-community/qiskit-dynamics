@@ -31,7 +31,6 @@ from qiskit.qobj.common import QobjHeader
 from qiskit.transpiler import Target
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
-from qiskit.providers import Provider
 from qiskit.providers.options import Options
 from qiskit.providers.backend import BackendV2
 from qiskit.result import Result
@@ -93,7 +92,6 @@ class PulseSimulator(BackendV2):
         self,
         solver: Solver,
         target: Optional[Target] = None,
-        provider: Optional[Provider] = None,
         **options,
     ):
         """Instantiate with a :class:`.Solver` instance and additional options.
@@ -101,8 +99,8 @@ class PulseSimulator(BackendV2):
         Args:
             solver: Solver instance configured for pulse simulation.
             target: Target object.
-            provider: Provider of the backend.
             options: Additional configuration options for the simulator.
+
         Raises:
             QiskitError: If any instantiation arguments fail validation checks.
         """
@@ -110,8 +108,7 @@ class PulseSimulator(BackendV2):
         super().__init__(
             name="PulseSimulator",
             description="Pulse enabled simulator backend.",
-            backend_version=0.1,
-            provider=provider,
+            backend_version="0.1",
         )
 
         # Dressed states of solver, will be calculated when solver option is set
@@ -137,6 +134,8 @@ class PulseSimulator(BackendV2):
         # self._target = target or Target() doesn't work as bool(target) can be False
         if target is None:
             target = Target()
+        else:
+            target = copy.copy(target)
 
         # add default simulator measure instructions
         instruction_schedule_map = target.instruction_schedule_map()
@@ -237,8 +236,10 @@ class PulseSimulator(BackendV2):
                        ``ScheduleBlock`` instances.
             validate: Whether or not to run validation checks on the input.
             **options: Additional run options to temporarily override current backend options.
+
         Returns:
             DynamicsJob object containing results and status.
+
         Raises:
             QiskitError: If invalid options are set.
         """
@@ -377,8 +378,10 @@ def default_experiment_result_function(
         backend: The backend instance that ran the simulation. Various options and properties
             are utilized.
         seed: Seed for any random number generation involved (e.g. when computing outcome samples).
+
     Returns:
         ExperimentResult object containing results.
+
     Raises:
         QiskitError: If a specified option is unsupported.
     """

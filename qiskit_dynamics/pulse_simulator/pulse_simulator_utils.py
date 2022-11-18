@@ -26,6 +26,7 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.type_utils import to_array
 
+
 def _get_dressed_state_decomposition(
     operator: np.ndarray, rtol=1e-8, atol=1e-8
 ) -> Union[Dict[str, np.ndarray], List[float], Dict[str, float]]:
@@ -41,9 +42,11 @@ def _get_dressed_state_decomposition(
         subsystem_dims: Dimensions of the subsystems composing the system.
         rtol: Relative tolerance for Hermiticity check.
         atol: Absolute tolerance for Hermiticity check.
+
     Returns:
         Tuple: a pair of arrays, one containing eigenvalues and one containing corresponding
         eigenvectors.
+
     Raises:
         QiskitError: If ``np.argmax(np.abs(evec))`` is non-unique across eigenvectors, or if
         operator is not Hermitian.
@@ -83,6 +86,7 @@ def _get_lab_frame_static_hamiltonian(model: Union[HamiltonianModel, LindbladMod
 
     Args:
         model: The model.
+
     Returns:
         np.ndarray
     """
@@ -118,6 +122,7 @@ def _get_memory_slot_probabilities(
                           of unused memory slots is 0.
         max_outcome_value: Maximum value that can be stored in a memory slot. All outcomes higher
                            than this will be rounded down.
+
     Returns:
         Dict: Keys are memory slot outcomes, values are the probabilities of those outcomes.
     """
