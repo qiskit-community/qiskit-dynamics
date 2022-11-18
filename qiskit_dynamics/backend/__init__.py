@@ -13,9 +13,9 @@
 # that they have been altered from the originals.
 
 """
-=================================================
-Dynamics Backend (:mod:`qiskit_dynamics.backend`)
-=================================================
+========================================
+Backend (:mod:`qiskit_dynamics.backend`)
+========================================
 
 .. currentmodule:: qiskit_dynamics.backend
 
