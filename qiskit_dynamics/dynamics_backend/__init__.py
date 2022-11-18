@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2022.
@@ -11,5 +13,20 @@
 # that they have been altered from the originals.
 
 """
-Pulse simulator module tests.
+==========================================================
+Dynamics Backend (:mod:`qiskit_dynamics.dynamics_backend`)
+==========================================================
+
+.. currentmodule:: qiskit_dynamics.dynamics_backend
+
+This module contains the DynamicsBackend.
+
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   DynamicsBackend
+   default_experiment_result_function
 """
+
+from .dynamics_backend import DynamicsBackend, default_experiment_result_function

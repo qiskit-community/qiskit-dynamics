@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""This module implements the job class used for PulseSimulator objects."""
+"""This module implements the job class used for DynamicsBackend objects."""
 
 from typing import Callable, Dict
 
@@ -20,7 +20,7 @@ from qiskit.providers import JobStatus, JobError
 
 
 class DynamicsJob(Job):
-    """DynamicsJob class for PulseSimulator."""
+    """DynamicsJob class for DynamicsBackend."""
 
     _async = False
 

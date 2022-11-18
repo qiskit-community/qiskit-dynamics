@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Test pulse simulation utility functions.
+Test dynamics backend utility functions.
 """
 
 from ddt import ddt, data, unpack
@@ -21,7 +21,7 @@ import numpy as np
 from qiskit import QiskitError
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
-from qiskit_dynamics.pulse_simulator.pulse_simulator_utils import (
+from qiskit_dynamics.dynamics_backend.dynamics_backend_utils import (
     _get_dressed_state_decomposition,
     _get_lab_frame_static_hamiltonian,
     _get_memory_slot_probabilities,

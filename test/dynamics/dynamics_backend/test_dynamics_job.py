@@ -15,7 +15,7 @@ Test DynamicsJob object.
 
 from qiskit.providers import JobStatus, JobError
 
-from qiskit_dynamics.pulse_simulator.dynamics_job import DynamicsJob
+from qiskit_dynamics.dynamics_backend.dynamics_job import DynamicsJob
 from ..common import QiskitDynamicsTestCase
 
 

@@ -31,11 +31,11 @@ from .solvers.solver_functions import solve_ode, solve_lmde
 from .solvers.solver_classes import Solver
 from .solvers.perturbative_solvers.dyson_solver import DysonSolver
 from .solvers.perturbative_solvers.magnus_solver import MagnusSolver
-from .pulse_simulator.pulse_simulator import PulseSimulator
+from .dynamics_backend.dynamics_backend import DynamicsBackend
 
 from . import models
 from . import signals
 from . import pulse
-from . import pulse_simulator
+from . import dynamics_backend
 from . import dispatch
 from . import array

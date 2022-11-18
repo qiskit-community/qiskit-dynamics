@@ -43,7 +43,7 @@ from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit_dynamics.solvers.solver_classes import Solver
 
 from .dynamics_job import DynamicsJob
-from .pulse_simulator_utils import (
+from .dynamics_backend_utils import (
     _get_dressed_state_decomposition,
     _get_lab_frame_static_hamiltonian,
     _get_memory_slot_probabilities,
@@ -52,7 +52,7 @@ from .pulse_simulator_utils import (
 )
 
 
-class PulseSimulator(BackendV2):
+class DynamicsBackend(BackendV2):
     r"""Pulse enabled simulator backend.
 
     **Supported options**
@@ -106,7 +106,7 @@ class PulseSimulator(BackendV2):
         """
 
         super().__init__(
-            name="PulseSimulator",
+            name="DynamicsBackend",
             description="Pulse enabled simulator backend.",
             backend_version="0.1",
         )
@@ -168,7 +168,7 @@ class PulseSimulator(BackendV2):
         )
 
     def set_options(self, **fields):
-        """Set options for PulseSimulator."""
+        """Set options for DynamicsBackend."""
 
         validate_subsystem_dims = False
 
@@ -183,7 +183,7 @@ class PulseSimulator(BackendV2):
                         or a Statevector or DensityMatrix instance."""
                     )
             elif key == "meas_level" and value != 2:
-                raise QiskitError("Only meas_level == 2 is supported by PulseSimulator.")
+                raise QiskitError("Only meas_level == 2 is supported by DynamicsBackend.")
             elif key == "max_outcome_level":
                 if (value is not None) and (not isinstance(value, int) or (value <= 0)):
                     raise QiskitError("max_outcome_level must be a positive integer or None.")
@@ -204,14 +204,14 @@ class PulseSimulator(BackendV2):
             and np.prod(self._options.subsystem_dims) != self._options.solver.model.dim
         ):
             raise QiskitError(
-                "PulseSimulator options subsystem_dims and solver.model.dim are inconsistent."
+                "DynamicsBackend options subsystem_dims and solver.model.dim are inconsistent."
             )
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
         if solver._dt is None:
             raise QiskitError(
-                "Solver passed to PulseSimulator is not configured for Pulse simulation."
+                "Solver passed to DynamicsBackend is not configured for Pulse simulation."
             )
 
         self._options.update_options(solver=solver)
@@ -358,7 +358,7 @@ def default_experiment_result_function(
     measurement_subsystems: List[int],
     memory_slot_indices: List[int],
     num_memory_slots: Union[None, int],
-    backend: PulseSimulator,
+    backend: DynamicsBackend,
     seed: Optional[int] = None,
 ) -> ExperimentResult:
     """Default routine for generating ExperimentResult object.
@@ -451,7 +451,7 @@ def _validate_run_input(run_input, accept_list=True):
         for x in run_input:
             _validate_run_input(x, accept_list=False)
     elif not isinstance(run_input, (QuantumCircuit, Schedule, ScheduleBlock)):
-        raise QiskitError(f"Input type {type(run_input)} not supported by PulseSimulator.run.")
+        raise QiskitError(f"Input type {type(run_input)} not supported by DynamicsBackend.run.")
 
 
 def _get_acquire_data(schedules, valid_subsystem_labels):
@@ -482,7 +482,7 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
 
         for acquire_time in schedule_acquire_times[1:]:
             if acquire_time != schedule_acquire_times[0]:
-                raise QiskitError("PulseSimulator.run only supports measurements at one time.")
+                raise QiskitError("DynamicsBackend.run only supports measurements at one time.")
 
         t_span_list.append([0, schedule_acquire_times[0]])
         measurement_subsystems = []

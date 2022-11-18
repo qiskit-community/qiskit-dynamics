@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Utility functions for pulse simulation.
+Utility functions for Dynamics Backend.
 """
 
 

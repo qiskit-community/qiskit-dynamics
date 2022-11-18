@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2022.
@@ -13,20 +11,5 @@
 # that they have been altered from the originals.
 
 """
-========================================================
-Pulse Simulator (:mod:`qiskit_dynamics.pulse_simulator`)
-========================================================
-
-.. currentmodule:: qiskit_dynamics.pulse_simulator
-
-This module contains the PulseSimulator.
-
-
-.. autosummary::
-   :toctree: ../stubs/
-
-   PulseSimulator
-   default_experiment_result_function
+Dynamics backend module tests.
 """
-
-from .pulse_simulator import PulseSimulator, default_experiment_result_function
