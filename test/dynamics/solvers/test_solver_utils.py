@@ -83,7 +83,7 @@ class TestTimeArgsHandling(QiskitDynamicsTestCase):
         self.assertAllClose(times, -np.array([0.0, 0.25, 0.75, 1.0]))
 
     def test_merge_t_args_with_overlap(self):
-        """Test merging with with overlaps."""
+        """Test merging with overlaps."""
         times = self.merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([0.0, 0.25, 0.75]))
         self.assertAllClose(times, np.array([0.0, 0.0, 0.25, 0.75, 1.0]))
 
@@ -96,7 +96,7 @@ class TestTimeArgsHandling(QiskitDynamicsTestCase):
         self.assertAllClose(times, np.array([0.0, 0.0, 0.25, 0.75, 1.0, 1.0]))
 
     def test_merge_t_args_with_overlap_backwards(self):
-        """Test merging with with overlaps for backwards integration."""
+        """Test merging with overlaps for backwards integration."""
         times = self.merge_t_args(
             t_span=np.array([1.0, -1.0]), t_eval=np.array([1.0, -0.25, -0.75])
         )
@@ -160,6 +160,40 @@ class TestTimeArgsHandling(QiskitDynamicsTestCase):
 
 class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
     """Tests for merge_t_args_jax and trim_t_results_jax functions."""
+
+    def test_merge_t_args_with_overlap(self):
+        """Test merging with overlaps. Needs to override base version as the behaviour is
+        different.
+        """
+        times = self.merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([0.0, 0.25, 0.75]))
+        self.assertAllClose(times, np.array([0.0, 0.125, 0.25, 0.75, 1.0]))
+
+        times = self.merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([0.25, 0.75, 1.0]))
+        self.assertAllClose(times, np.array([0.0, 0.25, 0.75, 0.875, 1.0]))
+
+        times = self.merge_t_args(
+            t_span=np.array([0.0, 1.0]), t_eval=np.array([0.0, 0.25, 0.75, 1.0])
+        )
+        self.assertAllClose(times, np.array([0.0, 0.125, 0.25, 0.75, 0.875, 1.0]))
+
+    def test_merge_t_args_with_overlap_backwards(self):
+        """Test merging with overlaps for backwards integration. Needs to override base version as the behaviour is
+        different.
+        """
+        times = self.merge_t_args(
+            t_span=np.array([1.0, -1.0]), t_eval=np.array([1.0, -0.25, -0.75])
+        )
+        self.assertAllClose(times, np.array([1.0, (1.0 - 0.25)/2, -0.25, -0.75, -1.0]))
+
+        times = self.merge_t_args(
+            t_span=np.array([1.0, -1.0]), t_eval=np.array([-0.25, -0.75, -1.0])
+        )
+        self.assertAllClose(times, np.array([1.0, -0.25, -0.75, -0.875, -1.0]))
+
+        times = self.merge_t_args(
+            t_span=np.array([1.0, -1.0]), t_eval=np.array([1.0, -0.25, -0.75, -1.0])
+        )
+        self.assertAllClose(times, np.array([1.0, (1.0 - 0.25)/2, -0.25, -0.75, -0.875, -1.0]))
 
     def merge_t_args(self, t_span, t_eval=None):
         return merge_t_args_jax(t_span, t_eval)

@@ -124,20 +124,24 @@ def trim_t_results(
 
 def merge_t_args_jax(t_span, t_eval=None):
     """JAX-compilable version of merge_t_args. Rather than raise errors, sets return values to
-    jnp.nan to signal errors.
+    jnp.nan to signal errors. The merging strategy differs from merge_t_args: after appending
+    the endpoints of t_span to t_eval, it is checked whether the first two entries of the resulting
+    array are equal. If they are, the second entry is set to the average of the first and the third.
+    A similar procedure is done for the last two entries. This is essentially a hack to to avoid 
+    adjacent entries of the output having equal values, which causes buggy behaviour in jax_odeint.
     """
 
     if t_eval is None:
         return Array(t_span, backend="jax")
 
+    # raise error if not one dimensional
+    if t_eval.ndim > 1:
+        raise ValueError("t_eval must be 1 dimensional.")
+
     t_span = Array(t_span, backend="jax").data
     t_eval = Array(t_eval, backend="jax").data
 
     out = jnp.append(jnp.append(t_span[0], t_eval), t_span[1])
-
-    # raise error if not one dimensional
-    if t_eval.ndim > 1:
-        raise ValueError("t_eval must be 1 dimensional.")
 
     # output nan if t_eval point lies outside t_span
     t_min = jnp.min(t_span)
@@ -154,26 +158,54 @@ def merge_t_args_jax(t_span, t_eval=None):
     t_direction = jnp.sign(t_span[1] - t_span[0])
     out = cond(jnp.any(t_direction * diff < 0.0), lambda s: jnp.nan * s, lambda s: s, out)
 
+    # if out[0] == out[1], set out[1] == (out[2] + out[0])/2
+    out = cond(
+        out[0] == out[1],
+        lambda x: x.at[1].set((x[2] + x[0])/2),
+        lambda x: x,
+        out
+    )
+
+    # if out[-1] == out[-2], set out[-2] == (out[-3] + out[-1])/2
+    out = cond(
+        out[-1] == out[-2],
+        lambda x: x.at[-2].set((x[-3] + x[-1])/2),
+        lambda x: x,
+        out
+    )
+
     return Array(out)
 
 
 def trim_t_results_jax(results, t_eval):
-    """JAX-compilable version of trim_t_results. The cond call is necessary due to
-    a bug in odeint that only occurs if the first two time values are duplicates.
+    """JAX-compilable version of trim_t_results. Note the choice of which entry to remove in the
+    case of duplicate time entries is due to peculiarities in jax_odeint.
     """
 
     if t_eval is None:
         return results
 
+    # remove second entry if t_eval[0] == results.t[0], as this indicates this was a repeated time
     results.y = Array(
         cond(
-            results.t[0] == results.t[1],
-            lambda y: jnp.append(jnp.array([y[0]]), y[2:-1], axis=0),
-            lambda y: y[1:-1],
+            t_eval[0] == results.t[0],
+            lambda y: jnp.append(jnp.array([y[0]]), y[2:], axis=0),
+            lambda y: y[1:],
             Array(results.y).data,
         )
     )
-    results.t = Array(results.t[1:-1])
+
+    # remove second last entry if t_eval[-1] == results.t[-1], as this indicates a repeated time
+    results.y = Array(
+        cond(
+            t_eval[-1] == results.t[-1],
+            lambda y: jnp.append(y[:-2], jnp.array([y[-1]]), axis=0),
+            lambda y: y[:-1],
+            Array(results.y).data,
+        )
+    )
+
+    results.t = Array(t_eval)
     return results
 
 
