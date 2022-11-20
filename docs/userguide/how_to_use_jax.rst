@@ -142,8 +142,6 @@ before setting the signals, to ensure the simulation function remains pure.
         signals = [Signal(amp, carrier_freq=w)]
 
         # simulate and return results
-        # setting user_frame tells solve that states should be specified and returned in the frame
-        # of the drift
         results = solver.solve(
             t_span=[0, 3.],
             y0=np.array([0., 1.], dtype=complex),
