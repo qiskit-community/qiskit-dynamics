@@ -135,12 +135,12 @@ def merge_t_args_jax(t_span, t_eval=None):
     if t_eval is None:
         return Array(t_span, backend="jax")
 
+    t_span = Array(t_span, backend="jax").data
+    t_eval = Array(t_eval, backend="jax").data
+
     # raise error if not one dimensional
     if t_eval.ndim > 1:
         raise ValueError("t_eval must be 1 dimensional.")
-
-    t_span = Array(t_span, backend="jax").data
-    t_eval = Array(t_eval, backend="jax").data
 
     out = jnp.append(jnp.append(t_span[0], t_eval), t_span[1])
 
