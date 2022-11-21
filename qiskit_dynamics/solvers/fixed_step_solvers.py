@@ -353,18 +353,9 @@ def get_exponential_take_step(magnus_order, expm_func):
         take_step: infinitessimal exponential Magnus solver 
 """
 
-     # second-order step size constants
-    c1=1/2-np.sqrt(3)/6
-    c2=1/2+np.sqrt(3)/6
-    p2=np.sqrt(3)/12
-
-    # third-order step size constants
-    d0=1/2
-    d1=1/2-np.sqrt(15)/10
-    d2=1/2+np.sqrt(15)/10
-
     # if clause based on magnus order
     if magnus_order==1:
+
         def take_step(generator, t0, y, h):
             eval_time = t0 + (h / 2)
 
@@ -372,7 +363,11 @@ def get_exponential_take_step(magnus_order, expm_func):
 
     elif magnus_order==2:
 
-        
+        # second-order step size constants
+        c1=1/2-np.sqrt(3)/6
+        c2=1/2+np.sqrt(3)/6
+        p2=np.sqrt(3)/12
+
         def take_step(generator, t0, y, h):  
             
             # midpoint eval_times
@@ -392,6 +387,14 @@ def get_exponential_take_step(magnus_order, expm_func):
             return expm_func(terms) @ y
 
     elif magnus_order==3:
+
+        # third-order step size constants
+        d0=1/2
+        d1=1/2-np.sqrt(15)/10
+        d2=1/2+np.sqrt(15)/10
+        q2=np.sqrt(15)/3
+        q3=10/3
+ 
         def take_step(generator, t0, y, h):  
             
             # midpoint eval_times
@@ -406,8 +409,8 @@ def get_exponential_take_step(magnus_order, expm_func):
 
             # linear combinations of generators (derivatives)
             a1=h*g0
-            a2=np.sqrt(15)/3*h*(g2-g1)
-            a3=10/3*h*(g2-2*g0+g1)
+            a2=q2*h*(g2-g1)
+            a3=q3*h*(g2-2*g0+g1)
 
             # intermediate commutators
             com1=matrix_commutator(a1,a2)
