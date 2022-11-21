@@ -13,9 +13,9 @@
 # that they have been altered from the originals.
 
 """
-==============================================
+====================================
 Pulse (:mod:`qiskit_dynamics.pulse`)
-==============================================
+====================================
 
 .. currentmodule:: qiskit_dynamics.pulse
 

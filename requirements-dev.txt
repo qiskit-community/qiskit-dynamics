@@ -1,12 +1,14 @@
 stestr>=3.0.0
-astroid==2.5
-pylint==2.7.1
-black==21.11b1
+astroid==2.9.3
+pylint==2.12.2
+black~=22.0
 qiskit-sphinx-theme>=1.6
 sphinx-autodoc-typehints
 jupyter-sphinx
 pygments>=2.4
 reno>=3.4.0
 nbsphinx
+sphinxcontrib-bibtex
 qutip
+ddt~=1.4.2
 matplotlib>=3.3.0

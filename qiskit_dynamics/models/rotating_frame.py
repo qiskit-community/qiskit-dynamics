@@ -174,42 +174,60 @@ class RotatingFrame:
         return self.frame_basis @ y
 
     def operator_into_frame_basis(
-        self, op: Union[Operator, List[Operator], Array, csr_matrix, None]
+        self,
+        op: Union[Operator, List[Operator], Array, csr_matrix, None],
+        convert_type: bool = True,
     ) -> Array:
         r"""Take an operator into the frame basis, i.e. return
         ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
         Args:
             op: The operator or array of operators.
+            convert_type: Whether or not to initially convert ``op`` into an expected type.
+                          Should only be set to ``False`` in situations in which it is gauranteed
+                          that ``op`` is a handled input type.
         Returns:
             Array: The operator in the frame basis.
         """
-        op = to_numeric_matrix_type(op)
+        if convert_type:
+            op = to_numeric_matrix_type(op)
+
         if self.frame_basis is None or op is None:
             return op
 
-        if type(op).__name__ == "BCOO":
+        if isinstance(op, list):
+            return [self.operator_into_frame_basis(x, convert_type=False) for x in op]
+        elif type(op).__name__ == "BCOO":
             return self.frame_basis_adjoint @ jsparse_matmul(op, self.frame_basis.data)
         else:
             # parentheses are necessary for sparse op evaluation
             return self.frame_basis_adjoint @ (op @ self.frame_basis)
 
     def operator_out_of_frame_basis(
-        self, op: Union[Operator, List[Operator], Array, csr_matrix, None]
+        self,
+        op: Union[Operator, List[Operator], Array, csr_matrix, None],
+        convert_type: bool = True,
     ) -> Array:
         r"""Take an operator out of the frame basis, i.e. return
         ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
 
         Args:
             op: The operator or array of operators.
+            convert_type: Whether or not to initially convert ``op`` into an expected type.
+                          Should only be set to ``False`` in situations in which it is gauranteed
+                          that ``op`` is a handled input type.
         Returns:
             Array: The operator in the frame basis.
         """
-        op = to_numeric_matrix_type(op)
+        if convert_type:
+            op = to_numeric_matrix_type(op)
+
         if self.frame_basis is None or op is None:
             return op
 
-        if type(op).__name__ == "BCOO":
+        if isinstance(op, list):
+            return [self.operator_out_of_frame_basis(x, convert_type=False) for x in op]
+        elif type(op).__name__ == "BCOO":
             return self.frame_basis @ jsparse_matmul(op, self.frame_basis_adjoint.data)
         else:
             # parentheses are necessary for sparse op evaluation
@@ -261,7 +279,7 @@ class RotatingFrame:
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Take a state out of the rotating frame, i.e. ``return exp(tF) @ y``.
+        r"""Take a state out of the rotating frame, i.e. return ``exp(tF) @ y``.
 
         Calls ``self.state_into_frame`` with time reversed.
 
@@ -369,7 +387,7 @@ class RotatingFrame:
 
         if vectorized_operators:
             # If a vectorized output is required, reshape correctly
-            out = out.reshape(out.shape[:-2] + (self.dim ** 2,), order="F")
+            out = out.reshape(out.shape[:-2] + (self.dim**2,), order="F")
             if len(out.shape) == 2:
                 out = out.T
 
@@ -593,15 +611,15 @@ class RotatingFrame:
 
 
 def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10):
-    r"""Given `mat`, the logic of this function is:
-        - if `mat` is hermitian, return `-1j * mat`
-        - if `mat` is anti-hermitian, return `mat`
+    r"""Given ``mat``, the logic of this function is:
+        - if ``mat`` is hermitian, return ``-1j * mat``
+        - if ``mat`` is anti-hermitian, return ``mat``
         - otherwise:
-            - if `mat.backend == 'jax'` return `jnp.inf * mat`
+            - if ``mat.backend == 'jax'`` return ``jnp.inf * mat``
             - otherwise raise an error
 
     The main purpose of this function is to hide the pecularities of the
-    implementing the above logic in a compileable way in `jax`.
+    implementing the above logic in a compileable way in ``jax``.
 
     Args:
         mat: array to check
@@ -609,11 +627,11 @@ def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optio
         rtol: relative tolerance
 
     Returns:
-        Array: anti-hermitian version of `mat` if applicable
+        Array: anti-hermitian version of ``mat`` if applicable.
 
     Raises:
         ImportError: if backend is jax and jax is not installed.
-        QiskitError: if `mat` is not Hermitian or anti-Hermitian
+        QiskitError: if ``mat`` is not Hermitian or anti-Hermitian.
     """
     mat = to_array(mat)
     mat = Array(mat, dtype=complex)
@@ -660,7 +678,4 @@ def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optio
                 return mat
 
         # raise error if execution has made it this far
-        raise QiskitError(
-            """frame_operator must be either a Hermitian or
-                           anti-Hermitian matrix."""
-        )
+        raise QiskitError("""frame_operator must be either a Hermitian or anti-Hermitian matrix.""")

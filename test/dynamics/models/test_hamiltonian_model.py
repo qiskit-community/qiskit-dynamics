@@ -16,7 +16,7 @@
 import numpy as np
 
 from scipy.linalg import expm
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
@@ -34,30 +34,23 @@ class TestHamiltonianModelValidation(QiskitDynamicsTestCase):
     def test_operators_array_not_hermitian(self):
         """Test raising error if operators are not Hermitian."""
 
-        operators = [np.array([[0.0, 1.0], [0.0, 0.0]])]
-
-        with self.assertRaises(QiskitError) as qe:
-            HamiltonianModel(operators=operators)
-        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+        with self.assertRaisesRegex(QiskitError, "operators must be Hermitian."):
+            HamiltonianModel(operators=[np.array([[0.0, 1.0], [0.0, 0.0]])])
 
     def test_operators_csr_not_hermitian(self):
         """Test raising error if operators are not Hermitian."""
 
-        operators = self.to_sparse([[[0.0, 1.0], [0.0, 0.0]]])
-
-        with self.assertRaises(QiskitError) as qe:
-            HamiltonianModel(operators=operators)
-        self.assertTrue("operators must be Hermitian." in str(qe.exception))
+        with self.assertRaisesRegex(QiskitError, "operators must be Hermitian."):
+            HamiltonianModel(operators=self.to_sparse([[[0.0, 1.0], [0.0, 0.0]]]))
 
     def test_static_operator_not_hermitian(self):
         """Test raising error if static_operator is not Hermitian."""
 
-        static_operator = np.array([[0.0, 1.0], [0.0, 0.0]])
-        operators = [np.array([[0.0, 1.0], [1.0, 0.0]])]
-
-        with self.assertRaises(QiskitError) as qe:
-            HamiltonianModel(operators=operators, static_operator=static_operator)
-        self.assertTrue("static_operator must be Hermitian." in str(qe.exception))
+        with self.assertRaisesRegex(QiskitError, "static_operator must be Hermitian."):
+            HamiltonianModel(
+                operators=[np.array([[0.0, 1.0], [1.0, 0.0]])],
+                static_operator=np.array([[0.0, 1.0], [0.0, 0.0]]),
+            )
 
     def test_validate_false(self):
         """Verify setting validate=False avoids error raising."""

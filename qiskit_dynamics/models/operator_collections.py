@@ -16,8 +16,7 @@ from abc import ABC, abstractmethod
 from typing import Union, List, Optional
 from copy import copy
 import numpy as np
-from scipy.sparse import issparse
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix, issparse
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
@@ -850,15 +849,12 @@ class SparseLindbladCollection(DenseLindbladCollection):
                     self._static_dissipators * y * self._static_dissipators_adj, axis=-1
                 )
             else:
-                both_mult_contribution = (
-                    np.sum(
-                        (dis_sig_vals * self._dissipator_operators)
-                        * y
-                        * self._dissipator_operators_adj,
-                        axis=-1,
-                    )
-                    + np.sum(self._static_dissipators * y * self._static_dissipators_adj, axis=-1)
-                )
+                both_mult_contribution = np.sum(
+                    (dis_sig_vals * self._dissipator_operators)
+                    * y
+                    * self._dissipator_operators_adj,
+                    axis=-1,
+                ) + np.sum(self._static_dissipators * y * self._static_dissipators_adj, axis=-1)
 
             out = left_mult_contribution + right_mult_contribution + both_mult_contribution
 

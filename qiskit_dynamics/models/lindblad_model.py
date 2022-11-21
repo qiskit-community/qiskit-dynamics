@@ -17,7 +17,7 @@ Lindblad models module.
 
 from typing import Tuple, Union, List, Optional
 from warnings import warn
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
@@ -53,41 +53,54 @@ class LindbladModel(BaseGeneratorModel):
     The Lindblad master equation models the evolution of a density matrix according to:
 
     .. math::
-        \dot{\rho}(t) = -i[H(t), \rho(t)] + \mathcal{D}(t)(\rho(t)),
 
-    where :math:`\mathcal{D}(t)` is the dissipator portion of the equation,
-    given by
+        \dot{\rho}(t) = -i[H(t), \rho(t)] + \mathcal{D}_0(\rho(t)) + \mathcal{D}(t)(\rho(t)),
+
+    where :math:`\mathcal{D}_0` is the static dissipator portion, and :math:`\mathcal{D}(t)` is the
+    time-dependent dissipator portion of the equation, given by
 
     .. math::
+
+        \mathcal{D}_0(\rho(t)) = \sum_j N_j \rho N_j^\dagger
+                                      - \frac{1}{2} \{N_j^\dagger N_j, \rho\},
+
+    and
+
+    .. math::
+
         \mathcal{D}(t)(\rho(t)) = \sum_j \gamma_j(t) L_j \rho L_j^\dagger
                                   - \frac{1}{2} \{L_j^\dagger L_j, \rho\},
 
-    with :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` the
-    matrix commutator and anti-commutator, respectively. In the above:
+    respectively. In the above:
 
+        - :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}`
+          respectively denote the matrix commutator and anti-commutator,
         - :math:`H(t)` denotes the Hamiltonian,
-        - :math:`L_j` denotes the :math:`j^{th}` dissipator, or Lindblad,
-          operator, and
+        - :math:`N_j` denotes the operators appearing in the static dissipator,
+        - :math:`L_j` denotes the operators appearing in the time-dpendent portion of the
+          dissipator, and
         - :math:`\gamma_j(t)` denotes the signal corresponding to the
-          :math:`j^{th}` Lindblad operator.
+          :math:`j^{th}` time-dependent dissipator operator.
 
     Instantiating an instance of :class:`~qiskit_dynamics.models.LindbladModel`
     requires specifying the above decomposition:
 
     .. code-block:: python
 
-        lindblad_model = LindbladModel(static_hamiltonian=static_hamiltonian,
-                                       hamiltonian_operators=hamiltonian_operators,
-                                       hamiltonian_signals=hamiltonian_signals,
-                                       static_dissipators=static_dissipators,
-                                       dissipator_operators=dissipator_operators,
-                                       dissipator_signals=dissipator_signals)
+        lindblad_model = LindbladModel(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            hamiltonian_signals=hamiltonian_signals,
+            static_dissipators=static_dissipators,
+            dissipator_operators=dissipator_operators,
+            dissipator_signals=dissipator_signals
+        )
 
     where the arguments ``hamiltonian_operators``, ``hamiltonian_signals``, and
     ``static_hamiltonian`` are for the Hamiltonian decomposition as in
     :class:`~qiskit_dynamics.models.HamiltonianModel`,
-    and the ``dissipator_operators`` correspond to the :math:`L_j`, and the ``dissipator_signals``
-    the :math:`g_j(t)`, which default to the constant ``1.``.
+    and the ``static_dissipators`` correspond to the :math:`N_j`, the ``dissipator_operators``
+    to the :math:`L_j`, and the ``dissipator_signals`` the :math:`\gamma_j(t)`.
     """
 
     def __init__(

@@ -14,12 +14,11 @@
 import functools
 from types import FunctionType
 from typing import Optional, Union, Tuple, Callable
-from qiskit.utils import deprecate_function
 from .exceptions import DispatchError
 
 
 class Dispatch:
-    """Dispatch Numpy ufuncs to multiple array backends."""
+    """Dispatch NumPy ufuncs to multiple array backends."""
 
     # Registered backend names
     REGISTERED_BACKENDS = tuple()
@@ -78,7 +77,7 @@ class Dispatch:
                     return backend
         if fallback is None or fallback in cls._REGISTERED_BACKENDS:
             return fallback
-        raise DispatchError("fallback '{}' is not a registered backend.".format(fallback))
+        raise DispatchError(f"fallback '{fallback}' is not a registered backend.")
 
     @classmethod
     def validate_backend(cls, backend: str):
@@ -93,9 +92,8 @@ class Dispatch:
         if backend not in cls._REGISTERED_BACKENDS:
             registered = cls.REGISTERED_BACKENDS if cls.REGISTERED_BACKENDS else None
             raise DispatchError(
-                "'{}' is not a registered array backends (registered backends: {})".format(
-                    backend, registered
-                )
+                f"""'{backend}' is not a registered array backends
+                (registered backends: {registered})"""
             )
 
     @classmethod
@@ -212,7 +210,7 @@ class Dispatch:
     ) -> callable:
         """Decorator to register a ufunc dispatch function.
 
-        This is used for handling of dispatch of Numpy ufuncs using
+        This is used for handling of dispatch of NumPy ufuncs using
         `__array_ufunc__`. The function being wrapped must have
         signature `f(ufunc, method) -> callable(*args, **kwargs)`
 
@@ -239,7 +237,7 @@ class Dispatch:
     ) -> callable:
         """Decorator to register an array function dispatch function.
 
-        This is used for handling of dispatch of Numpy functions using
+        This is used for handling of dispatch of NumPy functions using
         `__array_function__`. The function being wrapped must have
         signature `f(func) -> callable(*args, **kwargs)`.
 
@@ -269,44 +267,6 @@ class Dispatch:
             return func
 
         return decorator
-
-
-# Public functions
-@deprecate_function(
-    "The `set_default_backend` function has been deprecated and will be removed "
-    "next release. Use the class method `Array.set_default_backend(backend)` instead."
-)
-def set_default_backend(backend: Optional[str] = None):
-    """Set the default array backend."""
-    if backend is not None:
-        Dispatch.validate_backend(backend)
-    Dispatch.DEFAULT_BACKEND = backend
-
-
-@deprecate_function(
-    "The `default_backend` function has been deprecated and will be removed next "
-    "release. Use the class method `Array.default_backend()` instead."
-)
-def default_backend():
-    """Return the default array backend."""
-    return Dispatch.DEFAULT_BACKEND
-
-
-@deprecate_function(
-    "The `backend_types` function has been deprecated and will be removed next release."
-)
-def backend_types():
-    """Return tuple of array backend types"""
-    return Dispatch.REGISTERED_TYPES
-
-
-@deprecate_function(
-    "The `available_backends` function has been deprecated and will be removed next"
-    "release. Use the class method `Array.available_backends()` instead."
-)
-def available_backends():
-    """Return a tuple of available array backends"""
-    return Dispatch.REGISTERED_BACKENDS
 
 
 def asarray(

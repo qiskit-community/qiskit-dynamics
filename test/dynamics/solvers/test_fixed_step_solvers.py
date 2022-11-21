@@ -25,10 +25,16 @@ from qiskit_dynamics.array import Array
 from qiskit_dynamics.solvers.fixed_step_solvers import (
     RK4_solver,
     scipy_expm_solver,
+    lanczos_diag_solver,
+    jax_lanczos_diag_solver,
     jax_RK4_solver,
     jax_RK4_parallel_solver,
     jax_expm_solver,
     jax_expm_parallel_solver,
+)
+from qiskit_dynamics.solvers.lanczos import (
+    lanczos_expm,
+    jax_lanczos_expm,
 )
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -77,6 +83,7 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
         # build additional random generator and initial state
         rng = np.random.default_rng(5213)
         dim = 5
+        self.dim = dim
         b = 1.0  # bound on size of random terms
         rand_ops = rng.uniform(low=-b, high=b, size=(3, dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(3, dim, dim)
@@ -90,7 +97,7 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
 
         def random_generator(t):
             t = Array(t)
-            output = np.sin(t) * rand_ops[0] + (t ** 5) * rand_ops[1] + np.exp(t) * rand_ops[2]
+            output = np.sin(t) * rand_ops[0] + (t**5) * rand_ops[1] + np.exp(t) * rand_ops[2]
             return Array(output).data
 
         self.random_generator = random_generator
@@ -322,6 +329,69 @@ class TestScipyExpmSolver(TestFixedStepBase):
         return scipy_expm_solver(rhs, t_span, y0, max_dt, t_eval)
 
 
+class TestLanczosDiagSolver(TestFixedStepBase):
+    """Test cases for lanczos_diag."""
+
+    def take_step(self, rhs, t, y, h):
+        """In this case treat rhs like a generator."""
+        return lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
+
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        return lanczos_diag_solver(rhs, t_span, y0, max_dt, self.dim, t_eval)
+
+    def test_1d_2d_consistency(self):
+        """Test that checks consistency of y0 being 1d v.s. 2d."""
+
+        t_span = [0.0, 1.0]
+        gen = self.random_rhs
+        results = np.array(
+            [
+                self.solve(gen, t_span=t_span, y0=self.random_y0[:, idx], max_dt=0.1).y
+                for idx in range(5)
+            ]
+        ).transpose(1, 2, 0)
+
+        results2d = self.solve(gen, t_span=t_span, y0=self.random_y0, max_dt=0.1).y
+
+        self.assertAllClose(results, results2d)
+
+    def test_case_ix(self):
+        """Standalone test case 1."""
+        gen = lambda t: -1j * np.array([[0.0, 1.0], [1.0, 0.0]])
+        y0 = np.array([0.0, 1.0])
+        t_span = [0.0, np.pi / 4]
+        result = self.solve(
+            rhs=gen,
+            t_span=t_span,
+            y0=y0,
+            max_dt=0.1,
+        ).y
+
+        self.assertAllClose(result[-1], expm(gen(0) * t_span[-1]) @ y0)
+
+    def test_case_iz(self):
+        """Standalone test case 2."""
+        gen = lambda t: -1j * np.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, -1]])
+        y01 = np.array([0.0, 0.0, 1.0])
+        y02 = np.array([0.0, 1.0, 1.0])
+        t_span = [0.0, np.pi / 4]
+        result1 = self.solve(
+            rhs=gen,
+            t_span=t_span,
+            y0=y01,
+            max_dt=0.1,
+        ).y
+        result2 = self.solve(
+            rhs=gen,
+            t_span=t_span,
+            y0=y02,
+            max_dt=0.1,
+        ).y
+
+        self.assertAllClose(result1[-1], expm(gen(0) * t_span[-1]) @ y01)
+        self.assertAllClose(result2[-1], expm(gen(0) * t_span[-1]) @ y02)
+
+
 class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
     """JAX version of TestFixedStepBase, adding JAX setup class TestJaxBase,
     and adding jit/grad test.
@@ -396,6 +466,17 @@ class TestJaxExpmParallelSolver(TestJaxExpmSolver):
 
         self.assertTrue("run slower on CPUs" in str(w.warning))
         return results
+
+
+class TestJaxLanczosDiagSolver(TestLanczosDiagSolver, TestJaxFixedStepBase):
+    """Test cases for jax_lanczos_diag."""
+
+    def take_step(self, rhs, t, y, h):
+        """In this case treat rhs like a generator."""
+        return jax_lanczos_expm(rhs(t + 0.5 * h) * h, y, rhs(0).shape[0])
+
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        return jax_lanczos_diag_solver(rhs, t_span, y0, max_dt, self.dim, t_eval)
 
 
 # to ensure unittest doesn't try to run the abstract classes

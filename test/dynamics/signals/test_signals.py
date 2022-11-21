@@ -18,6 +18,7 @@ Tests for signals.
 import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
+from qiskit_dynamics.signals.signals import to_SignalSum
 from qiskit_dynamics.array import Array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -34,44 +35,44 @@ class TestSignal(QiskitDynamicsTestCase):
 
     def setUp(self):
         self.signal1 = Signal(lambda t: 0.25, carrier_freq=0.3)
-        self.signal2 = Signal(lambda t: 2.0 * (t ** 2), carrier_freq=0.1)
-        self.signal3 = Signal(lambda t: 2.0 * (t ** 2) + 1j * t, carrier_freq=0.1, phase=-0.1)
+        self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
+        self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
 
     def test_envelope(self):
         """Test envelope evaluation."""
         self.assertAllClose(self.signal1.envelope(0.0), 0.25)
         self.assertAllClose(self.signal1.envelope(1.23), 0.25)
 
-        self.assertAllClose(self.signal2.envelope(1.1), 2 * (1.1 ** 2))
-        self.assertAllClose(self.signal2.envelope(1.23), 2 * (1.23 ** 2))
+        self.assertAllClose(self.signal2.envelope(1.1), 2 * (1.1**2))
+        self.assertAllClose(self.signal2.envelope(1.23), 2 * (1.23**2))
 
-        self.assertAllClose(self.signal3.envelope(1.1), 2 * (1.1 ** 2) + 1j * 1.1)
-        self.assertAllClose(self.signal3.envelope(1.23), 2 * (1.23 ** 2) + 1j * 1.23)
+        self.assertAllClose(self.signal3.envelope(1.1), 2 * (1.1**2) + 1j * 1.1)
+        self.assertAllClose(self.signal3.envelope(1.23), 2 * (1.23**2) + 1j * 1.23)
 
     def test_envelope_vectorized(self):
         """Test vectorized evaluation of envelope."""
         t_vals = np.array([1.1, 1.23])
         self.assertAllClose(self.signal1.envelope(t_vals), np.array([0.25, 0.25]))
         self.assertAllClose(
-            self.signal2.envelope(t_vals), np.array([2 * (1.1 ** 2), 2 * (1.23 ** 2)])
+            self.signal2.envelope(t_vals), np.array([2 * (1.1**2), 2 * (1.23**2)])
         )
         self.assertAllClose(
             self.signal3.envelope(t_vals),
-            np.array([2 * (1.1 ** 2) + 1j * 1.1, 2 * (1.23 ** 2) + 1j * 1.23]),
+            np.array([2 * (1.1**2) + 1j * 1.1, 2 * (1.23**2) + 1j * 1.23]),
         )
 
         t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
         self.assertAllClose(self.signal1.envelope(t_vals), np.array([[0.25, 0.25], [0.25, 0.25]]))
         self.assertAllClose(
             self.signal2.envelope(t_vals),
-            np.array([[2 * (1.1 ** 2), 2 * (1.23 ** 2)], [2 * (0.1 ** 2), 2 * (0.24 ** 2)]]),
+            np.array([[2 * (1.1**2), 2 * (1.23**2)], [2 * (0.1**2), 2 * (0.24**2)]]),
         )
         self.assertAllClose(
             self.signal3.envelope(t_vals),
             np.array(
                 [
-                    [2 * (1.1 ** 2) + 1j * 1.1, 2 * (1.23 ** 2) + 1j * 1.23],
-                    [2 * (0.1 ** 2) + 1j * 0.1, 2 * (0.24 ** 2) + 1j * 0.24],
+                    [2 * (1.1**2) + 1j * 1.1, 2 * (1.23**2) + 1j * 1.23],
+                    [2 * (0.1**2) + 1j * 0.1, 2 * (0.24**2) + 1j * 0.24],
                 ]
             ),
         )
@@ -86,19 +87,19 @@ class TestSignal(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(
-            self.signal2.complex_value(1.1), 2 * (1.1 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1)
+            self.signal2.complex_value(1.1), 2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1)
         )
         self.assertAllClose(
-            self.signal2.complex_value(1.23), 2 * (1.23 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23)
+            self.signal2.complex_value(1.23), 2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23)
         )
 
         self.assertAllClose(
             self.signal3.complex_value(1.1),
-            (2 * (1.1 ** 2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
+            (2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
         )
         self.assertAllClose(
             self.signal3.complex_value(1.23),
-            (2 * (1.23 ** 2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
+            (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
         )
 
     def test_complex_value_vectorized(self):
@@ -117,8 +118,8 @@ class TestSignal(QiskitDynamicsTestCase):
             self.signal2.complex_value(t_vals),
             np.array(
                 [
-                    2 * (1.1 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
-                    2 * (1.23 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
+                    2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
+                    2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
                 ]
             ),
         )
@@ -126,8 +127,8 @@ class TestSignal(QiskitDynamicsTestCase):
             self.signal3.complex_value(t_vals),
             np.array(
                 [
-                    (2 * (1.1 ** 2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
-                    (2 * (1.23 ** 2) + 1j * 1.23)
+                    (2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
+                    (2 * (1.23**2) + 1j * 1.23)
                     * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
                 ]
             ),
@@ -154,12 +155,12 @@ class TestSignal(QiskitDynamicsTestCase):
             np.array(
                 [
                     [
-                        2 * (1.1 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
-                        2 * (1.23 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
+                        2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
+                        2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
                     ],
                     [
-                        2 * (0.1 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 0.1),
-                        2 * (0.24 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 0.24),
+                        2 * (0.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 0.1),
+                        2 * (0.24**2) * np.exp(1j * 2 * np.pi * 0.1 * 0.24),
                     ],
                 ]
             ),
@@ -169,15 +170,15 @@ class TestSignal(QiskitDynamicsTestCase):
             np.array(
                 [
                     [
-                        (2 * (1.1 ** 2) + 1j * 1.1)
+                        (2 * (1.1**2) + 1j * 1.1)
                         * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
-                        (2 * (1.23 ** 2) + 1j * 1.23)
+                        (2 * (1.23**2) + 1j * 1.23)
                         * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
                     ],
                     [
-                        (2 * (0.1 ** 2) + 1j * 0.1)
+                        (2 * (0.1**2) + 1j * 0.1)
                         * np.exp(1j * 2 * np.pi * 0.1 * 0.1 + 1j * (-0.1)),
-                        (2 * (0.24 ** 2) + 1j * 0.24)
+                        (2 * (0.24**2) + 1j * 0.24)
                         * np.exp(1j * 2 * np.pi * 0.1 * 0.24 + 1j * (-0.1)),
                     ],
                 ]
@@ -190,20 +191,20 @@ class TestSignal(QiskitDynamicsTestCase):
         self.assertAllClose(self.signal1(1.23), np.real(0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23)))
 
         self.assertAllClose(
-            self.signal2(1.1), np.real(2 * (1.1 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1))
+            self.signal2(1.1), np.real(2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1))
         )
         self.assertAllClose(
-            self.signal2(1.23), np.real(2 * (1.23 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23))
+            self.signal2(1.23), np.real(2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23))
         )
 
         self.assertAllClose(
             self.signal3(1.1),
-            np.real((2 * (1.1 ** 2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1))),
+            np.real((2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1))),
         )
         self.assertAllClose(
             self.signal3(1.23),
             np.real(
-                (2 * (1.23 ** 2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1))
+                (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1))
             ),
         )
 
@@ -223,8 +224,8 @@ class TestSignal(QiskitDynamicsTestCase):
             self.signal2(t_vals),
             np.array(
                 [
-                    2 * (1.1 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
-                    2 * (1.23 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
+                    2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
+                    2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
                 ]
             ).real,
         )
@@ -232,8 +233,8 @@ class TestSignal(QiskitDynamicsTestCase):
             self.signal3(t_vals),
             np.array(
                 [
-                    (2 * (1.1 ** 2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
-                    (2 * (1.23 ** 2) + 1j * 1.23)
+                    (2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
+                    (2 * (1.23**2) + 1j * 1.23)
                     * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
                 ]
             ).real,
@@ -260,12 +261,12 @@ class TestSignal(QiskitDynamicsTestCase):
             np.array(
                 [
                     [
-                        2 * (1.1 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
-                        2 * (1.23 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
+                        2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
+                        2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
                     ],
                     [
-                        2 * (0.1 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 0.1),
-                        2 * (0.24 ** 2) * np.exp(1j * 2 * np.pi * 0.1 * 0.24),
+                        2 * (0.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 0.1),
+                        2 * (0.24**2) * np.exp(1j * 2 * np.pi * 0.1 * 0.24),
                     ],
                 ]
             ).real,
@@ -275,15 +276,15 @@ class TestSignal(QiskitDynamicsTestCase):
             np.array(
                 [
                     [
-                        (2 * (1.1 ** 2) + 1j * 1.1)
+                        (2 * (1.1**2) + 1j * 1.1)
                         * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
-                        (2 * (1.23 ** 2) + 1j * 1.23)
+                        (2 * (1.23**2) + 1j * 1.23)
                         * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
                     ],
                     [
-                        (2 * (0.1 ** 2) + 1j * 0.1)
+                        (2 * (0.1**2) + 1j * 0.1)
                         * np.exp(1j * 2 * np.pi * 0.1 * 0.1 + 1j * (-0.1)),
-                        (2 * (0.24 ** 2) + 1j * 0.24)
+                        (2 * (0.24**2) + 1j * 0.24)
                         * np.exp(1j * 2 * np.pi * 0.1 * 0.24 + 1j * (-0.1)),
                     ],
                 ]
@@ -386,12 +387,22 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         )
 
     def test_envelope(self):
+
         """Test envelope evaluation."""
+        self.assertAllClose(self.discrete1.envelope(1.5), 0.0)
         self.assertAllClose(self.discrete1.envelope(0.0), 1.0)
         self.assertAllClose(self.discrete1.envelope(1.23), 3.0)
+        self.assertAllClose(self.discrete1.envelope(1.49), 3.0)
 
         self.assertAllClose(self.discrete2.envelope(0.1), 1.0 + 2j)
         self.assertAllClose(self.discrete2.envelope(1.23), 3.0)
+        self.assertAllClose(self.discrete2.envelope(1.49), 3.0)
+        self.assertAllClose(self.discrete2.envelope(1.5), 0.0)
+
+    def test_envelope_outside(self):
+        """Test envelope evaluation outside of defined start and end"""
+        self.assertAllClose(self.discrete1.envelope(-1.0), 0.0)
+        self.assertAllClose(self.discrete1.envelope(3.0), 0.0)
 
     def test_envelope_vectorized(self):
         """Test vectorized evaluation of envelope."""
@@ -482,14 +493,32 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.assertAllClose(discrete_conj.phase, -self.discrete2.phase)
         self.assertAllClose(discrete_conj.dt, self.discrete2.dt)
 
+    def test_add_samples(self):
+        """Verify that add_samples function works correctly"""
+
+        discrete1 = DiscreteSignal(dt=0.5, samples=np.array([]), carrier_freq=3.0)
+        discrete2 = DiscreteSignal(
+            dt=0.5, samples=np.array([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
+        )
+        discrete3 = DiscreteSignal(dt=0.5, samples=[], carrier_freq=3.0)
+
+        discrete1.add_samples(0, [4.0, 3.2])
+        self.assertAllClose(discrete1.samples, [4.0, 3.2])
+
+        discrete2.add_samples(5, [1.0, 5.0 + 2j])
+        self.assertAllClose(discrete2.samples, [1.0 + 2j, 2.0 + 1j, 3.0, 0.0, 0.0, 1.0, 5.0 + 2j])
+
+        discrete3.add_samples(5, [1.0, 2.0])
+        self.assertAllClose(discrete3.samples, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0])
+
 
 class TestSignalSum(QiskitDynamicsTestCase):
     """Test evaluation functions for ``SignalSum``."""
 
     def setUp(self):
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
-        self.signal2 = Signal(lambda t: 2.0 * (t ** 2), carrier_freq=0.1)
-        self.signal3 = Signal(lambda t: 2.0 * (t ** 2) + 1j * t, carrier_freq=0.1, phase=-0.1)
+        self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
+        self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
 
         self.sig_sum1 = self.signal1 + self.signal2
         self.sig_sum2 = self.signal2 - self.signal3
@@ -705,8 +734,8 @@ class TestDiscreteSignalSum(TestSignalSum):
 
     def setUp(self):
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
-        self.signal2 = Signal(lambda t: 2.0 * (t ** 2), carrier_freq=0.1)
-        self.signal3 = Signal(lambda t: 2.0 * (t ** 2) + 1j * t, carrier_freq=0.1, phase=-0.1)
+        self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
+        self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
 
         self.sig_sum1 = DiscreteSignalSum.from_SignalSum(
             self.signal1 + self.signal2, dt=0.5, start_time=0, n_samples=10
@@ -720,6 +749,13 @@ class TestDiscreteSignalSum(TestSignalSum):
         self.signal3 = DiscreteSignal.from_Signal(self.signal3, dt=0.5, start_time=0, n_samples=10)
 
         self.double_sig_sum = self.sig_sum1 - self.sig_sum2
+
+    def test_empty_DiscreteSignal_to_sum(self):
+        """Verify empty DiscreteSignal is converted to empty DiscreteSignalSum."""
+
+        empty_sum = to_SignalSum(DiscreteSignal(dt=1.0, samples=[]))
+        self.assertTrue(isinstance(empty_sum, DiscreteSignalSum))
+        self.assertTrue(empty_sum.samples.shape == (1, 0))
 
 
 class TestSignalList(QiskitDynamicsTestCase):
@@ -791,8 +827,8 @@ class TestSignalCollection(QiskitDynamicsTestCase):
 
     def setUp(self):
         self.sig1 = Signal(lambda t: t, carrier_freq=0.1)
-        self.sig2 = Signal(lambda t: t + 1j * t ** 2, carrier_freq=3.0, phase=1.0)
-        self.sig3 = Signal(lambda t: t + 1j * t ** 2, carrier_freq=3.0, phase=1.2)
+        self.sig2 = Signal(lambda t: t + 1j * t**2, carrier_freq=3.0, phase=1.0)
+        self.sig3 = Signal(lambda t: t + 1j * t**2, carrier_freq=3.0, phase=1.2)
 
         self.discrete_sig1 = DiscreteSignal(dt=0.5, samples=[1.0, 2.0, 3.0], carrier_freq=3.0)
         self.discrete_sig2 = DiscreteSignal(dt=0.5, samples=[2.0, 2.1, 3.4], carrier_freq=2.1)
@@ -866,7 +902,7 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
     """Test cases for jax transformations of signals."""
 
     def setUp(self):
-        self.signal = Signal(lambda t: t ** 2, carrier_freq=3.0)
+        self.signal = Signal(lambda t: t**2, carrier_freq=3.0)
         self.constant = Signal(3 * np.pi)
         self.discrete_signal = DiscreteSignal(
             dt=0.5, samples=jnp.ones(20, dtype=complex), carrier_freq=2.0
@@ -912,9 +948,9 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
             self.signal,
             t=t,
             sig_deriv_val=2 * t * np.cos(2 * np.pi * 3.0 * t)
-            + (t ** 2) * (-2 * np.pi * 3) * np.sin(2 * np.pi * 3.0 * t),
+            + (t**2) * (-2 * np.pi * 3) * np.sin(2 * np.pi * 3.0 * t),
             complex_deriv_val=2 * t * np.exp(1j * 2 * np.pi * 3.0 * t)
-            + (t ** 2) * (1j * 2 * np.pi * 3.0) * np.exp(1j * 2 * np.pi * 3.0 * t),
+            + (t**2) * (1j * 2 * np.pi * 3.0) * np.exp(1j * 2 * np.pi * 3.0 * t),
         )
         self._test_grad_eval(self.constant, t=t, sig_deriv_val=0.0, complex_deriv_val=0.0)
         self._test_grad_eval(
@@ -931,12 +967,12 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
             self.signal_sum,
             t=t,
             sig_deriv_val=2 * t * np.cos(2 * np.pi * 3.0 * t)
-            + (t ** 2) * (-2 * np.pi * 3) * np.sin(2 * np.pi * 3.0 * t)
+            + (t**2) * (-2 * np.pi * 3) * np.sin(2 * np.pi * 3.0 * t)
             + np.real(self.discrete_signal.samples[5])
             * (-2 * np.pi * 2.0)
             * np.sin(2 * np.pi * 2.0 * t),
             complex_deriv_val=2 * t * np.exp(1j * 2 * np.pi * 3.0 * t)
-            + (t ** 2) * (1j * 2 * np.pi * 3.0) * np.exp(1j * 2 * np.pi * 3.0 * t)
+            + (t**2) * (1j * 2 * np.pi * 3.0) * np.exp(1j * 2 * np.pi * 3.0 * t)
             + self.discrete_signal.samples[5]
             * (1j * 2 * np.pi * 2.0)
             * np.exp(1j * 2 * np.pi * 2.0 * t),
@@ -944,11 +980,11 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
         self._test_grad_eval(
             self.discrete_signal_sum,
             t=t,
-            sig_deriv_val=(2.25 ** 2) * (-2 * np.pi * 3) * np.sin(2 * np.pi * 3.0 * t)
+            sig_deriv_val=(2.25**2) * (-2 * np.pi * 3) * np.sin(2 * np.pi * 3.0 * t)
             + np.real(self.discrete_signal.samples[5])
             * (-2 * np.pi * 2.0)
             * np.sin(2 * np.pi * 2.0 * t),
-            complex_deriv_val=(2.25 ** 2)
+            complex_deriv_val=(2.25**2)
             * (1j * 2 * np.pi * 3.0)
             * np.exp(1j * 2 * np.pi * 3.0 * t)
             + self.discrete_signal.samples[5]

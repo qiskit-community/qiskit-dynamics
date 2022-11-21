@@ -17,8 +17,7 @@ Hamiltonian models module.
 
 from typing import Union, List, Optional
 import numpy as np
-from scipy.sparse import issparse
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix, issparse
 from scipy.sparse.linalg import norm as spnorm
 
 from qiskit import QiskitError
@@ -121,8 +120,8 @@ class HamiltonianModel(GeneratorModel):
 
     @rotating_frame.setter
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]) -> Array:
-        """Sets frame. RotatingFrame objects will always store antihermitian F = -iH.
-        The static_operator needs to be adjusted by -H in the new frame."""
+        """Set frame. RotatingFrame objects will always store antihermitian :math:`F = -iH`.
+        The static_operator needs to be adjusted by :math:`-H` in the new frame."""
         new_frame = RotatingFrame(rotating_frame)
 
         # convert static operator to new frame setup

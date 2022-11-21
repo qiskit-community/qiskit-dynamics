@@ -20,6 +20,7 @@ requirements = [
     "scipy>=1.4",
     "matplotlib>=3.0",
     "qiskit-terra>=0.16.0",
+    "multiset>=3.0.1",
 ]
 
 jax_extras = ['jax>=0.2.26',
@@ -62,6 +63,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
     ],
     keywords="qiskit sdk quantum",

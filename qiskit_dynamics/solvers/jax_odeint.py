@@ -24,7 +24,7 @@ from scipy.integrate._ivp.ivp import OdeResult
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array, wrap
 
-from .solver_utils import merge_t_args, trim_t_results
+from .solver_utils import merge_t_args_jax, trim_t_results_jax
 
 try:
     from jax.experimental.ode import odeint as _odeint
@@ -49,13 +49,13 @@ def jax_odeint(
         t_span: Interval to solve over.
         y0: Initial state.
         t_eval: Optional list of time points at which to return the solution.
-        kwargs: Optional arguments to be passed to ``odeint``.
+        **kwargs: Optional arguments to be passed to ``odeint``.
 
     Returns:
         OdeResult: Results object.
     """
 
-    t_list = merge_t_args(t_span, t_eval)
+    t_list = merge_t_args_jax(t_span, t_eval)
 
     # determine direction of integration
     t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=complex))
@@ -70,4 +70,4 @@ def jax_odeint(
 
     results = OdeResult(t=t_list, y=Array(results, backend="jax", dtype=complex))
 
-    return trim_t_results(results, t_span, t_eval)
+    return trim_t_results_jax(results, t_eval)

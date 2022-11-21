@@ -21,13 +21,13 @@ Models (:mod:`qiskit_dynamics.models`)
 
 This module contains classes for constructing the right-hand side of an ordinary differential
 equations. In this package, a "model of a quantum system" means a description of a differential
-equation used to model a physical quantum system, in this case either the
+equation used to model a physical quantum system, which in this case is either the
 *Schrodinger equation*:
 
 .. math::
     \dot{y}(t) = -i H(t)y(t),
 
-where :math:`H(t)` is the Hamiltonian, or *Lindblad equation*:
+where :math:`H(t)` is the Hamiltonian, or the *Lindblad equation*:
 
 .. math::
     \dot{\rho}(t) = -i[H(t), \rho(t)] +
@@ -107,7 +107,7 @@ The default is dense arrays, and a model can be set to use sparse arrays via:
 
 .. code-block:: python
 
-    model.evaluation_mode = 'sparse'
+    model.evaluation_mode = "sparse"
 
 See the ``evaluation_mode`` property for each model class for available modes.
 

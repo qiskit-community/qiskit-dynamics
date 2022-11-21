@@ -9,7 +9,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """Register jax backend for Dispatch"""
+
 # pylint: disable=import-error
 
 
@@ -84,7 +86,6 @@ try:
     @Dispatch.implements(np.copy, HANDLED_FUNCTIONS)
     def _copy(array, order="K"):
         return jax.numpy.array(array, copy=True, order=order)
-
 
 except ModuleNotFoundError:
     pass

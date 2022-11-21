@@ -20,8 +20,7 @@ from typing import Tuple, Union, List, Optional
 from warnings import warn
 from copy import copy
 import numpy as np
-from scipy.sparse.csr import csr_matrix
-from scipy.sparse import issparse, diags
+from scipy.sparse import csr_matrix, issparse, diags
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
@@ -417,7 +416,7 @@ class GeneratorModel(BaseGeneratorModel):
         )
 
     def evaluate_rhs(self, time: float, y: Array) -> Array:
-        r"""Evaluate `G(t) @ y`.
+        r"""Evaluate ``G(t) @ y``.
 
         Args:
             time: Time to evaluate the model.

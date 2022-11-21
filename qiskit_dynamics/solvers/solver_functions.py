@@ -17,63 +17,116 @@ r"""
 Solver functions.
 """
 
-from typing import Optional, Union, Callable, Tuple, List
+from typing import Optional, Union, Callable, Tuple, List, TypeVar
+from warnings import warn
 
 from scipy.integrate import OdeSolver
 
-# pylint: disable=unused-import
-from scipy.integrate._ivp.ivp import OdeResult
-
-from qiskit.circuit import Gate, QuantumCircuit
-from qiskit.quantum_info.operators.base_operator import BaseOperator
-from qiskit.quantum_info.operators.channel.quantum_channel import QuantumChannel
-from qiskit.quantum_info.states.quantum_state import QuantumState
-from qiskit.quantum_info import SuperOp, Operator
+from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import QiskitError
-from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array
 
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
     GeneratorModel,
-    RotatingFrame,
-    rotating_wave_approximation,
-    HamiltonianModel,
     LindbladModel,
 )
+from qiskit_dynamics.models.hamiltonian_model import HamiltonianModel
 
 from .solver_utils import is_lindblad_model_not_vectorized
 from .fixed_step_solvers import (
     RK4_solver,
     jax_RK4_solver,
     scipy_expm_solver,
+    lanczos_diag_solver,
+    jax_lanczos_diag_solver,
     jax_expm_solver,
     jax_RK4_parallel_solver,
     jax_expm_parallel_solver,
 )
 from .scipy_solve_ivp import scipy_solve_ivp, SOLVE_IVP_METHODS
 from .jax_odeint import jax_odeint
-
-try:
-    from jax.lax import scan
-except ImportError:
-    pass
-
+from .diffrax_solver import diffrax_solver
 
 ODE_METHODS = (
     ["RK45", "RK23", "BDF", "DOP853", "Radau", "LSODA"]  # scipy solvers
     + ["RK4"]  # fixed step solvers
     + ["jax_odeint", "jax_RK4"]  # jax solvers
 )
-LMDE_METHODS = ["scipy_expm", "jax_expm", "jax_expm_parallel", "jax_RK4_parallel"]
+LMDE_METHODS = [
+    "scipy_expm",
+    "lanczos_diag",
+    "jax_lanczos_diag",
+    "jax_expm",
+    "jax_expm_parallel",
+    "jax_RK4_parallel",
+]
+
+# diffrax solver type placeholder
+DiffraxAbstractSolver = TypeVar("AbstractSolver")
+
+
+def _is_jax_method(method: any) -> bool:
+    """Check if method is a jax solver method."""
+    if method in [
+        "jax_odeint",
+        "jax_RK4",
+        "jax_expm",
+        "jax_expm_parallel",
+        "jax_RK4_parallel",
+        "jax_lanczos_diag",
+    ]:
+        return True
+
+    # only other jax methods are diffrax methods
+    return _is_diffrax_method(method)
+
+
+def _is_diffrax_method(method: any) -> bool:
+    """Check if method is a diffrax method."""
+    try:
+        from diffrax.solver import AbstractSolver
+
+        return isinstance(method, AbstractSolver)
+    except ImportError:
+        return False
+
+
+def _lanczos_validation(
+    rhs: Union[Callable, BaseGeneratorModel],
+    t_span: Array,
+    y0: Array,
+    k_dim: int,
+):
+    """Validation checks to run lanczos based solvers."""
+    if isinstance(rhs, BaseGeneratorModel):
+        if not isinstance(rhs, HamiltonianModel):
+            raise QiskitError(
+                """Lanczos solver can only be used for HamiltonianModel or function-based
+                    anti-Hermitian generators."""
+            )
+        if "sparse" not in rhs.evaluation_mode:
+            warn(
+                """lanczos_diag should be used with a generator in sparse mode
+                for better performance.""",
+                category=Warning,
+                stacklevel=2,
+            )
+
+    dim = rhs(t_span[0]).shape[0]
+    if k_dim > dim:
+        raise QiskitError("k_dim can be no larger than the dimension of the generator.")
+
+    if y0.ndim not in [1, 2]:
+        raise QiskitError("y0 must be 1d or 2d.")
 
 
 def solve_ode(
     rhs: Union[Callable, BaseGeneratorModel],
     t_span: Array,
     y0: Array,
-    method: Optional[Union[str, OdeSolver]] = "DOP853",
+    method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
@@ -103,6 +156,8 @@ def solve_ode(
     - ``'jax_RK4'``: JAX backend implementation of ``'RK4'`` method.
     - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
       solver.
+    - ``diffrax.diffeqsolve`` - a JAX solver function, called by passing ``method``
+      as a valid ``diffrax.solver.AbstractSolver`` instance. Requires the ``diffrax`` library.
 
     Results are returned as a :class:`OdeResult` object.
 
@@ -113,7 +168,7 @@ def solve_ode(
         method: Solving method to use.
         t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
                 the solution will be returned at the points in ``t_span``.
-        kwargs: Additional arguments to pass to the solver.
+        **kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult: Results object.
@@ -123,7 +178,7 @@ def solve_ode(
     """
 
     if method not in ODE_METHODS and not (
-        isinstance(method, type) and issubclass(method, OdeSolver)
+        (isinstance(method, type) and (issubclass(method, OdeSolver))) or _is_diffrax_method(method)
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
@@ -145,6 +200,8 @@ def solve_ode(
         results = jax_RK4_solver(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
     elif isinstance(method, str) and method == "jax_odeint":
         results = jax_odeint(solver_rhs, t_span, y0, t_eval=t_eval, **kwargs)
+    elif _is_diffrax_method(method):
+        results = diffrax_solver(solver_rhs, t_span, y0, method=method, t_eval=t_eval, **kwargs)
 
     # convert results out of frame basis if necessary
     if isinstance(rhs, BaseGeneratorModel):
@@ -161,7 +218,7 @@ def solve_lmde(
     generator: Union[Callable, BaseGeneratorModel],
     t_span: Array,
     y0: Array,
-    method: Optional[Union[str, OdeSolver]] = "DOP853",
+    method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     **kwargs,
 ):
@@ -203,6 +260,17 @@ def solve_lmde(
       ``magnus_order==1``, the generator is sampled at the interval midpoint
       and exponentiated, and if ``magnus_order==2`` or ``magnus_order==3``, 
       higher-order exponentiation rules are adopted from :footcite:`blanes_magnus_2009`.
+    - ``'lanczos_diag'``: A fixed-step matrix-exponential solver, similar to ``'scipy_expm'``
+      but restricted to anti-Hermitian generators. The matrix exponential is performed by
+      diagonalizing an approximate projection of the generator to a small subspace (the
+      Krylov Subspace), obtained via the Lanczos algorithm, and then exponentiating the
+      eigenvalues. Requires additional kwargs ``max_dt`` and ``k_dim`` indicating the maximum
+      step size to take and Krylov subspace dimension, respectively. ``k_dim`` acts as an
+      adjustable accuracy parameter and can be no larger than the dimension of the generator.
+      The method is recommended for sparse systems with large dimension.
+    - ``'jax_lanczos_diag'``: JAX implementation of ``'lanczos_diag'``, with the same arguments
+      and behaviour. Note that this method contains calls to ``jax.numpy.eigh``, which may have
+      limited validity when automatically differentiated.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
@@ -214,7 +282,7 @@ def solve_lmde(
       of the structure of an LMDE, utilizes the same parallelization approach as
       ``'jax_expm_parallel'``, however the single step rule is the standard 4th order
       Runge-Kutta rule, rather than matrix-exponentiation. Requires and utilizes the
-    -``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
+      ``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
       recommended for use with GPU execution.
 
     Results are returned as a :class:`OdeResult` object.
@@ -226,7 +294,7 @@ def solve_lmde(
         method: Solving method to use.
         t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
                 the solution will be returned at the points in ``t_span``.
-        kwargs: Additional arguments to pass to the solver.
+        **kwargs: Additional arguments to pass to the solver.
 
     Returns:
         OdeResult: Results object.
@@ -243,7 +311,11 @@ def solve_lmde(
     """
 
     # delegate to solve_ode if necessary
-    if method in ODE_METHODS or (isinstance(method, type) and issubclass(method, OdeSolver)):
+    if (
+        method in ODE_METHODS
+        or (isinstance(method, type) and (issubclass(method, OdeSolver)))
+        or _is_diffrax_method(method)
+    ):
         if isinstance(generator, BaseGeneratorModel):
             rhs = generator
         else:
@@ -276,6 +348,12 @@ def solve_lmde(
 
     if method == "scipy_expm":
         results = scipy_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+    elif "lanczos_diag" in method:
+        _lanczos_validation(generator, t_span, y0, kwargs["k_dim"])
+        if method == "lanczos_diag":
+            results = lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
+        elif method == "jax_lanczos_diag":
+            results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
         if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
             raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
@@ -308,7 +386,7 @@ def setup_generator_model_rhs_y0_in_frame_basis(
         y0: Initial state.
 
     Returns:
-        Callable for generator in frame basis, Callable for RHS in frame basis, y0
+        Callable for generator in frame basis, callable for RHS in frame basis, y0
         in frame basis, and boolean indicating whether model was already specified in frame basis.
     """
 
