@@ -50,6 +50,14 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
             hamiltonian_operators=[np.diag([1.0, -1.0])], hamiltonian_signals=[1.0]
         )
 
+    def test_scipy_expm_order_4_error(self):
+        """Tests that error is raised if magnus_order=4 is passed."""
+        
+        with self.assertRaisesRegex(QiskitError, "magnus order 1, 2, and 3"):
+            solve_lmde(
+                lambda t: t**2, t_span=[0.0, 1.0], y0=np.diag([1.0, 0.0]), method="scipy_expm", magnus_order=4, max_dt=0.1
+            )
+
     def test_lmde_method_non_vectorized_lindblad(self):
         """Test error raising if LMDE method is specified for non-vectorized Lindblad."""
 
