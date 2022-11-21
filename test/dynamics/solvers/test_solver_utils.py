@@ -157,6 +157,21 @@ class TestTimeArgsHandling(QiskitDynamicsTestCase):
         self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0, 2.0]))
         self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))
 
+    def test_trim_t_results_with_overlap(self):
+        """Test trim_t_results when t_eval and t_span have overlap."""
+
+        # empty object to assign attributes to
+        empty_obj = type("", (), {})()
+
+        empty_obj.t = np.array([0.0, 0.0, 1.0, 2.0, 2.0])
+        empty_obj.y = np.array([[0.0, 1.0], [0.0, 1.0], [0.5, 0.5], [1.0, 0.0], [1.0, 0.0]])
+
+        t_eval = [0.0, 1.0, 2.0]
+        trimmed_obj = self.trim_t_results(empty_obj, t_eval)
+
+        self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0, 2.0]))
+        self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))
+
 
 class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
     """Tests for merge_t_args_jax and trim_t_results_jax functions."""
@@ -244,3 +259,20 @@ class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
 
         self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0]))
         self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5]]))
+
+    def test_trim_t_results_with_overlap(self):
+        """Test trim_t_results when t_eval and t_span have overlap. Override original test
+        to validate the correct entry is being taken.
+        """
+
+        # empty object to assign attributes to
+        empty_obj = type("", (), {})()
+
+        empty_obj.t = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
+        empty_obj.y = np.array([[0.0, 1.0], [0.25, 0.75], [0.5, 0.5], [0.75, 0.25], [1.0, 0.0]])
+
+        t_eval = [0.0, 1.0, 2.0]
+        trimmed_obj = self.trim_t_results(empty_obj, t_eval)
+
+        self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0, 2.0]))
+        self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))

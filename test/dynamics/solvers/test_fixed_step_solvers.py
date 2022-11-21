@@ -31,7 +31,6 @@ from qiskit_dynamics.solvers.fixed_step_solvers import (
     jax_RK4_parallel_solver,
     jax_expm_solver,
     jax_expm_parallel_solver,
-    take_step_exponential
 )
 from qiskit_dynamics.solvers.lanczos import (
     lanczos_expm,

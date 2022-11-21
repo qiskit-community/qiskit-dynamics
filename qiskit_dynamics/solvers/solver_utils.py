@@ -124,26 +124,26 @@ def trim_t_results(
 
 def merge_t_args_jax(
     t_span: Union[List, Tuple, Array], t_eval: Optional[Union[List, Tuple, Array]] = None
-) -> Union[List, Tuple, Array]
-    """JAX-compilable version of merge_t_args. 
-    
-    Rather than raise errors, sets return values to
-    jnp.nan to signal errors. The merging strategy differs from merge_t_args: after appending
-    the endpoints of t_span to t_eval, it is checked whether the first two entries of the resulting
-    array are equal. If they are, the second entry is set to the average of the first and the third.
-    A similar procedure is done for the last two entries. This is essentially a hack to to avoid
-    adjacent entries of the combined t_span, t_eval array having equal values, which causes buggy
-    behaviour in jax_odeint.
+) -> Union[List, Tuple, Array]:
+    """JAX-compilable version of merge_t_args.
+
+    Rather than raise errors, sets return values to ``jnp.nan`` to signal errors.
+    The merging strategy differs from :func:`merge_t_args`: after appending
+    the endpoints of ``t_span`` to ``t_eval``, it is checked whether the first two entries
+    of the resulting array are equal. If they are, the second entry is set to the average
+    of the first and the third. A similar procedure is done for the last two entries. This is
+    essentially a hack to to avoid adjacent entries of the combined ``t_span``, ``t_eval``
+    array having equal values, which causes buggy behaviour in :func:`jax_odeint`.
 
     Args:
-        t_span: Interval to solve over.
+        t_span: Interval to solve over. Assumed to be a list, tuple, or Array with 2 entries.
         t_eval: Time points to include in returned results.
 
     Returns:
         Union[List, Tuple, Array]: Combined list of times.
 
     Raises:
-        ValueError: If t_eval is not one dimensional.
+        ValueError: If either argument is not one dimensional.
     """
 
     if t_eval is None:
@@ -186,9 +186,9 @@ def trim_t_results_jax(
     results: OdeResult,
     t_eval: Optional[Union[List, Tuple, Array]] = None,
 ) -> OdeResult:
-    """JAX-compilable version of trim_t_results. 
-    
-    Note the choice of which entry to remove in the case of duplicate time entries is due to 
+    """JAX-compilable version of trim_t_results.
+
+    Note the choice of which entry to remove in the case of duplicate time entries is due to
     peculiarities in :func:`jax_odeint`.
 
     Args:
