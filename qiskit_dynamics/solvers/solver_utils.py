@@ -127,8 +127,9 @@ def merge_t_args_jax(t_span, t_eval=None):
     jnp.nan to signal errors. The merging strategy differs from merge_t_args: after appending
     the endpoints of t_span to t_eval, it is checked whether the first two entries of the resulting
     array are equal. If they are, the second entry is set to the average of the first and the third.
-    A similar procedure is done for the last two entries. This is essentially a hack to to avoid 
-    adjacent entries of the output having equal values, which causes buggy behaviour in jax_odeint.
+    A similar procedure is done for the last two entries. This is essentially a hack to to avoid
+    adjacent entries of the combined t_span, t_eval array having equal values, which causes buggy
+    behaviour in jax_odeint.
     """
 
     if t_eval is None:
@@ -159,20 +160,10 @@ def merge_t_args_jax(t_span, t_eval=None):
     out = cond(jnp.any(t_direction * diff < 0.0), lambda s: jnp.nan * s, lambda s: s, out)
 
     # if out[0] == out[1], set out[1] == (out[2] + out[0])/2
-    out = cond(
-        out[0] == out[1],
-        lambda x: x.at[1].set((x[2] + x[0])/2),
-        lambda x: x,
-        out
-    )
+    out = cond(out[0] == out[1], lambda x: x.at[1].set((x[2] + x[0]) / 2), lambda x: x, out)
 
     # if out[-1] == out[-2], set out[-2] == (out[-3] + out[-1])/2
-    out = cond(
-        out[-1] == out[-2],
-        lambda x: x.at[-2].set((x[-3] + x[-1])/2),
-        lambda x: x,
-        out
-    )
+    out = cond(out[-1] == out[-2], lambda x: x.at[-2].set((x[-3] + x[-1]) / 2), lambda x: x, out)
 
     return Array(out)
 
