@@ -198,8 +198,11 @@ def solve_lmde(
     - ``'scipy_expm'``: A fixed-step matrix-exponential solver using ``scipy.linalg.expm``.
       Requires additional kwarg ``max_dt`` indicating the maximum step
       size to take. This solver will break integration periods into even
-      sub-intervals no larger than ``max_dt``, and solve over each sub-interval via
-      matrix exponentiation of the generator sampled at the midpoint.
+      sub-intervals no larger than ``max_dt`` and solve over each sub-interval.
+      The optional kwarg ``magnus_order`` controls the integration rule: if 
+      ``magnus_order==1``, the generator is sampled at the interval midpoint
+      and exponentiated, and if ``magnus_order==2`` or ``magnus_order==3``, 
+      higher-order exponentiation rules are adopted from :footcite:`blanes_magnus_2009`.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
@@ -213,9 +216,6 @@ def solve_lmde(
       Runge-Kutta rule, rather than matrix-exponentiation. Requires and utilizes the
     -``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
       recommended for use with GPU execution.
-    -``magnus_order`` kwarg that determines the expansion order for fixed step exponential solvers.
-    Only order 1 and 2 are supported. The second-order solver is adopted from 
-    :footcite:`hairer_geometric_2006` 
 
     Results are returned as a :class:`OdeResult` object.
 
