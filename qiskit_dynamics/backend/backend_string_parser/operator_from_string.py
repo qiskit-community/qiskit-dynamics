@@ -25,7 +25,7 @@ from qiskit import QiskitError
 import qiskit.quantum_info as qi
 
 
-def operator_from_string(
+def _operator_from_string(
     op_label: str, subsystem_label: int, subsystem_dims: Dict[int, int]
 ) -> np.ndarray:
     r"""Generates a dense operator acting on a single subsystem, tensoring

@@ -33,7 +33,7 @@ from .regex_parser import _regex_parser
 CHANNEL_CHARS = ["U", "D", "M", "A", "u", "d", "m", "a"]
 
 
-def parse_hamiltonian_dict(
+def parse_backend_hamiltonian_dict(
     hamiltonian_dict: dict, subsystem_list: Optional[List[int]] = None
 ) -> Tuple[np.ndarray, np.ndarray, List[str], dict]:
     r"""Convert Pulse backend Hamiltonian dictionary into concrete array format
@@ -146,7 +146,7 @@ def parse_hamiltonian_dict(
     """
 
     # raise errors for invalid hamiltonian_dict
-    hamiltonian_pre_parse_exceptions(hamiltonian_dict)
+    _hamiltonian_pre_parse_exceptions(hamiltonian_dict)
 
     # get variables
     variables = OrderedDict()
@@ -231,7 +231,7 @@ def parse_hamiltonian_dict(
     return static_hamiltonian, list(hamiltonian_operators), list(reduced_channels), subsystem_dims
 
 
-def hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
+def _hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
     """Raises exceptions for improperly formatted or unsupported elements of
     hamiltonian dict specification.
 

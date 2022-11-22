@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-String model parser functionality.
-
-This module is meant for internal use and may be changed at any point.
+Backend string parsing functionality.
 """
+
+from hamiltonian_string_parser import parse_backend_hamiltonian_dict

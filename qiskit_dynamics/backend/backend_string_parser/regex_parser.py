@@ -25,7 +25,7 @@ from collections import namedtuple, OrderedDict
 
 import numpy as np
 
-from .operator_from_string import operator_from_string
+from .operator_from_string import _operator_from_string
 
 
 def _regex_parser(
@@ -194,7 +194,7 @@ class _HamiltonianParser:
                             if qubit_list is not None and idx not in qubit_list:
                                 return 0, None
                             name = p.group("opr")
-                            opr = operator_from_string(name, idx, self.subsystem_dims)
+                            opr = _operator_from_string(name, idx, self.subsystem_dims)
                             self.str2qopr[p.group()] = opr
                     elif key == "PrjOpr":
                         _key = key
@@ -202,7 +202,7 @@ class _HamiltonianParser:
                         if p.group() not in self.str2qopr:
                             idx = int(p.group("idx"))
                             name = "P"
-                            opr = operator_from_string(name, idx, self.subsystem_dims)
+                            opr = _operator_from_string(name, idx, self.subsystem_dims)
                             self.str2qopr[p.group()] = opr
                     elif key in ["Func", "Ext"]:
                         _name = p.group("name")

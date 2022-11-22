@@ -27,6 +27,8 @@ This module contains the DynamicsBackend.
 
    DynamicsBackend
    default_experiment_result_function
+   parse_backend_hamiltonian_dict
 """
 
 from .dynamics_backend import DynamicsBackend, default_experiment_result_function
+from .backend_string_parser import parse_backend_hamiltonian_dict
