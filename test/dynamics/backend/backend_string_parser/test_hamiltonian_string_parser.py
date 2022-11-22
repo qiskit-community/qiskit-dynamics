@@ -22,7 +22,6 @@ from qiskit.quantum_info.operators import Operator
 
 from qiskit_dynamics.backend.backend_string_parser.hamiltonian_string_parser import (
     parse_backend_hamiltonian_dict,
-    _hamiltonian_pre_parse_exceptions,
 )
 
 from qiskit_dynamics.type_utils import to_array
@@ -30,79 +29,79 @@ from qiskit_dynamics.type_utils import to_array
 from ...common import QiskitDynamicsTestCase
 
 
-class TestHamiltonianPreParseExceptions(QiskitDynamicsTestCase):
+class TestHamiltonianParseExceptions(QiskitDynamicsTestCase):
     """Tests for preparse formatting exceptions."""
 
     def test_no_h_str(self):
         """Test no h_str empty raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({})
+            parse_backend_hamiltonian_dict({})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": []})
+            parse_backend_hamiltonian_dict({"h_str": []})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": [""]})
+            parse_backend_hamiltonian_dict({"h_str": [""]})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
     def test_empty_qub(self):
         """Test qub dict empty raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"]})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0|||D0"]})
         self.assertTrue("requires non-empty 'qub'" in str(qe.exception))
 
     def test_too_many_vertical_bars(self):
         """Test that too many vertical bars raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"], "qub": {0: 2}})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0|||D0"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_single_vertical_bar(self):
         """Test that only a single vertical bar raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|D0"], "qub": {0: 2}})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0|D0"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_multiple_channel_error(self):
         """Test multiple channels raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||D0*D1"], "qub": {0: 2}})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0||D0*D1"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_divider_no_channel(self):
         """Test that divider with no channel raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||"], "qub": {0: 2}})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0||"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|"], "qub": {0: 2}})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0|"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_non_digit_after_channel(self):
         """Test that everything after the D or U is an int."""
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||Da"], "qub": {0: 2}})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0||Da"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||D1a"], "qub": {0: 2}})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0||D1a"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_nothing_after_channel(self):
         """Test that everything after the D or U is an int."""
 
         with self.assertRaises(QiskitError) as qe:
-            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||U"], "qub": {0: 2}})
+            parse_backend_hamiltonian_dict({"h_str": ["a * X0||U"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
 
