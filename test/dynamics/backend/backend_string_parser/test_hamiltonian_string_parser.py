@@ -20,14 +20,14 @@ import numpy as np
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 
-from qiskit_dynamics.pulse.backend_parser.string_model_parser import (
-    parse_hamiltonian_dict,
-    hamiltonian_pre_parse_exceptions,
+from qiskit_dynamics.backend.backend_string_parser.hamiltonian_string_parser import (
+    parse_backend_hamiltonian_dict,
+    _hamiltonian_pre_parse_exceptions,
 )
 
 from qiskit_dynamics.type_utils import to_array
 
-from ..common import QiskitDynamicsTestCase
+from ...common import QiskitDynamicsTestCase
 
 
 class TestHamiltonianPreParseExceptions(QiskitDynamicsTestCase):
@@ -37,77 +37,77 @@ class TestHamiltonianPreParseExceptions(QiskitDynamicsTestCase):
         """Test no h_str empty raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({})
+            _hamiltonian_pre_parse_exceptions({})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": []})
+            _hamiltonian_pre_parse_exceptions({"h_str": []})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": [""]})
+            _hamiltonian_pre_parse_exceptions({"h_str": [""]})
         self.assertTrue("requires a non-empty 'h_str'" in str(qe.exception))
 
     def test_empty_qub(self):
         """Test qub dict empty raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"]})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"]})
         self.assertTrue("requires non-empty 'qub'" in str(qe.exception))
 
     def test_too_many_vertical_bars(self):
         """Test that too many vertical bars raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"], "qub": {0: 2}})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|||D0"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_single_vertical_bar(self):
         """Test that only a single vertical bar raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|D0"], "qub": {0: 2}})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|D0"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_multiple_channel_error(self):
         """Test multiple channels raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||D0*D1"], "qub": {0: 2}})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||D0*D1"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_divider_no_channel(self):
         """Test that divider with no channel raises error."""
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||"], "qub": {0: 2}})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|"], "qub": {0: 2}})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0|"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_non_digit_after_channel(self):
         """Test that everything after the D or U is an int."""
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||Da"], "qub": {0: 2}})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||Da"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||D1a"], "qub": {0: 2}})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||D1a"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
     def test_nothing_after_channel(self):
         """Test that everything after the D or U is an int."""
 
         with self.assertRaises(QiskitError) as qe:
-            hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||U"], "qub": {0: 2}})
+            _hamiltonian_pre_parse_exceptions({"h_str": ["a * X0||U"], "qub": {0: 2}})
         self.assertTrue("does not conform" in str(qe.exception))
 
 
 class TestParseHamiltonianDict(QiskitDynamicsTestCase):
-    """Tests for parse_hamiltonian_dict."""
+    """Tests for parse_backend_hamiltonian_dict."""
 
     def setUp(self):
         """Build operators."""
@@ -124,7 +124,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         """Test a basic system."""
         ham_dict = {"h_str": ["v*np.pi*Z0"], "qub": {"0": 2}, "vars": {"v": 2.1}}
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
         self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
         self.assertTrue(not ham_ops)
         self.assertTrue(not channels)
@@ -138,7 +138,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
 
         self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * self.X])
@@ -153,7 +153,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
 
         self.assertAllClose(static_ham, 2 * 2.1 * np.pi * self.Z)
         self.assertAllClose(to_array(ham_ops), [2 * 0.02 * np.pi * self.X])
@@ -170,7 +170,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
 
         self.assertAllClose(static_ham, 2 * 2.1 * np.pi * self.Z)
         self.assertAllClose(to_array(ham_ops), [2 * 0.02 * np.pi * self.X])
@@ -192,7 +192,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v0": 2.1, "v1": 2.0, "j": 0.02},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
 
         ident = np.eye(2)
         self.assertAllClose(
@@ -223,7 +223,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v0": 2.1, "v1": 2.0, "j": 0.02},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
 
         ident = np.eye(2)
         self.assertAllClose(
@@ -248,7 +248,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1, "alpha": -0.33, "r": 0.02},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
 
         self.assertAllClose(static_ham, 2.1 * np.pi * self.N - 0.33 * np.pi * self.N * self.N)
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
@@ -272,7 +272,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v0": 2.1, "v1": 2.0, "alpha0": -0.33, "alpha1": -0.33, "j": 0.02},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
 
         ident = np.eye(4)
 
@@ -302,7 +302,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
 
         self.assertAllClose(static_ham, 2.1 * np.pi * (np.eye(4) - 2 * self.N))
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
@@ -317,7 +317,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, _, _, _ = parse_hamiltonian_dict(ham_dict)
+        static_ham, _, _, _ = parse_backend_hamiltonian_dict(ham_dict)
         self.assertAllClose(static_ham, 2.1 * np.pi * self.adag)
 
     def test_5q_hamiltonian_reduced(self):
@@ -398,7 +398,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
         channels_expected = ["d0", "d1", "u0", "u1", "u2"]
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(
             ham_dict, subsystem_list=[0, 1]
         )
         self.assertAllClose(static_ham, static_ham_expected)
@@ -428,7 +428,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
         channels_expected = ["d3", "d4", "u5", "u6", "u7"]
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_hamiltonian_dict(
+        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(
             ham_dict, subsystem_list=[3, 4]
         )
         self.assertAllClose(static_ham, static_ham_expected)

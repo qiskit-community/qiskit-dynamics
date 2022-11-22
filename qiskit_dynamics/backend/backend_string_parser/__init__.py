@@ -16,4 +16,4 @@
 Backend string parsing functionality.
 """
 
-from hamiltonian_string_parser import parse_backend_hamiltonian_dict
+from .hamiltonian_string_parser import parse_backend_hamiltonian_dict
