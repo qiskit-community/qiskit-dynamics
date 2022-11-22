@@ -45,7 +45,7 @@ def parse_backend_hamiltonian_dict(
     * ``'h_str'``: List of Hamiltonian terms in string format (see below).
     * ``'qub'``: Dictionary giving subsystem dimensions. Keys are subsystem labels,
       values are their dimensions.
-    * ``'vars'``: Dictionary whose keys are the variables appearing in the terms in 
+    * ``'vars'``: Dictionary whose keys are the variables appearing in the terms in
       the ``h_str`` list, and values being the numerical values of the variables.
 
     The optional argument ``subsystem_list`` specifies a subset of subsystems to keep when parsing.
@@ -158,8 +158,7 @@ def parse_backend_hamiltonian_dict(
         subsystem_list = [int(qubit) for qubit in hamiltonian_dict["qub"]]
     else:
         # if user supplied, make a copy and sort it
-        subsystem_list = subsystem_list.copy()
-        subsystem_list.sort()
+        subsystem_list = sorted(subsystem_list)
 
     # force keys in hamiltonian['qub'] to be ints
     qub_dict = {int(key): val for key, val in hamiltonian_dict["qub"].items()}

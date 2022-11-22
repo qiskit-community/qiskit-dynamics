@@ -32,7 +32,7 @@ from qiskit.transpiler import Target
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit.providers.options import Options
-from qiskit.providers.backend import BackendV2
+from qiskit.providers.backend import BackendV1, BackendV2
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
@@ -50,6 +50,7 @@ from .backend_utils import (
     _sample_probability_dict,
     _get_counts_from_samples,
 )
+from .backend_string_parser import parse_backend_hamiltonian_dict
 
 
 class DynamicsBackend(BackendV2):
@@ -350,6 +351,100 @@ class DynamicsBackend(BackendV2):
     @property
     def meas_map(self) -> List[List[int]]:
         return self.options.meas_map
+
+    @classmethod
+    def from_backend(
+        cls, 
+        backend: Union[BackendV1, BackendV2], 
+        subsystem_list: Optional[List[int]] = None,
+        solver_kwargs: Optional[dict] = None,
+        **options,
+    ) -> "DynamicsBackend":
+        """Construct a :class:`DynamicsBackend` instance from an existing backend instance.
+        
+        To do:
+            - Add validation of backend and subsystem_list. E.g. is it a pulse backend? Does
+              it have the properties we need?
+            - Maybe we need to also implement configuration(), properties(), and defaults()
+              for backwards compatibility
+            - How do we handle solver kwargs? Do we expose a couple of options, or just give a
+              generic solver_kwargs that allows a user to pass anything through?
+            - Bring in target? What else?
+            - Do we want to scale operators/time to be close to 1? This will be kind of a pain but
+              may be very useful numerically. Could maybe have an optional argument to this method
+              for whether to do this or not.
+              - One annoyance with this is we will need to have a different dt in the solver
+              than is returned by backend.configuration().dt. Maybe this is fine?
+            - Get configuration, properties, target, ... ? 
+        
+        """
+
+        # validation
+        # to do:
+        #     need to validate that it's a pulse default? Or can we just check that 
+        #     it has qubit_freq_est?
+        if not hasattr(backend, 'configuration'):
+            raise QiskitError('DynamicsBackend.from_backend requires that the backend argument have a configuration attribute.')
+        if not hasattr(backend, 'defaults'):
+            raise QiskitError('DynamicsBackend.from_backend requires that the backend argument have a defaults attribute.')
+
+        config = backend.configuration()
+        defaults = backend.defaults()
+            
+
+        # get and parse Hamiltonian string dictionary
+        if subsystem_list is not None:
+            subsystem_list = sorted(subsystem_list)
+        else:
+            subsystem_list = list(range(config.n_qubits))
+
+
+        hamiltonian_dict = config.hamiltonian
+        (
+            static_hamiltonian,
+            hamiltonian_operators,
+            hamiltonian_channels,
+            subsystem_dims,
+        ) = parse_backend_hamiltonian_dict(hamiltonian_dict, subsystem_list)
+
+        # Question: could change the output of above function to be this list instead of the dict
+        subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
+
+        # get time step size
+        dt = config.dt
+
+        # get the channel frequencies as qubit_freq_est
+        # to do:
+        #     get control channel freqs - from where?
+        #     there may also be other channels in hamiltonian_channels - how to check this?
+        channel_freqs = {f"d{idx}": defaults.qubit_freq_est[idx] for idx in subsystem_list}
+
+
+        # build the solver
+        ##############################################################################################
+        # scale args?
+        solver_kwargs = solver_kwargs or {}
+        solver = Solver(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            hamiltonian_channels=hamiltonian_channels,
+            channel_carrier_freqs=channel_freqs,
+            dt=dt,
+            **solver_kwargs
+        )
+
+        # to do: modify target???
+        target = None
+        if hasattr(backend, "target"):
+            target = backend.target
+
+        return cls(
+            solver=solver, 
+            target=target, 
+            subsystem_labels=subsystem_list, 
+            subsystem_dims=subsystem_dims, 
+            **options
+        )
 
 
 def default_experiment_result_function(
