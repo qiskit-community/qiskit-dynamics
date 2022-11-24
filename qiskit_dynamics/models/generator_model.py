@@ -42,11 +42,10 @@ except ImportError:
 
 
 class BaseGeneratorModel(ABC):
-    r"""Defines an interface for a time-dependent
-    linear differential equation of the form :math:`\dot{y}(t) = \Lambda(t, y)`,
-    where :math:`\Lambda` is linear in :math:`y`. The core functionality is
-    evaluation of :math:`\Lambda(t, y)`, as well as,
-    if possible, evaluation of the map :math:`\Lambda(t, \cdot)`.
+    r"""Defines an interface for a time-dependent linear differential equation of the form
+    :math:`\dot{y}(t) = \Lambda(t, y)`, where :math:`\Lambda` is linear in :math:`y`. The core
+    functionality is evaluation of :math:`\Lambda(t, y)`, as well as, if possible, evaluation of the
+    map :math:`\Lambda(t, \cdot)`.
 
     Additionally, the class defines interfaces for:
 
@@ -61,19 +60,17 @@ class BaseGeneratorModel(ABC):
     @property
     @abstractmethod
     def dim(self) -> int:
-        """Gets matrix dimension."""
+        """The matrix dimension."""
 
     @property
     @abstractmethod
     def rotating_frame(self) -> RotatingFrame:
-        """Get the rotating frame."""
+        """The rotating frame."""
 
     @rotating_frame.setter
     @abstractmethod
     def rotating_frame(self, rotating_frame: RotatingFrame):
-        """Set the rotating frame; either an already instantiated :class:`RotatingFrame` object,
-        or a valid argument for the constructor of :class:`RotatingFrame`.
-        """
+        pass
 
     @property
     @abstractmethod
@@ -83,7 +80,7 @@ class BaseGeneratorModel(ABC):
     @in_frame_basis.setter
     @abstractmethod
     def in_frame_basis(self, in_frame_basis: bool):
-        """Set whether to evaluate in the basis in which the frame is diagonalized."""
+        pass
 
     @property
     @abstractmethod
@@ -93,14 +90,14 @@ class BaseGeneratorModel(ABC):
     @evaluation_mode.setter
     @abstractmethod
     def evaluation_mode(self, new_mode: str):
-        """Sets evaluation mode of model."""
+        pass
 
     @abstractmethod
     def evaluate(self, time: float) -> Array:
         r"""If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
 
         Args:
-            time: Time.
+            time: The time to evaluate the model at.
         """
 
     @abstractmethod
@@ -108,7 +105,7 @@ class BaseGeneratorModel(ABC):
         r"""Evaluate the right hand side :math:`\dot{y}(t) = \Lambda(t, y)`.
 
         Args:
-            time: Time.
+            time: The time to evaluate the model at.
             y: State of the differential equation.
         """
 
@@ -117,29 +114,24 @@ class BaseGeneratorModel(ABC):
         return copy(self)
 
     def __call__(self, time: float, y: Optional[Array] = None) -> Array:
-        r"""Evaluate generator RHS functions. If ``y is None``,
-        attemps to evaluate :math:`\Lambda(t, \cdot)`, otherwise, calculates
-        :math:`\Lambda(t, y)`
+        r"""Evaluate generator RHS functions. If ``y is None``, attemps to evaluate
+        :math:`\Lambda(t, \cdot)`, otherwise, calculates :math:`\Lambda(t, y)`.
 
         Args:
-            time: Time.
+            time: The time to evaluate at.
             y: Optional state.
 
         Returns:
-            Array: Either the evaluated model or the RHS for the given y
+            Array: Either the evaluated model, or the RHS for the given y
         """
-
-        if y is None:
-            return self.evaluate(time)
-
-        return self.evaluate_rhs(time, y)
+        return self.evaluate(time) if y is None else self.evaluate_rhs(time, y)
 
 
 class GeneratorModel(BaseGeneratorModel):
     r"""A model for a a linear matrix differential equation in standard form.
 
-    :class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the
-    map :math:`\Lambda(t, y)` is explicitly constructed as:
+    :class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the map
+    :math:`\Lambda(t, y)` is explicitly constructed as:
 
     .. math::
 
@@ -147,10 +139,9 @@ class GeneratorModel(BaseGeneratorModel):
 
         G(t) = \sum_i s_i(t) G_i + G_d
 
-    where the :math:`G_i` are matrices (represented by :class:`Operator`
-    or :class:`Array` objects), the :math:`s_i(t)` are signals represented by
-    a list of :class:`Signal` objects, and
-    :math:`G_d` is the constant-in-time static term of the generator.
+    where the :math:`G_i` are matrices (represented by :class:`Operator` or :class:`Array` objects),
+    the :math:`s_i(t)` are signals represented by a list of :class:`Signal` objects, and :math:`G_d`
+    is the constant-in-time static term of the generator.
     """
 
     def __init__(
@@ -170,19 +161,17 @@ class GeneratorModel(BaseGeneratorModel):
             signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
                 :class:`GeneratorModel` signals are not required at instantiation.
             rotating_frame: Rotating frame operator.
-            in_frame_basis: Whether to represent the model in the basis in which the rotating
-                frame operator is diagonalized.
-            evaluation_mode: Evaluation mode to use.  Supported options are
-                ``'dense'`` and ``'sparse'``. Call ``help(GeneratorModel.evaluation_mode)``
-                for more details.
+            in_frame_basis: Whether to represent the model in the basis in which the rotating frame
+                operator is diagonalized.
+            evaluation_mode: Evaluation mode to use. Supported options are ``'dense'`` and
+                ``'sparse'``. Call ``help(GeneratorModel.evaluation_mode)`` for more details.
         Raises:
             QiskitError: If model not sufficiently specified.
         """
         if static_operator is None and operators is None:
             raise QiskitError(
-                self.__class__.__name__
-                + """ requires at least one of static_operator or operators to be
-                              specified at construction."""
+                f"{type(self).__name__} requires at least one of static_operator or operators to "
+                "be specified at construction."
             )
 
         # initialize internal operator representation
@@ -192,11 +181,9 @@ class GeneratorModel(BaseGeneratorModel):
         self._evaluation_mode = evaluation_mode
 
         # set frame
-        self._rotating_frame = None
         self.rotating_frame = rotating_frame
 
         # set operation in frame basis
-        self._in_frame_basis = None
         self.in_frame_basis = in_frame_basis
 
         # initialize signal-related attributes
@@ -204,37 +191,31 @@ class GeneratorModel(BaseGeneratorModel):
 
     @property
     def dim(self) -> int:
-        if self._operator_collection.static_operator is not None:
-            return self._operator_collection.static_operator.shape[-1]
-        else:
-            return self._operator_collection.operators[0].shape[-1]
+        """The matrix dimension."""
+        return self._operator_collection.dim
 
     @property
     def evaluation_mode(self) -> str:
         """Numerical evaluation mode of the model.
 
-        Available options:
+        Possible values:
 
-         * 'dense': Stores/evaluates operators using dense Arrays.
-         * 'sparse': Stores/evaluates operators using sparse matrices. If
-           the default Array backend is JAX, implemented with JAX BCOO arrays,
-           otherwise uses scipy :class:`csr_matrix` sparse type. Note that
-           JAX sparse mode is only recommended for use on CPU.
+         * ``"dense"``: Stores/evaluates operators using dense Arrays.
+         * ``"sparse"``: Stores/evaluates operators using sparse matrices. If the default Array
+           backend is JAX, implemented with JAX BCOO arrays, otherwise uses scipy
+           :class:`csr_matrix` sparse type. Note that JAX sparse mode is only recommended for use on
+           CPU.
+
+        Raises:
+            NotImplementedError: If, when being set, ``new_mode`` is not one of the above supported
+            evaluation modes.
         """
         return self._evaluation_mode
 
     @evaluation_mode.setter
     def evaluation_mode(self, new_mode: str):
-        """Set evaluation mode.
-
-        Args:
-            new_mode: String specifying new mode. Available options
-                      are 'dense' and 'sparse'. See property doc string for details.
-
-        Raises:
-            NotImplementedError: if new_mode is not one of the above
-            supported evaluation modes.
-        """
+        if new_mode not in ("dense", "sparse"):
+            raise NotImplementedError("The evaluation_mode must be 'dense' or 'sparse'.")
 
         if new_mode != self._evaluation_mode:
             self._operator_collection = construct_operator_collection(
@@ -246,7 +227,13 @@ class GeneratorModel(BaseGeneratorModel):
 
     @property
     def rotating_frame(self) -> RotatingFrame:
-        """Return the rotating frame."""
+        """The rotating frame.
+
+        This property can be set with a :class:`RotatingFrame` instance, or any valid constructor
+        argument to this class.
+
+        Setting this property updates the internal operator to use the new frame.
+        """
         return self._rotating_frame
 
     @rotating_frame.setter
@@ -272,13 +259,16 @@ class GeneratorModel(BaseGeneratorModel):
 
     @property
     def signals(self) -> SignalList:
-        """Return the signals in the model."""
+        """The signals in the model.
+
+        Raises:
+            QiskitError: If set to ``None`` when operators exist, or when set to a number of signals
+                different then the number of operators.
+        """
         return self._signals
 
     @signals.setter
     def signals(self, signals: Union[SignalList, List[Signal]]):
-        """Set the signals."""
-
         if signals is None:
             self._signals = None
         elif signals is not None and self.operators is None:
@@ -304,9 +294,7 @@ class GeneratorModel(BaseGeneratorModel):
 
     @property
     def in_frame_basis(self) -> bool:
-        """Whether to represent the model in the basis in which the frame operator
-        is diagonalized.
-        """
+        """Whether the model is represented in the basis that diagonalizes the frame operator."""
         return self._in_frame_basis
 
     @in_frame_basis.setter
@@ -315,17 +303,16 @@ class GeneratorModel(BaseGeneratorModel):
 
     @property
     def operators(self) -> Array:
-        """Get the operators in the model."""
+        """The operators in the model."""
         return self._get_operators(in_frame_basis=self._in_frame_basis)
 
     @property
     def static_operator(self) -> Array:
-        """Get the static operator."""
+        """The static operator."""
         return self._get_static_operator(in_frame_basis=self._in_frame_basis)
 
     @static_operator.setter
     def static_operator(self, static_operator: Array):
-        """Set the static operator."""
         self._set_static_operator(
             new_static_operator=static_operator, operator_in_frame_basis=self._in_frame_basis
         )
@@ -337,41 +324,39 @@ class GeneratorModel(BaseGeneratorModel):
             in_frame_basis: Flag indicating whether to return the operators
             in the basis in which the rotating frame operator is diagonal.
         Returns:
-            The operators in the basis specified by `in_frame_basis`.
+            The operators in the basis specified by ``in_frame_basis``.
         """
         ops = self._operator_collection.operators
         if ops is not None and not in_frame_basis and self.rotating_frame is not None:
             return self.rotating_frame.operator_out_of_frame_basis(ops)
-        else:
-            return ops
+        return ops
 
     def _get_static_operator(self, in_frame_basis: Optional[bool] = False) -> Array:
         """Get the constant term.
 
         Args:
-            in_frame_basis: Flag for whether the returned static_operator should be
-            in the basis in which the frame is diagonal.
+            in_frame_basis: Whether the returned static_operator should be in the basis in which the
+                frame is diagonal.
         Returns:
             The static operator term.
         """
         op = self._operator_collection.static_operator
         if not in_frame_basis and self.rotating_frame is not None:
             return self.rotating_frame.operator_out_of_frame_basis(op)
-        else:
-            return op
+        return op
 
     def _set_static_operator(
         self,
         new_static_operator: Array,
         operator_in_frame_basis: Optional[bool] = False,
     ):
-        """Sets static term. Note that if the model has a rotating frame this will override
-        any contributions to the static term due to the frame transformation.
+        """Sets static term. Note that if the model has a rotating frame this will override any
+        contributions to the static term due to the frame transformation.
 
         Args:
             new_static_operator: The static operator operator.
-            operator_in_frame_basis: Whether `new_static_operator` is already in the rotating
-            frame basis.
+            operator_in_frame_basis: Whether `new_static_operator` is already in the rotating frame
+                basis.
         """
         if new_static_operator is None:
             self._operator_collection.static_operator = None
@@ -387,28 +372,21 @@ class GeneratorModel(BaseGeneratorModel):
         """Evaluate the model in array format as a matrix, independent of state.
 
         Args:
-            time: Time to evaluate the model.
+            time: The time to evaluate the model at.
 
         Returns:
-            Array: the evaluated model as a (n,n) matrix
+            Array: The evaluated model as a matrix.
 
         Raises:
             QiskitError: If model cannot be evaluated.
         """
-
-        if self._signals is None:
-            if self._operator_collection.operators is not None:
-                raise QiskitError(
-                    self.__class__.__name__
-                    + " with non-empty operators cannot be evaluated without signals."
-                )
-
-            sig_vals = None
-        else:
-            sig_vals = self._signals.__call__(time)
+        if self._signals is None and self._operator_collection.operators is not None:
+            raise QiskitError(
+                f"{type(self).__name__} with non-empty operators must be evaluated signals."
+            )
 
         # Evaluated in frame basis, but without rotations
-        op_combo = self._operator_collection(sig_vals)
+        op_combo = self._operator_collection(self._signals(time) if self._signals else None)
 
         # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
         return self.rotating_frame.operator_into_frame(
@@ -419,7 +397,7 @@ class GeneratorModel(BaseGeneratorModel):
         r"""Evaluate ``G(t) @ y``.
 
         Args:
-            time: Time to evaluate the model.
+            time: The time to evaluate the model at .
             y: Array specifying system state.
 
         Returns:
@@ -428,14 +406,11 @@ class GeneratorModel(BaseGeneratorModel):
         Raises:
             QiskitError: If model cannot be evaluated.
         """
-
         if self._signals is None:
             if self._operator_collection.operators is not None:
                 raise QiskitError(
-                    self.__class__.__name__
-                    + " with non-empty operators cannot be evaluated without signals."
+                    f"{type(self).__name__} with non-empty operators must be evaluated signals."
                 )
-
             sig_vals = None
         else:
             sig_vals = self._signals.__call__(time)
@@ -451,10 +426,9 @@ class GeneratorModel(BaseGeneratorModel):
             out = self.rotating_frame.state_into_frame(
                 time, out, y_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
             )
-        else:
-            return self._operator_collection(sig_vals, y)
+            return out
 
-        return out
+        return self._operator_collection(sig_vals, y)
 
 
 def transfer_static_operator_between_frames(
@@ -462,11 +436,11 @@ def transfer_static_operator_between_frames(
     new_frame: Optional[Union[Array, RotatingFrame]] = None,
     old_frame: Optional[Union[Array, RotatingFrame]] = None,
 ) -> Tuple[Union[None, Array]]:
-    """Helper function for transforming the static operator for a model from one
-    frame basis into another.
+    """Helper function for transforming the static operator of a model from one frame basis into
+    another.
 
-    ``static_operator`` is additionally transformed as a generator: the old frame operator is
-    added, and the new one is subtracted.
+    ``static_operator`` is additionally transformed as a generator: the old frame operator is added,
+    and the new one is subtracted.
 
     Args:
         static_operator: Static operator of the model. None is treated as 0.
@@ -526,11 +500,11 @@ def transfer_operators_between_frames(
     new_frame: Optional[Union[Array, RotatingFrame]] = None,
     old_frame: Optional[Union[Array, RotatingFrame]] = None,
 ) -> Tuple[Union[None, Array]]:
-    """Helper function for transforming a list of operators for a model
-    from one frame basis into another.
+    """Helper function for transforming a list of operators for a model from one frame basis into
+    another.
 
     Args:
-        operators: Operators of the model. If None, remains as None.
+        operators: Operators of the model. If ``None``, remains as ``None``.
         new_frame: New rotating frame.
         old_frame: Old rotating frame.
 
@@ -563,10 +537,10 @@ def transfer_operators_between_frames(
 
 def construct_operator_collection(
     evaluation_mode: str,
-    static_operator: Union[None, Array, csr_matrix],
+    static_operator: Optional[Array, csr_matrix],
     operators: Union[None, Array, List[csr_matrix]],
 ) -> BaseOperatorCollection:
-    """Construct operator collection for GeneratorModel.
+    """Construct an operator collection for :class:`GeneratorModel`.
 
     Args:
         evaluation_mode: Evaluation mode.
@@ -577,7 +551,7 @@ def construct_operator_collection(
         BaseOperatorCollection: The relevant operator collection.
 
     Raises:
-        NotImplementedError: If the evaluation_mode is invalid.
+        NotImplementedError: If the ``evaluation_mode`` is invalid.
     """
 
     if evaluation_mode == "dense":
@@ -595,7 +569,6 @@ def construct_operator_collection(
         return SparseOperatorCollection(static_operator=static_operator, operators=operators)
 
     raise NotImplementedError(
-        "Evaluation mode '"
-        + str(evaluation_mode)
-        + "' is not supported. Call help(GeneratorModel.evaluation_mode) for available options."
+        f"Evaluation mode '{evaluation_mode}' is not supported. Call "
+        "help(GeneratorModel.evaluation_mode) for available options."
     )

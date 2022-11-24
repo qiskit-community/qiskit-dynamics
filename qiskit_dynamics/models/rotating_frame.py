@@ -37,22 +37,18 @@ except ImportError:
 class RotatingFrame:
     r"""Class for representing a rotation frame transformation.
 
-    This class provides functionality for transforming various objects into or out-of
-    a rotating frame specified by an anti-Hermitian operator :math:`F = -iH`.
-    For example:
+    This class provides functionality for transforming various objects into or out-of a rotating
+    frame specified by an anti-Hermitian operator :math:`F = -iH`. For example:
 
-        * Bringing a "state" into/out of the frame:
-          :math:`t, y \mapsto e^{\mp tF}y`
-        * Bringing an "operator" into/out of the frame:
-          :math:`t, A \mapsto e^{\mp tF}Ae^{\pm tF}`
-        * Bringing a generator for a BMDE into/out of the frame:
+        * Bringing a "state" into/out of the frame: :math:`t, y \mapsto e^{\mp tF}y`
+        * Bringing an "operator" into/out of the frame: :math:`t, A \mapsto e^{\mp tF}Ae^{\pm tF}`
+        * Bringing a generator for a LMDE into/out of the frame:
           :math:`t, G \mapsto e^{\mp tF}Ge^{\pm tF} - F`
 
-    This class also contains functions for bringing states/operators into/out of
-    the basis in which :math:`F` is diagonalized, which we refer to as the
-    "frame basis". All previously mentioned functions also include optional
-    arguments specifying whether the input/output are meant to be in the
-    frame basis.
+    This class also contains functions for bringing states/operators into/out of the basis in which
+    :math:`F` is diagonalized, which we refer to as the "frame basis". All previously mentioned
+    functions also include optional arguments specifying whether the input/output are meant to be in
+    the frame basis.
 
     .. note::
         :class:`~qiskit_dynamics.models.RotatingFrame` can be instantiated
@@ -62,20 +58,16 @@ class RotatingFrame:
     """
 
     def __init__(
-        self,
-        frame_operator: Union[Array, Operator],
-        atol: float = 1e-10,
-        rtol: float = 1e-10,
+        self, frame_operator: Union[Array, Operator], atol: float = 1e-10, rtol: float = 1e-10
     ):
         """Initialize with a frame operator.
 
         Args:
-            frame_operator: The frame operator, must be either
-                            Hermitian or anti-Hermitian.
-            atol: Absolute tolerance when verifying that the frame_operator is
-                  Hermitian or anti-Hermitian.
-            rtol: Relative tolerance when verifying that the frame_operator is
-                  Hermitian or anti-Hermitian.
+            frame_operator: The frame operator, which must be either Hermitian or anti-Hermitian.
+            atol: Absolute tolerance when verifying that the ``frame_operator`` is Hermitian or
+                anti-Hermitian.
+            rtol: Relative tolerance when verifying that the ``frame_operator`` is Hermitian or
+                anti-Hermitian.
         """
         if isinstance(frame_operator, RotatingFrame):
             frame_operator = frame_operator.frame_operator
@@ -90,10 +82,9 @@ class RotatingFrame:
             self._frame_basis_adjoint = None
         # if frame_operator is a 1d array, assume already diagonalized
         elif frame_operator.ndim == 1:
-
             # verify Hermitian or anti-Hermitian
             # if Hermitian convert to anti-Hermitian
-            frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
+            frame_operator = _enforce_anti_herm(frame_operator, atol=atol, rtol=rtol)
 
             self._frame_diag = Array(frame_operator)
             self._frame_basis = None
@@ -101,10 +92,9 @@ class RotatingFrame:
             self._dim = len(self._frame_diag)
         # if not, diagonalize it
         else:
-
             # verify Hermitian or anti-Hermitian
             # if Hermitian convert to anti-Hermitian
-            frame_operator = _is_herm_or_anti_herm(frame_operator, atol=atol, rtol=rtol)
+            frame_operator = _enforce_anti_herm(frame_operator, atol=atol, rtol=rtol)
 
             # diagonalize with eigh, utilizing assumption of anti-hermiticity
             frame_diag, frame_basis = np.linalg.eigh(1j * frame_operator)
@@ -130,25 +120,25 @@ class RotatingFrame:
 
     @property
     def frame_diag(self) -> Array:
-        """Diagonal of the frame operator."""
+        """The diagonal of the frame operator."""
         return self._frame_diag
 
     @property
     def frame_basis(self) -> Array:
-        """Array containing diagonalizing unitary."""
+        """The array containing diagonalizing unitary."""
         return self._frame_basis
 
     @property
     def frame_basis_adjoint(self) -> Array:
-        """Adjoint of the diagonalizing unitary."""
+        """The adjoint of the diagonalizing unitary."""
         return self._frame_basis_adjoint
 
     def state_into_frame_basis(self, y: Array) -> Array:
-        r"""Take a state into the frame basis, i.e. return
-        ``self.frame_basis_adjoint @ y``.
+        r"""Take a state into the frame basis, i.e. return ``self.frame_basis_adjoint @ y``.
 
         Args:
             y: The state.
+
         Returns:
             Array: The state in the frame basis.
         """
@@ -159,11 +149,11 @@ class RotatingFrame:
         return self.frame_basis_adjoint @ y
 
     def state_out_of_frame_basis(self, y: Array) -> Array:
-        r"""Take a state out of the frame basis, i.e.
-        ``return self.frame_basis @ y``.
+        r"""Take a state out of the frame basis, i.e. ``return self.frame_basis @ y``.
 
         Args:
             y: The state.
+
         Returns:
             Array: The state in the frame basis.
         """
@@ -183,9 +173,10 @@ class RotatingFrame:
 
         Args:
             op: The operator or array of operators.
-            convert_type: Whether or not to initially convert ``op`` into an expected type.
-                          Should only be set to ``False`` in situations in which it is gauranteed
-                          that ``op`` is a handled input type.
+            convert_type: Whether or not to initially convert ``op`` into an expected type. Should
+                          only be set to ``False`` in situations in which it is gauranteed that
+                          ``op`` is a handled input type.
+
         Returns:
             Array: The operator in the frame basis.
         """
@@ -213,9 +204,10 @@ class RotatingFrame:
 
         Args:
             op: The operator or array of operators.
-            convert_type: Whether or not to initially convert ``op`` into an expected type.
-                          Should only be set to ``False`` in situations in which it is gauranteed
+            convert_type: Whether or not to initially convert ``op`` into an expected type. Should
+                          only be set to ``False`` in situations in which it is gauranteed that
                           that ``op`` is a handled input type.
+
         Returns:
             Array: The operator in the frame basis.
         """
@@ -240,18 +232,17 @@ class RotatingFrame:
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ):
-        """Take a state into the rotating frame, i.e. return exp(-tF) @ y.
+        """Take a state into the rotating frame, i.e. return ``exp(-tF) @ y``.
 
         Args:
-            t: Time.
-            y: State (array of appropriate size).
-            y_in_frame_basis: Whether or not the array y is already in
-                              the basis in which the frame is diagonal.
-            return_in_frame_basis: Whether or not to return the result
-                                   in the frame basis.
+            t: The time.
+            y: The state.
+            y_in_frame_basis: Whether or not the array y is already in the basis in which the frame
+                is diagonal.
+            return_in_frame_basis: Whether or not to return the result in the frame basis.
 
         Returns:
-            Array: State in frame.
+            Array: The state in the rotating frame.
         """
         y = to_numeric_matrix_type(y)
         if self._frame_operator is None:
@@ -284,15 +275,14 @@ class RotatingFrame:
         Calls ``self.state_into_frame`` with time reversed.
 
         Args:
-            t: Time.
-            y: State (array of appropriate size).
-            y_in_frame_basis: Whether or not the array y is already in
-                              the basis in which the frame is diagonal.
-            return_in_frame_basis: Whether or not to return the result
-                                   in the frame basis.
+            t: The time.
+            y: The state..
+            y_in_frame_basis: Whether or not the array y is already in the basis in which the frame
+                is diagonal.
+            return_in_frame_basis: Whether or not to return the result in the frame basis.
 
         Returns:
-            Array: State out of frame.
+            Array: The state out of the rotating frame.
         """
         return self.state_into_frame(-t, y, y_in_frame_basis, return_in_frame_basis)
 
@@ -307,27 +297,27 @@ class RotatingFrame:
     ) -> Union[Array, csr_matrix]:
         r"""General helper function for computing :math:`\exp(-tF)G\exp(tF) + B`.
 
-        Note: B is added in the frame basis before any potential final change
+        Note: :math:`B` is added in the frame basis before any potential final change
         out of the frame basis.
 
-        Note: There are two conventions for passing multiple operators at the same
-        time. For evaluation with vectorized_operators=False, these operators should
-        be passed as (k, dim, dim) Array objects, with the :math:`i^{th}` operator
-        being stored as the [i,:,:] entry. For vectorized_operators = True, these
-        (vectorized) operators should be passed as a (dim**2, k) Array, with the
-        :math:`i^{th}` vectorized operator stored as the [:,i] entry.
+        Note that are two conventions for passing multiple operators at the same time. For
+        evaluation with vectorized_operators=False, these operators should be passed as ``(k, dim,
+        dim)`` Array objects, with the :math:`i^{th}` operator being stored as the ``[i,:,:]``
+        entry. For vectorized_operators = True, these (vectorized) operators should be passed as a
+        ``(dim**2, k)`` Array, with the :math:`i^{th}` vectorized operator stored as the ``[:,i]``
+        entry.
 
         Args:
-            t: Time.
-            operator: The operator G.
-            op_to_add_in_fb: The additional operator B.
-            operator_in_fame_basis: Whether ``operator`` is already in the basis
-                in which the frame operator is diagonal.
-            vectorized_operators: Whether ``operator`` is passed as a vectorized,
-                ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
+            t: The time.
+            operator: The operator :math:`G`.
+            op_to_add_in_fb: The additional operator :math:`B`.
+            operator_in_fame_basis: Whether ``operator`` is already in the basis in which the frame
+                operator is diagonal.
+            vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``
+                Array, rather than a ``(dim,dim)`` Array.
 
         Returns:
-            Array of newly conjugated operator.
+            Array of the newly conjugated operator.
         """
         operator = to_numeric_matrix_type(operator)
         op_to_add_in_fb = to_numeric_matrix_type(op_to_add_in_fb)
@@ -404,20 +394,19 @@ class RotatingFrame:
         r"""Bring an operator into the frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF)``.
 
-        Default implementation is to use ``self._conjugate_and_add``.
+        The default implementation is to use ``self._conjugate_and_add``.
 
         Args:
-            t: Time.
-            operator: Array of appropriate size.
-            operator_in_frame_basis: Whether or not the operator is already in
-                              the basis in which the frame is diagonal.
-            return_in_frame_basis: Whether or not to return the result
-                                   in the frame basis.
+            t: The time.
+            operator: An array of appropriate size.
+            operator_in_frame_basis: Whether or not the operator is already in the basis in which
+                the frame is diagonal.
+            return_in_frame_basis: Whether or not to return the result in the frame basis.
             vectorized_operators: Whether ``operator`` is passed as a vectorized,
-                ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
+                ``(dim**2,)`` Array, rather than a ``(dim,dim)`` Array.
 
         Returns:
-            Array: operator in frame.
+            Array: The operator in the rotating frame.
         """
         return self._conjugate_and_add(
             t,
@@ -438,20 +427,19 @@ class RotatingFrame:
         r"""Bring an operator into the rotating frame, i.e. return
         ``exp(tF) @ operator @ exp(-tF)``.
 
-        Default implmentation is to use `self.operator_into_frame`.
+        The default implmentation is to use `self.operator_into_frame`.
 
         Args:
             t: Time.
-            operator: Array of appropriate size.
-            operator_in_frame_basis: Whether or not the operator is already in
-                              the basis in which the frame is diagonal.
-            return_in_frame_basis: Whether or not to return the result
-                                   in the frame basis.
-            vectorized_operators: Whether ``operator`` is passed as a vectorized,
-                ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
+            operator: An array of appropriate size.
+            operator_in_frame_basis: Whether or not the operator is already in the basis in which
+                the frame is diagonal.
+            return_in_frame_basis: Whether or not to return the result in the frame basis.
+            vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``
+                Array, rather than a ``(dim,dim)`` Array.
 
         Returns:
-            Array: operator out of frame.
+            Array: The operator out of the rotating frame.
         """
         return self.operator_into_frame(
             -t,
@@ -472,20 +460,19 @@ class RotatingFrame:
         r"""Take an generator into the rotating frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF) - F``.
 
-        Default implementation is to use `self._conjugate_and_add`.
+        The default implementation is to use :meth:`_conjugate_and_add`.
 
         Args:
             t: Time.
             operator: Generator (array of appropriate size).
-            operator_in_frame_basis: Whether or not the generator is already in
-                              the basis in which the frame is diagonal.
-            return_in_frame_basis: Whether or not to return the result
-                                   in the frame basis.
-            vectorized_operators: Whether ``operator`` is passed as a vectorized,
-                ``(dim^2,)`` Array, rather than a ``(dim,dim)`` Array.
+            operator_in_frame_basis: Whether or not the generator is already in the basis in which
+                the frame is diagonal.
+            return_in_frame_basis: Whether or not to return the result in the frame basis.
+            vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``
+                Array, rather than a ``(dim,dim)`` Array.
 
         Returns:
-            Array: Generator in frame.
+            Array: The generator in the rotating frame.
         """
         if self.frame_operator is None:
             return to_numeric_matrix_type(operator)
@@ -507,21 +494,19 @@ class RotatingFrame:
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Take an operator out of the frame, i.e. return
-        ``exp(tF) @ operator @ exp(-tF) + F``.
+        r"""Take an operator out of the frame, i.e. return ``exp(tF) @ operator @ exp(-tF) + F``.
 
-        Default implementation is to use `self._conjugate_and_add`.
+        The default implementation is to use ``self._conjugate_and_add``.
 
         Args:
-            t: Time
+            t: The time
             operator: Generator (array of appropriate size).
-            operator_in_frame_basis: Whether or not the operator is already in
-                              the basis in which the frame is diagonal.
-            return_in_frame_basis: Whether or not to return the result
-                                   in the frame basis.
+            operator_in_frame_basis: Whether or not the operator is already in the basis in which
+                the frame is diagonal.
+            return_in_frame_basis: Whether or not to return the result in the frame basis.
 
         Returns:
-            Array: Generator out of frame.
+            Array: The generator out of the rotating frame.
         """
         if self.frame_operator is None:
             return to_numeric_matrix_type(operator)
@@ -569,8 +554,8 @@ class RotatingFrame:
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Given an operator `op` of dimension `dim**2` assumed to represent vectorized linear map
-        in column stacking convention, returns:
+        r"""Given an operator ``op`` of dimension ``dim**2`` assumed to represent vectorized linear
+        map in column stacking convention, returns:
 
         .. math::
             ((e^{tF})^T \otimes e^{-tF}) \times op \times ((e^{-tF})^T \otimes e^{tF}).
@@ -580,13 +565,13 @@ class RotatingFrame:
         caches array :math:`\bar{C}\otimes C`, where ``C = self.frame_basis`` for future use.
 
         Args:
-            time: The time t.
-            op: The (dim^2,dim^2) Array.
+            time: The time :math:`t`.
+            op: The ``(dim**2,dim**2)`` Array.
             operator_in_frame_basis: Whether the operator is in the frame basis.
-            return_in_frame_basis: Whether the operator should be returned in the
-                frame basis.
+            return_in_frame_basis: Whether the operator should be returned in the frame basis.
+
         Returns:
-            op in the frame.
+            ``op`` in the frame.
         """
         if self.frame_diag is not None:
             # Put the vectorized operator into the frame basis
@@ -610,7 +595,7 @@ class RotatingFrame:
         return op
 
 
-def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10):
+def _enforce_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10):
     r"""Given ``mat``, the logic of this function is:
         - if ``mat`` is hermitian, return ``-1j * mat``
         - if ``mat`` is anti-hermitian, return ``mat``
@@ -618,20 +603,20 @@ def _is_herm_or_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optio
             - if ``mat.backend == 'jax'`` return ``jnp.inf * mat``
             - otherwise raise an error
 
-    The main purpose of this function is to hide the pecularities of the
-    implementing the above logic in a compileable way in ``jax``.
+    The main purpose of this function is to hide the pecularities of implementing the above logic in
+    a compileable way in ``jax``.
 
     Args:
-        mat: array to check
-        atol: absolute tolerance
-        rtol: relative tolerance
+        mat: The array to check.
+        atol: The absolute tolerance.
+        rtol: The relative tolerance.
 
     Returns:
-        Array: anti-hermitian version of ``mat`` if applicable.
+        Array: Anti-hermitian version of ``mat``, if applicable.
 
     Raises:
-        ImportError: if backend is jax and jax is not installed.
-        QiskitError: if ``mat`` is not Hermitian or anti-Hermitian.
+        ImportError: If the backend is jax and jax is not installed.
+        QiskitError: If ``mat`` is not Hermitian or anti-Hermitian.
     """
     mat = to_array(mat)
     mat = Array(mat, dtype=complex)
