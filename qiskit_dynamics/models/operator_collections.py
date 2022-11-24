@@ -51,7 +51,7 @@ try:
     jsparse_triple_product = jsparse.sparsify(lambda A, X, B: A @ X @ B)
 
 except ImportError:
-    pass
+    BCOO = None
 
 
 class BaseOperatorCollection(ABC):
