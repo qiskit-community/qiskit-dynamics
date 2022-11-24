@@ -26,7 +26,7 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import pulse
-from qiskit.qobj.utils import MeasLevel
+from qiskit.qobj.utils import MeasLevel, MeasReturnType
 from qiskit.qobj.common import QobjHeader
 from qiskit.transpiler import Target
 from qiskit.pulse import Schedule, ScheduleBlock
@@ -162,7 +162,7 @@ class DynamicsBackend(BackendV2):
             normalize_states=True,
             initial_state="ground_state",
             meas_level=MeasLevel.CLASSIFIED,
-            meas_return="single",
+            meas_return=MeasReturnType.AVERAGE,
             max_outcome_level=1,
             memory=True,
             seed_simulator=None,
@@ -262,7 +262,7 @@ class DynamicsBackend(BackendV2):
 
         # Configure run options for simulation
         if options:
-            backend = copy.copy(self)
+            backend = copy.deepcopy(self)
             backend.set_options(**options)
         else:
             backend = self
@@ -461,7 +461,7 @@ def default_experiment_result_function(
             seed=seed,
         )
 
-        if backend.options.meas_return == "avg":
+        if backend.options.meas_return == MeasReturnType.AVERAGE:
             measurement_data = np.average(measurement_data, axis=0)
 
         # construct results object
