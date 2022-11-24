@@ -234,7 +234,7 @@ class LindbladModel(BaseGeneratorModel):
 
         Raises:
             QiskitError: If, when setting this property, the given signals are incompatible with
-             operator structure.
+                operator structure.
         """
         return (self._hamiltonian_signals, self._dissipator_signals)
 
@@ -297,7 +297,8 @@ class LindbladModel(BaseGeneratorModel):
     @property
     def in_frame_basis(self) -> bool:
         """Whether to represent the model in the basis in which the frame operator is
-        diagonalized."""
+        diagonalized.
+        """
         return self._in_frame_basis
 
     @in_frame_basis.setter
@@ -336,6 +337,7 @@ class LindbladModel(BaseGeneratorModel):
         Args:
             in_frame_basis: Flag for whether the returned static_operator should be in the basis
             in which the frame is diagonal.
+
         Returns:
             The static operator term.
         """
@@ -375,6 +377,7 @@ class LindbladModel(BaseGeneratorModel):
 
         Args:
             in_frame_basis: Whether to return in frame basis or not.
+
         Returns:
             Hamiltonian operators.
         """
@@ -389,6 +392,7 @@ class LindbladModel(BaseGeneratorModel):
 
         Args:
             in_frame_basis: Whether to return in frame basis or not.
+
         Returns:
             Dissipator operators.
         """
@@ -403,6 +407,7 @@ class LindbladModel(BaseGeneratorModel):
 
         Args:
             in_frame_basis: Whether to return in frame basis or not.
+
         Returns:
             Dissipator operators.
         """
@@ -427,8 +432,8 @@ class LindbladModel(BaseGeneratorModel):
            sparse type.
          * ```sparse_vectorized```: Like dense_vectorized, but matrices stored in sparse format. If
            the default Array backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
-            :class:`csr_matrix` sparse type. Note that JAX sparse mode is only recommended for use
-            on CPU.
+           :class:`csr_matrix` sparse type. Note that JAX sparse mode is only recommended for use
+           on CPU.
 
         Raises:
             NotImplementedError: If this property is set to something other than one of the above
@@ -514,7 +519,8 @@ class LindbladModel(BaseGeneratorModel):
         """Evaluates Hamiltonian matrix at a given time.
 
         Args:
-            time: The time at which to evaluate the hamiltonian.
+            time: The time at which to evaluate the Hamiltonian.
+
         Returns:
             Array: Hamiltonian matrix."""
 
