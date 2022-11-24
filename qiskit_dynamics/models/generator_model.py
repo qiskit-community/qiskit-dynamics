@@ -537,7 +537,7 @@ def transfer_operators_between_frames(
 
 def construct_operator_collection(
     evaluation_mode: str,
-    static_operator: Optional[Array, csr_matrix],
+    static_operator: Union[None, Array, csr_matrix],
     operators: Union[None, Array, List[csr_matrix]],
 ) -> BaseOperatorCollection:
     """Construct an operator collection for :class:`GeneratorModel`.
