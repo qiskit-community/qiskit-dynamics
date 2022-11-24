@@ -376,13 +376,18 @@ class DynamicsBackend(BackendV2):
               - One annoyance with this is we will need to have a different dt in the solver
               than is returned by backend.configuration().dt. Maybe this is fine?
             - Get configuration, properties, target, ... ? 
+            - Some configuration/properties/defaults parameters relate to things in the 
+              solver (dt, channel frequencies, anything else?). How do we handle a user 
+              updating those things? These are things that a user may want to update
+              over time. What is the correct way to do this?
         
         """
 
         # validation
         # to do:
-        #     need to validate that it's a pulse default? Or can we just check that 
+        #     - need to validate that it's a pulse default? Or can we just check that 
         #     it has qubit_freq_est?
+        #     - Validate that subsystem_list is non-empty/well-formed
         if not hasattr(backend, 'configuration'):
             raise QiskitError('DynamicsBackend.from_backend requires that the backend argument have a configuration attribute.')
         if not hasattr(backend, 'defaults'):
