@@ -169,7 +169,9 @@ class LindbladModel(BaseGeneratorModel):
         self._evaluation_mode = evaluation_mode
         self.vectorized_operators = "vectorized" in evaluation_mode
 
+        self._rotating_frame = None
         self.rotating_frame = rotating_frame
+        self._in_frame_basis = None
         self.in_frame_basis = in_frame_basis
 
         self.signals = (hamiltonian_signals, dissipator_signals)
