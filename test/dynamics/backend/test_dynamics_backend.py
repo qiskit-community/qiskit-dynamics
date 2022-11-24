@@ -15,6 +15,8 @@
 Test DynamicsBackend.
 """
 
+from types import SimpleNamespace
+
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
@@ -22,9 +24,11 @@ from qiskit import QiskitError, pulse, QuantumCircuit
 from qiskit.transpiler import Target
 from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.result.models import ExperimentResult, ExperimentResultData
+from qiskit.providers.models.backendconfiguration import UchannelLO
 
 from qiskit_dynamics import Solver, DynamicsBackend
 from qiskit_dynamics.backend import default_experiment_result_function
+from qiskit_dynamics.backend.dynamics_backend import _get_backend_channel_freqs
 from ..common import QiskitDynamicsTestCase
 
 
@@ -435,3 +439,76 @@ class Test_default_experiment_result_function(QiskitDynamicsTestCase):
         )
 
         self.assertDictEqual(output.data.counts, {"000": 513, "010": 511})
+
+
+class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
+    """Test cases for _get_channel_backend_freqs."""
+
+    def setUp(self):
+        """Setup a simple configuration and default."""
+
+        defaults = SimpleNamespace()
+        defaults.qubit_freq_est = [0.343, 1.131, 2.1232, 3.3534, 4.123, 5.3532]
+        defaults.meas_freq_est = [0.23432, 1.543, 2.543, 3.543, 4.1321, 5.5433]
+        self.defaults = defaults
+
+        config = SimpleNamespace()
+        config.u_channel_lo = [
+            [UchannelLO(q=0, scale=1.0), UchannelLO(q=1, scale=-1.0)],
+            [UchannelLO(q=3, scale=2.1)],
+            [UchannelLO(q=4, scale=1.1), UchannelLO(q=2, scale=-1.1)],
+        ]
+        self.config = config
+
+    def _test_with_setUp_example(self, channels, expected_output):
+        """Test with defaults and config from setUp."""
+        self.assertDictEqual(
+            _get_backend_channel_freqs(
+                backend_config=self.config, backend_defaults=self.defaults, channels=channels
+            ),
+            expected_output,
+        )
+
+    def test_drive_channels(self):
+        """Test case with just drive channels."""
+        channels = ["d0", "d1", "d2"]
+        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)}
+        self._test_with_setUp_example(channels=channels, expected_output=expected_output)
+
+    def test_drive_and_meas_channels(self):
+        """Test case drive and meas channels."""
+        channels = ["d0", "d1", "d2", "m0", "m3"]
+        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)} | {
+            f"m{idx}": self.defaults.meas_freq_est[idx] for idx in [0, 3]
+        }
+        self._test_with_setUp_example(channels=channels, expected_output=expected_output)
+
+    def test_drive_and_u_channels(self):
+        """Test case drive and u channels."""
+        channels = ["d0", "d1", "d2", "u1", "u2"]
+        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)} | {
+            "u1": 2.1 * self.defaults.qubit_freq_est[3], 
+            "u2": 1.1 * self.defaults.qubit_freq_est[4] - 1.1 * self.defaults.qubit_freq_est[2]
+        }
+        self._test_with_setUp_example(channels=channels, expected_output=expected_output)
+    
+    def test_no_u_channel_lo_attribute_error(self):
+        """Test error if u_channel_lo attribute for config."""
+        
+        with self.assertRaisesRegex(QiskitError, "configuration does not have"):
+            _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=self.defaults, channels=["u1"])
+    
+    def test_missing_u_channel_error(self):
+        """Raise error if missing u channel."""
+        with self.assertRaisesRegex(QiskitError, "No carrier frequency found"):
+            _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["u4"])
+    
+    def test_drive_out_of_bounds(self):
+        """Raise error if drive channel index too high."""
+        with self.assertRaisesRegex(QiskitError, "DriveChannel index 10"):
+            _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["d10"])
+
+    def test_meas_out_of_bounds(self):
+        """Raise error if drive channel index too high."""
+        with self.assertRaisesRegex(QiskitError, "MeasureChannel index 10"):
+            _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["m10"])

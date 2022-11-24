@@ -20,7 +20,7 @@ Pulse-enabled simulator backend.
 import datetime
 import uuid
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 import copy
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
@@ -33,6 +33,8 @@ from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit.providers.options import Options
 from qiskit.providers.backend import BackendV1, BackendV2
+from qiskit.providers.models.pulsedefaults import PulseDefaults
+from qiskit.providers.models.backendconfiguration import PulseBackendConfiguration
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
@@ -354,55 +356,62 @@ class DynamicsBackend(BackendV2):
 
     @classmethod
     def from_backend(
-        cls, 
-        backend: Union[BackendV1, BackendV2], 
+        cls,
+        backend: Union[BackendV1, BackendV2],
         subsystem_list: Optional[List[int]] = None,
         solver_kwargs: Optional[dict] = None,
         **options,
     ) -> "DynamicsBackend":
         """Construct a :class:`DynamicsBackend` instance from an existing backend instance.
-        
+
         To do:
-            - Add validation of backend and subsystem_list. E.g. is it a pulse backend? Does
-              it have the properties we need?
-            - Maybe we need to also implement configuration(), properties(), and defaults()
-              for backwards compatibility
+            - Add validation of backend and subsystem_list. E.g. is it a pulse backend? Does it have
+              the properties we need?
+            - Maybe we need to also implement configuration(), properties(), and defaults() for
+              backwards compatibility
             - How do we handle solver kwargs? Do we expose a couple of options, or just give a
               generic solver_kwargs that allows a user to pass anything through?
             - Bring in target? What else?
             - Do we want to scale operators/time to be close to 1? This will be kind of a pain but
               may be very useful numerically. Could maybe have an optional argument to this method
-              for whether to do this or not.
-              - One annoyance with this is we will need to have a different dt in the solver
-              than is returned by backend.configuration().dt. Maybe this is fine?
-            - Get configuration, properties, target, ... ? 
-            - Some configuration/properties/defaults parameters relate to things in the 
-              solver (dt, channel frequencies, anything else?). How do we handle a user 
-              updating those things? These are things that a user may want to update
-              over time. What is the correct way to do this?
-        
+              for whether to do this or not. - One annoyance with this is we will need to have a
+              different dt in the solver than is returned by backend.configuration().dt. Maybe this
+              is fine?
+            - Get configuration, properties, target, ... ?
+            - Some configuration/properties/defaults parameters relate to things in the solver (dt,
+              channel frequencies, anything else?). How do we handle a user updating those things?
+              These are things that a user may want to update over time. What is the correct way to
+              do this?
+            - Important technical note: I would like to scale numbers to be close to 1 (operators,
+              frequencies, times) but it would be a bit complicated to track everything. A very
+              simple numerical example seems to indicate that the "unscaled" versions still behave
+              fine. I think maybe for now we can leave it as is.
+
+
         """
 
         # validation
         # to do:
-        #     - need to validate that it's a pulse default? Or can we just check that 
+        #     - need to validate that it's a pulse default? Or can we just check that
         #     it has qubit_freq_est?
         #     - Validate that subsystem_list is non-empty/well-formed
-        if not hasattr(backend, 'configuration'):
-            raise QiskitError('DynamicsBackend.from_backend requires that the backend argument have a configuration attribute.')
-        if not hasattr(backend, 'defaults'):
-            raise QiskitError('DynamicsBackend.from_backend requires that the backend argument have a defaults attribute.')
+        if not hasattr(backend, "configuration"):
+            raise QiskitError(
+                "DynamicsBackend.from_backend requires that the backend argument have a configuration attribute."
+            )
+        if not hasattr(backend, "defaults"):
+            raise QiskitError(
+                "DynamicsBackend.from_backend requires that the backend argument have a defaults attribute."
+            )
 
         config = backend.configuration()
         defaults = backend.defaults()
-            
 
         # get and parse Hamiltonian string dictionary
         if subsystem_list is not None:
             subsystem_list = sorted(subsystem_list)
         else:
             subsystem_list = list(range(config.n_qubits))
-
 
         hamiltonian_dict = config.hamiltonian
         (
@@ -418,16 +427,11 @@ class DynamicsBackend(BackendV2):
         # get time step size
         dt = config.dt
 
-        # get the channel frequencies as qubit_freq_est
-        # to do:
-        #     get control channel freqs - from where?
-        #     there may also be other channels in hamiltonian_channels - how to check this?
-        channel_freqs = {f"d{idx}": defaults.qubit_freq_est[idx] for idx in subsystem_list}
-
+        channel_freqs = _get_backend_channel_freqs(
+            backend_config=config, backend_defaults=defaults, channels=hamiltonian_channels
+        )
 
         # build the solver
-        ##############################################################################################
-        # scale args?
         solver_kwargs = solver_kwargs or {}
         solver = Solver(
             static_hamiltonian=static_hamiltonian,
@@ -435,20 +439,18 @@ class DynamicsBackend(BackendV2):
             hamiltonian_channels=hamiltonian_channels,
             channel_carrier_freqs=channel_freqs,
             dt=dt,
-            **solver_kwargs
+            **solver_kwargs,
         )
 
         # to do: modify target???
-        target = None
-        if hasattr(backend, "target"):
-            target = backend.target
+        target = getattr(backend, "target", None)
 
         return cls(
-            solver=solver, 
-            target=target, 
-            subsystem_labels=subsystem_list, 
-            subsystem_dims=subsystem_dims, 
-            **options
+            solver=solver,
+            target=target,
+            subsystem_labels=subsystem_list,
+            subsystem_dims=subsystem_dims,
+            **options,
         )
 
 
@@ -627,3 +629,60 @@ def _to_schedule_list(
         else:
             raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
     return schedules, num_memslots
+
+
+def _get_backend_channel_freqs(
+    backend_config: PulseBackendConfiguration, backend_defaults: PulseDefaults, channels: List[str]
+) -> Dict[str, float]:
+    """Extract frequencies of channels from a backend configuration and defaults.
+
+    Args:
+        backend_config: A backend configuration object.
+        backend_defaults: A backend defaults object.
+        channels: Channel labels given as strings, assumed to be unique.
+
+    Returns:
+        Dict: Mapping of channel labels to frequencies.
+
+    Raises:
+        QiskitError: If the frequency for one of the channels cannot be found.
+    """
+
+    channel_freqs = {}
+
+    # get drive and measure channel frequencies
+    for channel in channels:
+        if channel[0] == "d":
+            idx = int(channel[1:])
+            if idx > len(backend_defaults.qubit_freq_est):
+                raise QiskitError(f"DriveChannel index {idx} is out of bounds.")
+            channel_freqs[channel] = backend_defaults.qubit_freq_est[idx]
+        elif channel[0] == "m":
+            idx = int(channel[1:])
+            if idx > len(backend_defaults.meas_freq_est):
+                raise QiskitError(f"MeasureChannel index {idx} is out of bounds.")
+            channel_freqs[channel] = backend_defaults.meas_freq_est[idx]
+
+    # get u_channel_lo freqs if model requires them
+    if any("u" in x for x in channels):
+
+        # raise error if no u channel specification present
+        if not hasattr(backend_config, "u_channel_lo"):
+            raise QiskitError("U Channels in model but configuration does not have u_channel_lo.")
+
+        # populate u channel frequencies
+        for idx, u_channel_lo_factors in enumerate(backend_config.u_channel_lo):
+            u_channel = f"u{idx}"
+            if u_channel in channels:
+                freq = 0.0
+                for u_channel_lo in u_channel_lo_factors:
+                    freq += backend_defaults.qubit_freq_est[u_channel_lo.q] * u_channel_lo.scale
+
+                channel_freqs[u_channel] = freq
+
+    # validate that all channels have frequencies
+    for channel in channels:
+        if channel not in channel_freqs:
+            raise QiskitError(f"No carrier frequency found for channel {channel}.")
+
+    return channel_freqs
