@@ -17,9 +17,12 @@ Utility functions for Dynamics Backend.
 
 
 from typing import Optional, Union, List, Dict
+from itertools import chain
 
 import numpy as np
 from qiskit import QiskitError
+from qiskit.providers.options import Options
+from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 
 from qiskit_dynamics.array import Array
@@ -167,3 +170,67 @@ def _sample_probability_dict(
 def _get_counts_from_samples(samples: list) -> Dict:
     """Count items in list."""
     return dict(zip(*np.unique(samples, return_counts=True)))
+
+
+def _iq_data(
+    options: Options,
+    state: Union[Statevector, DensityMatrix],
+    measurement_subsystems: List[int],
+    seed: int,
+) -> List[List[List[float]]]:
+    """Generates IQ data for each physical level.
+
+    Args:
+        options: Options object containing subsystem information and IQ parameters.
+        state: Quantum state.
+        measurement_subsystems: Labels of subsystems in the model being measured.
+        seed: Seed for sample generation.
+
+    Returns:
+        (I,Q) data as List[shot index][qubit index] = [I,Q]
+
+    Raises:
+        QiskitError: If number of centers and levels don't match.
+    """
+    rng = np.random.default_rng(seed)
+
+    if options.iq_centers is not None:
+        iq_centers = options.iq_centers
+    else:
+        # Default iq_centers
+        iq_centers = []
+        for sub_dim in options.subsystem_dims:
+            theta = 2 * np.pi / sub_dim
+            iq_centers.append(
+                [(np.cos(idx * theta), np.sin(idx * theta)) for idx in range(sub_dim)]
+            )
+
+    full_i, full_q = [], []
+    for sub_idx in measurement_subsystems:
+        # Get probabilities for each subsystem
+        probability = state.probabilities(qargs=[sub_idx])
+        # No. of shots for eaach level
+        counts_n = rng.multinomial(options.shots, probability / sum(probability), size=1).T
+
+        if len(counts_n) != len(iq_centers[sub_idx]):
+            raise QiskitError(
+                f"""Number of centers {len(iq_centers[sub_idx])} not equal
+                to number of levels {len(counts_n)}"""
+            )
+
+        sub_i, sub_q = [], []
+        for idx, count_i in enumerate(counts_n):
+            sub_i.append(
+                rng.normal(loc=iq_centers[sub_idx][idx][0], scale=options.iq_width, size=count_i)
+            )
+            sub_q.append(
+                rng.normal(loc=iq_centers[sub_idx][idx][1], scale=options.iq_width, size=count_i)
+            )
+        # Linear stack
+        sub_i = list(chain.from_iterable(sub_i))
+        sub_q = list(chain.from_iterable(sub_q))
+
+        full_i.append(sub_i)
+        full_q.append(sub_q)
+    full_iq = np.array([full_i, full_q]).T
+    return full_iq

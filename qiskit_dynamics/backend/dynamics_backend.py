@@ -49,6 +49,7 @@ from .backend_utils import (
     _get_memory_slot_probabilities,
     _sample_probability_dict,
     _get_counts_from_samples,
+    _iq_data,
 )
 
 
@@ -161,10 +162,13 @@ class DynamicsBackend(BackendV2):
             normalize_states=True,
             initial_state="ground_state",
             meas_level=MeasLevel.CLASSIFIED,
+            meas_return="single",
             max_outcome_level=1,
             memory=True,
             seed_simulator=None,
             experiment_result_function=default_experiment_result_function,
+            iq_centers=None,
+            iq_width=0.2,
         )
 
     def set_options(self, **fields):
@@ -182,14 +186,23 @@ class DynamicsBackend(BackendV2):
                         """initial_state must be either "ground_state",
                         or a Statevector or DensityMatrix instance."""
                     )
-            elif key == "meas_level" and value != 2:
-                raise QiskitError("Only meas_level == 2 is supported by DynamicsBackend.")
+            elif key == "meas_level" and value not in [1, 2]:
+                raise QiskitError(
+                    """Only meas_level 1 (Kerneled) and 2 (Classified) are supported
+                    by DynamicsBackend."""
+                )
+            elif key == "meas_return" and value not in ["single", "avg"]:
+                raise QiskitError("meas_return must be either 'single' or 'avg'.")
             elif key == "max_outcome_level":
                 if (value is not None) and (not isinstance(value, int) or (value <= 0)):
                     raise QiskitError("max_outcome_level must be a positive integer or None.")
             elif key == "experiment_result_function" and not callable(value):
                 raise QiskitError("experiment_result_function must be callable.")
-
+            elif key == "iq_width" and (not isinstance(value, float) or (value <= 0)):
+                raise QiskitError("iq_width must be positive float.")
+            elif key == "iq_centers":
+                if [len(x) for x in value] != self._options.subsystem_dims:
+                    raise QiskitError("iq_centers is not consistent with subsystem_dims.")
             if key == "solver":
                 self._set_solver(value)
                 validate_subsystem_dims = True
@@ -407,12 +420,13 @@ def default_experiment_result_function(
         if backend.options.normalize_states:
             yf = yf / np.diag(yf.data).sum()
 
+    # compute probabilities for measurement slot values
+    measurement_subsystems = [
+        backend.options.subsystem_labels.index(x) for x in measurement_subsystems
+    ]
+
     if backend.options.meas_level == MeasLevel.CLASSIFIED:
 
-        # compute probabilities for measurement slot values
-        measurement_subsystems = [
-            backend.options.subsystem_labels.index(x) for x in measurement_subsystems
-        ]
         memory_slot_probabilities = _get_memory_slot_probabilities(
             probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
             memory_slot_indices=memory_slot_indices,
@@ -438,6 +452,29 @@ def default_experiment_result_function(
             seed=seed,
             header=QobjHeader(name=experiment_name),
         )
+    elif backend.options.meas_level == MeasLevel.KERNELED:
+        # generate IQ
+        measurement_data = _iq_data(
+            backend.options,
+            yf,
+            measurement_subsystems=measurement_subsystems,
+            seed=seed,
+        )
+
+        if backend.options.meas_return == "avg":
+            measurement_data = np.average(measurement_data, axis=0)
+
+        # construct results object
+        exp_data = ExperimentResultData(memory=measurement_data)
+        return ExperimentResult(
+            shots=backend.options.shots,
+            success=True,
+            data=exp_data,
+            meas_level=MeasLevel.KERNELED,
+            seed=seed,
+            header=QobjHeader(name=experiment_name),
+        )
+
     else:
         raise QiskitError(f"meas_level=={backend.options.meas_level} not implemented.")
 
