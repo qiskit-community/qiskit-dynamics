@@ -125,7 +125,7 @@ class TestJaxOdeint(QiskitDynamicsTestCase, TestJaxBase):
         )
         self.assertAllClose(expected_y, results.y)
 
-    def test_transformations_w_t_span_t_eval(self):
+    def test_transformations_w_t_span_t_eval_no_overlap(self):
         """Test compiling/grad if both t_span and t_eval are specified."""
 
         t_span = np.array([0.0, 2.0])
@@ -154,3 +154,19 @@ class TestJaxOdeint(QiskitDynamicsTestCase, TestJaxBase):
         jit_grad_func = self.jit_grad_wrap(lambda a: func(t_span, a)[1][-1])
         out = jit_grad_func(t_eval)
         self.assertAllClose(out, np.array([0.0, 0.0, 1.7**2]))
+
+    def test_transformations_t_eval_arg_overlap(self):
+        """Test gradient transformation when t_eval has overlap with t_span."""
+
+        t_span = np.array([0.0, 2.0])
+        t_eval = np.array([1.0, 1.5, 1.7, 2.0])
+        y0 = jnp.array([1.0])
+
+        def sim_function(a):
+            rhs = lambda t, y: (a**2) * self.simple_rhs(t, y)
+            results = jax_odeint(rhs, t_span, y0, t_eval=t_eval, atol=1e-10, rtol=1e-10)
+            return results.y[-1].real.sum()
+
+        self.assertAllClose(
+            self.jit_grad_wrap(sim_function)(2.0), 4 * (0.5 + (2.0**3 - 1.0**3) / 3)
+        )
