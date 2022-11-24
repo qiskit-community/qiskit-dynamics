@@ -19,6 +19,8 @@ from ddt import ddt, data, unpack
 import numpy as np
 
 from qiskit import QiskitError
+from qiskit.providers.options import Options
+from qiskit.quantum_info import Statevector
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.backend.backend_utils import (
@@ -27,6 +29,7 @@ from qiskit_dynamics.backend.backend_utils import (
     _get_memory_slot_probabilities,
     _sample_probability_dict,
     _get_counts_from_samples,
+    _iq_data,
 )
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -211,3 +214,27 @@ class Test_get_counts_from_samples(QiskitDynamicsTestCase):
         samples = ["00", "01", "00", "20", "01", "01", "20"]
         output = _get_counts_from_samples(samples)
         self.assertDictEqual(output, {"00": 2, "01": 3, "20": 2})
+
+
+class Test_iq_data(QiskitDynamicsTestCase):
+    """Test _iq_data."""
+
+    def test_basic_predict(self):
+        """Basic test case."""
+        options = Options(
+            iq_centers=[[(1, 0), (-1, 0)]],
+            subsystem_dims=[
+                2,
+            ],
+            shots=10,
+            iq_width=0.1,
+        )
+        iq_data = _iq_data(
+            options,
+            state=Statevector(np.array([1, 1]) / np.sqrt(2)),
+            measurement_subsystems=[0],
+            seed=83248,
+        )
+        predict = lambda iq_n: ["0" if iq[0][1] > 0 else "1" for iq in iq_n]
+        counts = dict(zip(*np.unique(predict(iq_data), return_counts=True)))
+        self.assertDictEqual(counts, {"0": 6, "1": 4})

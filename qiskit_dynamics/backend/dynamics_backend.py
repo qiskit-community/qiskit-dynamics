@@ -187,10 +187,7 @@ class DynamicsBackend(BackendV2):
                         or a Statevector or DensityMatrix instance."""
                     )
             elif key == "meas_level" and value not in [1, 2]:
-                raise QiskitError(
-                    """Only meas_level 1 (Kerneled) and 2 (Classified) are supported
-                    by DynamicsBackend."""
-                )
+                raise QiskitError("Only meas_level 1 and 2 are supported by DynamicsBackend.")
             elif key == "meas_return" and value not in ["single", "avg"]:
                 raise QiskitError("meas_return must be either 'single' or 'avg'.")
             elif key == "max_outcome_level":

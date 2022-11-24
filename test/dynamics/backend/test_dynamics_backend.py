@@ -128,8 +128,28 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
     def test_invalid_meas_level(self):
         """Test setting an invalid meas_level."""
 
-        with self.assertRaisesRegex(QiskitError, "Only meas_level == 2 is supported"):
-            self.simple_backend.set_options(meas_level=1)
+        with self.assertRaisesRegex(QiskitError, "Only meas_level 1 and 2 are supported"):
+            self.simple_backend.set_options(meas_level=0)
+
+    def test_invalid_meas_return(self):
+        """Test setting an invalid meas_return."""
+
+        with self.assertRaisesRegex(QiskitError, "meas_return must be either 'single' or 'avg'"):
+            self.simple_backend.set_options(meas_return="combined")
+
+    def test_invalid_iq_width(self):
+        """Test setting an invalid iq_width."""
+
+        with self.assertRaisesRegex(QiskitError, "must be positive float"):
+            self.simple_backend.set_options(iq_width=0)
+        with self.assertRaisesRegex(QiskitError, "must be positive float"):
+            self.simple_backend.set_options(iq_width="hi")
+
+    def test_invalid_iq_centers(self):
+        """Test setting an invalid iq_centers."""
+
+        with self.assertRaisesRegex(QiskitError, "iq_centers is not consistent"):
+            self.simple_backend.set_options(iq_centers=[[0]])
 
     def test_invalid_experiment_result_function(self):
         """Test setting a non-callable experiment_result_function."""
@@ -196,6 +216,14 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         self.assertDictEqual(result.get_counts(), {"1": 1024})
         self.assertTrue(result.get_memory() == ["1"] * 1024)
 
+        result = self.simple_backend.run(
+            schedule, meas_level=1, meas_return="single", seed_simulator=1234567
+        ).result()
+        data = result.get_memory()
+        predict = lambda iq_n: ["0" if iq[0].real > 0 else "1" for iq in iq_n]
+        counts = dict(zip(*np.unique(predict(data), return_counts=True)))
+        self.assertDictEqual(counts, {"1": 1024})
+
     def test_pi_pulse_initial_state(self):
         """Test simulation of a pi pulse with a different initial state."""
 
@@ -222,6 +250,18 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             schedule, seed_simulator=398472, initial_state=DensityMatrix([1.0, 0.0])
         ).result()
         self.assertDictEqual(result.get_counts(), {"0": 505, "1": 519})
+
+        result = result = self.simple_backend.run(
+            schedule,
+            seed_simulator=398472,
+            initial_state=DensityMatrix([1.0, 0.0]),
+            meas_level=1,
+            meas_return="single",
+        ).result()
+        data = result.get_memory()
+        predict = lambda iq_n: ["0" if iq[0].real > 0 else "1" for iq in iq_n]
+        counts = dict(zip(*np.unique(predict(data), return_counts=True)))
+        self.assertDictEqual(counts, {"0": 499, "1": 525})
 
     def test_pi_half_pulse_relabelled(self):
         """Test simulation of a pi/2 pulse with qubit relabelled."""
@@ -412,12 +452,6 @@ class Test_default_experiment_result_function(QiskitDynamicsTestCase):
 
         self.simple_solver = solver
         self.simple_backend = DynamicsBackend(solver=solver)
-
-    def test_invalid_meas_level(self):
-        """Test calling of invalid meas level."""
-
-        with self.assertRaisesRegex(QiskitError, "Only meas_level == 2 is supported"):
-            self.simple_backend.set_options(meas_level=1)
 
     def test_simple_example(self):
         """Test a simple example."""
