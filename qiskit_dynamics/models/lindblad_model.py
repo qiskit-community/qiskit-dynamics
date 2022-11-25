@@ -524,7 +524,8 @@ class LindbladModel(BaseGeneratorModel):
             time: The time at which to evaluate the Hamiltonian.
 
         Returns:
-            Array: Hamiltonian matrix."""
+            Array: Hamiltonian matrix.
+      """
 
         hamiltonian_sig_vals = None
         if self._hamiltonian_signals is not None:
