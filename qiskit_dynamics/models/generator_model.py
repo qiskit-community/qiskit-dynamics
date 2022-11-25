@@ -122,7 +122,7 @@ class BaseGeneratorModel(ABC):
             y: Optional state.
 
         Returns:
-            Array: Either the evaluated model, or the RHS for the given y
+            Array: Either the evaluated model, or the RHS for the given y.
         """
         return self.evaluate(time) if y is None else self.evaluate_rhs(time, y)
 
