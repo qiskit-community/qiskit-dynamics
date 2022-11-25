@@ -181,9 +181,11 @@ class GeneratorModel(BaseGeneratorModel):
         self._evaluation_mode = evaluation_mode
 
         # set frame
+        self._rotating_frame = None
         self.rotating_frame = rotating_frame
 
         # set operation in frame basis
+        self._in_frame_basis = None
         self.in_frame_basis = in_frame_basis
 
         # initialize signal-related attributes
