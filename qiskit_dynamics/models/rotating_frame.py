@@ -494,7 +494,8 @@ class RotatingFrame:
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ) -> Array:
-        r"""Take an operator out of the frame, i.e. return ``exp(tF) @ operator @ exp(-tF) + F``.
+        r"""Take an operator out of the frame using the generator transformaton rule, i.e. return
+        ``exp(tF) @ operator @ exp(-tF) + F``.
 
         The default implementation is to use ``self._conjugate_and_add``.
 

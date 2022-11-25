@@ -216,9 +216,6 @@ class GeneratorModel(BaseGeneratorModel):
 
     @evaluation_mode.setter
     def evaluation_mode(self, new_mode: str):
-        if new_mode not in ("dense", "sparse"):
-            raise NotImplementedError("The evaluation_mode must be 'dense' or 'sparse'.")
-
         if new_mode != self._evaluation_mode:
             self._operator_collection = construct_operator_collection(
                 new_mode,

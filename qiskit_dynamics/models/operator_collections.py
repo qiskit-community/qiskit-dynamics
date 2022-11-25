@@ -125,7 +125,7 @@ class BaseOperatorCollection(ABC):
     def __call__(
         self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
     ) -> Array:
-        """Call :meth:`~evaluate` or :meth:`self.evaluate_rhs` depending on the presense of ``y``.
+        """Call :meth:`~evaluate` or :meth:`~evaluate_rhs` depending on the presense of ``y``.
 
         Args:
             signal_values: The signals :math:`c` to use on the operators.
@@ -502,7 +502,16 @@ class BaseLindbladOperatorCollection(ABC):
     def __call__(
         self, ham_sig_vals: Union[None, Array], dis_sig_vals: Union[None, Array], y: Optional[Array]
     ) -> Union[csr_matrix, Array]:
-        """Evaluate the model, or evaluate the RHS."""
+        """Call :meth:`~evaluate` or :meth:`~evaluate_rhs` depending on the presense of ``y``.
+
+        Args:
+            ham_sig_vals: The signals :math:`c_1` to use on the Hamiltonians.
+            dis_sig_vals: The signals :math:`c_2` to use on the dissipators.
+            y: Optionally, the system state.
+
+        Returns:
+            The evaluated function.
+        """
         if y is None:
             return self.evaluate(ham_sig_vals, dis_sig_vals)
 
