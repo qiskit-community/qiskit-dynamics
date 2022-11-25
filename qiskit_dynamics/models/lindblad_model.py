@@ -337,8 +337,8 @@ class LindbladModel(BaseGeneratorModel):
         """Get the constant Hamiltonian term.
 
         Args:
-            in_frame_basis: Flag for whether the returned static_operator should be in the basis
-            in which the frame is diagonal.
+            in_frame_basis: Flag for whether the returned ``static_operator`` should be in the basis
+                in which the frame is diagonal.
 
         Returns:
             The static operator term.
