@@ -363,10 +363,10 @@ class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
     def test_jit_get_samples(self):
         """Test compiling to get samples of Pulse."""
 
-        def jit_func(amp, sigma):
-            return get_samples(Gaussian(duration=5, amp=amp, sigma=sigma))
+        def jit_func(amp):
+            return get_samples(Constant(100, amp))
 
-        jit_samples = jax.jit(jit_func, static_argnums=(0, 1))(0.983, 2)
+        jit_samples = jax.jit(jit_func)(0.1)
         self.assertAllClose(jit_samples, self.gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
 
 
