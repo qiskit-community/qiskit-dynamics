@@ -301,10 +301,10 @@ class RotatingFrame:
         out of the frame basis.
 
         Note that there are two conventions for passing multiple operators at the same time. For
-        evaluation with ``vectorized_operators=False``, these operators should be passed as ``(k, dim,
-        dim)`` array objects, with the :math:`i^{th}` operator being stored as the ``[i,:,:]``
-        entry. For ``vectorized_operators = True``, these (vectorized) operators should be passed as a
-        ``(dim**2, k)`` array, with the :math:`i^{th}` vectorized operator stored as the ``[:,i]``
+        evaluation with ``vectorized_operators=False``, these operators should be passed as ``(k,
+        dim, dim)`` array objects, with the :math:`i^{th}` operator being stored as the ``[i,:,:]``
+        entry. For ``vectorized_operators = True``, these (vectorized) operators should be passed as
+        a ``(dim**2, k)`` array, with the :math:`i^{th}` vectorized operator stored as the ``[:,i]``
         entry.
 
         Args:

@@ -366,7 +366,7 @@ class JAXSparseOperatorCollection(BaseOperatorCollection):
 
         Returns:
             The evaluated function.
-            
+
         Raises:
             QiskitError: If the function cannot be evaluated.
         """

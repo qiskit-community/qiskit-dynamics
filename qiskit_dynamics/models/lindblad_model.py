@@ -525,7 +525,7 @@ class LindbladModel(BaseGeneratorModel):
 
         Returns:
             Array: Hamiltonian matrix.
-      """
+        """
 
         hamiltonian_sig_vals = None
         if self._hamiltonian_signals is not None:
