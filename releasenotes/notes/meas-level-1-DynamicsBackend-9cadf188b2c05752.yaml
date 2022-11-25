@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Adds support for IQ data in `DynamicsBackend`. Setting `meas_level=1` in backend.options
+    generates normal distributions around `backend.options.iq_centers` with width
+    `backend.options.iq_width`. `iq_centers` defaults to equally spaced points on a unit circle.
+    Use `meas_return='single'` to return information from each shot, defaults to 'avg',
+    which averages over number of shots.
+issues:
+  - |
+    No support for Discriminator to classify IQ data into counts.

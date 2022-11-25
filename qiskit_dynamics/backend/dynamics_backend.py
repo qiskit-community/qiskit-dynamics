@@ -74,8 +74,15 @@ class DynamicsBackend(BackendV2):
       outcome probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if
       the solution tolerance results in probabilities with significant numerical deviation from
       proper probability distributions.
-    * ``meas_level``: Form of measurement return. Only supported value is ``2``, indicating that
-      counts should be returned. Defaults to ``meas_level==2``.
+    * ``meas_level``: Form of measurement output. Suported values are ``1`` and ``2``.
+      ``1`` returns IQ points and ``2`` returns counts. Defaults to ``meas_level==2``.
+    * ``meas_return``: Level of measurement data to return. ``"single"`` returns information from
+      every shot. ``"avg"`` returns average over shots of measurement output. Defaults to ``"avg"``
+    * ``iq_centers``: List[List[Tuple]] containing centers for IQ distribution. provided in the
+      format ``iq_centers[subsystem][level] = (I,Q)``. Defaults to equally spaced points on a
+      unit circle for each subsystem.
+    * ``iq_width``: Standard deviation of IQ distribution around the centers.
+      Must be positivie float. Defaults to ``0.2``.
     * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem.
       Values will be rounded down to be no larger than ``max_outcome_level``. Must be a positive
       integer or ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
@@ -163,12 +170,12 @@ class DynamicsBackend(BackendV2):
             initial_state="ground_state",
             meas_level=MeasLevel.CLASSIFIED,
             meas_return=MeasReturnType.AVERAGE,
+            iq_centers=None,
+            iq_width=0.2,
             max_outcome_level=1,
             memory=True,
             seed_simulator=None,
             experiment_result_function=default_experiment_result_function,
-            iq_centers=None,
-            iq_width=0.2,
         )
 
     def set_options(self, **fields):
