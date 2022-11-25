@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Lindblad models module.
+Lindblad model module.
 """
 
 from typing import Tuple, Union, List, Optional
@@ -73,8 +73,8 @@ class LindbladModel(BaseGeneratorModel):
 
     respectively. In the above:
 
-        - :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}`
-          respectively denote the matrix commutator and anti-commutator,
+        - :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` respectively denote the matrix
+          commutator and anti-commutator,
         - :math:`H(t)` denotes the Hamiltonian,
         - :math:`N_j` denotes the operators appearing in the static dissipator,
         - :math:`L_j` denotes the operators appearing in the time-dpendent portion of the
@@ -82,8 +82,8 @@ class LindbladModel(BaseGeneratorModel):
         - :math:`\gamma_j(t)` denotes the signal corresponding to the
           :math:`j^{th}` time-dependent dissipator operator.
 
-    Instantiating an instance of :class:`~qiskit_dynamics.models.LindbladModel`
-    requires specifying the above decomposition:
+    Instantiating an instance of :class:`~qiskit_dynamics.models.LindbladModel` requires specifying
+    the above decomposition:
 
     .. code-block:: python
 
@@ -121,20 +121,19 @@ class LindbladModel(BaseGeneratorModel):
         Args:
             static_hamiltonian: Constant term in Hamiltonian.
             hamiltonian_operators: List of operators in Hamiltonian with time-dependent
-                                   coefficients.
+                coefficients.
             hamiltonian_signals: Time-dependent coefficients for hamiltonian_operators.
             static_dissipators: List of dissipators with coefficient 1.
             dissipator_operators: List of dissipator operators with time-dependent coefficients.
             dissipator_signals: Time-dependent coefficients for dissipator_operators.
-            rotating_frame: Rotating frame in which calcualtions are to be done.
-                            If provided, it is assumed that all operators were
-                            already in the frame basis.
+            rotating_frame: Rotating frame in which calcualtions are to be done. If provided, it is
+                assumed that all operators were already in the frame basis.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
-                            frame operator is diagonalized.
+                frame operator is diagonalized.
             evaluation_mode: Evaluation mode to use. Call ``help(LindbladModel.evaluation_mode)``
-                             for more details.
+                for more details.
             validate: If True check input hamiltonian_operators and static_hamiltonian are
-                      Hermitian.
+                Hermitian.
 
         Raises:
             QiskitError: If model insufficiently or incorrectly specified.
@@ -172,7 +171,6 @@ class LindbladModel(BaseGeneratorModel):
 
         self._rotating_frame = None
         self.rotating_frame = rotating_frame
-
         self._in_frame_basis = None
         self.in_frame_basis = in_frame_basis
 
@@ -194,8 +192,8 @@ class LindbladModel(BaseGeneratorModel):
             static_dissipators: List of dissipators with coefficient 1.
             dissipator_operators: List of dissipators with time-dependent coefficients.
             dissipator_signals: List time-dependent coefficients for dissipator_operators.
-            evaluation_mode: Evaluation mode. Call ``help(LindbladModel.evaluation_mode)``
-                for more information.
+            evaluation_mode: Evaluation mode. Call ``help(LindbladModel.evaluation_mode)`` for more
+                information.
 
         Returns:
             LindbladModel: Linblad model from parameters.
@@ -221,6 +219,7 @@ class LindbladModel(BaseGeneratorModel):
 
     @property
     def dim(self) -> int:
+        """The matrix dimension."""
         if self._operator_collection.static_hamiltonian is not None:
             return self._operator_collection.static_hamiltonian.shape[-1]
         elif self._operator_collection.hamiltonian_operators is not None:
@@ -232,21 +231,17 @@ class LindbladModel(BaseGeneratorModel):
 
     @property
     def signals(self) -> Tuple[SignalList]:
-        """Gets the Model's Signals.
+        """The model's signals as tuple with the 0th entry storing the Hamiltonian signals and the
+        1st entry storing the dissipator signals.
 
-        Returns:
-            Tuple[] with 0th entry storing the Hamiltonian signals
-            and the 1st entry storing the dissipator signals.
+        Raises:
+            QiskitError: If, when setting this property, the given signals are incompatible with
+                operator structure.
         """
         return (self._hamiltonian_signals, self._dissipator_signals)
 
     @signals.setter
     def signals(self, new_signals: Tuple[List[Signal]]):
-        """Set signals.
-
-        Raises:
-            QiskitError: If signals incompatible with operator structure.
-        """
         hamiltonian_signals, dissipator_signals = new_signals
 
         # set Hamiltonian signals
@@ -303,8 +298,8 @@ class LindbladModel(BaseGeneratorModel):
 
     @property
     def in_frame_basis(self) -> bool:
-        """Whether to represent the model in the basis in which the frame operator
-        is diagonalized.
+        """Whether to represent the model in the basis in which the frame operator is
+        diagonalized.
         """
         return self._in_frame_basis
 
@@ -314,37 +309,37 @@ class LindbladModel(BaseGeneratorModel):
 
     @property
     def static_hamiltonian(self) -> Array:
-        """Get the static Hamiltonian term."""
+        """The static Hamiltonian term."""
         return self._get_static_hamiltonian(in_frame_basis=self._in_frame_basis)
 
     @static_hamiltonian.setter
     def static_hamiltonian(self, static_hamiltonian: Array):
-        """Set the static Hamiltonian term."""
         self._set_static_hamiltonian(
             new_static_hamiltonian=static_hamiltonian, operator_in_frame_basis=self._in_frame_basis
         )
 
     @property
     def hamiltonian_operators(self) -> Array:
-        """Get the Hamiltonian operators."""
+        """The Hamiltonian operators."""
         return self._get_hamiltonian_operators(in_frame_basis=self._in_frame_basis)
 
     @property
     def static_dissipators(self) -> Array:
-        """Get the static dissipators."""
+        """The static dissipator operators."""
         return self._get_static_dissipators(in_frame_basis=self._in_frame_basis)
 
     @property
     def dissipator_operators(self) -> Array:
-        """Get the dissipator operators."""
+        """The dissipator operators."""
         return self._get_dissipator_operators(in_frame_basis=self._in_frame_basis)
 
     def _get_static_hamiltonian(self, in_frame_basis: Optional[bool] = False) -> Array:
-        """Get the constant hamiltonian term.
+        """Get the constant Hamiltonian term.
 
         Args:
-            in_frame_basis: Flag for whether the returned static_operator should be
-            in the basis in which the frame is diagonal.
+            in_frame_basis: Flag for whether the returned ``static_operator`` should be in the basis
+                in which the frame is diagonal.
+
         Returns:
             The static operator term.
         """
@@ -360,13 +355,14 @@ class LindbladModel(BaseGeneratorModel):
         operator_in_frame_basis: Optional[bool] = False,
     ):
         """Set the constant Hamiltonian term.
-        Note that if the model has a rotating frame this will override
-        any contributions to the static term due to the frame transformation.
+
+        Note that if the model has a rotating frame this will override any contributions to the
+        static term due to the frame transformation.
 
         Args:
             new_static_hamiltonian: The static operator operator.
-            operator_in_frame_basis: Whether `new_static_operator` is already in the rotating
-            frame basis.
+            operator_in_frame_basis: Whether ``new_static_operator`` is already in the rotating
+                frame basis.
         """
         if new_static_hamiltonian is None:
             self._operator_collection.static_hamiltonian = None
@@ -383,6 +379,7 @@ class LindbladModel(BaseGeneratorModel):
 
         Args:
             in_frame_basis: Whether to return in frame basis or not.
+
         Returns:
             Hamiltonian operators.
         """
@@ -397,6 +394,7 @@ class LindbladModel(BaseGeneratorModel):
 
         Args:
             in_frame_basis: Whether to return in frame basis or not.
+
         Returns:
             Dissipator operators.
         """
@@ -407,10 +405,11 @@ class LindbladModel(BaseGeneratorModel):
         return diss_ops
 
     def _get_dissipator_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
-        """Get the Dissipator operators, either in the frame basis or not.
+        """Get the dissipator operators, either in the frame basis or not.
 
         Args:
             in_frame_basis: Whether to return in frame basis or not.
+
         Returns:
             Dissipator operators.
         """
@@ -426,33 +425,26 @@ class LindbladModel(BaseGeneratorModel):
 
         Available options:
 
-         * 'dense': Stores Hamiltonian and dissipator terms as dense Array types.
-         * 'dense_vectorized': Stores the Hamiltonian and dissipator
-            terms as :math:`(dim^2,dim^2)` matrices that acts on a vectorized
-            density matrix by left-multiplication. Allows for direct evaluate generator.
-         * 'sparse': Like dense, but matrices stored in sparse format. If the default Array backend
-            is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
-            :class:`csr_matrix` sparse type.
-         * `sparse_vectorized`: Like dense_vectorized, but matrices stored in sparse format.
-            If the default Array backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
-            :class:`csr_matrix` sparse type. Note that
-            JAX sparse mode is only recommended for use on CPU.
+         * ``'dense'``: Stores Hamiltonian and dissipator terms as dense Array types.
+         * ``'dense_vectorized'``: Stores the Hamiltonian and dissipator terms as
+           :math:`(dim^2,dim^2)` matrices that acts on a vectorized density matrix by
+           left-multiplication. Allows for direct evaluate generator.
+         * ``'sparse'``: Like dense, but matrices stored in sparse format. If the default Array
+           backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy :class:`csr_matrix`
+           sparse type.
+         * ```sparse_vectorized```: Like dense_vectorized, but matrices stored in sparse format. If
+           the default Array backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
+           :class:`csr_matrix` sparse type. Note that JAX sparse mode is only recommended for use
+           on CPU.
+
+        Raises:
+            NotImplementedError: If this property is set to something other than one of the above
+                modes.
         """
         return self._evaluation_mode
 
     @evaluation_mode.setter
     def evaluation_mode(self, new_mode: str):
-        """Sets evaluation mode.
-
-        Args:
-            new_mode: String specifying new mode. Available options
-                      are 'dense', 'sparse', 'dense_vectorized', and 'sparse_vectorized'.
-                      See property doc string for details.
-
-        Raises:
-            NotImplementedError: if new_mode is not one of the above
-            supported evaluation modes.
-        """
         if new_mode != self._evaluation_mode:
             self._operator_collection = construct_lindblad_operator_collection(
                 evaluation_mode=new_mode,
@@ -467,6 +459,13 @@ class LindbladModel(BaseGeneratorModel):
 
     @property
     def rotating_frame(self):
+        """The rotating frame.
+
+        This property can be set with a :class:`RotatingFrame` instance, or any valid constructor
+        argument to this class.
+
+        Setting this property updates the internal operator to use the new frame.
+        """
         return self._rotating_frame
 
     @rotating_frame.setter
@@ -522,9 +521,11 @@ class LindbladModel(BaseGeneratorModel):
         """Evaluates Hamiltonian matrix at a given time.
 
         Args:
-            time: The time at which to evaluate the hamiltonian.
+            time: The time at which to evaluate the Hamiltonian.
+
         Returns:
-            Array: Hamiltonian matrix."""
+            Array: Hamiltonian matrix.
+        """
 
         hamiltonian_sig_vals = None
         if self._hamiltonian_signals is not None:
@@ -543,14 +544,25 @@ class LindbladModel(BaseGeneratorModel):
         return ham
 
     def evaluate(self, time: float) -> Array:
+        """Evaluate the model in array format as a matrix, independent of state.
+
+        Args:
+            time: The time to evaluate the model at.
+
+        Returns:
+            Array: The evaluated model as an anti-Hermitian matrix.
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
+            NotImplementedError: If the model is currently unvectorized.
+        """
         hamiltonian_sig_vals = None
         if self._hamiltonian_signals is not None:
             hamiltonian_sig_vals = self._hamiltonian_signals(time)
         elif self._operator_collection.hamiltonian_operators is not None:
             raise QiskitError(
-                self.__class__.__name__
-                + """ with non-empty hamiltonian operators cannot be evaluated without
-                hamiltonian signals."""
+                f"{type(self).__name__} with non-empty hamiltonian operators cannot be evaluated "
+                "without hamiltonian signals."
             )
 
         dissipator_sig_vals = None
@@ -558,9 +570,8 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_sig_vals = self._dissipator_signals(time)
         elif self._operator_collection.dissipator_operators is not None:
             raise QiskitError(
-                self.__class__.__name__
-                + """ with non-empty dissipator operators cannot be evaluated without
-                dissipator signals."""
+                f"{type(self).__name__} with non-empty dissipator operators cannot be evaluated "
+                "without dissipator signals."
             )
 
         if self.vectorized_operators:
@@ -577,12 +588,13 @@ class LindbladModel(BaseGeneratorModel):
         """Evaluates the Lindblad model at a given time.
 
         Args:
-            time: time at which the model should be evaluated.
-            y: Density matrix as an (n,n) Array if not using a
-               vectorized evaluation_mode or an (n^2) Array if
-               using vectorized evaluation.
+            time: The time at which the model should be evaluated.
+            y: Density matrix as an (n,n) Array if not using a vectorized evaluation_mode, or an
+               (n^2) Array if using vectorized evaluation.
+
         Returns:
             Array: Either the evaluated generator or the state.
+
         Raises:
             QiskitError: If signals not sufficiently specified.
         """
@@ -592,9 +604,8 @@ class LindbladModel(BaseGeneratorModel):
             hamiltonian_sig_vals = self._hamiltonian_signals(time)
         elif self._operator_collection.hamiltonian_operators is not None:
             raise QiskitError(
-                self.__class__.__name__
-                + """ with non-empty hamiltonian operators cannot be evaluated without
-                hamiltonian signals."""
+                f"{type(self).__name__} with non-empty hamiltonian operators cannot be evaluated "
+                "without hamiltonian signals."
             )
 
         dissipator_sig_vals = None
@@ -602,13 +613,11 @@ class LindbladModel(BaseGeneratorModel):
             dissipator_sig_vals = self._dissipator_signals(time)
         elif self._operator_collection.dissipator_operators is not None:
             raise QiskitError(
-                self.__class__.__name__
-                + """ with non-empty dissipator operators cannot be evaluated without
-                dissipator signals."""
+                f"{type(self).__name__} with non-empty dissipator operators cannot be evaluated "
+                "without dissipator signals."
             )
 
         if self.rotating_frame.frame_diag is not None:
-
             # Take y out of the frame, but keep in the frame basis
             rhs = self.rotating_frame.operator_out_of_frame(
                 time,
@@ -646,21 +655,22 @@ def construct_lindblad_operator_collection(
     static_dissipators: Union[None, Array, csr_matrix],
     dissipator_operators: Union[None, Array, List[csr_matrix]],
 ) -> BaseLindbladOperatorCollection:
-    """Construct Lindblad operator collection.
+    """Construct a Lindblad operator collection.
 
     Args:
-        evaluation_mode: String specifying new mode. Available options
-                         are 'dense', 'sparse', 'dense_vectorized', and 'sparse_vectorized'.
-                         See property doc string for details.
+        evaluation_mode: String specifying new mode. Available options are ``'dense'``,
+            ``'sparse'``, ``'dense_vectorized'``, and ``'sparse_vectorized'``.
         static_hamiltonian: Constant part of the Hamiltonian.
         hamiltonian_operators: Operators in Hamiltonian with time-dependent coefficients.
         static_dissipators: Dissipation operators with coefficient 1.
         dissipator_operators: Dissipation operators with variable coefficients.
+
     Returns:
         BaseLindbladOperatorCollection: Right-hand side evaluation object.
+
     Raises:
-        NotImplementedError: if evaluation_mode is not one of the above
-        supported evaluation modes.
+        NotImplementedError: If ``evaluation_mode`` is not one of the above supported evaluation
+            modes.
     """
 
     # raise warning if sparse mode set with JAX not on cpu
@@ -690,9 +700,8 @@ def construct_lindblad_operator_collection(
             CollectionClass = SparseVectorizedLindbladCollection
     else:
         raise NotImplementedError(
-            "Evaluation mode '"
-            + str(evaluation_mode)
-            + "' is not supported. Call help(LindbladModel.evaluation_mode) for available options."
+            f"Evaluation mode '{evaluation_mode}' is not supported. See "
+            "help(LindbladModel.evaluation_mode) for available options."
         )
 
     return CollectionClass(
