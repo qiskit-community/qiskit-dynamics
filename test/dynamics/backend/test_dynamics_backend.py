@@ -204,6 +204,11 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         )
         self.backend_2q = DynamicsBackend(solver=solver_2q, subsystem_dims=[2, 2])
 
+        # function to discriminate 0 and 1 for default centers.
+        self.iq_to_counts = lambda iq_n: dict(
+            zip(*np.unique(["0" if iq[0].real > 0 else "1" for iq in iq_n], return_counts=True))
+        )
+
     def test_pi_pulse(self):
         """Test simulation of a pi pulse."""
 
@@ -219,9 +224,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         result = self.simple_backend.run(
             schedule, meas_level=1, meas_return="single", seed_simulator=1234567
         ).result()
-        data = result.get_memory()
-        predict = lambda iq_n: ["0" if iq[0].real > 0 else "1" for iq in iq_n]
-        counts = dict(zip(*np.unique(predict(data), return_counts=True)))
+        counts = self.iq_to_counts(result.get_memory())
         self.assertDictEqual(counts, {"1": 1024})
 
     def test_pi_pulse_initial_state(self):
@@ -258,9 +261,8 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             meas_level=1,
             meas_return="single",
         ).result()
-        data = result.get_memory()
-        predict = lambda iq_n: ["0" if iq[0].real > 0 else "1" for iq in iq_n]
-        counts = dict(zip(*np.unique(predict(data), return_counts=True)))
+
+        counts = self.iq_to_counts(result.get_memory())
         self.assertDictEqual(counts, {"0": 499, "1": 525})
 
     def test_pi_half_pulse_relabelled(self):
