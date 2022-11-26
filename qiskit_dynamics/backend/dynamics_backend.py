@@ -654,12 +654,12 @@ def _get_backend_channel_freqs(
     for channel in channels:
         if channel[0] == "d":
             idx = int(channel[1:])
-            if idx > len(backend_defaults.qubit_freq_est):
+            if idx >= len(backend_defaults.qubit_freq_est):
                 raise QiskitError(f"DriveChannel index {idx} is out of bounds.")
             channel_freqs[channel] = backend_defaults.qubit_freq_est[idx]
         elif channel[0] == "m":
             idx = int(channel[1:])
-            if idx > len(backend_defaults.meas_freq_est):
+            if idx >= len(backend_defaults.meas_freq_est):
                 raise QiskitError(f"MeasureChannel index {idx} is out of bounds.")
             channel_freqs[channel] = backend_defaults.meas_freq_est[idx]
 

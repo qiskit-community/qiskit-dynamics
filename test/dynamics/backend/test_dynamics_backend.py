@@ -510,5 +510,5 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
 
     def test_meas_out_of_bounds(self):
         """Raise error if drive channel index too high."""
-        with self.assertRaisesRegex(QiskitError, "MeasureChannel index 10"):
-            _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["m10"])
+        with self.assertRaisesRegex(QiskitError, "MeasureChannel index 6"):
+            _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["m6"])
