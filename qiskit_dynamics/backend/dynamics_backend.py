@@ -177,7 +177,7 @@ class DynamicsBackend(BackendV2):
             seed_simulator=None,
             experiment_result_function=default_experiment_result_function,
             configuration=None,
-            defaults=None
+            defaults=None,
         )
 
     def set_options(self, **fields):
@@ -204,7 +204,9 @@ class DynamicsBackend(BackendV2):
             elif key == "experiment_result_function" and not callable(value):
                 raise QiskitError("experiment_result_function must be callable.")
             elif key == "configuration" and not isinstance(value, PulseBackendConfiguration):
-                raise QiskitError("configuration option must be an instance of PulseBackendConfiguration.")
+                raise QiskitError(
+                    "configuration option must be an instance of PulseBackendConfiguration."
+                )
             elif key == "defaults" and not isinstance(value, PulseDefaults):
                 raise QiskitError("defaults option must be an instance of PulseDefaults.")
 
@@ -388,59 +390,56 @@ class DynamicsBackend(BackendV2):
     ) -> "DynamicsBackend":
         """Construct a :class:`.DynamicsBackend` instance from an existing ``Backend`` instance.
 
-        The ``backend`` must have the ``configuration`` and ``defaults`` attributes. 
-        The ``configuration`` must containing a Hamiltonian description,
-        step size ``dt``, number of qubits ``n_qubits``, and ``u_channel_lo`` (when control channels are present).  The ``defaults`` must contain ``qubit_freq_est`` and ``meas_freq_est``.
+        The ``backend`` must have the ``configuration`` and ``defaults`` attributes. The
+        ``configuration`` must containing a Hamiltonian description, step size ``dt``, number of
+        qubits ``n_qubits``, and ``u_channel_lo`` (when control channels are present).  The
+        ``defaults`` must contain ``qubit_freq_est`` and ``meas_freq_est``.
 
-        The optional argument ``subsystem_list`` specifies which subset of qubits will be
-        modelled in the constructed :class:`DynamicsBackend`, with all other qubits will being 
-        dropped from the model.
-        
+        The optional argument ``subsystem_list`` specifies which subset of qubits will be modelled
+        in the constructed :class:`DynamicsBackend`, with all other qubits will being dropped from
+        the model.
+
 
         Args:
             backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.
             subsystem_list: The list of qubits in the backend to include in the model.
             solver_kwargs: Additional keyword arguments to pass to the :class:`.Solver` instance
                 constructed from the model in the backend.
-            **options: Additional options to be applied in construction of the 
+            **options: Additional options to be applied in construction of the
                 :class:`.DynamicsBackend`.
-        
+
         Returns:
             DynamicsBackend
-        
+
         Raises:
             QiskitError if any required parameters are missing from the passed backend.
 
         Notes:
             - Added configuration/defaults methods for "backwards compatibility". They are not
-              strictly required by DynamicsBackend, but they are required of backends passed to 
+              strictly required by DynamicsBackend, but they are required of backends passed to
               DynamicsBackend.from_backend, so I think it's probably natural for cases utilizing
-              from_backend for these to be present.
+              from_backend for these to be present. These are settable as options, defaulting to
+              None.
 
         To do:
             - Issue with solver_kwargs is the user may will not have access to the hamiltonian
-              terms, and hence can't effectively specify the rotating frame they want to be in.
-              What to do about this? Could add string handling, like rotating_frame='static_hamiltonian'?
-                - Can we somehow provide the user with "standard" configurations? E.g. if sparse,
-                  it will automatically simulate in the diagonal of the static hamiltonian?
-                - The user can set the rotating frame of the model AFTER construction as well
-                  (by getting it from the solver).
-                - Could maybe change arg to "solver_configuration", and it can either be a
-                  string like "sparse", "dense", and the appropriate frame is automatically entered,
-                  or it can be a dict and explicitly be passed as
-            - Modify configuration, defaults, target when copying into backend, or
-              leave as is?
+              terms, and hence can't effectively specify the rotating frame they want to be in. What
+              to do about this? Could add string handling, like rotating_frame='static_hamiltonian'?
+                - Can we somehow provide the user with "standard" configurations? E.g. if sparse, it
+                  will automatically simulate in the diagonal of the static hamiltonian?
+                - The user can set the rotating frame of the model AFTER construction as well (by
+                  getting it from the solver).
+                - Could maybe change arg to "solver_configuration", and it can either be a string
+                  like "sparse", "dense", and the appropriate frame is automatically entered, or it
+                  can be a dict and explicitly be passed as
+            - Modify configuration, defaults, target when copying into backend, or leave as is?
             - To test:
-                - all validation checks in from_backend, including option setting for configuration/defaults
+                - all validation checks in from_backend, including option setting for
+                  configuration/defaults
 
 
         """
 
-        # validation
-        # to do:
-        #     - need to validate that it's a pulse default? Or can we just check that
-        #     it has qubit_freq_est?
-        #     - Validate that subsystem_list is non-empty/well-formed
         if not hasattr(backend, "configuration"):
             raise QiskitError(
                 """DynamicsBackend.from_backend requires that the backend argument have a
@@ -457,13 +456,17 @@ class DynamicsBackend(BackendV2):
         # get and parse Hamiltonian string dictionary
         if subsystem_list is not None:
             subsystem_list = sorted(subsystem_list)
-            if subsystem_list[-1] > config.n_qubits:
-                raise QiskitError(f"subsystem_list contained {subsystem_list[-1]} but backend only has {config.n_qubits} qubits.")
+            if subsystem_list[-1] >= config.n_qubits:
+                raise QiskitError(
+                    f"""subsystem_list contained {subsystem_list[-1]}, which is out of bounds for config.n_qubits == {config.n_qubits}."""
+                )
         else:
             subsystem_list = list(range(config.n_qubits))
 
         if not hasattr(config, "hamiltonian"):
-            raise QiskitError("DynamicsBackend.from_backend requires that backend.configuration() has a hamiltonian attribute.")
+            raise QiskitError(
+                "DynamicsBackend.from_backend requires that backend.configuration() has a hamiltonian attribute."
+            )
 
         hamiltonian_dict = config.hamiltonian
         (
@@ -476,7 +479,9 @@ class DynamicsBackend(BackendV2):
 
         # get time step size
         if not hasattr(config, "dt"):
-            raise QiskitError("DynamicsBackend.from_backend requires that backend.configuration() has a dt attribute.")
+            raise QiskitError(
+                "DynamicsBackend.from_backend requires that backend.configuration() has a dt attribute."
+            )
         dt = config.dt
 
         # construct model frequencies dictionary from backend
@@ -500,7 +505,7 @@ class DynamicsBackend(BackendV2):
 
         if "configuration" not in options:
             options["configuration"] = copy.copy(backend_config)
-        
+
         if "defaults" not in options:
             options["defaults"] = copy.copy(backend_defaults)
 
@@ -713,11 +718,11 @@ def _get_backend_channel_freqs(
     u_channels = []
 
     for channel in channels:
-        if channel[0] == 'd':
+        if channel[0] == "d":
             drive_channels.append(channel)
-        elif channel[0] == 'm':
+        elif channel[0] == "m":
             meas_channels.append(channel)
-        elif channel[0] == 'u':
+        elif channel[0] == "u":
             u_channels.append(channel)
         else:
             raise QiskitError("Unrecognized channel type requested.")
@@ -725,10 +730,10 @@ def _get_backend_channel_freqs(
     # validate required attributes are present
     if drive_channels and not hasattr(backend_defaults, "qubit_freq_est"):
         raise QiskitError("DriveChannels in model but defaults does not have qubit_freq_est.")
-    
+
     if meas_channels and not hasattr(backend_defaults, "meas_freq_est"):
         raise QiskitError("MeasureChannels in model but defaults does not have meas_freq_est.")
-    
+
     if u_channels and not hasattr(backend_config, "u_channel_lo"):
         raise QiskitError("ControlChannels in model but configuration does not have u_channel_lo.")
 
@@ -740,7 +745,7 @@ def _get_backend_channel_freqs(
         if idx >= len(backend_defaults.qubit_freq_est):
             raise QiskitError(f"DriveChannel index {idx} is out of bounds.")
         channel_freqs[channel] = backend_defaults.qubit_freq_est[idx]
-    
+
     for channel in meas_channels:
         idx = int(channel[1:])
         if idx >= len(backend_defaults.meas_freq_est):
@@ -754,7 +759,7 @@ def _get_backend_channel_freqs(
         freq = 0.0
         for u_channel_lo in backend_config.u_channel_lo[idx]:
             freq += backend_defaults.qubit_freq_est[u_channel_lo.q] * u_channel_lo.scale
-        
+
         channel_freqs[channel] = freq
 
     # validate that all channels have frequencies

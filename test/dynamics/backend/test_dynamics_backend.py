@@ -140,13 +140,13 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "must be callable."):
             self.simple_backend.set_options(experiment_result_function=1)
-    
+
     def test_invalid_configuration_type(self):
         """Test setting non-PulseBackendConfiguration."""
 
         with self.assertRaisesRegex(QiskitError, "configuration option must be"):
             self.simple_backend.set_options(configuration=1)
-    
+
     def test_invalid_defaults_type(self):
         """Test setting non-PulseDefaults."""
 
@@ -408,6 +408,111 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         self.assertDictEqual(result.get_counts(), {"3": 1})
 
 
+class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
+    """Test class for DynamicsBackend.from_backend and resulting DynamicsBackend instances."""
+
+    def setUp(self):
+        """Set up a simple backend valid for consumption by from_backend."""
+
+        configuration = SimpleNamespace()
+        configuration.n_qubits = 5
+        configuration.hamiltonian = {
+            "h_str": [
+                "_SUM[i,0,4,wq{i}/2*(I{i}-Z{i})]",
+                "_SUM[i,0,4,delta{i}/2*O{i}*O{i}]",
+                "_SUM[i,0,4,-delta{i}/2*O{i}]",
+                "_SUM[i,0,4,omegad{i}*X{i}||D{i}]",
+                "jq1q2*Sp1*Sm2",
+                "jq1q2*Sm1*Sp2",
+                "jq3q4*Sp3*Sm4",
+                "jq3q4*Sm3*Sp4",
+                "jq0q1*Sp0*Sm1",
+                "jq0q1*Sm0*Sp1",
+                "jq2q3*Sp2*Sm3",
+                "jq2q3*Sm2*Sp3",
+                "omegad1*X0||U0",
+                "omegad0*X1||U1",
+                "omegad2*X1||U2",
+                "omegad1*X2||U3",
+                "omegad3*X2||U4",
+                "omegad4*X3||U6",
+                "omegad2*X3||U5",
+                "omegad3*X4||U7",
+            ],
+            "osc": {},
+            "qub": {"0": 3, "1": 3, "2": 3, "3": 3, "4": 3},
+            "vars": {
+                "delta0": -2111793476.4003937,
+                "delta1": -2089442135.2015743,
+                "delta2": -2117918367.1068604,
+                "delta3": -2041004543.1261215,
+                "delta4": -2111988556.5086775,
+                "jq0q1": 10495754.104003914,
+                "jq1q2": 10781715.511200013,
+                "jq2q3": 8920779.377814226,
+                "jq3q4": 8985191.65108779,
+                "omegad0": 971545899.0879812,
+                "omegad1": 980381253.7440838,
+                "omegad2": 949475607.7681785,
+                "omegad3": 976399854.3087951,
+                "omegad4": 982930801.9780478,
+                "wq0": 32517894442.809513,
+                "wq1": 33094899612.019604,
+                "wq2": 31745180964.17169,
+                "wq3": 30510620255.52735,
+                "wq4": 32160826850.25662,
+            }
+        }
+        configuration.dt = 2e-9 / 9
+
+        defaults = SimpleNamespace()
+
+        # configuration and defaults need to be methods
+        backend = SimpleNamespace()
+        backend.configuration = lambda: configuration
+        backend.defaults = lambda: defaults
+
+        self.valid_backend = backend
+
+    def test_no_configuration_error(self):
+        """Test that error is raised if no configuration present in backend."""
+
+        # delete configuration
+        delattr(self.valid_backend, "configuration")
+
+        with self.assertRaisesRegex(QiskitError, "configuration attribute"):
+            DynamicsBackend.from_backend(backend=self.valid_backend)
+
+    def test_no_defaults_error(self):
+        """Test that error is raised if configuration but no defaults present in backend."""
+
+        delattr(self.valid_backend, "defaults")
+
+        with self.assertRaisesRegex(QiskitError, "defaults attribute"):
+            DynamicsBackend.from_backend(backend=self.valid_backend)
+
+    def test_no_hamiltonian(self):
+        """Test error is raised if configuration does not have a hamiltonian."""
+
+        delattr(self.valid_backend.configuration(), "hamiltonian")
+
+        with self.assertRaisesRegex(QiskitError, "hamiltonian attribute"):
+            DynamicsBackend.from_backend(backend=self.valid_backend)
+    
+    def test_no_dt(self):
+        """Test error is raised if no dt in configuration."""
+        delattr(self.valid_backend.configuration(), "dt")
+
+        with self.assertRaisesRegex(QiskitError, "dt attribute"):
+            DynamicsBackend.from_backend(backend=self.valid_backend)
+
+    def test_subsystem_list_out_of_bounds(self):
+        """Test error is raised if subsystem_list contains values above config.n_qubits."""
+
+        with self.assertRaisesRegex(QiskitError, "out of bounds"):
+            DynamicsBackend.from_backend(backend=self.valid_backend, subsystem_list=[5])
+
+
 class Test_default_experiment_result_function(QiskitDynamicsTestCase):
     """Test default_experiment_result_function."""
 
@@ -499,46 +604,66 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
         """Test case drive and u channels."""
         channels = ["d0", "d1", "d2", "u1", "u2"]
         expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)} | {
-            "u1": 2.1 * self.defaults.qubit_freq_est[3], 
-            "u2": 1.1 * self.defaults.qubit_freq_est[4] - 1.1 * self.defaults.qubit_freq_est[2]
+            "u1": 2.1 * self.defaults.qubit_freq_est[3],
+            "u2": 1.1 * self.defaults.qubit_freq_est[4] - 1.1 * self.defaults.qubit_freq_est[2],
         }
         self._test_with_setUp_example(channels=channels, expected_output=expected_output)
-    
+
     def test_unrecognized_channel_type(self):
         """Test error is raised if unrecognized channel type."""
 
         with self.assertRaisesRegex(QiskitError, "Unrecognized"):
-            _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=SimpleNamespace(), channels=["r1"])
+            _get_backend_channel_freqs(
+                backend_config=SimpleNamespace(),
+                backend_defaults=SimpleNamespace(),
+                channels=["r1"],
+            )
 
     def test_no_u_channel_lo_attribute_error(self):
         """Test error if no u_channel_lo attribute for config."""
-        
+
         with self.assertRaisesRegex(QiskitError, "configuration does not have"):
-            _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=self.defaults, channels=["u1"])
-    
+            _get_backend_channel_freqs(
+                backend_config=SimpleNamespace(), backend_defaults=self.defaults, channels=["u1"]
+            )
+
     def test_no_qubit_freq_est_attribute_error(self):
         """Test error if no qubit_freq_est in defaults."""
-        
+
         with self.assertRaisesRegex(QiskitError, "defaults does not have"):
-            _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=SimpleNamespace(), channels=["d0"])
-    
+            _get_backend_channel_freqs(
+                backend_config=SimpleNamespace(),
+                backend_defaults=SimpleNamespace(),
+                channels=["d0"],
+            )
+
     def test_no_meas_freq_est_attribute_error(self):
         """Test error if no meas_freq_est in defaults."""
-        
+
         with self.assertRaisesRegex(QiskitError, "defaults does not have"):
-            _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=SimpleNamespace(), channels=["m0"])
+            _get_backend_channel_freqs(
+                backend_config=SimpleNamespace(),
+                backend_defaults=SimpleNamespace(),
+                channels=["m0"],
+            )
 
     def test_missing_u_channel_error(self):
         """Raise error if missing u channel."""
         with self.assertRaisesRegex(QiskitError, "ControlChannel index 4"):
-            _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["u4"])
-    
+            _get_backend_channel_freqs(
+                backend_config=self.config, backend_defaults=self.defaults, channels=["u4"]
+            )
+
     def test_drive_out_of_bounds(self):
         """Raise error if drive channel index too high."""
         with self.assertRaisesRegex(QiskitError, "DriveChannel index 10"):
-            _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["d10"])
+            _get_backend_channel_freqs(
+                backend_config=self.config, backend_defaults=self.defaults, channels=["d10"]
+            )
 
     def test_meas_out_of_bounds(self):
         """Raise error if drive channel index too high."""
         with self.assertRaisesRegex(QiskitError, "MeasureChannel index 6"):
-            _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["m6"])
+            _get_backend_channel_freqs(
+                backend_config=self.config, backend_defaults=self.defaults, channels=["m6"]
+            )
