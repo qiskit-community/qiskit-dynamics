@@ -458,11 +458,24 @@ def default_experiment_result_function(
             header=QobjHeader(name=experiment_name),
         )
     elif backend.options.meas_level == MeasLevel.KERNELED:
+
+        if backend.options.iq_centers is None:
+            # Default iq_centers
+            iq_centers = []
+            for sub_dim in backend.options.subsystem_dims:
+                theta = 2 * np.pi / sub_dim
+                iq_centers.append(
+                    [(np.cos(idx * theta), np.sin(idx * theta)) for idx in range(sub_dim)]
+                )
+            backend.options.iq_centers = iq_centers
+
         # generate IQ
         measurement_data = _iq_data(
-            backend.options,
             yf,
             measurement_subsystems=measurement_subsystems,
+            iq_centers=backend.options.iq_centers,
+            iq_width=backend.options.iq_width,
+            shots=backend.options.shots,
             seed=seed,
         )
 

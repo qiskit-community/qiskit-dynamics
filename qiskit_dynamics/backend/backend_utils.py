@@ -20,7 +20,6 @@ from typing import Optional, Union, List, Dict
 
 import numpy as np
 from qiskit import QiskitError
-from qiskit.providers.options import Options
 from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 
@@ -173,7 +172,6 @@ def _get_counts_from_samples(samples: list) -> Dict:
 
 def _iq_data(
     state: Union[Statevector, DensityMatrix],
-    subsystem_dims: List[int],
     measurement_subsystems: List[int],
     iq_centers: List[List[List[float]]],
     iq_width: float,
@@ -184,11 +182,9 @@ def _iq_data(
 
     Args:
         state: Quantum state.
-        subsystem_dims: Dimensions of subsystems composing the system.
         measurement_subsystems: Labels of subsystems in the system being measured.
         iq_centers: centers for IQ distribution. provided in the format
-                    ``iq_centers[subsystem][level] = [I,Q]``. Defaults to equally spaced points on
-                    a unit circle for each subsystem.
+                    ``iq_centers[subsystem][level] = [I,Q]``.
         iq_width: Standard deviation of IQ distribution around the centers.
         shots: Number of Shots
         seed: Seed for sample generation.
@@ -200,15 +196,6 @@ def _iq_data(
         QiskitError: If number of centers and levels don't match.
     """
     rng = np.random.default_rng(seed)
-
-    if iq_centers is None:
-        # Default iq_centers
-        iq_centers = []
-        for sub_dim in subsystem_dims:
-            theta = 2 * np.pi / sub_dim
-            iq_centers.append(
-                [(np.cos(idx * theta), np.sin(idx * theta)) for idx in range(sub_dim)]
-            )
 
     full_i, full_q = [], []
     for sub_idx in measurement_subsystems:
@@ -228,7 +215,7 @@ def _iq_data(
             sub_i.append(rng.normal(loc=iq_centers[sub_idx][idx][0], scale=iq_width, size=count_i))
             sub_q.append(rng.normal(loc=iq_centers[sub_idx][idx][1], scale=iq_width, size=count_i))
 
-        full_i.append(np.ravel(sub_i))
-        full_q.append(np.ravel(sub_q))
+        full_i.append(np.concatenate(sub_i))
+        full_q.append(np.concatenate(sub_q))
     full_iq = np.array([full_i, full_q]).T
     return full_iq

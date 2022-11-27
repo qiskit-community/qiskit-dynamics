@@ -19,7 +19,6 @@ from ddt import ddt, data, unpack
 import numpy as np
 
 from qiskit import QiskitError
-from qiskit.providers.options import Options
 from qiskit.quantum_info import Statevector
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
@@ -219,22 +218,58 @@ class Test_get_counts_from_samples(QiskitDynamicsTestCase):
 class Test_iq_data(QiskitDynamicsTestCase):
     """Test _iq_data."""
 
-    def test_basic_predict(self):
-        """Basic test case."""
-        options = Options(
-            iq_centers=[[(1, 0), (-1, 0)]],
-            subsystem_dims=[
-                2,
-            ],
-            shots=10,
-            iq_width=0.1,
+    def setUp(self):
+        self.iq_to_counts = lambda iq_n: dict(
+            zip(*np.unique(["1" if iq[0] > 0 else "0" for iq in iq_n], return_counts=True))
         )
+
+    def test_basic_predict(self):
+        """Basic predict test case."""
         iq_data = _iq_data(
-            options,
-            state=Statevector(np.array([1, 1]) / np.sqrt(2)),
+            state=Statevector(np.array([0.5, 1]) / np.sqrt(1.25)),
             measurement_subsystems=[0],
+            iq_centers=[[(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=100,
             seed=83248,
         )
-        predict = lambda iq_n: ["0" if iq[0][1] > 0 else "1" for iq in iq_n]
-        counts = dict(zip(*np.unique(predict(iq_data), return_counts=True)))
-        self.assertDictEqual(counts, {"0": 6, "1": 4})
+        counts = self.iq_to_counts(iq_data[:, 0, :])
+        self.assertDictEqual(counts, {"0": 74, "1": 26})
+
+    def test_multi_qubit_predict(self):
+        """Multi_qubit predict test case."""
+        iq_data = _iq_data(
+            state=Statevector(np.array([0.5, 1, 0, 0]) / np.sqrt(1.25)),
+            measurement_subsystems=[0, 1],
+            iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=100,
+            seed=83248,
+        )
+
+        counts0 = self.iq_to_counts(iq_data[:, 0, :])
+        counts1 = self.iq_to_counts(iq_data[:, 1, :])
+        self.assertDictEqual(counts0, {"0": 74, "1": 26})
+        self.assertDictEqual(counts1, {"1": 100})
+
+    def test_multi_qubit_iq(self):
+        """Multi qubit IQ test case."""
+
+        iq_data = _iq_data(
+            state=Statevector(np.array([1, 1, 1, 1, 1, 1]) / 2, dims=[3, 2]),
+            measurement_subsystems=[0, 1],
+            iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0), (0, 1)]],
+            iq_width=0.1,
+            shots=3,
+            seed=83248,
+        )
+        self.assertAllClose(
+            iq_data,
+            np.array(
+                [
+                    [[0.99445976, 0.13454847], [0.94630875, 0.00429145]],
+                    [[1.00486134, 0.19089796], [-1.0284215, 0.00462867]],
+                    [[1.02002225, 0.03934462], [-0.89899502, 0.01156453]],
+                ]
+            ),
+        )
