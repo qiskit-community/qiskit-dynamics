@@ -493,11 +493,23 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
         self._test_with_setUp_example(channels=channels, expected_output=expected_output)
     
     def test_no_u_channel_lo_attribute_error(self):
-        """Test error if u_channel_lo attribute for config."""
+        """Test error if no u_channel_lo attribute for config."""
         
         with self.assertRaisesRegex(QiskitError, "configuration does not have"):
             _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=self.defaults, channels=["u1"])
     
+    def test_no_qubit_freq_est_attribute_error(self):
+        """Test error if no qubit_freq_est in defaults."""
+        
+        with self.assertRaisesRegex(QiskitError, "defaults does not have"):
+            _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=SimpleNamespace(), channels=["d0"])
+    
+    def test_no_meas_freq_est_attribute_error(self):
+        """Test error if no meas_freq_est in defaults."""
+        
+        with self.assertRaisesRegex(QiskitError, "defaults does not have"):
+            _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=SimpleNamespace(), channels=["m0"])
+
     def test_missing_u_channel_error(self):
         """Raise error if missing u channel."""
         with self.assertRaisesRegex(QiskitError, "No carrier frequency found"):
