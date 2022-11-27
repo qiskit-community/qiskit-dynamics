@@ -335,7 +335,7 @@ def matrix_commutator(m1,m2):
         commutator: matrix commutator of m1 and m2
     """
 
-    commutator = m1 @ m2-m2 @ m1
+    commutator = m1 @ m2 - m2 @ m1
     
     return commutator
 
@@ -364,8 +364,8 @@ def get_exponential_take_step(magnus_order, expm_func):
     elif magnus_order==2:
 
         # second-order step size constants
-        c1=1/2-np.sqrt(3)/6
-        c2=1/2+np.sqrt(3)/6
+        c1=0.5-np.sqrt(3)/6
+        c2=0.5+np.sqrt(3)/6
         p2=np.sqrt(3)/12
 
         def take_step(generator, t0, y, h):  
@@ -379,9 +379,7 @@ def get_exponential_take_step(magnus_order, expm_func):
             g2=generator(eval_time2)
             
             # Magnus terms
-            term1=h*(g1+g2)/2
-            term2=p2*(h**2)*matrix_commutator(g2,g1)
-            terms=term1+term2
+            terms=h*(g1+g2)/2 + p2*(h**2)*matrix_commutator(g2,g1)
             
             #solution
             return expm_func(terms) @ y
@@ -389,9 +387,9 @@ def get_exponential_take_step(magnus_order, expm_func):
     elif magnus_order==3:
 
         # third-order step size constants
-        d0=1/2
-        d1=1/2-np.sqrt(15)/10
-        d2=1/2+np.sqrt(15)/10
+        d0=0.5
+        d1=0.5-np.sqrt(15)/10
+        d2=0.5+np.sqrt(15)/10
         q2=np.sqrt(15)/3
         q3=10/3
  
@@ -417,15 +415,13 @@ def get_exponential_take_step(magnus_order, expm_func):
             com2=-matrix_commutator(a1,2*a3+com1)/60
             
             # Magnus terms
-            term1=a1+a3/12
-            term2=matrix_commutator(-20*a1-a3+com1,a2+com2)/240
-            terms=term1+term2
+            terms=a1+a3/12+matrix_commutator(-20*a1-a3+com1,a2+com2)/240
 
             #solution
             return expm_func(terms) @ y
 
     else:
-        raise QiskitError("Only magnus_order 1, 2 and 3 are supported.")
+        raise QiskitError("Only magnus_order 1, 2, and 3 are supported.")
     
     return take_step
 
