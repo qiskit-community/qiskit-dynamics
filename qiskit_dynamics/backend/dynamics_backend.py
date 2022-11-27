@@ -64,31 +64,39 @@ class DynamicsBackend(BackendV2):
     * ``solver``: The Qiskit Dynamics :class:`.Solver` instance used for simulation.
     * ``solver_options``: Dictionary containing optional kwargs for passing to :meth:`Solver.solve`,
       indicating solver methods and options. Defaults to the empty dictionary ``{}``.
-    * ``subsystem_dims``: Dimensions of subsystems making up the system in ``solver``. Defaults
-      to ``[solver.model.dim]``.
-    * ``subsystem_labels``: Integer labels for subsystems. Defaults to
-      ``[0, ..., len(subsystem_dims) - 1]``.
+    * ``subsystem_dims``: Dimensions of subsystems making up the system in ``solver``. Defaults to
+      ``[solver.model.dim]``.
+    * ``subsystem_labels``: Integer labels for subsystems. Defaults to ``[0, ...,
+      len(subsystem_dims) - 1]``.
     * ``meas_map``: Measurement map. Defaults to ``[[idx] for idx in subsystem_labels]``.
     * ``initial_state``: Initial state for simulation, either the string ``"ground_state"``,
       indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
       ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
-    * ``normalize_states``: Boolean indicating whether to normalize states before computing
-      outcome probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if
-      the solution tolerance results in probabilities with significant numerical deviation from
-      proper probability distributions.
+    * ``normalize_states``: Boolean indicating whether to normalize states before computing outcome
+      probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if the solution
+      tolerance results in probabilities with significant numerical deviation from proper
+      probability distributions.
     * ``meas_level``: Form of measurement return. Only supported value is ``2``, indicating that
       counts should be returned. Defaults to ``meas_level==2``.
-    * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem.
-      Values will be rounded down to be no larger than ``max_outcome_level``. Must be a positive
-      integer or ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
+    * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem. Values
+      will be rounded down to be no larger than ``max_outcome_level``. Must be a positive integer or
+      ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
     * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
       every experimental shot. Defaults to ``True``.
     * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.
-    * ``experiment_result_function``: Function for computing the ``ExperimentResult``
-      for each simulated experiment. This option defaults to
-      :func:`default_experiment_result_function`, and any other function set to this option
-      must have the same signature. Note that the default utilizes various other options that
-      control results computation, and hence changing it will impact the meaning of other options.
+    * ``experiment_result_function``: Function for computing the ``ExperimentResult`` for each
+      simulated experiment. This option defaults to :func:`default_experiment_result_function`, and
+      any other function set to this option must have the same signature. Note that the default
+      utilizes various other options that control results computation, and hence changing it will
+      impact the meaning of other options.
+    * ``configuration``: A :class:`PulseBackendConfiguration` instance or ``None``. This option
+      defaults to ``None``, and is not required for the functioning of this class, but is provided
+      for backwards compatibility. A set configuration will be returned by
+      :meth:`DynamicsBackend.configuration()`.
+    * ``defaults``: A :class:`PulseDefaults` instance or ``None``. This option
+      defaults to ``None``, and is not required for the functioning of this class, but is provided
+      for backwards compatibility. A set defaults will be returned by
+      :meth:`DynamicsBackend.defaults()`.
     """
 
     def __init__(
@@ -168,6 +176,8 @@ class DynamicsBackend(BackendV2):
             memory=True,
             seed_simulator=None,
             experiment_result_function=default_experiment_result_function,
+            configuration=None,
+            defaults=None
         )
 
     def set_options(self, **fields):
@@ -179,6 +189,7 @@ class DynamicsBackend(BackendV2):
             if not hasattr(self._options, key):
                 raise AttributeError(f"Invalid option {key}")
 
+            # validation checks
             if key == "initial_state":
                 if value != "ground_state" and not isinstance(value, (Statevector, DensityMatrix)):
                     raise QiskitError(
@@ -192,7 +203,12 @@ class DynamicsBackend(BackendV2):
                     raise QiskitError("max_outcome_level must be a positive integer or None.")
             elif key == "experiment_result_function" and not callable(value):
                 raise QiskitError("experiment_result_function must be callable.")
+            elif key == "configuration" and not isinstance(value, PulseBackendConfiguration):
+                raise QiskitError("configuration option must be an instance of PulseBackendConfiguration.")
+            elif key == "defaults" and not isinstance(value, PulseDefaults):
+                raise QiskitError("defaults option must be an instance of PulseDefaults.")
 
+            # special setting routines
             if key == "solver":
                 self._set_solver(value)
                 validate_subsystem_dims = True
@@ -201,7 +217,7 @@ class DynamicsBackend(BackendV2):
                     validate_subsystem_dims = True
                 self._options.update_options(**{key: value})
 
-        # perform additional validation if certain options were modified
+        # perform additional consistency checks if certain options were modified
         if (
             validate_subsystem_dims
             and np.prod(self._options.subsystem_dims) != self._options.solver.model.dim
@@ -209,6 +225,14 @@ class DynamicsBackend(BackendV2):
             raise QiskitError(
                 "DynamicsBackend options subsystem_dims and solver.model.dim are inconsistent."
             )
+
+    def configuration(self) -> PulseBackendConfiguration:
+        """Get the backend configuration."""
+        return self.options.configuration
+
+    def defaults(self) -> PulseDefaults:
+        """Get the backend defaults."""
+        return self.options.defaults
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
@@ -387,14 +411,13 @@ class DynamicsBackend(BackendV2):
         Raises:
             QiskitError if any required parameters are missing from the passed backend.
 
+        Notes:
+            - Added configuration/defaults methods for "backwards compatibility". They are not
+              strictly required by DynamicsBackend, but they are required of backends passed to 
+              DynamicsBackend.from_backend, so I think it's probably natural for cases utilizing
+              from_backend for these to be present.
 
         To do:
-            - Add validation of backend and subsystem_list. E.g. is it a pulse backend? Does it have
-              the properties we need?
-            - Maybe we need to also implement configuration(), properties(), and defaults() for
-              backwards compatibility
-            - Bring in target? What else?
-            - Get configuration, properties, target, ... ?
             - Issue with solver_kwargs is the user may will not have access to the hamiltonian
               terms, and hence can't effectively specify the rotating frame they want to be in.
               What to do about this? Could add string handling, like rotating_frame='static_hamiltonian'?
@@ -404,7 +427,11 @@ class DynamicsBackend(BackendV2):
                   (by getting it from the solver).
                 - Could maybe change arg to "solver_configuration", and it can either be a
                   string like "sparse", "dense", and the appropriate frame is automatically entered,
-                  or it can be a dict and explicitly be passed as 
+                  or it can be a dict and explicitly be passed as
+            - Modify configuration, defaults, target when copying into backend, or
+              leave as is?
+            - To test:
+                - all validation checks in from_backend, including option setting for configuration/defaults
 
 
         """
@@ -430,8 +457,13 @@ class DynamicsBackend(BackendV2):
         # get and parse Hamiltonian string dictionary
         if subsystem_list is not None:
             subsystem_list = sorted(subsystem_list)
+            if subsystem_list[-1] > config.n_qubits:
+                raise QiskitError(f"subsystem_list contained {subsystem_list[-1]} but backend only has {config.n_qubits} qubits.")
         else:
             subsystem_list = list(range(config.n_qubits))
+
+        if not hasattr(config, "hamiltonian"):
+            raise QiskitError("DynamicsBackend.from_backend requires that backend.configuration() has a hamiltonian attribute.")
 
         hamiltonian_dict = config.hamiltonian
         (
@@ -440,13 +472,14 @@ class DynamicsBackend(BackendV2):
             hamiltonian_channels,
             subsystem_dims,
         ) = parse_backend_hamiltonian_dict(hamiltonian_dict, subsystem_list)
-
-        # Question: could change the output of above function to be this list instead of the dict
         subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
 
         # get time step size
+        if not hasattr(config, "dt"):
+            raise QiskitError("DynamicsBackend.from_backend requires that backend.configuration() has a dt attribute.")
         dt = config.dt
 
+        # construct model frequencies dictionary from backend
         channel_freqs = _get_backend_channel_freqs(
             backend_config=config, backend_defaults=defaults, channels=hamiltonian_channels
         )
@@ -462,8 +495,14 @@ class DynamicsBackend(BackendV2):
             **solver_kwargs,
         )
 
-        # to do: modify target???
-        target = getattr(backend, "target", None)
+        # copy major backend attributes
+        target = copy.copy(getattr(backend, "target", None))
+
+        if "configuration" not in options:
+            options["configuration"] = copy.copy(backend_config)
+        
+        if "defaults" not in options:
+            options["defaults"] = copy.copy(backend_defaults)
 
         return cls(
             solver=solver,

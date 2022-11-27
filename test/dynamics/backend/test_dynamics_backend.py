@@ -140,6 +140,18 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "must be callable."):
             self.simple_backend.set_options(experiment_result_function=1)
+    
+    def test_invalid_configuration_type(self):
+        """Test setting non-PulseBackendConfiguration."""
+
+        with self.assertRaisesRegex(QiskitError, "configuration option must be"):
+            self.simple_backend.set_options(configuration=1)
+    
+    def test_invalid_defaults_type(self):
+        """Test setting non-PulseDefaults."""
+
+        with self.assertRaisesRegex(QiskitError, "defaults option must be"):
+            self.simple_backend.set_options(defaults=1)
 
 
 class TestDynamicsBackend(QiskitDynamicsTestCase):
