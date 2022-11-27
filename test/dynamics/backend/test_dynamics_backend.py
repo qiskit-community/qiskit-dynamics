@@ -492,6 +492,12 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
         }
         self._test_with_setUp_example(channels=channels, expected_output=expected_output)
     
+    def test_unrecognized_channel_type(self):
+        """Test error is raised if unrecognized channel type."""
+
+        with self.assertRaisesRegex(QiskitError, "Unrecognized"):
+            _get_backend_channel_freqs(backend_config=SimpleNamespace(), backend_defaults=SimpleNamespace(), channels=["r1"])
+
     def test_no_u_channel_lo_attribute_error(self):
         """Test error if no u_channel_lo attribute for config."""
         
@@ -512,7 +518,7 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
 
     def test_missing_u_channel_error(self):
         """Raise error if missing u channel."""
-        with self.assertRaisesRegex(QiskitError, "No carrier frequency found"):
+        with self.assertRaisesRegex(QiskitError, "ControlChannel index 4"):
             _get_backend_channel_freqs(backend_config=self.config, backend_defaults=self.defaults, channels=["u4"])
     
     def test_drive_out_of_bounds(self):

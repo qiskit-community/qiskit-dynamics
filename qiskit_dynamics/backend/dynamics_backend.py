@@ -668,43 +668,55 @@ def _get_backend_channel_freqs(
         QiskitError: If the frequency for one of the channels cannot be found.
     """
 
+    # partition types of channels
+    drive_channels = []
+    meas_channels = []
+    u_channels = []
+
+    for channel in channels:
+        if channel[0] == 'd':
+            drive_channels.append(channel)
+        elif channel[0] == 'm':
+            meas_channels.append(channel)
+        elif channel[0] == 'u':
+            u_channels.append(channel)
+        else:
+            raise QiskitError("Unrecognized channel type requested.")
+
     # validate required attributes are present
-    if any("d" in x for x in channels) and not hasattr(backend_defaults, "qubit_freq_est"):
+    if drive_channels and not hasattr(backend_defaults, "qubit_freq_est"):
         raise QiskitError("DriveChannels in model but defaults does not have qubit_freq_est.")
     
-    if any("m" in x for x in channels) and not hasattr(backend_defaults, "meas_freq_est"):
+    if meas_channels and not hasattr(backend_defaults, "meas_freq_est"):
         raise QiskitError("MeasureChannels in model but defaults does not have meas_freq_est.")
     
-    if any("u" in x for x in channels) and not hasattr(backend_config, "u_channel_lo"):
-        raise QiskitError("U Channels in model but configuration does not have u_channel_lo.")
+    if u_channels and not hasattr(backend_config, "u_channel_lo"):
+        raise QiskitError("ControlChannels in model but configuration does not have u_channel_lo.")
 
+    # populate frequencies
     channel_freqs = {}
 
-    # get drive and measure channel frequencies
-    for channel in channels:
-        if channel[0] == "d":
-            idx = int(channel[1:])
-            if idx >= len(backend_defaults.qubit_freq_est):
-                raise QiskitError(f"DriveChannel index {idx} is out of bounds.")
-            channel_freqs[channel] = backend_defaults.qubit_freq_est[idx]
-        elif channel[0] == "m":
-            idx = int(channel[1:])
-            if idx >= len(backend_defaults.meas_freq_est):
-                raise QiskitError(f"MeasureChannel index {idx} is out of bounds.")
-            channel_freqs[channel] = backend_defaults.meas_freq_est[idx]
+    for channel in drive_channels:
+        idx = int(channel[1:])
+        if idx >= len(backend_defaults.qubit_freq_est):
+            raise QiskitError(f"DriveChannel index {idx} is out of bounds.")
+        channel_freqs[channel] = backend_defaults.qubit_freq_est[idx]
+    
+    for channel in meas_channels:
+        idx = int(channel[1:])
+        if idx >= len(backend_defaults.meas_freq_est):
+            raise QiskitError(f"MeasureChannel index {idx} is out of bounds.")
+        channel_freqs[channel] = backend_defaults.meas_freq_est[idx]
 
-    # get u_channel_lo freqs if model requires them
-    if any("u" in x for x in channels):
-
-        # populate u channel frequencies
-        for idx, u_channel_lo_factors in enumerate(backend_config.u_channel_lo):
-            u_channel = f"u{idx}"
-            if u_channel in channels:
-                freq = 0.0
-                for u_channel_lo in u_channel_lo_factors:
-                    freq += backend_defaults.qubit_freq_est[u_channel_lo.q] * u_channel_lo.scale
-
-                channel_freqs[u_channel] = freq
+    for channel in u_channels:
+        idx = int(channel[1:])
+        if idx >= len(backend_config.u_channel_lo):
+            raise QiskitError(f"ControlChannel index {idx} is out of bounds.")
+        freq = 0.0
+        for u_channel_lo in backend_config.u_channel_lo[idx]:
+            freq += backend_defaults.qubit_freq_est[u_channel_lo.q] * u_channel_lo.scale
+        
+        channel_freqs[channel] = freq
 
     # validate that all channels have frequencies
     for channel in channels:
