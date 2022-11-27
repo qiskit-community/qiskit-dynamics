@@ -17,7 +17,6 @@ Utility functions for Dynamics Backend.
 
 
 from typing import Optional, Union, List, Dict
-from itertools import chain
 
 import numpy as np
 from qiskit import QiskitError
@@ -173,33 +172,39 @@ def _get_counts_from_samples(samples: list) -> Dict:
 
 
 def _iq_data(
-    options: Options,
     state: Union[Statevector, DensityMatrix],
+    subsystem_dims: List[int],
     measurement_subsystems: List[int],
+    iq_centers: List[List[List[float]]],
+    iq_width: float,
+    shots: int,
     seed: int,
-) -> List[List[List[float]]]:
+) -> np.ndarray:
     """Generates IQ data for each physical level.
 
     Args:
-        options: Options object containing subsystem information and IQ parameters.
         state: Quantum state.
-        measurement_subsystems: Labels of subsystems in the model being measured.
+        subsystem_dims: Dimensions of subsystems composing the system.
+        measurement_subsystems: Labels of subsystems in the system being measured.
+        iq_centers: centers for IQ distribution. provided in the format
+                    ``iq_centers[subsystem][level] = [I,Q]``. Defaults to equally spaced points on
+                    a unit circle for each subsystem.
+        iq_width: Standard deviation of IQ distribution around the centers.
+        shots: Number of Shots
         seed: Seed for sample generation.
 
     Returns:
-        (I,Q) data as List[shot index][qubit index] = [I,Q]
+        (I,Q) data as ndarray[shot index, qubit index] = [I,Q]
 
     Raises:
         QiskitError: If number of centers and levels don't match.
     """
     rng = np.random.default_rng(seed)
 
-    if options.iq_centers is not None:
-        iq_centers = options.iq_centers
-    else:
+    if iq_centers is None:
         # Default iq_centers
         iq_centers = []
-        for sub_dim in options.subsystem_dims:
+        for sub_dim in subsystem_dims:
             theta = 2 * np.pi / sub_dim
             iq_centers.append(
                 [(np.cos(idx * theta), np.sin(idx * theta)) for idx in range(sub_dim)]
@@ -210,7 +215,7 @@ def _iq_data(
         # Get probabilities for each subsystem
         probability = state.probabilities(qargs=[sub_idx])
         # No. of shots for eaach level
-        counts_n = rng.multinomial(options.shots, probability / sum(probability), size=1).T
+        counts_n = rng.multinomial(shots, probability / sum(probability), size=1).T
 
         if len(counts_n) != len(iq_centers[sub_idx]):
             raise QiskitError(
@@ -220,17 +225,10 @@ def _iq_data(
 
         sub_i, sub_q = [], []
         for idx, count_i in enumerate(counts_n):
-            sub_i.append(
-                rng.normal(loc=iq_centers[sub_idx][idx][0], scale=options.iq_width, size=count_i)
-            )
-            sub_q.append(
-                rng.normal(loc=iq_centers[sub_idx][idx][1], scale=options.iq_width, size=count_i)
-            )
-        # Linear stack
-        sub_i = list(chain.from_iterable(sub_i))
-        sub_q = list(chain.from_iterable(sub_q))
+            sub_i.append(rng.normal(loc=iq_centers[sub_idx][idx][0], scale=iq_width, size=count_i))
+            sub_q.append(rng.normal(loc=iq_centers[sub_idx][idx][1], scale=iq_width, size=count_i))
 
-        full_i.append(sub_i)
-        full_q.append(sub_q)
+        full_i.append(np.ravel(sub_i))
+        full_q.append(np.ravel(sub_q))
     full_iq = np.array([full_i, full_q]).T
     return full_iq

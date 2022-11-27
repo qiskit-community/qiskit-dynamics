@@ -76,11 +76,12 @@ class DynamicsBackend(BackendV2):
       proper probability distributions.
     * ``meas_level``: Form of measurement output. Suported values are ``1`` and ``2``.
       ``1`` returns IQ points and ``2`` returns counts. Defaults to ``meas_level==2``.
-    * ``meas_return``: Level of measurement data to return. ``"single"`` returns information from
-      every shot. ``"avg"`` returns average over shots of measurement output. Defaults to ``"avg"``
-    * ``iq_centers``: List[List[Tuple]] containing centers for IQ distribution. provided in the
-      format ``iq_centers[subsystem][level] = (I,Q)``. Defaults to equally spaced points on a
-      unit circle for each subsystem.
+    * ``meas_return``: Level of measurement data to return. For ``meas_level=1`` ``"single"``
+      returns output from every shot. ``"avg"`` returns average over shots of measurement
+      output. Defaults to ``"avg"``.
+    * ``iq_centers``: List[List[List[float, float]]] containing centers for IQ distribution.
+      provided in the format ``iq_centers[subsystem][level] = [I,Q]``. Defaults to equally spaced
+      points on a unit circle for each subsystem.
     * ``iq_width``: Standard deviation of IQ distribution around the centers.
       Must be a positive float. Defaults to ``0.2``.
     * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem.
