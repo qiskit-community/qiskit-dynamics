@@ -29,7 +29,7 @@ from qiskit_dynamics.solvers.solver_functions import (
     results_y_out_of_frame_basis,
 )
 
-from ..common import QiskitDynamicsTestCase
+from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
@@ -129,6 +129,10 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
                 max_dt=0.1,
                 magnus_order=4,
             )
+
+
+class Testsolve_lmde_exceptionsJAX(QiskitDynamicsTestCase, TestJaxBase):
+    """Test solve_lmde exceptions requiring JAX to reach."""
 
     def test_jax_expm_magnus_order_exception(self):
         """Verify error gets raised if jax_expm_solver is called with magnus_order > 3."""
