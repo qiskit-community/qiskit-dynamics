@@ -83,13 +83,14 @@ def RK4_solver(
         take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
+
 def scipy_expm_solver(
     generator: Callable,
     t_span: Array,
     y0: Array,
     max_dt: float,
-    magnus_order: Optional[int] = 1,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
+    magnus_order: Optional[int] = 1,
 ):
     """Fixed-step size matrix exponential based solver implemented with
     ``scipy.linalg.expm``. Solves the specified problem by taking steps of
@@ -100,14 +101,14 @@ def scipy_expm_solver(
         t_span: Interval to solve over.
         y0: Initial state.
         max_dt: Maximum step size.
-        magnus_order: The expansion order in the Magnus method. Only orders 1, 2 and 3
-        are supported.
         t_eval: Optional list of time points at which to return the solution.
+        magnus_order: The expansion order in the Magnus method. Only orders 1, 2 and 3
+            are supported.
 
     Returns:
         OdeResult: Results object.
     """
-    
+
     take_step = get_exponential_take_step(magnus_order, expm_func=expm)
 
     # ensure the output of rhs_func is a raw array
@@ -137,8 +138,8 @@ def lanczos_diag_solver(
         y0: Initial state.
         max_dt: Maximum step size.
         k_dim: Integer which specifies the dimension of Krylov subspace used for
-               lanczos iteration. Acts as an accuracy parameter. ``k_dim`` must
-               always be less than or equal to dimension of generator.
+            lanczos iteration. Acts as an accuracy parameter. ``k_dim`` must
+            always be less than or equal to dimension of generator.
         t_eval: Optional list of time points at which to return the solution.
 
     Returns:
@@ -266,8 +267,8 @@ def jax_expm_solver(
     t_span: Array,
     y0: Array,
     max_dt: float,
-    magnus_order: Optional[int] = 1,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
+    magnus_order: Optional[int] = 1,
 ):
     """Fixed-step size matrix exponential based solver implemented with ``jax``.
     Solves the specified problem by taking steps of size no larger than ``max_dt``.
@@ -277,9 +278,9 @@ def jax_expm_solver(
         t_span: Interval to solve over.
         y0: Initial state.
         max_dt: Maximum step size.
-        magnus_order: The expansion order in the Magnus method. Only orders 1, 2 and 3
-        are supported.
         t_eval: Optional list of time points at which to return the solution.
+        magnus_order: The expansion order in the Magnus method. Only orders 1, 2, and 3
+            are supported.
 
     Returns:
         OdeResult: Results object.
@@ -300,130 +301,134 @@ def jax_expm_parallel_solver(
     t_span: Array,
     y0: Array,
     max_dt: float,
-    magnus_order: Optional[int] = 1,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
+    magnus_order: Optional[int] = 1,
 ):
     """Parallel version of jax_expm_solver implemented with JAX parallel operations.
-    
+
         Args:
         generator: Generator for the LMDE.
         t_span: Interval to solve over.
         y0: Initial state.
         max_dt: Maximum step size.
-        magnus_order: The expansion order in the Magnus method. Only orders 1, 2 and 3
-        are supported.
         t_eval: Optional list of time points at which to return the solution.
+        magnus_order: The expansion order in the Magnus method. Only orders 1, 2, and 3
+            are supported.
 
     Returns:
         OdeResult: Results object.
 
     """
 
-    take_step = get_exponential_take_step(magnus_order, expm_func=jexpm)
+    take_step = get_exponential_take_step(magnus_order, expm_func=jexpm, just_propagator=True)
 
     return fixed_step_lmde_solver_parallel_template_jax(
         take_step, generator=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
-def matrix_commutator(m1,m2):
-    """ This function computes the commutator of two matrices.
-    
-    Args: 
+
+def matrix_commutator(m1, m2):
+    """This function computes the commutator of two matrices.
+
+    Args:
         m1, m2: Two equal-dimension square matrices.
 
     Returns:
-        commutator: matrix commutator of m1 and m2
+        matrix commutator of m1 and m2
     """
 
-    commutator = m1 @ m2 - m2 @ m1
-    
-    return commutator
+    return m1 @ m2 - m2 @ m1
 
-def get_exponential_take_step(magnus_order, expm_func):
-    
-    """ This function implements the infinitessimal magnus solver at second, 
-    fourth and the sixth order, specified by the user. 
+
+def get_exponential_take_step(magnus_order: int, expm_func: Callable, just_propagator: Optional[bool] = False):
+    """This function implements the infinitessimal magnus solver at second,
+    fourth and the sixth order, specified by the user.
     See also the documentation of :meth:`scipy_expm_solver` for details.
 
     Args:
-        magnus_order: The expansion order in the Magnus method. 
+        magnus_order: The expansion order in the Magnus method.
         expm_func: Method of matrix exponentian.
+        just_propagator: Whether or not to return function that only computes propagator.
+            If False, returns a function with signature f(generator, t0, y, h), and
+            if True, returns a function with signature f(generator, t0, h).
 
     Returns:
-        take_step: infinitessimal exponential Magnus solver 
-"""
+        take_step: Infinitessimal exponential Magnus solver.
+    """
 
     # if clause based on magnus order
-    if magnus_order==1:
+    if magnus_order == 1:
 
-        def take_step(generator, t0, y, h):
+        def propagator(generator, t0, h):
             eval_time = t0 + (h / 2)
 
-            return expm_func(generator(eval_time) * h) @ y
+            return expm_func(generator(eval_time) * h)
 
-    elif magnus_order==2:
+    elif magnus_order == 2:
 
         # second-order step size constants
-        c1=0.5-np.sqrt(3)/6
-        c2=0.5+np.sqrt(3)/6
-        p2=np.sqrt(3)/12
+        c1 = 0.5 - np.sqrt(3) / 6
+        c2 = 0.5 + np.sqrt(3) / 6
+        p2 = np.sqrt(3) / 12
 
-        def take_step(generator, t0, y, h):  
-            
+        def propagator(generator, t0, h):
+
             # midpoint eval_times
-            eval_time1=t0+c1*h
-            eval_time2=t0+c2*h
-            
-            # midpoint generator call
-            g1=generator(eval_time1)
-            g2=generator(eval_time2)
-            
-            # Magnus terms
-            terms=h*(g1+g2)/2 + p2*(h**2)*matrix_commutator(g2,g1)
-            
-            #solution
-            return expm_func(terms) @ y
+            eval_time1 = t0 + c1 * h
+            eval_time2 = t0 + c2 * h
 
-    elif magnus_order==3:
+            # midpoint generator call
+            g1 = generator(eval_time1)
+            g2 = generator(eval_time2)
+
+            # Magnus terms
+            terms = h * (g1 + g2) / 2 + p2 * (h**2) * matrix_commutator(g2, g1)
+
+            # solution
+            return expm_func(terms)
+
+    elif magnus_order == 3:
 
         # third-order step size constants
-        d0=0.5
-        d1=0.5-np.sqrt(15)/10
-        d2=0.5+np.sqrt(15)/10
-        q2=np.sqrt(15)/3
-        q3=10/3
- 
-        def take_step(generator, t0, y, h):  
-            
-            # midpoint eval_times
-            eval_time0=t0+d0*h
-            eval_time1=t0+d1*h
-            eval_time2=t0+d2*h
-            
-            # midpoint generator call
-            g0=generator(eval_time0)
-            g1=generator(eval_time1)
-            g2=generator(eval_time2)
+        d1 = 0.5 - np.sqrt(15) / 10
+        d2 = 0.5
+        d3 = 0.5 + np.sqrt(15) / 10
+        c0 = np.sqrt(15) / 3
+        c1 = 10. / 3
 
-            # linear combinations of generators (derivatives)
-            a1=h*g0
-            a2=q2*h*(g2-g1)
-            a3=q3*h*(g2-2*g0+g1)
+        def propagator(generator, t0, h):
+
+            # midpoint generator call
+            A1 = generator(t0 + d1 * h)
+            A2 = generator(t0 + d2 * h)
+            A3 = generator(t0 + d3 * h)
+
+            # linear combinations of generators
+            a1 = h * A2
+            a2 = c0 * h * (A3 - A1)
+            a3 = c1 * h * (A3 - 2 * A2 + A1)
 
             # intermediate commutators
-            com1=matrix_commutator(a1,a2)
-            com2=-matrix_commutator(a1,2*a3+com1)/60
-            
-            # Magnus terms
-            terms=a1+a3/12+matrix_commutator(-20*a1-a3+com1,a2+com2)/240
+            C1 = matrix_commutator(a1, a2)
+            C2 = matrix_commutator(2 * a3 + C1, a1) / 60
 
-            #solution
-            return expm_func(terms) @ y
+            # Magnus terms
+            terms = a1 + (a3 / 12) + matrix_commutator(-20 * a1 - a3 + C1, a2 + C2) / 240
+
+            # solution
+            return expm_func(terms)
 
     else:
         raise QiskitError("Only magnus_order 1, 2, and 3 are supported.")
+
+    if just_propagator:
+        return propagator
     
+    def take_step(generator, t0, y, h):
+        return propagator(generator, t0, h) @ y
+
     return take_step
+
 
 def fixed_step_solver_template(
     take_step: Callable,

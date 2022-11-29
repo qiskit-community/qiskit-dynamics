@@ -256,9 +256,9 @@ def solve_lmde(
       Requires additional kwarg ``max_dt`` indicating the maximum step
       size to take. This solver will break integration periods into even
       sub-intervals no larger than ``max_dt`` and solve over each sub-interval.
-      The optional kwarg ``magnus_order`` controls the integration rule: if 
+      The optional kwarg ``magnus_order`` controls the integration rule: if
       ``magnus_order==1``, the generator is sampled at the interval midpoint
-      and exponentiated, and if ``magnus_order==2`` or ``magnus_order==3``, 
+      and exponentiated, and if ``magnus_order==2`` or ``magnus_order==3``,
       higher-order exponentiation rules are adopted from :footcite:`blanes_magnus_2009`.
     - ``'lanczos_diag'``: A fixed-step matrix-exponential solver, similar to ``'scipy_expm'``
       but restricted to anti-Hermitian generators. The matrix exponential is performed by

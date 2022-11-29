@@ -329,6 +329,69 @@ class TestScipyExpmSolver(TestFixedStepBase):
         return scipy_expm_solver(rhs, t_span, y0, max_dt, t_eval)
 
 
+class TestScipyExpmSolver_magnus2(TestFixedStepBase):
+    """Tests for scipy_expm_solver with magnus order 2."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup constants."""
+
+        cls.c1 = 0.5 - np.sqrt(3) / 6
+        cls.c2 = 0.5 + np.sqrt(3) / 6
+        cls.c3 = np.sqrt(3) / 12
+
+        super().setUpClass()
+
+    def take_step(self, rhs, t, y, h):
+        """In this case treat rhs like a generator."""
+        A1 = rhs(t + self.c1 * h)
+        A2 = rhs(t + self.c2 * h)
+
+        return expm(0.5 * h * (A1 + A2) - (h**2) * self.c3 * (A1 @ A2 - A2 @ A1)) @ y
+
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        return scipy_expm_solver(rhs, t_span, y0, max_dt, t_eval, magnus_order=2)
+
+
+class TestScipyExpmSolver_magnus3(TestFixedStepBase):
+    """Tests for scipy_expm_solver with magnus order 3."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup constants."""
+
+        cls.c1 = 0.5 - np.sqrt(15) / 10
+        cls.c2 = 0.5
+        cls.c3 = 0.5 + np.sqrt(15) / 10
+        cls.c4 = np.sqrt(15) / 3
+        cls.c5 = 10. / 3
+
+        super().setUpClass()
+
+    def take_step(self, rhs, t, y, h):
+        """In this case treat rhs like a generator."""
+        A1 = rhs(t + self.c1 * h)
+        A2 = rhs(t + self.c2 * h)
+        A3 = rhs(t + self.c3 * h)
+
+        a1 = h * A2
+        a2 = self.c4 * h * (A3 - A1)
+        a3 = self.c5 * h * (A3 - 2 * A2 + A1)
+
+        C1 = a1 @ a2 - a2 @ a1
+        x0 = 2 * a3 + C1
+        C2 = (x0 @ a1 - a1 @ x0) / 60
+
+        x1 = (-20 * a1) - a3 + C1
+        x2 = a2 + C2
+        terms = a1 + (a3 / 12) + ((x1 @ x2 - x2 @ x1) / 240)
+
+        return expm(terms) @ y
+
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        return scipy_expm_solver(rhs, t_span, y0, max_dt, t_eval, magnus_order=3)
+
+
 class TestLanczosDiagSolver(TestFixedStepBase):
     """Test cases for lanczos_diag."""
 
@@ -454,6 +517,68 @@ class TestJaxExpmSolver(TestJaxFixedStepBase):
         return jax_expm_solver(rhs, t_span, y0, max_dt, t_eval)
 
 
+class TestJaxExpmSolver_magnus2(TestJaxFixedStepBase):
+    """Test cases for jax_expm_solver with magnus_order 2."""
+    
+    @classmethod
+    def setUpClass(cls):
+        """Setup constants."""
+
+        cls.c1 = 0.5 - np.sqrt(3) / 6
+        cls.c2 = 0.5 + np.sqrt(3) / 6
+        cls.c3 = np.sqrt(3) / 12
+
+        super().setUpClass()
+
+    def take_step(self, rhs, t, y, h):
+        """In this case treat rhs like a generator."""
+        A1 = rhs(t + self.c1 * h)
+        A2 = rhs(t + self.c2 * h)
+
+        return jexpm(0.5 * h * (A1 + A2) - (h**2) * self.c3 * (A1 @ A2 - A2 @ A1)) @ y
+
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        return jax_expm_solver(rhs, t_span, y0, max_dt, t_eval, magnus_order=2)
+
+
+class TestJaxExpmSolver_magnus3(TestJaxFixedStepBase):
+    """Test cases for jax_expm_solver with magnus_order 3."""
+    
+    @classmethod
+    def setUpClass(cls):
+        """Setup constants."""
+
+        cls.c1 = 0.5 - np.sqrt(15) / 10
+        cls.c2 = 0.5
+        cls.c3 = 0.5 + np.sqrt(15) / 10
+        cls.c4 = np.sqrt(15) / 3
+        cls.c5 = 10. / 3
+
+        super().setUpClass()
+
+    def take_step(self, rhs, t, y, h):
+        """In this case treat rhs like a generator."""
+        A1 = rhs(t + self.c1 * h)
+        A2 = rhs(t + self.c2 * h)
+        A3 = rhs(t + self.c3 * h)
+
+        a1 = h * A2
+        a2 = self.c4 * h * (A3 - A1)
+        a3 = self.c5 * h * (A3 - 2 * A2 + A1)
+
+        C1 = a1 @ a2 - a2 @ a1
+        x0 = 2 * a3 + C1
+        C2 = (x0 @ a1 - a1 @ x0) / 60
+
+        x1 = (-20 * a1) - a3 + C1
+        x2 = a2 + C2
+        return jexpm(a1 + (a3 / 12) + ((x1 @ x2 - x2 @ x1) / 240)) @ y
+
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        return jax_expm_solver(rhs, t_span, y0, max_dt, t_eval, magnus_order=3)
+
+
+
 class TestJaxExpmParallelSolver(TestJaxExpmSolver):
     """Test cases for jax_expm_parallel_solver. Runs the same tests as
     TestJaxExpmSolver but for parallel version.
@@ -463,6 +588,32 @@ class TestJaxExpmParallelSolver(TestJaxExpmSolver):
         # ensure that warning is raised as tests are run on CPU
         with self.assertWarns(Warning) as w:
             results = jax_expm_parallel_solver(rhs, t_span, y0, max_dt, t_eval)
+
+        self.assertTrue("run slower on CPUs" in str(w.warning))
+        return results
+
+class TestJaxExpmParallelSolver_magnus2(TestJaxExpmSolver_magnus2):
+    """Test cases for jax_expm_parallel_solver with magnus_order==2. Runs the same tests as
+    TestJaxExpmSolver_magnus2 but for parallel version.
+    """
+
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        # ensure that warning is raised as tests are run on CPU
+        with self.assertWarns(Warning) as w:
+            results = jax_expm_parallel_solver(rhs, t_span, y0, max_dt, t_eval, magnus_order=2)
+
+        self.assertTrue("run slower on CPUs" in str(w.warning))
+        return results
+
+class TestJaxExpmParallelSolver_magnus3(TestJaxExpmSolver_magnus3):
+    """Test cases for jax_expm_parallel_solver with magnus_order==3. Runs the same tests as
+    TestJaxExpmSolver_magnus2 but for parallel version.
+    """
+
+    def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
+        # ensure that warning is raised as tests are run on CPU
+        with self.assertWarns(Warning) as w:
+            results = jax_expm_parallel_solver(rhs, t_span, y0, max_dt, t_eval, magnus_order=3)
 
         self.assertTrue("run slower on CPUs" in str(w.warning))
         return results
