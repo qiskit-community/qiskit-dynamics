@@ -116,7 +116,7 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
             solve_lmde(
                 model, t_span=[0.0, 1.0], y0=np.array([1.0, 1.0]), method="jax_expm", max_dt=0.1
             )
-    
+
     def test_scipy_expm_magnus_order_exception(self):
         """Verify error gets raised if scipy_expm_solver is called with magnus_order > 3."""
 
@@ -129,7 +129,7 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
                 max_dt=0.1,
                 magnus_order=4,
             )
-    
+
     def test_jax_expm_magnus_order_exception(self):
         """Verify error gets raised if jax_expm_solver is called with magnus_order > 3."""
 
@@ -142,7 +142,7 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
                 max_dt=0.1,
                 magnus_order=4,
             )
-    
+
     def test_jax_expm_parallel_magnus_order_exception(self):
         """Verify error gets raised if jax_expm_parallel_solver is called with magnus_order > 3."""
 

@@ -364,7 +364,7 @@ class TestScipyExpmSolver_magnus3(TestFixedStepBase):
         cls.c2 = 0.5
         cls.c3 = 0.5 + np.sqrt(15) / 10
         cls.c4 = np.sqrt(15) / 3
-        cls.c5 = 10. / 3
+        cls.c5 = 10.0 / 3
 
         super().setUpClass()
 
@@ -519,7 +519,7 @@ class TestJaxExpmSolver(TestJaxFixedStepBase):
 
 class TestJaxExpmSolver_magnus2(TestJaxFixedStepBase):
     """Test cases for jax_expm_solver with magnus_order 2."""
-    
+
     @classmethod
     def setUpClass(cls):
         """Setup constants."""
@@ -543,7 +543,7 @@ class TestJaxExpmSolver_magnus2(TestJaxFixedStepBase):
 
 class TestJaxExpmSolver_magnus3(TestJaxFixedStepBase):
     """Test cases for jax_expm_solver with magnus_order 3."""
-    
+
     @classmethod
     def setUpClass(cls):
         """Setup constants."""
@@ -552,7 +552,7 @@ class TestJaxExpmSolver_magnus3(TestJaxFixedStepBase):
         cls.c2 = 0.5
         cls.c3 = 0.5 + np.sqrt(15) / 10
         cls.c4 = np.sqrt(15) / 3
-        cls.c5 = 10. / 3
+        cls.c5 = 10.0 / 3
 
         super().setUpClass()
 
@@ -578,7 +578,6 @@ class TestJaxExpmSolver_magnus3(TestJaxFixedStepBase):
         return jax_expm_solver(rhs, t_span, y0, max_dt, t_eval, magnus_order=3)
 
 
-
 class TestJaxExpmParallelSolver(TestJaxExpmSolver):
     """Test cases for jax_expm_parallel_solver. Runs the same tests as
     TestJaxExpmSolver but for parallel version.
@@ -592,6 +591,7 @@ class TestJaxExpmParallelSolver(TestJaxExpmSolver):
         self.assertTrue("run slower on CPUs" in str(w.warning))
         return results
 
+
 class TestJaxExpmParallelSolver_magnus2(TestJaxExpmSolver_magnus2):
     """Test cases for jax_expm_parallel_solver with magnus_order==2. Runs the same tests as
     TestJaxExpmSolver_magnus2 but for parallel version.
@@ -604,6 +604,7 @@ class TestJaxExpmParallelSolver_magnus2(TestJaxExpmSolver_magnus2):
 
         self.assertTrue("run slower on CPUs" in str(w.warning))
         return results
+
 
 class TestJaxExpmParallelSolver_magnus3(TestJaxExpmSolver_magnus3):
     """Test cases for jax_expm_parallel_solver with magnus_order==3. Runs the same tests as

@@ -21,10 +21,10 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.linalg import expm
 
+from qiskit import QiskitError
+
 from qiskit_dynamics.dispatch import requires_backend
 from qiskit_dynamics.array import Array, wrap
-
-from qiskit import QiskitError
 
 try:
     import jax
@@ -340,20 +340,25 @@ def matrix_commutator(m1, m2):
     return m1 @ m2 - m2 @ m1
 
 
-def get_exponential_take_step(magnus_order: int, expm_func: Callable, just_propagator: Optional[bool] = False):
+def get_exponential_take_step(
+    magnus_order: int, expm_func: Callable, just_propagator: Optional[bool] = False
+):
     """This function implements the infinitessimal magnus solver at second,
-    fourth and the sixth order, specified by the user.
-    See also the documentation of :meth:`scipy_expm_solver` for details.
+    fourth and the sixth order, specified by the user. See also the documentation of
+    :meth:`scipy_expm_solver` for details.
 
     Args:
-        magnus_order: The expansion order in the Magnus method.
+        magnus_order: The expansion order in the Magnus method. Only accepts values in [1, 2, 3].
         expm_func: Method of matrix exponentian.
         just_propagator: Whether or not to return function that only computes propagator.
-            If False, returns a function with signature f(generator, t0, y, h), and
-            if True, returns a function with signature f(generator, t0, h).
+            If False, returns a function with signature f(generator, t0, y, h), and if True, returns
+            a function with signature f(generator, t0, h).
 
     Returns:
         take_step: Infinitessimal exponential Magnus solver.
+
+    Raises:
+        QiskitError: If magnus_order not in [1, 2, 3].
     """
 
     # if clause based on magnus order
@@ -394,7 +399,7 @@ def get_exponential_take_step(magnus_order: int, expm_func: Callable, just_propa
         d2 = 0.5
         d3 = 0.5 + np.sqrt(15) / 10
         c0 = np.sqrt(15) / 3
-        c1 = 10. / 3
+        c1 = 10.0 / 3
 
         def propagator(generator, t0, h):
 
@@ -423,7 +428,7 @@ def get_exponential_take_step(magnus_order: int, expm_func: Callable, just_propa
 
     if just_propagator:
         return propagator
-    
+
     def take_step(generator, t0, y, h):
         return propagator(generator, t0, h) @ y
 

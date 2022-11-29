@@ -420,6 +420,7 @@ class Testjax_expm(TestSolverMethodJax):
             **kwargs,
         )
 
+
 class Testjax_expm_magnus2(TestSolverMethodJax):
     """Test class for jax_expm_solver with magnus_order==2."""
 
