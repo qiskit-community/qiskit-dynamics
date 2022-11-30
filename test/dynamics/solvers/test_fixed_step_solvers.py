@@ -335,7 +335,6 @@ class TestScipyExpmSolver_magnus2(TestFixedStepBase):
     @classmethod
     def setUpClass(cls):
         """Setup constants."""
-
         cls.c1 = 0.5 - np.sqrt(3) / 6
         cls.c2 = 0.5 + np.sqrt(3) / 6
         cls.c3 = np.sqrt(3) / 12
@@ -359,7 +358,6 @@ class TestScipyExpmSolver_magnus3(TestFixedStepBase):
     @classmethod
     def setUpClass(cls):
         """Setup constants."""
-
         cls.c1 = 0.5 - np.sqrt(15) / 10
         cls.c2 = 0.5
         cls.c3 = 0.5 + np.sqrt(15) / 10
@@ -523,7 +521,6 @@ class TestJaxExpmSolver_magnus2(TestJaxFixedStepBase):
     @classmethod
     def setUpClass(cls):
         """Setup constants."""
-
         cls.c1 = 0.5 - np.sqrt(3) / 6
         cls.c2 = 0.5 + np.sqrt(3) / 6
         cls.c3 = np.sqrt(3) / 12
@@ -547,7 +544,6 @@ class TestJaxExpmSolver_magnus3(TestJaxFixedStepBase):
     @classmethod
     def setUpClass(cls):
         """Setup constants."""
-
         cls.c1 = 0.5 - np.sqrt(15) / 10
         cls.c2 = 0.5
         cls.c3 = 0.5 + np.sqrt(15) / 10

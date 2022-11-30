@@ -61,7 +61,6 @@ def RK4_solver(
     Returns:
         OdeResult: Results object.
     """
-
     div6 = 1.0 / 6
 
     def take_step(rhs_func, t, y, h):
@@ -90,7 +89,7 @@ def scipy_expm_solver(
     y0: Array,
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    magnus_order: Optional[int] = 1,
+    magnus_order: int = 1,
 ):
     """Fixed-step size matrix exponential based solver implemented with
     ``scipy.linalg.expm``. Solves the specified problem by taking steps of
@@ -108,7 +107,6 @@ def scipy_expm_solver(
     Returns:
         OdeResult: Results object.
     """
-
     take_step = get_exponential_take_step(magnus_order, expm_func=expm)
 
     # ensure the output of rhs_func is a raw array
@@ -197,7 +195,6 @@ def jax_RK4_solver(
     Returns:
         OdeResult: Results object.
     """
-
     div6 = 1.0 / 6
 
     def take_step(rhs_func, t, y, h):
@@ -239,7 +236,6 @@ def jax_RK4_parallel_solver(
     Returns:
         OdeResult: Results object.
     """
-
     dim = y0.shape[-1]
     ident = jnp.eye(dim, dtype=complex)
 
@@ -268,7 +264,7 @@ def jax_expm_solver(
     y0: Array,
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    magnus_order: Optional[int] = 1,
+    magnus_order: int = 1,
 ):
     """Fixed-step size matrix exponential based solver implemented with ``jax``.
     Solves the specified problem by taking steps of size no larger than ``max_dt``.
@@ -302,7 +298,7 @@ def jax_expm_parallel_solver(
     y0: Array,
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
-    magnus_order: Optional[int] = 1,
+    magnus_order: int = 1,
 ):
     """Parallel version of jax_expm_solver implemented with JAX parallel operations.
 
@@ -319,7 +315,6 @@ def jax_expm_parallel_solver(
         OdeResult: Results object.
 
     """
-
     take_step = get_exponential_take_step(magnus_order, expm_func=jexpm, just_propagator=True)
 
     return fixed_step_lmde_solver_parallel_template_jax(
@@ -327,28 +322,29 @@ def jax_expm_parallel_solver(
     )
 
 
-def matrix_commutator(m1, m2):
-    """This function computes the commutator of two matrices.
+def matrix_commutator(m1: Array, m2: Array) -> Array:
+    """Compute the commutator of two matrices.
 
     Args:
-        m1, m2: Two equal-dimension square matrices.
+        m1: First argument to the commutator.
+        m2: Second argument to the commutator.
 
     Returns:
-        matrix commutator of m1 and m2
+        Matrix commutator of ``m1`` and ``m2``.
     """
-
     return m1 @ m2 - m2 @ m1
 
 
 def get_exponential_take_step(
-    magnus_order: int, expm_func: Callable, just_propagator: Optional[bool] = False
+    magnus_order: int, expm_func: Callable, just_propagator: bool = False
 ):
-    """This function implements the infinitessimal magnus solver at second,
-    fourth and the sixth order, specified by the user. See also the documentation of
-    :meth:`scipy_expm_solver` for details.
+    """Returns a function implementing the infinitessimal magnus solver at 1st, 2nd, and 3rd
+    Magnus orders, specified by the user. See also the documentation of :func:`scipy_expm_solver`
+    for details.
 
     Args:
-        magnus_order: The expansion order in the Magnus method. Only accepts values in [1, 2, 3].
+        magnus_order: The expansion order in the Magnus method. Only accepts values in
+            ``[1, 2, 3]``.
         expm_func: Method of matrix exponentian.
         just_propagator: Whether or not to return function that only computes propagator.
             If False, returns a function with signature f(generator, t0, y, h), and if True, returns
@@ -358,33 +354,24 @@ def get_exponential_take_step(
         take_step: Infinitessimal exponential Magnus solver.
 
     Raises:
-        QiskitError: If magnus_order not in [1, 2, 3].
+        QiskitError: If ``magnus_order`` not in ``[1, 2, 3]``.
     """
-
     # if clause based on magnus order
     if magnus_order == 1:
 
         def propagator(generator, t0, h):
-            eval_time = t0 + (h / 2)
-
-            return expm_func(generator(eval_time) * h)
+            return expm_func(generator(t0 + (h / 2)) * h)
 
     elif magnus_order == 2:
-
         # second-order step size constants
         c1 = 0.5 - np.sqrt(3) / 6
         c2 = 0.5 + np.sqrt(3) / 6
         p2 = np.sqrt(3) / 12
 
         def propagator(generator, t0, h):
-
-            # midpoint eval_times
-            eval_time1 = t0 + c1 * h
-            eval_time2 = t0 + c2 * h
-
-            # midpoint generator call
-            g1 = generator(eval_time1)
-            g2 = generator(eval_time2)
+            # midpoint generator calls
+            g1 = generator(t0 + c1 * h)
+            g2 = generator(t0 + c2 * h)
 
             # Magnus terms
             terms = h * (g1 + g2) / 2 + p2 * (h**2) * matrix_commutator(g2, g1)
@@ -393,7 +380,6 @@ def get_exponential_take_step(
             return expm_func(terms)
 
     elif magnus_order == 3:
-
         # third-order step size constants
         d1 = 0.5 - np.sqrt(15) / 10
         d2 = 0.5
@@ -402,23 +388,22 @@ def get_exponential_take_step(
         c1 = 10.0 / 3
 
         def propagator(generator, t0, h):
-
-            # midpoint generator call
-            A1 = generator(t0 + d1 * h)
-            A2 = generator(t0 + d2 * h)
-            A3 = generator(t0 + d3 * h)
+            # midpoint generator calls
+            g1 = generator(t0 + d1 * h)
+            g2 = generator(t0 + d2 * h)
+            g3 = generator(t0 + d3 * h)
 
             # linear combinations of generators
-            a1 = h * A2
-            a2 = c0 * h * (A3 - A1)
-            a3 = c1 * h * (A3 - 2 * A2 + A1)
+            a1 = h * g2
+            a2 = c0 * h * (g3 - g1)
+            a3 = c1 * h * (g3 - 2 * g2 + g1)
 
             # intermediate commutators
-            C1 = matrix_commutator(a1, a2)
-            C2 = matrix_commutator(2 * a3 + C1, a1) / 60
+            comm1 = matrix_commutator(a1, a2)
+            comm2 = matrix_commutator(2 * a3 + comm1, a1) / 60
 
             # Magnus terms
-            terms = a1 + (a3 / 12) + matrix_commutator(-20 * a1 - a3 + C1, a2 + C2) / 240
+            terms = a1 + (a3 / 12) + matrix_commutator(-20 * a1 - a3 + comm1, a2 + comm2) / 240
 
             # solution
             return expm_func(terms)
@@ -660,7 +645,6 @@ def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[A
         Tuple[Array, Array, Array]: with merged time point list, list of step sizes to take
         between time points, and list of corresponding number of steps to take between time steps.
     """
-
     # time args are non-differentiable
     t_span = Array(t_span, backend="numpy").data
     max_dt = Array(max_dt, backend="numpy").data
