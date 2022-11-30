@@ -231,10 +231,13 @@ class Test_iq_data(QiskitDynamicsTestCase):
             iq_centers=[[(1, 0), (-1, 0)]],
             iq_width=0.1,
             shots=100,
+            memory_slot_indices=[1],
             seed=83248,
         )
-        counts = self.iq_to_counts(iq_data[:, 0, :])
+        counts = self.iq_to_counts(iq_data[:, 1, :])
         self.assertDictEqual(counts, {"0": 74, "1": 26})
+        counts = self.iq_to_counts(iq_data[:, 0, :])
+        self.assertDictEqual(counts, {"0": 100})
 
     def test_multi_qubit_predict(self):
         """Multi_qubit predict test case."""
@@ -244,6 +247,7 @@ class Test_iq_data(QiskitDynamicsTestCase):
             iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
             iq_width=0.1,
             shots=100,
+            memory_slot_indices=[0, 1],
             seed=83248,
         )
 
@@ -255,21 +259,37 @@ class Test_iq_data(QiskitDynamicsTestCase):
     def test_multi_qubit_iq(self):
         """Multi qubit IQ test case."""
 
-        iq_data = _iq_data(
-            state=Statevector(np.array([1, 1, 1, 1, 1, 1]) / 2, dims=[3, 2]),
+        iq_data_01 = _iq_data(
+            state=Statevector(np.array([1, 1, 1, 1]) / 2, dims=[2, 2]),
             measurement_subsystems=[0, 1],
-            iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0), (0, 1)]],
+            iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
             iq_width=0.1,
             shots=3,
+            memory_slot_indices=[0, 1],
             seed=83248,
         )
+        iq_data_10 = _iq_data(
+            state=Statevector(np.array([1, 1, 1, 1]) / 2, dims=[2, 2]),
+            measurement_subsystems=[0, 1],
+            iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=3,
+            memory_slot_indices=[1, 0],
+            seed=83248,
+        )
+
+        true_result = np.array(
+            [
+                [[0.99445976, 0.13454847], [1.0745472, -0.05369125]],
+                [[1.00486134, 0.19089796], [-0.99570855, 0.10100498]],
+                [[1.02002225, 0.03934462], [-1.0284215, 0.00462867]],
+            ]
+        )
         self.assertAllClose(
-            iq_data,
-            np.array(
-                [
-                    [[0.99445976, 0.13454847], [0.94630875, 0.00429145]],
-                    [[1.00486134, 0.19089796], [-1.0284215, 0.00462867]],
-                    [[1.02002225, 0.03934462], [-0.89899502, 0.01156453]],
-                ]
-            ),
+            iq_data_01,
+            true_result,
+        )
+        self.assertAllClose(
+            iq_data_10,
+            true_result[:, ::-1, :],
         )

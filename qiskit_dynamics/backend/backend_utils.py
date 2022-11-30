@@ -176,13 +176,18 @@ def _iq_data(
     iq_centers: List[List[List[float]]],
     iq_width: float,
     shots: int,
-    seed: int,
+    memory_slot_indices: List[int],
+    num_memory_slots: Optional[int] = None,
+    seed: Optional[int] = None,
 ) -> np.ndarray:
     """Generates IQ data for each physical level.
 
     Args:
         state: Quantum state.
         measurement_subsystems: Labels of subsystems in the system being measured.
+        memory_slot_indices: Indices of which memory slots store the data of subsystems.
+        num_memory_slots: Total number of memory slots for results. If None,
+                          defaults to the maximum index in memory_slot_indices.
         iq_centers: centers for IQ distribution. provided in the format
                     ``iq_centers[subsystem][level] = [I,Q]``.
         iq_width: Standard deviation of IQ distribution around the centers.
@@ -218,4 +223,11 @@ def _iq_data(
         full_i.append(np.concatenate(sub_i))
         full_q.append(np.concatenate(sub_q))
     full_iq = np.array([full_i, full_q]).T
-    return full_iq
+
+    num_memory_slots = num_memory_slots or (max(memory_slot_indices) + 1)
+    mem_slot_iq = np.zeros((shots, num_memory_slots, 2))
+
+    for idx, mem_idx in enumerate(memory_slot_indices):
+        mem_slot_iq[:, mem_idx, :] = full_iq[:, idx, :]
+
+    return mem_slot_iq

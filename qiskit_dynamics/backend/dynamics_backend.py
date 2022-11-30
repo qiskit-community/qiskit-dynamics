@@ -476,6 +476,8 @@ def default_experiment_result_function(
             iq_centers=backend.options.iq_centers,
             iq_width=backend.options.iq_width,
             shots=backend.options.shots,
+            memory_slot_indices=memory_slot_indices,
+            num_memory_slots=num_memory_slots,
             seed=seed,
         )
 

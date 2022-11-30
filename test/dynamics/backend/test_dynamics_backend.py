@@ -394,6 +394,21 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         # validate consistent results
         self.assertDictEqual(result0_dict, result1_dict)
 
+        result0_iq = (
+            self.backend_2q.run(schedule0, meas_level=1, seed_simulator=1234567)
+            .result()
+            .get_memory()
+        )
+        result1_iq = (
+            self.backend_2q.run(schedule1, meas_level=1, seed_simulator=1234567)
+            .result()
+            .get_memory()
+        )
+
+        self.assertTrue(result0_iq.shape == (2,))
+        self.assertTrue(result1_iq.shape == (5,))
+        self.assertAllClose(result0_iq, result1_iq[[2, 4]])
+
     def test_measure_higher_levels(self):
         """Test measurement of higher levels."""
 
