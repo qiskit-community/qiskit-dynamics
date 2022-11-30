@@ -224,7 +224,7 @@ def jax_RK4_parallel_solver(
     max_dt: float,
     t_eval: Optional[Union[Tuple, List, Array]] = None,
 ):
-    """Parallel version of jax_RK4_solver specialized to LMDEs.
+    """Parallel version of :func:`jax_RK4_solver` specialized to LMDEs.
 
     Args:
         generator: Generator of the LMDE.
@@ -300,7 +300,7 @@ def jax_expm_parallel_solver(
     t_eval: Optional[Union[Tuple, List, Array]] = None,
     magnus_order: int = 1,
 ):
-    """Parallel version of jax_expm_solver implemented with JAX parallel operations.
+    """Parallel version of :func:`jax_expm_solver` implemented with JAX parallel operations.
 
         Args:
         generator: Generator for the LMDE.
@@ -313,7 +313,6 @@ def jax_expm_parallel_solver(
 
     Returns:
         OdeResult: Results object.
-
     """
     take_step = get_exponential_take_step(magnus_order, expm_func=jexpm, just_propagator=True)
 
@@ -338,7 +337,7 @@ def matrix_commutator(m1: Array, m2: Array) -> Array:
 def get_exponential_take_step(
     magnus_order: int, expm_func: Callable, just_propagator: bool = False
 ):
-    """Returns a function implementing the infinitessimal magnus solver at 1st, 2nd, and 3rd
+    """Return a function implementing the infinitessimal magnus solver at 1st, 2nd, and 3rd
     Magnus orders, specified by the user. See also the documentation of :func:`scipy_expm_solver`
     for details.
 

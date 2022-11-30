@@ -529,10 +529,10 @@ class TestJaxExpmSolver_magnus2(TestJaxFixedStepBase):
 
     def take_step(self, rhs, t, y, h):
         """In this case treat rhs like a generator."""
-        A1 = rhs(t + self.c1 * h)
-        A2 = rhs(t + self.c2 * h)
+        g1 = rhs(t + self.c1 * h)
+        g2 = rhs(t + self.c2 * h)
 
-        return jexpm(0.5 * h * (A1 + A2) - (h**2) * self.c3 * (A1 @ A2 - A2 @ A1)) @ y
+        return jexpm(0.5 * h * (g1 + g2) - (h**2) * self.c3 * (g1 @ g2 - g2 @ g1)) @ y
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
         return jax_expm_solver(rhs, t_span, y0, max_dt, t_eval, magnus_order=2)
@@ -554,20 +554,20 @@ class TestJaxExpmSolver_magnus3(TestJaxFixedStepBase):
 
     def take_step(self, rhs, t, y, h):
         """In this case treat rhs like a generator."""
-        A1 = rhs(t + self.c1 * h)
-        A2 = rhs(t + self.c2 * h)
-        A3 = rhs(t + self.c3 * h)
+        g1 = rhs(t + self.c1 * h)
+        g2 = rhs(t + self.c2 * h)
+        g3 = rhs(t + self.c3 * h)
 
-        a1 = h * A2
-        a2 = self.c4 * h * (A3 - A1)
-        a3 = self.c5 * h * (A3 - 2 * A2 + A1)
+        a1 = h * g2
+        a2 = self.c4 * h * (g3 - g1)
+        a3 = self.c5 * h * (g3 - 2 * g2 + g1)
 
-        C1 = a1 @ a2 - a2 @ a1
-        x0 = 2 * a3 + C1
-        C2 = (x0 @ a1 - a1 @ x0) / 60
+        comm1 = a1 @ a2 - a2 @ a1
+        x0 = 2 * a3 + comm1
+        comm2 = (x0 @ a1 - a1 @ x0) / 60
 
-        x1 = (-20 * a1) - a3 + C1
-        x2 = a2 + C2
+        x1 = (-20 * a1) - a3 + comm1
+        x2 = a2 + comm2
         return jexpm(a1 + (a3 / 12) + ((x1 @ x2 - x2 @ x1) / 240)) @ y
 
     def solve(self, rhs, t_span, y0, max_dt, t_eval=None):
