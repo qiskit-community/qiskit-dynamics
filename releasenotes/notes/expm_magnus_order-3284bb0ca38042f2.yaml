@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    Adds the ``magnus_order`` argument to exponential based solvers. Accepts values in ``[1, 2, 3]``
+    corresponding, respectively, to the 2nd, 4th, and 6th order methods described in Section 5.4 of
+    :footcite:`blanes_magnus_2009`.
