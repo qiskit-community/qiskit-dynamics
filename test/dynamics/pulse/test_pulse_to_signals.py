@@ -15,6 +15,7 @@ Tests to convert from pulse schedules to signals.
 
 from ddt import ddt, data, unpack
 import numpy as np
+import sympy as sym
 
 from qiskit import pulse
 from qiskit.pulse import (
@@ -32,6 +33,7 @@ from qiskit.pulse import (
     Gaussian,
     Constant,
     Waveform,
+    SymbolicPulse,
 )
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit import QiskitError
@@ -364,8 +366,22 @@ class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
         """Test compiling to get samples of Pulse."""
 
         def jit_func(amp):
-            return get_samples(Constant(100, amp))
+            parameters = {"amp": amp}
+            _t, _amp, _duration = sym.symbols("t, amp, duration")
+            envelope_expr = _amp * sym.Piecewise((1, sym.And(_t >= 0, _t <= _duration)), (0, True))
+            valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
+            # we can use only SymbolicPulse when jax-jitting bacause jax-jitting doesn't correspond to validate_parameters in qiskit.pulse.
+            instance = SymbolicPulse(
+                pulse_type="Constant",
+                duration=100,
+                parameters=parameters,
+                envelope=envelope_expr,
+                valid_amp_conditions=valid_amp_conditions_expr,
+            )
+            return get_samples(instance)
 
+        self.jit_wrap(jit_func)(0.1)
+        self.jit_grad_wrap(jit_func)(0.1)
         jit_samples = jax.jit(jit_func)(0.1)
         self.assertAllClose(jit_samples, self.gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
 
