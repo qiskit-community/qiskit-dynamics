@@ -170,7 +170,7 @@ def _get_counts_from_samples(samples: list) -> Dict:
     return dict(zip(*np.unique(samples, return_counts=True)))
 
 
-def _iq_data(
+def _get_iq_data(
     state: Union[Statevector, DensityMatrix],
     measurement_subsystems: List[int],
     iq_centers: List[List[List[float]]],

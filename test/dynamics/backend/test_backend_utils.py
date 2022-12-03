@@ -28,7 +28,7 @@ from qiskit_dynamics.backend.backend_utils import (
     _get_memory_slot_probabilities,
     _sample_probability_dict,
     _get_counts_from_samples,
-    _iq_data,
+    _get_iq_data,
 )
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -215,8 +215,8 @@ class Test_get_counts_from_samples(QiskitDynamicsTestCase):
         self.assertDictEqual(output, {"00": 2, "01": 3, "20": 2})
 
 
-class Test_iq_data(QiskitDynamicsTestCase):
-    """Test _iq_data."""
+class Test_get_iq_data(QiskitDynamicsTestCase):
+    """Test _get_iq_data."""
 
     def setUp(self):
         self.iq_to_counts = lambda iq_n: dict(
@@ -225,7 +225,7 @@ class Test_iq_data(QiskitDynamicsTestCase):
 
     def test_basic_predict(self):
         """Basic predict test case."""
-        iq_data = _iq_data(
+        iq_data = _get_iq_data(
             state=Statevector(np.array([0.5, 1]) / np.sqrt(1.25)),
             measurement_subsystems=[0],
             iq_centers=[[(1, 0), (-1, 0)]],
@@ -241,7 +241,7 @@ class Test_iq_data(QiskitDynamicsTestCase):
 
     def test_multi_qubit_predict(self):
         """Multi_qubit predict test case."""
-        iq_data = _iq_data(
+        iq_data = _get_iq_data(
             state=Statevector(np.array([0.5, 1, 0, 0]) / np.sqrt(1.25)),
             measurement_subsystems=[0, 1],
             iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
@@ -259,7 +259,7 @@ class Test_iq_data(QiskitDynamicsTestCase):
     def test_multi_qubit_iq(self):
         """Multi qubit IQ test case."""
 
-        iq_data_01 = _iq_data(
+        iq_data_01 = _get_iq_data(
             state=Statevector(np.array([1, 1, 1, 1]) / 2, dims=[2, 2]),
             measurement_subsystems=[0, 1],
             iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
@@ -268,7 +268,7 @@ class Test_iq_data(QiskitDynamicsTestCase):
             memory_slot_indices=[0, 1],
             seed=83248,
         )
-        iq_data_10 = _iq_data(
+        iq_data_10 = _get_iq_data(
             state=Statevector(np.array([1, 1, 1, 1]) / 2, dims=[2, 2]),
             measurement_subsystems=[0, 1],
             iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],

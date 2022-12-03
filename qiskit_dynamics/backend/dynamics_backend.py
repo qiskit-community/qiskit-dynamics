@@ -49,7 +49,7 @@ from .backend_utils import (
     _get_memory_slot_probabilities,
     _sample_probability_dict,
     _get_counts_from_samples,
-    _iq_data,
+    _get_iq_data,
 )
 
 
@@ -470,7 +470,7 @@ def default_experiment_result_function(
             backend.options.iq_centers = iq_centers
 
         # generate IQ
-        measurement_data = _iq_data(
+        measurement_data = _get_iq_data(
             yf,
             measurement_subsystems=measurement_subsystems,
             iq_centers=backend.options.iq_centers,
