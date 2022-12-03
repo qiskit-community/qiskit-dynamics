@@ -306,6 +306,38 @@ class Testscipy_expm(TestSolverMethod):
         )
 
 
+class Testscipy_expm_magnus2(TestSolverMethod):
+    """Test class for scipy_expm_solver with magnus_order==2."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="scipy_expm",
+            t_eval=t_eval,
+            max_dt=0.01,
+            magnus_order=2,
+            **kwargs,
+        )
+
+
+class Testscipy_expm_magnus3(TestSolverMethod):
+    """Test class for scipy_expm_solver with magnus_order==3."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="scipy_expm",
+            t_eval=t_eval,
+            max_dt=0.01,
+            magnus_order=3,
+            **kwargs,
+        )
+
+
 class Testlanczos_diag(TestSolverMethod):
     """Test class for lanczos_diag_solver."""
 
@@ -389,6 +421,38 @@ class Testjax_expm(TestSolverMethodJax):
         )
 
 
+class Testjax_expm_magnus2(TestSolverMethodJax):
+    """Test class for jax_expm_solver with magnus_order==2."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="jax_expm",
+            t_eval=t_eval,
+            max_dt=0.01,
+            magnus_order=2,
+            **kwargs,
+        )
+
+
+class Testjax_expm_magnus3(TestSolverMethodJax):
+    """Test class for jax_expm_solver with magnus_order==3."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        return solver_func(
+            generator=rhs,
+            t_span=t_span,
+            y0=y0,
+            method="jax_expm",
+            t_eval=t_eval,
+            max_dt=0.01,
+            magnus_order=3,
+            **kwargs,
+        )
+
+
 class Testjax_expm_parallel(TestSolverMethodJax):
     """Test class for jax_expm_parallel_solver."""
 
@@ -402,6 +466,48 @@ class Testjax_expm_parallel(TestSolverMethodJax):
                 method="jax_expm_parallel",
                 t_eval=t_eval,
                 max_dt=0.01,
+                **kwargs,
+            )
+
+        self.assertTrue("run slower on CPUs" in str(w.warning))
+        return results
+
+
+class Testjax_expm_parallel_magnus2(TestSolverMethodJax):
+    """Test class for jax_expm_parallel_solver with magnus_order==2."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        # ensure that warning is raised as tests are run on CPU
+        with self.assertWarns(Warning) as w:
+            results = solver_func(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="jax_expm_parallel",
+                t_eval=t_eval,
+                max_dt=0.01,
+                magnus_order=2,
+                **kwargs,
+            )
+
+        self.assertTrue("run slower on CPUs" in str(w.warning))
+        return results
+
+
+class Testjax_expm_parallel_magnus3(TestSolverMethodJax):
+    """Test class for jax_expm_parallel_solver with magnus_order==3."""
+
+    def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
+        # ensure that warning is raised as tests are run on CPU
+        with self.assertWarns(Warning) as w:
+            results = solver_func(
+                generator=rhs,
+                t_span=t_span,
+                y0=y0,
+                method="jax_expm_parallel",
+                t_eval=t_eval,
+                max_dt=0.01,
+                magnus_order=3,
                 **kwargs,
             )
 
