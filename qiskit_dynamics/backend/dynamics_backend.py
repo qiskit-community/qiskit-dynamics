@@ -228,14 +228,6 @@ class DynamicsBackend(BackendV2):
                 "DynamicsBackend options subsystem_dims and solver.model.dim are inconsistent."
             )
 
-    def configuration(self) -> PulseBackendConfiguration:
-        """Get the backend configuration."""
-        return self.options.configuration
-
-    def defaults(self) -> PulseDefaults:
-        """Get the backend defaults."""
-        return self.options.defaults
-
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
         if solver._dt is None:
@@ -380,12 +372,21 @@ class DynamicsBackend(BackendV2):
     def meas_map(self) -> List[List[int]]:
         return self.options.meas_map
 
+    def configuration(self) -> PulseBackendConfiguration:
+        """Get the backend configuration."""
+        return self.options.configuration
+
+    def defaults(self) -> PulseDefaults:
+        """Get the backend defaults."""
+        return self.options.defaults
+
     @classmethod
     def from_backend(
         cls,
         backend: Union[BackendV1, BackendV2],
         subsystem_list: Optional[List[int]] = None,
-        solver_kwargs: Optional[dict] = None,
+        solver_init_kwargs: Optional[dict] = None,
+        auto_rotating_frame: bool = True,
         **options,
     ) -> "DynamicsBackend":
         """Construct a :class:`.DynamicsBackend` instance from an existing ``Backend`` instance.
@@ -399,11 +400,34 @@ class DynamicsBackend(BackendV2):
         in the constructed :class:`DynamicsBackend`, with all other qubits will being dropped from
         the model.
 
+        Configuration of the underlying :class:`.Solver` is controlled via 
+        ``solver_init_kwargs``, passed directly to :meth:`.Solver.__init__`. The additional
+        argument ``auto_rotating_frame`` allows this method to automatically choose the rotating
+        frame in which the :class:`.Solver` will be configured. If ``auto_rotating_frame==True``
+        and no ``rotating_frame`` is specified in ``solver_init_kwargs``:
+
+        * If a dense evaluation mode is chosen, the rotating frame will be set to the 
+          ``static_hamiltonian`` indicated by the Hamiltonian in ``backend.configuration()``.
+        * If a sparse evaluation mode is chosen, the rotating frame will be set to the diagonal of 
+          ``static_hamiltonian``.
+        
+        **Technical notes**
+
+        * The whole ``configuration`` and ``defaults`` attributes of the original backend will not 
+          be copied into the constructed :class:`DynamicsBackend` instance, only the required data 
+          stored within these attributes will be extracted. If required, for backwards 
+          compatibility, ``'configuration'`` and ``'defaults'`` options can be set, which will be 
+          returned via the :meth:`.configuration` and :meth:`.defaults` methods.
+        * Gates and calibrations are not copied into the constructed :class:`DynamicsBackend`.
+          Due to inevitable model inaccuracies, gates calibrated on a real device will not 
+          have the same performance on the constructed :class:`DynamicsBackend`. As such, the 
+          :class:`DynamicsBackend` will be constructed with an empty ``InstructionScheduleMap``, and
+          must be recalibrated.
 
         Args:
             backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.
             subsystem_list: The list of qubits in the backend to include in the model.
-            solver_kwargs: Additional keyword arguments to pass to the :class:`.Solver` instance
+            solver_configuration: Additional keyword arguments to pass to the :class:`.Solver` instance
                 constructed from the model in the backend.
             **options: Additional options to be applied in construction of the
                 :class:`.DynamicsBackend`.
@@ -420,6 +444,11 @@ class DynamicsBackend(BackendV2):
               DynamicsBackend.from_backend, so I think it's probably natural for cases utilizing
               from_backend for these to be present. These are settable as options, defaulting to
               None.
+            - Configuration/defaults are not being copied over. They have way too many parameters
+              that aren't relevant, and some which would need to be deleted (like default gates).
+            - The new target is only being instantiated with dt.
+            - 
+
 
         To do:
             - Issue with solver_kwargs is the user may will not have access to the hamiltonian
@@ -432,7 +461,6 @@ class DynamicsBackend(BackendV2):
                 - Could maybe change arg to "solver_configuration", and it can either be a string
                   like "sparse", "dense", and the appropriate frame is automatically entered, or it
                   can be a dict and explicitly be passed as
-            - Modify configuration, defaults, target when copying into backend, or leave as is?
             - To test:
                 - all validation checks in from_backend, including option setting for
                   configuration/defaults
@@ -490,28 +518,26 @@ class DynamicsBackend(BackendV2):
         )
 
         # build the solver
-        solver_kwargs = solver_kwargs or {}
+        solver_init_kwargs = copy.copy(solver_init_kwargs) or {}
+        if auto_rotating_frame and "rotating_frame" not in solver_init_kwargs:
+            evaluation_mode = solver_init_kwargs.get("evaluation_mode", "dense")
+            if "dense" in evaluation_mode:
+                solver_init_kwargs["rotating_frame"] = static_hamiltonian
+            else:
+                solver_init_kwargs["rotating_frame"] = np.diag(static_hamiltonian)
+
         solver = Solver(
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
             hamiltonian_channels=hamiltonian_channels,
             channel_carrier_freqs=channel_freqs,
             dt=dt,
-            **solver_kwargs,
+            **solver_init_kwargs,
         )
-
-        # copy major backend attributes
-        target = copy.copy(getattr(backend, "target", None))
-
-        if "configuration" not in options:
-            options["configuration"] = copy.copy(backend_config)
-
-        if "defaults" not in options:
-            options["defaults"] = copy.copy(backend_defaults)
-
+        
         return cls(
             solver=solver,
-            target=target,
+            target=Target(dt=dt),
             subsystem_labels=subsystem_list,
             subsystem_dims=subsystem_dims,
             **options,
