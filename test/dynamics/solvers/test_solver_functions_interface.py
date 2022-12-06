@@ -29,7 +29,7 @@ from qiskit_dynamics.solvers.solver_functions import (
     results_y_out_of_frame_basis,
 )
 
-from ..common import QiskitDynamicsTestCase
+from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class Testsolve_ode_exceptions(QiskitDynamicsTestCase):
@@ -115,6 +115,49 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "jax_expm cannot be used"):
             solve_lmde(
                 model, t_span=[0.0, 1.0], y0=np.array([1.0, 1.0]), method="jax_expm", max_dt=0.1
+            )
+
+    def test_scipy_expm_magnus_order_exception(self):
+        """Verify error gets raised if scipy_expm_solver is called with magnus_order > 3."""
+
+        with self.assertRaisesRegex(QiskitError, "Only magnus_order 1, 2, and 3 are supported"):
+            solve_lmde(
+                lambda t: np.array([[0, 1], [-1, 0]]),
+                t_span=[0.0, 1.0],
+                y0=np.array([1.0, 0.0]),
+                method="scipy_expm",
+                max_dt=0.1,
+                magnus_order=4,
+            )
+
+
+class Testsolve_lmde_exceptionsJAX(QiskitDynamicsTestCase, TestJaxBase):
+    """Test solve_lmde exceptions requiring JAX to reach."""
+
+    def test_jax_expm_magnus_order_exception(self):
+        """Verify error gets raised if jax_expm_solver is called with magnus_order > 3."""
+
+        with self.assertRaisesRegex(QiskitError, "Only magnus_order 1, 2, and 3 are supported"):
+            solve_lmde(
+                lambda t: np.array([[0, 1], [-1, 0]]),
+                t_span=[0.0, 1.0],
+                y0=np.array([1.0, 0.0]),
+                method="jax_expm",
+                max_dt=0.1,
+                magnus_order=4,
+            )
+
+    def test_jax_expm_parallel_magnus_order_exception(self):
+        """Verify error gets raised if jax_expm_parallel_solver is called with magnus_order > 3."""
+
+        with self.assertRaisesRegex(QiskitError, "Only magnus_order 1, 2, and 3 are supported"):
+            solve_lmde(
+                lambda t: np.array([[0, 1], [-1, 0]]),
+                t_span=[0.0, 1.0],
+                y0=np.array([1.0, 0.0]),
+                method="jax_expm_parallel",
+                max_dt=0.1,
+                magnus_order=4,
             )
 
 
