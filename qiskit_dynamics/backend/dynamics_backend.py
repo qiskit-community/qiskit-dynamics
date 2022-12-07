@@ -195,8 +195,8 @@ class DynamicsBackend(BackendV2):
             if key == "initial_state":
                 if value != "ground_state" and not isinstance(value, (Statevector, DensityMatrix)):
                     raise QiskitError(
-                        """initial_state must be either "ground_state",
-                        or a Statevector or DensityMatrix instance."""
+                        'initial_state must be either "ground_state", or a Statevector or '
+                        "DensityMatrix instance."
                     )
             elif key == "meas_level" and value != 2:
                 raise QiskitError("Only meas_level == 2 is supported by DynamicsBackend.")
@@ -403,30 +403,30 @@ class DynamicsBackend(BackendV2):
         in the constructed :class:`DynamicsBackend`, with all other qubits will being dropped from
         the model.
 
-        Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``, 
+        Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``,
         ``evaluation_mode``, and ``rwa_cutoff_freq`` options. In contrast to :class:`.Solver`
         initialization, ``rotating_frame`` defaults to the string ``"auto"``, which allows this
         method to choose the rotating frame based on ``evaluation_mode``:
 
-        * If a dense evaluation mode is chosen, the rotating frame will be set to the 
+        * If a dense evaluation mode is chosen, the rotating frame will be set to the
           ``static_hamiltonian`` indicated by the Hamiltonian in ``backend.configuration()``.
-        * If a sparse evaluation mode is chosen, the rotating frame will be set to the diagonal of 
+        * If a sparse evaluation mode is chosen, the rotating frame will be set to the diagonal of
           ``static_hamiltonian``.
 
-        Otherwise the ``rotating_frame``, ``evaluation_mode``, and ``rwa_cutoff_freq`` aer passed 
+        Otherwise the ``rotating_frame``, ``evaluation_mode``, and ``rwa_cutoff_freq`` aer passed
         directly to the :class:`.Solver` initialization.
 
-        
+
         **Technical notes**
 
-        * The whole ``configuration`` and ``defaults`` attributes of the original backend will not 
-          be copied into the constructed :class:`DynamicsBackend` instance, only the required data 
-          stored within these attributes will be extracted. If required, for backwards 
-          compatibility, ``'configuration'`` and ``'defaults'`` options can be set, which will be 
+        * The whole ``configuration`` and ``defaults`` attributes of the original backend will not
+          be copied into the constructed :class:`DynamicsBackend` instance, only the required data
+          stored within these attributes will be extracted. If required, for backwards
+          compatibility, ``'configuration'`` and ``'defaults'`` options can be set, which will be
           returned via the :meth:`.configuration` and :meth:`.defaults` methods.
-        * Gates and calibrations are not copied into the constructed :class:`DynamicsBackend`.
-          Due to inevitable model inaccuracies, gates calibrated on a real device will not 
-          have the same performance on the constructed :class:`DynamicsBackend`. As such, the 
+        * Gates and calibrations are not copied into the constructed :class:`DynamicsBackend`. Due
+          to inevitable model inaccuracies, gates calibrated on a real device will not have the same
+          performance on the constructed :class:`DynamicsBackend`. As such, the
           :class:`DynamicsBackend` will be constructed with an empty ``InstructionScheduleMap``, and
           must be recalibrated.
 
@@ -444,44 +444,18 @@ class DynamicsBackend(BackendV2):
             DynamicsBackend
 
         Raises:
-            QiskitError if any required parameters are missing from the passed backend.
-
-        Notes:
-            - Added configuration/defaults methods for "backwards compatibility". They are not
-              strictly required by DynamicsBackend, but they are required of backends passed to
-              DynamicsBackend.from_backend, so I think it's probably natural for cases utilizing
-              from_backend for these to be present. These are settable as options, defaulting to
-              None.
-            - Configuration/defaults are not being copied over. They have way too many parameters
-              that aren't relevant, and some which would need to be deleted (like default gates).
-            - The new target is only being instantiated with dt.
-            - 
-
-
-        To do:
-            - Issue with solver_kwargs is the user may will not have access to the hamiltonian
-              terms, and hence can't effectively specify the rotating frame they want to be in. What
-              to do about this? Could add string handling, like rotating_frame='static_hamiltonian'?
-                - Can we somehow provide the user with "standard" configurations? E.g. if sparse, it
-                  will automatically simulate in the diagonal of the static hamiltonian?
-                - The user can set the rotating frame of the model AFTER construction as well (by
-                  getting it from the solver).
-                - Could maybe change arg to "solver_configuration", and it can either be a string
-                  like "sparse", "dense", and the appropriate frame is automatically entered, or it
-                  can be a dict and explicitly be passed as
-            - To test:
-                - all validation checks in from_backend, including option setting for
-                  configuration/defaults
+            QiskitError: If any required parameters are missing from the passed backend.
         """
 
         if not hasattr(backend, "configuration"):
             raise QiskitError(
-                """DynamicsBackend.from_backend requires that the backend argument have a
-                configuration method."""
+                "DynamicsBackend.from_backend requires that the backend argument has a "
+                "configuration method."
             )
         if not hasattr(backend, "defaults"):
             raise QiskitError(
-                """DynamicsBackend.from_backend requires that the backend argument have a defaults method."""
+                "DynamicsBackend.from_backend requires that the backend argument has a defaults "
+                "method."
             )
 
         config = backend.configuration()
@@ -492,14 +466,16 @@ class DynamicsBackend(BackendV2):
             subsystem_list = sorted(subsystem_list)
             if subsystem_list[-1] >= config.n_qubits:
                 raise QiskitError(
-                    f"""subsystem_list contained {subsystem_list[-1]}, which is out of bounds for config.n_qubits == {config.n_qubits}."""
+                    f"subsystem_list contained {subsystem_list[-1]}, which is out of bounds for "
+                    f"config.n_qubits == {config.n_qubits}."
                 )
         else:
             subsystem_list = list(range(config.n_qubits))
 
         if not hasattr(config, "hamiltonian"):
             raise QiskitError(
-                "DynamicsBackend.from_backend requires that backend.configuration() has a hamiltonian attribute."
+                "DynamicsBackend.from_backend requires that backend.configuration() has a "
+                "hamiltonian attribute."
             )
 
         hamiltonian_dict = config.hamiltonian
@@ -514,7 +490,8 @@ class DynamicsBackend(BackendV2):
         # get time step size
         if not hasattr(config, "dt"):
             raise QiskitError(
-                "DynamicsBackend.from_backend requires that backend.configuration() has a dt attribute."
+                "DynamicsBackend.from_backend requires that backend.configuration() has a dt "
+                "attribute."
             )
         dt = config.dt
 
@@ -538,9 +515,9 @@ class DynamicsBackend(BackendV2):
             dt=dt,
             rotating_frame=rotating_frame,
             evaluation_mode=evaluation_mode,
-            rwa_cutoff_freq=rwa_cutoff_freq
+            rwa_cutoff_freq=rwa_cutoff_freq,
         )
-        
+
         return cls(
             solver=solver,
             target=Target(dt=dt),
@@ -674,8 +651,8 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
         # validate
         if len(schedule_acquire_times) == 0:
             raise QiskitError(
-                """At least one measurement saving a a result in a MemorySlot
-                must be present in each schedule."""
+                "At least one measurement saving a a result in a MemorySlot "
+                "must be present in each schedule."
             )
 
         for acquire_time in schedule_acquire_times[1:]:
@@ -690,8 +667,8 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
                 measurement_subsystems.append(inst.channel.index)
             else:
                 raise QiskitError(
-                    f"""Attempted to measure subsystem {inst.channel.index},
-                    but it is not in subsystem_list."""
+                    f"Attempted to measure subsystem {inst.channel.index}, but it is not in "
+                    "subsystem_list."
                 )
 
             memory_slot_indices.append(inst.mem_slot.index)

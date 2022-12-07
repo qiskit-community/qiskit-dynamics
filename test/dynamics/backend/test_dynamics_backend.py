@@ -463,18 +463,18 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
                 "wq2": 31745180964.17169,
                 "wq3": 30510620255.52735,
                 "wq4": 32160826850.25662,
-            }
+            },
         }
         configuration.dt = 2e-9 / 9
         configuration.u_channel_lo = [
-            [UchannelLO(1, (1+0j))],
-            [UchannelLO(0, (1+0j))],
-            [UchannelLO(2, (1+0j))],
-            [UchannelLO(1, (1+0j))],
-            [UchannelLO(3, (1+0j))],
-            [UchannelLO(2, (1+0j))],
-            [UchannelLO(4, (1+0j))],
-            [UchannelLO(3, (1+0j))]
+            [UchannelLO(1, (1 + 0j))],
+            [UchannelLO(0, (1 + 0j))],
+            [UchannelLO(2, (1 + 0j))],
+            [UchannelLO(1, (1 + 0j))],
+            [UchannelLO(3, (1 + 0j))],
+            [UchannelLO(2, (1 + 0j))],
+            [UchannelLO(4, (1 + 0j))],
+            [UchannelLO(3, (1 + 0j))],
         ]
 
         defaults = SimpleNamespace()
@@ -483,7 +483,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
             5267216864.382969,
             5052402469.794663,
             4855916030.466884,
-            5118554567.140891
+            5118554567.140891,
         ]
 
         # configuration and defaults need to be methods
@@ -499,7 +499,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
         # delete configuration
         delattr(self.valid_backend, "configuration")
 
-        with self.assertRaisesRegex(QiskitError, "configuration method"):
+        with self.assertRaisesRegex(QiskitError, "has a configuration method"):
             DynamicsBackend.from_backend(backend=self.valid_backend)
 
     def test_no_defaults_error(self):
@@ -507,7 +507,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
 
         delattr(self.valid_backend, "defaults")
 
-        with self.assertRaisesRegex(QiskitError, "defaults method"):
+        with self.assertRaisesRegex(QiskitError, "has a defaults"):
             DynamicsBackend.from_backend(backend=self.valid_backend)
 
     def test_subsystem_list_out_of_bounds(self):
@@ -523,21 +523,18 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "hamiltonian attribute"):
             DynamicsBackend.from_backend(backend=self.valid_backend)
-    
+
     def test_no_dt(self):
         """Test error is raised if no dt in configuration."""
         delattr(self.valid_backend.configuration(), "dt")
 
-        with self.assertRaisesRegex(QiskitError, "dt attribute"):
+        with self.assertRaisesRegex(QiskitError, "has a dt"):
             DynamicsBackend.from_backend(backend=self.valid_backend)
-    
+
     def test_building_model(self):
         """Test construction from_backend without additional options to solver."""
 
-        backend = DynamicsBackend.from_backend(
-            self.valid_backend, 
-            subsystem_list=[0, 1]
-        )
+        backend = DynamicsBackend.from_backend(self.valid_backend, subsystem_list=[0, 1])
 
         self.assertTrue(backend.target.dt == 2e-9 / 9)
 
@@ -549,39 +546,46 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
                 "d1": 5267216864.382969,
                 "u0": 5267216864.382969,
                 "u1": 5175383639.513607,
-                "u2": 5052402469.794663
-            }
+                "u2": 5052402469.794663,
+            },
         )
 
         self.assertTrue(isinstance(solver.model.static_operator, Array))
-        
-        N0 = np.diag(np.kron([1., 1., 1.], [0., 1., 2.]))
-        N1 = np.diag(np.kron([0., 1., 2.], [1., 1., 1.]))
-        a0 = np.kron(np.eye(3), np.diag([1., np.sqrt(2)], 1))
+
+        N0 = np.diag(np.kron([1.0, 1.0, 1.0], [0.0, 1.0, 2.0]))
+        N1 = np.diag(np.kron([0.0, 1.0, 2.0], [1.0, 1.0, 1.0]))
+        a0 = np.kron(np.eye(3), np.diag([1.0, np.sqrt(2)], 1))
         a0dag = a0.transpose()
-        a1 = np.kron(np.diag([1., np.sqrt(2)], 1), np.eye(3))
+        a1 = np.kron(np.diag([1.0, np.sqrt(2)], 1), np.eye(3))
         a1dag = a1.transpose()
-        
-        frame_operator = (32517894442.809513 * N0 + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
-            + 33094899612.019604 * N1 + (-2089442135.2015743 / 2) * (N1 * N1 - N1)
+
+        frame_operator = (
+            32517894442.809513 * N0
+            + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
+            + 33094899612.019604 * N1
+            + (-2089442135.2015743 / 2) * (N1 * N1 - N1)
             + 10495754.104003914 * (a0 @ a1dag + a0dag @ a1)
         )
 
         self.assertAllClose(frame_operator, solver.model.rotating_frame.frame_operator)
-        self.assertAllClose(solver.model.static_operator/1e9, np.zeros(9))
+        self.assertAllClose(solver.model.static_operator / 1e9, np.zeros(9))
 
-        expected_operators = np.array([971545899.0879812 * (a0 + a0dag), 980381253.7440838 * (a1 + a1dag),
-                      980381253.7440838 * (a0 + a0dag), 971545899.0879812 * (a1 + a1dag),
-                      949475607.7681785 * (a1 + a1dag)])
-        self.assertAllClose(expected_operators/1e9, solver.model.operators/1e9)
-    
+        expected_operators = np.array(
+            [
+                971545899.0879812 * (a0 + a0dag),
+                980381253.7440838 * (a1 + a1dag),
+                980381253.7440838 * (a0 + a0dag),
+                971545899.0879812 * (a1 + a1dag),
+                949475607.7681785 * (a1 + a1dag),
+            ]
+        )
+        self.assertAllClose(expected_operators / 1e9, solver.model.operators / 1e9)
+
     def test_building_model_sparse(self):
         """Test construction from_backend in sparse mode."""
 
         backend = DynamicsBackend.from_backend(
-            self.valid_backend, 
-            subsystem_list=[0, 1],
-            evaluation_mode="sparse"
+            self.valid_backend, subsystem_list=[0, 1], evaluation_mode="sparse"
         )
 
         self.assertTrue(backend.target.dt == 2e-9 / 9)
@@ -594,38 +598,49 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
                 "d1": 5267216864.382969,
                 "u0": 5267216864.382969,
                 "u1": 5175383639.513607,
-                "u2": 5052402469.794663
-            }
+                "u2": 5052402469.794663,
+            },
         )
 
         self.assertTrue(isinstance(solver.model.static_operator, csr_matrix))
-        
-        N0 = np.diag(np.kron([1., 1., 1.], [0., 1., 2.]))
-        N1 = np.diag(np.kron([0., 1., 2.], [1., 1., 1.]))
-        a0 = np.kron(np.eye(3), np.diag([1., np.sqrt(2)], 1))
+
+        N0 = np.diag(np.kron([1.0, 1.0, 1.0], [0.0, 1.0, 2.0]))
+        N1 = np.diag(np.kron([0.0, 1.0, 2.0], [1.0, 1.0, 1.0]))
+        a0 = np.kron(np.eye(3), np.diag([1.0, np.sqrt(2)], 1))
         a0dag = a0.transpose()
-        a1 = np.kron(np.diag([1., np.sqrt(2)], 1), np.eye(3))
+        a1 = np.kron(np.diag([1.0, np.sqrt(2)], 1), np.eye(3))
         a1dag = a1.transpose()
-        
-        frame_operator = np.diag(32517894442.809513 * N0 + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
-            + 33094899612.019604 * N1 + (-2089442135.2015743 / 2) * (N1 * N1 - N1))
+
+        frame_operator = np.diag(
+            32517894442.809513 * N0
+            + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
+            + 33094899612.019604 * N1
+            + (-2089442135.2015743 / 2) * (N1 * N1 - N1)
+        )
         static_operator = 10495754.104003914 * (a0 @ a1dag + a0dag @ a1)
 
         self.assertAllClose(frame_operator, solver.model.rotating_frame.frame_operator)
-        self.assertAllCloseSparse(static_operator/1e9, solver.model.static_operator.todense()/1e9)
+        self.assertAllCloseSparse(
+            static_operator / 1e9, solver.model.static_operator.todense() / 1e9
+        )
 
-        expected_operators = np.array([971545899.0879812 * (a0 + a0dag), 980381253.7440838 * (a1 + a1dag),
-                      980381253.7440838 * (a0 + a0dag), 971545899.0879812 * (a1 + a1dag),
-                      949475607.7681785 * (a1 + a1dag)])
-        self.assertAllClose(expected_operators/1e9, [x.todense()/1e9 for x in solver.model.operators])
+        expected_operators = np.array(
+            [
+                971545899.0879812 * (a0 + a0dag),
+                980381253.7440838 * (a1 + a1dag),
+                980381253.7440838 * (a0 + a0dag),
+                971545899.0879812 * (a1 + a1dag),
+                949475607.7681785 * (a1 + a1dag),
+            ]
+        )
+        self.assertAllClose(
+            expected_operators / 1e9, [x.todense() / 1e9 for x in solver.model.operators]
+        )
 
     def test_building_model_case2(self):
         """Test construction from_backend without additional options to solver, case 2."""
 
-        backend = DynamicsBackend.from_backend(
-            self.valid_backend, 
-            subsystem_list=[0, 4]
-        )
+        backend = DynamicsBackend.from_backend(self.valid_backend, subsystem_list=[0, 4])
 
         self.assertTrue(backend.target.dt == 2e-9 / 9)
 
@@ -636,30 +651,39 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
                 "d0": 5175383639.513607,
                 "d4": 5118554567.140891,
                 "u0": 5267216864.382969,
-                "u7": 4855916030.466884
-            }
+                "u7": 4855916030.466884,
+            },
         )
 
         self.assertTrue(isinstance(solver.model.static_operator, Array))
-        
-        N0 = np.diag(np.kron([1., 1., 1.], [0., 1., 2.]))
-        N4 = np.diag(np.kron([0., 1., 2.], [1., 1., 1.]))
-        a0 = np.kron(np.eye(3), np.diag([1., np.sqrt(2)], 1))
+
+        N0 = np.diag(np.kron([1.0, 1.0, 1.0], [0.0, 1.0, 2.0]))
+        N4 = np.diag(np.kron([0.0, 1.0, 2.0], [1.0, 1.0, 1.0]))
+        a0 = np.kron(np.eye(3), np.diag([1.0, np.sqrt(2)], 1))
         a0dag = a0.transpose()
-        a4 = np.kron(np.diag([1., np.sqrt(2)], 1), np.eye(3))
+        a4 = np.kron(np.diag([1.0, np.sqrt(2)], 1), np.eye(3))
         a4dag = a4.transpose()
-        
-        frame_operator = (32517894442.809513 * N0 + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
-            + 32160826850.25662 * N4 + (-2111988556.5086775 / 2) * (N4 * N4 - N4)
+
+        frame_operator = (
+            32517894442.809513 * N0
+            + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
+            + 32160826850.25662 * N4
+            + (-2111988556.5086775 / 2) * (N4 * N4 - N4)
         )
 
         self.assertAllClose(frame_operator, solver.model.rotating_frame.frame_operator)
-        self.assertAllClose(solver.model.static_operator/1e9, np.zeros(9))
+        self.assertAllClose(solver.model.static_operator / 1e9, np.zeros(9))
 
-        expected_operators = np.array([971545899.0879812 * (a0 + a0dag), 982930801.9780478 * (a4 + a4dag),
-                      980381253.7440838 * (a0 + a0dag),
-                      976399854.3087951 * (a4 + a4dag)])
-        self.assertAllClose(expected_operators/1e9, solver.model.operators/1e9)
+        expected_operators = np.array(
+            [
+                971545899.0879812 * (a0 + a0dag),
+                982930801.9780478 * (a4 + a4dag),
+                980381253.7440838 * (a0 + a0dag),
+                976399854.3087951 * (a4 + a4dag),
+            ]
+        )
+        self.assertAllClose(expected_operators / 1e9, solver.model.operators / 1e9)
+
 
 class Test_default_experiment_result_function(QiskitDynamicsTestCase):
     """Test default_experiment_result_function."""
