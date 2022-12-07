@@ -74,15 +74,16 @@ class DynamicsBackend(BackendV2):
       outcome probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if
       the solution tolerance results in probabilities with significant numerical deviation from
       proper probability distributions.
-    * ``meas_level``: Form of measurement output. Suported values are ``1`` and ``2``.
+    * ``meas_level``: Form of measurement output. Supported values are ``1`` and ``2``.
       ``1`` returns IQ points and ``2`` returns counts. Defaults to ``meas_level==2``.
     * ``meas_return``: Level of measurement data to return. For ``meas_level=1`` ``"single"``
       returns output from every shot. ``"avg"`` returns average over shots of measurement
       output. Defaults to ``"avg"``.
-    * ``iq_centers``: List[List[List[float, float]]] containing centers for IQ distribution.
-      provided in the format ``iq_centers[subsystem][level] = [I,Q]``. Defaults to equally spaced
-      points on a unit circle for each subsystem.
-    * ``iq_width``: Standard deviation of IQ distribution around the centers.
+    * ``iq_centers``: Centers for IQ distribution when generating ``meas_level==1`` results. Must
+      have type List[List[List[float, float]]] formatted as ``iq_centers[subsystem][level] = [I,Q].
+      If ``None``, the `iq_centers` are dynamically generated to be equally spaced points on a unit
+      circle with |0> at (1,0). The default is `None`.
+    * ``iq_width``: Standard deviation of IQ distribution around the centers for ``meas_level==1``.
       Must be a positive float. Defaults to ``0.2``.
     * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem.
       Values will be rounded down to be no larger than ``max_outcome_level``. Must be a positive
@@ -183,6 +184,7 @@ class DynamicsBackend(BackendV2):
         """Set options for DynamicsBackend."""
 
         validate_subsystem_dims = False
+        validate_iq_centers = False
 
         for key, value in fields.items():
             if not hasattr(self._options, key):
@@ -206,8 +208,8 @@ class DynamicsBackend(BackendV2):
             elif key == "iq_width" and (not isinstance(value, float) or (value <= 0)):
                 raise QiskitError("iq_width must be positive float.")
             elif key == "iq_centers":
-                if [len(x) for x in value] != self._options.subsystem_dims:
-                    raise QiskitError("iq_centers is not consistent with subsystem_dims.")
+                validate_iq_centers = True
+                self._options.update_options(**{key: value})
             if key == "solver":
                 self._set_solver(value)
                 validate_subsystem_dims = True
@@ -224,6 +226,13 @@ class DynamicsBackend(BackendV2):
             raise QiskitError(
                 "DynamicsBackend options subsystem_dims and solver.model.dim are inconsistent."
             )
+
+        if validate_iq_centers:
+            iq_centers = self._options.iq_centers
+            if ([len(x) for x in iq_centers] != self._options.subsystem_dims) or (
+                np.concatenate(iq_centers).shape[1] != 2
+            ):
+                raise QiskitError("iq_centers is not consistent with subsystem_dims.")
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
@@ -458,8 +467,8 @@ def default_experiment_result_function(
             header=QobjHeader(name=experiment_name),
         )
     elif backend.options.meas_level == MeasLevel.KERNELED:
-
-        if backend.options.iq_centers is None:
+        iq_centers = backend.options.iq_centers
+        if iq_centers is None:
             # Default iq_centers
             iq_centers = []
             for sub_dim in backend.options.subsystem_dims:
@@ -467,13 +476,12 @@ def default_experiment_result_function(
                 iq_centers.append(
                     [(np.cos(idx * theta), np.sin(idx * theta)) for idx in range(sub_dim)]
                 )
-            backend.options.iq_centers = iq_centers
 
         # generate IQ
         measurement_data = _get_iq_data(
             yf,
             measurement_subsystems=measurement_subsystems,
-            iq_centers=backend.options.iq_centers,
+            iq_centers=iq_centers,
             iq_width=backend.options.iq_width,
             shots=backend.options.shots,
             memory_slot_indices=memory_slot_indices,
