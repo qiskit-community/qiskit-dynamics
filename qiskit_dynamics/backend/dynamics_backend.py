@@ -524,7 +524,7 @@ def _validate_run_input(run_input, accept_list=True):
 def _get_acquire_data(schedules, valid_subsystem_labels):
     """Get the required data from the acquire commands in each schedule.
 
-    Additionally validates that each schedule has acquire instructions occuring at one time,
+    Additionally validates that each schedule has acquire instructions occurring at one time,
     at least one memory slot is being listed, and all measured subsystems exist in
     subsystem_labels.
     """

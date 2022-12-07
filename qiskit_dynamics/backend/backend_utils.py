@@ -114,7 +114,7 @@ def _get_memory_slot_probabilities(
     state level measurement outcomes.
 
     Args:
-        probability_dict: A list of probabilities for the otucomes of state measurement. Keys
+        probability_dict: A list of probabilities for the outcomes of state measurement. Keys
                           are assumed to all be strings of integers of the same length.
         memory_slot_indices: Indices of which memory slots store the digits of the keys of
                              probability_dict.
@@ -206,7 +206,7 @@ def _get_iq_data(
     for sub_idx in measurement_subsystems:
         # Get probabilities for each subsystem
         probability = state.probabilities(qargs=[sub_idx])
-        # No. of shots for eaach level
+        # No. of shots for each level
         counts_n = rng.multinomial(shots, probability / sum(probability), size=1).T
 
         if len(counts_n) != len(iq_centers[sub_idx]):
