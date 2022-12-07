@@ -394,14 +394,29 @@ class DynamicsBackend(BackendV2):
     ) -> "DynamicsBackend":
         """Construct a :class:`.DynamicsBackend` instance from an existing ``Backend`` instance.
 
+        .. warning::
+
+            Due to inevitable model inaccuracies, gates calibrated on a real backend will not have
+            the same performance on the :class:`.DynamicsBackend` instance returned by this method.
+            As such, gates and calibrations are not be copied into the constructed
+            :class:`.DynamicsBackend`.
+
         The ``backend`` must have the ``configuration`` and ``defaults`` attributes. The
         ``configuration`` must containing a Hamiltonian description, step size ``dt``, number of
         qubits ``n_qubits``, and ``u_channel_lo`` (when control channels are present).  The
-        ``defaults`` must contain ``qubit_freq_est`` and ``meas_freq_est``.
+        ``defaults`` must contain ``qubit_freq_est``, as well as ``meas_freq_est`` if measurement
+        channels appear explicitly in the Hamiltonian.
 
-        The optional argument ``subsystem_list`` specifies which subset of qubits will be modelled
-        in the constructed :class:`DynamicsBackend`, with all other qubits will being dropped from
-        the model.
+        .. note::
+
+            The ``configuration`` and ``defaults`` attributes of the original backend are not copied
+            into the constructed :class:`DynamicsBackend` instance, only the required data stored
+            within these attributes will be extracted. If required, for backwards compatibility,
+            ``'configuration'`` and ``'defaults'`` options can be set, which will be returned via
+            the :meth:`.configuration` and :meth:`.defaults` methods.
+
+        The optional argument ``subsystem_list`` specifies which subset of qubits to model in the
+        constructed :class:`DynamicsBackend`. All other qubits are dropped from the model.
 
         Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``,
         ``evaluation_mode``, and ``rwa_cutoff_freq`` options. In contrast to :class:`.Solver`
@@ -413,22 +428,8 @@ class DynamicsBackend(BackendV2):
         * If a sparse evaluation mode is chosen, the rotating frame will be set to the diagonal of
           ``static_hamiltonian``.
 
-        Otherwise the ``rotating_frame``, ``evaluation_mode``, and ``rwa_cutoff_freq`` aer passed
+        Otherwise the ``rotating_frame``, ``evaluation_mode``, and ``rwa_cutoff_freq`` are passed
         directly to the :class:`.Solver` initialization.
-
-
-        **Technical notes**
-
-        * The whole ``configuration`` and ``defaults`` attributes of the original backend will not
-          be copied into the constructed :class:`DynamicsBackend` instance, only the required data
-          stored within these attributes will be extracted. If required, for backwards
-          compatibility, ``'configuration'`` and ``'defaults'`` options can be set, which will be
-          returned via the :meth:`.configuration` and :meth:`.defaults` methods.
-        * Gates and calibrations are not copied into the constructed :class:`DynamicsBackend`. Due
-          to inevitable model inaccuracies, gates calibrated on a real device will not have the same
-          performance on the constructed :class:`DynamicsBackend`. As such, the
-          :class:`DynamicsBackend` will be constructed with an empty ``InstructionScheduleMap``, and
-          must be recalibrated.
 
         Args:
             backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.
