@@ -154,8 +154,7 @@ def solve_ode(
       sub-intervals no larger than ``max_dt``, and step over each sub-interval
       using the standard 4th order Runge-Kutta integration rule.
     - ``'jax_RK4'``: JAX backend implementation of ``'RK4'`` method.
-    - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step
-      solver.
+    - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step solver.
     - ``diffrax.diffeqsolve`` - a JAX solver function, called by passing ``method``
       as a valid ``diffrax.solver.AbstractSolver`` instance. Requires the ``diffrax`` library.
 
@@ -231,56 +230,57 @@ def solve_lmde(
 
         \dot{y}(t) = G(t)y(t).
 
-    where :math:`G(t)` is a square matrix valued-function called the *generator*,
-    and :math:`y(t)` is an :class:`Array` of appropriate shape.
+    where :math:`G(t)` is a square matrix valued-function called the *generator*, and :math:`y(t)`
+    is an :class:`Array` of appropriate shape.
 
-    Thus function accepts :math:`G(t)` as a ``qiskit_dynamics`` model class,
-    or as an arbitrary callable.
+    Thus function accepts :math:`G(t)` as a ``qiskit_dynamics`` model class, or as an arbitrary
+    callable.
 
     .. note::
 
         Not all model classes are by-default in standard form. E.g.
-        :class:`~qiskit_dynamics.models.LindbladModel` represents an LMDE which is not
-        typically written in standard form. As such, using LMDE-specific methods with this generator
-        requires setting a vectorized evaluation mode.
+        :class:`~qiskit_dynamics.models.LindbladModel` represents an LMDE which is not typically
+        written in standard form. As such, using LMDE-specific methods with this generator requires
+        setting a vectorized evaluation mode.
 
-    The ``method`` argument exposes solvers specialized to both LMDEs, as
-    well as general ODE solvers. If the method is not specific to LMDEs,
-    the problem will be passed to :meth:`~qiskit_dynamics.solve_ode` by automatically setting
-    up the RHS function :math:`f(t, y) = G(t)y`.
+    The ``method`` argument exposes solvers specialized to both LMDEs, as well as general ODE
+    solvers. If the method is not specific to LMDEs, the problem will be passed to
+    :meth:`~qiskit_dynamics.solve_ode` by automatically setting up the RHS function :math:`f(t, y) =
+    G(t)y`.
 
-    Optional arguments for any of the solver routines can be passed via ``kwargs``.
-    Available LMDE-specific methods are:
+    Optional arguments for any of the solver routines can be passed via ``kwargs``. Available
+    LMDE-specific methods are:
 
-    - ``'scipy_expm'``: A fixed-step matrix-exponential solver using ``scipy.linalg.expm``.
-      Requires additional kwarg ``max_dt`` indicating the maximum step
-      size to take. This solver will break integration periods into even
-      sub-intervals no larger than ``max_dt``, and solve over each sub-interval via
-      matrix exponentiation of the generator sampled at the midpoint.
-    - ``'lanczos_diag'``: A fixed-step matrix-exponential solver, similar to ``'scipy_expm'``
-      but restricted to anti-Hermitian generators. The matrix exponential is performed by
-      diagonalizing an approximate projection of the generator to a small subspace (the
-      Krylov Subspace), obtained via the Lanczos algorithm, and then exponentiating the
-      eigenvalues. Requires additional kwargs ``max_dt`` and ``k_dim`` indicating the maximum
-      step size to take and Krylov subspace dimension, respectively. ``k_dim`` acts as an
-      adjustable accuracy parameter and can be no larger than the dimension of the generator.
-      The method is recommended for sparse systems with large dimension.
-    - ``'jax_lanczos_diag'``: JAX implementation of ``'lanczos_diag'``, with the same arguments
-      and behaviour. Note that this method contains calls to ``jax.numpy.eigh``, which may have
-      limited validity when automatically differentiated.
+    - ``'scipy_expm'``: A fixed-step matrix-exponential solver using ``scipy.linalg.expm``. Requires
+      additional kwarg ``max_dt`` indicating the maximum step size to take. This solver will break
+      integration periods into even sub-intervals no larger than ``max_dt`` and solve over each
+      sub-interval. The optional kwarg ``magnus_order`` controls the integration rule: if
+      ``magnus_order==1``, the generator is sampled at the interval midpoint and exponentiated, and
+      if ``magnus_order==2`` or ``magnus_order==3``, higher-order exponentiation rules are adopted
+      from :footcite:`blanes_magnus_2009`. The ``magnus_order`` parameter defaults to ``1``.
+    - ``'lanczos_diag'``: A fixed-step matrix-exponential solver, similar to ``'scipy_expm'`` but
+      restricted to anti-Hermitian generators. The matrix exponential is performed by diagonalizing
+      an approximate projection of the generator to a small subspace (the Krylov Subspace), obtained
+      via the Lanczos algorithm, and then exponentiating the eigenvalues. Requires additional kwargs
+      ``max_dt`` and ``k_dim`` indicating the maximum step size to take and Krylov subspace
+      dimension, respectively. ``k_dim`` acts as an adjustable accuracy parameter and can be no
+      larger than the dimension of the generator. The method is recommended for sparse systems with
+      large dimension.
+    - ``'jax_lanczos_diag'``: JAX implementation of ``'lanczos_diag'``, with the same arguments and
+      behaviour. Note that this method contains calls to ``jax.numpy.eigh``, which may have limited
+      validity when automatically differentiated.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
       behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
-      parallel operations. I.e. all matrix-exponentials for taking a single step are computed
-      in parallel using ``jax.vmap``, and are subsequently multiplied together in parallel
-      using ``jax.lax.associative_scan``. This method is only recommended for use with GPU
-      execution. Note that this method cannot be used for a model in sparse evaluation mode.
-    - ``'jax_RK4_parallel'``: 4th order Runge-Kutta fixed step solver. Under the assumption
-      of the structure of an LMDE, utilizes the same parallelization approach as
-      ``'jax_expm_parallel'``, however the single step rule is the standard 4th order
-      Runge-Kutta rule, rather than matrix-exponentiation. Requires and utilizes the
-      ``max_dt`` kwarg in the same manner as ``method='scipy_expm'``. This method is only
-      recommended for use with GPU execution.
+      parallel operations. I.e. all matrix-exponentials for taking a single step are computed in
+      parallel using ``jax.vmap``, and are subsequently multiplied together in parallel using
+      ``jax.lax.associative_scan``. This method is only recommended for use with GPU execution. Note
+      that this method cannot be used for a model in sparse evaluation mode.
+    - ``'jax_RK4_parallel'``: 4th order Runge-Kutta fixed step solver. Under the assumption of the
+      structure of an LMDE, utilizes the same parallelization approach as ``'jax_expm_parallel'``,
+      however the single step rule is the standard 4th order Runge-Kutta rule, rather than
+      matrix-exponentiation. Requires and utilizes the ``max_dt`` kwarg in the same manner as
+      ``method='scipy_expm'``. This method is only recommended for use with GPU execution.
 
     Results are returned as a :class:`OdeResult` object.
 
@@ -290,7 +290,7 @@ def solve_lmde(
         y0: State at initial time.
         method: Solving method to use.
         t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,
-                the solution will be returned at the points in ``t_span``.
+            the solution will be returned at the points in ``t_span``.
         **kwargs: Additional arguments to pass to the solver.
 
     Returns:
@@ -298,13 +298,13 @@ def solve_lmde(
 
     Raises:
         QiskitError: If specified method does not exist,
-                     if dimension of ``y0`` is incompatible with generator dimension,
-                     or if an LMDE-specific method is passed with a LindbladModel.
+                     if dimension of ``y0`` is incompatible with generator dimension, or if an
+                     LMDE-specific method is passed with a LindbladModel.
     Additional Information:
-        While all :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses
-        represent LMDEs, they are not all in standard form by defualt. Using an
-        LMDE-specific models like :class:`~qiskit_dynamics.models.LindbladModel`
-        requires first setting a vectorized evaluation mode.
+        While all :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses represent LMDEs,
+        they are not all in standard form by defualt. Using an LMDE-specific models like
+        :class:`~qiskit_dynamics.models.LindbladModel` requires first setting a vectorized
+        evaluation mode.
     """
 
     # delegate to solve_ode if necessary

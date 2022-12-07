@@ -42,10 +42,10 @@ class HamiltonianModel(GeneratorModel):
     .. math::
         H(t) = H_d + \sum_j s_j(t) H_j,
 
-    where :math:`H_j` are Hermitian operators, :math:`H_d` is the static component,
-    and the :math:`s_j(t)` are either :class:`~qiskit_dynamics.signals.Signal` objects or
-    are numerical constants. Constructing a :class:`~qiskit_dynamics.models.HamiltonianModel`
-    requires specifying the above decomposition, e.g.:
+    where :math:`H_j` are Hermitian operators, :math:`H_d` is the static component, and the
+    :math:`s_j(t)` are either :class:`~qiskit_dynamics.signals.Signal` objects or numerical
+    constants. Constructing a :class:`~qiskit_dynamics.models.HamiltonianModel` requires specifying
+    the above decomposition, e.g.:
 
     .. code-block:: python
 
@@ -53,14 +53,13 @@ class HamiltonianModel(GeneratorModel):
                                        operators=operators,
                                        signals=signals)
 
-    This class inherits most functionality from :class:`GeneratorModel`,
-    with the following modifications:
+    This class inherits most functionality from :class:`GeneratorModel`, with the following
+    modifications:
 
         * The operators :math:`H_d` and :math:`H_j` are assumed and verified to be Hermitian.
-        * Rotating frames are dealt with assuming the structure of the Schrodinger
-          equation. I.e. Evaluating the Hamiltonian :math:`H(t)` in a
-          frame :math:`F = -iH_0`, evaluates the expression
-          :math:`e^{-tF}H(t)e^{tF} - H_0`.
+        * Rotating frames are dealt with assuming the structure of the Schrodinger equation. I.e.
+          Evaluating the Hamiltonian :math:`H(t)` in a frame :math:`F = -iH_0`, evaluates the
+          expression :math:`e^{-tF}H(t)e^{tF} - H_0`.
     """
 
     def __init__(
@@ -116,12 +115,18 @@ class HamiltonianModel(GeneratorModel):
 
     @property
     def rotating_frame(self) -> RotatingFrame:
+        """The rotating frame.
+
+        This property can be set with a :class:`RotatingFrame` instance, or any valid constructor
+        argument to this class. It can either be Hermitian or anti-Hermitian, and in either case
+        only the anti-Hermitian version :math:`F=-iH` will be stored.
+
+        Setting this property updates the internal operator list to use the new frame.
+        """
         return super().rotating_frame
 
     @rotating_frame.setter
     def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]) -> Array:
-        """Set frame. RotatingFrame objects will always store antihermitian :math:`F = -iH`.
-        The static_operator needs to be adjusted by :math:`-H` in the new frame."""
         new_frame = RotatingFrame(rotating_frame)
 
         # convert static operator to new frame setup
@@ -152,9 +157,32 @@ class HamiltonianModel(GeneratorModel):
         )
 
     def evaluate(self, time: float) -> Array:
+        """Evaluate the model in array format as a matrix, independent of state.
+
+        Args:
+            time: The time to evaluate the model at.
+
+        Returns:
+            Array: The evaluated model as an anti-Hermitian matrix.
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
+        """
         return -1j * super().evaluate(time)
 
     def evaluate_rhs(self, time: float, y: Array) -> Array:
+        r"""Evaluate ``-1j * H(t) @ y``.
+
+        Args:
+            time: The time to evaluate the model at .
+            y: Array specifying system state.
+
+        Returns:
+            Array defined by :math:`G(t) \times y`.
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
+        """
         return -1j * super().evaluate_rhs(time, y)
 
 
@@ -164,16 +192,15 @@ def is_hermitian(
     """Validate that operators are Hermitian.
 
     Args:
-        operators: Either a 2d array representing a single operator, a 3d array
-                   representing a list of operators, a csr_matrix, or a list
-                   of csr_matrix.
+        operators: Either a 2d array representing a single operator, a 3d array representing a list
+            of operators, a ``csr_matrix``, or a list of ``csr_matrix``.
         tol: Tolerance for checking zeros.
 
     Returns:
         bool: Whether or not the operators are Hermitian to within tolerance.
 
     Raises:
-        QiskitError: If an unexpeted type.
+        QiskitError: If an unexpeted type is received.
     """
     if isinstance(operators, (np.ndarray, Array)):
         adj = None
