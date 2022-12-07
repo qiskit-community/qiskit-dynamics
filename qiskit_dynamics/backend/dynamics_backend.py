@@ -229,10 +229,10 @@ class DynamicsBackend(BackendV2):
 
         if validate_iq_centers:
             iq_centers = self._options.iq_centers
-            if ([len(x) for x in iq_centers] != self._options.subsystem_dims) or (
-                np.concatenate(iq_centers).shape[1] != 2
-            ):
+            if ([len(sub_system) for sub_system in iq_centers] != self._options.subsystem_dims):
                 raise QiskitError("iq_centers is not consistent with subsystem_dims.")
+            if not all([len(level)==2 for sub_system in iq_centers for level in sub_system]):
+                raise QiskitError("iq_centers must be 2-tuples.")
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
