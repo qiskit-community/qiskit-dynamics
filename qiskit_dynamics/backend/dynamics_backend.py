@@ -42,6 +42,8 @@ from qiskit import QiskitError, QuantumCircuit
 from qiskit import schedule as build_schedule
 from qiskit.quantum_info import Statevector, DensityMatrix
 
+from qiskit_dynamics import RotatingFrame
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.solvers.solver_classes import Solver
 
 from .dynamics_job import DynamicsJob
@@ -385,8 +387,9 @@ class DynamicsBackend(BackendV2):
         cls,
         backend: Union[BackendV1, BackendV2],
         subsystem_list: Optional[List[int]] = None,
-        solver_init_kwargs: Optional[dict] = None,
-        auto_rotating_frame: bool = True,
+        rotating_frame: Optional[Union[Array, RotatingFrame, str]] = "auto",
+        evaluation_mode: str = "dense",
+        rwa_cutoff_freq: Optional[float] = None,
         **options,
     ) -> "DynamicsBackend":
         """Construct a :class:`.DynamicsBackend` instance from an existing ``Backend`` instance.
@@ -400,16 +403,19 @@ class DynamicsBackend(BackendV2):
         in the constructed :class:`DynamicsBackend`, with all other qubits will being dropped from
         the model.
 
-        Configuration of the underlying :class:`.Solver` is controlled via 
-        ``solver_init_kwargs``, passed directly to :meth:`.Solver.__init__`. The additional
-        argument ``auto_rotating_frame`` allows this method to automatically choose the rotating
-        frame in which the :class:`.Solver` will be configured. If ``auto_rotating_frame==True``
-        and no ``rotating_frame`` is specified in ``solver_init_kwargs``:
+        Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``, 
+        ``evaluation_mode``, and ``rwa_cutoff_freq`` options. In contrast to :class:`.Solver`
+        initialization, ``rotating_frame`` defaults to the string ``"auto"``, which allows this
+        method to choose the rotating frame based on ``evaluation_mode``:
 
         * If a dense evaluation mode is chosen, the rotating frame will be set to the 
           ``static_hamiltonian`` indicated by the Hamiltonian in ``backend.configuration()``.
         * If a sparse evaluation mode is chosen, the rotating frame will be set to the diagonal of 
           ``static_hamiltonian``.
+
+        Otherwise the ``rotating_frame``, ``evaluation_mode``, and ``rwa_cutoff_freq`` aer passed 
+        directly to the :class:`.Solver` initialization.
+
         
         **Technical notes**
 
@@ -427,8 +433,10 @@ class DynamicsBackend(BackendV2):
         Args:
             backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.
             subsystem_list: The list of qubits in the backend to include in the model.
-            solver_configuration: Additional keyword arguments to pass to the :class:`.Solver` instance
-                constructed from the model in the backend.
+            rotating_frame: Rotating frame argument for the internal :class:`.Solver`. Defaults to
+                ``"auto"``, allowing this method to pick a rotating frame.
+            evaluation_mode: Evaluation mode argument for the internal :class:`.Solver`.
+            rwa_cutoff_freq: Rotating wave approximation argument for the internal :class:`.Solver`.
             **options: Additional options to be applied in construction of the
                 :class:`.DynamicsBackend`.
 
@@ -464,18 +472,16 @@ class DynamicsBackend(BackendV2):
             - To test:
                 - all validation checks in from_backend, including option setting for
                   configuration/defaults
-
-
         """
 
         if not hasattr(backend, "configuration"):
             raise QiskitError(
                 """DynamicsBackend.from_backend requires that the backend argument have a
-                configuration attribute."""
+                configuration method."""
             )
         if not hasattr(backend, "defaults"):
             raise QiskitError(
-                """DynamicsBackend.from_backend requires that the backend argument have a defaults attribute."""
+                """DynamicsBackend.from_backend requires that the backend argument have a defaults method."""
             )
 
         config = backend.configuration()
@@ -518,13 +524,11 @@ class DynamicsBackend(BackendV2):
         )
 
         # build the solver
-        solver_init_kwargs = copy.copy(solver_init_kwargs) or {}
-        if auto_rotating_frame and "rotating_frame" not in solver_init_kwargs:
-            evaluation_mode = solver_init_kwargs.get("evaluation_mode", "dense")
+        if rotating_frame == "auto":
             if "dense" in evaluation_mode:
-                solver_init_kwargs["rotating_frame"] = static_hamiltonian
+                rotating_frame = static_hamiltonian
             else:
-                solver_init_kwargs["rotating_frame"] = np.diag(static_hamiltonian)
+                rotating_frame = np.diag(static_hamiltonian)
 
         solver = Solver(
             static_hamiltonian=static_hamiltonian,
@@ -532,7 +536,9 @@ class DynamicsBackend(BackendV2):
             hamiltonian_channels=hamiltonian_channels,
             channel_carrier_freqs=channel_freqs,
             dt=dt,
-            **solver_init_kwargs,
+            rotating_frame=rotating_frame,
+            evaluation_mode=evaluation_mode,
+            rwa_cutoff_freq=rwa_cutoff_freq
         )
         
         return cls(
