@@ -229,7 +229,7 @@ class DynamicsBackend(BackendV2):
                 "DynamicsBackend options subsystem_dims and solver.model.dim are inconsistent."
             )
 
-        if validate_iq_centers:
+        if validate_iq_centers and (self._options.iq_centers is not None):
             iq_centers = self._options.iq_centers
             if [len(sub_system) for sub_system in iq_centers] != self._options.subsystem_dims:
                 raise QiskitError("iq_centers is not consistent with subsystem_dims.")
