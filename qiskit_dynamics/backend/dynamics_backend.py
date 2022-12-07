@@ -209,13 +209,15 @@ class DynamicsBackend(BackendV2):
                 raise QiskitError("iq_width must be positive float.")
             elif key == "iq_centers":
                 validate_iq_centers = True
-                self._options.update_options(**{key: value})
+            elif key == "subsystem_dims":
+                validate_subsystem_dims = True
+                # since updating subsystem_dims effects the validity of iq_centers.
+                validate_iq_centers = True
+
             if key == "solver":
                 self._set_solver(value)
                 validate_subsystem_dims = True
             else:
-                if key == "subsystem_dims":
-                    validate_subsystem_dims = True
                 self._options.update_options(**{key: value})
 
         # perform additional validation if certain options were modified
