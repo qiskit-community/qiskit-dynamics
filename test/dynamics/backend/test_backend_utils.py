@@ -28,6 +28,7 @@ from qiskit_dynamics.backend.backend_utils import (
     _get_memory_slot_probabilities,
     _sample_probability_dict,
     _get_counts_from_samples,
+    _get_subsystem_probabilities,
     _get_iq_data,
 )
 from ..common import QiskitDynamicsTestCase, TestJaxBase
@@ -213,6 +214,17 @@ class Test_get_counts_from_samples(QiskitDynamicsTestCase):
         samples = ["00", "01", "00", "20", "01", "01", "20"]
         output = _get_counts_from_samples(samples)
         self.assertDictEqual(output, {"00": 2, "01": 3, "20": 2})
+
+
+class Test_get_subsystem_probabilities(QiskitDynamicsTestCase):
+    """Test _get_subsystem_probabilities."""
+
+    def test_basic(self):
+        """Basic marginalization test case."""
+        yf = Statevector(np.array([0.5, 1, 0, 0]) / np.sqrt(1.25), dims=(2, 2))
+        prob_tensor = yf.probabilities().reshape(2, 2)
+        sub_prob = _get_subsystem_probabilities(prob_tensor, 0)
+        self.assertAllClose(sub_prob, [0.2, 0.8])
 
 
 class Test_get_iq_data(QiskitDynamicsTestCase):

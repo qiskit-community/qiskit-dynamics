@@ -170,6 +170,32 @@ def _get_counts_from_samples(samples: list) -> Dict:
     return dict(zip(*np.unique(samples, return_counts=True)))
 
 
+def _get_subsystem_probabilities(probability_tensor: np.ndarray, qargs: int) -> np.ndarray:
+    """Marginalize a probability vector according to subsystems.
+
+    Args:
+        probability_tensor: Probability full system reshaped to reversed(subsystem_dims).
+        sub_idx: Subsystem index to return marginalized probabilities.
+
+    Returns:
+        The marginalized probability vector flattened for the specified qargs.
+    """
+
+    # Convert qargs to tensor axes
+    ndim = probability_tensor.ndim
+    qargs_axes = [ndim - 1 - qargs]
+
+    # Get sum axis for marginalized subsystems
+    sum_axis = tuple(i for i in range(ndim) if i not in qargs_axes)
+    if sum_axis:
+        probability_tensor = probability_tensor.sum(axis=sum_axis)
+
+    new_probabilities = probability_tensor.reshape(
+        probability_tensor.size,
+    )
+    return new_probabilities
+
+
 def _get_iq_data(
     state: Union[Statevector, DensityMatrix],
     measurement_subsystems: List[int],
@@ -201,13 +227,16 @@ def _get_iq_data(
         QiskitError: If number of centers and levels don't match.
     """
     rng = np.random.default_rng(seed)
+    subsystem_dims = state.dims()
+    probabilities = state.probabilities()
+    probabilities_tensor = probabilities.reshape(list(reversed(subsystem_dims)))
 
     full_i, full_q = [], []
     for sub_idx in measurement_subsystems:
         # Get probabilities for each subsystem
-        probability = state.probabilities(qargs=[sub_idx])
+        sub_probability = _get_subsystem_probabilities(probabilities_tensor, qargs=sub_idx)
         # No. of shots for each level
-        counts_n = rng.multinomial(shots, probability / sum(probability), size=1).T
+        counts_n = rng.multinomial(shots, sub_probability / sum(sub_probability), size=1).T
 
         if len(counts_n) != len(iq_centers[sub_idx]):
             raise QiskitError(
