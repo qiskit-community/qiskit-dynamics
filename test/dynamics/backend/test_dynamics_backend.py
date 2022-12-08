@@ -767,18 +767,20 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
     def test_drive_and_meas_channels(self):
         """Test case drive and meas channels."""
         channels = ["d0", "d1", "d2", "m0", "m3"]
-        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)} | {
-            f"m{idx}": self.defaults.meas_freq_est[idx] for idx in [0, 3]
-        }
+        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)}
+        expected_output.update({f"m{idx}": self.defaults.meas_freq_est[idx] for idx in [0, 3]})
         self._test_with_setUp_example(channels=channels, expected_output=expected_output)
 
     def test_drive_and_u_channels(self):
         """Test case drive and u channels."""
         channels = ["d0", "d1", "d2", "u1", "u2"]
-        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)} | {
-            "u1": 2.1 * self.defaults.qubit_freq_est[3],
-            "u2": 1.1 * self.defaults.qubit_freq_est[4] - 1.1 * self.defaults.qubit_freq_est[2],
-        }
+        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)}
+        expected_output.update(
+            {
+                "u1": 2.1 * self.defaults.qubit_freq_est[3],
+                "u2": 1.1 * self.defaults.qubit_freq_est[4] - 1.1 * self.defaults.qubit_freq_est[2],
+            }
+        )
         self._test_with_setUp_example(channels=channels, expected_output=expected_output)
 
     def test_unrecognized_channel_type(self):
