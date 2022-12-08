@@ -79,8 +79,8 @@ class DynamicsBackend(BackendV2):
     * ``meas_return``: Level of measurement data to return. For ``meas_level=1`` ``"single"``
       returns output from every shot. ``"avg"`` returns average over shots of measurement
       output. Defaults to ``"avg"``.
-    * ``iq_centers``: Centers for IQ distribution when generating ``meas_level==1`` results. Must
-      have type List[List[List[float, float]]] formatted as ``iq_centers[subsystem][level] = [I,Q].
+    * ``iq_centers``: Centers for IQ distribution when using ``meas_level==1`` results. Must have
+      type List[List[List[float, float]]] formatted as ``iq_centers[subsystem][level] = [I,Q]``.
       If ``None``, the `iq_centers` are dynamically generated to be equally spaced points on a unit
       circle with |0> at (1,0). The default is `None`.
     * ``iq_width``: Standard deviation of IQ distribution around the centers for ``meas_level==1``.
