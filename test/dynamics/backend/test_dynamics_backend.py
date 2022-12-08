@@ -148,8 +148,16 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
     def test_invalid_iq_centers(self):
         """Test setting an invalid iq_centers."""
 
-        with self.assertRaisesRegex(QiskitError, "iq_centers is not consistent"):
+        with self.assertRaisesRegex(QiskitError, "list of two elements"):
             self.simple_backend.set_options(iq_centers=[[0]])
+
+        with self.assertRaisesRegex(QiskitError, "iq_centers is not consistent"):
+            self.simple_backend.set_options(subsystem_dims=[2])
+            self.simple_backend.set_options(iq_centers=[[[1, 0], [0, 1], [1, 1]]])
+
+        with self.assertRaisesRegex(QiskitError, "iq_centers is not consistent"):
+            self.simple_backend.set_options(subsystem_dims=[2])
+            self.simple_backend.set_options(iq_centers=[[[1, 0], [0, 1]], [[1, 0], [0, 1]]])
 
     def test_invalid_experiment_result_function(self):
         """Test setting a non-callable experiment_result_function."""

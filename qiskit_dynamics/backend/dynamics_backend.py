@@ -208,19 +208,25 @@ class DynamicsBackend(BackendV2):
             elif key == "iq_width" and (not isinstance(value, float) or (value <= 0)):
                 raise QiskitError("iq_width must be positive float.")
             elif key == "iq_centers":
+                if not all(
+                    (isinstance(level, List) and len(level) == 2)
+                    for sub_system in value
+                    for level in sub_system
+                ):
+                    raise QiskitError("each iq_center must be a list of two elements.")
                 validate_iq_centers = True
             elif key == "subsystem_dims":
                 validate_subsystem_dims = True
-                # since updating subsystem_dims effects the validity of iq_centers.
                 validate_iq_centers = True
+            elif key == "solver":
+                validate_subsystem_dims = True
 
             if key == "solver":
                 self._set_solver(value)
-                validate_subsystem_dims = True
             else:
                 self._options.update_options(**{key: value})
 
-        # perform additional validation if certain options were modified
+        # perform additional consistency validations if certain options were modified
         if (
             validate_subsystem_dims
             and np.prod(self._options.subsystem_dims) != self._options.solver.model.dim
@@ -230,11 +236,10 @@ class DynamicsBackend(BackendV2):
             )
 
         if validate_iq_centers and (self._options.iq_centers is not None):
-            iq_centers = self._options.iq_centers
-            if [len(sub_system) for sub_system in iq_centers] != self._options.subsystem_dims:
+            if [
+                len(sub_system) for sub_system in self._options.iq_centers
+            ] != self._options.subsystem_dims:
                 raise QiskitError("iq_centers is not consistent with subsystem_dims.")
-            if not all(len(level) == 2 for sub_system in iq_centers for level in sub_system):
-                raise QiskitError("iq_centers must be 2-tuples.")
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
