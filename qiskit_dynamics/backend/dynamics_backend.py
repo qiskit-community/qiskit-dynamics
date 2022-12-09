@@ -81,8 +81,8 @@ class DynamicsBackend(BackendV2):
       output. Defaults to ``"avg"``.
     * ``iq_centers``: Centers for IQ distribution when using ``meas_level==1`` results. Must have
       type List[List[List[float, float]]] formatted as ``iq_centers[subsystem][level] = [I,Q]``.
-      If ``None``, the `iq_centers` are dynamically generated to be equally spaced points on a unit
-      circle with |0> at (1,0). The default is `None`.
+      If ``None``, the ``iq_centers`` are dynamically generated to be equally spaced points on a unit
+      circle with ground-state at (1,0). The default is ``None``.
     * ``iq_width``: Standard deviation of IQ distribution around the centers for ``meas_level==1``.
       Must be a positive float. Defaults to ``0.2``.
     * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem.
