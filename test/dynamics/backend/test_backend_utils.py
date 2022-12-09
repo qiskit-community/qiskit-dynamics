@@ -268,22 +268,56 @@ class Test_get_iq_data(QiskitDynamicsTestCase):
         self.assertDictEqual(counts0, {"0": 74, "1": 26})
         self.assertDictEqual(counts1, {"1": 100})
 
+    def test_mixed_subsystem_predict(self):
+        """Multi_qubit predict test case."""
+        iq_data = _get_iq_data(
+            state=Statevector(
+                np.kron(np.array([0.5, 1]), np.array([0, 0, 1])) / np.sqrt(1.25), dims=(3, 2)
+            ),
+            measurement_subsystems=[0, 1],
+            iq_centers=[[(-1, -1), (1, -1), (1, 1)], [(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=100,
+            memory_slot_indices=[0, 1],
+            seed=83248,
+        )
+
+        def qutrit_iq_to_counts(iq_n):
+            results = []
+            for iq in iq_n:
+                if iq[0] < 0 and iq[1] < 0:
+                    results.append("0")
+                elif iq[0] > 0 and iq[1] < 0:
+                    results.append("1")
+                elif iq[0] > 0 and iq[1] > 0:
+                    results.append("2")
+            return dict(zip(*np.unique(results, return_counts=True)))
+
+        counts0 = qutrit_iq_to_counts(iq_data[:, 0, :])
+        counts1 = self.iq_to_counts(iq_data[:, 1, :])
+        self.assertDictEqual(counts0, {"2": 100})
+        self.assertDictEqual(counts1, {"0": 75, "1": 25})
+
     def test_multi_qubit_iq(self):
         """Multi qubit IQ test case."""
 
         iq_data_01 = _get_iq_data(
-            state=Statevector(np.array([1, 1, 1, 1]) / 2, dims=[2, 2]),
+            state=Statevector(
+                np.kron(np.array([0.5, 1]), np.array([0, 0, 1])) / np.sqrt(1.25), dims=(3, 2)
+            ),
             measurement_subsystems=[0, 1],
-            iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
+            iq_centers=[[(-1, -1), (1, -1), (1, 1)], [(1, 0), (-1, 0)]],
             iq_width=0.1,
             shots=3,
             memory_slot_indices=[0, 1],
             seed=83248,
         )
         iq_data_10 = _get_iq_data(
-            state=Statevector(np.array([1, 1, 1, 1]) / 2, dims=[2, 2]),
+            state=Statevector(
+                np.kron(np.array([0.5, 1]), np.array([0, 0, 1])) / np.sqrt(1.25), dims=(3, 2)
+            ),
             measurement_subsystems=[0, 1],
-            iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
+            iq_centers=[[(-1, -1), (1, -1), (1, 1)], [(1, 0), (-1, 0)]],
             iq_width=0.1,
             shots=3,
             memory_slot_indices=[1, 0],
@@ -292,9 +326,9 @@ class Test_get_iq_data(QiskitDynamicsTestCase):
 
         true_result = np.array(
             [
-                [[0.99445976, 0.13454847], [1.0745472, -0.05369125]],
-                [[1.00486134, 0.19089796], [-0.99570855, 0.10100498]],
-                [[1.02002225, 0.03934462], [-1.0284215, 0.00462867]],
+                [[1.04443995, 1.02002225], [1.04436925, 0.0745472]],
+                [[0.99445976, 1.13454847], [-1.05369125, -0.0284215]],
+                [[1.00486134, 1.19089796], [-0.99570855, 0.10100498]],
             ]
         )
         self.assertAllClose(
