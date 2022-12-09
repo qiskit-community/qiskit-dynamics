@@ -287,7 +287,7 @@ class Test_get_iq_data(QiskitDynamicsTestCase):
             for iq in iq_n:
                 if iq[0] < 0 and iq[1] < 0:
                     results.append("0")
-                elif iq[0] > 0 and iq[1] < 0:
+                elif iq[0] > 0 > iq[1]:
                     results.append("1")
                 elif iq[0] > 0 and iq[1] > 0:
                     results.append("2")
