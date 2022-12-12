@@ -170,7 +170,7 @@ def _get_counts_from_samples(samples: list) -> Dict:
     return dict(zip(*np.unique(samples, return_counts=True)))
 
 
-def _get_subsystem_probabilities(probability_tensor: np.ndarray, qargs: int) -> np.ndarray:
+def _get_subsystem_probabilities(probability_tensor: np.ndarray, sub_idx: int) -> np.ndarray:
     """Marginalize a probability vector according to subsystems.
 
     Args:
@@ -178,22 +178,19 @@ def _get_subsystem_probabilities(probability_tensor: np.ndarray, qargs: int) -> 
         sub_idx: Subsystem index to return marginalized probabilities.
 
     Returns:
-        The marginalized probability vector flattened for the specified qargs.
+        The marginalized probability vector flattened for the specified subsystem index.
     """
 
     # Convert qargs to tensor axes
     ndim = probability_tensor.ndim
-    qargs_axes = [ndim - 1 - qargs]
+    sub_axis = ndim - 1 - sub_idx
 
     # Get sum axis for marginalized subsystems
-    sum_axis = tuple(i for i in range(ndim) if i not in qargs_axes)
+    sum_axis = tuple(i for i in range(ndim) if i != sub_axis)
     if sum_axis:
         probability_tensor = probability_tensor.sum(axis=sum_axis)
 
-    new_probabilities = probability_tensor.reshape(
-        probability_tensor.size,
-    )
-    return new_probabilities
+    return probability_tensor
 
 
 def _get_iq_data(
@@ -234,7 +231,7 @@ def _get_iq_data(
     full_i, full_q = [], []
     for sub_idx in measurement_subsystems:
         # Get probabilities for each subsystem
-        sub_probability = _get_subsystem_probabilities(probabilities_tensor, qargs=sub_idx)
+        sub_probability = _get_subsystem_probabilities(probabilities_tensor, sub_idx=sub_idx)
         # No. of shots for each level
         counts_n = rng.multinomial(shots, sub_probability / sum(sub_probability), size=1).T
 
