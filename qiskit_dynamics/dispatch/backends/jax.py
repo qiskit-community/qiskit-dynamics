@@ -23,7 +23,7 @@ try:
     JAX_TYPES = (DeviceArray, Tracer, JaxprTracer, JVPTracer)
 
     try:
-        # This class was introduced in 4.0.0
+        # This class was introduced in 0.4.0
         from jax import Array
 
         JAX_TYPES += (Array,)
