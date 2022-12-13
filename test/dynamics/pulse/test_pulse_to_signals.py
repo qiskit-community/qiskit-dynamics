@@ -23,6 +23,7 @@ from qiskit.pulse import (
     ControlChannel,
     MeasureChannel,
     Play,
+    Delay,
     Drag,
     ShiftFrequency,
     SetFrequency,
@@ -121,6 +122,20 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
 
         for idx in range(10):
             self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * 0.222))
+
+    def test_delay(self):
+        """Test that Delay is properly reflected."""
+
+        sched = Schedule()
+        sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
+        sched += Delay(10, DriveChannel(0))
+        sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
+
+        converter = InstructionToSignals(dt=0.222, carriers={"d0": 5.0})
+        signals = converter.get_signals(sched)
+        samples_with_delay = np.array([1] * 10 + [0] * 10 + [1] * 10)
+        for idx in range(30):
+            self.assertEqual(signals[0].samples[idx], samples_with_delay[idx])
 
     def test_uneven_pulse_length(self):
         """Test conversion when length of pulses on a schedule is uneven."""
