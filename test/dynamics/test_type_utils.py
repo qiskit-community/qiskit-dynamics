@@ -18,6 +18,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from qiskit.quantum_info.operators.operator import Operator
+from qiskit.opflow import X, Y, Z
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import (
     convert_state,
@@ -524,10 +525,12 @@ class Test_to_numeric_matrix_type(QiskitDynamicsTestCase):
         normal_array = Array(np.array(list_of_ops))
         list_of_arrays = [Array(op) for op in list_of_ops]
         op_arr = [Operator.from_label(s) for s in "XYZ"]
+        opflow_arr = [X, Y, Z]
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
         self.assertAllClose(to_numeric_matrix_type(list_of_ops), normal_array)
         self.assertAllClose(to_numeric_matrix_type(list_of_arrays), normal_array)
         self.assertAllClose(to_numeric_matrix_type(op_arr), list_of_arrays)
+        self.assertAllClose(to_numeric_matrix_type(opflow_arr), list_of_arrays)
         for i in range(3):
             self.assertAllCloseSparse(
                 to_numeric_matrix_type(sparse_matrices)[i], sparse_matrices[i]
