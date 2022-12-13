@@ -1,0 +1,17 @@
+features:
+  - |
+    ``qiskit.opflow`` Operators can now be used to specify operators for the ``HamiltonianModel``
+    and the ``RotatingFrame``
+    Example::
+
+        from qiskit_dynamics.solvers import Solver
+        from qiskit.opflow import X, Z
+
+        drift = Z
+        dt = 1.0
+
+        hamiltonian_solver = Solver(
+            static_hamiltonian=drift,
+            dt=dt
+        )
+      
