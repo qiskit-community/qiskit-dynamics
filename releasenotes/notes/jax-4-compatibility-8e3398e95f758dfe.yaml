@@ -1,4 +1,4 @@
 ---
 upgrade:
   - |
-    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 4.
+    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4.0.
