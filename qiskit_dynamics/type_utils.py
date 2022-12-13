@@ -355,11 +355,11 @@ def isinstance_qutip_qobj(obj):
 
 # pylint: disable=too-many-return-statements
 def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False):
-    """Convert an operator or list of operators to an Array.
+    """Convert an operator, operatorBase or list of either to an Array.
     Args:
-        op: Either an Operator to be converted to an array, a list of Operators
-            to be converted to a 3d array, or an array (which simply gets
-            returned)
+        op: Either a single `Operator` or `OperatorBase` to be converted to an array
+            or a list of either to be converted to a 3d array
+            or an array (which simply gets returned)
         no_iter (Bool): Boolean determining whether to recursively unroll `Iterables`.
             If recurring, this should be True to avoid making each element of the
             input array into a separate Array.
@@ -456,12 +456,22 @@ def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "B
 
 
 def to_numeric_matrix_type(
-    op: Union[Operator, OperatorBase, Array, spmatrix, List[Operator], List[OperatorBase], List[Array], List[spmatrix]]
+    op: Union[
+        Operator,
+        OperatorBase,
+        Array,
+        spmatrix,
+        List[Operator],
+        List[OperatorBase],
+        List[Array],
+        List[spmatrix],
+    ]
 ):
-    """Given an operator, array, sparse matrix, or a list of operators, arrays, or sparse matrices,
+    """Given an operator, array, sparse matrix or a list of operators, arrays or sparse matrices,
     attempts to leave them in their original form, only converting the operator to an array,
     and converting lists as necessary. Summarized below:
     - operator is converted to array
+    - operatorBase is converted to array
     - spmatrix and Array are unchanged
     - lists of Arrays and sparse matrices are passed to their respective to_ functions
     - anything else is passed to to_array
@@ -487,7 +497,7 @@ def to_numeric_matrix_type(
     elif isinstance(op, Operator):
         return to_array(op)
     elif isinstance(op, OperatorBase):
-        return op.to_matrix()
+        return to_array(op)
 
     elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
         return to_csr(op)
