@@ -21,6 +21,7 @@ from scipy.sparse import issparse, csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
+from qiskit.opflow import OperatorBase
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array, to_BCOO, to_numeric_matrix_type
@@ -58,7 +59,10 @@ class RotatingFrame:
     """
 
     def __init__(
-        self, frame_operator: Union[Array, Operator], atol: float = 1e-10, rtol: float = 1e-10
+        self,
+        frame_operator: Union[Array, Operator, OperatorBase],
+        atol: float = 1e-10,
+        rtol: float = 1e-10,
     ):
         """Initialize with a frame operator.
 
