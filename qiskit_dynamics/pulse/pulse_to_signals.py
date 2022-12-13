@@ -91,7 +91,7 @@ class InstructionToSignals:
             a list of piecewise constant signals.
         """
 
-        signals, phases, frequency_shifts = {}, {}, {}
+        signals, phases, frequency_shifts, phase_accumulations = {}, {}, {}, {}
 
         if self._channels is not None:
             schedule = schedule.filter(channels=[self._get_channel(ch) for ch in self._channels])
@@ -99,6 +99,7 @@ class InstructionToSignals:
         for idx, chan in enumerate(schedule.channels):
             phases[chan.name] = 0.0
             frequency_shifts[chan.name] = 0.0
+            phase_accumulations[chan.name] = 0.0
 
             carrier_freq = self._carriers.get(chan.name, 0.0)
 
@@ -113,7 +114,7 @@ class InstructionToSignals:
             chan = inst.channel.name
             phi = phases[chan]
             freq = frequency_shifts[chan]
-
+            phase_accumulation = phase_accumulations[chan]
             if isinstance(inst, Play):
                 start_idx = len(signals[chan].samples)
 
@@ -125,10 +126,10 @@ class InstructionToSignals:
                     inst_samples = inst.pulse.get_waveform().samples
 
                 # build sample array to append to signal
-                samples = []
-                for idx, sample in enumerate(inst_samples):
-                    time = self._dt * (idx + start_idx)
-                    samples.append(sample * np.exp(2.0j * np.pi * freq * time + 1.0j * phi))
+                times = self._dt * (start_sample + np.arange(len(inst_samples)))
+                samples = inst_samples * np.exp(
+                    2.0j * np.pi * freq * times + 1.0j * phi + 2.0j * np.pi * phase_accumulation
+                )
                 signals[chan].add_samples(start_sample, samples)
 
             if isinstance(inst, ShiftPhase):
@@ -136,11 +137,17 @@ class InstructionToSignals:
 
             if isinstance(inst, ShiftFrequency):
                 frequency_shifts[chan] += inst.frequency
+                phase_accumulations[chan] -= inst.frequency * start_sample * self._dt
 
             if isinstance(inst, SetPhase):
                 phases[chan] = inst.phase
 
             if isinstance(inst, SetFrequency):
+                phase_accumulations[chan] -= (
+                    (inst.frequency - (frequency_shifts[chan] + signals[chan].carrier_freq))
+                    * start_sample
+                    * self._dt
+                )
                 frequency_shifts[chan] = inst.frequency - signals[chan].carrier_freq
 
         # ensure all signals have the same number of samples
@@ -166,7 +173,6 @@ class InstructionToSignals:
             )
 
             return_signals.append(signal)
-
         return return_signals
 
     @staticmethod
