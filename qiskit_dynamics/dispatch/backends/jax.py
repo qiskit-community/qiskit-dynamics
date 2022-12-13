@@ -22,7 +22,10 @@ try:
     from jax.interpreters.ad import JVPTracer
     from jax.interpreters.partial_eval import JaxprTracer
 
-    JAX_TYPES = (DeviceArray, Tracer, JaxprTracer, JVPTracer)
+    if hasattr(jax, "Array"):
+        JAX_TYPES = (DeviceArray, Tracer, JaxprTracer, JVPTracer, jax.Array)
+    else:
+        JAX_TYPES = (DeviceArray, Tracer, JaxprTracer, JVPTracer)
 
     try:
         # This class is not in older versions of Jax
