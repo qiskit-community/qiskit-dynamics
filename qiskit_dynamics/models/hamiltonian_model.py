@@ -22,6 +22,7 @@ from scipy.sparse.linalg import norm as spnorm
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
+from qiskit.opflow import OperatorBase
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type, to_array
@@ -64,10 +65,10 @@ class HamiltonianModel(GeneratorModel):
 
     def __init__(
         self,
-        static_operator: Optional[Array] = None,
-        operators: Optional[List[Operator]] = None,
+        static_operator: Optional[Union[Array, Operator, OperatorBase]] = None,
+        operators: Optional[List[Union[Array, Operator, OperatorBase]]] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, OperatorBase, Array, RotatingFrame]] = None,
         in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
         validate: bool = True,

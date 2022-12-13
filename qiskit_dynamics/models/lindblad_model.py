@@ -21,6 +21,7 @@ from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
+from qiskit.opflow import OperatorBase
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from qiskit_dynamics.signals import Signal, SignalList
@@ -105,13 +106,13 @@ class LindbladModel(BaseGeneratorModel):
 
     def __init__(
         self,
-        static_hamiltonian: Optional[Union[Array, csr_matrix]] = None,
-        hamiltonian_operators: Optional[Union[Array, List[csr_matrix]]] = None,
+        static_hamiltonian: Optional[Union[Array, Operator, OperatorBase, csr_matrix]] = None,
+        hamiltonian_operators: Optional[List[Union[Array, Operator, OperatorBase, csr_matrix]]]  = None,
         hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
         static_dissipators: Optional[Union[Array, csr_matrix]] = None,
         dissipator_operators: Optional[Union[Array, List[csr_matrix]]] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, OperatorBase, Array, RotatingFrame]] = None,
         in_frame_basis: bool = False,
         evaluation_mode: Optional[str] = "dense",
         validate: bool = True,
