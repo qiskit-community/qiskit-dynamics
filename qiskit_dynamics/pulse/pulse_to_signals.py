@@ -116,7 +116,6 @@ class InstructionToSignals:
             freq = frequency_shifts[chan]
             phase_accumulation = phase_accumulations[chan]
             if isinstance(inst, Play):
-                start_idx = len(signals[chan].samples)
 
                 # get the instruction samples
                 inst_samples = None
