@@ -11,6 +11,7 @@ features:
         operators = [X,Y]
         hamiltonian_solver = dynamics.Solver(
             static_hamiltonian = drift,
-            hamiltonian_operators = operators
+            hamiltonian_operators = operators,
+            rotating_frame = drift
         )
       
