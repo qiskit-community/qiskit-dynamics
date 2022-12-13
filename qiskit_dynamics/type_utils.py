@@ -25,6 +25,7 @@ from scipy.sparse import kron as sparse_kron
 from scipy.sparse import identity as sparse_identity
 
 from qiskit.quantum_info.operators import Operator
+from qiskit.opflow import OperatorBase
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch import requires_backend
 
@@ -383,6 +384,9 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
     if type(op).__name__ == "BCOO":
         return Array(op.todense())
 
+    if isinstance(op, OperatorBase):
+        return Array(op.to_matrix())
+
     if isinstance(op, Iterable) and not no_iter:
         op = Array([to_array(sub_op, no_iter=True) for sub_op in op])
     elif isinstance(op, Iterable) and no_iter:
@@ -452,7 +456,7 @@ def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "B
 
 
 def to_numeric_matrix_type(
-    op: Union[Operator, Array, spmatrix, List[Operator], List[Array], List[spmatrix]]
+    op: Union[Operator, OperatorBase, Array, spmatrix, List[Operator], List[OperatorBase], List[Array], List[spmatrix]]
 ):
     """Given an operator, array, sparse matrix, or a list of operators, arrays, or sparse matrices,
     attempts to leave them in their original form, only converting the operator to an array,
@@ -482,6 +486,8 @@ def to_numeric_matrix_type(
         return op
     elif isinstance(op, Operator):
         return to_array(op)
+    elif isinstance(op, OperatorBase):
+        return op.to_matrix()
 
     elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
         return to_csr(op)
