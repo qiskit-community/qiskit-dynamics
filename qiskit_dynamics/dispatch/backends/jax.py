@@ -23,6 +23,14 @@ try:
     JAX_TYPES = (DeviceArray, Tracer, JaxprTracer, JVPTracer)
 
     try:
+        # This class was introduced in 4.0.0
+        from jax import Array
+
+        JAX_TYPES += (Array,)
+    except ImportError:
+        pass
+
+    try:
         # This class is not in older versions of Jax
         from jax.interpreters.partial_eval import DynamicJaxprTracer
 
