@@ -136,25 +136,18 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched += ShiftFrequency(-0.5, DriveChannel(0))
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
 
-        samples0 = np.arange(0.0, duration * dt, dt, dtype=float)
-        samples1 = np.arange(duration * dt, 2 * duration * dt, dt, dtype=float)
-        samples2 = np.arange(2 * duration * dt, 3 * duration * dt, dt, dtype=float)
+        freq_shift = 0.5
+        phase_accumulation = 0.0
+        all_samples = np.exp(2j * np.pi * freq_shift * dt * np.arange(0, duration))
 
-        # phase accumulation logic is here:https://github.com/Qiskit/qiskit-dynamics/issues/140#issuecomment-1321051038
-        all_samples = np.append(
-            np.append(
-                np.exp(2j * np.pi * 0.5 * samples0),
-                np.exp(
-                    2j * np.pi * 1 * (samples1 + (5.5 - 6.0) * duration * dt * np.ones(duration))
-                ),
-            ),
-            np.exp(
-                2j
-                * np.pi
-                * 0.5
-                * (samples2 + (6.0 - 5.5) * (2 * duration) * dt * np.ones(duration))
-            ),
-        )
+        freq_shift = 1.0
+        phase_accumulation -= (6.0 - 5.5) * duration * dt
+        all_samples = np.append(all_samples, np.exp(2j * np.pi * (freq_shift * dt * np.arange(duration, 2*duration) + phase_accumulation)))
+
+        freq_shift = 0.5
+        phase_accumulation -= -0.5 * 2 * duration * dt
+        all_samples = np.append(all_samples, np.exp(2j * np.pi * (freq_shift * dt * np.arange(2*duration, 3*duration) + phase_accumulation)))
+
         converter = InstructionToSignals(dt=dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
         self.assertAllClose(signals[0].samples, all_samples)
@@ -180,17 +173,15 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         dt = 0.222
         sched = Schedule()
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
-        sched += ShiftFrequency(1, DriveChannel(0))
+        sched += ShiftFrequency(1., DriveChannel(0))
         sched += Delay(duration, DriveChannel(0))
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
 
-        # delay from duration * dt to 2 * duration * dt
-        samples = np.arange(2 * duration * dt, 3 * duration * dt, dt, dtype=float)
-
-        # phase accumulation logic is here:https://github.com/Qiskit/qiskit-dynamics/issues/140#issuecomment-1321051038
+        freq_shift = 1.
+        phase_accumulation = -1. * duration * dt
         all_samples = np.append(
             np.append(np.ones(duration), np.zeros(duration)),
-            np.exp(2j * np.pi * 1 * (samples + (0.0 - 1.0) * duration * dt * np.ones(duration))),
+            np.exp(2j * np.pi * (freq_shift * dt * np.arange(2 * duration, 3 * duration) + phase_accumulation)),
         )
         converter = InstructionToSignals(dt=dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
