@@ -123,6 +123,42 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         for idx in range(10):
             self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * 0.222))
 
+    def test_set_and_shift_frequency(self):
+        """Test that ShiftFrequency after SetFrequency is properly converted. It confirms implementation of phase accumulation is correct."""
+
+        duration = 20
+        dt = 0.222
+        sched = Schedule()
+        sched += SetFrequency(5.5, DriveChannel(0))
+        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
+        sched += SetFrequency(6, DriveChannel(0))
+        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
+        sched += ShiftFrequency(-0.5, DriveChannel(0))
+        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
+
+        samples0 = np.arange(0.0, duration * dt, dt, dtype=float)
+        samples1 = np.arange(duration * dt, 2 * duration * dt, dt, dtype=float)
+        samples2 = np.arange(2 * duration * dt, 3 * duration * dt, dt, dtype=float)
+
+        # phase accumulation logic is here:https://github.com/Qiskit/qiskit-dynamics/issues/140#issuecomment-1321051038
+        all_samples = np.append(
+            np.append(
+                np.exp(2j * np.pi * 0.5 * samples0),
+                np.exp(
+                    2j * np.pi * 1 * (samples1 + (5.5 - 6.0) * duration * dt * np.ones(duration))
+                ),
+            ),
+            np.exp(
+                2j
+                * np.pi
+                * 0.5
+                * (samples2 + (6.0 - 5.5) * (2 * duration) * dt * np.ones(duration))
+            ),
+        )
+        converter = InstructionToSignals(dt=dt, carriers={"d0": 5.0})
+        signals = converter.get_signals(sched)
+        self.assertAllClose(signals[0].samples, all_samples)
+
     def test_delay(self):
         """Test that Delay is properly reflected."""
 
@@ -136,6 +172,29 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         samples_with_delay = np.array([1] * 10 + [0] * 10 + [1] * 10)
         for idx in range(30):
             self.assertEqual(signals[0].samples[idx], samples_with_delay[idx])
+
+    def test_delay_and_shift_frequency(self):
+        """Test that delay after SetFrequency is properly converted. It confirms implementation of phase accumulation is correct."""
+
+        duration = 20
+        dt = 0.222
+        sched = Schedule()
+        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
+        sched += ShiftFrequency(1, DriveChannel(0))
+        sched += Delay(duration, DriveChannel(0))
+        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
+
+        # delay from duration * dt to 2 * duration * dt
+        samples = np.arange(2 * duration * dt, 3 * duration * dt, dt, dtype=float)
+
+        # phase accumulation logic is here:https://github.com/Qiskit/qiskit-dynamics/issues/140#issuecomment-1321051038
+        all_samples = np.append(
+            np.append(np.ones(duration), np.zeros(duration)),
+            np.exp(2j * np.pi * 1 * (samples + (0.0 - 1.0) * duration * dt * np.ones(duration))),
+        )
+        converter = InstructionToSignals(dt=dt, carriers={"d0": 5.0})
+        signals = converter.get_signals(sched)
+        self.assertAllClose(signals[0].samples, all_samples)
 
     def test_uneven_pulse_length(self):
         """Test conversion when length of pulses on a schedule is uneven."""
