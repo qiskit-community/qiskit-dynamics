@@ -114,7 +114,6 @@ class InstructionToSignals:
             chan = inst.channel.name
             phi = phases[chan]
             freq = frequency_shifts[chan]
-            phase_accumulation = phase_accumulations[chan]
             if isinstance(inst, Play):
 
                 # get the instruction samples
@@ -127,7 +126,7 @@ class InstructionToSignals:
                 # build sample array to append to signal
                 times = self._dt * (start_sample + np.arange(len(inst_samples)))
                 samples = inst_samples * np.exp(
-                    2.0j * np.pi * freq * times + 1.0j * phi + 2.0j * np.pi * phase_accumulation
+                    2.0j * np.pi * freq * times + 1.0j * phi + 2.0j * np.pi * phase_accumulations[chan]
                 )
                 signals[chan].add_samples(start_sample, samples)
 
