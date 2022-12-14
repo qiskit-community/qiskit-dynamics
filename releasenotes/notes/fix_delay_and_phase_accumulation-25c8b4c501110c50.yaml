@@ -1,5 +1,8 @@
 ---
 fixes:
   - |
-    Fix a behavior of signals when using delay instruction in qiskit-pulse.
-    Add a phase accumulation term when using shift or set frequency in qiskit-pulse.
+    :class:`.InstructionToSignals` has been updated to fix issues with phase accumulation
+    resulting from ``SetFrequency`` and ``ShiftFrequency`` instructions. A phase accumulation
+    term has been added so that the digitized carrier frequency is continuous across these 
+    instructions. A related phase error when generating samples for channels subject to
+    ``SetFrequency`` and ``ShiftFrequency`` instructions has also been fixed.
