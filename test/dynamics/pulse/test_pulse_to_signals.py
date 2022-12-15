@@ -145,14 +145,25 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         phase_accumulation -= (6.0 - 5.5) * duration * unit_dt
         all_samples = np.append(
             all_samples,
-            np.exp(2j * np.pi * (freq_shift * unit_dt * np.arange(duration, 2*duration) + phase_accumulation))
+            np.exp(
+                2j
+                * np.pi
+                * (freq_shift * unit_dt * np.arange(duration, 2 * duration) + phase_accumulation)
+            ),
         )
 
         freq_shift = 0.5
         phase_accumulation -= -0.5 * 2 * duration * unit_dt
         all_samples = np.append(
             all_samples,
-            np.exp(2j * np.pi * (freq_shift * unit_dt * np.arange(2*duration, 3*duration) + phase_accumulation))
+            np.exp(
+                2j
+                * np.pi
+                * (
+                    freq_shift * unit_dt * np.arange(2 * duration, 3 * duration)
+                    + phase_accumulation
+                )
+            ),
         )
 
         converter = InstructionToSignals(dt=unit_dt, carriers={"d0": 5.0})
@@ -187,10 +198,17 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
 
         freq_shift = 1.0
         phase_accumulation = -1.0 * duration * unit_dt
-        phase_accumulation = -1. * duration * unit_dt
+        phase_accumulation = -1.0 * duration * unit_dt
         all_samples = np.append(
             np.append(np.ones(duration), np.zeros(duration)),
-            np.exp(2j * np.pi * (freq_shift * unit_dt * np.arange(2 * duration, 3 * duration) + phase_accumulation)),
+            np.exp(
+                2j
+                * np.pi
+                * (
+                    freq_shift * unit_dt * np.arange(2 * duration, 3 * duration)
+                    + phase_accumulation
+                )
+            ),
         )
 
         converter = InstructionToSignals(dt=unit_dt, carriers={"d0": 5.0})
