@@ -38,21 +38,19 @@ from qiskit_dynamics.signals import DiscreteSignal
 class InstructionToSignals:
     """Converts pulse instructions to Signals to be used in models.
 
-    The :class:`InstructionsToSignals` class converts a pulse schedule to a list
-    of signals that can be given to a model. This conversion is done by calling
-    the :meth:`get_signals` method on a schedule. The converter applies to instances
-    of :class:`Schedule`. Instances of :class:`ScheduleBlock` must first be
-    converted to :class:`Schedule` using the :meth:`block_to_schedule` in
-    Qiskit pulse.
+    The :class:`InstructionsToSignals` class converts a pulse schedule to a list of signals that can
+    be given to a model. This conversion is done by calling the :meth:`get_signals` method on a
+    schedule. The converter applies to instances of :class:`Schedule`. Instances of
+    :class:`ScheduleBlock` must first be converted to :class:`Schedule` using the
+    :meth:`block_to_schedule` in Qiskit pulse.
 
-    The converter can be initialized
-    with the optional arguments ``carriers`` and ``channels``. These arguments
-    change the returned signals of :meth:`get_signals`. When ``channels`` is given
-    then only the signals specified by name in ``channels`` are returned. The
-    ``carriers`` dictionary allows the user to specify the carrier frequency of
-    the channels. Here, the keys are the channel name, e.g. ``d12`` for drive channel
-    number 12, and the values are the corresponding frequency. If a channel is not
-    present in ``carriers`` it is assumed that the carrier frequency is zero.
+    The converter can be initialized with the optional arguments ``carriers`` and ``channels``.
+    These arguments change the returned signals of :meth:`get_signals`. When ``channels`` is given
+    then only the signals specified by name in ``channels`` are returned. The ``carriers``
+    dictionary allows the user to specify the carrier frequency of the channels. Here, the keys are
+    the channel name, e.g. ``d12`` for drive channel number 12, and the values are the corresponding
+    frequency. If a channel is not present in ``carriers`` it is assumed that the carrier frequency
+    is zero.
     """
 
     def __init__(
@@ -65,15 +63,15 @@ class InstructionToSignals:
 
         Args:
             dt: Length of the samples. This is required by the converter as pulse
-                schedule are specified in units of dt and typically do not carry the
-                value of dt with them.
+                schedule are specified in units of dt and typically do not carry the value of dt
+                with them.
             carriers: A dict of carrier frequencies. The keys are the names of the channels
-                      and the values are the corresponding carrier frequency.
+                and the values are the corresponding carrier frequency.
             channels: A list of channels that the :meth:`get_signals` method should return.
-                      This argument will cause :meth:`get_signals` to return the signals in the
-                      same order as the channels. Channels present in the schedule but absent
-                      from channels will not be included in the returned object. If None is given
-                      (the default) then all channels present in the pulse schedule are returned.
+                This argument will cause :meth:`get_signals` to return the signals in the same order
+                as the channels. Channels present in the schedule but absent from channels will not
+                be included in the returned object. If None is given (the default) then all channels
+                present in the pulse schedule are returned.
         """
 
         self._dt = dt
@@ -84,8 +82,8 @@ class InstructionToSignals:
         """
         Args:
             schedule: The schedule to represent in terms of signals. Instances of
-                      :class:`ScheduleBlock` must first be converted to :class:`Schedule`
-                      using the :meth:`block_to_schedule` in Qiskit pulse.
+                :class:`ScheduleBlock` must first be converted to :class:`Schedule` using the
+                :meth:`block_to_schedule` in Qiskit pulse.
 
         Returns:
             a list of piecewise constant signals.
@@ -194,7 +192,7 @@ class InstructionToSignals:
         Args:
             signals: A list of signals for which to create I and Q.
             if_modulation: The intermediate frequency with which the AWG modulates the pulse
-                           envelopes.
+                envelopes.
 
         Returns:
             iq signals: A list of signals which is twice as long as the input list of signals.
