@@ -96,7 +96,7 @@ class InstructionToSignals:
         if self._channels is not None:
             schedule = schedule.filter(channels=[self._get_channel(ch) for ch in self._channels])
 
-        for idx, chan in enumerate(schedule.channels):
+        for chan in schedule.channels:
             phases[chan.name] = 0.0
             frequency_shifts[chan.name] = 0.0
             phase_accumulations[chan.name] = 0.0
@@ -126,7 +126,9 @@ class InstructionToSignals:
                 # build sample array to append to signal
                 times = self._dt * (start_sample + np.arange(len(inst_samples)))
                 samples = inst_samples * np.exp(
-                    2.0j * np.pi * freq * times + 1.0j * phi + 2.0j * np.pi * phase_accumulations[chan]
+                    2.0j * np.pi * freq * times
+                    + 1.0j * phi
+                    + 2.0j * np.pi * phase_accumulations[chan]
                 )
                 signals[chan].add_samples(start_sample, samples)
 

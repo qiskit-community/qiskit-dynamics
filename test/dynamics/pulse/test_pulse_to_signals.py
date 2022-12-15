@@ -124,10 +124,12 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
             self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * 0.222))
 
     def test_set_and_shift_frequency(self):
-        """Test that ShiftFrequency after SetFrequency is properly converted. It confirms implementation of phase accumulation is correct."""
+        """Test that ShiftFrequency after SetFrequency is properly converted.
+        It confirms implementation of phase accumulation is correct."""
+        # pylint: disable=line-too-long
 
         duration = 20
-        dt = 0.222
+        unit_dt = 0.222
         sched = Schedule()
         sched += SetFrequency(5.5, DriveChannel(0))
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
@@ -135,20 +137,26 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
         sched += ShiftFrequency(-0.5, DriveChannel(0))
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
-
+        # fmt: off
         freq_shift = 0.5
         phase_accumulation = 0.0
-        all_samples = np.exp(2j * np.pi * freq_shift * dt * np.arange(0, duration))
+        all_samples = np.exp(2j * np.pi * freq_shift * unit_dt * np.arange(0, duration))
 
         freq_shift = 1.0
-        phase_accumulation -= (6.0 - 5.5) * duration * dt
-        all_samples = np.append(all_samples, np.exp(2j * np.pi * (freq_shift * dt * np.arange(duration, 2*duration) + phase_accumulation)))
+        phase_accumulation -= (6.0 - 5.5) * duration * unit_dt
+        all_samples = np.append(
+            all_samples,
+            np.exp(2j * np.pi * (freq_shift * unit_dt * np.arange(duration, 2*duration) + phase_accumulation))
+        )
 
         freq_shift = 0.5
-        phase_accumulation -= -0.5 * 2 * duration * dt
-        all_samples = np.append(all_samples, np.exp(2j * np.pi * (freq_shift * dt * np.arange(2*duration, 3*duration) + phase_accumulation)))
-
-        converter = InstructionToSignals(dt=dt, carriers={"d0": 5.0})
+        phase_accumulation -= -0.5 * 2 * duration * unit_dt
+        all_samples = np.append(
+            all_samples,
+            np.exp(2j * np.pi * (freq_shift * unit_dt * np.arange(2*duration, 3*duration) + phase_accumulation))
+        )
+        # fmt: on
+        converter = InstructionToSignals(dt=unit_dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
         self.assertAllClose(signals[0].samples, all_samples)
 
@@ -167,23 +175,27 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
             self.assertEqual(signals[0].samples[idx], samples_with_delay[idx])
 
     def test_delay_and_shift_frequency(self):
-        """Test that delay after SetFrequency is properly converted. It confirms implementation of phase accumulation is correct."""
+        """Test that delay after SetFrequency is properly converted.
+        It confirms implementation of phase accumulation is correct."""
+        # pylint: disable=line-too-long
 
         duration = 20
-        dt = 0.222
+        unit_dt = 0.222
         sched = Schedule()
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
-        sched += ShiftFrequency(1., DriveChannel(0))
+        sched += ShiftFrequency(1.0, DriveChannel(0))
         sched += Delay(duration, DriveChannel(0))
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
-
-        freq_shift = 1.
-        phase_accumulation = -1. * duration * dt
+        # fmt: off
+        freq_shift = 1.0
+        phase_accumulation = -1.0 * duration * unit_dt
+        phase_accumulation = -1. * duration * unit_dt
         all_samples = np.append(
             np.append(np.ones(duration), np.zeros(duration)),
-            np.exp(2j * np.pi * (freq_shift * dt * np.arange(2 * duration, 3 * duration) + phase_accumulation)),
+            np.exp(2j * np.pi * (freq_shift * unit_dt * np.arange(2 * duration, 3 * duration) + phase_accumulation)),
         )
-        converter = InstructionToSignals(dt=dt, carriers={"d0": 5.0})
+        # fmt: on
+        converter = InstructionToSignals(dt=unit_dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
         self.assertAllClose(signals[0].samples, all_samples)
 
