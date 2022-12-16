@@ -205,9 +205,8 @@ class DynamicsBackend(BackendV2):
                     raise QiskitError("max_outcome_level must be a positive integer or None.")
             elif key == "experiment_result_function" and not callable(value):
                 raise QiskitError("experiment_result_function must be callable.")
-            elif key == "iq_width":
-                if (value is not None) and (not isinstance(value, float) or (value <= 0)):
-                    raise QiskitError("iq_width must be None or positive float.")
+            elif key == "iq_width" and (not isinstance(value, float) or (value <= 0)):
+                    raise QiskitError("iq_width must be a positive float.")
             elif key == "iq_centers":
                 if (value is not None) and not all(
                     (isinstance(level, List) and len(level) == 2)
