@@ -171,14 +171,17 @@ def _get_counts_from_samples(samples: list) -> Dict:
 
 
 def _get_subsystem_probabilities(probability_tensor: np.ndarray, sub_idx: int) -> np.ndarray:
-    """Marginalize a probability vector according to subsystems.
+    """Marginalize a probability array to a single subsystem. Adapted from
+    ``qiskit.quantum_info.QuantumState._subsystem_probabilities``.
 
     Args:
-        probability_tensor: Probability full system reshaped to reversed(subsystem_dims).
+        probability_tensor: K-dimensional probability array, where the probability of outcome
+                            ``(idx1, ..., idxk)`` is ``probability_tensor[idx1, ..., idxk]``.
         sub_idx: Subsystem index to return marginalized probabilities.
+                 ``sub_idx`` is indexed in reverse order to be consistent with qiskit.
 
     Returns:
-        The marginalized probability vector flattened for the specified subsystem index.
+        The marginalized probability for the specified subsystem.
     """
 
     # Convert qargs to tensor axes

@@ -205,15 +205,19 @@ class DynamicsBackend(BackendV2):
                     raise QiskitError("max_outcome_level must be a positive integer or None.")
             elif key == "experiment_result_function" and not callable(value):
                 raise QiskitError("experiment_result_function must be callable.")
-            elif key == "iq_width" and (not isinstance(value, float) or (value <= 0)):
-                raise QiskitError("iq_width must be positive float.")
+            elif key == "iq_width":
+                if (value is not None) and (not isinstance(value, float) or (value <= 0)):
+                    raise QiskitError("iq_width must be None or positive float.")
             elif key == "iq_centers":
-                if not all(
+                if (value is not None) and not all(
                     (isinstance(level, List) and len(level) == 2)
                     for sub_system in value
                     for level in sub_system
                 ):
-                    raise QiskitError("each iq_center must be a list of two elements.")
+                    raise QiskitError(
+                        """The iq_centers option must be either None or of type
+                    List[List[List[int, int]]], where the innermost list is the (I, Q) pair."""
+                    )
                 validate_iq_centers = True
             elif key == "subsystem_dims":
                 validate_subsystem_dims = True
@@ -239,7 +243,12 @@ class DynamicsBackend(BackendV2):
             if [
                 len(sub_system) for sub_system in self._options.iq_centers
             ] != self._options.subsystem_dims:
-                raise QiskitError("iq_centers is not consistent with subsystem_dims.")
+                raise QiskitError(
+                    """iq_centers option is not consistent with subsystem_dims. Must be None
+                or of type List[List[List[int, int]]], where the outermost list is of length equal
+                to the number of subsystems, and each inner list of length equal to the
+                corresponding subsystem dimension."""
+                )
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
