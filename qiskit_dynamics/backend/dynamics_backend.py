@@ -206,7 +206,7 @@ class DynamicsBackend(BackendV2):
             elif key == "experiment_result_function" and not callable(value):
                 raise QiskitError("experiment_result_function must be callable.")
             elif key == "iq_width" and (not isinstance(value, float) or (value <= 0)):
-                    raise QiskitError("iq_width must be a positive float.")
+                raise QiskitError("iq_width must be a positive float.")
             elif key == "iq_centers":
                 if (value is not None) and not all(
                     (isinstance(level, List) and len(level) == 2)
