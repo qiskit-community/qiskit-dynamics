@@ -45,14 +45,12 @@ from ..common import QiskitDynamicsTestCase
 class TestPulseToSignals(QiskitDynamicsTestCase):
     """Tests the conversion between pulse schedules and signals."""
 
-
     def setUp(self):
         """Setup the tests."""
 
         super().setUp()
         # Typical length of samples in units of dt in IBM real backends is 0.222.
         self._dt = 0.222
-
 
     def test_pulse_to_signals(self):
         """Generic test."""
