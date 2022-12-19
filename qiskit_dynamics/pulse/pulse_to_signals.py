@@ -38,21 +38,19 @@ from qiskit_dynamics.signals import DiscreteSignal
 class InstructionToSignals:
     """Converts pulse instructions to Signals to be used in models.
 
-    The :class:`InstructionsToSignals` class converts a pulse schedule to a list
-    of signals that can be given to a model. This conversion is done by calling
-    the :meth:`get_signals` method on a schedule. The converter applies to instances
-    of :class:`Schedule`. Instances of :class:`ScheduleBlock` must first be
-    converted to :class:`Schedule` using the :meth:`block_to_schedule` in
-    Qiskit pulse.
+    The :class:`InstructionsToSignals` class converts a pulse schedule to a list of signals that can
+    be given to a model. This conversion is done by calling the :meth:`get_signals` method on a
+    schedule. The converter applies to instances of :class:`Schedule`. Instances of
+    :class:`ScheduleBlock` must first be converted to :class:`Schedule` using the
+    :meth:`block_to_schedule` in Qiskit pulse.
 
-    The converter can be initialized
-    with the optional arguments ``carriers`` and ``channels``. These arguments
-    change the returned signals of :meth:`get_signals`. When ``channels`` is given
-    then only the signals specified by name in ``channels`` are returned. The
-    ``carriers`` dictionary allows the user to specify the carrier frequency of
-    the channels. Here, the keys are the channel name, e.g. ``d12`` for drive channel
-    number 12, and the values are the corresponding frequency. If a channel is not
-    present in ``carriers`` it is assumed that the carrier frequency is zero.
+    The converter can be initialized with the optional arguments ``carriers`` and ``channels``.
+    These arguments change the returned signals of :meth:`get_signals`. When ``channels`` is given
+    then only the signals specified by name in ``channels`` are returned. The ``carriers``
+    dictionary allows the user to specify the carrier frequency of the channels. Here, the keys are
+    the channel name, e.g. ``d12`` for drive channel number 12, and the values are the corresponding
+    frequency. If a channel is not present in ``carriers`` it is assumed that the carrier frequency
+    is zero.
     """
 
     def __init__(
@@ -65,15 +63,15 @@ class InstructionToSignals:
 
         Args:
             dt: Length of the samples. This is required by the converter as pulse
-                schedule are specified in units of dt and typically do not carry the
-                value of dt with them.
+                schedule are specified in units of dt and typically do not carry the value of dt
+                with them.
             carriers: A dict of carrier frequencies. The keys are the names of the channels
-                      and the values are the corresponding carrier frequency.
+                and the values are the corresponding carrier frequency.
             channels: A list of channels that the :meth:`get_signals` method should return.
-                      This argument will cause :meth:`get_signals` to return the signals in the
-                      same order as the channels. Channels present in the schedule but absent
-                      from channels will not be included in the returned object. If None is given
-                      (the default) then all channels present in the pulse schedule are returned.
+                This argument will cause :meth:`get_signals` to return the signals in the same order
+                as the channels. Channels present in the schedule but absent from channels will not
+                be included in the returned object. If None is given (the default) then all channels
+                present in the pulse schedule are returned.
         """
 
         self._dt = dt
@@ -84,21 +82,22 @@ class InstructionToSignals:
         """
         Args:
             schedule: The schedule to represent in terms of signals. Instances of
-                      :class:`ScheduleBlock` must first be converted to :class:`Schedule`
-                      using the :meth:`block_to_schedule` in Qiskit pulse.
+                :class:`ScheduleBlock` must first be converted to :class:`Schedule` using the
+                :meth:`block_to_schedule` in Qiskit pulse.
 
         Returns:
             a list of piecewise constant signals.
         """
 
-        signals, phases, frequency_shifts = {}, {}, {}
+        signals, phases, frequency_shifts, phase_accumulations = {}, {}, {}, {}
 
         if self._channels is not None:
             schedule = schedule.filter(channels=[self._get_channel(ch) for ch in self._channels])
 
-        for idx, chan in enumerate(schedule.channels):
+        for chan in schedule.channels:
             phases[chan.name] = 0.0
             frequency_shifts[chan.name] = 0.0
+            phase_accumulations[chan.name] = 0.0
 
             carrier_freq = self._carriers.get(chan.name, 0.0)
 
@@ -113,9 +112,7 @@ class InstructionToSignals:
             chan = inst.channel.name
             phi = phases[chan]
             freq = frequency_shifts[chan]
-
             if isinstance(inst, Play):
-                start_idx = len(signals[chan].samples)
 
                 # get the instruction samples
                 inst_samples = None
@@ -125,10 +122,12 @@ class InstructionToSignals:
                     inst_samples = inst.pulse.get_waveform().samples
 
                 # build sample array to append to signal
-                samples = []
-                for idx, sample in enumerate(inst_samples):
-                    time = self._dt * (idx + start_idx)
-                    samples.append(sample * np.exp(2.0j * np.pi * freq * time + 1.0j * phi))
+                times = self._dt * (start_sample + np.arange(len(inst_samples)))
+                samples = inst_samples * np.exp(
+                    2.0j * np.pi * freq * times
+                    + 1.0j * phi
+                    + 2.0j * np.pi * phase_accumulations[chan]
+                )
                 signals[chan].add_samples(start_sample, samples)
 
             if isinstance(inst, ShiftPhase):
@@ -136,11 +135,17 @@ class InstructionToSignals:
 
             if isinstance(inst, ShiftFrequency):
                 frequency_shifts[chan] += inst.frequency
+                phase_accumulations[chan] -= inst.frequency * start_sample * self._dt
 
             if isinstance(inst, SetPhase):
                 phases[chan] = inst.phase
 
             if isinstance(inst, SetFrequency):
+                phase_accumulations[chan] -= (
+                    (inst.frequency - (frequency_shifts[chan] + signals[chan].carrier_freq))
+                    * start_sample
+                    * self._dt
+                )
                 frequency_shifts[chan] = inst.frequency - signals[chan].carrier_freq
 
         # ensure all signals have the same number of samples
@@ -166,7 +171,6 @@ class InstructionToSignals:
             )
 
             return_signals.append(signal)
-
         return return_signals
 
     @staticmethod
@@ -188,7 +192,7 @@ class InstructionToSignals:
         Args:
             signals: A list of signals for which to create I and Q.
             if_modulation: The intermediate frequency with which the AWG modulates the pulse
-                           envelopes.
+                envelopes.
 
         Returns:
             iq signals: A list of signals which is twice as long as the input list of signals.

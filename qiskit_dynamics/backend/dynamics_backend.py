@@ -26,7 +26,7 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import pulse
-from qiskit.qobj.utils import MeasLevel
+from qiskit.qobj.utils import MeasLevel, MeasReturnType
 from qiskit.qobj.common import QobjHeader
 from qiskit.transpiler import Target
 from qiskit.pulse import Schedule, ScheduleBlock
@@ -53,6 +53,7 @@ from .backend_utils import (
     _get_memory_slot_probabilities,
     _sample_probability_dict,
     _get_counts_from_samples,
+    _get_iq_data,
 )
 from .backend_string_parser import parse_backend_hamiltonian_dict
 
@@ -78,8 +79,17 @@ class DynamicsBackend(BackendV2):
       probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if the solution
       tolerance results in probabilities with significant numerical deviation from proper
       probability distributions.
-    * ``meas_level``: Form of measurement return. Only supported value is ``2``, indicating that
-      counts should be returned. Defaults to ``meas_level==2``.
+    * ``meas_level``: Form of measurement output. Supported values are ``1`` and ``2``. ``1``
+      returns IQ points and ``2`` returns counts. Defaults to ``meas_level==2``.
+    * ``meas_return``: Level of measurement data to return. For ``meas_level=1`` ``"single"``
+      returns output from every shot. ``"avg"`` returns average over shots of measurement output.
+      Defaults to ``"avg"``.
+    * ``iq_centers``: Centers for IQ distribution when using ``meas_level==1`` results. Must have
+      type List[List[List[float, float]]] formatted as ``iq_centers[subsystem][level] = [I,Q]``. If
+      ``None``, the ``iq_centers`` are dynamically generated to be equally spaced points on a unit
+      circle with ground-state at (1,0). The default is ``None``.
+    * ``iq_width``: Standard deviation of IQ distribution around the centers for ``meas_level==1``.
+      Must be a positive float. Defaults to ``0.2``.
     * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem. Values
       will be rounded down to be no larger than ``max_outcome_level``. Must be a positive integer or
       ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
@@ -95,10 +105,9 @@ class DynamicsBackend(BackendV2):
       defaults to ``None``, and is not required for the functioning of this class, but is provided
       for backwards compatibility. A set configuration will be returned by
       :meth:`DynamicsBackend.configuration()`.
-    * ``defaults``: A :class:`PulseDefaults` instance or ``None``. This option
-      defaults to ``None``, and is not required for the functioning of this class, but is provided
-      for backwards compatibility. A set defaults will be returned by
-      :meth:`DynamicsBackend.defaults()`.
+    * ``defaults``: A :class:`PulseDefaults` instance or ``None``. This option defaults to ``None``,
+      and is not required for the functioning of this class, but is provided for backwards
+      compatibility. A set defaults will be returned by :meth:`DynamicsBackend.defaults()`.
     """
 
     def __init__(
@@ -174,6 +183,9 @@ class DynamicsBackend(BackendV2):
             normalize_states=True,
             initial_state="ground_state",
             meas_level=MeasLevel.CLASSIFIED,
+            meas_return=MeasReturnType.AVERAGE,
+            iq_centers=None,
+            iq_width=0.2,
             max_outcome_level=1,
             memory=True,
             seed_simulator=None,
@@ -186,6 +198,7 @@ class DynamicsBackend(BackendV2):
         """Set options for DynamicsBackend."""
 
         validate_subsystem_dims = False
+        validate_iq_centers = False
 
         for key, value in fields.items():
             if not hasattr(self._options, key):
@@ -198,8 +211,10 @@ class DynamicsBackend(BackendV2):
                         'initial_state must be either "ground_state", or a Statevector or '
                         "DensityMatrix instance."
                     )
-            elif key == "meas_level" and value != 2:
-                raise QiskitError("Only meas_level == 2 is supported by DynamicsBackend.")
+            elif key == "meas_level" and value not in [1, 2]:
+                raise QiskitError("Only meas_level 1 and 2 are supported by DynamicsBackend.")
+            elif key == "meas_return" and value not in ["single", "avg"]:
+                raise QiskitError("meas_return must be either 'single' or 'avg'.")
             elif key == "max_outcome_level":
                 if (value is not None) and (not isinstance(value, int) or (value <= 0)):
                     raise QiskitError("max_outcome_level must be a positive integer or None.")
@@ -211,17 +226,32 @@ class DynamicsBackend(BackendV2):
                 )
             elif key == "defaults" and not isinstance(value, PulseDefaults):
                 raise QiskitError("defaults option must be an instance of PulseDefaults.")
+            elif key == "iq_width" and (not isinstance(value, float) or (value <= 0)):
+                raise QiskitError("iq_width must be a positive float.")
+            elif key == "iq_centers":
+                if (value is not None) and not all(
+                    (isinstance(level, List) and len(level) == 2)
+                    for sub_system in value
+                    for level in sub_system
+                ):
+                    raise QiskitError(
+                        "The iq_centers option must be either None or of type "
+                        "List[List[List[int, int]]], where the innermost list is the (I, Q) pair."
+                    )
+                validate_iq_centers = True
+            elif key == "subsystem_dims":
+                validate_subsystem_dims = True
+                validate_iq_centers = True
+            elif key == "solver":
+                validate_subsystem_dims = True
 
             # special setting routines
             if key == "solver":
                 self._set_solver(value)
-                validate_subsystem_dims = True
             else:
-                if key == "subsystem_dims":
-                    validate_subsystem_dims = True
                 self._options.update_options(**{key: value})
 
-        # perform additional consistency checks if certain options were modified
+        # perform additional consistency validations if certain options were modified
         if (
             validate_subsystem_dims
             and np.prod(self._options.subsystem_dims) != self._options.solver.model.dim
@@ -229,6 +259,17 @@ class DynamicsBackend(BackendV2):
             raise QiskitError(
                 "DynamicsBackend options subsystem_dims and solver.model.dim are inconsistent."
             )
+
+        if validate_iq_centers and (self._options.iq_centers is not None):
+            if [
+                len(sub_system) for sub_system in self._options.iq_centers
+            ] != self._options.subsystem_dims:
+                raise QiskitError(
+                    """iq_centers option is not consistent with subsystem_dims. Must be None
+                or of type List[List[List[int, int]]], where the outermost list is of length equal
+                to the number of subsystems, and each inner list of length equal to the
+                corresponding subsystem dimension."""
+                )
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
@@ -272,7 +313,7 @@ class DynamicsBackend(BackendV2):
 
         # Configure run options for simulation
         if options:
-            backend = copy.copy(self)
+            backend = copy.deepcopy(self)
             backend.set_options(**options)
         else:
             backend = self
@@ -583,12 +624,13 @@ def default_experiment_result_function(
         if backend.options.normalize_states:
             yf = yf / np.diag(yf.data).sum()
 
+    # compute probabilities for measurement slot values
+    measurement_subsystems = [
+        backend.options.subsystem_labels.index(x) for x in measurement_subsystems
+    ]
+
     if backend.options.meas_level == MeasLevel.CLASSIFIED:
 
-        # compute probabilities for measurement slot values
-        measurement_subsystems = [
-            backend.options.subsystem_labels.index(x) for x in measurement_subsystems
-        ]
         memory_slot_probabilities = _get_memory_slot_probabilities(
             probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
             memory_slot_indices=memory_slot_indices,
@@ -614,6 +656,43 @@ def default_experiment_result_function(
             seed=seed,
             header=QobjHeader(name=experiment_name),
         )
+    elif backend.options.meas_level == MeasLevel.KERNELED:
+        iq_centers = backend.options.iq_centers
+        if iq_centers is None:
+            # Default iq_centers
+            iq_centers = []
+            for sub_dim in backend.options.subsystem_dims:
+                theta = 2 * np.pi / sub_dim
+                iq_centers.append(
+                    [(np.cos(idx * theta), np.sin(idx * theta)) for idx in range(sub_dim)]
+                )
+
+        # generate IQ
+        measurement_data = _get_iq_data(
+            yf,
+            measurement_subsystems=measurement_subsystems,
+            iq_centers=iq_centers,
+            iq_width=backend.options.iq_width,
+            shots=backend.options.shots,
+            memory_slot_indices=memory_slot_indices,
+            num_memory_slots=num_memory_slots,
+            seed=seed,
+        )
+
+        if backend.options.meas_return == MeasReturnType.AVERAGE:
+            measurement_data = np.average(measurement_data, axis=0)
+
+        # construct results object
+        exp_data = ExperimentResultData(memory=measurement_data)
+        return ExperimentResult(
+            shots=backend.options.shots,
+            success=True,
+            data=exp_data,
+            meas_level=MeasLevel.KERNELED,
+            seed=seed,
+            header=QobjHeader(name=experiment_name),
+        )
+
     else:
         raise QiskitError(f"meas_level=={backend.options.meas_level} not implemented.")
 
@@ -633,7 +712,7 @@ def _validate_run_input(run_input, accept_list=True):
 def _get_acquire_data(schedules, valid_subsystem_labels):
     """Get the required data from the acquire commands in each schedule.
 
-    Additionally validates that each schedule has acquire instructions occuring at one time,
+    Additionally validates that each schedule has acquire instructions occurring at one time,
     at least one memory slot is being listed, and all measured subsystems exist in
     subsystem_labels.
     """

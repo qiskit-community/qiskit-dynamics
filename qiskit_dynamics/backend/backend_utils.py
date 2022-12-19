@@ -20,6 +20,7 @@ from typing import Optional, Union, List, Dict
 
 import numpy as np
 from qiskit import QiskitError
+from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 
 from qiskit_dynamics.array import Array
@@ -113,7 +114,7 @@ def _get_memory_slot_probabilities(
     state level measurement outcomes.
 
     Args:
-        probability_dict: A list of probabilities for the otucomes of state measurement. Keys
+        probability_dict: A list of probabilities for the outcomes of state measurement. Keys
             are assumed to all be strings of integers of the same length.
         memory_slot_indices: Indices of which memory slots store the digits of the keys of
             probability_dict.
@@ -167,3 +168,93 @@ def _sample_probability_dict(
 def _get_counts_from_samples(samples: list) -> Dict:
     """Count items in list."""
     return dict(zip(*np.unique(samples, return_counts=True)))
+
+
+def _get_subsystem_probabilities(probability_tensor: np.ndarray, sub_idx: int) -> np.ndarray:
+    """Marginalize a probability array to a single subsystem. Adapted from
+    ``qiskit.quantum_info.QuantumState._subsystem_probabilities``.
+
+    Args:
+        probability_tensor: K-dimensional probability array, where the probability of outcome
+            ``(idx1, ..., idxk)`` is ``probability_tensor[idx1, ..., idxk]``.
+        sub_idx: Subsystem index to return marginalized probabilities.
+            ``sub_idx`` is indexed in reverse order to be consistent with qiskit.
+
+    Returns:
+        The marginalized probability for the specified subsystem.
+    """
+
+    # Convert qargs to tensor axes
+    ndim = probability_tensor.ndim
+    sub_axis = ndim - 1 - sub_idx
+
+    # Get sum axis for marginalized subsystems
+    sum_axis = tuple(i for i in range(ndim) if i != sub_axis)
+    if sum_axis:
+        probability_tensor = probability_tensor.sum(axis=sum_axis)
+
+    return probability_tensor
+
+
+def _get_iq_data(
+    state: Union[Statevector, DensityMatrix],
+    measurement_subsystems: List[int],
+    iq_centers: List[List[List[float]]],
+    iq_width: float,
+    shots: int,
+    memory_slot_indices: List[int],
+    num_memory_slots: Optional[int] = None,
+    seed: Optional[int] = None,
+) -> np.ndarray:
+    """Generates IQ data for each physical level.
+
+    Args:
+        state: Quantum state. measurement_subsystems: Labels of subsystems in the system being
+        measured. memory_slot_indices: Indices of which memory slots store the data of subsystems.
+        num_memory_slots: Total number of memory slots for results. If None,
+            defaults to the maximum index in memory_slot_indices.
+        iq_centers: centers for IQ distribution. provided in the format
+            ``iq_centers[subsystem][level] = [I,Q]``.
+        iq_width: Standard deviation of IQ distribution around the centers. shots: Number of Shots
+        seed: Seed for sample generation.
+
+    Returns:
+        (I,Q) data as ndarray[shot index, qubit index] = [I,Q]
+
+    Raises:
+        QiskitError: If number of centers and levels don't match.
+    """
+    rng = np.random.default_rng(seed)
+    subsystem_dims = state.dims()
+    probabilities = state.probabilities()
+    probabilities_tensor = probabilities.reshape(list(reversed(subsystem_dims)))
+
+    full_i, full_q = [], []
+    for sub_idx in measurement_subsystems:
+        # Get probabilities for each subsystem
+        sub_probability = _get_subsystem_probabilities(probabilities_tensor, sub_idx=sub_idx)
+        # No. of shots for each level
+        counts_n = rng.multinomial(shots, sub_probability / sum(sub_probability), size=1).T
+
+        if len(counts_n) != len(iq_centers[sub_idx]):
+            raise QiskitError(
+                f"""Number of centers {len(iq_centers[sub_idx])} not equal
+                to number of levels {len(counts_n)}"""
+            )
+
+        sub_i, sub_q = [], []
+        for idx, count_i in enumerate(counts_n):
+            sub_i.append(rng.normal(loc=iq_centers[sub_idx][idx][0], scale=iq_width, size=count_i))
+            sub_q.append(rng.normal(loc=iq_centers[sub_idx][idx][1], scale=iq_width, size=count_i))
+
+        full_i.append(np.concatenate(sub_i))
+        full_q.append(np.concatenate(sub_q))
+    full_iq = np.array([full_i, full_q]).T
+
+    num_memory_slots = num_memory_slots or (max(memory_slot_indices) + 1)
+    mem_slot_iq = np.zeros((shots, num_memory_slots, 2))
+
+    for idx, mem_idx in enumerate(memory_slot_indices):
+        mem_slot_iq[:, mem_idx, :] = full_iq[:, idx, :]
+
+    return mem_slot_iq
