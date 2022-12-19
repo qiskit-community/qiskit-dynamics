@@ -2,13 +2,12 @@
 #
 # (C) Copyright IBM 2020.
 #
-# This code is licensed under the Apache License, Version 2.0. You may
-# obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+# This code is licensed under the Apache License, Version 2.0. You may obtain a copy of this license
+# in the LICENSE.txt file in the root directory of this source tree or at
+# http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Any modifications or derivative works of this code must retain this
-# copyright notice, and modified files need to carry a notice indicating
-# that they have been altered from the originals.
+# Any modifications or derivative works of this code must retain this copyright notice, and modified
+# files need to carry a notice indicating that they have been altered from the originals.
 # pylint: disable=invalid-name
 
 """Tests for generator_models.py. """
@@ -757,29 +756,31 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         old_frame = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        old_frame = old_frame - old_frame.conj().transpose()
+        old_frame = RotatingFrame(old_frame - old_frame.conj().transpose())
+
         new_frame = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        new_frame = new_frame - new_frame.conj().transpose()
+        new_frame = RotatingFrame(new_frame - new_frame.conj().transpose())
 
         out_static = transfer_static_operator_between_frames(
-            Array(static_operator), new_frame=Array(new_frame), old_frame=Array(old_frame)
+            Array(static_operator), new_frame=new_frame, old_frame=old_frame
         )
         out_operators = transfer_operators_between_frames(
-            Array(operators), new_frame=Array(new_frame), old_frame=Array(old_frame)
+            Array(operators), new_frame=new_frame, old_frame=old_frame
         )
 
         self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
         self.assertTrue(isinstance(out_operators, (np.ndarray, Array)))
 
-        _, U = wrap(np.linalg.eigh)(1j * old_frame)
-        _, V = wrap(np.linalg.eigh)(1j * new_frame)
-        Uadj = U.conj().transpose()
-        Vadj = V.conj().transpose()
-
-        expected_static = Vadj @ ((U @ static_operator @ Uadj + old_frame) - new_frame) @ V
-        expected_operators = Vadj @ (U @ operators @ Uadj) @ V
+        expected_static = new_frame.operator_into_frame_basis(
+            (old_frame.operator_out_of_frame_basis(static_operator) + old_frame.frame_operator)
+            - new_frame.frame_operator
+        )
+        expected_operators = [
+            new_frame.operator_into_frame_basis(old_frame.operator_out_of_frame_basis(op))
+            for op in operators
+        ]
 
         self.assertAllClose(out_static, expected_static)
         self.assertAllClose(out_operators, expected_operators)
