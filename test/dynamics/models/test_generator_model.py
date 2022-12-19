@@ -762,8 +762,7 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         new_frame = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        new_frame = new_frame - new_frame.conj().transpose()
-        new_frame = RotatingFrame(new_frame)
+        new_frame = RotatingFrame(new_frame - new_frame.conj().transpose())
 
         out_static = transfer_static_operator_between_frames(
             Array(static_operator), new_frame=new_frame, old_frame=old_frame
