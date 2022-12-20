@@ -19,6 +19,7 @@ from ddt import ddt, data, unpack
 import numpy as np
 
 from qiskit import QiskitError
+from qiskit.quantum_info import Statevector
 
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel
 from qiskit_dynamics.backend.backend_utils import (
@@ -27,6 +28,8 @@ from qiskit_dynamics.backend.backend_utils import (
     _get_memory_slot_probabilities,
     _sample_probability_dict,
     _get_counts_from_samples,
+    _get_subsystem_probabilities,
+    _get_iq_data,
 )
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -211,3 +214,128 @@ class Test_get_counts_from_samples(QiskitDynamicsTestCase):
         samples = ["00", "01", "00", "20", "01", "01", "20"]
         output = _get_counts_from_samples(samples)
         self.assertDictEqual(output, {"00": 2, "01": 3, "20": 2})
+
+
+class Test_get_subsystem_probabilities(QiskitDynamicsTestCase):
+    """Test _get_subsystem_probabilities."""
+
+    def test_basic(self):
+        """Basic marginalization test case."""
+        yf = Statevector(np.array([0.5, 1, 0, 0]) / np.sqrt(1.25), dims=(2, 2))
+        prob_tensor = yf.probabilities().reshape(2, 2)
+        sub_prob = _get_subsystem_probabilities(prob_tensor, 0)
+        self.assertAllClose(sub_prob, [0.2, 0.8])
+
+
+class Test_get_iq_data(QiskitDynamicsTestCase):
+    """Test _get_iq_data."""
+
+    def setUp(self):
+        self.iq_to_counts = lambda iq_n: dict(
+            zip(*np.unique(["1" if iq[0] > 0 else "0" for iq in iq_n], return_counts=True))
+        )
+
+    def test_basic_predict(self):
+        """Basic predict test case."""
+        iq_data = _get_iq_data(
+            state=Statevector(np.array([0.5, 1]) / np.sqrt(1.25)),
+            measurement_subsystems=[0],
+            iq_centers=[[(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=100,
+            memory_slot_indices=[1],
+            seed=83248,
+        )
+        counts = self.iq_to_counts(iq_data[:, 1, :])
+        self.assertDictEqual(counts, {"0": 74, "1": 26})
+        counts = self.iq_to_counts(iq_data[:, 0, :])
+        self.assertDictEqual(counts, {"0": 100})
+
+    def test_multi_qubit_predict(self):
+        """Multi_qubit predict test case."""
+        iq_data = _get_iq_data(
+            state=Statevector(np.array([0.5, 1, 0, 0]) / np.sqrt(1.25)),
+            measurement_subsystems=[0, 1],
+            iq_centers=[[(1, 0), (-1, 0)], [(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=100,
+            memory_slot_indices=[0, 1],
+            seed=83248,
+        )
+
+        counts0 = self.iq_to_counts(iq_data[:, 0, :])
+        counts1 = self.iq_to_counts(iq_data[:, 1, :])
+        self.assertDictEqual(counts0, {"0": 74, "1": 26})
+        self.assertDictEqual(counts1, {"1": 100})
+
+    def test_mixed_subsystem_predict(self):
+        """Multi_qubit predict test case."""
+        iq_data = _get_iq_data(
+            state=Statevector(
+                np.kron(np.array([0.5, 1]), np.array([0, 0, 1])) / np.sqrt(1.25), dims=(3, 2)
+            ),
+            measurement_subsystems=[0, 1],
+            iq_centers=[[(-1, -1), (1, -1), (1, 1)], [(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=100,
+            memory_slot_indices=[0, 1],
+            seed=83248,
+        )
+
+        def qutrit_iq_to_counts(iq_n):
+            results = []
+            for iq in iq_n:
+                if iq[0] < 0 and iq[1] < 0:
+                    results.append("0")
+                elif iq[0] > 0 > iq[1]:
+                    results.append("1")
+                elif iq[0] > 0 and iq[1] > 0:
+                    results.append("2")
+            return dict(zip(*np.unique(results, return_counts=True)))
+
+        counts0 = qutrit_iq_to_counts(iq_data[:, 0, :])
+        counts1 = self.iq_to_counts(iq_data[:, 1, :])
+        self.assertDictEqual(counts0, {"2": 100})
+        self.assertDictEqual(counts1, {"0": 75, "1": 25})
+
+    def test_multi_qubit_iq(self):
+        """Multi qubit IQ test case."""
+
+        iq_data_01 = _get_iq_data(
+            state=Statevector(
+                np.kron(np.array([0.5, 1]), np.array([0, 0, 1])) / np.sqrt(1.25), dims=(3, 2)
+            ),
+            measurement_subsystems=[0, 1],
+            iq_centers=[[(-1, -1), (1, -1), (1, 1)], [(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=3,
+            memory_slot_indices=[0, 1],
+            seed=83248,
+        )
+        iq_data_10 = _get_iq_data(
+            state=Statevector(
+                np.kron(np.array([0.5, 1]), np.array([0, 0, 1])) / np.sqrt(1.25), dims=(3, 2)
+            ),
+            measurement_subsystems=[0, 1],
+            iq_centers=[[(-1, -1), (1, -1), (1, 1)], [(1, 0), (-1, 0)]],
+            iq_width=0.1,
+            shots=3,
+            memory_slot_indices=[1, 0],
+            seed=83248,
+        )
+
+        true_result = np.array(
+            [
+                [[1.04443995, 1.02002225], [1.04436925, 0.0745472]],
+                [[0.99445976, 1.13454847], [-1.05369125, -0.0284215]],
+                [[1.00486134, 1.19089796], [-0.99570855, 0.10100498]],
+            ]
+        )
+        self.assertAllClose(
+            iq_data_01,
+            true_result,
+        )
+        self.assertAllClose(
+            iq_data_10,
+            true_result[:, ::-1, :],
+        )
