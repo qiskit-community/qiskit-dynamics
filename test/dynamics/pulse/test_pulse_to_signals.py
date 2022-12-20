@@ -45,6 +45,13 @@ from ..common import QiskitDynamicsTestCase
 class TestPulseToSignals(QiskitDynamicsTestCase):
     """Tests the conversion between pulse schedules and signals."""
 
+    def setUp(self):
+        """Setup the tests."""
+
+        super().setUp()
+        # Typical length of samples in units of dt in IBM real backends is 0.222.
+        self._dt = 0.222
+
     def test_pulse_to_signals(self):
         """Generic test."""
 
@@ -90,12 +97,12 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched = Schedule(name="Schedule")
         sched += Play(Gaussian(duration=20, amp=0.5, sigma=4), DriveChannel(0))
 
-        converter = InstructionToSignals(dt=0.222, carriers={"d0": 5.5e9})
+        converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.5e9})
         signals = converter.get_signals(sched)
 
         self.assertEqual(signals[0].carrier_freq, 5.5e9)
         # pylint: disable=protected-access
-        self.assertEqual(signals[0]._dt, 0.222)
+        self.assertEqual(signals[0]._dt, self._dt)
 
     def test_shift_frequency(self):
         """Test that the frequency is properly taken into account."""
@@ -104,11 +111,11 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched += ShiftFrequency(1.0, DriveChannel(0))
         sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
 
-        converter = InstructionToSignals(dt=0.222, carriers={"d0": 5.0})
+        converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
 
         for idx in range(10):
-            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * 1.0 * 0.222))
+            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * 1.0 * self._dt))
 
     def test_set_frequency(self):
         """Test that SetFrequency is properly converted."""
@@ -117,18 +124,17 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched += SetFrequency(4.0, DriveChannel(0))
         sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
 
-        converter = InstructionToSignals(dt=0.222, carriers={"d0": 5.0})
+        converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
 
         for idx in range(10):
-            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * 0.222))
+            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * self._dt))
 
     def test_set_and_shift_frequency(self):
         """Test that ShiftFrequency after SetFrequency is properly converted. It confirms
         implementation of phase accumulation is correct."""
 
         duration = 20
-        unit_dt = 0.222
         sched = Schedule()
         sched += SetFrequency(5.5, DriveChannel(0))
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
@@ -139,34 +145,34 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
 
         freq_shift = 0.5
         phase_accumulation = 0.0
-        all_samples = np.exp(2j * np.pi * freq_shift * unit_dt * np.arange(0, duration))
+        all_samples = np.exp(2j * np.pi * freq_shift * self._dt * np.arange(0, duration))
 
         freq_shift = 1.0
-        phase_accumulation -= (6.0 - 5.5) * duration * unit_dt
+        phase_accumulation -= (6.0 - 5.5) * duration * self._dt
         all_samples = np.append(
             all_samples,
             np.exp(
                 2j
                 * np.pi
-                * (freq_shift * unit_dt * np.arange(duration, 2 * duration) + phase_accumulation)
+                * (freq_shift * self._dt * np.arange(duration, 2 * duration) + phase_accumulation)
             ),
         )
 
         freq_shift = 0.5
-        phase_accumulation -= -0.5 * 2 * duration * unit_dt
+        phase_accumulation -= -0.5 * 2 * duration * self._dt
         all_samples = np.append(
             all_samples,
             np.exp(
                 2j
                 * np.pi
                 * (
-                    freq_shift * unit_dt * np.arange(2 * duration, 3 * duration)
+                    freq_shift * self._dt * np.arange(2 * duration, 3 * duration)
                     + phase_accumulation
                 )
             ),
         )
 
-        converter = InstructionToSignals(dt=unit_dt, carriers={"d0": 5.0})
+        converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
         self.assertAllClose(signals[0].samples, all_samples)
 
@@ -178,7 +184,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched += Delay(10, DriveChannel(0))
         sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
 
-        converter = InstructionToSignals(dt=0.222, carriers={"d0": 5.0})
+        converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
         samples_with_delay = np.array([1] * 10 + [0] * 10 + [1] * 10)
         for idx in range(30):
@@ -189,7 +195,6 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         It confirms implementation of phase accumulation is correct."""
 
         duration = 20
-        unit_dt = 0.222
         sched = Schedule()
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
         sched += ShiftFrequency(1.0, DriveChannel(0))
@@ -197,21 +202,21 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
 
         freq_shift = 1.0
-        phase_accumulation = -1.0 * duration * unit_dt
-        phase_accumulation = -1.0 * duration * unit_dt
+        phase_accumulation = -1.0 * duration * self._dt
+        phase_accumulation = -1.0 * duration * self._dt
         all_samples = np.append(
             np.append(np.ones(duration), np.zeros(duration)),
             np.exp(
                 2j
                 * np.pi
                 * (
-                    freq_shift * unit_dt * np.arange(2 * duration, 3 * duration)
+                    freq_shift * self._dt * np.arange(2 * duration, 3 * duration)
                     + phase_accumulation
                 )
             ),
         )
 
-        converter = InstructionToSignals(dt=unit_dt, carriers={"d0": 5.0})
+        converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
         self.assertAllClose(signals[0].samples, all_samples)
 
@@ -317,6 +322,9 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
 
         super().setUp()
 
+        # Typical length of samples in units of dt in IBM real backends is 0.222.
+        self._dt = 0.222
+
         # Drags on all qubits, then two CRs, then readout all qubits.
         with pulse.build(name="test schedule") as schedule:
             with pulse.align_sequential():
@@ -345,7 +353,7 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
     def test_channel_combinations(self, carriers, channels):
         """Test that we can filter out channels in the right order and number."""
 
-        converter = InstructionToSignals(dt=0.222, carriers=carriers, channels=channels)
+        converter = InstructionToSignals(dt=self._dt, carriers=carriers, channels=channels)
 
         signals = converter.get_signals(self._schedule)
 
@@ -356,7 +364,7 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
     def test_empty_signal(self):
         """Test that requesting a channel that is not in the schedule gives and empty signal."""
 
-        converter = InstructionToSignals(dt=0.222, carriers={"d123": 1.0}, channels=["d123"])
+        converter = InstructionToSignals(dt=self._dt, carriers={"d123": 1.0}, channels=["d123"])
 
         signals = converter.get_signals(self._schedule)
 
@@ -367,7 +375,7 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
     def test_get_channel_raise(self, channel_name):
         """Test that getting channel instances works well."""
 
-        converter = InstructionToSignals(dt=0.222)
+        converter = InstructionToSignals(dt=self._dt)
 
         with self.assertRaisesRegex(QiskitError, f"channel name {channel_name}"):
             converter._get_channel(channel_name)
