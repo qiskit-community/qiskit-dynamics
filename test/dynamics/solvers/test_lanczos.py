@@ -2,13 +2,12 @@
 #
 # (C) Copyright IBM 2022.
 #
-# This code is licensed under the Apache License, Version 2.0. You may
-# obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+# This code is licensed under the Apache License, Version 2.0. You may obtain a copy of this license
+# in the LICENSE.txt file in the root directory of this source tree or at
+# http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Any modifications or derivative works of this code must retain this
-# copyright notice, and modified files need to carry a notice indicating
-# that they have been altered from the originals.
+# Any modifications or derivative works of this code must retain this copyright notice, and modified
+# files need to carry a notice indicating that they have been altered from the originals.
 # pylint: disable=invalid-name
 
 """
@@ -64,7 +63,9 @@ class TestLanczos(QiskitDynamicsTestCase):
         eigen_vectors_l = q_basis @ eigen_vectors_t
         eigen_values_np, eigen_vectors_np = np.linalg.eigh(self.rand_op)
 
-        self.assertAllClose(eigen_vectors_np[:, 0], eigen_vectors_l[:, 0])
+        # test overlap is 1.
+        overlap = np.abs(np.sum(eigen_vectors_np[:, 0].conj() * eigen_vectors_l[:, 0]))
+        self.assertAllClose(overlap, 1.0)
         self.assertAllClose(eigen_values_np[0], eigen_values_l[0])
 
     def test_expm(self):
