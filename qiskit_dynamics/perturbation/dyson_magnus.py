@@ -26,7 +26,8 @@ References:
        *of its applications*, Phys. Rep. 470, 151-238
     4. H. Haas, D. Puzzuoli, F. Zhang, D. Cory, *Engineering Effective Hamiltonians*,
        New J. Phys. 21, 103011 (2019).
-    5. Forthcoming
+    5. D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, C. J. Wood, *Algorithms 
+    for perturbative analysis and simulation of quantum dynamics*, arXiv:2210.11595 (2022)
 """
 
 from typing import Optional, List, Callable, Tuple, Union
