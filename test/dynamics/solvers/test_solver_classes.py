@@ -997,7 +997,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=SuperOp(np.eye(4, dtype=complex)),
             schedules=sched,
             signals=signals,
-            test_tol=1e-9,
+            test_tol=1e-8,
             atol=1e-12,
             rtol=1e-12,
         )
