@@ -176,9 +176,11 @@ class InstructionToSignals:
                 # build sample array to append to signal
                 times = self._dt * (start_sample + np.arange(len(inst_samples)))
                 samples = inst_samples * np.exp(
-                    2.0j * np.pi * freq * times
-                    + 1.0j * phi
-                    + 2.0j * np.pi * phase_accumulations[chan]
+                    Array(
+                        2.0j * np.pi * freq * times
+                        + 1.0j * phi
+                        + 2.0j * np.pi * phase_accumulations[chan]
+                    )
                 )
                 signals[chan].add_samples(start_sample, samples)
 
