@@ -54,7 +54,8 @@ from .solver_utils import (
 
 
 try:
-    from jax import jit
+    from jax import core, jit
+    import jax.numpy as jnp
 except ImportError:
     pass
 
@@ -523,6 +524,8 @@ class Solver:
             Array.default_backend() == "jax"
             and (method == "jax_odeint" or _is_diffrax_method(method))
             and all(isinstance(x, Schedule) for x in signals_list)
+            # check if jit transformation is already performed.
+            and not (isinstance(jnp.array(0), core.Tracer))
         ):
             all_results = self._solve_schedule_list_jax(
                 t_span_list=t_span_list,
