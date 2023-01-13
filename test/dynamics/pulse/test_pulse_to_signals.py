@@ -447,8 +447,11 @@ class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
         self.gauss_get_waveform_samples = (
             pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
         )
+        self.constant_get_waveform_samples = (
+            pulse.Constant(duration=5, amp=0.1).get_waveform().samples
+        )
 
-    def test_get_samples_with_jax(self):
+    def test_get_samples(self):
         """Test get samples of Pulse not get_waveform but get_samples function in Jax case."""
         gauss_get_samples = get_samples(Gaussian(duration=5, amp=0.983, sigma=2.0))
         self.assertTrue(isinstance(gauss_get_samples, jnp.ndarray))
@@ -470,7 +473,7 @@ class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
             # bacause jax-jitting doesn't correspond to validate_parameters in qiskit.pulse.
             instance = SymbolicPulse(
                 pulse_type="Constant",
-                duration=100,
+                duration=5,
                 parameters=parameters,
                 envelope=envelope_expr,
                 valid_amp_conditions=valid_amp_conditions_expr,
@@ -480,7 +483,7 @@ class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
         self.jit_wrap(jit_func)(0.1)
         self.jit_grad_wrap(jit_func)(0.1)
         jit_samples = jax.jit(jit_func)(0.1)
-        self.assertAllClose(jit_samples, self.gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(jit_samples, self.constant_get_waveform_samples, atol=1e-7, rtol=1e-7)
 
 
 @ddt
