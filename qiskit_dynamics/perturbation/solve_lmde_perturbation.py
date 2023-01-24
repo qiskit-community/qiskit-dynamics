@@ -57,8 +57,9 @@ def solve_lmde_perturbation(
 
     This function computes multi-variable Dyson or Magnus expansion terms via the algorithm in
     :footcite:`puzzuoli_sensitivity_2022`, or Dyson-like terms via the algorithm in
-    :footcite:`haas_engineering_2019`. See the :ref:`review on time-dependent perturbation theory
-    <perturbation review>` to understand the details and notation used in this documentation.
+    :footcite:`haas_engineering_2019`. See the 
+    :ref:`review on time-dependent perturbation theory <perturbation review>` 
+    to understand the details and notation used in this documentation.
 
     Which expansion is used is specified by the ``expansion_method`` argument, which impacts the
     interpretation of several of the function arguments (described below). Regardless of
@@ -88,9 +89,9 @@ def solve_lmde_perturbation(
 
     this function computes, in the toggling frame of :math:`G_\emptyset(t)` given by ``generator``,
     either a collection of multivariable Dyson terms :math:`\mathcal{D}_I(t)` or multivariable
-    Magnus terms :math:`\mathcal{O}_I(t)`, whose definitions are given in the :ref:`perturbation
-    theory review <perturbation review>`. In this case, the arguments to the function are
-    interpreted as follows:
+    Magnus terms :math:`\mathcal{O}_I(t)`, whose definitions are given in the 
+    :ref:`perturbation theory review <perturbation review>`. In this case, the arguments to the 
+    function are interpreted as follows:
 
         - ``perturbations`` and ``perturbation_labels`` specify the truncated generator power
           series. ``perturbations`` provides a list of python callable functions for the non-zero
@@ -121,8 +122,8 @@ def solve_lmde_perturbation(
     :math:`\tilde{G}_j(t) = V(t)^\dagger G_j(t)V(t)`, i.e. the computation is performed in the
     toggling frame specified by ``generator``.
 
-        - ``perturbations`` gives the list of matrix functions as callables :math:`G_0(t), \dots,
-          G_{r-1}(t)`.
+        - ``perturbations`` gives the list of matrix functions as callables 
+          :math:`G_0(t), \dots, G_{r-1}(t)`.
         - ``perturbation_labels`` is not used in this mode.
         - ``expansion_order`` specifies that all possible integrals of the above form should be
           computed up to a given order (i.e. integrals up to a given order with all possible
@@ -153,7 +154,7 @@ def solve_lmde_perturbation(
     as well as the computed perturbation theory terms in the additional attribute
     ``perturbation_data``. If ``expansion_method in ['dyson', 'magnus']``, the ``perturbation_data``
     attribute stores a :class:`.PowerSeriesData` instance, and if
-    ``expansion_method == 'dyson_like'`, it stores a :class:`.DysonLikeData` instance. In either
+    ``expansion_method == 'dyson_like'``, it stores a :class:`.DysonLikeData` instance. In either
     case, these are data container classes with the following attributes:
 
         - ``metadata``: Containing expansion information.
