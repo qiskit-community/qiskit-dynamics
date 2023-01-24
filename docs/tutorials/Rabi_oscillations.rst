@@ -32,7 +32,7 @@ where :math:`\{X,Y,Z\}` are the Pauli matrices (also written as
 
 In the following, we will set :math:`\hbar=1` and fix some arbitrary
 time units, with all frequency parameters scaled accordingly. Below, we
-first set a few values for these frequency parameters, and then setp the
+first set a few values for these frequency parameters, and then setup the
 ``Solver`` class instance that stores and manipulates the model to be
 solved, using matrices and ``Signal`` instances. For the
 time-independent :math:`z` term we set the signal to a constant, while
