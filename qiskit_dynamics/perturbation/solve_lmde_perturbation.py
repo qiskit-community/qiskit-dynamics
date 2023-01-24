@@ -88,9 +88,9 @@ def solve_lmde_perturbation(
 
     this function computes, in the toggling frame of :math:`G_\emptyset(t)` given by ``generator``,
     either a collection of multivariable Dyson terms :math:`\mathcal{D}_I(t)` or multivariable
-    Magnus terms :math:`\mathcal{O}_I(t)`, whose definitions are given in the 
-    :ref:`perturbation theory review <perturbation review>`. In this case, the arguments to the 
-    function are interpreted as follows:
+    Magnus terms :math:`\mathcal{O}_I(t)`, whose definitions are given in the :ref:`perturbation
+    theory review <perturbation review>`. In this case, the arguments to the function are
+    interpreted as follows:
 
         - ``perturbations`` and ``perturbation_labels`` specify the truncated generator power
           series. ``perturbations`` provides a list of python callable functions for the non-zero
@@ -149,12 +149,12 @@ def solve_lmde_perturbation(
 
     Regardless of the value of ``expansion_method``, results are returned in an ``OdeResult``
     instance in the same manner as :func:`.solve_ode`. The result object stores the solution of the
-    LMDE for ``generator`` and ``y0`` in the ``y`` attribute as in :func:`.solve_ode` before, as
-    well as the computed perturbation theory terms in the attribute ``perturbation_data``. If
-    ``expansion_method in ['dyson', 'magnus']``, the ``perturbation_data`` attribute stores a
-    :class:`.PowerSeriesData` instance, and if ``expansion_method == 'dyson_like'`, it stores a
-    :class:`.DysonLikeData` instance. In either case, these are data container classes with the
-    following attributes:
+    LMDE for ``generator`` and ``y0`` as if these were passed directly to :func:`.solve_ode` before,
+    as well as the computed perturbation theory terms in the additional attribute
+    ``perturbation_data``. If ``expansion_method in ['dyson', 'magnus']``, the ``perturbation_data``
+    attribute stores a :class:`.PowerSeriesData` instance, and if 
+    ``expansion_method == 'dyson_like'`, it stores a :class:`.DysonLikeData` instance. In either 
+    case, these are data container classes with the following attributes:
 
         - ``metadata``: Containing expansion information.
         - ``labels``: Index labels for all computed perturbation terms. In the case of the Dyson or
@@ -165,13 +165,13 @@ def solve_lmde_perturbation(
           terms evaluated at the times in ``results.t`` in the same manner as ``results.y``.
 
     Additionally, both the :meth:`.PowerSeriesData.get_item` and :meth:`.DysonLikeData.get_item`
-    methods can be used to retrieve the results for a given perturbation term according to its 
-    label. E.g. the computed results the term with label ``[0, 1]`` is retrievable via 
+    methods can be used to retrieve the results for a given perturbation term according to its
+    label. E.g. the results for the term with label ``[0, 1]`` is retrievable via
     ``results.perturbation_data.get_term([0, 1])``.
 
     Args:
         perturbations: List of matrix-valued callables. t_span: Integration bounds.
-        expansion_method: Either ``'dyson'``, ``'magnus'``, or ``'dyson_like'``.
+        expansion_method: Either ``'dyson'``, ``'magnus'``, or ``'dyson_like'``. 
         expansion_order: Order of perturbation terms to compute up to. Specifying this argument
             results in computation of all terms up to the given order. Can be used in conjunction
             with ``expansion_labels``.
@@ -180,12 +180,12 @@ def solve_lmde_perturbation(
             computed, along with the additional terms specified in ``expansion_labels``.
         perturbation_labels: Optional description of power series terms specified by
             ``perturbations``. To only be used with ``'dyson'`` and ``'magnus'`` methods.
-        generator: Optional frame generator. Defaults to ``0``.
-        y0: Optional initial state for frame generator LMDE. Defaults to the identity matrix.
+        generator: Optional frame generator. Defaults to ``0``. 
+        y0: Optional initial state for frame generator LMDE. Defaults to the identity matrix. 
         dyson_in_frame: For ``expansion_method`` ``'dyson'`` or ``'dyson_like'``, whether or not
             to remove the frame transformation pre-factor from the Dyson terms.
-        integration_method: Integration method to use.
-        t_eval: Points at which to evaluate the system.
+        integration_method: Integration method to use. 
+        t_eval: Points at which to evaluate the system. 
         **kwargs: Additional arguments to pass to ode integration method used to compute terms.
 
     Returns:
