@@ -9,8 +9,8 @@
 # http://www.apache.org/licenses/LICENSE-2.0.
 #
 # Any modifications or derivative works of this code must retain this copyright notice, and modified
-# files need to carry a notice indicating that they have been altered from the originals. pylint:
-# disable=invalid-name
+# files need to carry a notice indicating that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 r"""
 Compute perturbation theory terms for an LMDE.
@@ -152,8 +152,8 @@ def solve_lmde_perturbation(
     LMDE for ``generator`` and ``y0`` as if these were passed directly to :func:`.solve_ode` before,
     as well as the computed perturbation theory terms in the additional attribute
     ``perturbation_data``. If ``expansion_method in ['dyson', 'magnus']``, the ``perturbation_data``
-    attribute stores a :class:`.PowerSeriesData` instance, and if 
-    ``expansion_method == 'dyson_like'`, it stores a :class:`.DysonLikeData` instance. In either 
+    attribute stores a :class:`.PowerSeriesData` instance, and if
+    ``expansion_method == 'dyson_like'`, it stores a :class:`.DysonLikeData` instance. In either
     case, these are data container classes with the following attributes:
 
         - ``metadata``: Containing expansion information.
@@ -170,8 +170,9 @@ def solve_lmde_perturbation(
     ``results.perturbation_data.get_term([0, 1])``.
 
     Args:
-        perturbations: List of matrix-valued callables. t_span: Integration bounds.
-        expansion_method: Either ``'dyson'``, ``'magnus'``, or ``'dyson_like'``. 
+        perturbations: List of matrix-valued callables.
+        t_span: Integration bounds.
+        expansion_method: Either ``'dyson'``, ``'magnus'``, or ``'dyson_like'``.
         expansion_order: Order of perturbation terms to compute up to. Specifying this argument
             results in computation of all terms up to the given order. Can be used in conjunction
             with ``expansion_labels``.
@@ -180,12 +181,12 @@ def solve_lmde_perturbation(
             computed, along with the additional terms specified in ``expansion_labels``.
         perturbation_labels: Optional description of power series terms specified by
             ``perturbations``. To only be used with ``'dyson'`` and ``'magnus'`` methods.
-        generator: Optional frame generator. Defaults to ``0``. 
-        y0: Optional initial state for frame generator LMDE. Defaults to the identity matrix. 
+        generator: Optional frame generator. Defaults to ``0``.
+        y0: Optional initial state for frame generator LMDE. Defaults to the identity matrix.
         dyson_in_frame: For ``expansion_method`` ``'dyson'`` or ``'dyson_like'``, whether or not
             to remove the frame transformation pre-factor from the Dyson terms.
-        integration_method: Integration method to use. 
-        t_eval: Points at which to evaluate the system. 
+        integration_method: Integration method to use.
+        t_eval: Points at which to evaluate the system.
         **kwargs: Additional arguments to pass to ode integration method used to compute terms.
 
     Returns:
