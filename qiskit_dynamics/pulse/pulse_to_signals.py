@@ -123,8 +123,8 @@ class InstructionToSignals:
           carrier wave, as a combination of the analog and digital components, is continuous across
           ``ShiftFrequency`` instructions (up to the sampling rate :math:`dt`).
         * ``SetFrequency``, with a frequency value :math:`\mu` at time-step :math:`k`, updates
-          :math:`\phi_a \mapsto \phi_a - (\mu - (\Delta\nu + \nu)) k dt` and 
-          :math:`\Delta\nu \mapsto \mu - \nu`, where :math:`\nu` is the analog carrier frequency. 
+          :math:`\phi_a \mapsto \phi_a - (\mu - (\Delta\nu + \nu)) k dt` and
+          :math:`\Delta\nu \mapsto \mu - \nu`, where :math:`\nu` is the analog carrier frequency.
           Similarly to ``ShiftFrequency``, the shift rule for :math:`\phi_a` is defined to maintain
           carrier wave continuity.
 
