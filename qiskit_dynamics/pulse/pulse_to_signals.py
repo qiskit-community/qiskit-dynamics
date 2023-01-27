@@ -94,7 +94,7 @@ class InstructionToSignals:
 
         where:
 
-        * :math:`f(k)` is the waveform value at the :math:`k^{th}` time step as specified by 
+        * :math:`f(k)` is the waveform value at the :math:`k^{th}` time step as specified by
           ``Play`` instructions.
         * :math:`\Delta\nu(k)` is the frequency deviation at time step :math:`k` from the analog
           carrier as the result of ``SetFrequency`` and ``ShiftFrequency`` instructions. As evident
