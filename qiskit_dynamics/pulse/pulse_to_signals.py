@@ -90,12 +90,12 @@ class InstructionToSignals:
         is determined according to the following formula:
 
         .. math::
-            f_k \exp(i(2\pi \Delta\nu(k) k dt + \phi(k) + 2 \pi \phi_a(k))),
+            f(k) \exp(i(2\pi \Delta\nu(k) k dt + \phi(k) + 2 \pi \phi_a(k))),
 
         where:
 
-        * :math:`f_k` is the waveform value at the :math:`k^{th}` time step as specified by ``Play``
-          instructions.
+        * :math:`f(k)` is the waveform value at the :math:`k^{th}` time step as specified by 
+          ``Play`` instructions.
         * :math:`\Delta\nu(k)` is the frequency deviation at time step :math:`k` from the analog
           carrier as the result of ``SetFrequency`` and ``ShiftFrequency`` instructions. As evident
           by the formula, carrier frequency deviations as a result of these instructions are handled
