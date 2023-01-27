@@ -19,22 +19,26 @@ Pulse (:mod:`qiskit_dynamics.pulse`)
 
 .. currentmodule:: qiskit_dynamics.pulse
 
-This module contains tools to interface qiskit pulse with qiskit dynamics. Indeed, Qiskit Dynamics
-simulates time evolution using the :class:`Signal` class. However, Qiskit pulse specifies pulse
-instructions using a schedule. This module contains the required converters to convert Qiskit pulse
-schedules into signals such that they can be simulated.
+This module contains tools to interface :mod:`qiskit.pulse` with Qiskit Dynamics. Qiskit Dynamics
+simulates time evolution using the :class:`Signal` class, however :mod:`qiskit.pulse` specifies
+pulse instructions using a :class:`~qiskit.pulse.Schedule` or :class:`~qiskit.pulse.ScheduleBlock`.
+This module contains the required converters to convert from a :mod:`qiskit.pulse` control
+specification into :class:`Signal` instances for simulation.
 
 Converters
 ==========
 
-The conversion from a pulse schedule to a list of signals is done with the
-:class:`InstructionToSignals` converter. The example below shows a schedule and the resulting
-signals converted using
+The conversion from a :class:`~qiskit.pulse.Schedule` to a list of :class:`Signal` instances is done
+with the :class:`InstructionToSignals` converter. The following codeblock shows a simple example
+instantiation, and how to use it to convert a :class:`~qiskit.pulse.Schedule` to a list of
+:class:`Signal` instances.
 
 .. code-block:: python
 
     converter = InstructionToSignals(dt=1, carriers=None)
     signals = converter.get_signals(sched)
+
+An example schedule, and the corresponding converted signals, is shown below.
 
 .. jupyter-execute::
     :hide-code:
@@ -63,8 +67,10 @@ signals converted using
 
     converter = InstructionToSignals(dt=1, carriers=None)
 
-    converter.get_signals(sched)[0].draw(0, 239, 400, axis=ax2, title="Signal from DriveChannel(0)")
-    converter.get_signals(sched)[1].draw(0, 239, 400, axis=ax3, title="Signal from DriveChannel(1)")
+    signals = converter.get_signals(sched)
+
+    signals[0].draw(0, 239, 400, axis=ax2, title="Signal from DriveChannel(0)")
+    signals[1].draw(0, 239, 400, axis=ax3, title="Signal from DriveChannel(1)")
     sched.draw(axis=ax1)
 
 Converter class
