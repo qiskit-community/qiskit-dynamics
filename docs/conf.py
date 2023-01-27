@@ -37,6 +37,7 @@ extensions = [
     'jupyter_sphinx',
     'sphinx_autodoc_typehints',
     'reno.sphinxext',
+    'sphinx.ext.intersphinx',
     'nbsphinx',
     'sphinxcontrib.bibtex'
 ]
@@ -70,6 +71,7 @@ html_static_path = ['_static']
 autosummary_generate = True
 autosummary_generate_overwrite = False
 autoclass_content = "both"
+intersphinx_mapping = {"qiskit": ("https://qiskit.org/documentation/", None)}
 
 # nbsphinx options (for tutorials)
 nbsphinx_timeout = 180

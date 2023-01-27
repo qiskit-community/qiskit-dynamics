@@ -26,7 +26,7 @@ from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import QiskitError
 from qiskit.pulse import Schedule, ScheduleBlock
-from qiskit.pulse.transforms.canonicalization import block_to_schedule
+from qiskit.pulse.transforms import block_to_schedule
 
 from qiskit.circuit import Gate, QuantumCircuit
 from qiskit.quantum_info.operators.base_operator import BaseOperator
