@@ -13,6 +13,7 @@
 """This module implements the job class used for DynamicsBackend objects."""
 
 from typing import Callable, Dict
+from datetime import datetime
 
 from qiskit.providers.backend import Backend
 from qiskit.providers import JobV1 as Job
@@ -55,7 +56,7 @@ class DynamicsJob(Job):
         """Get job result.
 
         Returns:
-            qiskit.Result: Result object
+            qiskit.Result: Result object.
 
         Raises:
             JobError: If job has not been submitted.
@@ -74,3 +75,8 @@ class DynamicsJob(Job):
             return JobStatus.INITIALIZING
 
         return JobStatus.DONE
+    
+    def time_per_step(self):
+        # this is a hack *********************************************************************************
+        # Need to put actual handling in there
+        return {"COMPLETED": datetime.now()}
