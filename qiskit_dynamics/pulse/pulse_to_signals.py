@@ -177,9 +177,9 @@ class InstructionToSignals:
                 times = self._dt * (start_sample + np.arange(len(inst_samples)))
                 samples = inst_samples * np.exp(
                     Array(
-                    2.0j * np.pi * freq * times
-                    + 1.0j * phi
-                    + 2.0j * np.pi * phase_accumulations[chan]
+                        2.0j * np.pi * freq * times
+                        + 1.0j * phi
+                        + 2.0j * np.pi * phase_accumulations[chan]
                     )
                 )
                 signals[chan].add_samples(start_sample, samples)
@@ -189,7 +189,9 @@ class InstructionToSignals:
 
             if isinstance(inst, ShiftFrequency):
                 frequency_shifts[chan] = frequency_shifts[chan] + Array(inst.frequency)
-                phase_accumulations[chan] = phase_accumulations[chan] - inst.frequency * start_sample * self._dt
+                phase_accumulations[chan] = (
+                    phase_accumulations[chan] - inst.frequency * start_sample * self._dt
+                )
 
             if isinstance(inst, SetPhase):
                 phases[chan] = inst.phase
@@ -200,7 +202,7 @@ class InstructionToSignals:
                     * start_sample
                     * self._dt
                 )
-                frequency_shifts[chan] = inst.frequency- signals[chan].carrier_freq
+                frequency_shifts[chan] = inst.frequency - signals[chan].carrier_freq
 
         # ensure all signals have the same number of samples
         max_duration = 0
