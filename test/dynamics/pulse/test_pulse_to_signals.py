@@ -421,8 +421,8 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         self.assertTrue(signals[2].carrier_freq == 0.0)
         self.assertTrue(signals[3].carrier_freq == 4.0)
 
-    def test_SymbolicPulse(self):
-        """Test SymbolicPulse with get samples function."""
+    def test_InstructionToSignals(self):
+        """Test InstructionToSignals with get samples function."""
         gauss_get_waveform_samples = (
             pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
         )
