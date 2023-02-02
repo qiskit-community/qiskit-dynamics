@@ -367,13 +367,6 @@ class DynamicsBackend(BackendV2):
             num_memory_slots_list,
             experiment_metadatas
         ):
-            #***********************************************************************************************
-            # this is a bit of a hack for 0-length schedules (I guess checking for spam error?)
-            # we could change experiment_result_function to take y[-1] and t[-1], not sure why
-            # they don't currently
-            if solver_result.t[-1] == 0:
-                solver_result.y[-1] = solver_result.y[0]
-
             experiment_results.append(
                 self.options.experiment_result_function(
                     experiment_name,
