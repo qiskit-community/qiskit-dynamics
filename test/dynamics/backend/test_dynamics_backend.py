@@ -19,7 +19,8 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError, pulse, QuantumCircuit
-from qiskit.transpiler import Target
+from qiskit.circuit.library import XGate
+from qiskit.transpiler import Target, InstructionProperties
 from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
@@ -310,8 +311,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
 
         target = Target()
-        inst_sched_map = target.instruction_schedule_map()
-        inst_sched_map.add("x", qubits=0, schedule=x_sched0)
+        target.add_instruction(XGate(), {(0,): InstructionProperties(calibration=x_sched0)})
 
         backend = DynamicsBackend(solver=self.simple_solver, target=target)
 

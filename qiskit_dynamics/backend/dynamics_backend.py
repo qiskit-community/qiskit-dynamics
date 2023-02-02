@@ -438,9 +438,11 @@ def default_experiment_result_function(
         backend: The backend instance that ran the simulation. Various options and properties
             are utilized.
         seed: Seed for any random number generation involved (e.g. when computing outcome samples).
+        metadata: Metadata to add to the header of the 
+            :class:`~qiskit.result.models.ExperimentResult` object.
 
     Returns:
-        ExperimentResult object containing results.
+        :class:`~qiskit.result.models.ExperimentResult` object containing results.
 
     Raises:
         QiskitError: If a specified option is unsupported.
