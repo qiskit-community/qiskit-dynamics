@@ -421,22 +421,16 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         self.assertTrue(signals[2].carrier_freq == 0.0)
         self.assertTrue(signals[3].carrier_freq == 4.0)
 
-    def test_get_samples(self):
+    def test_SymbolicPulse(self):
         """Test get samples of Pulse not get_waveform but get_samples function."""
         gauss_get_waveform_samples = (
             pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
         )
-        gauss_get_samples = get_samples(Gaussian(duration=5, amp=0.983, sigma=2.0))
-        self.assertTrue(isinstance(gauss_get_samples, np.ndarray))
-        self.assertAllClose(gauss_get_samples, gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
-
-    def test_lru_cache_expr(self):
-        """Test lru_cache of lru_cache_expr function."""
-        gauss_envelop = Gaussian(duration=5, amp=0.983, sigma=2.0).envelope
-        self.assertTrue(
-            _lru_cache_expr(gauss_envelop, Array.default_backend())
-            is _lru_cache_expr(gauss_envelop, Array.default_backend())
-        )
+        with pulse.build() as schedule:
+            pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+        converter = InstructionToSignals(dt=self._dt, channels=["d0"])
+        signals = converter.get_signals(block_to_schedule(schedule))
+        self.assertAllClose(signals[0].samples, gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
 
 
 class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
