@@ -14,7 +14,7 @@
 Pulse schedule to Signals converter.
 """
 
-from typing import Dict, List, Optional
+from typing import Callable ,Dict, List, Optional
 import functools
 
 import numpy as np
@@ -312,7 +312,7 @@ class InstructionToSignals:
             ) from error
 
 
-def get_samples(pulse: SymbolicPulse):
+def get_samples(pulse: SymbolicPulse)-> np.ndarray:
     """Return samples filled according to the formula that the pulse
     represents and the parameter values it contains.
 
@@ -350,7 +350,7 @@ def get_samples(pulse: SymbolicPulse):
 
 
 @functools.lru_cache(maxsize=None)
-def _lru_cache_expr(expr: sym.Expr, backend):
+def _lru_cache_expr(expr: sym.Expr, backend)-> Callable:
     """A helper function to get lambdified expression.
 
     Args:
