@@ -41,6 +41,7 @@ class DynamicsJob(Job):
         self._fn = fn
         self._fn_kwargs = fn_kwargs
         self._result = None
+        self._time_per_step = {"CREATED": datetime.now()}
 
     def submit(self):
         """Run the simulation.
@@ -51,6 +52,7 @@ class DynamicsJob(Job):
         if self._result is not None:
             raise JobError("Dynamics job has already been submitted.")
         self._result = self._fn(job_id=self.job_id(), **self._fn_kwargs)
+        self._time_per_step["COMPLETED"] = datetime.now()
 
     def result(self):
         """Get job result.
@@ -76,7 +78,10 @@ class DynamicsJob(Job):
 
         return JobStatus.DONE
     
-    def time_per_step(self):
-        # this is a hack *********************************************************************************
-        # Need to put actual handling in there
-        return {"COMPLETED": datetime.now()}
+    def time_per_step(self) -> Dict:
+        """Return the date and time information on each step of the job processing.
+
+        Returns:
+            Dict for time of creation and time of completion of job.
+        """
+        return self._time_per_step
