@@ -2,4 +2,4 @@
 features:
   - |
     Adds Python 3.11 support, and removes Python 3.7 support. Starting with this release, Qiskit
-    Dynamics support Python versions 3.8 through 3.11.
+    Dynamics supports Python versions 3.8 through 3.11.
