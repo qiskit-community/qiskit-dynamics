@@ -422,7 +422,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         self.assertTrue(signals[3].carrier_freq == 4.0)
 
     def test_SymbolicPulse(self):
-        """Test get samples of Pulse not get_waveform but get_samples function."""
+        """Test SymbolicPulse with get samples function."""
         gauss_get_waveform_samples = (
             pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
         )
@@ -443,14 +443,6 @@ class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
         )
         self.constant_get_waveform_samples = (
             pulse.Constant(duration=5, amp=0.1).get_waveform().samples
-        )
-
-    def test_get_samples(self):
-        """Test get samples of Pulse not get_waveform but get_samples function in Jax case."""
-        gauss_get_samples = get_samples(Gaussian(duration=5, amp=0.983, sigma=2.0))
-        self.assertTrue(isinstance(gauss_get_samples, jnp.ndarray))
-        self.assertAllClose(
-            gauss_get_samples, self.gauss_get_waveform_samples, atol=1e-7, rtol=1e-7
         )
 
     def test_jit_get_samples(self):
