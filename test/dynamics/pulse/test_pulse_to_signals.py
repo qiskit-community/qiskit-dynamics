@@ -38,11 +38,9 @@ from qiskit.pulse import (
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.pulse.pulse_to_signals import (
     get_samples,
-    _lru_cache_expr,
 )
 from qiskit_dynamics.signals import DiscreteSignal
 
@@ -50,7 +48,6 @@ from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 try:
     import jax
-    import jax.numpy as jnp
 # pylint: disable=broad-except
 except Exception:
     pass
@@ -444,11 +441,12 @@ class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
         self.constant_get_waveform_samples = (
             pulse.Constant(duration=5, amp=0.1).get_waveform().samples
         )
+        self._dt = 0.222
 
     def test_jit_get_samples(self):
         """Test compiling to get samples of Pulse."""
 
-        def jit_func(amp):
+        def jit_func_get_samples(amp):
             parameters = {"amp": amp}
             _time, _amp, _duration = sym.symbols("t, amp, duration")
             envelope_expr = _amp * sym.Piecewise(
@@ -466,10 +464,45 @@ class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
             )
             return get_samples(instance)
 
-        self.jit_wrap(jit_func)(0.1)
-        self.jit_grad_wrap(jit_func)(0.1)
-        jit_samples = jax.jit(jit_func)(0.1)
+        self.jit_wrap(jit_func_get_samples)(0.1)
+        self.jit_grad_wrap(jit_func_get_samples)(0.1)
+        jit_samples = jax.jit(jit_func_get_samples)(0.1)
         self.assertAllClose(jit_samples, self.constant_get_waveform_samples, atol=1e-7, rtol=1e-7)
+
+    def test_pulse_types_combination_with_jax(self):
+        """Test that converting schedule including some pulse types with Jax works well"""
+
+        def jit_func_symbolic_pulse(amp):
+            parameters = {"amp": amp}
+            _time, _amp, _duration = sym.symbols("t, amp, duration")
+            envelope_expr = _amp * sym.Piecewise(
+                (1, sym.And(_time >= 0, _time <= _duration)), (0, True)
+            )
+            valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
+            instance = SymbolicPulse(
+                pulse_type="Constant",
+                duration=5,
+                parameters=parameters,
+                envelope=envelope_expr,
+                valid_amp_conditions=valid_amp_conditions_expr,
+            )
+            # constrcut a pulse schedule with mixing some pulse types to test jax-jitting it
+            with pulse.build() as schedule:
+                pulse.play(instance, pulse.DriveChannel(0))
+                pulse.set_phase(0.1, pulse.DriveChannel(0))
+                pulse.set_frequency(0.1, pulse.DriveChannel(0))
+                pulse.shift_phase(0.1, pulse.DriveChannel(0))
+                pulse.set_phase(0.1, pulse.DriveChannel(0))
+                pulse.shift_frequency(0.1, pulse.DriveChannel(0))
+                pulse.shift_frequency(0.1, pulse.DriveChannel(0))
+                pulse.set_frequency(0.1, pulse.DriveChannel(0))
+                pulse.shift_phase(0.1, pulse.DriveChannel(0))
+                pulse.play(instance, pulse.DriveChannel(0))
+            converter = InstructionToSignals(self._dt, carriers={"d0": 5})
+            return converter.get_signals(schedule)[0].samples
+
+        self.jit_wrap(jit_func_symbolic_pulse)(0.1)
+        self.jit_grad_wrap(jit_func_symbolic_pulse)(0.1)
 
 
 @ddt
