@@ -455,6 +455,27 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             experiment_result_function=exp_result_function,
         ).result()
         self.assertDictEqual(result.get_counts(), {"3": 1})
+    
+    def test_metadata_transfer(self):
+        """Test that circuit metadata is correctly stored in the result object."""
+
+        solver = Solver(static_hamiltonian=np.diag([-1.0, 0.0, 1.0]), dt=0.1)
+        qutrit_backend = DynamicsBackend(
+            solver=solver, max_outcome_level=None, initial_state=Statevector([0.0, 0.0, 1.0])
+        )
+
+        circ0 = QuantumCircuit(1, 1, metadata={"key0": "value0"})
+        circ0.measure([0], [0])
+        circ1 = QuantumCircuit(1, 1, metadata={"key1": "value1"})
+        circ1.measure([0], [0])
+
+        res = qutrit_backend.run([circ0, circ1]).result()
+
+        self.assertDictEqual(res.get_counts(0), {"2": 1024})
+        self.assertDictEqual(res.results[0].header.metadata, {"key0": "value0"})
+        self.assertDictEqual(res.get_counts(1), {"2": 1024})
+        self.assertDictEqual(res.results[1].header.metadata, {"key1": "value1"})
+
 
 
 class Test_default_experiment_result_function(QiskitDynamicsTestCase):
