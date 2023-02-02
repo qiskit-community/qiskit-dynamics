@@ -20,7 +20,7 @@ Pulse-enabled simulator backend.
 import datetime
 import uuid
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 import copy
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
@@ -419,7 +419,7 @@ def default_experiment_result_function(
     num_memory_slots: Union[None, int],
     backend: DynamicsBackend,
     seed: Optional[int] = None,
-    metadata: any = None
+    metadata: Optional[Dict] = None
 ) -> ExperimentResult:
     """Default routine for generating ExperimentResult object.
 
