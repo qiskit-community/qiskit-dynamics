@@ -656,7 +656,6 @@ class DenseLindbladCollection(BaseLindbladOperatorCollection):
 
         # if dissipators present (includes both hamiltonian is None and is not None)
         if self._dissipator_operators is not None or self._static_dissipators is not None:
-
             # A matrix
             if self._static_dissipators is None:
                 dissipators_matrix = np.tensordot(
@@ -931,7 +930,6 @@ class SparseLindbladCollection(DenseLindbladCollection):
 
         # if dissipators present (includes both hamiltonian is None and is not None)
         if self._dissipator_operators is not None or self._static_dissipators is not None:
-
             # A matrix
             if self._static_dissipators is None:
                 dissipators_matrix = np.sum(
@@ -1145,7 +1143,6 @@ class JAXSparseLindbladCollection(BaseLindbladOperatorCollection):
 
         # if dissipators present (includes both hamiltonian is None and is not None)
         if self._dissipator_operators is not None or self._static_dissipators is not None:
-
             # A matrix
             if self._static_dissipators is None:
                 dissipators_matrix = jsparse_linear_combo(dis_sig_vals, self._dissipator_products)

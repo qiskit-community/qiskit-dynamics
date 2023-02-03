@@ -167,7 +167,6 @@ def _get_all_submultisets(multisets: List[Multiset]) -> List[Multiset]:
 
     # loop through orders in reverse order, adding subterms to lower levels if necessary
     for order in range(max_order, 1, -1):
-
         for multiset in order_dict[order]:
             submultisets = _submultisets_and_complements(multiset, 2)[1]
 

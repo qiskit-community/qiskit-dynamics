@@ -677,6 +677,7 @@ class TestLindbladModelSparseVectorizedJax(TestLindbladModelJax):
 
 def get_const_func(const):
     """Helper function for defining a constant function."""
+
     # pylint: disable=unused-argument
     def env(t):
         return const

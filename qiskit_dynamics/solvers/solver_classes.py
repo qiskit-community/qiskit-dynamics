@@ -329,7 +329,6 @@ class Solver:
         self._rwa_signal_map = None
         self._model = model
         if rwa_cutoff_freq:
-
             # if rwa_carrier_freqs is None, take from channel_carrier_freqs or set all to 0.
             if rwa_carrier_freqs is None:
                 if self._channel_carrier_freqs is not None:
@@ -562,7 +561,6 @@ class Solver:
 
         all_results = []
         for t_span, y0, signals in zip(t_span_list, y0_list, signals_list):
-
             if isinstance(signals, Schedule):
                 signals = self._schedule_to_signals(signals)
 

@@ -455,7 +455,6 @@ def default_experiment_result_function(
     ]
 
     if backend.options.meas_level == MeasLevel.CLASSIFIED:
-
         memory_slot_probabilities = _get_memory_slot_probabilities(
             probability_dict=yf.probabilities_dict(qargs=measurement_subsystems),
             memory_slot_indices=memory_slot_indices,

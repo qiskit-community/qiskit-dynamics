@@ -157,7 +157,6 @@ class ArrayPolynomial:
 
         # If operating in jax mode, wrap in Arrays
         if Array.default_backend() == "jax":
-
             if array_coefficients is not None:
                 self._array_coefficients = Array(array_coefficients)
             else:
@@ -312,7 +311,6 @@ class ArrayPolynomial:
 
         # axis must be shifted for array coefficients
         if self.array_coefficients is not None:
-
             if self.ndim == 0 and axis is None:
                 coefficients = np.array(self.array_coefficients, dtype=dtype)
             else:
