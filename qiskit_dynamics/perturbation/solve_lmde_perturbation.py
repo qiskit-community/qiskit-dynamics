@@ -225,7 +225,6 @@ def solve_lmde_perturbation(
 
     # clean and validate perturbation_labels, and setup expansion terms to compute
     if expansion_method in ["dyson", "magnus"]:
-
         if perturbation_labels is None:
             perturbation_labels = [Multiset({idx: 1}) for idx in range(len(perturbations))]
         else:
