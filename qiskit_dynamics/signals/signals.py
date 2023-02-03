@@ -95,7 +95,6 @@ class Signal:
             envelope = Array(complex(envelope))
 
         if isinstance(envelope, Array):
-
             # if envelope is constant and the carrier is zero, this is a constant signal
             if carrier_freq == 0.0:
                 self._is_constant = True
@@ -819,7 +818,6 @@ class SignalList(SignalCollection):
     """
 
     def __init__(self, signal_list: List[Signal]):
-
         signal_list = [to_SignalSum(signal) for signal in signal_list]
 
         super().__init__(signal_list)
