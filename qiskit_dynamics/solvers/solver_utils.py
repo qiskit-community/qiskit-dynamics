@@ -191,18 +191,18 @@ def trim_t_results_jax(
     peculiarities in :func:`jax_odeint`.
 
     Args:
-        results: Result object, assumed to contain solution at time points from the output of 
+        results: Result object, assumed to contain solution at time points from the output of
             ``merge_t_args_jax(t_span, t_eval)``.
         t_eval: Time points to include in returned results.
 
     Returns:
-        OdeResult: Results with only times/solutions in ``t_eval``. If ``t_eval`` is ``None``, 
-            returns solver default output, with an additional correction for the possibility of 
+        OdeResult: Results with only times/solutions in ``t_eval``. If ``t_eval`` is ``None``,
+            returns solver default output, with an additional correction for the possibility of
             ``t_span == [a, a]``.
     """
 
     if t_eval is not None:
-        # remove second entry if t_eval[0] == results.t[0], as this indicates this was a repeated time
+        # remove second entry if t_eval[0] == results.t[0], as this indicates a repeated time
         results.y = Array(
             cond(
                 t_eval[0] == results.t[0],
@@ -230,10 +230,9 @@ def trim_t_results_jax(
             results.t[0] == results.t[-1],
             lambda y: y.at[-1].set(y[0]),
             lambda y: y,
-            Array(results.y).data
+            Array(results.y).data,
         )
     )
-
 
     return results
 

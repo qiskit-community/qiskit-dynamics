@@ -77,7 +77,7 @@ class DynamicsJob(Job):
             return JobStatus.INITIALIZING
 
         return JobStatus.DONE
-    
+
     def time_per_step(self) -> Dict:
         """Return the date and time information on each step of the job processing.
 

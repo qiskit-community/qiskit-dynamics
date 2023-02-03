@@ -152,14 +152,14 @@ class DynamicsBackend(BackendV2):
         measure_properties = {}
         for qubit in self.options.subsystem_labels:
             instruction_schedule_map = target.instruction_schedule_map()
-            if not instruction_schedule_map.has(instruction='measure', qubits=qubit):
+            if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
                 with pulse.build() as meas_sched:
                     pulse.acquire(
                         duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit)
                     )
-            
+
             measure_properties[(qubit,)] = InstructionProperties(calibration=meas_sched)
-        
+
         target.add_instruction(Measure(), measure_properties)
 
         target.dt = solver._dt
@@ -358,14 +358,14 @@ class DynamicsBackend(BackendV2):
             measurement_subsystems,
             memory_slot_indices,
             num_memory_slots,
-            experiment_metadata
+            experiment_metadata,
         ) in zip(
             experiment_names,
             solver_results,
             measurement_subsystems_list,
             memory_slot_indices_list,
             num_memory_slots_list,
-            experiment_metadatas
+            experiment_metadatas,
         ):
             experiment_results.append(
                 self.options.experiment_result_function(
@@ -376,7 +376,7 @@ class DynamicsBackend(BackendV2):
                     num_memory_slots,
                     self,
                     seed=rng.integers(low=0, high=9223372036854775807),
-                    metadata=experiment_metadata
+                    metadata=experiment_metadata,
                 )
             )
 
@@ -412,7 +412,7 @@ def default_experiment_result_function(
     num_memory_slots: Union[None, int],
     backend: DynamicsBackend,
     seed: Optional[int] = None,
-    metadata: Optional[Dict] = None
+    metadata: Optional[Dict] = None,
 ) -> ExperimentResult:
     """Default routine for generating ExperimentResult object.
 
@@ -431,7 +431,7 @@ def default_experiment_result_function(
         backend: The backend instance that ran the simulation. Various options and properties
             are utilized.
         seed: Seed for any random number generation involved (e.g. when computing outcome samples).
-        metadata: Metadata to add to the header of the 
+        metadata: Metadata to add to the header of the
             :class:`~qiskit.result.models.ExperimentResult` object.
 
     Returns:

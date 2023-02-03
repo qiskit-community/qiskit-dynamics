@@ -56,7 +56,7 @@ class TestDynamicsJob(QiskitDynamicsTestCase):
     def test_metadata(self):
         """Test metadata storage."""
         self.assertTrue(self.simple_job.metadata == {"other_kwarg": "for testing"})
-    
+
     def test_time_per_step(self):
         """Test correct handling of time_per_step."""
 

@@ -276,7 +276,7 @@ class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
 
         self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0, 2.0]))
         self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))
-    
+
     def test_trim_t_results_empty_integration(self):
         """Test trim_t_results_jax for cases when results.t[-1] == results.t[0]. Should duplicate
         result.y[0] into result.y[-1].

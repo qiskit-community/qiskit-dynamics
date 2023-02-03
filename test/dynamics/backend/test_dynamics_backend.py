@@ -455,7 +455,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             experiment_result_function=exp_result_function,
         ).result()
         self.assertDictEqual(result.get_counts(), {"3": 1})
-    
+
     def test_metadata_transfer(self):
         """Test that circuit metadata is correctly stored in the result object."""
 
@@ -475,7 +475,6 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         self.assertDictEqual(res.results[0].header.metadata, {"key0": "value0"})
         self.assertDictEqual(res.get_counts(1), {"2": 1024})
         self.assertDictEqual(res.results[1].header.metadata, {"key1": "value1"})
-
 
 
 class Test_default_experiment_result_function(QiskitDynamicsTestCase):
