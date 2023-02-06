@@ -63,7 +63,6 @@ def _get_dressed_state_decomposition(
 
     found_positions = []
     for eigval, evec in zip(evals, evecs.transpose()):
-
         position = np.argmax(np.abs(evec))
         if position in found_positions:
             raise QiskitError(

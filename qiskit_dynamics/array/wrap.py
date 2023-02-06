@@ -46,7 +46,6 @@ def _wrap_array_function(func: Callable) -> Callable:
 
     @functools.wraps(func)
     def wrapped_function(*args, **kwargs):
-
         # Unwrap inputs
         args = tuple(
             x.__qiskit_array__().data if hasattr(x, "__qiskit_array__") else x for x in args

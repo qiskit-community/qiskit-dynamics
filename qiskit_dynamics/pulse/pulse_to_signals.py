@@ -36,21 +36,23 @@ from qiskit_dynamics.signals import DiscreteSignal
 
 
 class InstructionToSignals:
-    """Converts pulse instructions to Signals to be used in models.
+    """Converts pulse instructions to signals to be used in models.
 
     The :class:`InstructionsToSignals` class converts a pulse schedule to a list of signals that can
     be given to a model. This conversion is done by calling the :meth:`get_signals` method on a
-    schedule. The converter applies to instances of :class:`Schedule`. Instances of
-    :class:`ScheduleBlock` must first be converted to :class:`Schedule` using the
-    :meth:`block_to_schedule` in Qiskit pulse.
+    schedule. The converter applies to instances of :class:`~qiskit.pulse.Schedule`. Instances of
+    :class:`~qiskit.pulse.ScheduleBlock` must first be converted to :class:`~qiskit.pulse.Schedule`
+    using the :func:`~qiskit.pulse.transforms.block_to_schedule` function in Qiskit Pulse.
 
-    The converter can be initialized with the optional arguments ``carriers`` and ``channels``.
-    These arguments change the returned signals of :meth:`get_signals`. When ``channels`` is given
-    then only the signals specified by name in ``channels`` are returned. The ``carriers``
-    dictionary allows the user to specify the carrier frequency of the channels. Here, the keys are
-    the channel name, e.g. ``d12`` for drive channel number 12, and the values are the corresponding
-    frequency. If a channel is not present in ``carriers`` it is assumed that the carrier frequency
-    is zero.
+    The converter can be initialized with the optional arguments ``carriers`` and ``channels``. When
+    ``channels`` is given, only the signals specified by name in ``channels`` are returned. The
+    ``carriers`` dictionary specifies the analog carrier frequency of each channel. Here, the keys
+    are the channel name, e.g. ``d12`` for drive channel number ``12``, and the values are the
+    corresponding frequency. If a channel is not present in ``carriers`` it is assumed that the
+    analog carrier frequency is zero.
+
+    See the :meth:`get_signals` method documentation for a detailed description of how pulse
+    schedules are interpreted and translated into :class:`.DiscreteSignal` objects.
     """
 
     def __init__(
@@ -62,15 +64,14 @@ class InstructionToSignals:
         """Initialize pulse schedule to signals converter.
 
         Args:
-            dt: Length of the samples. This is required by the converter as pulse
-                schedule are specified in units of dt and typically do not carry the value of dt
-                with them.
-            carriers: A dict of carrier frequencies. The keys are the names of the channels
+            dt: Length of the samples. This is required by the converter as pulse schedule are
+                specified in units of dt and typically do not carry the value of dt with them.
+            carriers: A dict of analog carrier frequencies. The keys are the names of the channels
                 and the values are the corresponding carrier frequency.
-            channels: A list of channels that the :meth:`get_signals` method should return.
-                This argument will cause :meth:`get_signals` to return the signals in the same order
-                as the channels. Channels present in the schedule but absent from channels will not
-                be included in the returned object. If None is given (the default) then all channels
+            channels: A list of channels that the :meth:`get_signals` method should return. This
+                argument will cause :meth:`get_signals` to return the signals in the same order as
+                the channels. Channels present in the schedule but absent from channels will not be
+                included in the returned object. If None is given (the default) then all channels
                 present in the pulse schedule are returned.
         """
 
@@ -79,14 +80,61 @@ class InstructionToSignals:
         self._carriers = carriers or {}
 
     def get_signals(self, schedule: Schedule) -> List[DiscreteSignal]:
-        """
+        r"""Convert a schedule to a corresponding list of DiscreteSignal instances.
+
+        Which channels are converted, and the order they are returned, is controlled by the
+        ``channels`` argument at instantiation. The ``carriers`` instantiation argument sets the
+        analog carrier frequency for each channel, which is fixed for the full duration. For a given
+        channel, the :math:`k^{th}` envelope sample for the corresponding :class:`.DiscreteSignal`
+        is determined according to the following formula:
+
+        .. math::
+            f(k) \exp(i(2\pi \Delta\nu(k) k dt + \phi(k) + 2 \pi \phi_a(k))),
+
+        where:
+
+        * :math:`f(k)` is the waveform value at the :math:`k^{th}` time step as specified by
+          ``Play`` instructions.
+        * :math:`\Delta\nu(k)` is the frequency deviation at time step :math:`k` from the analog
+          carrier as the result of ``SetFrequency`` and ``ShiftFrequency`` instructions. As evident
+          by the formula, carrier frequency deviations as a result of these instructions are handled
+          digitally, with the analog carrier frequency being fixed for the entirety of the schedule.
+        * :math:`dt` is the sample rate as specified by the ``dt`` instantiation argument.
+        * :math:`\phi(k)` is the channel phase at time step :math:`k`, as determined by
+          ``ShiftPhase`` and ``SetPhase`` instructions.
+        * :math:`\phi_a(k)` is the phase correction term at time step :math:`k`, impacted by
+          ``SetFrequency`` and ``ShiftFrequency`` instructions, described below.
+
+        In detail, the sample array for the output signal for each channel is generated by iterating
+        over each instruction in the schedule in temporal order. New samples are appended with every
+        ``Play`` instruction on the given channel, using the waveform values and the current value
+        of the tracked parameters :math:`\Delta\nu`, :math:`\phi`, and :math:`\phi_a`, which are
+        initialized to :math:`0`. Explicitly, each instruction is interpreted as follows:
+
+        * ``Play`` instructions add new samples to the sample array, according to the above formula,
+          using the waveform specified in the instruction and the current values of
+          :math:`\Delta\nu`, :math:`\phi`, and :math:`\phi_a`.
+        * ``ShiftPhase``, with a phase value :math:`\psi`, updates :math:`\phi \mapsto \phi + \psi`.
+        * ``SetPhase``, with a phase value :math:`\psi`, updates :math:`\phi \mapsto \psi`.
+        * ``ShiftFrequency``, with a frequency value :math:`\mu` at time-step :math:`k`, updates
+          :math:`\phi_a \mapsto \phi_a - \mu k dt` and :math:`\Delta\nu \mapsto \Delta\nu + \mu`.
+          The simultaneous shifting of both :math:`\Delta\nu` and :math:`\phi_a` ensures that the
+          carrier wave, as a combination of the analog and digital components, is continuous across
+          ``ShiftFrequency`` instructions (up to the sampling rate :math:`dt`).
+        * ``SetFrequency``, with a frequency value :math:`\mu` at time-step :math:`k`, updates
+          :math:`\phi_a \mapsto \phi_a - (\mu - (\Delta\nu + \nu)) k dt` and
+          :math:`\Delta\nu \mapsto \mu - \nu`, where :math:`\nu` is the analog carrier frequency.
+          Similarly to ``ShiftFrequency``, the shift rule for :math:`\phi_a` is defined to maintain
+          carrier wave continuity.
+
         Args:
             schedule: The schedule to represent in terms of signals. Instances of
-                :class:`ScheduleBlock` must first be converted to :class:`Schedule` using the
-                :meth:`block_to_schedule` in Qiskit pulse.
+                :class:`~qiskit.pulse.ScheduleBlock` must first be converted to
+                :class:`~qiskit.pulse.Schedule` using the
+                :func:`~qiskit.pulse.transforms.block_to_schedule` function in Qiskit Pulse.
 
         Returns:
-            a list of piecewise constant signals.
+            A list of :class:`.DiscreteSignal` instances.
         """
 
         signals, phases, frequency_shifts, phase_accumulations = {}, {}, {}, {}
@@ -113,7 +161,6 @@ class InstructionToSignals:
             phi = phases[chan]
             freq = frequency_shifts[chan]
             if isinstance(inst, Play):
-
                 # get the instruction samples
                 inst_samples = None
                 if isinstance(inst.pulse, Waveform):

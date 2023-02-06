@@ -26,7 +26,8 @@ References:
        *of its applications*, Phys. Rep. 470, 151-238
     4. H. Haas, D. Puzzuoli, F. Zhang, D. Cory, *Engineering Effective Hamiltonians*,
        New J. Phys. 21, 103011 (2019).
-    5. Forthcoming
+    5. D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, C. J. Wood, *Algorithms
+    for perturbative analysis and simulation of quantum dynamics*, arXiv:2210.11595 (2022)
 """
 
 from typing import Optional, List, Callable, Tuple, Union
@@ -522,7 +523,6 @@ def _get_dyson_like_lmult_rule(
     lmult_rule = [(np.array([1.0]), np.array([[-1, -1]]))]
 
     for term_idx, term in enumerate(complete_dyson_indices):
-
         if len(term) == 1:
             l_idx = generator_indices.index(term[0])
             lmult_rule.append((np.array([1.0, 1.0]), np.array([[-1, term_idx], [l_idx, -1]])))
@@ -756,7 +756,6 @@ def _q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
 
         return [(coeffs, np.array(products))]
     else:
-
         # construct a list of products
         # need to consider all possible sub-multisets of the Multiset index in q_term
         products = []
@@ -835,7 +834,6 @@ def _get_dyson_lmult_rule(
     lmult_rule = [(np.array([1.0]), np.array([[-1, -1]]))]
 
     for term_idx, term in enumerate(complete_index_multisets):
-
         if len(term) == 1:
             lmult_rule.append((np.array([1.0, 1.0]), np.array([[-1, term_idx], [term_idx, -1]])))
         else:

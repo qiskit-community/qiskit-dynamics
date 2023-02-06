@@ -33,7 +33,6 @@ class TestJaxOdeint(QiskitDynamicsTestCase, TestJaxBase):
     """Test cases for jax_odeint."""
 
     def setUp(self):
-
         # pylint: disable=unused-argument
         def simple_rhs(t, y):
             return cond(t < 1.0, lambda s: s, lambda s: s**2, jnp.array([t]))
