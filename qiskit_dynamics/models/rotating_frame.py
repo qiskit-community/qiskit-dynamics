@@ -623,7 +623,6 @@ def _enforce_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional
     mat = Array(mat, dtype=complex)
 
     if mat.backend == "jax":
-
         from jax.lax import cond
 
         mat = mat.data

@@ -179,7 +179,6 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def _test_state_into_frame(
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
-
         evals, U = np.linalg.eigh(1j * frame_op)
         evals = -1j * evals
 
@@ -235,7 +234,6 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def _test_state_out_of_frame(
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
-
         evals, U = np.linalg.eigh(1j * frame_op)
         evals = -1j * Array(evals)
 
@@ -279,7 +277,6 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def _test_operator_into_frame(
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
-
         evals, U = np.linalg.eigh(1j * frame_op)
         evals = -1j * Array(evals)
         Uadj = U.conj().transpose()
@@ -325,7 +322,6 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def _test_operator_out_of_frame(
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
-
         evals, U = np.linalg.eigh(1j * frame_op)
         evals = -1j * Array(evals)
         Uadj = U.conj().transpose()

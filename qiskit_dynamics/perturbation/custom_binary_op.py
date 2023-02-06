@@ -201,7 +201,6 @@ def _compile_custom_operation_rule(
     unique_evaluation_list = []
     linear_combo_rule = []
     for coeffs, index_pairs in operation_rule:
-
         sub_linear_combo = []
         for index_pair in index_pairs:
             # convert to list to avoid array comparison issues

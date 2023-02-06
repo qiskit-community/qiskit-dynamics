@@ -660,7 +660,6 @@ class TestDysonProduct(QiskitDynamicsTestCase):
         self.assertMultRulesEqual(lmult_rule, expected)
 
     def assertMultRulesEqual(self, rule1, rule2):
-
         """Assert two multiplication rules are equal."""
         for sub_rule1, sub_rule2 in zip(rule1, rule2):
             self.assertAllClose(sub_rule1[0], sub_rule2[0])

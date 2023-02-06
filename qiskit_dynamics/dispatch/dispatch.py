@@ -341,7 +341,6 @@ def requires_backend(backend: str) -> Callable:
 
         # Decorate a class
         elif isinstance(obj, type):
-
             obj_init = obj.__init__
 
             @functools.wraps(obj_init)

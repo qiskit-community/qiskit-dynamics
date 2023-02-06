@@ -161,7 +161,6 @@ class InstructionToSignals:
             phi = phases[chan]
             freq = frequency_shifts[chan]
             if isinstance(inst, Play):
-
                 # get the instruction samples
                 inst_samples = None
                 if isinstance(inst.pulse, Waveform):

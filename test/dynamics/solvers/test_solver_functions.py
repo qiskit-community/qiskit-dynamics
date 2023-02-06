@@ -127,7 +127,6 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
     def test_ode_method(self):
         """Test for ODE-specific method."""
         if self.is_ode_method:
-
             # pylint: disable=unused-argument
             def quad_rhs(t, y):
                 return np.real(Array([t**2]))

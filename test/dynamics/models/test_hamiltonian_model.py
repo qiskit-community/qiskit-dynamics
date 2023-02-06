@@ -244,7 +244,6 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
-
         sig_list = []
         for coeff, freq, phase in zip(coefficients, carriers, phases):
 
