@@ -63,7 +63,6 @@ class TestExperimentsIntegration(QiskitDynamicsTestCase, TestJaxBase):
     def test_RoughFrequencyCal_calibration(self):
         """Test RoughFrequencyCal outputs a sensible answer."""
 
-        # cals = Calibrations.from_backend(self.simple_backend)
         cals = Calibrations()
 
         dur = Parameter("dur")
