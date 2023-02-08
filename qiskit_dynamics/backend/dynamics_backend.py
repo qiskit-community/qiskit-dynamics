@@ -429,7 +429,7 @@ class DynamicsBackend(BackendV2):
 
     def control_channel(
         self, qubits: Union[Tuple[int, int], List[Tuple[int, int]]]
-    ) -> pulse.ControlChannel:
+    ) -> List[pulse.ControlChannel]:
         """Return the control channel with a given label specified by qubits.
 
         This method requires the ``control_channel_map`` option is set, and otherwise will raise
@@ -440,7 +440,8 @@ class DynamicsBackend(BackendV2):
         Returns:
             A list containing the control channels specified by qubits.
         Raises:
-            NotImplementedError: if the control_channel_map option is not set for this backend.
+            NotImplementedError: If the control_channel_map option is not set for this backend.
+            QiskitError: If a requested channel is not in the control_channel_map.
         """
         if self.options.control_channel_map is None:
             raise NotImplementedError
@@ -448,7 +449,14 @@ class DynamicsBackend(BackendV2):
         if not isinstance(qubits, list):
             qubits = [qubits]
 
-        return [pulse.ControlChannel(self.options.control_channel_map[x]) for x in qubits]
+        control_channels = []
+        for x in qubits:
+            if x not in self.options.control_channel_map:
+                raise QiskitError(f"Key {x} not in control_channel_map.")
+            idx = self.options.control_channel_map[x]
+            control_channels.append(pulse.ControlChannel(idx))
+
+        return control_channels
 
 
 def default_experiment_result_function(
