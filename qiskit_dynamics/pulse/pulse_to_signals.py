@@ -76,6 +76,7 @@ class InstructionToSignals:
                 argument will cause :meth:`get_signals` to return the signals in the same order as
                 the channels. Channels present in the schedule but absent from channels will not be
                 included in the returned object. If None is given (the default) then all channels
+                present in the pulse schedule are returned.
         """
 
         self._dt = dt
