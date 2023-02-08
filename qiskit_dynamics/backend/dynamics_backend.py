@@ -20,7 +20,7 @@ Pulse-enabled simulator backend.
 import datetime
 import uuid
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 import copy
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
@@ -96,6 +96,8 @@ class DynamicsBackend(BackendV2):
       :func:`default_experiment_result_function`, and any other function set to this option
       must have the same signature. Note that the default utilizes various other options that
       control results computation, and hence changing it will impact the meaning of other options.
+    * ``control_channel_map``: A dictionary mapping control channel labels to indices, to be used
+      for control channel index lookup in the :meth:`DynamicsBackend.control_channel` method.
     """
 
     def __init__(
@@ -178,6 +180,7 @@ class DynamicsBackend(BackendV2):
             memory=True,
             seed_simulator=None,
             experiment_result_function=default_experiment_result_function,
+            control_channel_map=None,
         )
 
     def set_options(self, **fields):
@@ -223,6 +226,14 @@ class DynamicsBackend(BackendV2):
                 validate_iq_centers = True
             elif key == "solver":
                 validate_subsystem_dims = True
+            elif key == "control_channel_map":
+                if value is not None:
+                    if not isinstance(value, dict):
+                        raise QiskitError(
+                            "The control_channel_map option must either be None or a dictionary."
+                        )
+                    if not all(isinstance(x, int) for x in value.values()):
+                        raise QiskitError("The control_channel_map values must all be of type int.")
 
             if key == "solver":
                 self._set_solver(value)
@@ -392,6 +403,52 @@ class DynamicsBackend(BackendV2):
     @property
     def meas_map(self) -> List[List[int]]:
         return self.options.meas_map
+
+    def _get_qubit_channel(
+        self, qubit: int, ChannelClass: pulse.channels.PulseChannel, method_name: str
+    ):
+        """Construct a channel instance for a given qubit."""
+        if qubit in self.options.subsystem_labels:
+            return ChannelClass(qubit)
+
+        raise QiskitError(
+            f"{method_name} requested for qubit {qubit} which is not in subsystem_list."
+        )
+
+    def drive_channel(self, qubit: int) -> pulse.DriveChannel:
+        """Return the drive channel for a given qubit."""
+        return self._get_qubit_channel(qubit, pulse.DriveChannel, "drive_channel")
+
+    def measure_channel(self, qubit: int) -> pulse.MeasureChannel:
+        """Return the measure channel for a given qubit."""
+        return self._get_qubit_channel(qubit, pulse.MeasureChannel, "measure_channel")
+
+    def acquire_channel(self, qubit: int) -> pulse.AcquireChannel:
+        """Return the measure channel for a given qubit."""
+        return self._get_qubit_channel(qubit, pulse.AcquireChannel, "acquire_channel")
+
+    def control_channel(
+        self, qubits: Union[Tuple[int, int], List[Tuple[int, int]]]
+    ) -> pulse.ControlChannel:
+        """Return the control channel with a given label specified by qubits.
+
+        This method requires the ``control_channel_map`` option is set, and otherwise will raise
+        a ``NotImplementedError``.
+
+        Args:
+            qubits: The label for the control channel, or a list of labels.
+        Returns:
+            A list containing the control channels specified by qubits.
+        Raises:
+            NotImplementedError: if the control_channel_map option is not set for this backend.
+        """
+        if self.options.control_channel_map is None:
+            raise NotImplementedError
+
+        if not isinstance(qubits, list):
+            qubits = [qubits]
+
+        return [pulse.ControlChannel(self.options.control_channel_map[x]) for x in qubits]
 
 
 def default_experiment_result_function(
