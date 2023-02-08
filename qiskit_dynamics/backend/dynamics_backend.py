@@ -233,7 +233,7 @@ class DynamicsBackend(BackendV2):
                             "The control_channel_map option must either be None or a dictionary."
                         )
                     if not all(isinstance(x, int) for x in value.values()):
-                        raise QiskitError("The control_channel_map values must all be of type int.")
+                        raise QiskitError("The control_channel_map values must be of type int.")
 
             if key == "solver":
                 self._set_solver(value)

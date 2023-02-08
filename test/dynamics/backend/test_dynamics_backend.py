@@ -164,6 +164,15 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "must be callable."):
             self.simple_backend.set_options(experiment_result_function=1)
+    
+    def test_invalid_control_channel_map(self):
+        """Test setting an invalid control_channel_map raises an error."""
+
+        with self.assertRaisesRegex(QiskitError, "None or a dictionary"):
+            self.simple_backend.set_options(control_channel_map=1)
+        
+        with self.assertRaisesRegex(QiskitError, "values must be of type int"):
+            self.simple_backend.set_options(control_channel_map={(0, 1): "3"})
 
 
 class TestDynamicsBackend(QiskitDynamicsTestCase):
