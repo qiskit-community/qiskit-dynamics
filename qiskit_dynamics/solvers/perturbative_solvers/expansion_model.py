@@ -81,7 +81,7 @@ class ExpansionModel:
             kwargs: Additional arguments to pass to the solver when computing perturbation terms.
 
         Raises:
-            QiskitError: If invalid expansion_method passed.
+            QiskitError: If invalid ``expansion_method`` passed, or if arguments have incompatible lengths.
         """
 
         if expansion_method not in ["dyson", "magnus"]:
