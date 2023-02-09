@@ -65,7 +65,7 @@ class ExpansionModel:
             dt: Fixed step size to compile to.
             carrier_freqs: Carrier frequencies of the signals in the generator decomposition.
             chebyshev_orders: Approximation degrees for each signal over the interval [0, dt].
-            expansion_method: Either 'dyson' or 'magnus'.
+            expansion_method: Either ``'dyson'`` or ``'magnus'``.
             expansion_order: Order of perturbation terms to compute up to. Specifying this argument
                 results in computation of all terms up to the given order. Can be used in
                 conjunction with ``expansion_terms``.
