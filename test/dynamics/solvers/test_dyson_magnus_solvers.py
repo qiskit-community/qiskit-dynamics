@@ -15,6 +15,7 @@
 
 import numpy as np
 from numpy.polynomial.chebyshev import Chebyshev
+from ddt import ddt, data, unpack
 
 from qiskit import QiskitError
 
@@ -36,6 +37,37 @@ try:
     from jax import jit, grad
 except ImportError:
     pass
+
+
+@ddt
+class Test_DysonMagnusSolver_Validation(QiskitDynamicsTestCase):
+    """Validation tests for DysonSolver and MagnusSolver."""
+
+    @unpack
+    @data((DysonSolver,), (MagnusSolver,))
+    def test_invalid_carrier_freqs(self, SolverClass):
+        """Test error is raised if carrier_freqs length doesn't match operators length."""
+        with self.assertRaisesRegex(QiskitError, "carrier_freqs must have the same length"):
+            SolverClass(
+                operators=np.array([[[1.0]], [[2.0]]]),
+                rotating_frame=np.array([[1.0]]),
+                dt=1.0,
+                carrier_freqs=np.array([1.0]),
+                chebyshev_orders=np.array([1, 1]),
+            )
+
+    @unpack
+    @data((DysonSolver,), (MagnusSolver,))
+    def test_invalid_chebyshev_orders(self, SolverClass):
+        """Test error is raised if chebyshev_orders length doesn't match operators length."""
+        with self.assertRaisesRegex(QiskitError, "chebyshev_orders must have the same length"):
+            SolverClass(
+                operators=np.array([[[1.0]], [[2.0]]]),
+                rotating_frame=np.array([[1.0]]),
+                dt=1.0,
+                carrier_freqs=np.array([1.0, 1.0]),
+                chebyshev_orders=np.array([1, 1, 1]),
+            )
 
 
 class Test_PerturbativeSolver(QiskitDynamicsTestCase):
