@@ -60,36 +60,41 @@ class ExpansionModel:
 
         Args:
             operators: List of constant operators specifying the operators with signal coefficients.
-            rotating_frame: Rotating frame to setup the solver in.
-                            Must be Hermitian or anti-Hermitian.
+            rotating_frame: Rotating frame to setup the solver in. Must be Hermitian or
+                anti-Hermitian.
             dt: Fixed step size to compile to.
             carrier_freqs: Carrier frequencies of the signals in the generator decomposition.
             chebyshev_orders: Approximation degrees for each signal over the interval [0, dt].
-            expansion_method: Either 'dyson' or 'magnus'.
-            expansion_order: Order of perturbation terms to compute up to. Specifying this
-                                argument results in computation of all terms up to the given order.
-                                Can be used in conjunction with ``expansion_terms``.
+            expansion_method: Either ``'dyson'`` or ``'magnus'``.
+            expansion_order: Order of perturbation terms to compute up to. Specifying this argument
+                results in computation of all terms up to the given order. Can be used in
+                conjunction with ``expansion_terms``.
             expansion_labels: Specific perturbation terms to compute. If both ``expansion_order``
-                                and ``expansion_terms`` are specified, then all terms up to
-                                ``expansion_order`` are computed, along with the additional terms
-                                specified in ``expansion_terms``. Labels are specified either as
-                                ``Multiset`` or as valid arguments to the ``Multiset`` constructor.
-                                This function further requires that ``Multiset``\s consist only of
-                                non-negative integers.
+                and ``expansion_terms`` are specified, then all terms up to ``expansion_order`` are
+                computed, along with the additional terms specified in ``expansion_terms``. Labels
+                are specified either as ``Multiset`` or as valid arguments to the ``Multiset``
+                constructor. This function further requires that ``Multiset``\s consist only of
+                non-negative integers.
             integration_method: ODE solver method to use when computing perturbation terms.
             include_imag: List of bools determining whether to keep imaginary components in
-                          the signal approximation. Defaults to True for all signals.
+                the signal approximation. Defaults to True for all signals.
             kwargs: Additional arguments to pass to the solver when computing perturbation terms.
 
         Raises:
-            QiskitError: if invalid expansion_method passed.
+            QiskitError: If invalid ``expansion_method`` passed, or if arguments have incompatible
+                lengths.
         """
-        self._expansion_method = expansion_method
 
         if expansion_method not in ["dyson", "magnus"]:
-            raise QiskitError(
-                "_PerturbativeSolver only accepts expansion_method 'dyson' or 'magnus'."
-            )
+            raise QiskitError("ExpansionModel only accepts expansion_method 'dyson' or 'magnus'.")
+
+        if len(operators) != len(carrier_freqs):
+            raise QiskitError("carrier_freqs must have the same length as operators.")
+
+        if len(operators) != len(chebyshev_orders):
+            raise QiskitError("chebyshev_orders must have the same length as operators.")
+
+        self._expansion_method = expansion_method
 
         if include_imag is None:
             include_imag = [True] * len(carrier_freqs)
@@ -225,10 +230,10 @@ def _construct_cheb_perturbations(
         \cos(2 \pi \nu_j t)T_m(t) G_j\textnormal{, and } \sin(-2 \pi \nu_j t)T_m(t) G_j,
 
     where :math:`\nu_j` and :math:`G_j` are carrier frequency and operator pairs specified in
-    ``operators`` and ``carrier_freqs``, and :math:`m \in [0, \dots, r]` where :math:`r`
-    is the corresponding integer in ``chebyshev_orders``. The output list is ordered according
-    to the lexicographic ordering of the tuples :math:`(j, m)`, with all cosine terms given
-    before sine terms.
+    ``operators`` and ``carrier_freqs``, and :math:`m \in [0, \dots, r]` where :math:`r` is the
+    corresponding integer in ``chebyshev_orders``. The output list is ordered according to the
+    lexicographic ordering of the tuples :math:`(j, m)`, with all cosine terms given before sine
+    terms.
 
     Args:
         operators: List of operators.
@@ -236,9 +241,9 @@ def _construct_cheb_perturbations(
         carrier_freqs: List of frequencies for each operator.
         dt: Interval over which the chebyshev polynomials are defined.
         rotating_frame: Frame the operators are in.
-        include_imag: List of bools determining whether to keep imaginary components in
-                      the signal approximation. Defaults to True for all signals.
-                      Corresponds to whether or not to include the sine terms in this function.
+        include_imag: List of bools determining whether to keep imaginary components in the signal
+            approximation. Defaults to True for all signals. Corresponds to whether or not to
+            include the sine terms in this function.
 
     Returns:
         List of operator-valued functions as described above.
@@ -364,8 +369,8 @@ def _evaluate_cheb_series_jax(
     x: Union[float, np.ndarray], c: np.ndarray, domain: Optional[List] = None
 ) -> Union[float, np.ndarray]:
     """Evaluate Chebyshev series on a on a given domain using JAX looping logic.
-    This follows the same algorithm as ``numpy.polynomial.chebyshev.chebval``
-    but uses JAX looping logic.
+    This follows the same algorithm as ``numpy.polynomial.chebyshev.chebval`` but uses JAX looping
+    logic.
 
     Args:
         x: Array of x values to evaluate the Chebyshev series on.
@@ -422,7 +427,7 @@ def _signal_list_envelope_DCT(
         dt: Time step size.
         n_intervals: Number of Intervals.
         include_imag: Whether or not to include the imaginary components of the envelopes. Defaults
-                      to ``True`` for all.
+            to ``True`` for all.
 
     Returns:
         Discrete Chebyshev transform of the envelopes with reference frequencies.
@@ -519,8 +524,8 @@ def _construct_DCT(degree: int, domain: Optional[List] = None) -> Tuple:
     """Construct the matrix and evaluation points for performing the Discrete Chebyshev
     Transform (DCT) over an interval specified by ``domain``. This utilizes code from
     :mod:`numpy.polynomial.chebyshev.chebinterpolate`, but modified to allow for interval
-    specification, and to return the constructed matrices and evaluation points for
-    performing the DCT.
+    specification, and to return the constructed matrices and evaluation points for performing the
+    DCT.
 
     I.e. For outputs ``(M, x)``, the DCT of a function ``f`` over the specified domain can be
     evaluated as ``M @ f(x)``.
