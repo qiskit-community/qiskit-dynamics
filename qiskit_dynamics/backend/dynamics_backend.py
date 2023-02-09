@@ -405,7 +405,7 @@ class DynamicsBackend(BackendV2):
         return self.options.meas_map
 
     def _get_qubit_channel(
-        self, qubit: int, ChannelClass: pulse.channels.PulseChannel, method_name: str
+        self, qubit: int, ChannelClass: pulse.channels.Channel, method_name: str
     ):
         """Construct a channel instance for a given qubit."""
         if qubit in self.options.subsystem_labels:
