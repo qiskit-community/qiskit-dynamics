@@ -82,7 +82,7 @@ class ExpansionModel:
 
         Raises:
             QiskitError: If invalid ``expansion_method`` passed, or if arguments have incompatible
-            lengths.
+                lengths.
         """
 
         if expansion_method not in ["dyson", "magnus"]:
