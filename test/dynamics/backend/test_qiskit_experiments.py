@@ -66,14 +66,12 @@ class TestExperimentsIntegration(QiskitDynamicsTestCase, TestJaxBase):
         cals = Calibrations()
 
         dur = Parameter("dur")
-        amp = Parameter("amp")
         sigma = Parameter("sigma")
-        beta = Parameter("beta")
         drive = pulse.DriveChannel(Parameter("ch0"))
 
         # Define and add template schedules.
         with pulse.build(name="x") as x:
-            pulse.play(pulse.Drag(dur, amp, sigma, beta), drive)
+            pulse.play(pulse.Drag(dur, Parameter("amp"), sigma, Parameter("beta")), drive)
 
         with pulse.build(name="sx") as sx:
             pulse.play(pulse.Drag(dur, Parameter("amp"), sigma, Parameter("beta")), drive)
