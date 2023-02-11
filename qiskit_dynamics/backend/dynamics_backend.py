@@ -28,7 +28,8 @@ from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 from qiskit import pulse
 from qiskit.qobj.utils import MeasLevel, MeasReturnType
 from qiskit.qobj.common import QobjHeader
-from qiskit.transpiler import Target
+from qiskit.transpiler import Target, InstructionProperties
+from qiskit.circuit.library import Measure
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit.providers.options import Options
@@ -160,15 +161,20 @@ class DynamicsBackend(BackendV2):
             target = copy.copy(target)
 
         # add default simulator measure instructions
-        instruction_schedule_map = target.instruction_schedule_map()
+        measure_properties = {}
         for qubit in self.options.subsystem_labels:
+            instruction_schedule_map = target.instruction_schedule_map()
             if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
                 with pulse.build() as meas_sched:
                     pulse.acquire(
                         duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit)
                     )
 
-            instruction_schedule_map.add(instruction="measure", qubits=qubit, schedule=meas_sched)
+            measure_properties[(qubit,)] = InstructionProperties(calibration=meas_sched)
+
+        target.add_instruction(Measure(), measure_properties)
+
+        target.dt = solver._dt
 
         self._target = target
 
@@ -365,6 +371,7 @@ class DynamicsBackend(BackendV2):
 
         # compute results for each experiment
         experiment_names = [schedule.name for schedule in schedules]
+        experiment_metadatas = [schedule.metadata for schedule in schedules]
         rng = np.random.default_rng(self.options.seed_simulator)
         experiment_results = []
         for (
@@ -373,12 +380,14 @@ class DynamicsBackend(BackendV2):
             measurement_subsystems,
             memory_slot_indices,
             num_memory_slots,
+            experiment_metadata,
         ) in zip(
             experiment_names,
             solver_results,
             measurement_subsystems_list,
             memory_slot_indices_list,
             num_memory_slots_list,
+            experiment_metadatas,
         ):
             experiment_results.append(
                 self.options.experiment_result_function(
@@ -389,6 +398,7 @@ class DynamicsBackend(BackendV2):
                     num_memory_slots,
                     self,
                     seed=rng.integers(low=0, high=9223372036854775807),
+                    metadata=experiment_metadata,
                 )
             )
 
@@ -577,6 +587,7 @@ def default_experiment_result_function(
     num_memory_slots: Union[None, int],
     backend: DynamicsBackend,
     seed: Optional[int] = None,
+    metadata: Optional[Dict] = None,
 ) -> ExperimentResult:
     """Default routine for generating ExperimentResult object.
 
@@ -595,9 +606,11 @@ def default_experiment_result_function(
         backend: The backend instance that ran the simulation. Various options and properties
             are utilized.
         seed: Seed for any random number generation involved (e.g. when computing outcome samples).
+        metadata: Metadata to add to the header of the
+            :class:`~qiskit.result.models.ExperimentResult` object.
 
     Returns:
-        ExperimentResult object containing results.
+        :class:`~qiskit.result.models.ExperimentResult` object containing results.
 
     Raises:
         QiskitError: If a specified option is unsupported.
@@ -653,7 +666,7 @@ def default_experiment_result_function(
             data=exp_data,
             meas_level=MeasLevel.CLASSIFIED,
             seed=seed,
-            header=QobjHeader(name=experiment_name),
+            header=QobjHeader(name=experiment_name, metadata=metadata),
         )
     elif backend.options.meas_level == MeasLevel.KERNELED:
         iq_centers = backend.options.iq_centers
@@ -689,7 +702,7 @@ def default_experiment_result_function(
             data=exp_data,
             meas_level=MeasLevel.KERNELED,
             seed=seed,
-            header=QobjHeader(name=experiment_name),
+            header=QobjHeader(name=experiment_name, metadata=metadata),
         )
 
     else:
