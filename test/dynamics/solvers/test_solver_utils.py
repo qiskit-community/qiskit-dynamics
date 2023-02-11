@@ -261,7 +261,7 @@ class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
         self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5]]))
 
     def test_trim_t_results_with_overlap(self):
-        """Test trim_t_results when t_eval and t_span have overlap. Override original test
+        """Test trim_t_results_jax when t_eval and t_span have overlap. Override original test
         to validate the correct entry is being taken.
         """
 
@@ -276,3 +276,19 @@ class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
 
         self.assertAllClose(trimmed_obj.t, np.array([0.0, 1.0, 2.0]))
         self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))
+
+    def test_trim_t_results_empty_integration(self):
+        """Test trim_t_results_jax for cases when results.t[-1] == results.t[0]. Should duplicate
+        result.y[0] into result.y[-1].
+        """
+
+        # empty object to assign attributes to
+        empty_obj = type("", (), {})()
+
+        empty_obj.t = np.array([1.0, 1.0])
+        empty_obj.y = np.array([[0.0, 1.0], [1.0, 0.0]])
+
+        trimmed_obj = self.trim_t_results(empty_obj)
+
+        self.assertAllClose(trimmed_obj.t, np.array([1.0, 1.0]))
+        self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.0, 1.0]]))

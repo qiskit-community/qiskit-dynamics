@@ -48,12 +48,11 @@ def merge_t_args(
 ) -> Union[List, Tuple, Array]:
     """Merge ``t_span`` and ``t_eval`` into a single array.
 
-    Validition is similar to scipy ``solve_ivp``:
-    ``t_eval`` must be contained in ``t_span``, and be increasing if
-    ``t_span[1] > t_span[0]`` or decreasing if ``t_span[1] < t_span[0]``.
+    Validition is similar to scipy ``solve_ivp``: ``t_eval`` must be contained in ``t_span``, and be
+    increasing if ``t_span[1] > t_span[0]`` or decreasing if ``t_span[1] < t_span[0]``.
 
-    Note: this is done explicitly with ``numpy``, and hence this is
-    not differentiable or compilable using jax.
+    Note: this is done explicitly with ``numpy``, and hence this is not differentiable or compilable
+    using jax.
 
     If ``t_eval is None`` returns ``t_span`` with no modification.
 
@@ -192,39 +191,49 @@ def trim_t_results_jax(
     peculiarities in :func:`jax_odeint`.
 
     Args:
-        results: Result object, assumed to contain solution at time points
-                 from the output of ``merge_t_args_jax(t_span, t_eval)``.
+        results: Result object, assumed to contain solution at time points from the output of
+            ``merge_t_args_jax(t_span, t_eval)``.
         t_eval: Time points to include in returned results.
 
     Returns:
-        OdeResult: Results with only times/solutions in ``t_eval``. If ``t_eval``
-                   is ``None``, does nothing, returning solver default output.
+        OdeResult: Results with only times/solutions in ``t_eval``. If ``t_eval`` is ``None``,
+            returns solver default output, with an additional correction for the possibility of
+            ``t_span == [a, a]``.
     """
 
-    if t_eval is None:
-        return results
+    if t_eval is not None:
+        # remove second entry if t_eval[0] == results.t[0], as this indicates a repeated time
+        results.y = Array(
+            cond(
+                t_eval[0] == results.t[0],
+                lambda y: jnp.append(jnp.array([y[0]]), y[2:], axis=0),
+                lambda y: y[1:],
+                Array(results.y).data,
+            )
+        )
 
-    # remove second entry if t_eval[0] == results.t[0], as this indicates this was a repeated time
+        # remove second last entry if t_eval[-1] == results.t[-1], as this indicates a repeated time
+        results.y = Array(
+            cond(
+                t_eval[-1] == results.t[-1],
+                lambda y: jnp.append(y[:-2], jnp.array([y[-1]]), axis=0),
+                lambda y: y[:-1],
+                Array(results.y).data,
+            )
+        )
+
+        results.t = Array(t_eval)
+
+    # this handles the odd case that t_span == [a, a]
     results.y = Array(
         cond(
-            t_eval[0] == results.t[0],
-            lambda y: jnp.append(jnp.array([y[0]]), y[2:], axis=0),
-            lambda y: y[1:],
+            results.t[0] == results.t[-1],
+            lambda y: y.at[-1].set(y[0]),
+            lambda y: y,
             Array(results.y).data,
         )
     )
 
-    # remove second last entry if t_eval[-1] == results.t[-1], as this indicates a repeated time
-    results.y = Array(
-        cond(
-            t_eval[-1] == results.t[-1],
-            lambda y: jnp.append(y[:-2], jnp.array([y[-1]]), axis=0),
-            lambda y: y[:-1],
-            Array(results.y).data,
-        )
-    )
-
-    results.t = Array(t_eval)
     return results
 
 

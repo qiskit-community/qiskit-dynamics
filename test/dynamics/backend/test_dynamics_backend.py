@@ -19,7 +19,8 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError, pulse, QuantumCircuit
-from qiskit.transpiler import Target
+from qiskit.circuit.library import XGate
+from qiskit.transpiler import Target, InstructionProperties
 from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
@@ -341,8 +342,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
 
         target = Target()
-        inst_sched_map = target.instruction_schedule_map()
-        inst_sched_map.add("x", qubits=0, schedule=x_sched0)
+        target.add_instruction(XGate(), {(0,): InstructionProperties(calibration=x_sched0)})
 
         backend = DynamicsBackend(solver=self.simple_solver, target=target)
 
@@ -506,6 +506,26 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         channel = channel[0]
         self.assertTrue(isinstance(channel, pulse.ControlChannel))
         self.assertTrue(channel.index == 1)
+
+    def test_metadata_transfer(self):
+        """Test that circuit metadata is correctly stored in the result object."""
+
+        solver = Solver(static_hamiltonian=np.diag([-1.0, 0.0, 1.0]), dt=0.1)
+        qutrit_backend = DynamicsBackend(
+            solver=solver, max_outcome_level=None, initial_state=Statevector([0.0, 0.0, 1.0])
+        )
+
+        circ0 = QuantumCircuit(1, 1, metadata={"key0": "value0"})
+        circ0.measure([0], [0])
+        circ1 = QuantumCircuit(1, 1, metadata={"key1": "value1"})
+        circ1.measure([0], [0])
+
+        res = qutrit_backend.run([circ0, circ1]).result()
+
+        self.assertDictEqual(res.get_counts(0), {"2": 1024})
+        self.assertDictEqual(res.results[0].header.metadata, {"key0": "value0"})
+        self.assertDictEqual(res.get_counts(1), {"2": 1024})
+        self.assertDictEqual(res.results[1].header.metadata, {"key1": "value1"})
 
 
 class Test_default_experiment_result_function(QiskitDynamicsTestCase):
