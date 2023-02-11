@@ -33,8 +33,8 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         """Setup the tests."""
 
         super().setUp()
-        # Typical length of samples in units of dt in IBM real backends is 0.222.
-        self._dt = 0.222
+        # Typical length of samples in units of dt in IBM real backends is 1/4.5.
+        self._dt = 1 / 4.5
 
     def test_pulse_to_signals(self):
         """Generic test."""
@@ -312,8 +312,8 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
 
         super().setUp()
 
-        # Typical length of samples in units of dt in IBM real backends is 0.222.
-        self._dt = 0.222
+        # Typical length of samples in units of dt in IBM real backends is 1/4.5.
+        self._dt = 1 / 4.5
 
         # Drags on all qubits, then two CRs, then readout all qubits.
         with pulse.build(name="test schedule") as schedule:
