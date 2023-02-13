@@ -560,8 +560,8 @@ def _get_acquire_instruction_timings(
     ``valid_subsystem_labels``.
 
     Args:
-        schedules: A list of schedules. 
-        valid_subsystem_labels: Valid acquire channel indices. 
+        schedules: A list of schedules.
+        valid_subsystem_labels: Valid acquire channel indices.
         dt: The sample size.
     Returns:
         A tuple of lists containing, for each schedule: the list of integration intervals required
@@ -572,7 +572,7 @@ def _get_acquire_instruction_timings(
         QiskitError: If a schedule contains no measurement, if a schedule contains measurements at
             different times, or if a measurement has an invalid subsystem label.
     """
-    acquire_time_list = []
+    t_span_list = []
     measurement_subsystems_list = []
     memory_slot_indices_list = []
     for schedule in schedules:
@@ -595,8 +595,8 @@ def _get_acquire_instruction_timings(
             if acquire_time != schedule_acquire_times[0]:
                 raise QiskitError("DynamicsBackend.run only supports measurements at one time.")
 
-        # use dt to convert acquire start time from samples to to the integration interval
-        t_span_list.append([0.0, dt*schedule_acquire_times[0]])
+        # use dt to convert acquire start time from sample index to the integration interval
+        t_span_list.append([0.0, dt * schedule_acquire_times[0]])
         measurement_subsystems = []
         memory_slot_indices = []
         for inst in schedule_acquires:
