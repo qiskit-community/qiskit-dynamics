@@ -613,10 +613,7 @@ def _get_acquire_instruction_timings(
         measurement_subsystems_list.append(measurement_subsystems)
         memory_slot_indices_list.append(memory_slot_indices)
 
-    # convert acquire start times specified as samples to the integration interval
-    t_span = [[0.0, x * dt] for x in acquire_time_list]
-
-    return t_span, measurement_subsystems_list, memory_slot_indices_list
+    return t_span_list, measurement_subsystems_list, memory_slot_indices_list
 
 
 def _to_schedule_list(
