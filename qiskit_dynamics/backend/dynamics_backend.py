@@ -595,7 +595,8 @@ def _get_acquire_instruction_timings(
             if acquire_time != schedule_acquire_times[0]:
                 raise QiskitError("DynamicsBackend.run only supports measurements at one time.")
 
-        acquire_time_list.append(schedule_acquire_times[0])
+        # use dt to convert acquire start time from samples to to the integration interval
+        t_span_list.append([0.0, dt*schedule_acquire_times[0]])
         measurement_subsystems = []
         memory_slot_indices = []
         for inst in schedule_acquires:
