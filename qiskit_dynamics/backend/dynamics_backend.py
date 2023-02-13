@@ -311,8 +311,7 @@ class DynamicsBackend(BackendV2):
             memory_slot_indices_list,
         ) = _get_acquire_data(schedules, backend.options.subsystem_labels)
 
-        dt = self.options.solver._dt
-        t_span = [[0.0, x * dt] for x in acquire_time_list]
+        t_span = [[0.0, x * self.options.solver._dt] for x in acquire_time_list]
 
         # Build and submit job
         job_id = str(uuid.uuid4())
