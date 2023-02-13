@@ -564,7 +564,7 @@ def _get_acquire_instruction_timings(
         valid_subsystem_labels: Valid acquire channel indices. 
         dt: The sample size.
     Returns:
-        A Tuple of Lists containing, for each schedule: the list of integration intervals required
+        A tuple of lists containing, for each schedule: the list of integration intervals required
         for each schedule (in absolute time, from 0.0 to the beginning of the acquire instructions),
         a list of the subsystems being measured, and a list of the memory slots indices in which to
         store the results of each subsystem measurement.
