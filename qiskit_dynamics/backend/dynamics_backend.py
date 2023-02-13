@@ -306,12 +306,12 @@ class DynamicsBackend(BackendV2):
 
         # get the acquires sample times and subsystem measurement information
         (
-            acquire_time_list,
+            t_span,
             measurement_subsystems_list,
             memory_slot_indices_list,
-        ) = _get_acquire_data(schedules, backend.options.subsystem_labels)
-
-        t_span = [[0.0, x * self.options.solver._dt] for x in acquire_time_list]
+        ) = _get_acquire_instruction_timings(
+            schedules, backend.options.subsystem_labels, backend.options.solver._dt
+        )
 
         # Build and submit job
         job_id = str(uuid.uuid4())
@@ -550,9 +550,9 @@ def _validate_run_input(run_input, accept_list=True):
         raise QiskitError(f"Input type {type(run_input)} not supported by DynamicsBackend.run.")
 
 
-def _get_acquire_data(
-    schedules: List[Schedule], valid_subsystem_labels: List[int]
-) -> Tuple[List[int], List[List[int]], List[List[int]]]:
+def _get_acquire_instruction_timings(
+    schedules: List[Schedule], valid_subsystem_labels: List[int], dt: float
+) -> Tuple[List[List[float]], List[List[int]], List[List[int]]]:
     """Get the required data from the acquire commands in each schedule.
 
     Additionally validates that each schedule has acquire instructions occurring at one time, at
@@ -560,12 +560,13 @@ def _get_acquire_data(
     ``valid_subsystem_labels``.
 
     Args:
-        schedules: A list of ``Schedule`` instances.
-        valid_subsystem_labels: Valid acquire channel indices.
+        schedules: A list of ``Schedule`` instances. valid_subsystem_labels: Valid acquire channel
+        indices. dt: The sample size.
     Returns:
-        A Tuple of Lists containing, for each schedule: the sample time at which the acquire
-        instruction occurs, a list of the subsystems being measured, and a list of the memory slots
-        indices in which to store the results of each subsystem measurement.
+        A Tuple of Lists containing, for each schedule: the list of integration intervals required
+        for each schedule (in absolute time, from 0.0 to the beginning of the acquire instructions),
+        a list of the subsystems being measured, and a list of the memory slots indices in which to
+        store the results of each subsystem measurement.
     Raises:
         QiskitError: If a schedule contains no measurement, if a schedule contains measurements at
             different times, or if a measurement has an invalid subsystem label.
@@ -610,7 +611,10 @@ def _get_acquire_data(
         measurement_subsystems_list.append(measurement_subsystems)
         memory_slot_indices_list.append(memory_slot_indices)
 
-    return acquire_time_list, measurement_subsystems_list, memory_slot_indices_list
+    # convert acquire start times specified as samples to the integration interval
+    t_span = [[0.0, x * dt] for x in acquire_time_list]
+
+    return t_span, measurement_subsystems_list, memory_slot_indices_list
 
 
 def _to_schedule_list(
