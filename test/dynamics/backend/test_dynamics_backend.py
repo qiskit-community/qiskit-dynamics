@@ -261,7 +261,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         result = self.simple_backend.run(
             schedule, seed_simulator=398472, initial_state=DensityMatrix([1.0, 0.0])
         ).result()
-        self.assertDictEqual(result.get_counts(), {"0": 505, "1": 519})
+        self.assertDictEqual(result.get_counts(), {"0": 513, "1": 511})
 
         result = result = self.simple_backend.run(
             schedule,
@@ -272,7 +272,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         ).result()
 
         counts = self.iq_to_counts(result.get_memory())
-        self.assertDictEqual(counts, {"0": 499, "1": 525})
+        self.assertDictEqual(counts, {"0": 510, "1": 514})
 
     def test_pi_half_pulse_relabelled(self):
         """Test simulation of a pi/2 pulse with qubit relabelled."""
@@ -285,7 +285,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
                 pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(1))
 
         result = self.simple_backend.run(schedule, seed_simulator=398472).result()
-        self.assertDictEqual(result.get_counts(), {"00": 505, "10": 519})
+        self.assertDictEqual(result.get_counts(), {"00": 513, "10": 511})
 
     def test_circuit_with_pulse_defs(self):
         """Test simulating a circuit with pulse definitions."""

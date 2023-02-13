@@ -90,7 +90,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, self.Z + self.X)
-    
+
     @unpack
     @data(("dense",), ("sparse",))
     def test_HamiltonianModel_diagonal(self, evaluation_mode):
@@ -140,7 +140,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, self.Z + self.X)
-    
+
     @unpack
     @data(("dense",), ("sparse",), ("dense_vectorized",), ("sparse_vectorized",))
     def test_LindbladModel_diagonal(self, evaluation_mode):
