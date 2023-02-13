@@ -560,8 +560,9 @@ def _get_acquire_instruction_timings(
     ``valid_subsystem_labels``.
 
     Args:
-        schedules: A list of ``Schedule`` instances. valid_subsystem_labels: Valid acquire channel
-        indices. dt: The sample size.
+        schedules: A list of schedules. 
+        valid_subsystem_labels: Valid acquire channel indices. 
+        dt: The sample size.
     Returns:
         A Tuple of Lists containing, for each schedule: the list of integration intervals required
         for each schedule (in absolute time, from 0.0 to the beginning of the acquire instructions),
