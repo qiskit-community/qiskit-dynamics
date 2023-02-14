@@ -93,6 +93,20 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
 
     @unpack
     @data(("dense",), ("sparse",))
+    def test_HamiltonianModel_diagonal(self, evaluation_mode):
+        """Test correct functioning on HamiltonianModel with explicitly diagonal frame."""
+        model = HamiltonianModel(
+            static_operator=self.Z + self.X,
+            operators=[self.X],
+            rotating_frame=np.diag(self.Z),
+            evaluation_mode=evaluation_mode,
+        )
+
+        output = _get_lab_frame_static_hamiltonian(model)
+        self.assertAllClose(output, self.Z + self.X)
+
+    @unpack
+    @data(("dense",), ("sparse",))
     def test_HamiltonianModel_lab_frame(self, evaluation_mode):
         """Test correct functioning on HamiltonianModel if no rotating frame."""
         model = HamiltonianModel(
@@ -121,6 +135,21 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
             static_hamiltonian=self.Z + self.X,
             hamiltonian_operators=[self.X],
             rotating_frame=self.X,
+            evaluation_mode=evaluation_mode,
+        )
+
+        output = _get_lab_frame_static_hamiltonian(model)
+        self.assertAllClose(output, self.Z + self.X)
+
+    @unpack
+    @data(("dense",), ("sparse",), ("dense_vectorized",), ("sparse_vectorized",))
+    def test_LindbladModel_diagonal(self, evaluation_mode):
+        """Test correct functioning on LindbladModel with explicitly diagonal frame."""
+
+        model = LindbladModel(
+            static_hamiltonian=self.Z + self.X,
+            hamiltonian_operators=[self.X],
+            rotating_frame=np.diag(self.Z),
             evaluation_mode=evaluation_mode,
         )
 
