@@ -104,8 +104,9 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
 
-        for idx in range(10):
-            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * 1.0 * self._dt))
+        self.assertAllClose(
+            signals[0].samples, [np.exp(2.0j * idx * np.pi * 1.0 * self._dt) for idx in range(10)]
+        )
 
     def test_set_frequency(self):
         """Test that SetFrequency is properly converted."""
@@ -117,8 +118,9 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
 
-        for idx in range(10):
-            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * self._dt))
+        self.assertAllClose(
+            signals[0].samples, [np.exp(2.0j * idx * np.pi * -1.0 * self._dt) for idx in range(10)]
+        )
 
     def test_set_and_shift_frequency(self):
         """Test that ShiftFrequency after SetFrequency is properly converted. It confirms
