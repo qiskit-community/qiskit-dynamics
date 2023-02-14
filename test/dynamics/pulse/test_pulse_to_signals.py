@@ -18,23 +18,6 @@ import numpy as np
 import sympy as sym
 
 from qiskit import pulse
-from qiskit.pulse import (
-    Schedule,
-    DriveChannel,
-    ControlChannel,
-    MeasureChannel,
-    Play,
-    Delay,
-    Drag,
-    ShiftFrequency,
-    SetFrequency,
-    GaussianSquare,
-    ShiftPhase,
-    Gaussian,
-    Constant,
-    Waveform,
-    SymbolicPulse,
-)
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit import QiskitError
 
@@ -57,15 +40,21 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_pulse_to_signals(self):
         """Generic test."""
 
-        sched = Schedule(name="Schedule")
-        sched += Play(Drag(duration=20, amp=0.5, sigma=4, beta=0.5), DriveChannel(0))
-        sched += ShiftPhase(1.0, DriveChannel(0))
-        sched += Play(Drag(duration=20, amp=0.5, sigma=4, beta=0.5), DriveChannel(0))
-        sched += ShiftFrequency(0.5, DriveChannel(0))
-        sched += Play(GaussianSquare(duration=200, amp=0.3, sigma=4, width=150), DriveChannel(0))
+        sched = pulse.Schedule(name="Schedule")
+        sched += pulse.Play(
+            pulse.Drag(duration=20, amp=0.5, sigma=4, beta=0.5), pulse.DriveChannel(0)
+        )
+        sched += pulse.ShiftPhase(1.0, pulse.DriveChannel(0))
+        sched += pulse.Play(
+            pulse.Drag(duration=20, amp=0.5, sigma=4, beta=0.5), pulse.DriveChannel(0)
+        )
+        sched += pulse.ShiftFrequency(0.5, pulse.DriveChannel(0))
+        sched += pulse.Play(
+            pulse.GaussianSquare(duration=200, amp=0.3, sigma=4, width=150), pulse.DriveChannel(0)
+        )
 
-        test_gaussian = GaussianSquare(duration=200, amp=0.3, sigma=4, width=150)
-        sched = sched.insert(0, Play(test_gaussian, DriveChannel(1)))
+        test_gaussian = pulse.GaussianSquare(duration=200, amp=0.3, sigma=4, width=150)
+        sched = sched.insert(0, pulse.Play(test_gaussian, pulse.DriveChannel(1)))
 
         converter = InstructionToSignals(dt=1, carriers=None)
 
@@ -81,11 +70,11 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_shift_phase_to_signals(self):
         """Test that a shift phase gives negative envelope."""
 
-        gaussian = Gaussian(duration=20, amp=0.5, sigma=4)
+        gaussian = pulse.Gaussian(duration=20, amp=0.5, sigma=4)
 
-        sched = Schedule(name="Schedule")
-        sched += ShiftPhase(np.pi, DriveChannel(0))
-        sched += Play(gaussian, DriveChannel(0))
+        sched = pulse.Schedule(name="Schedule")
+        sched += pulse.ShiftPhase(np.pi, pulse.DriveChannel(0))
+        sched += pulse.Play(gaussian, pulse.DriveChannel(0))
 
         converter = InstructionToSignals(dt=1, carriers=None)
         signals = converter.get_signals(sched)
@@ -96,8 +85,8 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_carriers_and_dt(self):
         """Test that the carriers go into the signals."""
 
-        sched = Schedule(name="Schedule")
-        sched += Play(Gaussian(duration=20, amp=0.5, sigma=4), DriveChannel(0))
+        sched = pulse.Schedule(name="Schedule")
+        sched += pulse.Play(pulse.Gaussian(duration=20, amp=0.5, sigma=4), pulse.DriveChannel(0))
 
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.5e9})
         signals = converter.get_signals(sched)
@@ -109,9 +98,9 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_shift_frequency(self):
         """Test that the frequency is properly taken into account."""
 
-        sched = Schedule()
-        sched += ShiftFrequency(1.0, DriveChannel(0))
-        sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
+        sched = pulse.Schedule()
+        sched += pulse.ShiftFrequency(1.0, pulse.DriveChannel(0))
+        sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
 
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
@@ -122,9 +111,9 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_set_frequency(self):
         """Test that SetFrequency is properly converted."""
 
-        sched = Schedule()
-        sched += SetFrequency(4.0, DriveChannel(0))
-        sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
+        sched = pulse.Schedule()
+        sched += pulse.SetFrequency(4.0, pulse.DriveChannel(0))
+        sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
 
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
@@ -137,13 +126,13 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         implementation of phase accumulation is correct."""
 
         duration = 20
-        sched = Schedule()
-        sched += SetFrequency(5.5, DriveChannel(0))
-        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
-        sched += SetFrequency(6, DriveChannel(0))
-        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
-        sched += ShiftFrequency(-0.5, DriveChannel(0))
-        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
+        sched = pulse.Schedule()
+        sched += pulse.SetFrequency(5.5, pulse.DriveChannel(0))
+        sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
+        sched += pulse.SetFrequency(6, pulse.DriveChannel(0))
+        sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
+        sched += pulse.ShiftFrequency(-0.5, pulse.DriveChannel(0))
+        sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
 
         freq_shift = 0.5
         phase_accumulation = 0.0
@@ -181,10 +170,10 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_delay(self):
         """Test that Delay is properly reflected."""
 
-        sched = Schedule()
-        sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
-        sched += Delay(10, DriveChannel(0))
-        sched += Play(Constant(duration=10, amp=1.0), DriveChannel(0))
+        sched = pulse.Schedule()
+        sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
+        sched += pulse.Delay(10, pulse.DriveChannel(0))
+        sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
 
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
@@ -197,11 +186,11 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         It confirms implementation of phase accumulation is correct."""
 
         duration = 20
-        sched = Schedule()
-        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
-        sched += ShiftFrequency(1.0, DriveChannel(0))
-        sched += Delay(duration, DriveChannel(0))
-        sched += Play(Constant(duration=duration, amp=1.0), DriveChannel(0))
+        sched = pulse.Schedule()
+        sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
+        sched += pulse.ShiftFrequency(1.0, pulse.DriveChannel(0))
+        sched += pulse.Delay(duration, pulse.DriveChannel(0))
+        sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
 
         freq_shift = 1.0
         phase_accumulation = -1.0 * duration * self._dt
@@ -225,9 +214,9 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_uneven_pulse_length(self):
         """Test conversion when length of pulses on a schedule is uneven."""
 
-        schedule = Schedule()
-        schedule |= Play(Waveform(np.ones(10)), DriveChannel(0))
-        schedule += Play(Constant(20, 1), DriveChannel(1))
+        schedule = pulse.Schedule()
+        schedule |= pulse.Play(pulse.Waveform(np.ones(10)), pulse.DriveChannel(0))
+        schedule += pulse.Play(pulse.Constant(20, 1), pulse.DriveChannel(1))
 
         converter = InstructionToSignals(dt=0.1, carriers={"d0": 2.0, "d1": 3.0})
 
@@ -422,15 +411,19 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
             with pulse.align_sequential():
                 with pulse.align_left():
                     for chan_idx in [0, 1, 2, 3]:
-                        pulse.play(Drag(160, 0.5, 40, 0.1), DriveChannel(chan_idx))
+                        pulse.play(pulse.Drag(160, 0.5, 40, 0.1), pulse.DriveChannel(chan_idx))
 
                 with pulse.align_sequential():
                     for chan_idx in [0, 1]:
-                        pulse.play(GaussianSquare(660, 0.2, 40, 500), ControlChannel(chan_idx))
+                        pulse.play(
+                            pulse.GaussianSquare(660, 0.2, 40, 500), pulse.ControlChannel(chan_idx)
+                        )
 
                 with pulse.align_left():
                     for chan_idx in [0, 1, 2, 3]:
-                        pulse.play(GaussianSquare(660, 0.2, 40, 500), MeasureChannel(chan_idx))
+                        pulse.play(
+                            pulse.GaussianSquare(660, 0.2, 40, 500), pulse.MeasureChannel(chan_idx)
+                        )
 
         self._schedule = block_to_schedule(schedule)
 

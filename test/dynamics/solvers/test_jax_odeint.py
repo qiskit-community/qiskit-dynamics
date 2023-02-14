@@ -33,7 +33,6 @@ class TestJaxOdeint(QiskitDynamicsTestCase, TestJaxBase):
     """Test cases for jax_odeint."""
 
     def setUp(self):
-
         # pylint: disable=unused-argument
         def simple_rhs(t, y):
             return cond(t < 1.0, lambda s: s, lambda s: s**2, jnp.array([t]))
@@ -170,3 +169,9 @@ class TestJaxOdeint(QiskitDynamicsTestCase, TestJaxBase):
         self.assertAllClose(
             self.jit_grad_wrap(sim_function)(2.0), 4 * (0.5 + (2.0**3 - 1.0**3) / 3)
         )
+
+    def test_empty_integration(self):
+        """Test case for if t_span==[0., 0.]."""
+
+        result = jax_odeint(rhs=self.simple_rhs, t_span=np.array([0.0, 0.0]), y0=np.array([2.1]))
+        self.assertAllClose(result.y, jnp.array([[2.1], [2.1]]))

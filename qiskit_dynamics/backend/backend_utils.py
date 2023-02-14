@@ -29,7 +29,7 @@ from qiskit_dynamics.type_utils import to_array
 
 
 def _get_dressed_state_decomposition(
-    operator: np.ndarray, rtol=1e-8, atol=1e-8
+    operator: np.ndarray, rtol=1e-8, atol=1e-5
 ) -> Union[Dict[str, np.ndarray], List[float], Dict[str, float]]:
     """Get the eigenvalues and eigenvectors of a nearly-diagonal hermitian operator, sorted
     according to overlap with the elementary basis.
@@ -63,7 +63,6 @@ def _get_dressed_state_decomposition(
 
     found_positions = []
     for eigval, evec in zip(evals, evecs.transpose()):
-
         position = np.argmax(np.abs(evec))
         if position in found_positions:
             raise QiskitError(

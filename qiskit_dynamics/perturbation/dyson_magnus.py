@@ -523,7 +523,6 @@ def _get_dyson_like_lmult_rule(
     lmult_rule = [(np.array([1.0]), np.array([[-1, -1]]))]
 
     for term_idx, term in enumerate(complete_dyson_indices):
-
         if len(term) == 1:
             l_idx = generator_indices.index(term[0])
             lmult_rule.append((np.array([1.0, 1.0]), np.array([[-1, term_idx], [l_idx, -1]])))
@@ -757,7 +756,6 @@ def _q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
 
         return [(coeffs, np.array(products))]
     else:
-
         # construct a list of products
         # need to consider all possible sub-multisets of the Multiset index in q_term
         products = []
@@ -836,7 +834,6 @@ def _get_dyson_lmult_rule(
     lmult_rule = [(np.array([1.0]), np.array([[-1, -1]]))]
 
     for term_idx, term in enumerate(complete_index_multisets):
-
         if len(term) == 1:
             lmult_rule.append((np.array([1.0, 1.0]), np.array([[-1, term_idx], [term_idx, -1]])))
         else:

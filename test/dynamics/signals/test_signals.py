@@ -387,7 +387,6 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         )
 
     def test_envelope(self):
-
         """Test envelope evaluation."""
         self.assertAllClose(self.discrete1.envelope(1.5), 0.0)
         self.assertAllClose(self.discrete1.envelope(0.0), 1.0)
