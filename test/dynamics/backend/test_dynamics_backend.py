@@ -31,7 +31,10 @@ from qiskit.providers.models.backendconfiguration import UchannelLO
 from qiskit_dynamics import Solver, DynamicsBackend
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.backend import default_experiment_result_function
-from qiskit_dynamics.backend.dynamics_backend import _get_acquire_instruction_timings, _get_backend_channel_freqs
+from qiskit_dynamics.backend.dynamics_backend import (
+    _get_acquire_instruction_timings,
+    _get_backend_channel_freqs,
+)
 from ..common import QiskitDynamicsTestCase
 
 
