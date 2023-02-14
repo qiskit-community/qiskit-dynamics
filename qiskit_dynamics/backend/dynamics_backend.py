@@ -20,7 +20,7 @@ Pulse-enabled simulator backend.
 import datetime
 import uuid
 
-from typing import List, Optional, Union, Tuple, Dict
+from typing import List, Optional, Union, Dict, Tuple
 import copy
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
@@ -315,9 +315,13 @@ class DynamicsBackend(BackendV2):
 
         schedules, num_memory_slots_list = _to_schedule_list(run_input, backend=backend)
 
-        # get the acquires instructions and simulation times
-        t_span, measurement_subsystems_list, memory_slot_indices_list = _get_acquire_data(
-            schedules, backend.options.subsystem_labels
+        # get the acquires sample times and subsystem measurement information
+        (
+            t_span,
+            measurement_subsystems_list,
+            memory_slot_indices_list,
+        ) = _get_acquire_instruction_timings(
+            schedules, backend.options.subsystem_labels, backend.options.solver._dt
         )
 
         # Build and submit job
@@ -611,12 +615,27 @@ def _validate_run_input(run_input, accept_list=True):
         raise QiskitError(f"Input type {type(run_input)} not supported by DynamicsBackend.run.")
 
 
-def _get_acquire_data(schedules, valid_subsystem_labels):
+def _get_acquire_instruction_timings(
+    schedules: List[Schedule], valid_subsystem_labels: List[int], dt: float
+) -> Tuple[List[List[float]], List[List[int]], List[List[int]]]:
     """Get the required data from the acquire commands in each schedule.
 
-    Additionally validates that each schedule has acquire instructions occurring at one time,
-    at least one memory slot is being listed, and all measured subsystems exist in
-    subsystem_labels.
+    Additionally validates that each schedule has acquire instructions occurring at one time, at
+    least one memory slot is being listed, and all measured subsystems exist in
+    ``valid_subsystem_labels``.
+
+    Args:
+        schedules: A list of schedules.
+        valid_subsystem_labels: Valid acquire channel indices.
+        dt: The sample size.
+    Returns:
+        A tuple of lists containing, for each schedule: the list of integration intervals required
+        for each schedule (in absolute time, from 0.0 to the beginning of the acquire instructions),
+        a list of the subsystems being measured, and a list of the memory slots indices in which to
+        store the results of each subsystem measurement.
+    Raises:
+        QiskitError: If a schedule contains no measurement, if a schedule contains measurements at
+            different times, or if a measurement has an invalid subsystem label.
     """
     t_span_list = []
     measurement_subsystems_list = []
@@ -641,7 +660,8 @@ def _get_acquire_data(schedules, valid_subsystem_labels):
             if acquire_time != schedule_acquire_times[0]:
                 raise QiskitError("DynamicsBackend.run only supports measurements at one time.")
 
-        t_span_list.append([0, schedule_acquire_times[0]])
+        # use dt to convert acquire start time from sample index to the integration interval
+        t_span_list.append([0.0, dt * schedule_acquire_times[0]])
         measurement_subsystems = []
         memory_slot_indices = []
         for inst in schedule_acquires:
