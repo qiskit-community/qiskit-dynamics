@@ -338,7 +338,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         self.assertAllClose(signals[0].samples, gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
 
 
-class TestJaxGetSamples(QiskitDynamicsTestCase, TestJaxBase):
+class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
     """Tests get_samples function by using Jax."""
 
     def setUp(self):
