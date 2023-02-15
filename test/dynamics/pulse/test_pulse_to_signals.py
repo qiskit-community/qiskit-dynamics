@@ -18,6 +18,7 @@ import numpy as np
 import sympy as sym
 
 from qiskit import pulse
+from qiskit.pulse import Schedule
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit import QiskitError
 
@@ -40,7 +41,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_pulse_to_signals(self):
         """Generic test."""
 
-        sched = pulse.Schedule(name="Schedule")
+        sched = Schedule(name="Schedule")
         sched += pulse.Play(
             pulse.Drag(duration=20, amp=0.5, sigma=4, beta=0.5), pulse.DriveChannel(0)
         )
@@ -72,7 +73,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
 
         gaussian = pulse.Gaussian(duration=20, amp=0.5, sigma=4)
 
-        sched = pulse.Schedule(name="Schedule")
+        sched = Schedule(name="Schedule")
         sched += pulse.ShiftPhase(np.pi, pulse.DriveChannel(0))
         sched += pulse.Play(gaussian, pulse.DriveChannel(0))
 
@@ -85,7 +86,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_carriers_and_dt(self):
         """Test that the carriers go into the signals."""
 
-        sched = pulse.Schedule(name="Schedule")
+        sched = Schedule(name="Schedule")
         sched += pulse.Play(pulse.Gaussian(duration=20, amp=0.5, sigma=4), pulse.DriveChannel(0))
 
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.5e9})
@@ -98,7 +99,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_shift_frequency(self):
         """Test that the frequency is properly taken into account."""
 
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.ShiftFrequency(1.0, pulse.DriveChannel(0))
         sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
 
@@ -111,7 +112,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_set_frequency(self):
         """Test that SetFrequency is properly converted."""
 
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.SetFrequency(4.0, pulse.DriveChannel(0))
         sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
 
@@ -126,7 +127,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         implementation of phase accumulation is correct."""
 
         duration = 20
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.SetFrequency(5.5, pulse.DriveChannel(0))
         sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
         sched += pulse.SetFrequency(6, pulse.DriveChannel(0))
@@ -170,7 +171,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_delay(self):
         """Test that Delay is properly reflected."""
 
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
         sched += pulse.Delay(10, pulse.DriveChannel(0))
         sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
@@ -186,7 +187,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         It confirms implementation of phase accumulation is correct."""
 
         duration = 20
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
         sched += pulse.ShiftFrequency(1.0, pulse.DriveChannel(0))
         sched += pulse.Delay(duration, pulse.DriveChannel(0))
@@ -214,7 +215,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_uneven_pulse_length(self):
         """Test conversion when length of pulses on a schedule is uneven."""
 
-        schedule = pulse.Schedule()
+        schedule = Schedule()
         schedule |= pulse.Play(pulse.Waveform(np.ones(10)), pulse.DriveChannel(0))
         schedule += pulse.Play(pulse.Constant(20, 1), pulse.DriveChannel(1))
 
@@ -340,7 +341,7 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
             valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
             # we can use only SymbolicPulse when jax-jitting
             # bacause jax-jitting doesn't correspond to validate_parameters in qiskit.pulse.
-            instance = SymbolicPulse(
+            instance = pulse.SymbolicPulse(
                 pulse_type="Constant",
                 duration=5,
                 parameters=parameters,
@@ -368,7 +369,7 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
                 (1, sym.And(_time >= 0, _time <= _duration)), (0, True)
             )
             valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
-            instance = SymbolicPulse(
+            instance = pulse.SymbolicPulse(
                 pulse_type="Constant",
                 duration=5,
                 parameters=parameters,
