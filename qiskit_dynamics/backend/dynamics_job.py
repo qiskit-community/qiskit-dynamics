@@ -13,6 +13,7 @@
 """This module implements the job class used for DynamicsBackend objects."""
 
 from typing import Callable, Dict
+from datetime import datetime
 
 from qiskit.providers.backend import Backend
 from qiskit.providers import JobV1 as Job
@@ -40,6 +41,7 @@ class DynamicsJob(Job):
         self._fn = fn
         self._fn_kwargs = fn_kwargs
         self._result = None
+        self._time_per_step = {"CREATED": datetime.now()}
 
     def submit(self):
         """Run the simulation.
@@ -50,12 +52,13 @@ class DynamicsJob(Job):
         if self._result is not None:
             raise JobError("Dynamics job has already been submitted.")
         self._result = self._fn(job_id=self.job_id(), **self._fn_kwargs)
+        self._time_per_step["COMPLETED"] = datetime.now()
 
     def result(self):
         """Get job result.
 
         Returns:
-            qiskit.Result: Result object
+            qiskit.Result: Result object.
 
         Raises:
             JobError: If job has not been submitted.
@@ -74,3 +77,11 @@ class DynamicsJob(Job):
             return JobStatus.INITIALIZING
 
         return JobStatus.DONE
+
+    def time_per_step(self) -> Dict:
+        """Return the date and time information on each step of the job processing.
+
+        Returns:
+            Dict for time of creation and time of completion of job.
+        """
+        return self._time_per_step

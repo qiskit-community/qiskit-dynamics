@@ -19,12 +19,14 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError, pulse, QuantumCircuit
-from qiskit.transpiler import Target
+from qiskit.circuit.library import XGate
+from qiskit.transpiler import Target, InstructionProperties
 from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
 from qiskit_dynamics import Solver, DynamicsBackend
 from qiskit_dynamics.backend import default_experiment_result_function
+from qiskit_dynamics.backend.dynamics_backend import _get_acquire_instruction_timings
 from ..common import QiskitDynamicsTestCase
 
 
@@ -260,7 +262,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         result = self.simple_backend.run(
             schedule, seed_simulator=398472, initial_state=DensityMatrix([1.0, 0.0])
         ).result()
-        self.assertDictEqual(result.get_counts(), {"0": 505, "1": 519})
+        self.assertDictEqual(result.get_counts(), {"0": 513, "1": 511})
 
         result = result = self.simple_backend.run(
             schedule,
@@ -271,7 +273,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         ).result()
 
         counts = self.iq_to_counts(result.get_memory())
-        self.assertDictEqual(counts, {"0": 499, "1": 525})
+        self.assertDictEqual(counts, {"0": 510, "1": 514})
 
     def test_pi_half_pulse_relabelled(self):
         """Test simulation of a pi/2 pulse with qubit relabelled."""
@@ -284,7 +286,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
                 pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(1))
 
         result = self.simple_backend.run(schedule, seed_simulator=398472).result()
-        self.assertDictEqual(result.get_counts(), {"00": 505, "10": 519})
+        self.assertDictEqual(result.get_counts(), {"00": 513, "10": 511})
 
     def test_circuit_with_pulse_defs(self):
         """Test simulating a circuit with pulse definitions."""
@@ -310,8 +312,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
 
         target = Target()
-        inst_sched_map = target.instruction_schedule_map()
-        inst_sched_map.add("x", qubits=0, schedule=x_sched0)
+        target.add_instruction(XGate(), {(0,): InstructionProperties(calibration=x_sched0)})
 
         backend = DynamicsBackend(solver=self.simple_solver, target=target)
 
@@ -456,6 +457,26 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         ).result()
         self.assertDictEqual(result.get_counts(), {"3": 1})
 
+    def test_metadata_transfer(self):
+        """Test that circuit metadata is correctly stored in the result object."""
+
+        solver = Solver(static_hamiltonian=np.diag([-1.0, 0.0, 1.0]), dt=0.1)
+        qutrit_backend = DynamicsBackend(
+            solver=solver, max_outcome_level=None, initial_state=Statevector([0.0, 0.0, 1.0])
+        )
+
+        circ0 = QuantumCircuit(1, 1, metadata={"key0": "value0"})
+        circ0.measure([0], [0])
+        circ1 = QuantumCircuit(1, 1, metadata={"key1": "value1"})
+        circ1.measure([0], [0])
+
+        res = qutrit_backend.run([circ0, circ1]).result()
+
+        self.assertDictEqual(res.get_counts(0), {"2": 1024})
+        self.assertDictEqual(res.results[0].header.metadata, {"key0": "value0"})
+        self.assertDictEqual(res.get_counts(1), {"2": 1024})
+        self.assertDictEqual(res.results[1].header.metadata, {"key1": "value1"})
+
 
 class Test_default_experiment_result_function(QiskitDynamicsTestCase):
     """Test default_experiment_result_function."""
@@ -494,3 +515,34 @@ class Test_default_experiment_result_function(QiskitDynamicsTestCase):
         )
 
         self.assertDictEqual(output.data.counts, {"000": 513, "010": 511})
+
+
+class Test_get_acquire_instruction_timings(QiskitDynamicsTestCase):
+    """Tests for _get_acquire_instruction_timings behaviour not covered by DynamicsBackend tests."""
+
+    def test_correct_t_span(self):
+        """Validate correct t_span value."""
+        with pulse.build() as schedule0:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 104), pulse.DriveChannel(0))
+                pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(1))
+                pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
+
+        with pulse.build() as schedule1:
+            with pulse.align_right():
+                pulse.play(pulse.Waveform([1.0] * 100), pulse.DriveChannel(0))
+                pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(1))
+                pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(1))
+
+        dt = 1 / 4.5e9
+        (
+            t_span,
+            measurement_subsystems_list,
+            memory_slot_indices_list,
+        ) = _get_acquire_instruction_timings(
+            schedules=[schedule0, schedule1], valid_subsystem_labels=[0, 1], dt=dt
+        )
+
+        self.assertAllClose(np.array(t_span), np.array([[0.0, 104 * dt], [0.0, 100 * dt]]))
+        self.assertTrue(measurement_subsystems_list == [[0], [1]])
+        self.assertTrue(memory_slot_indices_list == [[0], [1]])
