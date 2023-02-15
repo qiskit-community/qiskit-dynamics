@@ -49,12 +49,14 @@ class InstructionToSignals:
     schedule. The converter applies to instances of :class:`~qiskit.pulse.Schedule`. Instances of
     :class:`~qiskit.pulse.ScheduleBlock` must first be converted to :class:`~qiskit.pulse.Schedule`
     using the :func:`~qiskit.pulse.transforms.block_to_schedule` function in Qiskit Pulse.
+
     The converter can be initialized with the optional arguments ``carriers`` and ``channels``. When
     ``channels`` is given, only the signals specified by name in ``channels`` are returned. The
     ``carriers`` dictionary specifies the analog carrier frequency of each channel. Here, the keys
     are the channel name, e.g. ``d12`` for drive channel number ``12``, and the values are the
     corresponding frequency. If a channel is not present in ``carriers`` it is assumed that the
     analog carrier frequency is zero.
+
     See the :meth:`get_signals` method documentation for a detailed description of how pulse
     schedules are interpreted and translated into :class:`.DiscreteSignal` objects.
     """
