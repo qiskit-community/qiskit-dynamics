@@ -35,8 +35,8 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         """Setup the tests."""
 
         super().setUp()
-        # Typical length of samples in units of dt in IBM real backends is 0.222.
-        self._dt = 0.222
+        # Typical length of samples in units of dt in IBM real backends is 1/4.5.
+        self._dt = 1 / 4.5
 
     def test_pulse_to_signals(self):
         """Generic test."""
@@ -106,8 +106,9 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
 
-        for idx in range(10):
-            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * 1.0 * self._dt))
+        self.assertAllClose(
+            signals[0].samples, [np.exp(2.0j * idx * np.pi * 1.0 * self._dt) for idx in range(10)]
+        )
 
     def test_set_frequency(self):
         """Test that SetFrequency is properly converted."""
@@ -119,8 +120,9 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.0})
         signals = converter.get_signals(sched)
 
-        for idx in range(10):
-            self.assertEqual(signals[0].samples[idx], np.exp(2.0j * idx * np.pi * -1.0 * self._dt))
+        self.assertAllClose(
+            signals[0].samples, [np.exp(2.0j * idx * np.pi * -1.0 * self._dt) for idx in range(10)]
+        )
 
     def test_set_and_shift_frequency(self):
         """Test that ShiftFrequency after SetFrequency is properly converted. It confirms
@@ -404,8 +406,8 @@ class TestPulseToSignalsFiltering(QiskitDynamicsTestCase):
 
         super().setUp()
 
-        # Typical length of samples in units of dt in IBM real backends is 0.222.
-        self._dt = 0.222
+        # Typical length of samples in units of dt in IBM real backends is 1/4.5.
+        self._dt = 1 / 4.5
 
         # Drags on all qubits, then two CRs, then readout all qubits.
         with pulse.build(name="test schedule") as schedule:
