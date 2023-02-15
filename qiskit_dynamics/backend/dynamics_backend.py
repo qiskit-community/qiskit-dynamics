@@ -467,8 +467,7 @@ class DynamicsBackend(BackendV2):
         for x in qubits:
             if x not in self.options.control_channel_map:
                 raise QiskitError(f"Key {x} not in control_channel_map.")
-            idx = self.options.control_channel_map[x]
-            control_channels.append(pulse.ControlChannel(idx))
+            control_channels.append(pulse.ControlChannel(self.options.control_channel_map[x]))
 
         return control_channels
 
