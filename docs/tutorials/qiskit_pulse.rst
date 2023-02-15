@@ -46,7 +46,7 @@ First, we use the pulse module in Qiskit to create a pulse schedule.
     w = 5.
 
     # Sample rate of the backend in ns.
-    dt = 1/4.5
+    dt = 1 / 4.5
 
     # Define gaussian envelope function to have a pi rotation.
     amp = 1.
