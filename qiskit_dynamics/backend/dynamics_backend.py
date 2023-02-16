@@ -492,7 +492,7 @@ class DynamicsBackend(BackendV2):
             control_channels.append(pulse.ControlChannel(self.options.control_channel_map[x]))
 
         return control_channels
-    
+
     def configuration(self) -> PulseBackendConfiguration:
         """Get the backend configuration."""
         return self.options.configuration
