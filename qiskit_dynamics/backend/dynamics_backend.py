@@ -106,11 +106,11 @@ class DynamicsBackend(BackendV2):
       impact the meaning of other options.
     * ``configuration``: A :class:`PulseBackendConfiguration` instance or ``None``. This option
       defaults to ``None``, and is not required for the functioning of this class, but is provided
-      for backwards compatibility. A set configuration will be returned by
+      for compatibility. A set configuration will be returned by
       :meth:`DynamicsBackend.configuration()`.
     * ``defaults``: A :class:`PulseDefaults` instance or ``None``. This option defaults to ``None``,
-      and is not required for the functioning of this class, but is provided for backwards
-      compatibility. A set defaults will be returned by :meth:`DynamicsBackend.defaults()`.
+      and is not required for the functioning of this class, but is provided for compatibility. A
+      set defaults will be returned by :meth:`DynamicsBackend.defaults()`.
     """
 
     def __init__(
@@ -530,7 +530,7 @@ class DynamicsBackend(BackendV2):
 
             The ``configuration`` and ``defaults`` attributes of the original backend are not copied
             into the constructed :class:`DynamicsBackend` instance, only the required data stored
-            within these attributes will be extracted. If required, for backwards compatibility,
+            within these attributes will be extracted. If required, for compatibility,
             ``'configuration'`` and ``'defaults'`` options can be set, which will be returned via
             the :meth:`.configuration` and :meth:`.defaults` methods.
 
@@ -598,13 +598,12 @@ class DynamicsBackend(BackendV2):
                 "hamiltonian attribute."
             )
 
-        hamiltonian_dict = config.hamiltonian
         (
             static_hamiltonian,
             hamiltonian_operators,
             hamiltonian_channels,
             subsystem_dims,
-        ) = parse_backend_hamiltonian_dict(hamiltonian_dict, subsystem_list)
+        ) = parse_backend_hamiltonian_dict(config.hamiltonian, subsystem_list)
         subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
 
         # get time step size
