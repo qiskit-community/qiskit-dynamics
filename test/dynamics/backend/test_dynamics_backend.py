@@ -187,6 +187,37 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "defaults option must be"):
             self.simple_backend.set_options(defaults=1)
 
+    def test_not_implemented_control_channel_map(self):
+        """Test raising of NotImplementError if control_channel called when no control_channel_map
+        specified.
+        """
+
+        with self.assertRaises(NotImplementedError):
+            self.simple_backend.control_channel((0, 1))
+
+    def test_invalid_control_channel_map(self):
+        """Test setting an invalid control_channel_map raises an error."""
+
+        with self.assertRaisesRegex(QiskitError, "None or a dictionary"):
+            self.simple_backend.set_options(control_channel_map=1)
+
+        with self.assertRaisesRegex(QiskitError, "values must be of type int"):
+            self.simple_backend.set_options(control_channel_map={(0, 1): "3"})
+
+    def test_invalid_drive_channel(self):
+        """Test requesting an invalid drive channel."""
+
+        with self.assertRaisesRegex(QiskitError, "drive_channel requested for qubit 10"):
+            self.simple_backend.drive_channel(10)
+
+    def test_invalid_control_channel(self):
+        """Test requesting an invalid control channel."""
+
+        self.simple_backend.set_options(control_channel_map={(0, 1): 0})
+
+        with self.assertRaisesRegex(QiskitError, "Key wow not in control_channel_map."):
+            self.simple_backend.control_channel("wow")
+
 
 class TestDynamicsBackend(QiskitDynamicsTestCase):
     """Tests ensuring basic workflows work correctly for DynamicsBackend."""
@@ -476,6 +507,26 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             experiment_result_function=exp_result_function,
         ).result()
         self.assertDictEqual(result.get_counts(), {"3": 1})
+
+    def test_drive_channel(self):
+        """Test drive_channel method."""
+
+        channel = self.simple_backend.drive_channel(0)
+        self.assertTrue(isinstance(channel, pulse.DriveChannel))
+        self.assertTrue(channel.index == 0)
+
+    def test_control_channel(self):
+        """Test setting control_channel_map and retriving channel via the control_channel method."""
+
+        self.simple_backend.set_options(control_channel_map={(0, 1): 1})
+
+        channel = self.simple_backend.control_channel((0, 1))
+        self.assertTrue(isinstance(channel, list))
+        self.assertTrue(len(channel) == 1)
+
+        channel = channel[0]
+        self.assertTrue(isinstance(channel, pulse.ControlChannel))
+        self.assertTrue(channel.index == 1)
 
     def test_metadata_transfer(self):
         """Test that circuit metadata is correctly stored in the result object."""

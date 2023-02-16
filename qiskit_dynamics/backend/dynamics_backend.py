@@ -73,6 +73,8 @@ class DynamicsBackend(BackendV2):
     * ``subsystem_labels``: Integer labels for subsystems. Defaults to ``[0, ...,
       len(subsystem_dims) - 1]``.
     * ``meas_map``: Measurement map. Defaults to ``[[idx] for idx in subsystem_labels]``.
+    * ``control_channel_map``: A dictionary mapping control channel labels to indices, to be used
+      for control channel index lookup in the :meth:`DynamicsBackend.control_channel` method.
     * ``initial_state``: Initial state for simulation, either the string ``"ground_state"``,
       indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
       ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
@@ -186,6 +188,7 @@ class DynamicsBackend(BackendV2):
             subsystem_dims=None,
             subsystem_labels=None,
             meas_map=None,
+            control_channel_map=None,
             normalize_states=True,
             initial_state="ground_state",
             meas_level=MeasLevel.CLASSIFIED,
@@ -250,6 +253,14 @@ class DynamicsBackend(BackendV2):
                 validate_iq_centers = True
             elif key == "solver":
                 validate_subsystem_dims = True
+            elif key == "control_channel_map":
+                if value is not None:
+                    if not isinstance(value, dict):
+                        raise QiskitError(
+                            "The control_channel_map option must either be None or a dictionary."
+                        )
+                    if not all(isinstance(x, int) for x in value.values()):
+                        raise QiskitError("The control_channel_map values must be of type int.")
 
             # special setting routines
             if key == "solver":
@@ -429,6 +440,59 @@ class DynamicsBackend(BackendV2):
     def meas_map(self) -> List[List[int]]:
         return self.options.meas_map
 
+    def _get_qubit_channel(
+        self, qubit: int, ChannelClass: pulse.channels.Channel, method_name: str
+    ):
+        """Construct a channel instance for a given qubit."""
+        if qubit in self.options.subsystem_labels:
+            return ChannelClass(qubit)
+
+        raise QiskitError(
+            f"{method_name} requested for qubit {qubit} which is not in subsystem_list."
+        )
+
+    def drive_channel(self, qubit: int) -> pulse.DriveChannel:
+        """Return the drive channel for a given qubit."""
+        return self._get_qubit_channel(qubit, pulse.DriveChannel, "drive_channel")
+
+    def measure_channel(self, qubit: int) -> pulse.MeasureChannel:
+        """Return the measure channel for a given qubit."""
+        return self._get_qubit_channel(qubit, pulse.MeasureChannel, "measure_channel")
+
+    def acquire_channel(self, qubit: int) -> pulse.AcquireChannel:
+        """Return the measure channel for a given qubit."""
+        return self._get_qubit_channel(qubit, pulse.AcquireChannel, "acquire_channel")
+
+    def control_channel(
+        self, qubits: Union[Tuple[int, int], List[Tuple[int, int]]]
+    ) -> List[pulse.ControlChannel]:
+        """Return the control channel with a given label specified by qubits.
+
+        This method requires the ``control_channel_map`` option is set, and otherwise will raise
+        a ``NotImplementedError``.
+
+        Args:
+            qubits: The label for the control channel, or a list of labels.
+        Returns:
+            A list containing the control channels specified by qubits.
+        Raises:
+            NotImplementedError: If the control_channel_map option is not set for this backend.
+            QiskitError: If a requested channel is not in the control_channel_map.
+        """
+        if self.options.control_channel_map is None:
+            raise NotImplementedError
+
+        if not isinstance(qubits, list):
+            qubits = [qubits]
+
+        control_channels = []
+        for x in qubits:
+            if x not in self.options.control_channel_map:
+                raise QiskitError(f"Key {x} not in control_channel_map.")
+            control_channels.append(pulse.ControlChannel(self.options.control_channel_map[x]))
+
+        return control_channels
+    
     def configuration(self) -> PulseBackendConfiguration:
         """Get the backend configuration."""
         return self.options.configuration
