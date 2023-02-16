@@ -14,8 +14,11 @@
 Pulse schedule to Signals converter.
 """
 
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
+import functools
+
 import numpy as np
+import sympy as sym
 
 from qiskit.pulse import (
     Schedule,
@@ -30,8 +33,11 @@ from qiskit.pulse import (
     ControlChannel,
     AcquireChannel,
 )
+from qiskit.pulse.exceptions import PulseError
+from qiskit.pulse.library import SymbolicPulse
 from qiskit import QiskitError
 
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import DiscreteSignal
 
 
@@ -166,14 +172,16 @@ class InstructionToSignals:
                 if isinstance(inst.pulse, Waveform):
                     inst_samples = inst.pulse.samples
                 else:
-                    inst_samples = inst.pulse.get_waveform().samples
+                    inst_samples = get_samples(inst.pulse)
 
                 # build sample array to append to signal
                 times = self._dt * (start_sample + np.arange(len(inst_samples)))
                 samples = inst_samples * np.exp(
-                    2.0j * np.pi * freq * times
-                    + 1.0j * phi
-                    + 2.0j * np.pi * phase_accumulations[chan]
+                    Array(
+                        2.0j * np.pi * freq * times
+                        + 1.0j * phi
+                        + 2.0j * np.pi * phase_accumulations[chan]
+                    )
                 )
                 signals[chan].add_samples(start_sample, samples)
 
@@ -181,14 +189,16 @@ class InstructionToSignals:
                 phases[chan] += inst.phase
 
             if isinstance(inst, ShiftFrequency):
-                frequency_shifts[chan] += inst.frequency
-                phase_accumulations[chan] -= inst.frequency * start_sample * self._dt
+                frequency_shifts[chan] = frequency_shifts[chan] + Array(inst.frequency)
+                phase_accumulations[chan] = (
+                    phase_accumulations[chan] - inst.frequency * start_sample * self._dt
+                )
 
             if isinstance(inst, SetPhase):
                 phases[chan] = inst.phase
 
             if isinstance(inst, SetFrequency):
-                phase_accumulations[chan] -= (
+                phase_accumulations[chan] = phase_accumulations[chan] - (
                     (inst.frequency - (frequency_shifts[chan] + signals[chan].carrier_freq))
                     * start_sample
                     * self._dt
@@ -301,3 +311,59 @@ class InstructionToSignals:
             raise QiskitError(
                 f"Invalid channel name {channel_name} given to {self.__class__.__name__}."
             ) from error
+
+
+def get_samples(pulse: SymbolicPulse) -> np.ndarray:
+    """Return samples filled according to the formula that the pulse
+    represents and the parameter values it contains.
+
+    Args:
+        pulse: SymbolicPulse class.
+    Returns:
+        Samples of the pulse.
+    Raises:
+        PulseError: When parameters are not assigned.
+        PulseError: When expression for pulse envelope is not assigned.
+        PulseError: When a free symbol value is not defined in the pulse instance parameters.
+    """
+    envelope = pulse.envelope
+    pulse_params = pulse.parameters
+    if pulse.is_parameterized():
+        raise PulseError("Unassigned parameter exists. All parameters must be assigned.")
+
+    if envelope is None:
+        raise PulseError("Pulse envelope expression is not assigned.")
+
+    args = []
+    for symbol in sorted(envelope.free_symbols, key=lambda s: s.name):
+        if symbol.name == "t":
+            times = Array(np.arange(0, pulse_params["duration"]) + 1 / 2)
+            args.insert(0, times.data)
+            continue
+        try:
+            args.append(pulse_params[symbol.name])
+        except KeyError as ex:
+            raise PulseError(
+                f"Pulse parameter '{symbol.name}' is not defined for this instance. "
+                "Please check your waveform expression is correct."
+            ) from ex
+    return _lru_cache_expr(envelope, Array.default_backend())(*args)
+
+
+@functools.lru_cache(maxsize=None)
+def _lru_cache_expr(expr: sym.Expr, backend) -> Callable:
+    """A helper function to get lambdified expression.
+
+    Args:
+        expr: Symbolic expression to evaluate.
+        backend: Array backend.
+    Returns:
+        lambdified expression.
+    """
+    params = []
+    for param in sorted(expr.free_symbols, key=lambda s: s.name):
+        if param.name == "t":
+            params.insert(0, param)
+            continue
+        params.append(param)
+    return sym.lambdify(params, expr, modules=backend)

@@ -16,6 +16,7 @@ Tests for solver classes module.
 """
 
 import numpy as np
+import sympy as sym
 from ddt import ddt, data, unpack
 
 from qiskit import pulse, QiskitError
@@ -1220,7 +1221,7 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
             t_span=[0.0, 0.1],
             y0=np.array([0.0, 1.0]),
             t_eval=[0.0, 0.05, 0.1],
-            method="jax_odeint",
+            method=self.method,
         )
 
     def test_t_eval_t_span_diffrax(self):
@@ -1262,6 +1263,41 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
             method="jax_expm",
             max_dt=0.05,
         )
+
+    def test_jit_solve_with_internal_jit(self):
+        """Test jitting solver with internal jitting works.
+        Internal jitting should be avoided when using jitting.
+        This test checks that using _solve_list not _solve_schedule_list_jax
+        when jitting solvers.solve.
+        """
+
+        def constant_pulse(amp):
+            parameters = {"amp": amp}
+            _time, _amp, _duration = sym.symbols("t, amp, duration")
+            envelope_expr = _amp * sym.Piecewise(
+                (1, sym.And(_time >= 0, _time <= _duration)), (0, True)
+            )
+            valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
+            return pulse.SymbolicPulse(
+                pulse_type="Constant",
+                duration=5,
+                parameters=parameters,
+                envelope=envelope_expr,
+                valid_amp_conditions=valid_amp_conditions_expr,
+            )
+
+        def jit_func(amp):
+            with pulse.build() as sched:
+                pulse.play(constant_pulse(amp), pulse.DriveChannel(0))
+
+            self.ham_solver.solve(
+                signals=sched,
+                t_span=[0.0, 0.1],
+                y0=np.array([0.0, 1.0]),
+                method=self.method,
+            )
+
+        self.jit_wrap(jit_func)(0.1)
 
 
 @ddt

@@ -15,15 +15,17 @@ Tests to convert from pulse schedules to signals.
 
 from ddt import ddt, data, unpack
 import numpy as np
+import sympy as sym
 
 from qiskit import pulse
+from qiskit.pulse import Schedule
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit import QiskitError
 
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.signals import DiscreteSignal
 
-from ..common import QiskitDynamicsTestCase
+from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
 class TestPulseToSignals(QiskitDynamicsTestCase):
@@ -39,7 +41,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_pulse_to_signals(self):
         """Generic test."""
 
-        sched = pulse.Schedule(name="Schedule")
+        sched = Schedule(name="Schedule")
         sched += pulse.Play(
             pulse.Drag(duration=20, amp=0.5, sigma=4, beta=0.5), pulse.DriveChannel(0)
         )
@@ -71,7 +73,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
 
         gaussian = pulse.Gaussian(duration=20, amp=0.5, sigma=4)
 
-        sched = pulse.Schedule(name="Schedule")
+        sched = Schedule(name="Schedule")
         sched += pulse.ShiftPhase(np.pi, pulse.DriveChannel(0))
         sched += pulse.Play(gaussian, pulse.DriveChannel(0))
 
@@ -84,7 +86,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_carriers_and_dt(self):
         """Test that the carriers go into the signals."""
 
-        sched = pulse.Schedule(name="Schedule")
+        sched = Schedule(name="Schedule")
         sched += pulse.Play(pulse.Gaussian(duration=20, amp=0.5, sigma=4), pulse.DriveChannel(0))
 
         converter = InstructionToSignals(dt=self._dt, carriers={"d0": 5.5e9})
@@ -97,7 +99,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_shift_frequency(self):
         """Test that the frequency is properly taken into account."""
 
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.ShiftFrequency(1.0, pulse.DriveChannel(0))
         sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
 
@@ -111,7 +113,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_set_frequency(self):
         """Test that SetFrequency is properly converted."""
 
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.SetFrequency(4.0, pulse.DriveChannel(0))
         sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
 
@@ -127,7 +129,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         implementation of phase accumulation is correct."""
 
         duration = 20
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.SetFrequency(5.5, pulse.DriveChannel(0))
         sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
         sched += pulse.SetFrequency(6, pulse.DriveChannel(0))
@@ -171,7 +173,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_delay(self):
         """Test that Delay is properly reflected."""
 
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
         sched += pulse.Delay(10, pulse.DriveChannel(0))
         sched += pulse.Play(pulse.Constant(duration=10, amp=1.0), pulse.DriveChannel(0))
@@ -187,7 +189,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         It confirms implementation of phase accumulation is correct."""
 
         duration = 20
-        sched = pulse.Schedule()
+        sched = Schedule()
         sched += pulse.Play(pulse.Constant(duration=duration, amp=1.0), pulse.DriveChannel(0))
         sched += pulse.ShiftFrequency(1.0, pulse.DriveChannel(0))
         sched += pulse.Delay(duration, pulse.DriveChannel(0))
@@ -215,7 +217,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
     def test_uneven_pulse_length(self):
         """Test conversion when length of pulses on a schedule is uneven."""
 
-        schedule = pulse.Schedule()
+        schedule = Schedule()
         schedule |= pulse.Play(pulse.Waveform(np.ones(10)), pulse.DriveChannel(0))
         schedule += pulse.Play(pulse.Constant(20, 1), pulse.DriveChannel(1))
 
@@ -248,7 +250,6 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
             dt=0.1, channels=["d0", "d1"], carriers={"d0": 5.0, "d1": 3.1}
         )
         signals = converter.get_signals(schedule)
-
         # construct samples
         constant_samples = np.ones(5, dtype=float) * 0.9
         phase = np.exp(1j * np.pi / 2.98)
@@ -256,8 +257,12 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         samples0 = np.append(np.append(constant_samples, gauss_samples * phase), np.zeros(5))
         samples1 = np.append(np.zeros(10), gauss_samples)
 
-        self.assertAllClose(signals[0].samples, samples0, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(signals[1].samples, samples1, atol=1e-14, rtol=1e-14)
+        # set tolerance from 1e-14 to 1e-7
+        # to match the accuracy of clipping samples in class WaveForm.
+        # see https://github.com/Qiskit/qiskit-terra/blob/
+        # ee0b0368e72913cddf1c80ed95bc55e174c65046/qiskit/pulse/library/waveform.py#L56
+        self.assertAllClose(signals[0].samples, samples0, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(signals[1].samples, samples1, atol=1e-7, rtol=1e-7)
         self.assertTrue(signals[0].carrier_freq == 5.0)
         self.assertTrue(signals[1].carrier_freq == 3.1)
 
@@ -295,14 +300,101 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         samples2 = np.append(np.zeros(15), np.append(gauss_samples, np.zeros(10)))
         samples3 = np.append(np.zeros(20), np.append(gauss_samples, np.zeros(5)))
 
-        self.assertAllClose(signals[0].samples, samples0, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(signals[1].samples, samples1, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(signals[2].samples, samples2, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(signals[3].samples, samples3, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(signals[0].samples, samples0, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(signals[1].samples, samples1, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(signals[2].samples, samples2, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(signals[3].samples, samples3, atol=1e-7, rtol=1e-7)
         self.assertTrue(signals[0].carrier_freq == 5.0)
         self.assertTrue(signals[1].carrier_freq == 3.1)
         self.assertTrue(signals[2].carrier_freq == 0.0)
         self.assertTrue(signals[3].carrier_freq == 4.0)
+
+    def test_InstructionToSignals(self):
+        """Test InstructionToSignals with get samples function."""
+        gauss_get_waveform_samples = (
+            pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        )
+        with pulse.build() as schedule:
+            pulse.play(pulse.Gaussian(duration=5, amp=0.983, sigma=2.0), pulse.DriveChannel(0))
+        converter = InstructionToSignals(dt=self._dt, channels=["d0"])
+        signals = converter.get_signals(block_to_schedule(schedule))
+        self.assertAllClose(signals[0].samples, gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
+
+
+class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
+    """Tests InstructionToSignals class by using Jax."""
+
+    def setUp(self):
+        """Set up gaussian waveform samples for comparison."""
+        self.constant_get_waveform_samples = (
+            pulse.Constant(duration=5, amp=0.1).get_waveform().samples
+        )
+        self._dt = 0.222
+
+    def test_InstructionToSignals_with_JAX(self):
+        """Test InstructionToSignals with JAX jit."""
+
+        def jit_func_instruction_to_signals(amp):
+            parameters = {"amp": amp}
+            _time, _amp, _duration = sym.symbols("t, amp, duration")
+            envelope_expr = _amp * sym.Piecewise(
+                (1, sym.And(_time >= 0, _time <= _duration)), (0, True)
+            )
+            valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
+            # we can use only SymbolicPulse when jax-jitting
+            # bacause jax-jitting doesn't correspond to validate_parameters in qiskit.pulse.
+            instance = pulse.SymbolicPulse(
+                pulse_type="Constant",
+                duration=5,
+                parameters=parameters,
+                envelope=envelope_expr,
+                valid_amp_conditions=valid_amp_conditions_expr,
+            )
+            with pulse.build() as schedule:
+                pulse.play(instance, pulse.DriveChannel(0))
+
+            converter = InstructionToSignals(self._dt, carriers={"d0": 5})
+            return converter.get_signals(schedule)[0].samples
+
+        self.jit_wrap(jit_func_instruction_to_signals)(0.1)
+        self.jit_grad_wrap(jit_func_instruction_to_signals)(0.1)
+        jit_samples = self.jit_wrap(jit_func_instruction_to_signals)(0.1)
+        self.assertAllClose(jit_samples, self.constant_get_waveform_samples, atol=1e-7, rtol=1e-7)
+
+    def test_pulse_types_combination_with_jax(self):
+        """Test that converting schedule including some pulse types with Jax works well"""
+
+        def jit_func_symbolic_pulse(amp):
+            parameters = {"amp": amp}
+            _time, _amp, _duration = sym.symbols("t, amp, duration")
+            envelope_expr = _amp * sym.Piecewise(
+                (1, sym.And(_time >= 0, _time <= _duration)), (0, True)
+            )
+            valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
+            instance = pulse.SymbolicPulse(
+                pulse_type="Constant",
+                duration=5,
+                parameters=parameters,
+                envelope=envelope_expr,
+                valid_amp_conditions=valid_amp_conditions_expr,
+            )
+            # constrcut a pulse schedule with mixing some pulse types to test jax-jitting it
+            with pulse.build() as schedule:
+                pulse.play(instance, pulse.DriveChannel(0))
+                pulse.set_phase(0.1, pulse.DriveChannel(0))
+                pulse.set_frequency(0.1, pulse.DriveChannel(0))
+                pulse.shift_phase(0.1, pulse.DriveChannel(0))
+                pulse.set_phase(0.1, pulse.DriveChannel(0))
+                pulse.shift_frequency(0.1, pulse.DriveChannel(0))
+                pulse.shift_frequency(0.1, pulse.DriveChannel(0))
+                pulse.set_frequency(0.1, pulse.DriveChannel(0))
+                pulse.shift_phase(0.1, pulse.DriveChannel(0))
+                pulse.play(instance, pulse.DriveChannel(0))
+            converter = InstructionToSignals(self._dt, carriers={"d0": 5})
+            return converter.get_signals(schedule)[0].samples
+
+        self.jit_wrap(jit_func_symbolic_pulse)(0.1)
+        self.jit_grad_wrap(jit_func_symbolic_pulse)(0.1)
 
 
 @ddt
