@@ -27,6 +27,7 @@ from qiskit.transpiler import Target, InstructionProperties
 from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.providers.models.backendconfiguration import UchannelLO
+from qiskit.providers.backend import QubitProperties
 
 from qiskit_dynamics import Solver, DynamicsBackend
 from qiskit_dynamics.array import Array
@@ -641,14 +642,6 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "has a configuration method"):
             DynamicsBackend.from_backend(backend=self.valid_backend)
 
-    def test_no_defaults_error(self):
-        """Test that error is raised if configuration but no defaults present in backend."""
-
-        delattr(self.valid_backend, "defaults")
-
-        with self.assertRaisesRegex(QiskitError, "has a defaults"):
-            DynamicsBackend.from_backend(backend=self.valid_backend)
-
     def test_subsystem_list_out_of_bounds(self):
         """Test error is raised if subsystem_list contains values above config.n_qubits."""
 
@@ -658,16 +651,9 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
     def test_no_hamiltonian(self):
         """Test error is raised if configuration does not have a hamiltonian."""
 
-        delattr(self.valid_backend.configuration(), "hamiltonian")
+        self.valid_backend.configuration().hamiltonian = None
 
-        with self.assertRaisesRegex(QiskitError, "hamiltonian attribute"):
-            DynamicsBackend.from_backend(backend=self.valid_backend)
-
-    def test_no_dt(self):
-        """Test error is raised if no dt in configuration."""
-        delattr(self.valid_backend.configuration(), "dt")
-
-        with self.assertRaisesRegex(QiskitError, "has a dt"):
+        with self.assertRaisesRegex(QiskitError, "requires that"):
             DynamicsBackend.from_backend(backend=self.valid_backend)
 
     def test_building_model(self):
@@ -719,6 +705,24 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
             ]
         )
         self.assertAllClose(expected_operators / 1e9, solver.model.operators / 1e9)
+
+    def test_building_model_target_override(self):
+        """Test that the parameters retrievable from the target are preferred."""
+
+        target = Target(
+            dt=0.1, qubit_properties=[QubitProperties(frequency=float(x)) for x in range(5)]
+        )
+
+        self.valid_backend.target = target
+        backend = DynamicsBackend.from_backend(self.valid_backend, subsystem_list=[0, 1])
+
+        self.assertTrue(backend.target.dt == 0.1)
+
+        solver = backend.options.solver
+        self.assertDictEqual(
+            solver._schedule_converter._carriers,
+            {"d0": 0.0, "d1": 1.0, "u0": 1.0, "u1": 0.0, "u2": 2.0},
+        )
 
     def test_building_model_sparse(self):
         """Test construction from_backend in sparse mode."""
@@ -882,11 +886,14 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
         ]
         self.config = config
 
-    def _test_with_setUp_example(self, channels, expected_output):
+    def _test_with_setUp_example_no_target(self, channels, expected_output):
         """Test with defaults and config from setUp."""
         self.assertDictEqual(
             _get_backend_channel_freqs(
-                backend_config=self.config, backend_defaults=self.defaults, channels=channels
+                backend_target=None,
+                backend_config=self.config,
+                backend_defaults=self.defaults,
+                channels=channels,
             ),
             expected_output,
         )
@@ -895,14 +902,14 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
         """Test case with just drive channels."""
         channels = ["d0", "d1", "d2"]
         expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)}
-        self._test_with_setUp_example(channels=channels, expected_output=expected_output)
+        self._test_with_setUp_example_no_target(channels=channels, expected_output=expected_output)
 
     def test_drive_and_meas_channels(self):
         """Test case drive and meas channels."""
         channels = ["d0", "d1", "d2", "m0", "m3"]
         expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)}
         expected_output.update({f"m{idx}": self.defaults.meas_freq_est[idx] for idx in [0, 3]})
-        self._test_with_setUp_example(channels=channels, expected_output=expected_output)
+        self._test_with_setUp_example_no_target(channels=channels, expected_output=expected_output)
 
     def test_drive_and_u_channels(self):
         """Test case drive and u channels."""
@@ -914,33 +921,27 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
                 "u2": 1.1 * self.defaults.qubit_freq_est[4] - 1.1 * self.defaults.qubit_freq_est[2],
             }
         )
-        self._test_with_setUp_example(channels=channels, expected_output=expected_output)
+        self._test_with_setUp_example_no_target(channels=channels, expected_output=expected_output)
 
     def test_unrecognized_channel_type(self):
         """Test error is raised if unrecognized channel type."""
 
         with self.assertRaisesRegex(QiskitError, "Unrecognized"):
             _get_backend_channel_freqs(
+                backend_target=None,
                 backend_config=SimpleNamespace(),
                 backend_defaults=SimpleNamespace(),
                 channels=["r1"],
             )
 
-    def test_no_u_channel_lo_attribute_error(self):
-        """Test error if no u_channel_lo attribute for config."""
-
-        with self.assertRaisesRegex(QiskitError, "configuration does not have"):
-            _get_backend_channel_freqs(
-                backend_config=SimpleNamespace(), backend_defaults=self.defaults, channels=["u1"]
-            )
-
     def test_no_qubit_freq_est_attribute_error(self):
         """Test error if no qubit_freq_est in defaults."""
 
-        with self.assertRaisesRegex(QiskitError, "defaults does not have"):
+        with self.assertRaisesRegex(QiskitError, "frequencies not available in target or defaults"):
             _get_backend_channel_freqs(
+                backend_target=None,
                 backend_config=SimpleNamespace(),
-                backend_defaults=SimpleNamespace(),
+                backend_defaults=None,
                 channels=["d0"],
             )
 
@@ -949,8 +950,9 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "defaults does not have"):
             _get_backend_channel_freqs(
+                backend_target=None,
                 backend_config=SimpleNamespace(),
-                backend_defaults=SimpleNamespace(),
+                backend_defaults=None,
                 channels=["m0"],
             )
 
@@ -958,22 +960,49 @@ class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
         """Raise error if missing u channel."""
         with self.assertRaisesRegex(QiskitError, "ControlChannel index 4"):
             _get_backend_channel_freqs(
-                backend_config=self.config, backend_defaults=self.defaults, channels=["u4"]
+                backend_target=None,
+                backend_config=self.config,
+                backend_defaults=self.defaults,
+                channels=["u4"],
             )
 
     def test_drive_out_of_bounds(self):
         """Raise error if drive channel index too high."""
         with self.assertRaisesRegex(QiskitError, "DriveChannel index 10"):
             _get_backend_channel_freqs(
-                backend_config=self.config, backend_defaults=self.defaults, channels=["d10"]
+                backend_target=None,
+                backend_config=self.config,
+                backend_defaults=self.defaults,
+                channels=["d10"],
             )
 
     def test_meas_out_of_bounds(self):
         """Raise error if drive channel index too high."""
         with self.assertRaisesRegex(QiskitError, "MeasureChannel index 6"):
             _get_backend_channel_freqs(
-                backend_config=self.config, backend_defaults=self.defaults, channels=["m6"]
+                backend_target=None,
+                backend_config=self.config,
+                backend_defaults=self.defaults,
+                channels=["m6"],
             )
+
+    def test_no_defaults(self):
+        """Test a case where defaults are not needed."""
+        target = Target(
+            dt=0.1,
+            qubit_properties=[QubitProperties(frequency=0.0), QubitProperties(frequency=1.0)],
+        )
+
+        config = SimpleNamespace()
+        config.u_channel_lo = []
+
+        channel_freqs = _get_backend_channel_freqs(
+            backend_target=target,
+            backend_config=config,
+            backend_defaults=None,
+            channels=["d0", "d1"],
+        )
+        self.assertDictEqual(channel_freqs, {"d0": 0.0, "d1": 1.0})
 
 
 class Test_get_acquire_instruction_timings(QiskitDynamicsTestCase):

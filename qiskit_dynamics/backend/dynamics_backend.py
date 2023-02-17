@@ -511,7 +511,7 @@ class DynamicsBackend(BackendV2):
         rwa_cutoff_freq: Optional[float] = None,
         **options,
     ) -> "DynamicsBackend":
-        """Construct a :class:`.DynamicsBackend` instance from an existing ``Backend`` instance.
+        """Construct a DynamicsBackend instance from an existing Backend instance.
 
         .. warning::
 
@@ -520,19 +520,43 @@ class DynamicsBackend(BackendV2):
             As such, gates and calibrations are not be copied into the constructed
             :class:`.DynamicsBackend`.
 
-        The ``backend`` must have the ``configuration`` and ``defaults`` attributes. The
-        ``configuration`` must containing a Hamiltonian description, step size ``dt``, number of
-        qubits ``n_qubits``, and ``u_channel_lo`` (when control channels are present).  The
-        ``defaults`` must contain ``qubit_freq_est``, as well as ``meas_freq_est`` if measurement
-        channels appear explicitly in the Hamiltonian.
+        The ``backend`` must contain sufficient information in the ``target``, ``configuration``,
+        and/or ``defaults`` attributes to be able to run simulations. The following table indicates
+        which parameters are required, along with their primary and secondary sources:
+
+        .. list-table:: Backend parameter locations
+            :widths: 10 25 25
+            :header-rows: 1
+
+            * - Parameter
+              - Primary source
+              - Secondary source
+            * - ``hamiltonian`` dictionary.
+              - ``configuration.hamiltonian``
+              - N/A
+            * - Control channel frequency specification.
+              - ``configuration.u_channel_lo``
+              - N/A
+            * - Number of qubits in the backend model.
+              - ``target.num_qubits``
+              - ``configuration.n_qubits``
+            * - Pulse schedule sample size ``dt``.
+              - ``target.dt``
+              - ``configuration.dt``
+            * - Drive channel frequencies.
+              - ``target.qubit_properties``
+              - ``defaults.qubit_freq_est``
+            * - Measurement channel frequencies, if measurement channels explicitly appear in the
+                model.
+              - ``defaults.meas_freq_est``
+              - N/A
 
         .. note::
 
-            The ``configuration`` and ``defaults`` attributes of the original backend are not copied
-            into the constructed :class:`DynamicsBackend` instance, only the required data stored
-            within these attributes will be extracted. If required, for compatibility,
-            ``'configuration'`` and ``'defaults'`` options can be set, which will be returned via
-            the :meth:`.configuration` and :meth:`.defaults` methods.
+            The ``target``, ``configuration``, and ``defaults`` attributes of the original backend
+            are not copied into the constructed :class:`DynamicsBackend` instance, only the required
+            data stored within these attributes will be extracted. If necessary, these attributes
+            can be set and configured by the user.
 
         The optional argument ``subsystem_list`` specifies which subset of qubits to model in the
         constructed :class:`DynamicsBackend`. All other qubits are dropped from the model.
@@ -567,35 +591,40 @@ class DynamicsBackend(BackendV2):
             QiskitError: If any required parameters are missing from the passed backend.
         """
 
+        # get available target, config, and defaults objects
+        backend_target = getattr(backend, "target", None)
+
         if not hasattr(backend, "configuration"):
             raise QiskitError(
                 "DynamicsBackend.from_backend requires that the backend argument has a "
                 "configuration method."
             )
-        if not hasattr(backend, "defaults"):
-            raise QiskitError(
-                "DynamicsBackend.from_backend requires that the backend argument has a defaults "
-                "method."
-            )
+        backend_config = backend.configuration()
 
-        config = backend.configuration()
-        defaults = backend.defaults()
+        backend_defaults = None
+        if hasattr(backend, "defaults"):
+            backend_defaults = backend.defaults()
 
         # get and parse Hamiltonian string dictionary
+        if backend_target is not None:
+            backend_num_qubits = backend_target.num_qubits
+        else:
+            backend_num_qubits = backend_config.n_qubits
+
         if subsystem_list is not None:
             subsystem_list = sorted(subsystem_list)
-            if subsystem_list[-1] >= config.n_qubits:
+            if subsystem_list[-1] >= backend_num_qubits:
                 raise QiskitError(
                     f"subsystem_list contained {subsystem_list[-1]}, which is out of bounds for "
-                    f"config.n_qubits == {config.n_qubits}."
+                    f"backend with {backend_num_qubits} qubits."
                 )
         else:
-            subsystem_list = list(range(config.n_qubits))
+            subsystem_list = list(range(backend_num_qubits))
 
-        if not hasattr(config, "hamiltonian"):
+        if backend_config.hamiltonian is None:
             raise QiskitError(
                 "DynamicsBackend.from_backend requires that backend.configuration() has a "
-                "hamiltonian attribute."
+                "hamiltonian."
             )
 
         (
@@ -603,20 +632,15 @@ class DynamicsBackend(BackendV2):
             hamiltonian_operators,
             hamiltonian_channels,
             subsystem_dims,
-        ) = parse_backend_hamiltonian_dict(config.hamiltonian, subsystem_list)
+        ) = parse_backend_hamiltonian_dict(backend_config.hamiltonian, subsystem_list)
         subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
-
-        # get time step size
-        if not hasattr(config, "dt"):
-            raise QiskitError(
-                "DynamicsBackend.from_backend requires that backend.configuration() has a dt "
-                "attribute."
-            )
-        dt = config.dt
 
         # construct model frequencies dictionary from backend
         channel_freqs = _get_backend_channel_freqs(
-            backend_config=config, backend_defaults=defaults, channels=hamiltonian_channels
+            backend_target=backend_target,
+            backend_config=backend_config,
+            backend_defaults=backend_defaults,
+            channels=hamiltonian_channels,
         )
 
         # build the solver
@@ -625,6 +649,13 @@ class DynamicsBackend(BackendV2):
                 rotating_frame = static_hamiltonian
             else:
                 rotating_frame = np.diag(static_hamiltonian)
+
+        # get time step size
+        if backend_target is not None and backend_target.dt is not None:
+            dt = backend_target.dt
+        else:
+            # config is guaranteed to have a dt
+            dt = backend_config.dt
 
         solver = Solver(
             static_hamiltonian=static_hamiltonian,
@@ -880,13 +911,17 @@ def _to_schedule_list(
 
 
 def _get_backend_channel_freqs(
-    backend_config: PulseBackendConfiguration, backend_defaults: PulseDefaults, channels: List[str]
+    backend_target: Optional[Target],
+    backend_config: PulseBackendConfiguration,
+    backend_defaults: Optional[PulseDefaults],
+    channels: List[str],
 ) -> Dict[str, float]:
     """Extract frequencies of channels from a backend configuration and defaults.
 
     Args:
+        backend_target: A backend target object or ``None``.
         backend_config: A backend configuration object.
-        backend_defaults: A backend defaults object.
+        backend_defaults: A backend defaults object or ``None``.
         channels: Channel labels given as strings, assumed to be unique.
 
     Returns:
@@ -911,38 +946,50 @@ def _get_backend_channel_freqs(
         else:
             raise QiskitError("Unrecognized channel type requested.")
 
-    # validate required attributes are present
-    if drive_channels and not hasattr(backend_defaults, "qubit_freq_est"):
-        raise QiskitError("DriveChannels in model but defaults does not have qubit_freq_est.")
+    # extract and validate channel frequency parameters
+    if drive_channels:
+        # get drive channel frequencies
+        drive_frequencies = []
+        if (backend_target is not None) and (backend_target.qubit_properties is not None):
+            drive_frequencies = [q.frequency for q in backend_target.qubit_properties]
+        elif backend_defaults is not None:
+            drive_frequencies = backend_defaults.qubit_freq_est
+        else:
+            raise QiskitError(
+                "DriveChannels in model but frequencies not available in target or defaults."
+            )
 
-    if meas_channels and not hasattr(backend_defaults, "meas_freq_est"):
-        raise QiskitError("MeasureChannels in model but defaults does not have meas_freq_est.")
+    if meas_channels:
+        if backend_defaults is not None:
+            meas_frequencies = backend_defaults.meas_freq_est
+        else:
+            raise QiskitError("MeasureChannels in model but defaults does not have meas_freq_est.")
 
-    if u_channels and not hasattr(backend_config, "u_channel_lo"):
-        raise QiskitError("ControlChannels in model but configuration does not have u_channel_lo.")
+    # backend_config.u_channel_lo is guaranteed to be a list
+    u_channel_lo = backend_config.u_channel_lo
 
     # populate frequencies
     channel_freqs = {}
 
     for channel in drive_channels:
         idx = int(channel[1:])
-        if idx >= len(backend_defaults.qubit_freq_est):
+        if idx >= len(drive_frequencies):
             raise QiskitError(f"DriveChannel index {idx} is out of bounds.")
-        channel_freqs[channel] = backend_defaults.qubit_freq_est[idx]
+        channel_freqs[channel] = drive_frequencies[idx]
 
     for channel in meas_channels:
         idx = int(channel[1:])
-        if idx >= len(backend_defaults.meas_freq_est):
+        if idx >= len(meas_frequencies):
             raise QiskitError(f"MeasureChannel index {idx} is out of bounds.")
-        channel_freqs[channel] = backend_defaults.meas_freq_est[idx]
+        channel_freqs[channel] = meas_frequencies[idx]
 
     for channel in u_channels:
         idx = int(channel[1:])
-        if idx >= len(backend_config.u_channel_lo):
+        if idx >= len(u_channel_lo):
             raise QiskitError(f"ControlChannel index {idx} is out of bounds.")
         freq = 0.0
-        for u_channel_lo in backend_config.u_channel_lo[idx]:
-            freq += backend_defaults.qubit_freq_est[u_channel_lo.q] * u_channel_lo.scale
+        for channel_lo in u_channel_lo[idx]:
+            freq += drive_frequencies[channel_lo.q] * channel_lo.scale
 
         channel_freqs[channel] = freq
 
