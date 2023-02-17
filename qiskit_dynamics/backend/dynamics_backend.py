@@ -33,7 +33,9 @@ from qiskit.circuit.library import Measure
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit.providers.options import Options
-from qiskit.providers.backend import BackendV2
+from qiskit.providers.backend import BackendV1, BackendV2
+from qiskit.providers.models.pulsedefaults import PulseDefaults
+from qiskit.providers.models.backendconfiguration import PulseBackendConfiguration
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 
@@ -41,6 +43,8 @@ from qiskit import QiskitError, QuantumCircuit
 from qiskit import schedule as build_schedule
 from qiskit.quantum_info import Statevector, DensityMatrix
 
+from qiskit_dynamics import RotatingFrame
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.solvers.solver_classes import Solver
 
 from .dynamics_job import DynamicsJob
@@ -52,6 +56,7 @@ from .backend_utils import (
     _get_counts_from_samples,
     _get_iq_data,
 )
+from .backend_string_parser import parse_backend_hamiltonian_dict
 
 
 class DynamicsBackend(BackendV2):
@@ -63,42 +68,49 @@ class DynamicsBackend(BackendV2):
     * ``solver``: The Qiskit Dynamics :class:`.Solver` instance used for simulation.
     * ``solver_options``: Dictionary containing optional kwargs for passing to :meth:`Solver.solve`,
       indicating solver methods and options. Defaults to the empty dictionary ``{}``.
-    * ``subsystem_dims``: Dimensions of subsystems making up the system in ``solver``. Defaults
-      to ``[solver.model.dim]``.
-    * ``subsystem_labels``: Integer labels for subsystems. Defaults to
-      ``[0, ..., len(subsystem_dims) - 1]``.
+    * ``subsystem_dims``: Dimensions of subsystems making up the system in ``solver``. Defaults to
+      ``[solver.model.dim]``.
+    * ``subsystem_labels``: Integer labels for subsystems. Defaults to ``[0, ...,
+      len(subsystem_dims) - 1]``.
     * ``meas_map``: Measurement map. Defaults to ``[[idx] for idx in subsystem_labels]``.
+    * ``control_channel_map``: A dictionary mapping control channel labels to indices, to be used
+      for control channel index lookup in the :meth:`DynamicsBackend.control_channel` method.
     * ``initial_state``: Initial state for simulation, either the string ``"ground_state"``,
       indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
       ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
-    * ``normalize_states``: Boolean indicating whether to normalize states before computing
-      outcome probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if
-      the solution tolerance results in probabilities with significant numerical deviation from
-      proper probability distributions.
-    * ``meas_level``: Form of measurement output. Supported values are ``1`` and ``2``.
-      ``1`` returns IQ points and ``2`` returns counts. Defaults to ``meas_level==2``.
+    * ``normalize_states``: Boolean indicating whether to normalize states before computing outcome
+      probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if the solution
+      tolerance results in probabilities with significant numerical deviation from proper
+      probability distributions.
+    * ``meas_level``: Form of measurement output. Supported values are ``1`` and ``2``. ``1``
+      returns IQ points and ``2`` returns counts. Defaults to ``meas_level==2``.
     * ``meas_return``: Level of measurement data to return. For ``meas_level=1`` ``"single"``
-      returns output from every shot. ``"avg"`` returns average over shots of measurement
-      output. Defaults to ``"avg"``.
+      returns output from every shot. ``"avg"`` returns average over shots of measurement output.
+      Defaults to ``"avg"``.
     * ``iq_centers``: Centers for IQ distribution when using ``meas_level==1`` results. Must have
-      type List[List[List[float, float]]] formatted as ``iq_centers[subsystem][level] = [I,Q]``.
-      If ``None``, the ``iq_centers`` are dynamically generated to be equally spaced points on a
-      unit circle with ground-state at (1,0). The default is ``None``.
+      type List[List[List[float, float]]] formatted as ``iq_centers[subsystem][level] = [I,Q]``. If
+      ``None``, the ``iq_centers`` are dynamically generated to be equally spaced points on a unit
+      circle with ground-state at (1,0). The default is ``None``.
     * ``iq_width``: Standard deviation of IQ distribution around the centers for ``meas_level==1``.
       Must be a positive float. Defaults to ``0.2``.
-    * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem.
-      Values will be rounded down to be no larger than ``max_outcome_level``. Must be a positive
-      integer or ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
+    * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem. Values
+      will be rounded down to be no larger than ``max_outcome_level``. Must be a positive integer or
+      ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
     * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
       every experimental shot. Defaults to ``True``.
     * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.
-    * ``experiment_result_function``: Function for computing the ``ExperimentResult``
-      for each simulated experiment. This option defaults to
-      :func:`default_experiment_result_function`, and any other function set to this option
-      must have the same signature. Note that the default utilizes various other options that
-      control results computation, and hence changing it will impact the meaning of other options.
-    * ``control_channel_map``: A dictionary mapping control channel labels to indices, to be used
-      for control channel index lookup in the :meth:`DynamicsBackend.control_channel` method.
+    * ``experiment_result_function``: Function for computing the ``ExperimentResult`` for each
+      simulated experiment. This option defaults to :func:`default_experiment_result_function`, and
+      any other function set to this option must have the same signature. Note that the default
+      utilizes various other options that control results computation, and hence changing it will
+      impact the meaning of other options.
+    * ``configuration``: A :class:`PulseBackendConfiguration` instance or ``None``. This option
+      defaults to ``None``, and is not required for the functioning of this class, but is provided
+      for compatibility. A set configuration will be returned by
+      :meth:`DynamicsBackend.configuration()`.
+    * ``defaults``: A :class:`PulseDefaults` instance or ``None``. This option defaults to ``None``,
+      and is not required for the functioning of this class, but is provided for compatibility. A
+      set defaults will be returned by :meth:`DynamicsBackend.defaults()`.
     """
 
     def __init__(
@@ -176,6 +188,7 @@ class DynamicsBackend(BackendV2):
             subsystem_dims=None,
             subsystem_labels=None,
             meas_map=None,
+            control_channel_map=None,
             normalize_states=True,
             initial_state="ground_state",
             meas_level=MeasLevel.CLASSIFIED,
@@ -186,7 +199,8 @@ class DynamicsBackend(BackendV2):
             memory=True,
             seed_simulator=None,
             experiment_result_function=default_experiment_result_function,
-            control_channel_map=None,
+            configuration=None,
+            defaults=None,
         )
 
     def set_options(self, **fields):
@@ -199,11 +213,12 @@ class DynamicsBackend(BackendV2):
             if not hasattr(self._options, key):
                 raise AttributeError(f"Invalid option {key}")
 
+            # validation checks
             if key == "initial_state":
                 if value != "ground_state" and not isinstance(value, (Statevector, DensityMatrix)):
                     raise QiskitError(
-                        """initial_state must be either "ground_state",
-                        or a Statevector or DensityMatrix instance."""
+                        'initial_state must be either "ground_state", or a Statevector or '
+                        "DensityMatrix instance."
                     )
             elif key == "meas_level" and value not in [1, 2]:
                 raise QiskitError("Only meas_level 1 and 2 are supported by DynamicsBackend.")
@@ -214,6 +229,12 @@ class DynamicsBackend(BackendV2):
                     raise QiskitError("max_outcome_level must be a positive integer or None.")
             elif key == "experiment_result_function" and not callable(value):
                 raise QiskitError("experiment_result_function must be callable.")
+            elif key == "configuration" and not isinstance(value, PulseBackendConfiguration):
+                raise QiskitError(
+                    "configuration option must be an instance of PulseBackendConfiguration."
+                )
+            elif key == "defaults" and not isinstance(value, PulseDefaults):
+                raise QiskitError("defaults option must be an instance of PulseDefaults.")
             elif key == "iq_width" and (not isinstance(value, float) or (value <= 0)):
                 raise QiskitError("iq_width must be a positive float.")
             elif key == "iq_centers":
@@ -223,8 +244,8 @@ class DynamicsBackend(BackendV2):
                     for level in sub_system
                 ):
                     raise QiskitError(
-                        """The iq_centers option must be either None or of type
-                    List[List[List[int, int]]], where the innermost list is the (I, Q) pair."""
+                        "The iq_centers option must be either None or of type "
+                        "List[List[List[int, int]]], where the innermost list is the (I, Q) pair."
                     )
                 validate_iq_centers = True
             elif key == "subsystem_dims":
@@ -241,6 +262,7 @@ class DynamicsBackend(BackendV2):
                     if not all(isinstance(x, int) for x in value.values()):
                         raise QiskitError("The control_channel_map values must be of type int.")
 
+            # special setting routines
             if key == "solver":
                 self._set_solver(value)
             else:
@@ -292,7 +314,7 @@ class DynamicsBackend(BackendV2):
 
         Args:
             run_input: A list of simulations, specified by ``QuantumCircuit``, ``Schedule``, or
-                       ``ScheduleBlock`` instances.
+                ``ScheduleBlock`` instances.
             validate: Whether or not to run validation checks on the input.
             **options: Additional run options to temporarily override current backend options.
 
@@ -470,6 +492,189 @@ class DynamicsBackend(BackendV2):
             control_channels.append(pulse.ControlChannel(self.options.control_channel_map[x]))
 
         return control_channels
+
+    def configuration(self) -> PulseBackendConfiguration:
+        """Get the backend configuration."""
+        return self.options.configuration
+
+    def defaults(self) -> PulseDefaults:
+        """Get the backend defaults."""
+        return self.options.defaults
+
+    @classmethod
+    def from_backend(
+        cls,
+        backend: Union[BackendV1, BackendV2],
+        subsystem_list: Optional[List[int]] = None,
+        rotating_frame: Optional[Union[Array, RotatingFrame, str]] = "auto",
+        evaluation_mode: str = "dense",
+        rwa_cutoff_freq: Optional[float] = None,
+        **options,
+    ) -> "DynamicsBackend":
+        """Construct a DynamicsBackend instance from an existing Backend instance.
+
+        .. warning::
+
+            Due to inevitable model inaccuracies, gates calibrated on a real backend will not have
+            the same performance on the :class:`.DynamicsBackend` instance returned by this method.
+            As such, gates and calibrations are not be copied into the constructed
+            :class:`.DynamicsBackend`.
+
+        The ``backend`` must contain sufficient information in the ``target``, ``configuration``,
+        and/or ``defaults`` attributes to be able to run simulations. The following table indicates
+        which parameters are required, along with their primary and secondary sources:
+
+        .. list-table:: Backend parameter locations
+            :widths: 10 25 25
+            :header-rows: 1
+
+            * - Parameter
+              - Primary source
+              - Secondary source
+            * - ``hamiltonian`` dictionary.
+              - ``configuration.hamiltonian``
+              - N/A
+            * - Control channel frequency specification.
+              - ``configuration.u_channel_lo``
+              - N/A
+            * - Number of qubits in the backend model.
+              - ``target.num_qubits``
+              - ``configuration.n_qubits``
+            * - Pulse schedule sample size ``dt``.
+              - ``target.dt``
+              - ``configuration.dt``
+            * - Drive channel frequencies.
+              - ``target.qubit_properties``
+              - ``defaults.qubit_freq_est``
+            * - Measurement channel frequencies, if measurement channels explicitly appear in the
+                model.
+              - ``defaults.meas_freq_est``
+              - N/A
+
+        .. note::
+
+            The ``target``, ``configuration``, and ``defaults`` attributes of the original backend
+            are not copied into the constructed :class:`DynamicsBackend` instance, only the required
+            data stored within these attributes will be extracted. If necessary, these attributes
+            can be set and configured by the user.
+
+        The optional argument ``subsystem_list`` specifies which subset of qubits to model in the
+        constructed :class:`DynamicsBackend`. All other qubits are dropped from the model.
+
+        Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``,
+        ``evaluation_mode``, and ``rwa_cutoff_freq`` options. In contrast to :class:`.Solver`
+        initialization, ``rotating_frame`` defaults to the string ``"auto"``, which allows this
+        method to choose the rotating frame based on ``evaluation_mode``:
+
+        * If a dense evaluation mode is chosen, the rotating frame will be set to the
+          ``static_hamiltonian`` indicated by the Hamiltonian in ``backend.configuration()``.
+        * If a sparse evaluation mode is chosen, the rotating frame will be set to the diagonal of
+          ``static_hamiltonian``.
+
+        Otherwise the ``rotating_frame``, ``evaluation_mode``, and ``rwa_cutoff_freq`` are passed
+        directly to the :class:`.Solver` initialization.
+
+        Args:
+            backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.
+            subsystem_list: The list of qubits in the backend to include in the model.
+            rotating_frame: Rotating frame argument for the internal :class:`.Solver`. Defaults to
+                ``"auto"``, allowing this method to pick a rotating frame.
+            evaluation_mode: Evaluation mode argument for the internal :class:`.Solver`.
+            rwa_cutoff_freq: Rotating wave approximation argument for the internal :class:`.Solver`.
+            **options: Additional options to be applied in construction of the
+                :class:`.DynamicsBackend`.
+
+        Returns:
+            DynamicsBackend
+
+        Raises:
+            QiskitError: If any required parameters are missing from the passed backend.
+        """
+
+        # get available target, config, and defaults objects
+        backend_target = getattr(backend, "target", None)
+
+        if not hasattr(backend, "configuration"):
+            raise QiskitError(
+                "DynamicsBackend.from_backend requires that the backend argument has a "
+                "configuration method."
+            )
+        backend_config = backend.configuration()
+
+        backend_defaults = None
+        if hasattr(backend, "defaults"):
+            backend_defaults = backend.defaults()
+
+        # get and parse Hamiltonian string dictionary
+        if backend_target is not None:
+            backend_num_qubits = backend_target.num_qubits
+        else:
+            backend_num_qubits = backend_config.n_qubits
+
+        if subsystem_list is not None:
+            subsystem_list = sorted(subsystem_list)
+            if subsystem_list[-1] >= backend_num_qubits:
+                raise QiskitError(
+                    f"subsystem_list contained {subsystem_list[-1]}, which is out of bounds for "
+                    f"backend with {backend_num_qubits} qubits."
+                )
+        else:
+            subsystem_list = list(range(backend_num_qubits))
+
+        if backend_config.hamiltonian is None:
+            raise QiskitError(
+                "DynamicsBackend.from_backend requires that backend.configuration() has a "
+                "hamiltonian."
+            )
+
+        (
+            static_hamiltonian,
+            hamiltonian_operators,
+            hamiltonian_channels,
+            subsystem_dims,
+        ) = parse_backend_hamiltonian_dict(backend_config.hamiltonian, subsystem_list)
+        subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
+
+        # construct model frequencies dictionary from backend
+        channel_freqs = _get_backend_channel_freqs(
+            backend_target=backend_target,
+            backend_config=backend_config,
+            backend_defaults=backend_defaults,
+            channels=hamiltonian_channels,
+        )
+
+        # build the solver
+        if rotating_frame == "auto":
+            if "dense" in evaluation_mode:
+                rotating_frame = static_hamiltonian
+            else:
+                rotating_frame = np.diag(static_hamiltonian)
+
+        # get time step size
+        if backend_target is not None and backend_target.dt is not None:
+            dt = backend_target.dt
+        else:
+            # config is guaranteed to have a dt
+            dt = backend_config.dt
+
+        solver = Solver(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            hamiltonian_channels=hamiltonian_channels,
+            channel_carrier_freqs=channel_freqs,
+            dt=dt,
+            rotating_frame=rotating_frame,
+            evaluation_mode=evaluation_mode,
+            rwa_cutoff_freq=rwa_cutoff_freq,
+        )
+
+        return cls(
+            solver=solver,
+            target=Target(dt=dt),
+            subsystem_labels=subsystem_list,
+            subsystem_dims=subsystem_dims,
+            **options,
+        )
 
 
 def default_experiment_result_function(
@@ -651,8 +856,8 @@ def _get_acquire_instruction_timings(
         # validate
         if len(schedule_acquire_times) == 0:
             raise QiskitError(
-                """At least one measurement saving a a result in a MemorySlot
-                must be present in each schedule."""
+                "At least one measurement saving a a result in a MemorySlot "
+                "must be present in each schedule."
             )
 
         for acquire_time in schedule_acquire_times[1:]:
@@ -668,8 +873,8 @@ def _get_acquire_instruction_timings(
                 measurement_subsystems.append(inst.channel.index)
             else:
                 raise QiskitError(
-                    f"""Attempted to measure subsystem {inst.channel.index},
-                    but it is not in subsystem_list."""
+                    f"Attempted to measure subsystem {inst.channel.index}, but it is not in "
+                    "subsystem_list."
                 )
 
             memory_slot_indices.append(inst.mem_slot.index)
@@ -703,3 +908,94 @@ def _to_schedule_list(
         else:
             raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
     return schedules, num_memslots
+
+
+def _get_backend_channel_freqs(
+    backend_target: Optional[Target],
+    backend_config: PulseBackendConfiguration,
+    backend_defaults: Optional[PulseDefaults],
+    channels: List[str],
+) -> Dict[str, float]:
+    """Extract frequencies of channels from a backend configuration and defaults.
+
+    Args:
+        backend_target: A backend target object or ``None``.
+        backend_config: A backend configuration object.
+        backend_defaults: A backend defaults object or ``None``.
+        channels: Channel labels given as strings, assumed to be unique.
+
+    Returns:
+        Dict: Mapping of channel labels to frequencies.
+
+    Raises:
+        QiskitError: If the frequency for one of the channels cannot be found.
+    """
+
+    # partition types of channels
+    drive_channels = []
+    meas_channels = []
+    u_channels = []
+
+    for channel in channels:
+        if channel[0] == "d":
+            drive_channels.append(channel)
+        elif channel[0] == "m":
+            meas_channels.append(channel)
+        elif channel[0] == "u":
+            u_channels.append(channel)
+        else:
+            raise QiskitError("Unrecognized channel type requested.")
+
+    # extract and validate channel frequency parameters
+    if drive_channels:
+        # get drive channel frequencies
+        drive_frequencies = []
+        if (backend_target is not None) and (backend_target.qubit_properties is not None):
+            drive_frequencies = [q.frequency for q in backend_target.qubit_properties]
+        elif backend_defaults is not None:
+            drive_frequencies = backend_defaults.qubit_freq_est
+        else:
+            raise QiskitError(
+                "DriveChannels in model but frequencies not available in target or defaults."
+            )
+
+    if meas_channels:
+        if backend_defaults is not None:
+            meas_frequencies = backend_defaults.meas_freq_est
+        else:
+            raise QiskitError("MeasureChannels in model but defaults does not have meas_freq_est.")
+
+    # backend_config.u_channel_lo is guaranteed to be a list
+    u_channel_lo = backend_config.u_channel_lo
+
+    # populate frequencies
+    channel_freqs = {}
+
+    for channel in drive_channels:
+        idx = int(channel[1:])
+        if idx >= len(drive_frequencies):
+            raise QiskitError(f"DriveChannel index {idx} is out of bounds.")
+        channel_freqs[channel] = drive_frequencies[idx]
+
+    for channel in meas_channels:
+        idx = int(channel[1:])
+        if idx >= len(meas_frequencies):
+            raise QiskitError(f"MeasureChannel index {idx} is out of bounds.")
+        channel_freqs[channel] = meas_frequencies[idx]
+
+    for channel in u_channels:
+        idx = int(channel[1:])
+        if idx >= len(u_channel_lo):
+            raise QiskitError(f"ControlChannel index {idx} is out of bounds.")
+        freq = 0.0
+        for channel_lo in u_channel_lo[idx]:
+            freq += drive_frequencies[channel_lo.q] * channel_lo.scale
+
+        channel_freqs[channel] = freq
+
+    # validate that all channels have frequencies
+    for channel in channels:
+        if channel not in channel_freqs:
+            raise QiskitError(f"No carrier frequency found for channel {channel}.")
+
+    return channel_freqs

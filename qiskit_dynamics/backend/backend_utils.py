@@ -114,14 +114,14 @@ def _get_memory_slot_probabilities(
 
     Args:
         probability_dict: A list of probabilities for the outcomes of state measurement. Keys
-                          are assumed to all be strings of integers of the same length.
+            are assumed to all be strings of integers of the same length.
         memory_slot_indices: Indices of which memory slots store the digits of the keys of
-                             probability_dict.
+            probability_dict.
         num_memory_slots: Total number of memory slots for results. If None,
-                          defaults to the maximum index in memory_slot_indices. The default value
-                          of unused memory slots is 0.
+            defaults to the maximum index in memory_slot_indices. The default value
+            of unused memory slots is 0.
         max_outcome_value: Maximum value that can be stored in a memory slot. All outcomes higher
-                           than this will be rounded down.
+            than this will be rounded down.
 
     Returns:
         Dict: Keys are memory slot outcomes, values are the probabilities of those outcomes.
@@ -152,7 +152,7 @@ def _sample_probability_dict(
 
     Args:
         probability_dict: Dictionary representing probability distribution, with keys being
-                          outcomes, values being probabilities.
+            outcomes, values being probabilities.
         shots: Number of shots.
         seed: Seed to use in rng construction.
 
@@ -175,9 +175,9 @@ def _get_subsystem_probabilities(probability_tensor: np.ndarray, sub_idx: int) -
 
     Args:
         probability_tensor: K-dimensional probability array, where the probability of outcome
-                            ``(idx1, ..., idxk)`` is ``probability_tensor[idx1, ..., idxk]``.
+            ``(idx1, ..., idxk)`` is ``probability_tensor[idx1, ..., idxk]``.
         sub_idx: Subsystem index to return marginalized probabilities.
-                 ``sub_idx`` is indexed in reverse order to be consistent with qiskit.
+            ``sub_idx`` is indexed in reverse order to be consistent with qiskit.
 
     Returns:
         The marginalized probability for the specified subsystem.
@@ -208,15 +208,13 @@ def _get_iq_data(
     """Generates IQ data for each physical level.
 
     Args:
-        state: Quantum state.
-        measurement_subsystems: Labels of subsystems in the system being measured.
-        memory_slot_indices: Indices of which memory slots store the data of subsystems.
+        state: Quantum state. measurement_subsystems: Labels of subsystems in the system being
+        measured. memory_slot_indices: Indices of which memory slots store the data of subsystems.
         num_memory_slots: Total number of memory slots for results. If None,
-                          defaults to the maximum index in memory_slot_indices.
+            defaults to the maximum index in memory_slot_indices.
         iq_centers: centers for IQ distribution. provided in the format
-                    ``iq_centers[subsystem][level] = [I,Q]``.
-        iq_width: Standard deviation of IQ distribution around the centers.
-        shots: Number of Shots
+            ``iq_centers[subsystem][level] = [I,Q]``.
+        iq_width: Standard deviation of IQ distribution around the centers. shots: Number of Shots
         seed: Seed for sample generation.
 
     Returns:

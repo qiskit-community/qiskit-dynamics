@@ -15,18 +15,27 @@
 Test DynamicsBackend.
 """
 
+from types import SimpleNamespace
+
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
+from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError, pulse, QuantumCircuit
 from qiskit.circuit.library import XGate
 from qiskit.transpiler import Target, InstructionProperties
 from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.result.models import ExperimentResult, ExperimentResultData
+from qiskit.providers.models.backendconfiguration import UchannelLO
+from qiskit.providers.backend import QubitProperties
 
 from qiskit_dynamics import Solver, DynamicsBackend
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.backend import default_experiment_result_function
-from qiskit_dynamics.backend.dynamics_backend import _get_acquire_instruction_timings
+from qiskit_dynamics.backend.dynamics_backend import (
+    _get_acquire_instruction_timings,
+    _get_backend_channel_freqs,
+)
 from ..common import QiskitDynamicsTestCase
 
 
@@ -166,6 +175,18 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "must be callable."):
             self.simple_backend.set_options(experiment_result_function=1)
+
+    def test_invalid_configuration_type(self):
+        """Test setting non-PulseBackendConfiguration."""
+
+        with self.assertRaisesRegex(QiskitError, "configuration option must be"):
+            self.simple_backend.set_options(configuration=1)
+
+    def test_invalid_defaults_type(self):
+        """Test setting non-PulseDefaults."""
+
+        with self.assertRaisesRegex(QiskitError, "defaults option must be"):
+            self.simple_backend.set_options(defaults=1)
 
     def test_not_implemented_control_channel_map(self):
         """Test raising of NotImplementError if control_channel called when no control_channel_map
@@ -529,6 +550,284 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         self.assertDictEqual(res.results[1].header.metadata, {"key1": "value1"})
 
 
+class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
+    """Test class for DynamicsBackend.from_backend and resulting DynamicsBackend instances."""
+
+    def setUp(self):
+        """Set up a simple backend valid for consumption by from_backend."""
+
+        configuration = SimpleNamespace()
+        configuration.n_qubits = 5
+        configuration.hamiltonian = {
+            "h_str": [
+                "_SUM[i,0,4,wq{i}/2*(I{i}-Z{i})]",
+                "_SUM[i,0,4,delta{i}/2*O{i}*O{i}]",
+                "_SUM[i,0,4,-delta{i}/2*O{i}]",
+                "_SUM[i,0,4,omegad{i}*X{i}||D{i}]",
+                "jq1q2*Sp1*Sm2",
+                "jq1q2*Sm1*Sp2",
+                "jq3q4*Sp3*Sm4",
+                "jq3q4*Sm3*Sp4",
+                "jq0q1*Sp0*Sm1",
+                "jq0q1*Sm0*Sp1",
+                "jq2q3*Sp2*Sm3",
+                "jq2q3*Sm2*Sp3",
+                "omegad1*X0||U0",
+                "omegad0*X1||U1",
+                "omegad2*X1||U2",
+                "omegad1*X2||U3",
+                "omegad3*X2||U4",
+                "omegad4*X3||U6",
+                "omegad2*X3||U5",
+                "omegad3*X4||U7",
+            ],
+            "osc": {},
+            "qub": {"0": 3, "1": 3, "2": 3, "3": 3, "4": 3},
+            "vars": {
+                "delta0": -2111793476.4003937,
+                "delta1": -2089442135.2015743,
+                "delta2": -2117918367.1068604,
+                "delta3": -2041004543.1261215,
+                "delta4": -2111988556.5086775,
+                "jq0q1": 10495754.104003914,
+                "jq1q2": 10781715.511200013,
+                "jq2q3": 8920779.377814226,
+                "jq3q4": 8985191.65108779,
+                "omegad0": 971545899.0879812,
+                "omegad1": 980381253.7440838,
+                "omegad2": 949475607.7681785,
+                "omegad3": 976399854.3087951,
+                "omegad4": 982930801.9780478,
+                "wq0": 32517894442.809513,
+                "wq1": 33094899612.019604,
+                "wq2": 31745180964.17169,
+                "wq3": 30510620255.52735,
+                "wq4": 32160826850.25662,
+            },
+        }
+        configuration.dt = 2e-9 / 9
+        configuration.u_channel_lo = [
+            [UchannelLO(1, (1 + 0j))],
+            [UchannelLO(0, (1 + 0j))],
+            [UchannelLO(2, (1 + 0j))],
+            [UchannelLO(1, (1 + 0j))],
+            [UchannelLO(3, (1 + 0j))],
+            [UchannelLO(2, (1 + 0j))],
+            [UchannelLO(4, (1 + 0j))],
+            [UchannelLO(3, (1 + 0j))],
+        ]
+
+        defaults = SimpleNamespace()
+        defaults.qubit_freq_est = [
+            5175383639.513607,
+            5267216864.382969,
+            5052402469.794663,
+            4855916030.466884,
+            5118554567.140891,
+        ]
+
+        # configuration and defaults need to be methods
+        backend = SimpleNamespace()
+        backend.configuration = lambda: configuration
+        backend.defaults = lambda: defaults
+
+        self.valid_backend = backend
+
+    def test_no_configuration_error(self):
+        """Test that error is raised if no configuration present in backend."""
+
+        # delete configuration
+        delattr(self.valid_backend, "configuration")
+
+        with self.assertRaisesRegex(QiskitError, "has a configuration method"):
+            DynamicsBackend.from_backend(backend=self.valid_backend)
+
+    def test_subsystem_list_out_of_bounds(self):
+        """Test error is raised if subsystem_list contains values above config.n_qubits."""
+
+        with self.assertRaisesRegex(QiskitError, "out of bounds"):
+            DynamicsBackend.from_backend(backend=self.valid_backend, subsystem_list=[5])
+
+    def test_no_hamiltonian(self):
+        """Test error is raised if configuration does not have a hamiltonian."""
+
+        self.valid_backend.configuration().hamiltonian = None
+
+        with self.assertRaisesRegex(QiskitError, "requires that"):
+            DynamicsBackend.from_backend(backend=self.valid_backend)
+
+    def test_building_model(self):
+        """Test construction from_backend without additional options to solver."""
+
+        backend = DynamicsBackend.from_backend(self.valid_backend, subsystem_list=[0, 1])
+
+        self.assertTrue(backend.target.dt == 2e-9 / 9)
+
+        solver = backend.options.solver
+        self.assertDictEqual(
+            solver._schedule_converter._carriers,
+            {
+                "d0": 5175383639.513607,
+                "d1": 5267216864.382969,
+                "u0": 5267216864.382969,
+                "u1": 5175383639.513607,
+                "u2": 5052402469.794663,
+            },
+        )
+
+        self.assertTrue(isinstance(solver.model.static_operator, Array))
+
+        N0 = np.diag(np.kron([1.0, 1.0, 1.0], [0.0, 1.0, 2.0]))
+        N1 = np.diag(np.kron([0.0, 1.0, 2.0], [1.0, 1.0, 1.0]))
+        a0 = np.kron(np.eye(3), np.diag([1.0, np.sqrt(2)], 1))
+        a0dag = a0.transpose()
+        a1 = np.kron(np.diag([1.0, np.sqrt(2)], 1), np.eye(3))
+        a1dag = a1.transpose()
+
+        frame_operator = (
+            32517894442.809513 * N0
+            + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
+            + 33094899612.019604 * N1
+            + (-2089442135.2015743 / 2) * (N1 * N1 - N1)
+            + 10495754.104003914 * (a0 @ a1dag + a0dag @ a1)
+        )
+
+        self.assertAllClose(frame_operator, solver.model.rotating_frame.frame_operator)
+        self.assertAllClose(solver.model.static_operator / 1e9, np.zeros(9))
+
+        expected_operators = np.array(
+            [
+                971545899.0879812 * (a0 + a0dag),
+                980381253.7440838 * (a1 + a1dag),
+                980381253.7440838 * (a0 + a0dag),
+                971545899.0879812 * (a1 + a1dag),
+                949475607.7681785 * (a1 + a1dag),
+            ]
+        )
+        self.assertAllClose(expected_operators / 1e9, solver.model.operators / 1e9)
+
+    def test_building_model_target_override(self):
+        """Test that the parameters retrievable from the target are preferred."""
+
+        target = Target(
+            dt=0.1, qubit_properties=[QubitProperties(frequency=float(x)) for x in range(5)]
+        )
+
+        self.valid_backend.target = target
+        backend = DynamicsBackend.from_backend(self.valid_backend, subsystem_list=[0, 1])
+
+        self.assertTrue(backend.target.dt == 0.1)
+
+        solver = backend.options.solver
+        self.assertDictEqual(
+            solver._schedule_converter._carriers,
+            {"d0": 0.0, "d1": 1.0, "u0": 1.0, "u1": 0.0, "u2": 2.0},
+        )
+
+    def test_building_model_sparse(self):
+        """Test construction from_backend in sparse mode."""
+
+        backend = DynamicsBackend.from_backend(
+            self.valid_backend, subsystem_list=[0, 1], evaluation_mode="sparse"
+        )
+
+        self.assertTrue(backend.target.dt == 2e-9 / 9)
+
+        solver = backend.options.solver
+        self.assertDictEqual(
+            solver._schedule_converter._carriers,
+            {
+                "d0": 5175383639.513607,
+                "d1": 5267216864.382969,
+                "u0": 5267216864.382969,
+                "u1": 5175383639.513607,
+                "u2": 5052402469.794663,
+            },
+        )
+
+        self.assertTrue(isinstance(solver.model.static_operator, csr_matrix))
+
+        N0 = np.diag(np.kron([1.0, 1.0, 1.0], [0.0, 1.0, 2.0]))
+        N1 = np.diag(np.kron([0.0, 1.0, 2.0], [1.0, 1.0, 1.0]))
+        a0 = np.kron(np.eye(3), np.diag([1.0, np.sqrt(2)], 1))
+        a0dag = a0.transpose()
+        a1 = np.kron(np.diag([1.0, np.sqrt(2)], 1), np.eye(3))
+        a1dag = a1.transpose()
+
+        frame_operator = np.diag(
+            32517894442.809513 * N0
+            + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
+            + 33094899612.019604 * N1
+            + (-2089442135.2015743 / 2) * (N1 * N1 - N1)
+        )
+        static_operator = 10495754.104003914 * (a0 @ a1dag + a0dag @ a1)
+
+        self.assertAllClose(frame_operator, solver.model.rotating_frame.frame_operator)
+        self.assertAllCloseSparse(
+            static_operator / 1e9, solver.model.static_operator.todense() / 1e9
+        )
+
+        expected_operators = np.array(
+            [
+                971545899.0879812 * (a0 + a0dag),
+                980381253.7440838 * (a1 + a1dag),
+                980381253.7440838 * (a0 + a0dag),
+                971545899.0879812 * (a1 + a1dag),
+                949475607.7681785 * (a1 + a1dag),
+            ]
+        )
+        self.assertAllClose(
+            expected_operators / 1e9, [x.todense() / 1e9 for x in solver.model.operators]
+        )
+
+    def test_building_model_case2(self):
+        """Test construction from_backend without additional options to solver, case 2."""
+
+        backend = DynamicsBackend.from_backend(self.valid_backend, subsystem_list=[0, 4])
+
+        self.assertTrue(backend.target.dt == 2e-9 / 9)
+
+        solver = backend.options.solver
+        self.assertDictEqual(
+            solver._schedule_converter._carriers,
+            {
+                "d0": 5175383639.513607,
+                "d4": 5118554567.140891,
+                "u0": 5267216864.382969,
+                "u7": 4855916030.466884,
+            },
+        )
+
+        self.assertTrue(isinstance(solver.model.static_operator, Array))
+
+        N0 = np.diag(np.kron([1.0, 1.0, 1.0], [0.0, 1.0, 2.0]))
+        N4 = np.diag(np.kron([0.0, 1.0, 2.0], [1.0, 1.0, 1.0]))
+        a0 = np.kron(np.eye(3), np.diag([1.0, np.sqrt(2)], 1))
+        a0dag = a0.transpose()
+        a4 = np.kron(np.diag([1.0, np.sqrt(2)], 1), np.eye(3))
+        a4dag = a4.transpose()
+
+        frame_operator = (
+            32517894442.809513 * N0
+            + (-2111793476.4003937 / 2) * (N0 * N0 - N0)
+            + 32160826850.25662 * N4
+            + (-2111988556.5086775 / 2) * (N4 * N4 - N4)
+        )
+
+        self.assertAllClose(frame_operator, solver.model.rotating_frame.frame_operator)
+        self.assertAllClose(solver.model.static_operator / 1e9, np.zeros(9))
+
+        expected_operators = np.array(
+            [
+                971545899.0879812 * (a0 + a0dag),
+                982930801.9780478 * (a4 + a4dag),
+                980381253.7440838 * (a0 + a0dag),
+                976399854.3087951 * (a4 + a4dag),
+            ]
+        )
+        self.assertAllClose(expected_operators / 1e9, solver.model.operators / 1e9)
+
+
 class Test_default_experiment_result_function(QiskitDynamicsTestCase):
     """Test default_experiment_result_function."""
 
@@ -566,6 +865,144 @@ class Test_default_experiment_result_function(QiskitDynamicsTestCase):
         )
 
         self.assertDictEqual(output.data.counts, {"000": 513, "010": 511})
+
+
+class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
+    """Test cases for _get_channel_backend_freqs."""
+
+    def setUp(self):
+        """Setup a simple configuration and default."""
+
+        defaults = SimpleNamespace()
+        defaults.qubit_freq_est = [0.343, 1.131, 2.1232, 3.3534, 4.123, 5.3532]
+        defaults.meas_freq_est = [0.23432, 1.543, 2.543, 3.543, 4.1321, 5.5433]
+        self.defaults = defaults
+
+        config = SimpleNamespace()
+        config.u_channel_lo = [
+            [UchannelLO(q=0, scale=1.0), UchannelLO(q=1, scale=-1.0)],
+            [UchannelLO(q=3, scale=2.1)],
+            [UchannelLO(q=4, scale=1.1), UchannelLO(q=2, scale=-1.1)],
+        ]
+        self.config = config
+
+    def _test_with_setUp_example_no_target(self, channels, expected_output):
+        """Test with defaults and config from setUp."""
+        self.assertDictEqual(
+            _get_backend_channel_freqs(
+                backend_target=None,
+                backend_config=self.config,
+                backend_defaults=self.defaults,
+                channels=channels,
+            ),
+            expected_output,
+        )
+
+    def test_drive_channels(self):
+        """Test case with just drive channels."""
+        channels = ["d0", "d1", "d2"]
+        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)}
+        self._test_with_setUp_example_no_target(channels=channels, expected_output=expected_output)
+
+    def test_drive_and_meas_channels(self):
+        """Test case drive and meas channels."""
+        channels = ["d0", "d1", "d2", "m0", "m3"]
+        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)}
+        expected_output.update({f"m{idx}": self.defaults.meas_freq_est[idx] for idx in [0, 3]})
+        self._test_with_setUp_example_no_target(channels=channels, expected_output=expected_output)
+
+    def test_drive_and_u_channels(self):
+        """Test case drive and u channels."""
+        channels = ["d0", "d1", "d2", "u1", "u2"]
+        expected_output = {f"d{idx}": self.defaults.qubit_freq_est[idx] for idx in range(3)}
+        expected_output.update(
+            {
+                "u1": 2.1 * self.defaults.qubit_freq_est[3],
+                "u2": 1.1 * self.defaults.qubit_freq_est[4] - 1.1 * self.defaults.qubit_freq_est[2],
+            }
+        )
+        self._test_with_setUp_example_no_target(channels=channels, expected_output=expected_output)
+
+    def test_unrecognized_channel_type(self):
+        """Test error is raised if unrecognized channel type."""
+
+        with self.assertRaisesRegex(QiskitError, "Unrecognized"):
+            _get_backend_channel_freqs(
+                backend_target=None,
+                backend_config=SimpleNamespace(),
+                backend_defaults=SimpleNamespace(),
+                channels=["r1"],
+            )
+
+    def test_no_qubit_freq_est_attribute_error(self):
+        """Test error if no qubit_freq_est in defaults."""
+
+        with self.assertRaisesRegex(QiskitError, "frequencies not available in target or defaults"):
+            _get_backend_channel_freqs(
+                backend_target=None,
+                backend_config=SimpleNamespace(),
+                backend_defaults=None,
+                channels=["d0"],
+            )
+
+    def test_no_meas_freq_est_attribute_error(self):
+        """Test error if no meas_freq_est in defaults."""
+
+        with self.assertRaisesRegex(QiskitError, "defaults does not have"):
+            _get_backend_channel_freqs(
+                backend_target=None,
+                backend_config=SimpleNamespace(),
+                backend_defaults=None,
+                channels=["m0"],
+            )
+
+    def test_missing_u_channel_error(self):
+        """Raise error if missing u channel."""
+        with self.assertRaisesRegex(QiskitError, "ControlChannel index 4"):
+            _get_backend_channel_freqs(
+                backend_target=None,
+                backend_config=self.config,
+                backend_defaults=self.defaults,
+                channels=["u4"],
+            )
+
+    def test_drive_out_of_bounds(self):
+        """Raise error if drive channel index too high."""
+        with self.assertRaisesRegex(QiskitError, "DriveChannel index 10"):
+            _get_backend_channel_freqs(
+                backend_target=None,
+                backend_config=self.config,
+                backend_defaults=self.defaults,
+                channels=["d10"],
+            )
+
+    def test_meas_out_of_bounds(self):
+        """Raise error if drive channel index too high."""
+        with self.assertRaisesRegex(QiskitError, "MeasureChannel index 6"):
+            _get_backend_channel_freqs(
+                backend_target=None,
+                backend_config=self.config,
+                backend_defaults=self.defaults,
+                channels=["m6"],
+            )
+
+    def test_no_defaults(self):
+        """Test a case where defaults are not needed."""
+        target = Target(
+            dt=0.1,
+            qubit_properties=[QubitProperties(frequency=0.0), QubitProperties(frequency=1.0)],
+        )
+
+        config = SimpleNamespace()
+        config.u_channel_lo = []
+
+        channel_freqs = _get_backend_channel_freqs(
+            backend_target=target,
+            backend_config=config,
+            backend_defaults=None,
+            channels=["d0", "d1"],
+        )
+        self.assertDictEqual(channel_freqs, {"d0": 0.0, "d1": 1.0})
 
 
 class Test_get_acquire_instruction_timings(QiskitDynamicsTestCase):
