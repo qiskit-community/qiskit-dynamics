@@ -1,5 +1,5 @@
 How-to use pulse schedules provided by ``qiskit-pulse`` for jax-jit
-=======================================
+===================================================================
 
 ``Qiskit-pulse`` provides pulse schedules including instruction sequences.
 Pulses are executed under `Play` instruction which is one of some instructions.
@@ -58,9 +58,9 @@ This userguide uses JAX for jit compile.
     w = 5.
 
     # Plot the envelopes and the signals from the conversion class InstructionToSignals
-    def plot_pulse(instance: pulse.ScalableSymbolicPulse, t_max: int):
+    def plot_pulse(pulse_instance: pulse.ScalableSymbolicPulse, t_max: int):
         with pulse.build() as my_pulse:
-            pulse.play(instance, pulse.DriveChannel(0))
+            pulse.play(pulse_instance, pulse.DriveChannel(0))
         converter = InstructionToSignals(dt, carriers={"d0": w})
         signals = converter.get_signals(my_pulse)
         fig, axs = plt.subplots(1, 2, figsize=(14, 4.5))
