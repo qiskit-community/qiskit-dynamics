@@ -1,8 +1,8 @@
 ---
 features:
   - |
-    Adds new class :class:`.DynamicsBackend`, providing a
+    Adds new class :class:`.DynamicsBackend`, which provides a
     :class:`~qiskit.providers.backend.BackendV2` interface for running simulations with Qiskit
-    Dynamics. This class can either be instantiated with a :class:`.Solver` instance configured
-    for Pulse simulation, or through the :meth:`.DynamicsBackend.from_backend`, which builds an
-    instance using the Hamiltonian description provided in an IBM backend.
+    Dynamics. This class can either be instantiated with a :class:`.Solver` instance configured for
+    Pulse simulation, or through the :meth:`.DynamicsBackend.from_backend`, which builds an instance
+    using the Hamiltonian description provided in an IBM backend.
