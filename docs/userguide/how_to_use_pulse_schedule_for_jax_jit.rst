@@ -28,7 +28,7 @@ explanation of how to work with JAX in Qiskit Dynamics.
 
 1. Configure to use JAX
 2. Import libraries and Set up some functions for assistance
-3. How to use a variety of ``ScalableSymbolicPulse``
+3. How to generate a variety of pulses by ``ScalableSymbolicPulse``
 4. How to execute jit compilation using ``ScalableSymbolicPulse``
 
 
@@ -93,8 +93,8 @@ This userguide uses JAX for jax-jit compile.
         return (gauss - offset) / (1 - offset)
 
 
-3. How to use a variety of ``ScalableSymbolicPulse``
-----------------------------------------------------
+3. How to generate a variety of pulses by ``ScalableSymbolicPulse``
+-------------------------------------------------------------------
 
 Here are some example pulses generated using ``ScalableSymbolicPulse``.
 
@@ -258,7 +258,3 @@ Using a Gaussian pulse as an example, jit compilation is executed as follows.
         return converter.get_signals(schedule)[0].samples
 
     jit(jit_func)(0.4)
-
-
-If you are interested in experience the effects of jax-jit compilation, 
-here is a tutorial.
