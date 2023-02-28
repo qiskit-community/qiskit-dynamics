@@ -26,9 +26,9 @@ configured to use JAX.
     # Configure to use JAX internally
     import jax
     jax.config.update("jax_enable_x64", True)
-    jax.config.update('jax_platform_name', 'cpu')
+    jax.config.update("jax_platform_name", "cpu")
     from qiskit_dynamics.array import Array
-    Array.set_default_backend('jax')
+    Array.set_default_backend("jax")
 
 2. Instantiating a ``DynamicsBackend``
 --------------------------------------
@@ -38,9 +38,9 @@ the model we will use a 2 qubit transmon model, with Hamiltonian:
 
 .. math:: 
     
-    H(t) = 2 \pi \nu_0 N_0 + 2 \pi \alpha_0 N_0 (N_0 - I) + 2 \pi \nu_1 N_1
-    + 2 \pi \alpha_1 N_1(N_1 - I)\\ + 2 \pi J (a_0 + a_0^\dagger)(a_1 + a_1^\dagger) \\ 
-    + 2 \pi r_0 s_0(t)(a_0 + a_0^\dagger) + 2 \pi r_1 s_1(t)(a_1 + a_1^\dagger),
+    H(t) = 2 \pi \nu_0 &N_0 + 2 \pi \alpha_0 N_0 (N_0 - I) + 2 \pi \nu_1 N_1
+    + 2 \pi \alpha_1 N_1(N_1 - I) + 2 \pi J (a_0 + a_0^\dagger)(a_1 + a_1^\dagger) \\ 
+    & + 2 \pi r_0 s_0(t)(a_0 + a_0^\dagger) + 2 \pi r_1 s_1(t)(a_1 + a_1^\dagger),
 
 where 
 
@@ -50,7 +50,8 @@ where
 - :math:`r_0` and :math:`r_1` are the Rabi strengths, and :math:`s_0(t)` and :math:`s_1(t)` are the
   drive signals, 
 - :math:`a_j` and :math:`a_j^\dagger` are the lowering and raising operators for qubit :math:`j`,
-  and - :math:`N_0` and :math:`N_1` are the number operators.
+  and
+- :math:`N_0` and :math:`N_1` are the number operators.
 
 .. jupyter-execute::
 
@@ -93,10 +94,9 @@ where
     drive_op0 = 2 * np.pi * r0 * (a0 + a0dag)
     drive_op1 = 2 * np.pi * r1 * (a1 + a1dag)
 
-Construct the ``Solver`` using the model details, including parameters necessary for pulse
-simulation.
-
-**To do: add reference to pulse simulation tutorial**
+Construct the :class:`.Solver` using the model details, including parameters necessary for pulse
+simulation. See the :class:`.Solver` documentation, as well as the :ref:`tutorial example <pulse
+solver>` for more details.
 
 .. jupyter-execute::
 
@@ -109,8 +109,8 @@ simulation.
         static_hamiltonian=static_ham_full,
         hamiltonian_operators=[drive_op0, drive_op1, drive_op0, drive_op1],
         rotating_frame=static_ham_full,
-        hamiltonian_channels=['d0', 'd1', 'u0', 'u1'],
-        channel_carrier_freqs={'d0': v0, 'd1': v1, 'u0': v1, 'u1': v0},
+        hamiltonian_channels=["d0", "d1", "u0", "u1"],
+        channel_carrier_freqs={"d0": v0, "d1": v1, "u0": v1, "u1": v0},
         dt=dt,
     )
 
@@ -125,7 +125,7 @@ Note that, to enable the internal automatic jit-compilation, we choose a JAX int
     from qiskit_dynamics import DynamicsBackend
     
     # Consistent solver option to use throughout notebook
-    solver_options = {'method': 'jax_odeint', 'atol': 1e-6, 'rtol': 1e-8}
+    solver_options = {"method": "jax_odeint", "atol": 1e-6, "rtol": 1e-8}
     
     backend = DynamicsBackend(
         solver=solver,
@@ -211,11 +211,11 @@ implement a Hadamard gate.
 
     with pulse.build() as h_q0:
         pulse.play(
-            pulse.library.Gaussian(duration=256, amp=0.2, sigma=50, name='custom'),
+            pulse.library.Gaussian(duration=256, amp=0.2, sigma=50, name="custom"),
             pulse.DriveChannel(0)
         )
     
-    circ.add_calibration('h', [0], h_q0)
+    circ.add_calibration("h", [0], h_q0)
 
 Call run on the circuit, and get counts as usual.
 
@@ -285,7 +285,7 @@ instructions, which the transpiler needs to check are supported by the backend. 
     target.add_instruction(SXGate())
     
     # Add RZ instruction as phase shift for drag cal
-    phi = Parameter('phi')
+    phi = Parameter("phi")
     with pulse.build() as rz0:
         pulse.shift_phase(phi, pulse.DriveChannel(0))
     
@@ -438,7 +438,7 @@ This follows the same procedure as above.
     cal_drag0.set_experiment_options(reps=[3, 5, 7])
     cal_drag1.set_experiment_options(reps=[3, 5, 7])
     
-    cal_drag0.circuits()[5].draw(output='mpl')
+    cal_drag0.circuits()[5].draw(output="mpl")
 
 .. jupyter-execute::
 
