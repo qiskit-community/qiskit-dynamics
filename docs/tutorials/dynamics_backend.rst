@@ -22,6 +22,12 @@ Note that the :class:`.DynamicsBackend` internally performs just-in-time compila
 when configured to use JAX.
 
 .. jupyter-execute::
+    :hide-code:
+
+    import warnings
+    warnings.filterwarnings('ignore', message='', category=Warning, module='', lineno=0, append=False)
+
+.. jupyter-execute::
 
     # Configure to use JAX internally
     import jax
