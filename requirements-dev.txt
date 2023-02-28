@@ -12,6 +12,6 @@ sphinxcontrib-bibtex
 qutip
 ddt~=1.4.2
 matplotlib>=3.3.0
-pylatexenc>=1.4
 qiskit-experiments
-pandas # for tutorial visualization only need this? ###############################################################
+pandas # for docs only
+pylatexenc>=1.4 # for docs only

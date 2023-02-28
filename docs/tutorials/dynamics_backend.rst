@@ -1,25 +1,25 @@
-Simulating backends at the pulse-level with ``DynamicsBackend``
-===============================================================
+Simulating backends at the pulse-level with :class:`.DynamicsBackend`
+=====================================================================
 
-In this tutorial we walk through how to use the ``DynamicsBackend`` class as a Qiskit
+In this tutorial we walk through how to use the :class:`.DynamicsBackend` class as a Qiskit
 Dynamics-backed, pulse-level simulator of a real backend. In particular, we demonstrate how to
-configure a ``DynamicsBackend`` to simulate pulse schedules, circuits whose gates have pulse
+configure a :class:`.DynamicsBackend` to simulate pulse schedules, circuits whose gates have pulse
 definitions, and calibration and characterization experiments from Qiskit Experiments.
 
 The sections of this tutorial are as follows: 
 
 1. Configure Dynamics to use JAX.
-2. Instantiating a minimally-configured ``DynamicsBackend`` with a 2 qubit model.
-3. Simulating pulse schedules on the ``DynamicsBackend``.
-4. Simulating circuits at the pulse level using the ``DynamicsBackend``.
+2. Instantiating a minimally-configured :class:`.DynamicsBackend` with a 2 qubit model.
+3. Simulating pulse schedules on the :class:`.DynamicsBackend`.
+4. Simulating circuits at the pulse level using the :class:`.DynamicsBackend`.
 5. Simulating single-qubit calibration processes via Qiskit Experiments.
 6. Simulating 2 qubit interaction characterization via the ``CrossResonanceHamiltonian`` experiment.
 
 1. Configure Dynamics to use JAX
 --------------------------------
 
-Note that the ``DynamicsBackend`` internally performs just-in-time compilation automatically when
-configured to use JAX.
+Note that the :class:`.DynamicsBackend` internally performs just-in-time compilation automatically
+when configured to use JAX.
 
 .. jupyter-execute::
 
@@ -30,11 +30,11 @@ configured to use JAX.
     from qiskit_dynamics.array import Array
     Array.set_default_backend("jax")
 
-2. Instantiating a ``DynamicsBackend``
---------------------------------------
+2. Instantiating a :class:`.DynamicsBackend`
+--------------------------------------------
 
-To create the ``DynamicsBackend``, first specify a ``Solver`` instance using the model details. For
-the model we will use a 2 qubit transmon model, with Hamiltonian:
+To create the :class:`.DynamicsBackend`, first specify a :class:`.Solver` instance using the model
+details. For the model we will use a 2 qubit transmon model, with Hamiltonian:
 
 .. math:: 
     
@@ -114,9 +114,10 @@ solver>` for more details.
         dt=dt,
     )
 
-Next, instantiate the ``DynamicsBackend``. The ``solver`` is used for simulation, ``subsystem_dims``
-indicates how the full system decomposes for measurement data computation, and ``solver_options``
-are consistent options used by ``Solver.solve`` when simulating the differential equation.
+Next, instantiate the :class:`.DynamicsBackend`. The ``solver`` is used for simulation,
+``subsystem_dims`` indicates how the full system decomposes for measurement data computation, and
+``solver_options`` are consistent options used by :meth:`.Solver.solve` when simulating the
+differential equation.
 
 Note that, to enable the internal automatic jit-compilation, we choose a JAX integration method.
 
@@ -133,16 +134,16 @@ Note that, to enable the internal automatic jit-compilation, we choose a JAX int
         solver_options=solver_options, # to be used every time run is called
     )
 
-Alternatively to the above, the ``DynamicsBackend.from_backend`` method can be used to build the
-``DymamicsBackend`` from an existing backend. The above model, which was built manually, was taken
-from qubit :math:`0` and :math:`1` of ``almaden``.
+Alternatively to the above, the :meth:`.DynamicsBackend.from_backend` method can be used to build
+the :class:`.DynamicsBackend` from an existing backend. The above model, which was built manually,
+was taken from qubit :math:`0` and :math:`1` of ``almaden``.
 
 3. Simulate a list of schedules
 -------------------------------
 
 With the above backend, we can already simulate a list of pulse schedules. The code below generates
 a list of schedules specifying experiments on qubit :math:`0`. The schedule is chosen to demonstrate
-that the usual instructions work on the ``DynamicsBackend``.
+that the usual instructions work on the :class:`.DynamicsBackend`.
 
 .. jupyter-execute::
 
@@ -180,18 +181,19 @@ backend.
 
     result.get_counts(3)
 
-4. Simulating circuits at the pulse level using ``DynamicsBackend``
--------------------------------------------------------------------
+4. Simulating circuits at the pulse level using :class:`.DynamicsBackend`
+-------------------------------------------------------------------------
 
-For the ``DynamicsBackend`` to simulate a circuit, each circuit element must have a corresponding
-pulse schedule. These schedules can either be specified in the gates themselves, by attaching
-calibrations, or by adding instructions to the ``Target`` contained in the ``DynamicsBackend``.
+For the :class:`.DynamicsBackend` to simulate a circuit, each circuit element must have a
+corresponding pulse schedule. These schedules can either be specified in the gates themselves, by
+attaching calibrations, or by adding instructions to the ``Target`` contained in the
+:class:`.DynamicsBackend`.
 
 4.1 Simulating circuits with attached calibrations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Build a simple circuit. Here we build one consisting of a single Hadamard gate on qubit 0, followed
-by measurement.
+Build a simple circuit. Here we build one consisting of a single Hadamard gate on qubit :math:`0`,
+followed by measurement.
 
 .. jupyter-execute::
 
@@ -203,9 +205,9 @@ by measurement.
     
     circ.draw("mpl")
 
-Next, attach a calibration for the Hadamard gate on qubit 0 to the circuit. Note that here are only
-demonstrating the mechanics of adding a calibration; we have not actually chosen the pulse to
-implement a Hadamard gate.
+Next, attach a calibration for the Hadamard gate on qubit :math:`0` to the circuit. Note that here
+are only demonstrating the mechanics of adding a calibration; we have not actually chosen the pulse
+to implement a Hadamard gate.
 
 .. jupyter-execute::
 
@@ -229,7 +231,7 @@ Call run on the circuit, and get counts as usual.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Alternatively to the above work flow, add the above schedule as the pulse-level definition of the
-Hadamard gate on qubit 0.
+Hadamard gate on qubit :math:`0`.
 
 .. jupyter-execute::
 
@@ -256,18 +258,18 @@ gate to the circuit object.
 5. Simulating calibration of single qubit gates using Qiskit Experiments
 ------------------------------------------------------------------------
 
-Next, we calibrate ``X`` and ``SX`` gates on both qubits modeled in the ``DynamicsBackend``.
-
-**To do: add reference to the single qubit calibration tutorial for
-Qiskit Experiments and say that we’re walking through this.**
+Next, we calibrate ``X`` and ``SX`` gates on both qubits modeled in the :class:`.DynamicsBackend`
+using Qiskit Experiments, following the single-qubit calibration tutorial.
 
 5.1 Configure the ``Target`` to include single qubit instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To enable running of the single qubit experiments, we add the following to the target: - Qubit
-frequency properties (needed by the ``RoughFrequencyCal`` experiment). - ``X`` and ``SX`` gate
-instructions, which the transpiler needs to check are supported by the backend. - Add definitions of
-``RZ`` gates as phase shifts.
+To enable running of the single qubit experiments, we add the following to the target:
+
+- Qubit frequency properties (needed by the ``RoughFrequencyCal`` experiment).
+- ``X`` and ``SX`` gate instructions, which the transpiler needs to check are supported by the
+  backend. 
+- Add definitions of ``RZ`` gates as phase shifts.
 
 .. jupyter-execute::
 
@@ -300,9 +302,7 @@ instructions, which the transpiler needs to check are supported by the backend. 
 5.2 Prepare ``Calibrations`` object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Following **insert link to tutorial**, we prepare the ``Calibrations`` object.
-
-**TO DO: insert link above**
+Next, prepare the ``Calibrations`` object.
 
 .. jupyter-execute::
 
@@ -425,8 +425,8 @@ Observe the updated parameters for qubit 0.
 5.5 Rough Drag parameter calibration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Run rough Drag parameter calibration for the ``X`` and ``SX`` gates.
-This follows the same procedure as above.
+Run rough Drag parameter calibration for the ``X`` and ``SX`` gates. This follows the same procedure
+as above.
 
 .. jupyter-execute::
 
@@ -459,8 +459,7 @@ This follows the same procedure as above.
 5.6 Fine amplitude calibration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Finally, run fine amplitude calibration for both qubits. Start with the
-``X`` gate.
+Finally, run fine amplitude calibration for both qubits. Start with the ``X`` gate.
 
 .. jupyter-execute::
 
@@ -513,13 +512,12 @@ Next, run fine calibration on the ``SX`` gates.
 6. Simulating a cross resonance characterization experiment
 -----------------------------------------------------------
 
-Finally, simulate the ``CrossResonanceHamiltonian`` characterization
-experiment.
+Finally, simulate the ``CrossResonanceHamiltonian`` characterization experiment.
 
-First, we further configure the backend to run this experiment. This
-requires: - Adding the custom gate used in the experiment as a valid
-instruction in the ``Target``. - Defining the control channel map, which
-the experiment requires.
+First, we further configure the backend to run this experiment. This requires: 
+
+- Adding the custom gate used in the experiment as a valid instruction in the ``Target``.
+- Defining the control channel map, which the experiment requires.
 
 .. jupyter-execute::
 
@@ -533,9 +531,8 @@ the experiment requires.
     # set the control channel map
     backend.set_options(control_channel_map={(0, 1): 0, (1, 0): 1})
 
-Build the characterization experiment object, and set the instruction
-map in the transpilation options to use the single qubit gates
-calibrated above.
+Build the characterization experiment object, and set the instruction map in the transpilation
+options to use the single qubit gates calibrated above.
 
 .. jupyter-execute::
 
