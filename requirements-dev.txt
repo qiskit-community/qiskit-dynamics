@@ -13,3 +13,4 @@ qutip
 ddt~=1.4.2
 matplotlib>=3.3.0
 qiskit-experiments
+pandas # for tutorial visualization only need this? ###############################################################
