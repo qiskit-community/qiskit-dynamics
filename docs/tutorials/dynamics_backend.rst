@@ -8,11 +8,11 @@ definitions, and calibration and characterization experiments from Qiskit Experi
 
 The sections of this tutorial are as follows: 
 
-1. Configure Dynamics to use JAX. 2. Instantiating a minimally-configured ``DynamicsBackend`` with a
-   2 qubit model. 
+1. Configure Dynamics to use JAX.
+2. Instantiating a minimally-configured ``DynamicsBackend`` with a 2 qubit model.
 3. Simulating pulse schedules on the ``DynamicsBackend``.
-4. Simulating circuits at the pulse level using the ``DynamicsBackend``. 
-5. Simulating single-qubit calibration processes via Qiskit Experiments. 
+4. Simulating circuits at the pulse level using the ``DynamicsBackend``.
+5. Simulating single-qubit calibration processes via Qiskit Experiments.
 6. Simulating 2 qubit interaction characterization via the ``CrossResonanceHamiltonian`` experiment.
 
 1. Configure Dynamics to use JAX
@@ -36,7 +36,11 @@ configured to use JAX.
 To create the ``DynamicsBackend``, first specify a ``Solver`` instance using the model details. For
 the model we will use a 2 qubit transmon model, with Hamiltonian:
 
-.. math:: H(t) = 2 \pi \nu_0 N_0 + 2 \pi \alpha_0 N_0 (N_0 - I) + 2 \pi \nu_1 N_1 + 2 \pi \alpha_1 N_1(N_1 - I)\\ + 2 \pi J (a_0 + a_0^\dagger)(a_1 + a_1^\dagger) \\ + 2 \pi r_0 s_0(t)(a_0 + a_0^\dagger) + 2 \pi r_1 s_1(t)(a_1 + a_1^\dagger),
+.. math:: 
+    
+    H(t) = 2 \pi \nu_0 N_0 + 2 \pi \alpha_0 N_0 (N_0 - I) + 2 \pi \nu_1 N_1
+    + 2 \pi \alpha_1 N_1(N_1 - I)\\ + 2 \pi J (a_0 + a_0^\dagger)(a_1 + a_1^\dagger) \\ 
+    + 2 \pi r_0 s_0(t)(a_0 + a_0^\dagger) + 2 \pi r_1 s_1(t)(a_1 + a_1^\dagger),
 
 where 
 
@@ -137,8 +141,8 @@ from qubit :math:`0` and :math:`1` of ``almaden``.
 -------------------------------
 
 With the above backend, we can already simulate a list of pulse schedules. The code below generates
-a list of schedules specifying experiments on qubit 0. The schedule is chosen to demonstrate that
-the usual instructions work on the ``DynamicsBackend``.
+a list of schedules specifying experiments on qubit :math:`0`. The schedule is chosen to demonstrate
+that the usual instructions work on the ``DynamicsBackend``.
 
 .. jupyter-execute::
 
