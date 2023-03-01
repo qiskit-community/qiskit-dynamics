@@ -370,7 +370,7 @@ We construct the DRAG pulse directly from ``ScalableSymbolicPulse``.
 -------------------------------------
 
 We want to optimize :math:`X` gate, and define the fidelity of the unitary :math:`U`
-implemented by the pulse. :
+implemented by the pulse:
 
 .. math:: f(U) = \frac{|\text{Tr}(XU)|_2|}{2}
 
@@ -447,7 +447,8 @@ Before the optimization, the shape of the pulse is here.
 
     jit_grad_obj = jit(value_and_grad(objective))
 
-    opt_results = minimize(fun=jit_grad_obj, x0=initial_params, jac=True, method='L-BFGS-B',
+    # recommend using "L-BFGS-B" or "SLSQP" for using jac and bounds.
+    opt_results = minimize(fun=jit_grad_obj, x0=initial_params, jac=True, method='SLSQP',
     bounds=((0.,1.), (None, None)))
 
     print(opt_results.message)
