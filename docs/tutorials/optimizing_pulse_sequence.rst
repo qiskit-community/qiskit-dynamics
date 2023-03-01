@@ -3,18 +3,30 @@ Gradient optimization of a pulse sequence
 
 Here, we walk through an example of optimizing a single-qubit gate using
 ``qiskit_dynamics``. This tutorial requires JAX - see the user guide
-on using JAX for more detail on how to configure ``qiskit-dynamics`` to
+on :ref:`How-to use JAX with qiskit-dynamics <how-to use jax>` to
 work with JAX.
 
 We will optimize an :math:`X`-gate on a model of a qubit system using
-the following steps:
+the following steps. Here we introduce optimization of two patterns.
+A. construct a signal from samples for a piecewise-constant envelope
+B. construct a signal from pulse sequences using `qiskit-pulse`
 
 1. Configure ``qiskit-dynamics`` to work with the JAX backend.
-2. Setup a ``Solver`` instance with the model of the system.
-3. Define a pulse sequence parameterization to optimize over.
-4. Define a gate fidelity function.
-5. Define an objective function for optimization.
-6. Use JAX to differentiate the objective, then do the gradient optimization.
+
+2-A. Setup a ``Solver`` instance with the model of the system.
+3-A. Define a pulse sequence parameterization to optimize over.
+4-A. Define a gate fidelity function.
+5-A. Define an objective function for optimization.
+6-A. Use JAX to differentiate the objective, then do the gradient optimization.
+
+2-B. Define a transmon model with Hamiltonian and set up the solver.
+3-B. Define DRAG pulse.
+4-B. Define a gate fidelity function.
+5-B. Define an objective function for optimization.
+6-B. Perform JAX transformations and optimize.
+
+
+
 
 1. Configure to use JAX
 -----------------------
@@ -36,8 +48,9 @@ for a more detailed explanation of why this step is necessary.
     from qiskit_dynamics.array import Array
     Array.set_default_backend('jax')
 
-2. Setup the solver
--------------------
+
+2-A. Setup the solver
+---------------------
 
 Here we will setup a ``Solver`` with a simple model of a qubit. The
 Hamiltonian is:
@@ -75,8 +88,8 @@ update these and optimize over this later.
     )
 
 
-3. Define a pulse sequence parameterization to optimize over
-------------------------------------------------------------
+3-A. Define a pulse sequence parameterization to optimize over
+--------------------------------------------------------------
 
 We will optimize over signals that are:
 
@@ -149,8 +162,8 @@ Observe, for example, the signal generated when all parameters are
     signal.draw(t0=0., tf=signal.duration * signal.dt, n=1000, function='envelope')
 
 
-4. Define gate fidelity
------------------------
+4-A. Define gate fidelity
+-------------------------
 
 We will optimize an :math:`X` gate, and define the fidelity of the unitary :math:`U`
 implemented by the pulse via the standard fidelity measure:
@@ -166,8 +179,8 @@ implemented by the pulse via the standard fidelity measure:
 
         return np.abs(np.sum(X_op * U))**2 / 4.
 
-5. Define the objective function
---------------------------------
+5-A. Define the objective function
+----------------------------------
 
 The function we want to optimize consists of:
 
@@ -198,8 +211,8 @@ The function we want to optimize consists of:
         fid = fidelity(U)
         return 1. - fid.data
 
-6. Perform JAX transformations and optimize
--------------------------------------------
+6-A. Perform JAX transformations and optimize
+---------------------------------------------
 
 Finally, we gradient optimize the objective:
 
@@ -254,3 +267,198 @@ approximation analysis.
 .. jupyter-execute::
 
     opt_signal.samples.sum()
+
+
+2-B. Define a transmon model with Hamiltonian and set up the solver
+-------------------------------------------------------------------
+
+A transmon model with Hamiltonian we will simulate is here.
+
+.. math:: H(t) = 2 \pi \nu N + \pi \alpha N(N-I) + s(t) \times 2 \pi r (a + a^\dagger)
+
+
+- :math:`N`, :math:`a`, and :math:`a^\dagger` are, respectively, the number, annihilation, and creation operators.
+- :math:`\nu` is the qubit frequency,
+- :math:`r` is the drive strength,
+- :math:`s(t)` is the drive signal which we will optimize.
+
+The following used values such as ``v``, ``anharm``, ``r``, ``dt``, and ``w`` is determined as typical ones.
+We note that `dim` is set to ``3`` since DRAG pulse considers the leakage to 2-state.
+
+
+.. jupyter-execute::
+
+    import numpy as np
+    from qiskit.quantum_info import Operator
+    from qiskit_dynamics import Solver
+    from qiskit_dynamics.pulse import InstructionToSignals
+
+    dim = 3
+    v = 5.
+    anharm = -0.33
+    r = 0.1
+    dt = 0.222
+    w = 5.
+
+    a = np.diag(np.sqrt(np.arange(1, dim)), 1)
+    adag = np.diag(np.sqrt(np.arange(1, dim)), -1)
+    N = np.diag(np.arange(dim))
+
+
+    static_hamiltonian = 2 * np.pi * v * N + np.pi * anharm * N * (N - np.eye(dim))
+    drive_hamiltonian = 2 * np.pi * r * (a + adag)
+
+
+    ham_solver = Solver(
+        hamiltonian_operators=[drive_hamiltonian],
+        static_hamiltonian=static_hamiltonian,
+        rotating_frame=static_hamiltonian,
+    )
+
+
+3-B. Define DRAG pulse
+----------------------
+
+Although qiskit provides a ``DRAG`` class that generates a DRAG pulse, which is a subclass of ``ScalableSymbolicPulse``, 
+this class is currently not JAX-supported.
+
+We construct the DRAG pulse directly from ``ScalableSymbolicPulse``.
+
+.. jupyter-execute::
+
+    from qiskit import pulse
+    import sympy as sym
+
+    def lifted_gaussian(
+        t: sym.Symbol,
+        center,
+        t_zero,
+        sigma,
+    ) -> sym.Expr:
+        t_shifted = (t - center).expand()
+        t_offset = (t_zero - center).expand()
+
+        gauss = sym.exp(-((t_shifted / sigma) ** 2) / 2)
+        offset = sym.exp(-((t_offset / sigma) ** 2) / 2)
+
+        return (gauss - offset) / (1 - offset)
+
+    def drag(params):
+        amp, beta = params
+        _t, _duration, _amp, _sigma, _beta, _angle = sym.symbols(
+            "t, duration, amp, sigma, beta, angle"
+        )
+        _center = _duration / 2
+        _gauss = lifted_gaussian(_t, _center, _duration + 1, _sigma)
+        _deriv = -(_t - _center) / (_sigma**2) * _gauss
+
+        envelope_expr = _amp * sym.exp(sym.I * _angle) * (_gauss + sym.I * _beta * _deriv)
+        
+        return pulse.ScalableSymbolicPulse(
+                pulse_type="Drag",
+                duration=160,
+                amp=amp,
+                angle=0,
+                parameters={"sigma": 40, "beta": beta},
+                envelope=envelope_expr,
+                constraints=_sigma > 0,
+                valid_amp_conditions=sym.And(sym.Abs(_amp) <= 1.0, sym.Abs(_beta) < _sigma),
+            )
+
+
+4-B. Define a gate fidelity function.
+-------------------------------------
+
+We want to optimize :math:`X` gate, and define the fidelity of the unitary :math:`U`
+implemented by the pulse. :
+
+.. math:: f(U) = \frac{|\text{Tr}(XU)|_2|}{2}
+
+.. jupyter-execute::
+
+    X_op = Array(Operator(
+        [[0., 1., 0.],
+         [1., 0., 0.], 
+         [0., 0., 1.]]))
+
+
+    def fidelity(U):
+        U = Array(U)
+        V = Array(Operator(
+        [[1., 0., 0.],
+         [0., 1., 0.], 
+         [0., 0., 0.]]))
+
+        return np.abs(np.trace(X_op@(V@U@V))) / 2
+
+
+5-B. Define an objective function for optimization
+--------------------------------------------------
+
+The role of the function we want to optimize is:
+
+- Setting params we want to optimze. In this tutorial, we optimize amplifier and beta.
+- Constructing qiskit-pulse using parametrized drag pulse and converting to signal.
+- Simulating the equation over the length of the pulse sequence.
+- Computing and return the infidelity (we minimize :math:`1-f(U)`).
+
+.. jupyter-execute::
+
+    def objective(params):
+
+        instance = drag(params)
+
+        # build a pulse schedule
+        with pulse.build() as Xp:
+            pulse.play(instance, pulse.DriveChannel(0))
+
+        # convert from a pulse schedule to a list of signals
+        converter = InstructionToSignals(dt, carriers={"d0": w})
+
+        # get signals for the converter
+        signal = converter.get_signals(Xp)
+
+        result = ham_solver.solve(
+            y0=np.eye(3, dtype=complex),
+            t_span=[0, instance.duration * dt],
+            signals=[signal],
+            method='jax_odeint',
+            atol=1e-8,
+            rtol=1e-8
+        )
+
+        return 1. - fidelity(Array(result[0].y[-1])).data
+
+6-B. Perform JAX transformations and optimize
+---------------------------------------------
+
+We set amplifier and beta as :math:`initial_params = np.array([0.2, 10,])`.
+Before the optimization, the shape of the pulse is here.
+
+.. jupyter-execute::
+
+    initial_params = np.array([0.2, 10,])
+    drag(initial_params).draw()
+
+.. jupyter-execute::
+
+    from jax import jit, value_and_grad
+    from scipy.optimize import minimize
+
+    jit_grad_obj = jit(value_and_grad(objective))
+
+    opt_results = minimize(fun=jit_grad_obj, x0=initial_params, jac=True, method='L-BFGS-B',
+    bounds=((0.,1.), (None, None)))
+
+    print(opt_results.message)
+    print(f"Optimized Amp is {opt_results.x[0]} and beta is {opt_results.x[1]}")
+    print('Number of function evaluations: ' + str(opt_results.nfev))
+    print('Function value: ' + str(opt_results.fun))
+
+
+
+We can draw the optimized pulse, whose parameter is retrieved by :math:`opt_results.x`.
+
+.. jupyter-execute::
+
+    drag(opt_results.x).draw()
