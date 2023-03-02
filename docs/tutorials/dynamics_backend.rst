@@ -36,8 +36,8 @@ when configured to use JAX.
     from qiskit_dynamics.array import Array
     Array.set_default_backend("jax")
 
-2. Instantiating a :class:`.DynamicsBackend`
---------------------------------------------
+2. Instantiating a minimally-configured :class:`.DynamicsBackend` with a 2 qubit model
+--------------------------------------------------------------------------------------
 
 To create the :class:`.DynamicsBackend`, first specify a :class:`.Solver` instance using the model
 details. For the model we will use a 2 qubit transmon model, with Hamiltonian:
@@ -144,8 +144,8 @@ Alternatively to the above, the :meth:`.DynamicsBackend.from_backend` method can
 the :class:`.DynamicsBackend` from an existing backend. The above model, which was built manually,
 was taken from qubit :math:`0` and :math:`1` of ``almaden``.
 
-3. Simulate a list of schedules
--------------------------------
+3. Simulating pulse schedules on the :class:`.DynamicsBackend`
+--------------------------------------------------------------
 
 With the above backend, we can already simulate a list of pulse schedules. The code below generates
 a list of schedules specifying experiments on qubit :math:`0`. The schedule is chosen to demonstrate
@@ -187,8 +187,8 @@ backend.
 
     result.get_counts(3)
 
-4. Simulating circuits at the pulse level using :class:`.DynamicsBackend`
--------------------------------------------------------------------------
+4. Simulating circuits at the pulse level using the :class:`.DynamicsBackend`
+-----------------------------------------------------------------------------
 
 For the :class:`.DynamicsBackend` to simulate a circuit, each circuit element must have a
 corresponding pulse schedule. These schedules can either be specified in the gates themselves, by
@@ -261,8 +261,8 @@ gate to the circuit object.
 
     result.get_counts(0)
 
-5. Simulating calibration of single qubit gates using Qiskit Experiments
-------------------------------------------------------------------------
+5. Simulating single-qubit calibration processes via Qiskit Experiments
+-----------------------------------------------------------------------
 
 Next, we calibrate ``X`` and ``SX`` gates on both qubits modeled in the :class:`.DynamicsBackend`
 using Qiskit Experiments, following the single-qubit calibration tutorial.
@@ -515,8 +515,8 @@ Next, run fine calibration on the ``SX`` gates.
 
     pd.DataFrame(**cals.parameters_table(qubit_list=[0, ()], parameters="amp"))
 
-6. Simulating a cross resonance characterization experiment
------------------------------------------------------------
+6. Simulating 2 qubit interaction characterization via the ``CrossResonanceHamiltonian`` experiment
+---------------------------------------------------------------------------------------------------
 
 Finally, simulate the ``CrossResonanceHamiltonian`` characterization experiment.
 
