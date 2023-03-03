@@ -142,7 +142,7 @@ Note that, to enable the internal automatic jit-compilation, we choose a JAX int
 
 Alternatively to the above, the :meth:`.DynamicsBackend.from_backend` method can be used to build
 the :class:`.DynamicsBackend` from an existing backend. The above model, which was built manually,
-was taken from qubit :math:`0` and :math:`1` of ``almaden``.
+was taken from qubits :math:`0` and :math:`1` of ``almaden``.
 
 3. Simulating pulse schedules on the :class:`.DynamicsBackend`
 --------------------------------------------------------------
