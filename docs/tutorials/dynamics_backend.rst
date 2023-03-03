@@ -318,10 +318,10 @@ To enable running of the single qubit experiments, we add the following to the t
         {(0,): InstructionProperties(calibration=rz0), (1,): InstructionProperties(calibration=rz1)}
     )
 
-5.2 Prepare :class:`qiskit_experiments.calibration_management.calibrations.Calibrations` object
+5.2 Prepare :class:`~qiskit_experiments.calibration_management.calibrations.Calibrations` object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Next, prepare the :class:`qiskit_experiments.calibration_management.calibrations.Calibrations`
+Next, prepare the :class:`~qiskit_experiments.calibration_management.calibrations.Calibrations`
 object.
 
 .. jupyter-execute::
