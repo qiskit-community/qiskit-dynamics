@@ -1,5 +1,5 @@
 .. Substitution to reduce text length.
-.. |CRHamitonian| replace:: :class:`~qiskit_experiments.library.CrossResonanceHamiltonian`
+.. |CRHamitonian| replace:: :class:`~qiskit_experiments.library.characterization.CrossResonanceHamiltonian`
 
 Simulating backends at the pulse-level with :class:`.DynamicsBackend`
 =====================================================================
@@ -319,7 +319,7 @@ To enable running of the single qubit experiments, we add the following to the t
     )
 
 5.2 Prepare :class:`~qiskit_experiments.calibration_management.calibrations.Calibrations` object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Next, prepare the :class:`~qiskit_experiments.calibration_management.calibrations.Calibrations`
 object.
