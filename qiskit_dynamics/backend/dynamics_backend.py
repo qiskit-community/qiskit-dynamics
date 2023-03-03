@@ -60,9 +60,48 @@ from .backend_string_parser import parse_backend_hamiltonian_dict
 
 
 class DynamicsBackend(BackendV2):
-    r"""Pulse enabled simulator backend.
+    r"""Pulse-level simulator backend.
+
+    This class provides a :class:`~qiskit.providers.backend.BackendV2` interface wrapper around a
+    :class:`.Solver` instance setup to simulate pulse schedules. The backend can be configured to
+    take advantage of standard transpilation infrastructure to describe pulse-level simulations in
+    terms of :class:`~qiskit.circuit.QuantumCircuit`\s. Results are returned as
+    :class:`~qiskit.result.Result` instances.
+
+    A minimal :class:`.DynamicsBackend` requires specifying only a :class:`.Solver` instance and a
+    list of subsystem dimensions, indicating the subsystem decomposition of the model in
+    :class:`.Solver`. For example, the following code builds a :class:`.DynamicsBackend` around a
+    :class:`.Solver` and indicates that the system specified by the :class:`.Solver` decomposes as
+    two ``3`` dimensional subsystems.
+
+    .. code-block:: python
+
+        backend = DynamicsBackend(
+            solver=solver, subsystem_dims=[3, 3]
+        )
+
+    Without further configuration, the above ``backend`` can be used to simulate either
+    :class:`~qiskit.pulse.Schedule` or :class:`~qiskit.pulse.ScheduleBlock` instances.
+
+    Pulse-level simulations defined in terms of :class:`~qiskit.circuit.QuantumCircuit` instances
+    can also be performed if each gate in the circuit has a corresponding pulse-level definition,
+    either as an attached calibration, or as an instruction contained in ``backend.target``.
+
+    Additionally, a :class:`.DynamicsBackend` can be instantiated from an existing backend using the
+    :meth:`.DynamicsBackend.from_backend` method, utilizing the additional ``subsystem_list``
+    argument to specify which qubits to include in the model:
+
+    .. code-block:: python
+
+        backend = DynamicsBackend.from_backend(backend, subsystem_list=[0, 1])
+
 
     **Supported options**
+
+    The behaviour of the backend can be configured via the following options. These can either be
+    passed as optional keyword arguments at construction, set with the
+    :meth:`.DynamicsBackend.set_options` method after construction, or passed as runtime arguments
+    to :meth:`.DynamicsBackend.run`.
 
     * ``shots``: Number of shots per experiment. Defaults to ``1024``.
     * ``solver``: The Qiskit Dynamics :class:`.Solver` instance used for simulation.
@@ -80,20 +119,20 @@ class DynamicsBackend(BackendV2):
       ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
     * ``normalize_states``: Boolean indicating whether to normalize states before computing outcome
       probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if the solution
-      tolerance results in probabilities with significant numerical deviation from proper
-      probability distributions.
+      tolerance results in probabilities with significant numerical deviation from a proper
+      probability distribution.
     * ``meas_level``: Form of measurement output. Supported values are ``1`` and ``2``. ``1``
-      returns IQ points and ``2`` returns counts. Defaults to ``meas_level==2``.
-    * ``meas_return``: Level of measurement data to return. For ``meas_level=1`` ``"single"``
+      returns IQ points and ``2`` returns counts. Defaults to ``meas_level == 2``.
+    * ``meas_return``: Level of measurement data to return. For ``meas_level = 1`` ``"single"``
       returns output from every shot. ``"avg"`` returns average over shots of measurement output.
       Defaults to ``"avg"``.
     * ``iq_centers``: Centers for IQ distribution when using ``meas_level==1`` results. Must have
-      type List[List[List[float, float]]] formatted as ``iq_centers[subsystem][level] = [I,Q]``. If
-      ``None``, the ``iq_centers`` are dynamically generated to be equally spaced points on a unit
-      circle with ground-state at (1,0). The default is ``None``.
+      type ``List[List[List[float, float]]]`` formatted as ``iq_centers[subsystem][level] = [I,
+      Q]``. If ``None``, the ``iq_centers`` are dynamically generated to be equally spaced points on
+      a unit circle with ground-state at ``(1, 0)``. The default is ``None``.
     * ``iq_width``: Standard deviation of IQ distribution around the centers for ``meas_level==1``.
       Must be a positive float. Defaults to ``0.2``.
-    * ``max_outcome_level``: For ``meas_level==2``, the maximum outcome for each subsystem. Values
+    * ``max_outcome_level``: For ``meas_level == 2``, the maximum outcome for each subsystem. Values
       will be rounded down to be no larger than ``max_outcome_level``. Must be a positive integer or
       ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
     * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
@@ -689,10 +728,14 @@ def default_experiment_result_function(
 ) -> ExperimentResult:
     """Default routine for generating ExperimentResult object.
 
-    Transforms state out of rotating frame into lab frame using ``backend.options.solver``,
-    normalizes if ``backend.options.normalize_states==True``, and computes measurement results
-    in the dressed basis based on measurement-related options in ``backend.options`` along with
-    the measurement specification extracted from the experiments, passed as args to this function.
+    To generate the results for a given experiment, this method takes the following steps:
+
+    * The final state is transformed out of the rotating frame and into the lab frame using
+      ``backend.options.solver``.
+    * If ``backend.options.normalize_states==True``, the final state is normalized.
+    * Measurement results are computed, in the dressed basis, based on both the measurement-related
+      options in ``backend.options`` and the measurement specification extracted from the specific
+      experiment.
 
     Args:
         experiment_name: Name of experiment.
