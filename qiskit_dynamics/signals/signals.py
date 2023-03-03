@@ -279,10 +279,10 @@ class DiscreteSignal(Signal):
     def __init__(
         self,
         dt: float,
-        samples: Union[Array, List],
+        samples: List,
         start_time: float = 0.0,
-        carrier_freq: Union[float, List, Array] = 0.0,
-        phase: Union[float, List, Array] = 0.0,
+        carrier_freq: Union[float, List] = 0.0,
+        phase: Union[float, List] = 0.0,
         name: str = None,
     ):
         """Initialize a piecewise constant signal.
@@ -299,38 +299,25 @@ class DiscreteSignal(Signal):
         """
         self._dt = dt
 
-        samples = Array(samples)
+        samples = unp.asarray(samples)
 
         if len(samples) == 0:
-            zero_pad = np.array([0])
+            zero_pad = unp.array([0])
         else:
-            zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
-        self._padded_samples = np.append(samples, zero_pad, axis=0)
+            zero_pad = unp.expand_dims(unp.zeros_like(unp.asarray(samples[0])), 0)
+        self._padded_samples = unp.append(samples, zero_pad, axis=0)
 
         self._start_time = start_time
 
         # define internal envelope function
-        if samples.backend == "jax":
-
-            def envelope(t):
-                t = Array(t).data
-                idx = jnp.clip(
-                    jnp.array((t - self._start_time) // self._dt, dtype=int),
+        def envelope(t):
+            t = unp.asarray(t)
+            idx = unp.clip(
+                    unp.array((t - self._start_time) // self._dt, dtype=int),
                     -1,
                     len(self.samples),
                 )
-                return self._padded_samples[idx]
-
-        else:
-
-            def envelope(t):
-                t = Array(t).data
-                idx = np.clip(
-                    np.array((t - self._start_time) // self._dt, dtype=int),
-                    -1,
-                    len(self.samples),
-                )
-                return self._padded_samples[idx]
+            return self._padded_samples[idx]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
@@ -406,12 +393,13 @@ class DiscreteSignal(Signal):
         return self._dt
 
     @property
-    def samples(self) -> Array:
+    def samples(self):
+        # TODO: specify a return type
         """
         Returns:
             samples: the samples of the piecewise constant signal.
         """
-        return Array(self._padded_samples[:-1])
+        return unp.asarray(self._padded_samples[:-1])
 
     @property
     def start_time(self) -> float:
@@ -441,7 +429,7 @@ class DiscreteSignal(Signal):
         Raises:
             QiskitError: If start_sample is less than the current length of samples.
         """
-        samples = Array(samples)
+        samples = unp.asarray(samples)
 
         if len(samples) < 1:
             return
@@ -449,16 +437,16 @@ class DiscreteSignal(Signal):
         if start_sample < len(self.samples):
             raise QiskitError("Samples can only be added afer the last sample.")
 
-        zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
+        zero_pad = unp.expand_dims(unp.zeros_like(unp.asarray(samples[0])), 0)
 
         new_samples = self.samples
         if len(self.samples) < start_sample:
-            new_samples = np.append(
-                new_samples, np.repeat(zero_pad, start_sample - len(self.samples))
+            new_samples = unp.append(
+                new_samples, unp.repeat(zero_pad, start_sample - len(self.samples))
             )
 
-        new_samples = np.append(new_samples, samples)
-        self._padded_samples = np.append(new_samples, zero_pad, axis=0)
+        new_samples = unp.append(new_samples, samples)
+        self._padded_samples = unp.append(new_samples, zero_pad, axis=0)
 
     def __str__(self) -> str:
         """Return string representation."""
