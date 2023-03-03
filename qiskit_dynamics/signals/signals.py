@@ -24,13 +24,13 @@ import operator
 import numpy as np
 from matplotlib import pyplot as plt
 
-try:
-    import jax.numpy as jnp
-except ImportError:
-    pass
-
 from qiskit import QiskitError
+from arraylias import numpy_alias
+
 from qiskit_dynamics.array import Array
+
+
+unp = numpy_alias()()
 
 
 class Signal:
@@ -72,9 +72,9 @@ class Signal:
 
     def __init__(
         self,
-        envelope: Union[Callable, complex, float, int, Array],
-        carrier_freq: Union[float, List, Array] = 0.0,
-        phase: Union[float, List, Array] = 0.0,
+        envelope: Union[Callable, complex, float, int],
+        carrier_freq: Union[float, List] = 0.0,
+        phase: Union[float, List] = 0.0,
         name: Optional[str] = None,
     ):
         """
@@ -91,23 +91,17 @@ class Signal:
         self._name = name
         self._is_constant = False
 
-        if isinstance(envelope, (complex, float, int)):
-            envelope = Array(complex(envelope))
+        if not callable(envelope):
+            # if not callable, we assume a constant
+            envelope = unp.asarray(envelope)
 
-        if isinstance(envelope, Array):
             # if envelope is constant and the carrier is zero, this is a constant signal
             if carrier_freq == 0.0:
                 self._is_constant = True
 
-            if envelope.backend == "jax":
-                self._envelope = lambda t: envelope * jnp.ones_like(Array(t).data)
-            else:
-                self._envelope = lambda t: envelope * np.ones_like(t)
-        elif callable(envelope):
-            if Array.default_backend() == "jax":
-                self._envelope = lambda t: Array(envelope(t))
-            else:
-                self._envelope = envelope
+            self._envelope = lambda t: envelope * unp.ones_like(t)
+        else:
+            self._envelope = envelope
 
         # set carrier and phase
         self.carrier_freq = carrier_freq
