@@ -412,7 +412,7 @@ class DiscreteSignal(Signal):
     def conjugate(self):
         return self.__class__(
             dt=self._dt,
-            samples=np.conjugate(self.samples),
+            samples=unp.conjugate(self.samples),
             start_time=self._start_time,
             carrier_freq=-self.carrier_freq,
             phase=-self.phase,
