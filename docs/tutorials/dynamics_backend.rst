@@ -326,7 +326,6 @@ Next, prepare the ``Calibrations`` object.
         pulse.play(pulse.Drag(dur, Parameter("amp"), sigma, Parameter("β")), drive)
     
     with pulse.build(name="sx") as sx:
-        #pulse.play(pulse.Drag(dur, Parameter("amp"), sigma, Parameter("β")), drive)
         pulse.play(pulse.Drag(dur, Parameter("amp"), sigma, Parameter("β")), drive)
     
     cals.add_schedule(x, num_qubits=1)
