@@ -1,5 +1,5 @@
 .. Substitution to reduce text length.
-.. |CRHamitonian| replace:: :class:`qiskit_experiments.library.CrossResonanceHamiltonian`
+.. |CRHamitonian| replace:: :class:`~qiskit_experiments.library.CrossResonanceHamiltonian`
 
 Simulating backends at the pulse-level with :class:`.DynamicsBackend`
 =====================================================================
