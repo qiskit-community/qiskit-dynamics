@@ -1,3 +1,6 @@
+.. Substitution to reduce text length.
+.. |CRHamitonian| replace:: :class:`qiskit_experiments.library.CrossResonanceHamiltonian`
+
 Simulating backends at the pulse-level with :class:`.DynamicsBackend`
 =====================================================================
 
@@ -13,7 +16,7 @@ The sections of this tutorial are as follows:
 3. Simulating pulse schedules on the :class:`.DynamicsBackend`.
 4. Simulating circuits at the pulse level using the :class:`.DynamicsBackend`.
 5. Simulating single-qubit calibration processes via Qiskit Experiments.
-6. Simulating 2 qubit interaction characterization via the ``CrossResonanceHamiltonian`` experiment.
+6. Simulating 2 qubit interaction characterization via the |CRHamitonian| experiment.
 
 1. Configure Dynamics to use JAX
 --------------------------------
@@ -200,8 +203,8 @@ backend.
 
 For the :class:`.DynamicsBackend` to simulate a circuit, each circuit element must have a
 corresponding pulse schedule. These schedules can either be specified in the gates themselves, by
-attaching calibrations, or by adding instructions to the ``Target`` contained in the
-:class:`.DynamicsBackend`.
+attaching calibrations, or by adding instructions to the :class:`~qiskit.transpiler.Target`
+contained in the :class:`.DynamicsBackend`.
 
 4.1 Simulating circuits with attached calibrations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -273,15 +276,16 @@ gate to the circuit object.
 5. Simulating single-qubit calibration processes via Qiskit Experiments
 -----------------------------------------------------------------------
 
-Next, we calibrate ``X`` and ``SX`` gates on both qubits modeled in the :class:`.DynamicsBackend`
-using Qiskit Experiments, following the single-qubit calibration tutorial.
+Next, we perform rough calibrations for ``X`` and ``SX`` gates on both qubits modeled in the
+:class:`.DynamicsBackend`, following the single-qubit calibratino tutorial for Qiskit Experiments.
 
-5.1 Configure the ``Target`` to include single qubit instructions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5.1 Configure the :class:`~qiskit.transpiler.Target` to include single qubit instructions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To enable running of the single qubit experiments, we add the following to the target:
 
-- Qubit frequency properties (needed by the ``RoughFrequencyCal`` experiment).
+- Qubit frequency properties (needed by experiments like 
+  :class:`~qiskit_experiments.library.calibration.rough_frequency.RoughFrequencyCal`).
 - ``X`` and ``SX`` gate instructions, which the transpiler needs to check are supported by the
   backend. 
 - Add definitions of ``RZ`` gates as phase shifts.
@@ -314,10 +318,11 @@ To enable running of the single qubit experiments, we add the following to the t
         {(0,): InstructionProperties(calibration=rz0), (1,): InstructionProperties(calibration=rz1)}
     )
 
-5.2 Prepare ``Calibrations`` object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5.2 Prepare :class:`qiskit_experiments.calibration_management.calibrations.Calibrations` object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Next, prepare the ``Calibrations`` object.
+Next, prepare the :class:`qiskit_experiments.calibration_management.calibrations.Calibrations`
+object.
 
 .. jupyter-execute::
 
@@ -349,54 +354,7 @@ Next, prepare the ``Calibrations`` object.
     
     pd.DataFrame(**cals.parameters_table(qubit_list=[0, ()]))
 
-5.3 Rough frequency cals
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Run frequency calibration experiments. We perturb the frequency estimate to imitate not knowing the
-frequency ahead of time.
-
-.. jupyter-execute::
-
-    from qiskit_experiments.library.calibration.rough_frequency import RoughFrequencyCal
-    
-    # experiment for qubit 0
-    freq0_estimate = v0 + 0.5e7
-    frequencies = np.linspace(freq0_estimate -15e6, freq0_estimate + 15e6, 27)
-    spec0 = RoughFrequencyCal(0, cals, frequencies, backend=backend)
-    spec0.set_experiment_options(amp=0.005)
-    
-    # experiment for qubit 1
-    freq1_estimate = v1 + 1e7
-    frequencies = np.linspace(freq1_estimate -15e6, freq1_estimate + 15e6, 27)
-    spec1 = RoughFrequencyCal(1, cals, frequencies, backend=backend)
-    spec1.set_experiment_options(amp=0.005)
-
-Visualize the first circuit for qubit 0.
-
-.. jupyter-execute::
-
-    spec0.circuits()[0].draw(output="mpl")
-
-Run the spectroscopy experiments.
-
-.. jupyter-execute::
-
-    %%time
-    spec0_data = spec0.run().block_for_results()
-    spec1_data = spec1.run().block_for_results()
-
-
-Plot the simulated data for both qubits.
-
-.. jupyter-execute::
-
-    spec0_data.figure(0)
-
-.. jupyter-execute::
-
-    spec1_data.figure(0)
-
-5.4 Rough amplitude calibration
+5.3 Rough amplitude calibration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Next, run a rough amplitude calibration for ``X`` and ``SX`` gates for both qubits. First, build the
@@ -436,7 +394,7 @@ Observe the updated parameters for qubit 0.
 
     pd.DataFrame(**cals.parameters_table(qubit_list=[0, ()], parameters="amp"))
 
-5.5 Rough Drag parameter calibration
+5.4 Rough Drag parameter calibration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Run rough Drag parameter calibration for the ``X`` and ``SX`` gates. This follows the same procedure
@@ -469,65 +427,16 @@ as above.
 
     drag1_data.figure(0)
 
-
-5.6 Fine amplitude calibration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Finally, run fine amplitude calibration for both qubits. Start with the ``X`` gate.
-
-.. jupyter-execute::
-
-    from qiskit_experiments.library.calibration.fine_amplitude import FineXAmplitudeCal
-    
-    amp_x_cal0 = FineXAmplitudeCal(0, cals, backend=backend, schedule_name="x")
-    amp_x_cal1 = FineXAmplitudeCal(1, cals, backend=backend, schedule_name="x")
-    
-    amp_x_cal0.circuits()[5].draw(output="mpl")
-
-
-.. jupyter-execute::
-
-    %%time
-    data_fine0 = amp_x_cal0.run().block_for_results()
-    data_fine1 = amp_x_cal1.run().block_for_results()
-
-.. jupyter-execute::
-
-    data_fine0.figure(0)
-
-
-.. jupyter-execute::
-
-    data_fine1.figure(0)
-
-Next, run fine calibration on the ``SX`` gates.
-
-.. jupyter-execute::
-
-    # Do SX Cal
-    from qiskit_experiments.library.calibration.fine_amplitude import FineSXAmplitudeCal
-    
-    amp_sx_cal0 = FineSXAmplitudeCal(0, cals, backend=backend, schedule_name="sx")
-    amp_sx_cal1 = FineSXAmplitudeCal(1, cals, backend=backend, schedule_name="sx")
-    
-    amp_sx_cal0.circuits()[5].draw(output="mpl")
-
-
-.. jupyter-execute::
-
-    %%time
-    data_fine_sx0 = amp_sx_cal0.run().block_for_results()
-    data_fine_sx1 = amp_sx_cal1.run().block_for_results()
+The updated calibrations object:
 
 .. jupyter-execute::
 
     pd.DataFrame(**cals.parameters_table(qubit_list=[0, ()], parameters="amp"))
 
-6. Simulating 2 qubit interaction characterization via the ``CrossResonanceHamiltonian`` experiment
----------------------------------------------------------------------------------------------------
+6. Simulating 2 qubit interaction characterization via the |CRHamitonian| experiment
+------------------------------------------------------------------------------------
 
-Finally, simulate the :class:`qiskit_experiments.library.CrossResonanceHamiltonian` characterization
-experiment.
+Finally, simulate the |CRHamitonian| characterization experiment.
 
 First, we further configure the backend to run this experiment. This requires: 
 
