@@ -212,7 +212,7 @@ followed by measurement.
     circ.draw("mpl")
 
 Next, attach a calibration for the Hadamard gate on qubit :math:`0` to the circuit. Note that here
-are only demonstrating the mechanics of adding a calibration; we have not actually chosen the pulse
+we are only demonstrating the mechanics of adding a calibration; we have not actually chosen the pulse
 to implement a Hadamard gate.
 
 .. jupyter-execute::
