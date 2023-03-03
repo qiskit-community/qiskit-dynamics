@@ -734,7 +734,7 @@ def default_experiment_result_function(
       ``backend.options.solver``.
     * If ``backend.options.normalize_states==True``, the final state is normalized.
     * Measurement results are computed, in the dressed basis, based on both the measurement-related
-      options in ``backend.options``, and the measurement specification extracted from the specific
+      options in ``backend.options`` and the measurement specification extracted from the specific
       experiment.
 
     Args:
