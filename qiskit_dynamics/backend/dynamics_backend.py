@@ -68,7 +68,7 @@ class DynamicsBackend(BackendV2):
     terms of :class:`~qiskit.circuit.QuantumCircuit`\s. Results are returned as
     :class:`~qiskit.result.Result` instances.
 
-    A minimal :class:`.DynamicsBackend` requires specifying only a :class:`.Solver` instance, and a
+    A minimal :class:`.DynamicsBackend` requires specifying only a :class:`.Solver` instance and a
     list of subsystem dimensions, indicating the subsystem decomposition of the model in
     :class:`.Solver`. For example, the following code builds a :class:`.DynamicsBackend` around a
     :class:`.Solver` and indicates that the system specified by the :class:`.Solver` decomposes as
