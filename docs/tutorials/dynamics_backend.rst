@@ -19,7 +19,8 @@ The sections of this tutorial are as follows:
 --------------------------------
 
 Note that the :class:`.DynamicsBackend` internally performs just-in-time compilation automatically
-when configured to use JAX.
+when configured to use JAX. See the :ref:`User Guide entry on using JAX with Dynamics <how-to use
+jax>` for more information.
 
 .. jupyter-execute::
     :hide-code:
@@ -44,8 +45,8 @@ details. For the model we will use a 2 qubit transmon model, with Hamiltonian:
 
 .. math:: 
     
-    H(t) = 2 \pi \nu_0 &N_0 + 2 \pi \alpha_0 N_0 (N_0 - I) + 2 \pi \nu_1 N_1
-    + 2 \pi \alpha_1 N_1(N_1 - I) + 2 \pi J (a_0 + a_0^\dagger)(a_1 + a_1^\dagger) \\ 
+    H(t) = 2 \pi \nu_0 &N_0 + \pi \alpha_0 N_0 (N_0 - I) + 2 \pi \nu_1 N_1
+    + \pi \alpha_1 N_1(N_1 - I) + 2 \pi J (a_0 + a_0^\dagger)(a_1 + a_1^\dagger) \\ 
     & + 2 \pi r_0 s_0(t)(a_0 + a_0^\dagger) + 2 \pi r_1 s_1(t)(a_1 + a_1^\dagger),
 
 where 
@@ -123,7 +124,8 @@ solver>` for more details.
 Next, instantiate the :class:`.DynamicsBackend`. The ``solver`` is used for simulation,
 ``subsystem_dims`` indicates how the full system decomposes for measurement data computation, and
 ``solver_options`` are consistent options used by :meth:`.Solver.solve` when simulating the
-differential equation.
+differential equation. The full list of allowable ``solver_options`` are the arguments to
+:func:`.solve_ode`.
 
 Note that, to enable the internal automatic jit-compilation, we choose a JAX integration method.
 
@@ -180,6 +182,12 @@ that the usual instructions work on the :class:`.DynamicsBackend`.
     job = backend.run(schedules, shots=100)
     result = job.result()
 
+Visualize one of the schedules.
+
+.. jupyter-execute::
+
+    schedules[3].draw()
+
 Retrieve the counts for one of the experiments as would be done using the results object from a real
 backend.
 
@@ -212,8 +220,8 @@ followed by measurement.
     circ.draw("mpl")
 
 Next, attach a calibration for the Hadamard gate on qubit :math:`0` to the circuit. Note that here
-we are only demonstrating the mechanics of adding a calibration; we have not actually chosen the pulse
-to implement a Hadamard gate.
+we are only demonstrating the mechanics of adding a calibration; we have not attempted to calibrate
+the schedule to implement the Hadamard gate with high fidelity.
 
 .. jupyter-execute::
 
@@ -233,11 +241,12 @@ Call run on the circuit, and get counts as usual.
     
     res.get_counts(0)
 
-4.2 Simulating circuits via gate definitions in the backend ``Target``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2 Simulating circuits via gate definitions in the backend :class:`~qiskit.transpiler.Target`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Alternatively to the above work flow, add the above schedule as the pulse-level definition of the
-Hadamard gate on qubit :math:`0`.
+Hadamard gate on qubit :math:`0` to `backend.target`, which impacts how jobs are transpiled for the
+backend. See the :class:`~qiskit.transpiler.Target` class documentation for further information.
 
 .. jupyter-execute::
 
@@ -517,12 +526,18 @@ Next, run fine calibration on the ``SX`` gates.
 6. Simulating 2 qubit interaction characterization via the ``CrossResonanceHamiltonian`` experiment
 ---------------------------------------------------------------------------------------------------
 
-Finally, simulate the ``CrossResonanceHamiltonian`` characterization experiment.
+Finally, simulate the :class:`qiskit_experiments.library.CrossResonanceHamiltonian` characterization
+experiment.
 
 First, we further configure the backend to run this experiment. This requires: 
 
-- Adding the custom gate used in the experiment as a valid instruction in the ``Target``.
-- Defining the control channel map, which the experiment requires.
+- Adding the custom gate used in the experiment as a valid instruction in the
+  :class:`~qiskit.transpiler.Target`. This ensures that the validation checks on the submitted jobs
+  recognize the gate as a valid instruction.
+- Defining the control channel map, which is a dictionary mapping control-target qubit index pairs
+  (given as a tuple) to the control channel index used to drive the corresponding cross-resonance
+  interaction. This is required by the experiment to determine which channel to drive for each
+  control-target pair.
 
 .. jupyter-execute::
 
