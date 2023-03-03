@@ -29,6 +29,11 @@ from arraylias import numpy_alias
 
 from qiskit_dynamics.array import Array
 
+try:
+    import jax.numpy as jnp
+except ImportError:
+    pass
+
 
 unp = numpy_alias()()
 
@@ -118,43 +123,44 @@ class Signal:
         return self._is_constant
 
     @property
-    def carrier_freq(self) -> Array:
+    def carrier_freq(self):
+        # TODO: specify a return type
         """The carrier frequency of the signal."""
         return self._carrier_freq
 
     @carrier_freq.setter
-    def carrier_freq(self, carrier_freq: Union[float, list, Array]):
+    def carrier_freq(self, carrier_freq: Union[float, list]):
         """Carrier frequency setter. List handling is to support subclasses storing a
         list of frequencies."""
-        if type(carrier_freq) == list:
-            carrier_freq = [Array(entry).data for entry in carrier_freq]
-        self._carrier_freq = Array(carrier_freq)
+        self._carrier_freq = unp.asarray(carrier_freq)
         self._carrier_arg = 1j * 2 * np.pi * self._carrier_freq
 
     @property
-    def phase(self) -> Array:
+    def phase(self):
+        # TODO: specify a return type
         """The phase of the signal."""
         return self._phase
 
     @phase.setter
-    def phase(self, phase: Union[float, list, Array]):
+    def phase(self, phase: Union[float, list]):
         """Phase setter. List handling is to support subclasses storing a
         list of phases."""
-        if type(phase) == list:
-            phase = [Array(entry).data for entry in phase]
-        self._phase = Array(phase)
+        self._phase = unp.asarray(phase)
         self._phase_arg = 1j * self._phase
 
-    def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+    def envelope(self, t: Union[float, np.array]) -> Union[complex, np.array]:
+        # TODO: reorganize type hints of an attribute and a return type
         """Vectorized evaluation of the envelope at time t."""
         return self._envelope(t)
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+    def complex_value(self, t: Union[float, np.array]) -> Union[complex, np.array]:
+        # TODO: reorganize type hints of an attribute and a return type
         """Vectorized evaluation of the complex value at time t."""
         arg = self._carrier_arg * t + self._phase_arg
         return self.envelope(t) * np.exp(arg)
 
-    def __call__(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+    def __call__(self, t: Union[float, np.array]) -> Union[complex, np.array]:
+        # TODO: reorganize type hints of an attribute and a return type
         """Vectorized evaluation of the signal at time(s) t."""
         return np.real(self.complex_value(t))
 
