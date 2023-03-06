@@ -44,7 +44,7 @@ First, configure Dynamics to use JAX.
 
 
 2. How to define a Gaussian pulse using :class:`~qiskit.pulse.library.ScalableSymbolicPulse`
------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
 
 As the standard :class:`~qiskit.pulse.library.Gaussian` pulse is not JAX-compatible, to define a Gaussian pulse to use in optimization,
 we need to instantiate a :class:`~qiskit.pulse.library.ScalableSymbolicPulse` with a Gaussian parameterization.
@@ -101,7 +101,7 @@ Next, define the :class:`~qiskit.pulse.library.ScalableSymbolicPulse` using the 
 
 
 3. JAX transforming Pulse to Signal conversion involving :class:`~qiskit.pulse.library.ScalableSymbolicPulse`
-----------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------
 
 Using a Gaussian pulse as an example, we show that a function involving :class:`~qiskit.pulse.library.ScalableSymbolicPulse`
 and the pulse to signal converter can be JAX-compiled (or more generally, JAX-transformed).
