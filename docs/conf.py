@@ -66,6 +66,7 @@ html_theme_options = {
 }
 html_css_files = ['gallery.css']
 html_static_path = ['_static']
+html_context = {"analytics_enabled": True}
 
 # autodoc/autosummary options
 autosummary_generate = True
