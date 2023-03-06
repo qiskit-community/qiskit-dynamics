@@ -54,7 +54,7 @@ uphold this code.
 We use [GitHub issues](https://github.com/Qiskit/qiskit-dynamics/issues) for
 tracking requests and bugs. Please
 [join the Qiskit Slack community](https://qisk.it/join-slack)
-and use our [Qiskit Slack channel](https://qiskit.slack.com) for discussion and
+and use our [Qiskit Slack channel](https://qiskit.slack.com/archives/C03E7UVCDEV) for discussion and
 simple questions.
 For questions that are more suited for a forum we use the Qiskit tag in the
 [Stack Exchange](https://quantumcomputing.stackexchange.com/questions/tagged/qiskit).
