@@ -244,7 +244,7 @@ the schedule to implement the Hadamard gate with high fidelity.
             pulse.DriveChannel(0)
         )
     
-    circ.add_calibration("h", [0], h_q0)
+    circ.add_calibration("h", qubits=[0], schedule=h_q0)
 
 Call run on the circuit, and get counts as usual.
 
