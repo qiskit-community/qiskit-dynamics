@@ -449,24 +449,12 @@ The updated calibrations object:
 
 Finally, simulate the |CRHamitonian| characterization experiment.
 
-First, we further configure the backend to run this experiment. This requires: 
-
-- Adding the custom gate used in the experiment as a valid instruction in the
-  :class:`~qiskit.transpiler.Target`. This ensures that the validation checks on the submitted jobs
-  recognize the gate as a valid instruction.
-- Defining the control channel map, which is a dictionary mapping control-target qubit index pairs
-  (given as a tuple) to the control channel index used to drive the corresponding cross-resonance
-  interaction. This is required by the experiment to determine which channel to drive for each
-  control-target pair.
+First, we further configure the backend to run this experiment. This requires defining the control
+channel map, which is a dictionary mapping control-target qubit index pairs (given as a tuple) to
+the control channel index used to drive the corresponding cross-resonance interaction. This is
+required by the experiment to determine which channel to drive for each control-target pair.
 
 .. jupyter-execute::
-
-    # add the gate to the target
-    from qiskit_experiments.library import CrossResonanceHamiltonian
-    backend.target.add_instruction(
-        instruction=CrossResonanceHamiltonian.CRPulseGate(width=Parameter("width")), 
-        properties={(0, 1): None, (1, 0): None}
-    )
     
     # set the control channel map
     backend.set_options(control_channel_map={(0, 1): 0, (1, 0): 1})
@@ -475,6 +463,8 @@ Build the characterization experiment object, and set the instruction map in the
 options to use the single qubit gates calibrated above.
 
 .. jupyter-execute::
+
+    from qiskit_experiments.library import CrossResonanceHamiltonian
 
     cr_ham_experiment = CrossResonanceHamiltonian(
         qubits=(0, 1), 
