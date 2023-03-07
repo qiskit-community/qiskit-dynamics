@@ -183,7 +183,7 @@ that the usual instructions work on the :class:`.DynamicsBackend`.
         )
     
         with pulse.build() as schedule:
-            with pulse.align_right():
+            with pulse.align_sequential():
                 pulse.play(gauss, pulse.DriveChannel(0))
                 pulse.shift_phase(0.5, pulse.DriveChannel(0))
                 pulse.shift_frequency(0.1, pulse.DriveChannel(0))
