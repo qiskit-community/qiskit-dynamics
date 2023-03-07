@@ -316,10 +316,12 @@ To enable running of the single qubit experiments, we add the following to the `
   backend. 
 - Add definitions of ``RZ`` gates as phase shifts. These instructions control the phase of the drive
   channels, as well as any control channels acting on a given qubit.
+- Add a ``CX`` gate which applies to all qubits. While this tutorial will not be utilizing it, this
+  ensures that validation steps checking that the device is fully connected will pass.
 
 .. jupyter-execute::
 
-    from qiskit.circuit.library import XGate, SXGate, RZGate
+    from qiskit.circuit.library import XGate, SXGate, RZGate, CXGate
     from qiskit.circuit import Parameter
     from qiskit.providers.backend import QubitProperties
     
@@ -329,8 +331,10 @@ To enable running of the single qubit experiments, we add the following to the `
     target.qubit_properties = [QubitProperties(frequency=v0), QubitProperties(frequency=v1)]
     
     # add instructions
-    target.add_instruction(XGate())
-    target.add_instruction(SXGate())
+    target.add_instruction(XGate(), properties={(0,): None, (1,): None})
+    target.add_instruction(SXGate(), properties={(0,): None, (1,): None})
+
+    target.add_instruction(CXGate())
     
     # Add RZ instruction as phase shift for drag cal
     phi = Parameter("phi")
@@ -361,7 +365,7 @@ template library to initialize our calibrations.
     from qiskit_experiments.calibration_management.calibrations import Calibrations
     from qiskit_experiments.calibration_management.basis_gate_library import FixedFrequencyTransmon
 
-    cals = Calibrations(libraries=[FixedFrequencyTransmon()])
+    cals = Calibrations(libraries=[FixedFrequencyTransmon(basis_gates=['x', 'sx'])])
 
     pd.DataFrame(**cals.parameters_table(qubit_list=[0, ()]))
 
@@ -459,8 +463,8 @@ required by the experiment to determine which channel to drive for each control-
     # set the control channel map
     backend.set_options(control_channel_map={(0, 1): 0, (1, 0): 1})
 
-Build the characterization experiment object, and set the instruction map in the transpilation
-options to use the single qubit gates calibrated above.
+Build the characterization experiment object, and update gate definitions in ``target`` with the
+values for the single qubit gates calibrated above.
 
 .. jupyter-execute::
 
@@ -472,7 +476,7 @@ options to use the single qubit gates calibrated above.
         backend=backend
     )
     
-    cr_ham_experiment.set_transpile_options(inst_map=cals.default_inst_map)
+    backend.target.update_from_instruction_schedule_map(cals.get_inst_map())
 
 .. jupyter-execute::
 
