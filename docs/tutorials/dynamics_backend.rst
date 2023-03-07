@@ -44,7 +44,11 @@ jax>` for more information.
 --------------------------------------------------------------------------------------
 
 To create the :class:`.DynamicsBackend`, first specify a :class:`.Solver` instance using the model
-details. For the model we will use a 2 qubit transmon model, with Hamiltonian:
+details. Note that the choice of model depends on the type of device you wish to simulate. Here, we
+will use a :math:`2` qubit fixed-frequency transmon model with fixed coupling, with the following
+Hamiltonian (see the `Qiskit Textbook page on Circuit Quantum Electrodynamics
+<https://qiskit.org/textbook/ch-quantum-hardware/cQED-JC-SW.html>`_ for details on how transmon
+Hamiltonians are derived):
 
 .. math:: 
     
@@ -61,7 +65,8 @@ where
   drive signals, 
 - :math:`a_j` and :math:`a_j^\dagger` are the lowering and raising operators for qubit :math:`j`,
   and
-- :math:`N_0` and :math:`N_1` are the number operators.
+- :math:`N_0` and :math:`N_1` are the number operators for qubits :math:`0` and :math:`1`
+  respectively.
 
 .. jupyter-execute::
 
@@ -106,7 +111,12 @@ where
 
 Construct the :class:`.Solver` using the model details, including parameters necessary for pulse
 simulation. See the :class:`.Solver` documentation, as well as the :ref:`tutorial example <pulse
-solver>` for more details.
+solver>` for more details. Here, we choose to perform the simulation in the rotating frame of the
+static Hamiltonian, which provides performance improvements (see the user guide entry on
+:ref:`configuring simulations for performance <configuring simulations>`). Note that the measurement
+outcomes of :meth:`.DynamicsBackend.run` are independent of the choice of rotating frame in the
+:class:`.Solver`, and as such we are free to choose the rotating frame that provides the best
+performance.
 
 .. jupyter-execute::
 

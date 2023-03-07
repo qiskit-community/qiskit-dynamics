@@ -1,3 +1,5 @@
+.. _configuring simulations:
+
 How-to customize simulations using model transformations and evaluation modes
 =============================================================================
 
