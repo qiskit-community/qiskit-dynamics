@@ -304,13 +304,18 @@ Next, we perform rough calibrations for ``X`` and ``SX`` gates on both qubits mo
 5.1 Configure the :class:`~qiskit.transpiler.Target` to include single qubit instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To enable running of the single qubit experiments, we add the following to the target:
+To enable running of the single qubit experiments, we add the following to the ``target``:
 
-- Qubit frequency properties (needed by experiments like 
-  :class:`~qiskit_experiments.library.calibration.rough_frequency.RoughFrequencyCal`).
+- Qubit frequency properties (needed by experiments like
+  :class:`~qiskit_experiments.library.calibration.rough_frequency.RoughFrequencyCal`). Note that
+  setting the qubit frequencies in the ``target`` does not impact the behaviour of the
+  :class:`.DynamicsBackend` itself. It is purely a data field that does not impact functionality.
+  Previously set frequency properties, such as ``channel_carrier_freqs`` in the :class:`.Solver`,
+  will remain unchanged. Here, we set the frequencies to the undressed frequencies in the model.
 - ``X`` and ``SX`` gate instructions, which the transpiler needs to check are supported by the
   backend. 
-- Add definitions of ``RZ`` gates as phase shifts.
+- Add definitions of ``RZ`` gates as phase shifts. These instructions control the phase of the drive
+  channels, as well as any control channels acting on a given qubit.
 
 .. jupyter-execute::
 
@@ -331,9 +336,11 @@ To enable running of the single qubit experiments, we add the following to the t
     phi = Parameter("phi")
     with pulse.build() as rz0:
         pulse.shift_phase(phi, pulse.DriveChannel(0))
+        pulse.shift_phase(phi, pulse.ControlChannel(1))
     
     with pulse.build() as rz1:
         pulse.shift_phase(phi, pulse.DriveChannel(1))
+        pulse.shift_phase(phi, pulse.ControlChannel(0))
     
     target.add_instruction(
         RZGate(phi),
