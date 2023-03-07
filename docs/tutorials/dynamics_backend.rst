@@ -166,6 +166,18 @@ With the above backend, we can already simulate a list of pulse schedules. The c
 a list of schedules specifying experiments on qubit :math:`0`. The schedule is chosen to demonstrate
 that the usual instructions work on the :class:`.DynamicsBackend`.
 
+.. note::
+
+    In the following constructed schedule, measurement is performed with an
+    :class:`~qiskit.pulse.instructions.Acquire` instruction of duration ``1``. Measurements in
+    :class:`.DynamicsBackend` are computed projectively at the start time of the acquire
+    instructions, and the effects of measurement stimulus through
+    :class:`~qiskit.pulse.channels.MeasureChannel`\s are not simulated unless explicitly put into
+    the model by the user. As such, the lack of :class:`~qiskit.pulse.channels.MeasureChannel`
+    stimulus, and the duration of the :class:`~qiskit.pulse.instructions.Acquire` instruction has no
+    impact on the returned results.
+
+
 .. jupyter-execute::
 
     %%time
