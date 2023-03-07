@@ -351,36 +351,18 @@ To enable running of the single qubit experiments, we add the following to the `
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Next, prepare the :class:`~qiskit_experiments.calibration_management.calibrations.Calibrations`
-object.
+object. Here we use the
+:class:`~qiskit_experiments.calibration_management.basis_gate_library.FixedFrequencyTransmon`
+template library to initialize our calibrations.
 
 .. jupyter-execute::
 
     import pandas as pd
     from qiskit_experiments.calibration_management.calibrations import Calibrations
-    
-    cals = Calibrations()
-    
-    dur = Parameter("dur")
-    sigma = Parameter("σ")
-    drive = pulse.DriveChannel(Parameter("ch0"))
-    
-    # Define and add template schedules.
-    with pulse.build(name="x") as x:
-        pulse.play(pulse.Drag(dur, Parameter("amp"), sigma, Parameter("β")), drive)
-    
-    with pulse.build(name="sx") as sx:
-        pulse.play(pulse.Drag(dur, Parameter("amp"), sigma, Parameter("β")), drive)
-    
-    cals.add_schedule(x, num_qubits=1)
-    cals.add_schedule(sx, num_qubits=1)
-    
-    # add parameter guesses
-    for sched in ["x", "sx"]:
-        cals.add_parameter_value(80, "σ", schedule=sched)
-        cals.add_parameter_value(0.5, "β", schedule=sched)
-        cals.add_parameter_value(320, "dur", schedule=sched)
-        cals.add_parameter_value(0.5, "amp", schedule=sched)
-    
+    from qiskit_experiments.calibration_management.basis_gate_library import FixedFrequencyTransmon
+
+    cals = Calibrations(libraries=[FixedFrequencyTransmon()])
+
     pd.DataFrame(**cals.parameters_table(qubit_list=[0, ()]))
 
 5.3 Rough amplitude calibration
