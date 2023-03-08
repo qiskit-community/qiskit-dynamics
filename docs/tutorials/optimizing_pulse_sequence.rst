@@ -3,24 +3,25 @@ Gradient optimization of a pulse sequence
 
 Here, we walk through an example of optimizing a single-qubit gate using
 ``qiskit_dynamics``. This tutorial requires JAX - see the user guide
-on using JAX for more detail on how to configure ``qiskit-dynamics`` to
-work with JAX.
+on :ref:`How-to use JAX with qiskit-dynamics <how-to use jax>`.
 
 We will optimize an :math:`X`-gate on a model of a qubit system using
 the following steps:
 
 1. Configure ``qiskit-dynamics`` to work with the JAX backend.
-2. Setup a ``Solver`` instance with the model of the system.
+2. Setup a :class:`.Solver` instance with the model of the system.
 3. Define a pulse sequence parameterization to optimize over.
 4. Define a gate fidelity function.
 5. Define an objective function for optimization.
 6. Use JAX to differentiate the objective, then do the gradient optimization.
+7. Repeat the :math:`X`-gate optimization, alternatively using pulse schedules to specify the control sequence.
+
 
 1. Configure to use JAX
 -----------------------
 
 First, set JAX to operate in 64-bit mode, and set JAX as the default
-backend using ``Array`` for performing array operations.
+backend using :class:`.Array` for performing array operations.
 This is necessary to enable automatic differentiation of the Qiskit Dynamics code
 in this tutorial. See the user guide entry on using JAX
 for a more detailed explanation of why this step is necessary.
@@ -36,10 +37,11 @@ for a more detailed explanation of why this step is necessary.
     from qiskit_dynamics.array import Array
     Array.set_default_backend('jax')
 
+
 2. Setup the solver
 -------------------
 
-Here we will setup a ``Solver`` with a simple model of a qubit. The
+Here we will setup a :class:`.Solver` with a simple model of a qubit. The
 Hamiltonian is:
 
 .. math:: H(t) = 2 \pi \nu \frac{Z}{2} + 2 \pi r s(t) \frac{X}{2}
@@ -53,7 +55,7 @@ In the above:
 
 We will setup the problem to be in the rotating frame of the drift term.
 
-Also note: The ``Solver`` is initialized *without* signals, as we will
+Also note: The :class:`.Solver` is initialized *without* signals, as we will
 update these and optimize over this later.
 
 .. jupyter-execute::
@@ -254,3 +256,128 @@ approximation analysis.
 .. jupyter-execute::
 
     opt_signal.samples.sum()
+
+
+7.  Repeat the :math:`X`-gate optimization, alternatively using pulse schedules to specify the control sequence.
+----------------------------------------------------------------------------------------------------------------
+
+Here, we perform the optimization again, however now we specify the parameterized control sequence to optimize as a pulse schedule.
+
+We construct a Gaussian square pulse as a :class:`~qiskit.pulse.library.ScalableSymbolicPulse` instance, parameterized by ``sigma`` and ``width``.
+Although qiskit pulse provides a :class:`~qiskit.pulse.library.GaussianSquare`, this class is not JAX compatible.
+See the user guide entry on :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for jax-jit>`.
+
+.. jupyter-execute::
+
+    import sympy as sym
+    from qiskit import pulse
+
+    def lifted_gaussian(
+        t: sym.Symbol,
+        center,
+        t_zero,
+        sigma,
+    ) -> sym.Expr:
+        t_shifted = (t - center).expand()
+        t_offset = (t_zero - center).expand()
+
+        gauss = sym.exp(-((t_shifted / sigma) ** 2) / 2)
+        offset = sym.exp(-((t_offset / sigma) ** 2) / 2)
+
+        return (gauss - offset) / (1 - offset)
+
+    def gaussian_square_generated_by_pulse(params):
+
+        sigma, width = params
+        _t, _duration, _amp, _sigma, _width, _angle = sym.symbols(
+            "t, duration, amp, sigma, width, angle"
+        )
+        _center = _duration / 2
+
+        _sq_t0 = _center - _width / 2
+        _sq_t1 = _center + _width / 2
+
+        _gaussian_ledge = lifted_gaussian(_t, _sq_t0, -1, _sigma)
+        _gaussian_redge = lifted_gaussian(_t, _sq_t1, _duration + 1, _sigma)
+
+        envelope_expr = (
+            _amp
+            * sym.exp(sym.I * _angle)
+            * sym.Piecewise(
+                (_gaussian_ledge, _t <= _sq_t0), (_gaussian_redge, _t >= _sq_t1), (1, True)
+            )
+        )
+
+        return pulse.ScalableSymbolicPulse(
+                pulse_type="GaussianSquare",
+                duration=230,
+                amp=1,
+                angle=0,
+                parameters={"sigma": sigma, "width": width},
+                envelope=envelope_expr,
+                constraints=sym.And(_sigma > 0, _width >= 0, _duration >= _width),
+                valid_amp_conditions=sym.Abs(_amp) <= 1.0,
+            )
+
+Next, we construct a pulse schedule using the above parametrized Gaussian square pulse, convert it to a signal, and 
+simulate the equation over the length of the pulse sequence.
+
+.. jupyter-execute::
+
+    from qiskit_dynamics.pulse import InstructionToSignals
+
+    dt = 0.222
+    w = 5.
+
+    def objective(params):
+
+        instance = gaussian_square_generated_by_pulse(params)
+
+        with pulse.build() as Xp:
+            pulse.play(instance, pulse.DriveChannel(0))
+
+        converter = InstructionToSignals(dt, carriers={"d0": w})
+        signal = converter.get_signals(Xp)
+
+        result = ham_solver.solve(
+            y0=np.eye(2, dtype=complex),
+            t_span=[0, instance.duration * dt],
+            signals=[signal],
+            method='jax_odeint',
+            atol=1e-8,
+            rtol=1e-8
+        )
+        return 1. - fidelity(Array(result[0].y[-1])).data
+
+
+We set the initial values of ``sigma`` and ``width`` for the optimization as ``initial_params = np.array([10, 10])``.
+
+.. jupyter-execute::
+
+    initial_params = np.array([10, 10])
+    gaussian_square_generated_by_pulse(initial_params).draw()
+
+.. jupyter-execute::
+
+    from jax import jit, value_and_grad
+    from scipy.optimize import minimize
+
+    jit_grad_obj = jit(value_and_grad(objective))
+
+    initial_params = np.array([10,10])
+
+
+    opt_results = minimize(fun=jit_grad_obj, x0=initial_params, jac=True, method='BFGS')
+
+    print(opt_results.message)
+    print(f"Optimized Sigma is {opt_results.x[0]} and Width is {opt_results.x[1]}")
+    print('Number of function evaluations: ' + str(opt_results.nfev))
+    print('Function value: ' + str(opt_results.fun))
+
+
+
+We can draw the optimized pulse, whose parameters are retrieved by ``opt_results.x``.
+
+.. jupyter-execute::
+
+    gaussian_square_generated_by_pulse(opt_results.x).draw()

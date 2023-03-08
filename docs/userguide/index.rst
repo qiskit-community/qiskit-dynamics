@@ -12,6 +12,7 @@ Qiskit Dynamics User Guide
    how_to_use_jax.rst
    how_to_configure_simulations.rst
    perturbative_solvers.rst
+   how_to_use_pulse_schedule_for_jax_jit.rst
 
 
 .. Hiding - Indices and tables
