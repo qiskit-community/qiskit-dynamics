@@ -527,9 +527,9 @@ class SignalSum(SignalCollection, Signal):
         - ``__call__`` evaluates the sum.
         - ``complex_value`` evaluates the sum of the complex values of the individual summands.
 
-    Attributes ``carrier_freq`` and ``phase`` here correspond to an ``Array`` of
+    Attributes ``carrier_freq`` and ``phase`` here correspond to an ``numpy_alias()().array`` of
     frequencies/phases for each term in the sum, and the ``envelope`` method returns an
-    ``Array`` of the envelopes for each summand.
+    ``numpy_alias()().array`` of the envelopes for each summand.
 
     Internally, the signals are stored as a list in the ``components`` attribute, which can
     be accessed via direct subscripting of the object.
@@ -557,7 +557,7 @@ class SignalSum(SignalCollection, Signal):
             elif isinstance(sig, Signal):
                 components.append(sig)
             elif isinstance(sig, (int, float, complex)) or (
-                isinstance(sig, Array) and sig.ndim == 0
+                isinstance(sig, np.array) or isinstance(sig, jnp.array) and sig.ndim == 0
             ):
                 components.append(Signal(sig))
             else:
@@ -567,17 +567,8 @@ class SignalSum(SignalCollection, Signal):
 
         SignalCollection.__init__(self, components)
 
-        # set up routine for evaluating envelopes if jax
-        if Array.default_backend() == "jax":
-            jax_arraylist_eval = array_funclist_evaluate([sig.envelope for sig in self.components])
-
-            def envelope(t):
-                return np.moveaxis(jax_arraylist_eval(t), 0, -1)
-
-        else:
-
-            def envelope(t):
-                return np.moveaxis([sig.envelope(t) for sig in self.components], 0, -1)
+        def envelope(t):
+            return unp.moveaxis([sig.envelope(t) for sig in self.components], 0, -1)
 
         carrier_freqs = []
         for sig in self.components:
@@ -591,12 +582,11 @@ class SignalSum(SignalCollection, Signal):
             self, envelope=envelope, carrier_freq=carrier_freqs, phase=phases, name=name
         )
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+    def complex_value(self, t: Union[float, np.array, jnp.array]) -> Union[complex, np.array, jnp.array]:
+        # TODO: reorganize type hints of an attribute and a return type
         """Return the sum of the complex values of each component."""
-        if Array.default_backend() == "jax":
-            t = Array(t)
-        exp_phases = np.exp(np.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
-        return np.sum(self.envelope(t) * exp_phases, axis=-1)
+        exp_phases = unp.exp(unp.expand_dims(unp.asarray(t), -1) * self._carrier_arg + self._phase_arg)
+        return unp.sum(self.envelope(t) * exp_phases, axis=-1)
 
     def __str__(self):
         if self.name is not None:
@@ -621,12 +611,12 @@ class SignalSum(SignalCollection, Signal):
         elif len(self) == 1:
             return self.components[0]
 
-        ave_freq = np.sum(self.carrier_freq) / len(self)
+        ave_freq = unp.sum(self.carrier_freq) / len(self)
         shifted_arg = self._carrier_arg - (1j * 2 * np.pi * ave_freq)
 
         def merged_env(t):
-            exp_phases = np.exp(np.expand_dims(Array(t), -1) * shifted_arg + self._phase_arg)
-            return np.sum(self.envelope(t) * exp_phases, axis=-1)
+            exp_phases = unp.exp(unp.expand_dims(unp.asarray(t), -1) * shifted_arg + self._phase_arg)
+            return unp.sum(self.envelope(t) * exp_phases, axis=-1)
 
         return Signal(envelope=merged_env, carrier_freq=ave_freq, name=str(self))
 
