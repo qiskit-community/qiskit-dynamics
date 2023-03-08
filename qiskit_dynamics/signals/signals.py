@@ -629,10 +629,10 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
     def __init__(
         self,
         dt: float,
-        samples: Union[List, Array],
+        samples: List,
         start_time: float = 0.0,
-        carrier_freq: Union[List, np.array, Array] = None,
-        phase: Union[List, np.array, Array] = None,
+        carrier_freq: Union[List, np.array, jnp.array] = None,
+        phase: Union[List, np.array, jnp.array] = None,
         name: str = None,
     ):
         r"""Directly initialize a ``DiscreteSignalSum``\. Samples of all terms in the
@@ -649,12 +649,12 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             name: name of the signal.
         """
 
-        samples = Array(samples)
+        samples = unp.asarray(samples)
         if carrier_freq is None:
-            carrier_freq = np.zeros(samples.shape[-1], dtype=float)
+            carrier_freq = unp.zeros(samples.shape[-1], dtype=float)
 
         if phase is None:
-            phase = np.zeros(samples.shape[-1], dtype=float)
+            phase = unp.zeros(samples.shape[-1], dtype=float)
 
         DiscreteSignal.__init__(
             self,
@@ -718,13 +718,13 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             DiscreteSignalSum: The discretized ``SignalSum``\.
         """
 
-        times = start_time + (np.arange(n_samples) + 0.5) * dt
+        times = start_time + (unp.arange(n_samples) + 0.5) * dt
 
         freq = signal_sum.carrier_freq
 
         if sample_carrier:
             freq = 0.0 * freq
-            exp_phases = np.exp(np.expand_dims(Array(times), -1) * signal_sum._carrier_arg)
+            exp_phases = unp.exp(unp.expand_dims(unp.asarray(times), -1) * signal_sum._carrier_arg)
             samples = signal_sum.envelope(times) * exp_phases
         else:
             samples = signal_sum.envelope(times)
@@ -752,7 +752,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         return default_str
 
-    def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
+    def __getitem__(self, idx: Union[int, List, np.array, jnp.array, slice]) -> Signal:
         """Enables numpy-style subscripting, as if this class were a 1d array."""
 
         if type(idx) == int and idx >= len(self):
@@ -763,13 +763,13 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         phases = self.phase[idx]
 
         if samples.ndim == 1:
-            samples = Array([samples])
+            samples = unp.asarray([samples])
 
         if carrier_freqs.ndim == 0:
-            carrier_freqs = Array([carrier_freqs])
+            carrier_freqs = unp.asarray([carrier_freqs])
 
         if phases.ndim == 0:
-            phases = Array([phases])
+            phases = unp.asarray([phases])
 
         if len(samples) == 1:
             return DiscreteSignal(
