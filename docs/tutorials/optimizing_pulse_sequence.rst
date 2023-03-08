@@ -265,6 +265,7 @@ Here, we perform the optimization again, however now we specify the parameterize
 
 We construct a Gaussian square pulse as a :class:`~qiskit.pulse.library.ScalableSymbolicPulse` instance, parameterized by ``sigma`` and ``width``.
 Although qiskit pulse provides a :class:`~qiskit.pulse.library.GaussianSquare`, this class is not JAX compatible.
+See the user guide entry on :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for jax-jit>`.
 
 .. jupyter-execute::
 
@@ -349,11 +350,11 @@ simulate the equation over the length of the pulse sequence.
         return 1. - fidelity(Array(result[0].y[-1])).data
 
 
-We set the initial values of `sigma` and `width` for the optimization as :math:`initial_params = np.array([10, 10,])`.
+We set the initial values of ``sigma`` and ``width`` for the optimization as ``initial_params = np.array([10, 10])``.
 
 .. jupyter-execute::
 
-    initial_params = np.array([10, 10,])
+    initial_params = np.array([10, 10])
     gaussian_square_generated_by_pulse(initial_params).draw()
 
 .. jupyter-execute::
@@ -363,7 +364,7 @@ We set the initial values of `sigma` and `width` for the optimization as :math:`
 
     jit_grad_obj = jit(value_and_grad(objective))
 
-    initial_params = np.array([10,10,])
+    initial_params = np.array([10,10])
 
 
     opt_results = minimize(fun=jit_grad_obj, x0=initial_params, jac=True, method='BFGS')
@@ -375,7 +376,7 @@ We set the initial values of `sigma` and `width` for the optimization as :math:`
 
 
 
-We can draw the optimized pulse, whose parameters are retrieved by :math:`opt_results.x`.
+We can draw the optimized pulse, whose parameters are retrieved by ``opt_results.x``.
 
 .. jupyter-execute::
 
