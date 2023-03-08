@@ -72,7 +72,10 @@ html_context = {"analytics_enabled": True}
 autosummary_generate = True
 autosummary_generate_overwrite = False
 autoclass_content = "both"
-intersphinx_mapping = {"qiskit": ("https://qiskit.org/documentation/", None)}
+intersphinx_mapping = {
+    "qiskit": ("https://qiskit.org/documentation/", None),
+    "qiskit_experiments": ("https://qiskit.org/documentation/experiments/", None)
+}
 
 # nbsphinx options (for tutorials)
 nbsphinx_timeout = 180
