@@ -41,6 +41,8 @@ extensions = [
     'nbsphinx',
     'sphinxcontrib.bibtex'
 ]
+templates_path = ["_templates"]
+
 numfig = True
 numfig_format = {
     'table': 'Table %s'
