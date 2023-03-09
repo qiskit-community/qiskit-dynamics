@@ -66,10 +66,10 @@ Perturbative Solvers
 ====================
 
 The classes :class:`~qiskit_dynamics.solvers.DysonSolver` and
-:class:`~qiskit_dynamics.solvers.MagnusSolver` implement advanced solvers
-detailed in [:footcite:`puzzuoli_sensitivity_2022`], with the
-:class:`~qiskit_dynamics.solvers.DysonSolver` implementing a variant of the *Dysolve*
-algorithm originally introduced in [:footcite:p:`shillito_fast_2020`].
+:class:`~qiskit_dynamics.solvers.MagnusSolver` implement advanced solvers detailed in
+:footcite:`puzzuoli_sensitivity_2022`, with the :class:`~qiskit_dynamics.solvers.DysonSolver`
+implementing a variant of the *Dysolve* algorithm originally introduced in
+:footcite:p:`shillito_fast_2020`.
 
 The solvers are specialized to linear matrix differential equations with :math:`G(t)`
 decomposed as:

@@ -64,12 +64,16 @@ html_theme_options = {
     'style_external_links': True,
 }
 html_css_files = ['gallery.css']
+html_context = {"analytics_enabled": True}
 
 # autodoc/autosummary options
 autosummary_generate = True
 autosummary_generate_overwrite = False
 autoclass_content = "both"
-intersphinx_mapping = {"qiskit": ("https://qiskit.org/documentation/", None)}
+intersphinx_mapping = {
+    "qiskit": ("https://qiskit.org/documentation/", None),
+    "qiskit_experiments": ("https://qiskit.org/documentation/experiments/", None)
+}
 
 # nbsphinx options (for tutorials)
 nbsphinx_timeout = 180
