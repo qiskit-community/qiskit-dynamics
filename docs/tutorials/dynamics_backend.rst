@@ -470,6 +470,11 @@ values for the single qubit gates calibrated above.
 
     from qiskit_experiments.library import CrossResonanceHamiltonian
 
+    backend.target.add_instruction(
+        instruction=CrossResonanceHamiltonian.CRPulseGate(width=Parameter("width")), 
+        properties={(0, 1): None, (1, 0): None}
+    )
+
     cr_ham_experiment = CrossResonanceHamiltonian(
         qubits=(0, 1), 
         flat_top_widths=np.linspace(0, 5000, 17), 
