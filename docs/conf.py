@@ -41,7 +41,8 @@ extensions = [
     'nbsphinx',
     'sphinxcontrib.bibtex'
 ]
-templates_path = ['_templates']
+templates_path = ["_templates"]
+
 numfig = True
 numfig_format = {
     'table': 'Table %s'
@@ -65,7 +66,6 @@ html_theme_options = {
     'style_external_links': True,
 }
 html_css_files = ['gallery.css']
-html_static_path = ['_static']
 html_context = {"analytics_enabled": True}
 
 # autodoc/autosummary options
