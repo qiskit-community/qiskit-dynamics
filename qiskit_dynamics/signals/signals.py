@@ -146,18 +146,18 @@ class Signal:
         self._phase = unp.asarray(phase)
         self._phase_arg = 1j * self._phase
 
-    def envelope(self, t: Union[float, np.array]) -> Union[complex, np.array]:
+    def envelope(self, t: Union[float, np.ndarray]) -> Union[complex, np.ndarray]:
         # TODO: reorganize type hints of an attribute and a return type
         """Vectorized evaluation of the envelope at time t."""
         return self._envelope(t)
 
-    def complex_value(self, t: Union[float, np.array]) -> Union[complex, np.array]:
+    def complex_value(self, t: Union[float, np.ndarray]) -> Union[complex, np.ndarray]:
         # TODO: reorganize type hints of an attribute and a return type
         """Vectorized evaluation of the complex value at time t."""
         arg = self._carrier_arg * t + self._phase_arg
         return self.envelope(t) * np.exp(arg)
 
-    def __call__(self, t: Union[float, np.array]) -> Union[complex, np.array]:
+    def __call__(self, t: Union[float, np.ndarray]) -> Union[complex, np.ndarray]:
         # TODO: reorganize type hints of an attribute and a return type
         """Vectorized evaluation of the signal at time(s) t."""
         return np.real(self.complex_value(t))
@@ -477,7 +477,7 @@ class SignalCollection:
         return len(self.components)
 
     def __getitem__(
-        self, idx: Union[int, List, np.array, slice]
+        self, idx: Union[int, List, np.ndarray, slice]
     ) -> Union[Signal, "SignalCollection"]:
         """Get item with NumPy-style subscripting, as if this class were a 1d array."""
 
@@ -555,7 +555,7 @@ class SignalSum(SignalCollection, Signal):
             elif isinstance(sig, Signal):
                 components.append(sig)
             elif isinstance(sig, (int, float, complex)) or (
-                isinstance(sig, np.array) or isinstance(sig, jnp.array) and sig.ndim == 0
+                isinstance(sig, np.ndarray) or isinstance(sig, jnp.ndarray) and sig.ndim == 0
             ):
                 components.append(Signal(sig))
             else:
@@ -566,7 +566,8 @@ class SignalSum(SignalCollection, Signal):
         SignalCollection.__init__(self, components)
 
         def envelope(t):
-            return np.moveaxis([sig.envelope(t) for sig in self.components], 0, -1)
+            print([sig.envelope(t) for sig in self.components])
+            return unp.moveaxis([sig.envelope(t) for sig in self.components], 0, -1)
 
         carrier_freqs = []
         for sig in self.components:
@@ -580,7 +581,7 @@ class SignalSum(SignalCollection, Signal):
             self, envelope=envelope, carrier_freq=carrier_freqs, phase=phases, name=name
         )
 
-    def complex_value(self, t: Union[float, np.array, jnp.array]) -> Union[complex, np.array, jnp.array]:
+    def complex_value(self, t: Union[float, np.ndarray, jnp.ndarray]) -> Union[complex, np.ndarray, jnp.ndarray]:
         # TODO: reorganize type hints of an attribute and a return type
         """Return the sum of the complex values of each component."""
         exp_phases = unp.exp(unp.expand_dims(unp.asarray(t), -1) * self._carrier_arg + self._phase_arg)
@@ -629,8 +630,8 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         dt: float,
         samples: List,
         start_time: float = 0.0,
-        carrier_freq: Union[List, np.array, jnp.array] = None,
-        phase: Union[List, np.array, jnp.array] = None,
+        carrier_freq: Union[List, np.ndarray, jnp.ndarray] = None,
+        phase: Union[List, np.ndarray, jnp.ndarray] = None,
         name: str = None,
     ):
         r"""Directly initialize a ``DiscreteSignalSum``\. Samples of all terms in the
@@ -750,7 +751,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         return default_str
 
-    def __getitem__(self, idx: Union[int, List, np.array, jnp.array, slice]) -> Signal:
+    def __getitem__(self, idx: Union[int, List, np.ndarray, jnp.ndarray, slice]) -> Signal:
         """Enables numpy-style subscripting, as if this class were a 1d array."""
 
         if type(idx) == int and idx >= len(self):
@@ -801,15 +802,17 @@ class SignalList(SignalCollection):
         self._eval_complex_value = lambda t: [sig.complex_value(t) for sig in self.components]
         self._eval_signals = lambda t: [sig(t) for sig in self.components]
 
-    def complex_value(self, t: Union[float, np.array, jnp.array]) -> Union[np.array, jnp.array]:
+    def complex_value(self, t: Union[float, np.ndarray, jnp.ndarray]) -> Union[np.ndarray, jnp.ndarray]:
         """Vectorized evaluation of complex value of components."""
         # TODO: reorganize type hints of an attribute and a return type
-        return np.moveaxis(self._eval_complex_value(t), 0, -1)
+        return unp.moveaxis(self._eval_complex_value(t), 0, -1)
 
-    def __call__(self, t: Union[float, np.array, jnp.array]) -> Union[np.array, jnp.array]:
+    def __call__(self, t: Union[float, np.ndarray, jnp.ndarray]) -> Union[np.ndarray, jnp.ndarray]:
         """Vectorized evaluation of all components."""
         # TODO: reorganize type hints of an attribute and a return type
-        return np.moveaxis(self._eval_signals(t), 0, -1)
+        print('AAAAAAAa')
+        print(self._eval_signals(t))
+        return unp.moveaxis(self._eval_signals(t), 0, -1)
 
     def flatten(self) -> "SignalList":
         """Return a ``SignalList`` with each component flattened."""
@@ -1087,7 +1090,7 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     return sig1, sig2
 
 
-def to_SignalSum(sig: Union[int, float, complex, np.array, jnp.array, Signal]) -> SignalSum:
+def to_SignalSum(sig: Union[int, float, complex, np.ndarray, jnp.ndarray, Signal]) -> SignalSum:
     r"""Convert the input to a SignalSum according to:
 
         - If it is already a ``SignalSum``\, do nothing.
@@ -1105,7 +1108,7 @@ def to_SignalSum(sig: Union[int, float, complex, np.array, jnp.array, Signal]) -
         QiskitError: If the input type is incompatible with SignalSum.
     """
 
-    if isinstance(sig, (int, float, complex)) or (isinstance(sig, np.array) or isinstance(sig, jnp.array) and sig.ndim == 0):
+    if isinstance(sig, (int, float, complex)) or (isinstance(sig, np.ndarray) or isinstance(sig, jnp.ndarray) and sig.ndim == 0):
         return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
         if sig.samples.shape == (0,):
