@@ -19,7 +19,6 @@ import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
 from qiskit_dynamics.signals.signals import to_SignalSum
-from qiskit_dynamics.array import Array
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -28,6 +27,10 @@ try:
     import jax.numpy as jnp
 except ImportError:
     pass
+
+from arraylias import numpy_alias
+unp = numpy_alias()()
+
 
 
 class TestSignal(QiskitDynamicsTestCase):
@@ -918,14 +921,15 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
         self._test_jit_signal_eval(self.constant, t=2.1)
         self._test_jit_signal_eval(self.discrete_signal, t=2.1)
         self._test_jit_signal_eval(self.signal_sum, t=2.1)
+        print("test_jit_eval")
         self._test_jit_signal_eval(self.discrete_signal_sum, t=2.1)
 
     def test_jit_grad_constant_construct(self):
         """Test jitting and grad through a function which constructs a constant signal."""
 
         def eval_const(a):
-            a = Array(a)
-            return Signal(a)(1.1).data
+            a = unp.asarray(a)
+            return Signal(a)(1.1)
 
         jit_eval = jit(eval_const)
         self.assertAllClose(jit_eval(3.0), 3.0)
@@ -935,7 +939,7 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
     def test_signal_list_jit_eval(self):
         """Test jit-compilation of SignalList evaluation."""
-        call_jit = jit(lambda t: Array(self.signal_list(t)).data)
+        call_jit = jit(lambda t: unp.asarray(self.signal_list(t)))
 
         t_vals = np.array([0.123, 0.5324, 1.232])
         self.assertAllClose(call_jit(t_vals), self.signal_list(t_vals))
@@ -993,20 +997,20 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
     def _test_jit_signal_eval(self, signal, t=2.1):
         """jit compilation and evaluation of main signal functions."""
-        sig_call_jit = jit(lambda t: Array(signal(t)).data)
+        sig_call_jit = jit(lambda t: unp.asarray(signal(t)))
         self.assertAllClose(sig_call_jit(t), signal(t))
-        sig_envelope_jit = jit(lambda t: Array(signal.envelope(t)).data)
+        sig_envelope_jit = jit(lambda t: unp.asarray(signal.envelope(t)))
         self.assertAllClose(sig_envelope_jit(t), signal.envelope(t))
-        sig_complex_value_jit = jit(lambda t: Array(signal.complex_value(t)).data)
+        sig_complex_value_jit = jit(lambda t: unp.asarray(signal.complex_value(t)))
         self.assertAllClose(sig_complex_value_jit(t), signal.complex_value(t))
 
     def _test_grad_eval(self, signal, t, sig_deriv_val, complex_deriv_val):
         """Test chained grad and jit compilation."""
-        sig_call_jit = jit(grad(lambda t: Array(signal(t)).data))
+        sig_call_jit = jit(grad(lambda t: unp.asarray(signal(t))))
         self.assertAllClose(sig_call_jit(t), sig_deriv_val)
-        sig_complex_value_jit_re = jit(grad(lambda t: np.real(Array(signal.complex_value(t))).data))
+        sig_complex_value_jit_re = jit(grad(lambda t: np.real(unp.asarray(signal.complex_value(t)))))
         sig_complex_value_jit_imag = jit(
-            grad(lambda t: np.imag(Array(signal.complex_value(t))).data)
+            grad(lambda t: np.imag(unp.asarray(signal.complex_value(t))))
         )
         self.assertAllClose(sig_complex_value_jit_re(t), np.real(complex_deriv_val))
         self.assertAllClose(sig_complex_value_jit_imag(t), np.imag(complex_deriv_val))

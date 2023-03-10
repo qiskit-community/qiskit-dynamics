@@ -155,12 +155,12 @@ class Signal:
         # TODO: reorganize type hints of an attribute and a return type
         """Vectorized evaluation of the complex value at time t."""
         arg = self._carrier_arg * t + self._phase_arg
-        return self.envelope(t) * np.exp(arg)
+        return self.envelope(t) * unp.exp(arg)
 
     def __call__(self, t: Union[float, np.ndarray]) -> Union[complex, np.ndarray]:
         # TODO: reorganize type hints of an attribute and a return type
         """Vectorized evaluation of the signal at time(s) t."""
-        return np.real(self.complex_value(t))
+        return unp.real(self.complex_value(t))
 
     def __str__(self) -> str:
         """Return string representation."""
@@ -315,6 +315,8 @@ class DiscreteSignal(Signal):
                     -1,
                     len(self.samples),
                 )
+            # print(idx)
+            # print(self._padded_samples)
             return self._padded_samples[idx]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
@@ -810,8 +812,6 @@ class SignalList(SignalCollection):
     def __call__(self, t: Union[float, np.ndarray, jnp.ndarray]) -> Union[np.ndarray, jnp.ndarray]:
         """Vectorized evaluation of all components."""
         # TODO: reorganize type hints of an attribute and a return type
-        print('AAAAAAAa')
-        print(self._eval_signals(t))
         return unp.moveaxis(self._eval_signals(t), 0, -1)
 
     def flatten(self) -> "SignalList":
