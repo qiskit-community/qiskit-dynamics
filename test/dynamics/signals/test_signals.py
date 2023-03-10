@@ -921,7 +921,6 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
         self._test_jit_signal_eval(self.constant, t=2.1)
         self._test_jit_signal_eval(self.discrete_signal, t=2.1)
         self._test_jit_signal_eval(self.signal_sum, t=2.1)
-        print("test_jit_eval")
         self._test_jit_signal_eval(self.discrete_signal_sum, t=2.1)
 
     def test_jit_grad_constant_construct(self):
