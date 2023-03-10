@@ -1,0 +1,76 @@
+---
+prelude: >
+    Replace this text with content to appear at the top of the section for this
+    release. All of the prelude content is merged together and then rendered
+    separately from the items listed in other parts of the file, so the text
+    needs to be worded so that both the prelude and the other items make sense
+    when read independently. This may mean repeating some details. Not every
+    release note requires a prelude. Usually only notes describing major
+    features or adding release theme details should have a prelude.
+features:
+  - |
+    Adds Python 3.11 support. Starting with this release, Qiskit Dynamics supports Python versions 
+    3.8 through 3.11.
+  - |
+    Adds new class :class:`.DynamicsBackend`, which provides a
+    :class:`~qiskit.providers.backend.BackendV2` interface for running simulations with Qiskit
+    Dynamics. This class can either be instantiated with a :class:`.Solver` instance configured for
+    Pulse simulation, or through the :meth:`.DynamicsBackend.from_backend`, which builds an instance
+    using the Hamiltonian description provided in an IBM backend.
+  - |
+    Adds the ``magnus_order`` argument to exponential based solvers. Accepts values in ``[1, 2, 3]``
+    corresponding, respectively, to the 2nd, 4th, and 6th order methods described in Section 5.4 of
+    :footcite:`blanes_magnus_2009`.
+  - |
+    The logic of :class:`.InstructionToSignals` has been updated. 
+    This change allows you to jit compile a function including 
+    the converter with input pulse schedule that contains :class:`.SymbolicPulse`.
+
+    .. code-block:: python
+
+      from functools import partial
+      import jax
+      from qiskit import pulse
+      from qiskit_dynamics.pulse import InstructionToSignals
+
+      @partial(jax.jit, static_argnums=(0, 1))
+      def run_simulation(amp, sigma):
+          converter = InstructionToSignals(dt=1, carriers=None)
+          with pulse.build() as schedule:
+              pulse.play(pulse.Gaussian(160, amp, sigma), pulse.DriveChannel(0))
+          signals = converter.get_signals(schedule)
+
+          # continue with simulations
+upgrade:
+  - |
+    Starting with this release, Python 3.7 is no longer supported.
+  - |
+    Passing the ``carriers`` argument to ``InstructionToSignals`` as a ``list`` is no longer
+    supported.
+  - |
+    The deprecated :class:`.Solver` init arguments ``hamiltonian_signals`` and ``dissipator_signals`` have
+    been removed.
+  - |
+    The deprecated ``Solver.signals`` property has been removed.
+  - |
+    The deprecated ``Solver.copy`` method has been removed.
+  - |
+    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4.0.
+fixes:
+  - |
+    :class:`.InstructionToSignals` has been updated to fix issues with phase accumulation
+    resulting from ``SetFrequency`` and ``ShiftFrequency`` instructions. A phase accumulation
+    term has been added so that the digitized carrier frequency is continuous across these 
+    instructions. A related phase error when generating samples for channels subject to
+    ``SetFrequency`` and ``ShiftFrequency`` instructions has also been fixed.
+  - |
+    Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using
+    the `t_eval` kwarg with a JAX method and `Array.default_backend() == 'jax'`.
+    The bug is fixed by updating the time-argument handling for the cases
+    `method='jax_odeint'` or `method` being a Diffrax method. The automatic jitting is
+    disabled for all other JAX methods.
+other:
+  - |
+    Validation checks have been added to the :class:`.ExpansionModel` class to ensure that the
+    ``operators``, ``carrier_freqs``, and ``chebyshev_orders`` arguments have compatible shapes.
+
