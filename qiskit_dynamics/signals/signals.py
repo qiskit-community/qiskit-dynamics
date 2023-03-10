@@ -27,8 +27,6 @@ from matplotlib import pyplot as plt
 from qiskit import QiskitError
 from arraylias import numpy_alias
 
-from qiskit_dynamics.array import Array
-
 try:
     import jax.numpy as jnp
 except ImportError:
