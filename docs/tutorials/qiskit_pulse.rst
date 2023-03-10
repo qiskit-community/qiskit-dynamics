@@ -96,6 +96,7 @@ virtual ``Z`` gate is applied.
         ax.set_title(title)
         ax.vlines(T, ax.get_ylim()[0], ax.get_ylim()[1], "k", linestyle="dashed")
 
+.. _pulse solver:
 
 3. Create the system model
 --------------------------
