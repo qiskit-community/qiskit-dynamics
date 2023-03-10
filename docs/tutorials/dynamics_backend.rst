@@ -299,7 +299,7 @@ gate to the circuit object.
 -----------------------------------------------------------------------
 
 Next, we perform rough calibrations for ``X`` and ``SX`` gates on both qubits modeled in the
-:class:`.DynamicsBackend`, following the single-qubit calibratino tutorial for Qiskit Experiments.
+:class:`.DynamicsBackend`, following the single-qubit calibration tutorial for Qiskit Experiments.
 
 5.1 Configure the :class:`~qiskit.transpiler.Target` to include single qubit instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
