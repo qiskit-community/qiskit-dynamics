@@ -825,12 +825,14 @@ class SignalList(SignalCollection):
         return SignalList(flattened_list)
 
     @property
-    def drift(self) -> Array:
+    def drift(self):
         r"""Return the drift ``Array``\, i.e. return an ``Array`` whose entries are the sum
         of the constant parts of the corresponding component of this ``SignalList``\.
         """
         # TODO: modify the above comment
         # TODO: reorganize type hints of an attribute and a return type
+        # TODO: specify a return type
+
 
         drift_array = []
         for sig_entry in self.components:
@@ -866,9 +868,9 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
             and sig1.start_time == sig2.start_time
             and sig1.duration == sig2.duration
         ):
-            samples = np.append(sig1.samples, sig2.samples, axis=1)
-            carrier_freq = np.append(sig1.carrier_freq, sig2.carrier_freq)
-            phase = np.append(sig1.phase, sig2.phase)
+            samples = unp.append(sig1.samples, sig2.samples, axis=1)
+            carrier_freq = unp.append(sig1.carrier_freq, sig2.carrier_freq)
+            phase = unp.append(sig1.phase, sig2.phase)
             return DiscreteSignalSum(
                 dt=sig1.dt,
                 samples=samples,
@@ -922,29 +924,29 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
         ):
             # this vectorized operation produces a 2d array whose columns are the products of
             # the original columns
-            new_samples = Array(
+            new_samples = unp.asarray(
                 0.5
                 * (sig1.samples[:, :, None] * sig2.samples[:, None, :]).reshape(
                     (sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]),
                     order="C",
                 )
             )
-            new_samples_conj = Array(
+            new_samples_conj = unp.asarray(
                 0.5
                 * (sig1.samples[:, :, None] * sig2.samples[:, None, :].conj()).reshape(
                     (sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]),
                     order="C",
                 )
             )
-            samples = np.append(new_samples, new_samples_conj, axis=1)
+            samples = unp.append(new_samples, new_samples_conj, axis=1)
 
             new_freqs = sig1.carrier_freq + sig2.carrier_freq
             new_freqs_conj = sig1.carrier_freq - sig2.carrier_freq
-            freqs = np.append(Array(new_freqs), Array(new_freqs_conj))
+            freqs = unp.append(unp.asarray(new_freqs), unp.asarray(new_freqs_conj))
 
             new_phases = sig1.phase + sig2.phase
             new_phases_conj = sig1.phase - sig2.phase
-            phases = np.append(Array(new_phases), Array(new_phases_conj))
+            phases = unp.append(unp.asarray(new_phases), unp.asarray(new_phases_conj))
 
             return DiscreteSignalSum(
                 dt=sig1.dt,
@@ -1087,7 +1089,7 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     return sig1, sig2
 
 
-def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
+def to_SignalSum(sig: Union[int, float, complex, np.array, jnp.array, Signal]) -> SignalSum:
     r"""Convert the input to a SignalSum according to:
 
         - If it is already a ``SignalSum``\, do nothing.
@@ -1105,19 +1107,19 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
         QiskitError: If the input type is incompatible with SignalSum.
     """
 
-    if isinstance(sig, (int, float, complex)) or (isinstance(sig, Array) and sig.ndim == 0):
+    if isinstance(sig, (int, float, complex)) or (isinstance(sig, np.array) or isinstance(sig, jnp.array) and sig.ndim == 0):
         return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
-        if Array(sig.samples.data).shape == (0,):
-            new_samples = Array([sig.samples.data])
+        if sig.samples.shape == (0,):
+            new_samples = unp.asarray([sig.samples])
         else:
-            new_samples = Array([sig.samples.data]).transpose(1, 0)
+            new_samples = unp.asarray([sig.samples]).transpose(1, 0)
         return DiscreteSignalSum(
             dt=sig.dt,
             samples=new_samples,
             start_time=sig.start_time,
-            carrier_freq=Array([sig.carrier_freq.data]),
-            phase=Array([sig.phase.data]),
+            carrier_freq=unp.asarray([sig.carrier_freq]),
+            phase=unp.asarray([sig.phase]),
         )
     elif isinstance(sig, Signal) and not isinstance(sig, SignalSum):
         return SignalSum(sig)
@@ -1125,14 +1127,3 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
         return sig
 
     raise QiskitError("Input type incompatible with SignalSum.")
-
-
-def array_funclist_evaluate(func_list: List[Callable]) -> Callable:
-    """Utility for evaluating a list of functions in a way that respects Arrays.
-    Currently relevant for JAX evaluation.
-    """
-
-    def eval_func(t):
-        return Array([Array(func(t)).data for func in func_list])
-
-    return eval_func
