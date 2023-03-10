@@ -568,7 +568,7 @@ class SignalSum(SignalCollection, Signal):
         SignalCollection.__init__(self, components)
 
         def envelope(t):
-            return unp.moveaxis([sig.envelope(t) for sig in self.components], 0, -1)
+            return np.moveaxis([sig.envelope(t) for sig in self.components], 0, -1)
 
         carrier_freqs = []
         for sig in self.components:
@@ -800,22 +800,17 @@ class SignalList(SignalCollection):
 
         super().__init__(signal_list)
 
-        # setup complex value and full signal evaluation
-        if Array.default_backend() == "jax":
-            self._eval_complex_value = array_funclist_evaluate(
-                [sig.complex_value for sig in self.components]
-            )
-            self._eval_signals = array_funclist_evaluate(self.components)
-        else:
-            self._eval_complex_value = lambda t: [sig.complex_value(t) for sig in self.components]
-            self._eval_signals = lambda t: [sig(t) for sig in self.components]
+        self._eval_complex_value = lambda t: [sig.complex_value(t) for sig in self.components]
+        self._eval_signals = lambda t: [sig(t) for sig in self.components]
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Union[np.array, Array]:
+    def complex_value(self, t: Union[float, np.array, jnp.array]) -> Union[np.array, jnp.array]:
         """Vectorized evaluation of complex value of components."""
+        # TODO: reorganize type hints of an attribute and a return type
         return np.moveaxis(self._eval_complex_value(t), 0, -1)
 
-    def __call__(self, t: Union[float, np.array, Array]) -> Union[np.array, Array]:
+    def __call__(self, t: Union[float, np.array, jnp.array]) -> Union[np.array, jnp.array]:
         """Vectorized evaluation of all components."""
+        # TODO: reorganize type hints of an attribute and a return type
         return np.moveaxis(self._eval_signals(t), 0, -1)
 
     def flatten(self) -> "SignalList":
@@ -834,6 +829,8 @@ class SignalList(SignalCollection):
         r"""Return the drift ``Array``\, i.e. return an ``Array`` whose entries are the sum
         of the constant parts of the corresponding component of this ``SignalList``\.
         """
+        # TODO: modify the above comment
+        # TODO: reorganize type hints of an attribute and a return type
 
         drift_array = []
         for sig_entry in self.components:
@@ -844,11 +841,11 @@ class SignalList(SignalCollection):
 
             for term in sig_entry:
                 if term.is_constant:
-                    val += Array(term(0.0)).data
+                    val += term(0.0)
 
             drift_array.append(val)
 
-        return Array(drift_array)
+        return unp.asarray(drift_array)
 
 
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
