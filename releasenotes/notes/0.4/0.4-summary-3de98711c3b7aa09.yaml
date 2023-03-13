@@ -1,0 +1,102 @@
+---
+prelude: >
+    This release primarily focuses on tooling for simulating `Qiskit Pulse
+    <https://qiskit.org/documentation/apidoc/pulse.html>`__ schedules. The major changes related to
+    this are:
+      - This release adds the :class:`.DynamicsBackend` class, which provides a
+        :class:`~qiskit.providers.BackendV2` interface for running simulations. Once constructed and
+        configured, the :meth:`.DynamicsBackend.run` method can be used to simulate schedules or
+        circuits at the pulse level, returning measurement results in the same way as a real
+        backend. See the new :ref:`Simulating backends at the pulse-level with DynamicsBackend
+        <dynamics backend>` tutorial for how to set up the class for different applications.
+      - This release modifies the schedule to signal converter :class:`.InstructionToSignals` to
+        enable JAX transforms of simulations of pulse schedules built using
+        :class:`~qiskit.pulse.library.ScalableSymbolicPulse`. See the user guide entry on the
+        technicalities and limitiations of utilizing :ref:`JAX-compatible pulse schedules <how-to
+        use pulse schedules for jax-jit>`, as well as the :ref:`tutorial on control sequence
+        optimization <optimization tutorial>`, which has been updated to include a section on
+        gradient optimization of pulse schedules. This functionality requires ``qiskit-terra``
+        0.23.0, which is now the minimum required version.
+    
+    As of this release, Qiskit Dynamics now supports Python 3.11, and has dropped support of Python
+    3.7. Additionally, higher-order versions of existing matrix-exponential solvers have been added,
+    and some arguments and methods that were deprecated in version 0.3 have been removed.
+
+features:
+  - |
+    Adds Python 3.11 support.
+  - |
+    Adds new class :class:`.DynamicsBackend`, which provides a
+    :class:`~qiskit.providers.backend.BackendV2` interface for running simulations with Qiskit
+    Dynamics. This class can either be instantiated with a :class:`.Solver` instance configured for
+    Pulse simulation, or through the :meth:`.DynamicsBackend.from_backend`, which builds an instance
+    using the Hamiltonian description provided in an IBM backend.
+  - |
+    Adds the ``magnus_order`` argument to exponential based solvers ``"scipy_expm"`` and
+    ``"jax_expm"``. Accepts values in ``[1, 2, 3]`` corresponding, respectively, to the 2nd, 4th,
+    and 6th order methods described in Section 5.4 of :footcite:`blanes_magnus_2009`.
+  - |
+    The logic of :class:`.InstructionToSignals` has been updated to be JAX-compatible when
+    converting pulse schedules containing only :class:`.ScalableSymbolicPulse` pulses. See the new
+    user guide entry :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for jax-jit>`
+    for details.
+issues:
+  - |
+    JAX release 0.4.4 modified the internals of ``jit`` compilation, resulting in errors when
+    attempting to automatically differentiate and compile calls to :func:`.solve_lmde_perturbation`.
+    This is a bug in JAX, and is discussed in `this discussion thread
+    <https://github.com/google/jax/discussions/14561>`__. Until this is fixed, if using this
+    functionality, JAX can be reverted to the old mode of compilation by executing the following
+    code before importing JAX:
+
+    .. code-block:: python
+
+      import os
+      os.environ["JAX_JIT_PJIT_API_MERGE"] = "0"
+upgrade:
+  - |
+    Starting with this release, Python 3.7 is no longer supported.
+  - |
+    The minimum ``qiskit-terra`` version has been increased to 0.23.0.
+  - |
+    The deprecated ``list`` formatting for the ``carriers`` argument to
+    :class:`.InstructionToSignals` is no longer supported. All code utilizing this argument must be
+    converted to the dictionary input format.
+  - |
+    The deprecated :class:`.Solver` init arguments ``hamiltonian_signals`` and
+    ``dissipator_signals`` have been removed. Signals in the model can now only be passed to the
+    :meth:`.Solver.solve` method.
+  - |
+    The deprecated ``Solver.signals`` property has been removed. The model stored in a
+    :class:`.Solver` instance no longer stores signals.
+  - |
+    The deprecated :meth:`.Solver.copy` method has been removed. There is no replacement for this
+    functionality; the new intended mode of operation for :class:`.Solver` is to be immutable, and
+    hence there is no longer any need to create copies.
+fixes:
+  - |
+    :class:`.InstructionToSignals` has been updated to fix issues with phase accumulation resulting
+    from :class:`~qiskit.pulse.instructions.SetFrequency` and
+    :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions. A phase accumulation term has
+    been added so that the digitized carrier frequency is continuous across these instructions. A
+    related phase error when generating samples for channels subject to
+    :class:`~qiskit.pulse.instructions.SetFrequency` and
+    :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions has also been fixed. (`#140
+    <https://github.com/Qiskit/qiskit-dynamics/issues/140>`__)
+  - |
+    Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using the ``t_eval``
+    kwarg with a JAX method and ``Array.default_backend() == 'jax'``. The bug is fixed by updating
+    the time-argument handling for the ``"jax_odeint"`` and Diffrax methods. The automatic jitting
+    is now disabled for all other JAX methods. (`#122
+    <https://github.com/Qiskit/qiskit-dynamics/issues/122>`__ and `#175
+    <https://github.com/Qiskit/qiskit-dynamics/issues/175>`__)
+  - |
+    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4.
+    (`#162 <https://github.com/Qiskit/qiskit-dynamics/issues/162>`__)
+  - |
+    Validation checks have been added to the :class:`.DysonSolver` and :class:`.MagnusSolver`
+    classes to ensure that the ``operators``, ``carrier_freqs``, and ``chebyshev_orders`` arguments
+    have compatible shapes. This fixes bugs in the behaviour of these classes when implicit
+    assumptions about array shapes were violated. (`#160
+    <https://github.com/Qiskit/qiskit-dynamics/issues/160>`__)
+

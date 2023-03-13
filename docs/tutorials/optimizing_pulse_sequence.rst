@@ -1,3 +1,5 @@
+.. _optimization tutorial:
+
 Gradient optimization of a pulse sequence
 =========================================
 
@@ -261,11 +263,13 @@ approximation analysis.
 7.  Repeat the :math:`X`-gate optimization, alternatively using pulse schedules to specify the control sequence.
 ----------------------------------------------------------------------------------------------------------------
 
-Here, we perform the optimization again, however now we specify the parameterized control sequence to optimize as a pulse schedule.
+Here, we perform the optimization again, however now we specify the parameterized control sequence
+to optimize as a pulse schedule.
 
-We construct a Gaussian square pulse as a :class:`~qiskit.pulse.library.ScalableSymbolicPulse` instance, parameterized by ``sigma`` and ``width``.
-Although qiskit pulse provides a :class:`~qiskit.pulse.library.GaussianSquare`, this class is not JAX compatible.
-See the user guide entry on :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for jax-jit>`.
+We construct a Gaussian square pulse as a :class:`~qiskit.pulse.library.ScalableSymbolicPulse`
+instance, parameterized by ``sigma`` and ``width``. Although qiskit pulse provides a
+:class:`~qiskit.pulse.library.GaussianSquare`, this class is not JAX compatible. See the user guide
+entry on :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for jax-jit>`.
 
 .. jupyter-execute::
 
@@ -319,8 +323,8 @@ See the user guide entry on :ref:`JAX-compatible pulse schedules <how-to use pul
                 valid_amp_conditions=sym.Abs(_amp) <= 1.0,
             )
 
-Next, we construct a pulse schedule using the above parametrized Gaussian square pulse, convert it to a signal, and 
-simulate the equation over the length of the pulse sequence.
+Next, we construct a pulse schedule using the above parametrized Gaussian square pulse, convert it
+to a signal, and simulate the equation over the length of the pulse sequence.
 
 .. jupyter-execute::
 
@@ -350,7 +354,8 @@ simulate the equation over the length of the pulse sequence.
         return 1. - fidelity(Array(result[0].y[-1])).data
 
 
-We set the initial values of ``sigma`` and ``width`` for the optimization as ``initial_params = np.array([10, 10])``.
+We set the initial values of ``sigma`` and ``width`` for the optimization as
+``initial_params = np.array([10, 10])``.
 
 .. jupyter-execute::
 

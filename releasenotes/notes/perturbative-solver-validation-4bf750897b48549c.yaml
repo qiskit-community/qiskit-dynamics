@@ -1,5 +1,0 @@
----
-other:
-  - |
-    Validation checks have been added to the :class:`ExpansionModel` class to ensure that the
-    ``operators``, ``carrier_freqs``, and ``chebyshev_orders`` arguments have compatible shapes.

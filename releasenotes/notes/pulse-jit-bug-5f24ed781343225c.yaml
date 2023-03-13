@@ -1,8 +1,0 @@
----
-fixes:
-  - |
-    Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using
-    the `t_eval` kwarg with a JAX method and `Array.default_backend() == 'jax'`.
-    The bug is fixed by updating the time-argument handling for the cases
-    `method='jax_odeint'` or `method` being a Diffrax method. The automatic jitting is
-    disabled for all other JAX methods.
