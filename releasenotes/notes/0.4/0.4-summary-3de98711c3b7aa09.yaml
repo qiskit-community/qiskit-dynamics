@@ -1,31 +1,30 @@
 ---
 prelude: >
-    This release primarily focuses on tooling for simulating
-    `Qiskit Pulse <https://qiskit.org/documentation/apidoc/pulse.html>`__ schedules. The major
-    changes related to this in this release are:
+    This release primarily focuses on tooling for simulating `Qiskit Pulse
+    <https://qiskit.org/documentation/apidoc/pulse.html>`__ schedules. The major changes related to
+    this are:
       - This release adds the :class:`.DynamicsBackend` class, which provides a
-        :class:`~qiskit.providers.BackendV2` interface for running simulations. Once
-        constructed and configured, the :meth:`.DynamicsBackend.run` method can be used to simulate
-        schedules or circuits at the pulse level, returning measurement results in the same way as a
-        real backend. See the new :ref:`Simulating backends at the pulse-level with DynamicsBackend
+        :class:`~qiskit.providers.BackendV2` interface for running simulations. Once constructed and
+        configured, the :meth:`.DynamicsBackend.run` method can be used to simulate schedules or
+        circuits at the pulse level, returning measurement results in the same way as a real
+        backend. See the new :ref:`Simulating backends at the pulse-level with DynamicsBackend
         <dynamics backend>` tutorial for how to set up the class for different applications.
-      - As of ``qiskit-terra`` 0.23.0, the pulse class
-        :class:`~qiskit.pulse.library.ScalableSymbolicPulse` is JAX-compatible. This release
-        modifies the schedule to signal converter :class:`.InstructionToSignals` to enable JAX
-        transforms of simulations of pulse schedules built using
+      - This release modifies the schedule to signal converter :class:`.InstructionToSignals` to
+        enable JAX transforms of simulations of pulse schedules built using
         :class:`~qiskit.pulse.library.ScalableSymbolicPulse`. See the user guide entry on the
         technicalities and limitiations of utilizing :ref:`JAX-compatible pulse schedules <how-to
         use pulse schedules for jax-jit>`, as well as the :ref:`tutorial on control sequence
         optimization <optimization tutorial>`, which has been updated to include a section on
-        gradient optimization of pulse schedules.
+        gradient optimization of pulse schedules. This functionality requires ``qiskit-terra``
+        0.23.0, which is now the minimum required version.
     
-    This release also adds higher-order versions of existing matrix-exponential solvers, and removes
-    some arguments nad methods that were deprecated in version 0.3.
+    As of this release, Qiskit Dynamics now supports Python 3.11, and has dropped support of Python
+    3.7. Additionally, higher-order versions of existing matrix-exponential solvers have been added,
+    and some arguments and methods that were deprecated in version 0.3 have been removed.
 
 features:
   - |
-    Adds Python 3.11 support. Starting with this release, Qiskit Dynamics supports Python versions 
-    3.8 through 3.11.
+    Adds Python 3.11 support.
   - |
     Adds new class :class:`.DynamicsBackend`, which provides a
     :class:`~qiskit.providers.backend.BackendV2` interface for running simulations with Qiskit
@@ -56,6 +55,8 @@ issues:
 upgrade:
   - |
     Starting with this release, Python 3.7 is no longer supported.
+  - |
+    The minimum ``qiskit-terra`` version has been increased to 0.23.0.
   - |
     The deprecated ``list`` formatting for the ``carriers`` argument to
     :class:`.InstructionToSignals` is no longer supported. All code utilizing this argument must be

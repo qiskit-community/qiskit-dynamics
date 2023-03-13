@@ -19,7 +19,7 @@ requirements = [
     "numpy>=1.17",
     "scipy>=1.4",
     "matplotlib>=3.0",
-    "qiskit-terra>=0.16.0",
+    "qiskit-terra>=0.23.0",
     "multiset>=3.0.1",
 ]
 
