@@ -1,12 +1,27 @@
 ---
 prelude: >
-    Replace this text with content to appear at the top of the section for this
-    release. All of the prelude content is merged together and then rendered
-    separately from the items listed in other parts of the file, so the text
-    needs to be worded so that both the prelude and the other items make sense
-    when read independently. This may mean repeating some details. Not every
-    release note requires a prelude. Usually only notes describing major
-    features or adding release theme details should have a prelude.
+    This release primarily focuses on tooling for simulating
+    `Qiskit Pulse <https://qiskit.org/documentation/apidoc/pulse.html>`__ schedules. The major
+    changes related to this in this release are:
+      - This release adds the :class:`.DynamicsBackend` class, which provides a
+        :class:`~qiskit.providers.backend.BackendV2` interface for running simulations. Once
+        constructed and configured, the :meth:`.DynamicsBackend.run` method can be used to simulate
+        schedules or circuits at the pulse level, returning measurement results in the same way as a
+        real backend. See the new :ref:`Simulating backends at the pulse-level with DynamicsBackend
+        <dynamics backend>` tutorial for how to set up the class for different applications.
+      - As of ``qiskit-terra`` 0.23.0, the pulse class
+        :class:`~qiskit.pulse.library.ScalableSymbolicPulse` is JAX-compatible. This release
+        modifies the schedule to signal converter :class:`.InstructionToSignals` to enable JAX
+        transforms of simulations of pulse schedules built using
+        :class:`~qiskit.pulse.library.ScalableSymbolicPulse`. See the user guide entry on the
+        technicalities and limitiations of utilizing :ref:`JAX-compatible pulse schedules <how-to
+        use pulse schedules for jax-jit>`, as well as the :ref:`tutorial on control sequence
+        optimization <optimization tutorial>`, which has been updated to include a section on
+        gradient optimization of pulse schedules.
+    
+    This release also adds higher-order versions of existing matrix-exponential solvers, and removes
+    some arguments nad methods that were deprecated in version 0.3.
+
 features:
   - |
     Adds Python 3.11 support. Starting with this release, Qiskit Dynamics supports Python versions 
@@ -18,59 +33,63 @@ features:
     Pulse simulation, or through the :meth:`.DynamicsBackend.from_backend`, which builds an instance
     using the Hamiltonian description provided in an IBM backend.
   - |
-    Adds the ``magnus_order`` argument to exponential based solvers. Accepts values in ``[1, 2, 3]``
-    corresponding, respectively, to the 2nd, 4th, and 6th order methods described in Section 5.4 of
-    :footcite:`blanes_magnus_2009`.
+    Adds the ``magnus_order`` argument to exponential based solvers ``"scipy_expm"`` and
+    ``"jax_expm"``. Accepts values in ``[1, 2, 3]`` corresponding, respectively, to the 2nd, 4th,
+    and 6th order methods described in Section 5.4 of :footcite:`blanes_magnus_2009`.
   - |
-    The logic of :class:`.InstructionToSignals` has been updated. 
-    This change allows you to jit compile a function including 
-    the converter with input pulse schedule that contains :class:`.SymbolicPulse`.
+    The logic of :class:`.InstructionToSignals` has been updated to be JAX-compatible when
+    converting pulse schedules containing only :class:`.ScalableSymbolicPulse` pulses. See the new
+    user guide entry :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for jax-jit>`
+    for details.
+issues:
+  - |
+    JAX release 0.4.4 modified the internals of ``jit`` compilation, resulting in errors when
+    attempting to automatically differentiate and compile calls to :func:`.solve_lmde_perturbation`.
+    This is a bug in JAX, and is discussed in `this discussion thread
+    <https://github.com/google/jax/discussions/14561>`__. Until this is fixed, if using this functionality, JAX can be
+    reverted to the old mode of compilation by executing the following code before importing JAX:
 
     .. code-block:: python
 
-      from functools import partial
-      import jax
-      from qiskit import pulse
-      from qiskit_dynamics.pulse import InstructionToSignals
-
-      @partial(jax.jit, static_argnums=(0, 1))
-      def run_simulation(amp, sigma):
-          converter = InstructionToSignals(dt=1, carriers=None)
-          with pulse.build() as schedule:
-              pulse.play(pulse.Gaussian(160, amp, sigma), pulse.DriveChannel(0))
-          signals = converter.get_signals(schedule)
-
-          # continue with simulations
+      import os
+      os.environ["JAX_JIT_PJIT_API_MERGE"] = "0"
 upgrade:
   - |
     Starting with this release, Python 3.7 is no longer supported.
   - |
-    Passing the ``carriers`` argument to ``InstructionToSignals`` as a ``list`` is no longer
-    supported.
+    The deprecated ``list`` formatting for the ``carriers`` argument to
+    :class:`.InstructionToSignals` is no longer supported. All code utilizing this argument must be
+    converted to the dictionary input format.
   - |
-    The deprecated :class:`.Solver` init arguments ``hamiltonian_signals`` and ``dissipator_signals`` have
-    been removed.
+    The deprecated :class:`.Solver` init arguments ``hamiltonian_signals`` and
+    ``dissipator_signals`` have been removed. Signals in the model can now only be passed to the
+    :meth:`.Solver.solve` method.
   - |
-    The deprecated ``Solver.signals`` property has been removed.
+    The deprecated ``Solver.signals`` property has been removed. The model stored in a
+    :class:`.Solver` instance no longer stores signals.
   - |
-    The deprecated ``Solver.copy`` method has been removed.
-  - |
-    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4.0.
+    The deprecated :meth:`.Solver.copy` method has been removed. There is no replacement for this
+    functionality; the new intended mode of operation for :class:`.Solver` is to be immutable, and
+    hence there is no longer any need to create copies.
 fixes:
   - |
-    :class:`.InstructionToSignals` has been updated to fix issues with phase accumulation
-    resulting from ``SetFrequency`` and ``ShiftFrequency`` instructions. A phase accumulation
-    term has been added so that the digitized carrier frequency is continuous across these 
-    instructions. A related phase error when generating samples for channels subject to
-    ``SetFrequency`` and ``ShiftFrequency`` instructions has also been fixed.
+    :class:`.InstructionToSignals` has been updated to fix issues with phase accumulation resulting
+    from :class:`~qiskit.pulse.instructions.SetFrequency` and
+    :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions. A phase accumulation term has
+    been added so that the digitized carrier frequency is continuous across these instructions. A
+    related phase error when generating samples for channels subject to
+    :class:`~qiskit.pulse.instructions.SetFrequency` and
+    :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions has also been fixed.
   - |
-    Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using
-    the `t_eval` kwarg with a JAX method and `Array.default_backend() == 'jax'`.
-    The bug is fixed by updating the time-argument handling for the cases
-    `method='jax_odeint'` or `method` being a Diffrax method. The automatic jitting is
-    disabled for all other JAX methods.
-other:
+    Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using the ``t_eval``
+    kwarg with a JAX method and ``Array.default_backend() == 'jax'``. The bug is fixed by updating
+    the time-argument handling for the ``"jax_odeint"`` and Diffrax methods. The automatic jitting
+    is now disabled for all other JAX methods.
   - |
-    Validation checks have been added to the :class:`.ExpansionModel` class to ensure that the
-    ``operators``, ``carrier_freqs``, and ``chebyshev_orders`` arguments have compatible shapes.
+    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4.
+  - |
+    Validation checks have been added to the :class:`.DysonSolver` and :class:`.MagnusSolver`
+    classes to ensure that the ``operators``, ``carrier_freqs``, and ``chebyshev_orders`` arguments
+    have compatible shapes. This fixes bugs in the behaviour of these classes when implicit
+    assumptions about array shapes were violated.
 
