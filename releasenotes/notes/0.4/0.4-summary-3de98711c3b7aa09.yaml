@@ -95,5 +95,6 @@ fixes:
     Validation checks have been added to the :class:`.DysonSolver` and :class:`.MagnusSolver`
     classes to ensure that the ``operators``, ``carrier_freqs``, and ``chebyshev_orders`` arguments
     have compatible shapes. This fixes bugs in the behaviour of these classes when implicit
-    assumptions about array shapes were violated. (\#160)
+    assumptions about array shapes were violated.
+    (`#160 <https://github.com/Qiskit/qiskit-dynamics/issues/160>`__)
 
