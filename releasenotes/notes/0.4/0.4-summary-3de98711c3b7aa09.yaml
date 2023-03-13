@@ -4,7 +4,7 @@ prelude: >
     `Qiskit Pulse <https://qiskit.org/documentation/apidoc/pulse.html>`__ schedules. The major
     changes related to this in this release are:
       - This release adds the :class:`.DynamicsBackend` class, which provides a
-        :class:`~qiskit.providers.backend.BackendV2` interface for running simulations. Once
+        :class:`~qiskit.providers.BackendV2` interface for running simulations. Once
         constructed and configured, the :meth:`.DynamicsBackend.run` method can be used to simulate
         schedules or circuits at the pulse level, returning measurement results in the same way as a
         real backend. See the new :ref:`Simulating backends at the pulse-level with DynamicsBackend
