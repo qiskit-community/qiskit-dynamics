@@ -87,7 +87,8 @@ fixes:
     Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using the ``t_eval``
     kwarg with a JAX method and ``Array.default_backend() == 'jax'``. The bug is fixed by updating
     the time-argument handling for the ``"jax_odeint"`` and Diffrax methods. The automatic jitting
-    is now disabled for all other JAX methods. (\#122) (\#175)
+    is now disabled for all other JAX methods.
+    (`#122 <https://github.com/Qiskit/qiskit-dynamics/issues/122>`__ and `#175 <https://github.com/Qiskit/qiskit-dynamics/issues/175>`__)
   - |
     The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4.
     (`#162 <https://github.com/Qiskit/qiskit-dynamics/issues/162>`__)
