@@ -45,8 +45,9 @@ issues:
     JAX release 0.4.4 modified the internals of ``jit`` compilation, resulting in errors when
     attempting to automatically differentiate and compile calls to :func:`.solve_lmde_perturbation`.
     This is a bug in JAX, and is discussed in `this discussion thread
-    <https://github.com/google/jax/discussions/14561>`__. Until this is fixed, if using this functionality, JAX can be
-    reverted to the old mode of compilation by executing the following code before importing JAX:
+    <https://github.com/google/jax/discussions/14561>`__. Until this is fixed, if using this
+    functionality, JAX can be reverted to the old mode of compilation by executing the following
+    code before importing JAX:
 
     .. code-block:: python
 
@@ -80,17 +81,17 @@ fixes:
     been added so that the digitized carrier frequency is continuous across these instructions. A
     related phase error when generating samples for channels subject to
     :class:`~qiskit.pulse.instructions.SetFrequency` and
-    :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions has also been fixed.
+    :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions has also been fixed. (\#140)
   - |
     Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using the ``t_eval``
     kwarg with a JAX method and ``Array.default_backend() == 'jax'``. The bug is fixed by updating
     the time-argument handling for the ``"jax_odeint"`` and Diffrax methods. The automatic jitting
-    is now disabled for all other JAX methods.
+    is now disabled for all other JAX methods. (\#122) (\#175)
   - |
-    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4.
+    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4. (\#162)
   - |
     Validation checks have been added to the :class:`.DysonSolver` and :class:`.MagnusSolver`
     classes to ensure that the ``operators``, ``carrier_freqs``, and ``chebyshev_orders`` arguments
     have compatible shapes. This fixes bugs in the behaviour of these classes when implicit
-    assumptions about array shapes were violated.
+    assumptions about array shapes were violated. (\#160)
 
