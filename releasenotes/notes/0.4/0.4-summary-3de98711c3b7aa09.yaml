@@ -81,7 +81,8 @@ fixes:
     been added so that the digitized carrier frequency is continuous across these instructions. A
     related phase error when generating samples for channels subject to
     :class:`~qiskit.pulse.instructions.SetFrequency` and
-    :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions has also been fixed. (\#140)
+    :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions has also been fixed.
+    (`#140 <https://github.com/Qiskit/qiskit-dynamics/issues/140>`__)
   - |
     Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using the ``t_eval``
     kwarg with a JAX method and ``Array.default_backend() == 'jax'``. The bug is fixed by updating
