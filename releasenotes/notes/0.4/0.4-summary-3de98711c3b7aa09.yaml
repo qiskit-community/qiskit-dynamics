@@ -89,7 +89,8 @@ fixes:
     the time-argument handling for the ``"jax_odeint"`` and Diffrax methods. The automatic jitting
     is now disabled for all other JAX methods. (\#122) (\#175)
   - |
-    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4. (\#162)
+    The ``jax.Array`` class has been added to the dispatcher for compatibility with JAX 0.4.
+    (`#162 <https://github.com/Qiskit/qiskit-dynamics/issues/162>`__)
   - |
     Validation checks have been added to the :class:`.DysonSolver` and :class:`.MagnusSolver`
     classes to ensure that the ``operators``, ``carrier_freqs``, and ``chebyshev_orders`` arguments
