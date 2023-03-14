@@ -14,7 +14,7 @@
 
 """Configure custom instance of numpy alias for Dynamics."""
 
-from typing import Optional
+from typing import Optional, TypeVar
 
 from arraylias import numpy_alias
 from .array import Array
@@ -26,3 +26,9 @@ DYNAMICS_ALIAS = numpy_alias()
 DYNAMICS_ALIAS.register_type(Array, "numpy")
 
 DYNAMICS_NUMPY = DYNAMICS_ALIAS()
+
+# Abstract, unspecified type
+# This is meant to represent types recognized by the local configuration
+# We could alternatively define this as a union of the array types it recognizes, but it seems
+# weird to do this as this will actually depend on what a user has installed
+ArrayliasArray = TypeVar("ArrayliasArray")
