@@ -164,7 +164,7 @@ class InstructionToSignals:
 
         for start_sample, inst in schedule.instructions:
             # get channel name if instruction has it
-            chan = inst.channel.name if hasattr(inst, "channel") else None
+            chan = getattr(inst, "channel", None)
 
             if isinstance(inst, Play):
                 # get the instruction samples
