@@ -20,6 +20,7 @@ import sympy as sym
 from qiskit import pulse
 from qiskit.pulse import Schedule
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
+from qiskit.providers.fake_provider import FakeQuito
 from qiskit import QiskitError
 
 from qiskit_dynamics.pulse import InstructionToSignals
@@ -319,6 +320,27 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         converter = InstructionToSignals(dt=self._dt, channels=["d0"])
         signals = converter.get_signals(block_to_schedule(schedule))
         self.assertAllClose(signals[0].samples, gauss_get_waveform_samples, atol=1e-7, rtol=1e-7)
+
+    def test_barrier_instructions(self):
+        """Test correct parsing of schedule with barrier instructions."""
+
+        # this example needs any backend with at least 2 qubits
+        backend = FakeQuito()
+
+        with pulse.build(backend) as sched_block:
+            pulse.play(pulse.Constant(duration=3, amp=0.5), pulse.DriveChannel(0))
+            pulse.barrier(0, 1)
+            pulse.play(pulse.Constant(duration=3, amp=-0.5), pulse.DriveChannel(1))
+
+        converter = InstructionToSignals(
+            dt=1.0, carriers={"d0": 1.0, "d1": 1.0}, channels=["d0", "d1"]
+        )
+        sched = block_to_schedule(sched_block)
+
+        sigs = converter.get_signals(sched)
+
+        self.assertAllClose(sigs[0].samples, np.array([0.5, 0.5, 0.5, 0.0, 0.0, 0.0]))
+        self.assertAllClose(sigs[1].samples, np.array([0.0, 0.0, 0.0, -0.5, -0.5, -0.5]))
 
 
 class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):

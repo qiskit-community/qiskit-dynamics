@@ -84,6 +84,9 @@ fixes:
     :class:`~qiskit.pulse.instructions.ShiftFrequency` instructions has also been fixed. (`#140
     <https://github.com/Qiskit/qiskit-dynamics/issues/140>`__)
   - |
+    :class:`.InstructionToSignals` has been updated to fix an error when parsing schedules that
+    include barrier instructions. `#202 <https://github.com/Qiskit/qiskit-dynamics/issues/202>`__)
+  - |
     Fixes a bug in the automatic jit-compilation of :meth:`Solver.solve` when using the ``t_eval``
     kwarg with a JAX method and ``Array.default_backend() == 'jax'``. The bug is fixed by updating
     the time-argument handling for the ``"jax_odeint"`` and Diffrax methods. The automatic jitting
