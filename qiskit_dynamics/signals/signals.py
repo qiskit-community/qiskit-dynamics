@@ -22,6 +22,7 @@ import itertools
 import operator
 
 import numpy as np
+from numpy.typing import ArrayLike
 from matplotlib import pyplot as plt
 
 try:
@@ -30,7 +31,8 @@ except ImportError:
     pass
 
 from qiskit import QiskitError
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
+
 
 
 class Signal:
