@@ -163,9 +163,9 @@ class InstructionToSignals:
             )
 
         for start_sample, inst in schedule.instructions:
-            chan = inst.channel.name
-            phi = phases[chan]
-            freq = frequency_shifts[chan]
+            # get channel name if instruction has it
+            chan = inst.channel.name if hasattr(inst, "channel") else None
+
             if isinstance(inst, Play):
                 # get the instruction samples
                 inst_samples = None
@@ -178,8 +178,8 @@ class InstructionToSignals:
                 times = self._dt * (start_sample + np.arange(len(inst_samples)))
                 samples = inst_samples * np.exp(
                     Array(
-                        2.0j * np.pi * freq * times
-                        + 1.0j * phi
+                        2.0j * np.pi * frequency_shifts[chan] * times
+                        + 1.0j * phases[chan]
                         + 2.0j * np.pi * phase_accumulations[chan]
                     )
                 )
