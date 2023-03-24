@@ -19,10 +19,12 @@ import warnings
 import unittest
 from typing import Callable, Iterable
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy.sparse import issparse
 
 try:
     from jax import jit, grad
+    import jax.numpy as jnp
 except ImportError:
     pass
 
@@ -52,13 +54,21 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
+class TestNumpyBase(unittest.TestCase):
+    """Base class for setting numpy as the default array.
+
+    Test cases that inherit from this class will automatically work with numpy array.
+    """
+    
+    def asarray(self, arr: ArrayLike):
+        return np.asarray(arr)
 
 class TestJaxBase(unittest.TestCase):
     """Base class with setUpClass and tearDownClass for setting jax as the
-    default backend.
+    default array.
 
     Test cases that inherit from this class will automatically work with jax
-    backend.
+    array.
     """
 
     @classmethod
@@ -78,6 +88,9 @@ class TestJaxBase(unittest.TestCase):
     def tearDownClass(cls):
         """Set numpy back to the default backend."""
         Array.set_default_backend("numpy")
+    
+    def asarray(self, arr: ArrayLike):
+        return jnp.asarray(arr)
 
     def jit_wrap(self, func_to_test: Callable) -> Callable:
         """Wraps and jits func_to_test.
