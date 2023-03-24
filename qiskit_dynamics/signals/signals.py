@@ -96,6 +96,9 @@ class Signal:
         if not callable(envelope):
             # if not callable, we assume a constant
             envelope = unp.asarray(envelope)
+            # if envelope is constant and the carrier is zero, this is a constant signal
+            if carrier_freq == 0.0:
+                self._is_constant = True
             self._envelope = lambda t: envelope * unp.ones_like(t)
         else:
             self._envelope = envelope
@@ -469,7 +472,7 @@ class SignalCollection:
     ) -> Union[Signal, "SignalCollection"]:
         """Get item with NumPy-style subscripting, as if this class were a 1d array."""
 
-        if type(idx) != int and type(idx) != slice and idx.ndim > 0:
+        if type(idx) != int and type(idx) != slice and type(idx) != list and idx.ndim > 0:
             idx = list(idx)
 
         # get a list of the subcomponents
