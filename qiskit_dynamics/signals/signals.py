@@ -31,6 +31,7 @@ except ImportError:
     pass
 
 from qiskit import QiskitError
+from qiskit_dynamics.arraylias_state import DYNAMICS_ALIAS as alias
 from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
 
 
@@ -189,7 +190,7 @@ class Signal:
         """Return a new signal whose complex value is the complex conjugate of this one."""
 
         def conj_env(t):
-            return np.conjugate(self.envelope(t))
+            return unp.conjugate(self.envelope(t))
 
         return Signal(conj_env, -self.carrier_freq, -self.phase)
 
@@ -292,9 +293,9 @@ class DiscreteSignal(Signal):
         samples = unp.asarray(samples)
 
         if len(samples) == 0:
-            zero_pad = unp.array([0])
+            zero_pad = unp.asarray([0])
         else:
-            zero_pad = unp.expand_dims(unp.zeros_like(unp.asarray(samples[0])), 0)
+            zero_pad = np.expand_dims(np.zeros_like(unp.asarray(samples[0])), 0)
         self._padded_samples = unp.append(samples, zero_pad, axis=0)
 
         self._start_time = start_time
@@ -307,7 +308,7 @@ class DiscreteSignal(Signal):
                     -1,
                     len(self.samples),
                 )
-            return self._padded_samples[idx]
+            return alias(like=idx).asarray(self._padded_samples)[idx]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
@@ -348,7 +349,7 @@ class DiscreteSignal(Signal):
             DiscreteSignal: The discretized ``Signal``\.
         """
 
-        times = start_time + (unp.arange(n_samples) + 0.5) * dt
+        times = start_time + (np.arange(n_samples) + 0.5) * dt
         freq = signal.carrier_freq
 
         if sample_carrier:
@@ -426,7 +427,7 @@ class DiscreteSignal(Signal):
         if start_sample < len(self.samples):
             raise QiskitError("Samples can only be added afer the last sample.")
 
-        zero_pad = unp.expand_dims(unp.zeros_like(unp.asarray(samples[0])), 0)
+        zero_pad = np.expand_dims(np.zeros_like(unp.asarray(samples[0])), 0)
 
         new_samples = self.samples
         if len(self.samples) < start_sample:
@@ -706,7 +707,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             DiscreteSignalSum: The discretized ``SignalSum``\.
         """
 
-        times = start_time + (unp.arange(n_samples) + 0.5) * dt
+        times = start_time + (np.arange(n_samples) + 0.5) * dt
 
         freq = signal_sum.carrier_freq
 
@@ -1015,7 +1016,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
             )
             pwc2 = DiscreteSignal(
                 dt=sig2.dt,
-                samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
+                samples=0.5 * sig1.samples * unp.conjugate(sig2.samples),
                 start_time=sig2.start_time,
                 carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
                 phase=sig1.phase - sig2.phase,
@@ -1027,7 +1028,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
         return 0.5 * sig1.envelope(t) * sig2.envelope(t)
 
     def new_env2(t):
-        return 0.5 * sig1.envelope(t) * np.conjugate(sig2.envelope(t))
+        return 0.5 * sig1.envelope(t) * unp.conjugate(sig2.envelope(t))
 
     prod1 = Signal(
         envelope=new_env1,

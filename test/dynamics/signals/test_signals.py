@@ -908,8 +908,6 @@ class TestSignalsJaxTransformations(TestJaxBase, QiskitDynamicsTestCase):
         )
         self.signal_list = SignalList([self.signal, self.signal_sum, self.discrete_signal])
 
-    # def asarray(self, arr):
-    #     return super(TestJaxBase, self).asarray(arr)
 
     def test_jit_eval(self):
         """Test jit-compilation of signal evaluation."""
