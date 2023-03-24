@@ -874,31 +874,26 @@ class TestSignalCollection(QiskitDynamicsTestCase, TestNumpyBase):
         self.assertAllClose(sum_val, self.discrete_sig_sum(3.0))
 
 
-class TestSignalJax(TestSignal, TestJaxBase):
+class TestSignalJax(TestJaxBase, TestSignal):
     """Jax version of TestSignal."""
 
 
-class TestConstantJax(TestSignal, TestJaxBase):
+class TestConstantJax(TestJaxBase, TestSignal):
     """Jax version of TestConstant."""
 
-
-class TestDiscreteSignalJax(TestDiscreteSignal, TestJaxBase):
+class TestDiscreteSignalJax(TestJaxBase, TestDiscreteSignal):
     """Jax version of TestDiscreteSignal."""
 
-
-class TestSignalSumJax(TestSignalSum, TestJaxBase):
+class TestSignalSumJax(TestJaxBase, TestSignalSum):
     """Jax version of TestSignalSum."""
 
-
-class TestDiscreteSignalSumJax(TestDiscreteSignalSum, TestJaxBase):
+class TestDiscreteSignalSumJax(TestJaxBase, TestDiscreteSignalSum):
     """Jax version of TestSignalSum."""
 
-
-class TestSignalListJax(TestSignalList, TestJaxBase):
+class TestSignalListJax(TestJaxBase, TestSignalList):
     """Jax version of TestSignalList."""
 
-
-class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
+class TestSignalsJaxTransformations(TestJaxBase, QiskitDynamicsTestCase):
     """Test cases for jax transformations of signals."""
 
     def setUp(self):
@@ -912,6 +907,9 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
             self.signal_sum, dt=0.5, n_samples=20
         )
         self.signal_list = SignalList([self.signal, self.signal_sum, self.discrete_signal])
+
+    # def asarray(self, arr):
+    #     return super(TestJaxBase, self).asarray(arr)
 
     def test_jit_eval(self):
         """Test jit-compilation of signal evaluation."""
