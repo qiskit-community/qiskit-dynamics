@@ -211,9 +211,10 @@ class DynamicsBackend(BackendV2):
                         duration=1, qubit_or_channel=qubit, register=pulse.MemorySlot(qubit)
                     )
 
-            measure_properties[(qubit,)] = InstructionProperties(calibration=meas_sched)
+                measure_properties[(qubit,)] = InstructionProperties(calibration=meas_sched)
 
-        target.add_instruction(Measure(), measure_properties)
+        if bool(measure_properties):
+            target.add_instruction(Measure(), measure_properties)
 
         target.dt = solver._dt
 
