@@ -22,18 +22,14 @@ import itertools
 import operator
 
 import numpy as np
-from numpy.typing import ArrayLike
+
+# from numpy.typing import ArrayLike
 from matplotlib import pyplot as plt
 
-try:
-    import jax.numpy as jnp
-except ImportError:
-    pass
-
 from qiskit import QiskitError
+from qiskit_dynamics.arraylias_state import ArrayLike
 from qiskit_dynamics.arraylias_state import DYNAMICS_ALIAS as alias
 from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
-
 
 
 class Signal:
@@ -304,10 +300,10 @@ class DiscreteSignal(Signal):
         def envelope(t):
             t = unp.asarray(t)
             idx = unp.clip(
-                    unp.array((t - self._start_time) // self._dt, dtype=int),
-                    -1,
-                    len(self.samples),
-                )
+                unp.array((t - self._start_time) // self._dt, dtype=int),
+                -1,
+                len(self.samples),
+            )
             return alias(like=idx).asarray(self._padded_samples)[idx]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
@@ -468,9 +464,7 @@ class SignalCollection:
         """Number of components."""
         return len(self.components)
 
-    def __getitem__(
-        self, idx: Union[int, ArrayLike, slice]
-    ) -> Union[Signal, "SignalCollection"]:
+    def __getitem__(self, idx: Union[int, ArrayLike, slice]) -> Union[Signal, "SignalCollection"]:
         """Get item with NumPy-style subscripting, as if this class were a 1d array."""
 
         if type(idx) != int and type(idx) != slice and type(idx) != list and idx.ndim > 0:
@@ -547,7 +541,7 @@ class SignalSum(SignalCollection, Signal):
             elif isinstance(sig, Signal):
                 components.append(sig)
             elif isinstance(sig, (int, float, complex)) or (
-                hasattr(sig, "__array__") and sig.ndim == 0
+                isinstance(sig, ArrayLike) and sig.ndim == 0
             ):
                 components.append(Signal(sig))
             else:
@@ -574,7 +568,9 @@ class SignalSum(SignalCollection, Signal):
 
     def complex_value(self, t: Union[float, ArrayLike]) -> Union[complex, ArrayLike]:
         """Return the sum of the complex values of each component."""
-        exp_phases = unp.exp(unp.expand_dims(unp.asarray(t), -1) * self._carrier_arg + self._phase_arg)
+        exp_phases = unp.exp(
+            unp.expand_dims(unp.asarray(t), -1) * self._carrier_arg + self._phase_arg
+        )
         return unp.sum(self.envelope(t) * exp_phases, axis=-1)
 
     def __str__(self):
@@ -604,7 +600,9 @@ class SignalSum(SignalCollection, Signal):
         shifted_arg = self._carrier_arg - (1j * 2 * np.pi * ave_freq)
 
         def merged_env(t):
-            exp_phases = unp.exp(unp.expand_dims(unp.asarray(t), -1) * shifted_arg + self._phase_arg)
+            exp_phases = unp.exp(
+                unp.expand_dims(unp.asarray(t), -1) * shifted_arg + self._phase_arg
+            )
             return unp.sum(self.envelope(t) * exp_phases, axis=-1)
 
         return Signal(envelope=merged_env, carrier_freq=ave_freq, name=str(self))
@@ -790,7 +788,9 @@ class SignalList(SignalCollection):
         super().__init__(signal_list)
 
         # setup complex value and full signal evaluation
-        self._eval_complex_value = lambda t: unp.asarray([sig.complex_value(t) for sig in self.components])
+        self._eval_complex_value = lambda t: unp.asarray(
+            [sig.complex_value(t) for sig in self.components]
+        )
         self._eval_signals = lambda t: unp.asarray([sig(t) for sig in self.components])
 
     def complex_value(self, t: Union[float, ArrayLike]) -> ArrayLike:
@@ -1091,7 +1091,7 @@ def to_SignalSum(sig: Union[int, float, complex, ArrayLike, Signal]) -> SignalSu
         QiskitError: If the input type is incompatible with SignalSum.
     """
 
-    if isinstance(sig, (int, float, complex)) or (hasattr(sig, "__array__") and sig.ndim == 0):
+    if isinstance(sig, (int, float, complex)) or (isinstance(sig, ArrayLike) and sig.ndim == 0):
         return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
         if sig.samples.shape == (0,):

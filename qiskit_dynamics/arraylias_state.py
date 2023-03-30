@@ -14,8 +14,7 @@
 
 """Configure custom instance of numpy alias for Dynamics."""
 
-from typing import Optional, TypeVar
-
+from typing import Union
 from arraylias import numpy_alias
 from .array import Array
 
@@ -26,3 +25,5 @@ DYNAMICS_ALIAS = numpy_alias()
 DYNAMICS_ALIAS.register_type(Array, "numpy")
 
 DYNAMICS_NUMPY = DYNAMICS_ALIAS()
+
+ArrayLike = Union[DYNAMICS_ALIAS.registered_types()]
