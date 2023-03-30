@@ -54,14 +54,17 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
+
 class TestNumpyBase(unittest.TestCase):
     """Base class for setting numpy as the default array.
 
     Test cases that inherit from this class will automatically work with numpy array.
     """
-    
+
     def asarray(self, arr: ArrayLike):
+        """convert array to numpy.array"""
         return np.asarray(arr)
+
 
 class TestJaxBase(unittest.TestCase):
     """Base class with setUpClass and tearDownClass for setting jax as the
@@ -88,8 +91,9 @@ class TestJaxBase(unittest.TestCase):
     def tearDownClass(cls):
         """Set numpy back to the default backend."""
         Array.set_default_backend("numpy")
-    
+
     def asarray(self, arr: ArrayLike):
+        """convert array to jax.numpy.array"""
         return jnp.asarray(arr)
 
     def jit_wrap(self, func_to_test: Callable) -> Callable:

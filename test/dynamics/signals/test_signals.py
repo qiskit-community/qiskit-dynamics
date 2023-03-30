@@ -19,7 +19,6 @@ import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
 from qiskit_dynamics.signals.signals import to_SignalSum
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase, TestNumpyBase
@@ -63,7 +62,9 @@ class TestSignal(QiskitDynamicsTestCase, TestNumpyBase):
         )
 
         t_vals = self.asarray([[1.1, 1.23], [0.1, 0.24]])
-        self.assertAllClose(self.signal1.envelope(t_vals), self.asarray([[0.25, 0.25], [0.25, 0.25]]))
+        self.assertAllClose(
+            self.signal1.envelope(t_vals), self.asarray([[0.25, 0.25], [0.25, 0.25]])
+        )
         self.assertAllClose(
             self.signal2.envelope(t_vals),
             self.asarray([[2 * (1.1**2), 2 * (1.23**2)], [2 * (0.1**2), 2 * (0.24**2)]]),
@@ -382,7 +383,9 @@ class TestDiscreteSignal(QiskitDynamicsTestCase, TestNumpyBase):
     """Tests for DiscreteSignal object."""
 
     def setUp(self):
-        self.discrete1 = DiscreteSignal(dt=0.5, samples=self.asarray([1.0, 2.0, 3.0]), carrier_freq=3.0)
+        self.discrete1 = DiscreteSignal(
+            dt=0.5, samples=self.asarray([1.0, 2.0, 3.0]), carrier_freq=3.0
+        )
         self.discrete2 = DiscreteSignal(
             dt=0.5, samples=self.asarray([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
         )
@@ -881,17 +884,22 @@ class TestSignalJax(TestJaxBase, TestSignal):
 class TestConstantJax(TestJaxBase, TestSignal):
     """Jax version of TestConstant."""
 
+
 class TestDiscreteSignalJax(TestJaxBase, TestDiscreteSignal):
     """Jax version of TestDiscreteSignal."""
+
 
 class TestSignalSumJax(TestJaxBase, TestSignalSum):
     """Jax version of TestSignalSum."""
 
+
 class TestDiscreteSignalSumJax(TestJaxBase, TestDiscreteSignalSum):
     """Jax version of TestSignalSum."""
 
+
 class TestSignalListJax(TestJaxBase, TestSignalList):
     """Jax version of TestSignalList."""
+
 
 class TestSignalsJaxTransformations(TestJaxBase, QiskitDynamicsTestCase):
     """Test cases for jax transformations of signals."""
@@ -907,7 +915,6 @@ class TestSignalsJaxTransformations(TestJaxBase, QiskitDynamicsTestCase):
             self.signal_sum, dt=0.5, n_samples=20
         )
         self.signal_list = SignalList([self.signal, self.signal_sum, self.discrete_signal])
-
 
     def test_jit_eval(self):
         """Test jit-compilation of signal evaluation."""
@@ -1001,7 +1008,9 @@ class TestSignalsJaxTransformations(TestJaxBase, QiskitDynamicsTestCase):
         """Test chained grad and jit compilation."""
         sig_call_jit = jit(grad(lambda t: unp.asarray(signal(t))))
         self.assertAllClose(sig_call_jit(t), sig_deriv_val)
-        sig_complex_value_jit_re = jit(grad(lambda t: np.real(unp.asarray(signal.complex_value(t)))))
+        sig_complex_value_jit_re = jit(
+            grad(lambda t: np.real(unp.asarray(signal.complex_value(t))))
+        )
         sig_complex_value_jit_imag = jit(
             grad(lambda t: np.imag(unp.asarray(signal.complex_value(t))))
         )
