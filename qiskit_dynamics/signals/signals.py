@@ -291,7 +291,7 @@ class DiscreteSignal(Signal):
         if len(samples) == 0:
             zero_pad = unp.asarray([0])
         else:
-            zero_pad = np.expand_dims(np.zeros_like(unp.asarray(samples[0])), 0)
+            zero_pad = unp.expand_dims(unp.zeros_like(unp.asarray(samples[0])), 0)
         self._padded_samples = unp.append(samples, zero_pad, axis=0)
 
         self._start_time = start_time
@@ -423,7 +423,7 @@ class DiscreteSignal(Signal):
         if start_sample < len(self.samples):
             raise QiskitError("Samples can only be added afer the last sample.")
 
-        zero_pad = np.expand_dims(np.zeros_like(unp.asarray(samples[0])), 0)
+        zero_pad = unp.expand_dims(unp.zeros_like(unp.asarray(samples[0])), 0)
 
         new_samples = self.samples
         if len(self.samples) < start_sample:
