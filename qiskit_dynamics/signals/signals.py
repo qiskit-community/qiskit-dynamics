@@ -385,7 +385,7 @@ class DiscreteSignal(Signal):
         Returns:
             samples: the samples of the piecewise constant signal.
         """
-        return unp.asarray(self._padded_samples[:-1])
+        return self._padded_samples[:-1]
 
     @property
     def start_time(self) -> float:
