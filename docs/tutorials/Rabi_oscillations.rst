@@ -28,8 +28,8 @@ frequency :math:`\nu_d` (see how the Hamiltonians are derived on
 where :math:`\{X,Y,Z\}` are the Pauli matrices (also written as
 :math:`\sigma^a` with :math:`a\in\{x,y,z\}`).
 
-1. Setup a :class:`.Solver` with the Hamiltonian model
-------------------------------------------------------
+1. Setup the solver with the Hamiltonian model
+----------------------------------------------
 
 In the following, we will set :math:`\hbar=1` and fix some arbitrary
 time units, with all frequency parameters scaled accordingly. Below, we
@@ -67,8 +67,8 @@ for the trasverse driving term we setup a harmonic signal.
         hamiltonian_operators=[2 * np.pi * nu_x * X],
     )
 
-2. Define the initial state and simulation times, and evolve the system state
------------------------------------------------------------------------------
+2. Solve the system
+-------------------
 
 We now define the initial state for the simulation, the time span to
 simulate for, and the intermediate times for which the solution is
@@ -90,8 +90,8 @@ requested, and solve the evolution.
 
     sol = solver.solve(t_span=[0., t_final], y0=y0, signals=signals, t_eval=t_eval)
 
-3. Plot the qubit state as a function of time and discuss the results
----------------------------------------------------------------------
+3. Plot the qubit state
+-----------------------
 
 Below we define a local function that calculates the qubit’s Pauli
 expectation values as a function of time (which define also the Bloch
@@ -145,8 +145,8 @@ particular this is a realization of the :math:`X` gate.
 
     plot_qubit_dynamics(sol, t_eval, X, Y, Z)
 
-4. Solve again the the model with jump operators for the Lindblad dissipator, and plot the results
---------------------------------------------------------------------------------------------------
+4. Redefine the model with damping and decoherence
+--------------------------------------------------
 
 Now we add to our simulation an environment modeled as a memory-less
 (Markovian) bath, solving the Lindblad master equation with the same
