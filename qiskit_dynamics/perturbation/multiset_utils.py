@@ -46,15 +46,55 @@ def _multiset_to_sorted_list(multiset: Multiset) -> List:
     return sorted_list
 
 
-def _sorted_multisets(multisets: List[Multiset]) -> List[Multiset]:
-    """Sort in non-decreasing order according to:
+class _MultisetSort:
+    """Dummy class for usage as a key when sorting Multiset instances. This assumes the entries
+    if the multisets can themselves be sorted.
+    """
+    __slots__ = "multiset",
 
-    ms1 <= ms2 if len(ms1) < len(ms2), or if
-    len(ms1) == len(ms2) and if
-    str(_multiset_to_sorted_list(ms1)) <= str(_multiset_to_sorted_list(ms2)).
+    def __init__(self, multiset: Multiset):
+        self.multiset = multiset
+    
+    def __lt__(self, other: Multiset) -> bool:
+        """Implements an ordering on multisets.
+        
+        This orders first according to length (the number of elements in each multiset). If self and
+        other are the same length, self < other if, when written as fully expanded and sorted lists,
+        self < other in lexicographic ordering. E.g. it holds that Multiset({0: 2, 1: 1}) <
+        Multiset({0: 1, 1: 2}), as the list versions are [0, 0, 1], and [0, 1, 1]. Here, the first
+        element of each is 0, so there is no comparison, but the second element of the first is <
+        the second, hence the ordering on the multisets.
+        """
+        if len(self.multiset) < len(other.multiset):
+            return True
+
+        if len(other.multiset) < len(self.multiset):
+            return False
+
+        unique_self = set(self.multiset.distinct_elements())
+        unique_other = set(other.multiset.distinct_elements())
+        unique_entries = list(unique_self.union(unique_other))
+        unique_entries.sort()
+
+        for element in unique_entries:
+            self_count = self.multiset[element]
+            other_count = other.multiset[element]
+
+            if self_count < other_count:
+                return False
+
+            if self_count > other_count:
+                return True
+
+        return False
+
+
+def _sorted_multisets(multisets: List[Multiset]) -> List[Multiset]:
+    """Sort in non-decreasing order according to the ordering described in the dummy class
+    _MultisetSort.
     """
 
-    return sorted(multisets, key=lambda x: str(len(x)) + ", " + str(_multiset_to_sorted_list(x)))
+    return sorted(multisets, key=_MultisetSort)
 
 
 def _clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
