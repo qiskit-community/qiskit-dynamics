@@ -89,7 +89,7 @@ class _MultisetSort:
         return False
 
 
-def _sorted_multisets(multisets: List[Multiset]) -> List[Multiset]:
+def _sorted_multisets(multisets: Iterable[Multiset]) -> List[Multiset]:
     """Sort in non-decreasing order according to the ordering described in the dummy class
     _MultisetSort.
     """
