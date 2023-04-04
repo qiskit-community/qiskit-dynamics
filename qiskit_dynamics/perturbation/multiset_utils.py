@@ -79,11 +79,8 @@ class _MultisetSort:
             self_count = self.multiset[element]
             other_count = other.multiset[element]
 
-            if self_count < other_count:
-                return False
-
-            if self_count > other_count:
-                return True
+            if self_count != other_count:
+                return self_count > other_count
 
         return False
 
