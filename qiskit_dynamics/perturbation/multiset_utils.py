@@ -71,10 +71,9 @@ class _MultisetSort:
         if len(other.multiset) < len(self.multiset):
             return False
 
-        unique_self = set(self.multiset.distinct_elements())
-        unique_other = set(other.multiset.distinct_elements())
-        unique_entries = list(unique_self.union(unique_other))
-        unique_entries.sort()
+        unique_entries = set(self.multiset.distinct_elements())
+        unique_entries.update(other.multiset.distinct_elements())
+        unique_entries = sorted(unique_entries)
 
         for element in unique_entries:
             self_count = self.multiset[element]
