@@ -15,7 +15,7 @@
 Utility functions for working with multisets.
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Iterable
 import itertools
 
 from multiset import Multiset
