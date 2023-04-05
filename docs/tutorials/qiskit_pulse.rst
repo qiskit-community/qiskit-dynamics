@@ -25,7 +25,7 @@ ground state we expect that this second pulse will not have any effect
 on the qubit. This situation is simulated with the following steps:
 
 1. Create the pulse schedule
-2. Converting pulse schedules to Signals
+2. Converting pulse schedules to a :class:`.Signal`
 3. Create the system model, configured to simulate pulse schedules
 4. Simulate the pulse schedule using the model
 
@@ -67,7 +67,7 @@ First, we use the pulse module in Qiskit to create a pulse schedule.
 
 
 2. Convert the pulse schedule to a :class:`.Signal`
----------------------------------------------
+---------------------------------------------------
 
 Qiskit Dynamics has functionality for converting pulse schedule to instances
 of :class:`.Signal`. This is done using the pulse instruction to signal
