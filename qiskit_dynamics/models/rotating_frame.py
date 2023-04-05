@@ -17,13 +17,15 @@ Module for rotating frame handling classes.
 
 from typing import Union, List, Optional
 import numpy as np
-from scipy.sparse import issparse, csr_matrix
+from scipy.sparse import issparse
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_array, to_BCOO, to_numeric_matrix_type
+from qiskit_dynamics.type_utils import to_array, to_numeric_matrix_type
+from qiskit_dynamics.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
 
 try:
     import jax.numpy as jnp
@@ -58,7 +60,7 @@ class RotatingFrame:
     """
 
     def __init__(
-        self, frame_operator: Union[Array, Operator], atol: float = 1e-10, rtol: float = 1e-10
+        self, frame_operator: Union[ArrayLike, Operator], atol: float = 1e-10, rtol: float = 1e-10
     ):
         """Initialize with a frame operator.
 
@@ -86,7 +88,8 @@ class RotatingFrame:
             # if Hermitian convert to anti-Hermitian
             frame_operator = _enforce_anti_herm(frame_operator, atol=atol, rtol=rtol)
 
-            self._frame_diag = Array(frame_operator)
+            # TODO: need to define asarray for Operator
+            self._frame_diag = unp.asarray(frame_operator)
             self._frame_basis = None
             self._frame_basis_adjoint = None
             self._dim = len(self._frame_diag)
@@ -97,10 +100,12 @@ class RotatingFrame:
             frame_operator = _enforce_anti_herm(frame_operator, atol=atol, rtol=rtol)
 
             # diagonalize with eigh, utilizing assumption of anti-hermiticity
-            frame_diag, frame_basis = np.linalg.eigh(1j * frame_operator)
 
-            self._frame_diag = Array(-1j * frame_diag)
-            self._frame_basis = Array(frame_basis)
+            # assume a type of frame_operator is np.array or jnp.array
+            frame_diag, frame_basis = unp.linalg.eigh(1j * frame_operator)
+
+            self._frame_diag = -1j * frame_diag
+            self._frame_basis = frame_basis
             self._frame_basis_adjoint = frame_basis.conj().transpose()
             self._dim = len(self._frame_diag)
 
@@ -114,17 +119,17 @@ class RotatingFrame:
         return self._dim
 
     @property
-    def frame_operator(self) -> Array:
+    def frame_operator(self) -> ArrayLike:
         """The original frame operator."""
         return self._frame_operator
 
     @property
-    def frame_diag(self) -> Array:
+    def frame_diag(self) -> ArrayLike:
         """The diagonal of the frame operator."""
         return self._frame_diag
 
     @property
-    def frame_basis(self) -> Array:
+    def frame_basis(self) -> ArrayLike:
         """The array containing diagonalizing unitary."""
         return self._frame_basis
 
@@ -133,14 +138,14 @@ class RotatingFrame:
         """The adjoint of the diagonalizing unitary."""
         return self._frame_basis_adjoint
 
-    def state_into_frame_basis(self, y: Array) -> Array:
+    def state_into_frame_basis(self, y: ArrayLike) -> ArrayLike:
         r"""Take a state into the frame basis, i.e. return ``self.frame_basis_adjoint @ y``.
 
         Args:
             y: The state.
 
         Returns:
-            Array: The state in the frame basis.
+            ArrayLike: The state in the frame basis.
         """
         y = to_numeric_matrix_type(y)
         if self.frame_basis_adjoint is None:
@@ -148,14 +153,14 @@ class RotatingFrame:
 
         return self.frame_basis_adjoint @ y
 
-    def state_out_of_frame_basis(self, y: Array) -> Array:
+    def state_out_of_frame_basis(self, y: ArrayLike) -> ArrayLike:
         r"""Take a state out of the frame basis, i.e. ``return self.frame_basis @ y``.
 
         Args:
             y: The state.
 
         Returns:
-            Array: The state in the frame basis.
+            ArrayLike: The state in the frame basis.
         """
         y = to_numeric_matrix_type(y)
         if self.frame_basis is None:
@@ -165,9 +170,9 @@ class RotatingFrame:
 
     def operator_into_frame_basis(
         self,
-        op: Union[Operator, List[Operator], Array, csr_matrix, None],
+        op: Union[Operator, List[Operator], ArrayLike, None],
         convert_type: bool = True,
-    ) -> Array:
+    ) -> ArrayLike:
         r"""Take an operator into the frame basis, i.e. return
         ``self.frame_basis_adjoint @ A @ self.frame_basis``
 
@@ -178,7 +183,7 @@ class RotatingFrame:
                           ``op`` is a handled input type.
 
         Returns:
-            Array: The operator in the frame basis.
+            ArrayLike: The operator in the frame basis.
         """
         if convert_type:
             op = to_numeric_matrix_type(op)
@@ -188,6 +193,7 @@ class RotatingFrame:
 
         if isinstance(op, list):
             return [self.operator_into_frame_basis(x, convert_type=False) for x in op]
+        # Is it unnecessary to separate cases if they are integrated into arraylias?
         elif type(op).__name__ == "BCOO":
             return self.frame_basis_adjoint @ jsparse_matmul(op, self.frame_basis.data)
         else:
@@ -196,9 +202,9 @@ class RotatingFrame:
 
     def operator_out_of_frame_basis(
         self,
-        op: Union[Operator, List[Operator], Array, csr_matrix, None],
+        op: Union[Operator, List[Operator], ArrayLike, None],
         convert_type: bool = True,
-    ) -> Array:
+    ) -> ArrayLike:
         r"""Take an operator out of the frame basis, i.e. return
         ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
 
@@ -209,7 +215,7 @@ class RotatingFrame:
                           that ``op`` is a handled input type.
 
         Returns:
-            Array: The operator in the frame basis.
+            ArrayLike: The operator in the frame basis.
         """
         if convert_type:
             op = to_numeric_matrix_type(op)
@@ -219,6 +225,7 @@ class RotatingFrame:
 
         if isinstance(op, list):
             return [self.operator_out_of_frame_basis(x, convert_type=False) for x in op]
+        # Is it unnecessary to separate cases if they are integrated into arraylias?
         elif type(op).__name__ == "BCOO":
             return self.frame_basis @ jsparse_matmul(op, self.frame_basis_adjoint.data)
         else:
@@ -228,7 +235,7 @@ class RotatingFrame:
     def state_into_frame(
         self,
         t: float,
-        y: Array,
+        y: ArrayLike,
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
     ):
@@ -242,7 +249,7 @@ class RotatingFrame:
             return_in_frame_basis: Whether or not to return the result in the frame basis.
 
         Returns:
-            Array: The state in the rotating frame.
+            ArrayLike: The state in the rotating frame.
         """
         y = to_numeric_matrix_type(y)
         if self._frame_operator is None:
@@ -255,7 +262,7 @@ class RotatingFrame:
             out = self.state_into_frame_basis(out)
 
         # go into the frame using fast diagonal matrix multiplication
-        out = (np.exp(self.frame_diag * (-t)) * out.transpose()).transpose()  # = e^{tF}out
+        out = (unp.exp(self.frame_diag * (-t)) * out.transpose()).transpose()  # = e^{tF}out
 
         # if output is requested to not be in the frame basis, convert it
         if not return_in_frame_basis:
@@ -266,10 +273,10 @@ class RotatingFrame:
     def state_out_of_frame(
         self,
         t: float,
-        y: Array,
+        y: ArrayLike,
         y_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
-    ) -> Array:
+    ) -> ArrayLike:
         r"""Take a state out of the rotating frame, i.e. return ``exp(tF) @ y``.
 
         Calls ``self.state_into_frame`` with time reversed.
@@ -282,19 +289,19 @@ class RotatingFrame:
             return_in_frame_basis: Whether or not to return the result in the frame basis.
 
         Returns:
-            Array: The state out of the rotating frame.
+            ArrayLike: The state out of the rotating frame.
         """
         return self.state_into_frame(-t, y, y_in_frame_basis, return_in_frame_basis)
 
     def _conjugate_and_add(
         self,
         t: float,
-        operator: Union[Array, csr_matrix],
-        op_to_add_in_fb: Optional[Array] = None,
+        operator: ArrayLike,
+        op_to_add_in_fb: Optional[ArrayLike] = None,
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
-    ) -> Union[Array, csr_matrix]:
+    ) -> ArrayLike:
         r"""General helper function for computing :math:`\exp(-tF)G\exp(tF) + B`.
 
         Note: :math:`B` is added in the frame basis before any potential final change
@@ -338,10 +345,7 @@ class RotatingFrame:
                 return operator
             else:
                 if op_to_add_in_fb is not None:
-                    if issparse(operator):
-                        op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
-                    elif type(operator).__name__ == "BCOO":
-                        op_to_add_in_fb = to_BCOO(op_to_add_in_fb)
+                    op_to_add_in_fb = unp.asarray(op_to_add_in_fb)
 
                 return operator + op_to_add_in_fb
 
@@ -354,8 +358,10 @@ class RotatingFrame:
         # get frame transformation matrix in diagonal basis
         # assumption that F is anti-Hermitian implies conjugation of
         # diagonal gives inversion
-        exp_freq = np.exp(self.frame_diag * t)
+        exp_freq = unp.exp(self.frame_diag * t)
         frame_mat = exp_freq.conj().reshape(self.dim, 1) * exp_freq
+
+        # need to define unp.matmul
         if issparse(out):
             out = out.multiply(frame_mat)
         elif type(out).__name__ == "BCOO":
@@ -364,10 +370,7 @@ class RotatingFrame:
             out = frame_mat * out
 
         if op_to_add_in_fb is not None:
-            if issparse(out):
-                op_to_add_in_fb = csr_matrix(op_to_add_in_fb)
-            elif type(out).__name__ == "BCOO":
-                op_to_add_in_fb = to_BCOO(op_to_add_in_fb)
+            op_to_add_in_fb = unp.asarray(op_to_add_in_fb)
 
             out = out + op_to_add_in_fb
 
@@ -386,7 +389,7 @@ class RotatingFrame:
     def operator_into_frame(
         self,
         t: float,
-        operator: Union[Operator, Array, csr_matrix],
+        operator: Union[Operator, ArrayLike],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
@@ -419,11 +422,11 @@ class RotatingFrame:
     def operator_out_of_frame(
         self,
         t: float,
-        operator: Union[Operator, Array, csr_matrix],
+        operator: Union[Operator, ArrayLike],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
-    ):
+    ) -> ArrayLike:
         r"""Bring an operator into the rotating frame, i.e. return
         ``exp(tF) @ operator @ exp(-tF)``.
 
@@ -452,11 +455,11 @@ class RotatingFrame:
     def generator_into_frame(
         self,
         t: float,
-        operator: Union[Operator, Array, csr_matrix],
+        operator: Union[Operator, ArrayLike],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
-    ):
+    ) -> ArrayLike:
         r"""Take an generator into the rotating frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF) - F``.
 
@@ -481,7 +484,7 @@ class RotatingFrame:
             return self._conjugate_and_add(
                 t,
                 operator,
-                op_to_add_in_fb=-np.diag(self.frame_diag),
+                op_to_add_in_fb=-unp.diag(self.frame_diag),
                 operator_in_frame_basis=operator_in_frame_basis,
                 return_in_frame_basis=return_in_frame_basis,
                 vectorized_operators=vectorized_operators,
@@ -490,10 +493,10 @@ class RotatingFrame:
     def generator_out_of_frame(
         self,
         t: float,
-        operator: Union[Operator, Array, csr_matrix],
+        operator: Union[Operator, ArrayLike],
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
-    ) -> Array:
+    ) -> ArrayLike:
         r"""Take an operator out of the frame using the generator transformaton rule, i.e. return
         ``exp(tF) @ operator @ exp(-tF) + F``.
 
@@ -516,7 +519,7 @@ class RotatingFrame:
             return self._conjugate_and_add(
                 -t,
                 operator,
-                op_to_add_in_fb=Array(np.diag(self.frame_diag)),
+                op_to_add_in_fb=unp.diag(self.frame_diag),
                 operator_in_frame_basis=operator_in_frame_basis,
                 return_in_frame_basis=return_in_frame_basis,
             )
@@ -529,7 +532,7 @@ class RotatingFrame:
             return None
 
         if self._vectorized_frame_basis is None:
-            self._vectorized_frame_basis = np.kron(self.frame_basis.conj(), self.frame_basis)
+            self._vectorized_frame_basis = unp.kron(self.frame_basis.conj(), self.frame_basis)
             self._vectorized_frame_basis_adjoint = self._vectorized_frame_basis.conj().transpose()
 
         return self._vectorized_frame_basis
@@ -551,10 +554,10 @@ class RotatingFrame:
     def vectorized_map_into_frame(
         self,
         time: float,
-        op: Array,
+        op: ArrayLike,
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
-    ) -> Array:
+    ) -> ArrayLike:
         r"""Given an operator ``op`` of dimension ``dim**2`` assumed to represent vectorized linear
         map in column stacking convention, returns:
 
@@ -596,7 +599,9 @@ class RotatingFrame:
         return op
 
 
-def _enforce_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10):
+def _enforce_anti_herm(
+    mat: ArrayLike, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10
+):
     r"""Given ``mat``, the logic of this function is:
         - if ``mat`` is hermitian, return ``-1j * mat``
         - if ``mat`` is anti-hermitian, return ``mat``
@@ -620,19 +625,16 @@ def _enforce_anti_herm(mat: Array, atol: Optional[float] = 1e-10, rtol: Optional
         QiskitError: If ``mat`` is not Hermitian or anti-Hermitian.
     """
     mat = to_array(mat)
-    mat = Array(mat, dtype=complex)
 
     if mat.backend == "jax":
         from jax.lax import cond
-
-        mat = mat.data
 
         if mat.ndim == 1:
             # this function checks if pure imaginary. If yes it returns the
             # array, otherwise it multiplies it by jnp.nan to raise an error
             # Note: pathways in conditionals in jax cannot raise Exceptions
             def anti_herm_conditional(b):
-                aherm_pred = jnp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
+                aherm_pred = unp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
                 return cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b)
 
             # Check if it is purely real, if not apply anti_herm_conditional

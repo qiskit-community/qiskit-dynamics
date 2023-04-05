@@ -27,6 +27,8 @@ from scipy.sparse import identity as sparse_identity
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
 
 try:
     from jax.experimental import sparse as jsparse
@@ -353,7 +355,7 @@ def isinstance_qutip_qobj(obj):
 
 
 # pylint: disable=too-many-return-statements
-def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False):
+def to_array(op: Union[Operator, ArrayLike, List[Operator], List[ArrayLike]], no_iter=False):
     """Convert an operator or list of operators to an Array.
     Args:
         op: Either an Operator to be converted to an array, a list of Operators
@@ -368,37 +370,26 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
     if op is None:
         return op
 
-    if isinstance(op, np.ndarray) and op.dtype != "O":
-        if Array.default_backend() in [None, "numpy"]:
-            return op
-        else:
-            return Array(op)
+    if hasattr(op, "__qiskit_array__"):
+        op = op.data
 
-    if isinstance(op, Array):
-        return op
+    if isinstance(op, np.ndarray) and op.dtype != "O":
+        return unp.asarray(op)
 
     if issparse(op):
-        return Array(op.toarray())
+        return unp.asarray(op)
 
     if type(op).__name__ == "BCOO":
-        return Array(op.todense())
+        return unp.asarray(op)
 
     if isinstance(op, Iterable) and not no_iter:
-        op = Array([to_array(sub_op, no_iter=True) for sub_op in op])
-    elif isinstance(op, Iterable) and no_iter:
-        return op
-    else:
-        op = Array(op)
-
-    if op.backend == "numpy":
-        return op.data
-    else:
-        return op
+        op = unp.asarray([to_array(sub_op, no_iter=True) for sub_op in op])
+    return unp.asarray(op)
 
 
 # pylint: disable=too-many-return-statements
 def to_csr(
-    op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False
+    op: Union[Operator, ArrayLike, List[Operator], List[Array]], no_iter=False
 ) -> csr_matrix:
     """Convert an operator or list of operators to a sparse matrix.
     Args:
@@ -430,7 +421,7 @@ def to_csr(
 
 
 @requires_backend("jax")
-def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "BCOO"]) -> "BCOO":
+def to_BCOO(op: Union[Operator, ArrayLike, List[Operator], List[ArrayLike]]) -> "BCOO":
     """Convert input op or list of ops to a jax BCOO sparse array.
 
     Calls ``to_array`` to handle general conversion to a numpy or jax array, then
@@ -448,7 +439,7 @@ def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "B
     if type(op).__name__ == "BCOO":
         return op
 
-    return jsparse.BCOO.fromdense(to_array(op).data)
+    return jsparse.BCOO.fromdense(to_array(op))
 
 
 def to_numeric_matrix_type(
@@ -474,8 +465,6 @@ def to_numeric_matrix_type(
     elif isinstance_qutip_qobj(op):
         return to_csr(op.data)
 
-    elif isinstance(op, Array):
-        return op
     elif isinstance(op, spmatrix):
         return op
     elif type(op).__name__ == "BCOO":

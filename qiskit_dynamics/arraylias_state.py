@@ -16,13 +16,35 @@
 
 from typing import Union
 from arraylias import numpy_alias
+from scipy.sparse import csr_matrix
 from .array import Array
+try:
+    from jax.experimental.sparse import BCOO
+except ImportError:
+    pass
 
 
 DYNAMICS_ALIAS = numpy_alias()
 
 # Set qiskit_dynamics.array.Array to be dispatched to numpy
 DYNAMICS_ALIAS.register_type(Array, "numpy")
+
+# register required custom versions of functions for csr type here
+DYNAMICS_ALIAS.register_type(csr_matrix, lib="scipy_sparse")
+
+# register required custom versions of functions for BCOO type here
+DYNAMICS_ALIAS.register_type(BCOO, lib="jax_sparse")
+
+
+@DYNAMICS_ALIAS.register_function(lib="scipy_sparse", path="asarray")
+def _(csr: csr_matrix):
+    return csr.toarray()
+
+
+@DYNAMICS_ALIAS.register_function(lib="jax_sparse", path="asarray")
+def _(bcoo: BCOO):
+    return bcoo.todense()
+
 
 DYNAMICS_NUMPY = DYNAMICS_ALIAS()
 
