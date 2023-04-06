@@ -318,8 +318,9 @@ To enable running of the single qubit experiments, we add the following to the `
   backend. 
 - Add definitions of ``RZ`` gates as phase shifts. These instructions control the phase of the drive
   channels, as well as any control channels acting on a given qubit.
-- Add a ``CX`` gate which applies to all qubits. While this tutorial will not be utilizing it, this
-  ensures that validation steps checking that the device is fully connected will pass.
+- Add a ``CX`` gate between qubits :math:`(0, 1)` and :math:`(1, 0)`. While this tutorial will not 
+  be utilizing it, this ensures that validation steps checking that the device is fully connected 
+  will pass.
 
 .. jupyter-execute::
 
@@ -336,7 +337,7 @@ To enable running of the single qubit experiments, we add the following to the `
     target.add_instruction(XGate(), properties={(0,): None, (1,): None})
     target.add_instruction(SXGate(), properties={(0,): None, (1,): None})
 
-    target.add_instruction(CXGate())
+    target.add_instruction(CXGate(), properties={(0, 1): None, (1, 0): None})
     
     # Add RZ instruction as phase shift for drag cal
     phi = Parameter("phi")
@@ -471,11 +472,6 @@ values for the single qubit gates calibrated above.
 .. jupyter-execute::
 
     from qiskit_experiments.library import CrossResonanceHamiltonian
-
-    backend.target.add_instruction(
-        instruction=CrossResonanceHamiltonian.CRPulseGate(width=Parameter("width")), 
-        properties={(0, 1): None, (1, 0): None}
-    )
 
     cr_ham_experiment = CrossResonanceHamiltonian(
         qubits=(0, 1), 
