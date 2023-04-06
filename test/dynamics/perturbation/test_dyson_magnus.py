@@ -554,6 +554,31 @@ class TestDysonProduct(QiskitDynamicsTestCase):
             expected_lmult_rule,
             perturbation_labels=perturbation_labels,
         )
+    
+    def test__get_dyson_lmult_rule_power_series_case1_missing(self):
+        """Test _get_dyson_lmult_rule for higher order terms in the generator
+        decomposition case 1 where there is no corresponding perturbation_label term for
+        a desired expansion term.
+        """
+
+        expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [Multiset(label) for label in expansion_labels]
+        perturbation_labels = [[0], [0, 1], [1, 1]]
+        perturbation_labels = [Multiset(label) for label in perturbation_labels]
+        expected_lmult_rule = [
+            (np.ones(1, dtype=float), np.array([[-1, -1]])),
+            (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
+            (np.ones(1, dtype=float), np.array([[-1, 1]])),
+            (np.ones(3, dtype=float), np.array([[-1, 2], [0, 1], [1, -1]])),
+            (np.ones(2, dtype=float), np.array([[-1, 3], [2, -1]])),
+            (np.ones(4, dtype=float), np.array([[-1, 4], [0, 3], [1, 1], [2, 0]])),
+        ]
+
+        self._test__get_dyson_lmult_rule(
+            expansion_labels,
+            expected_lmult_rule,
+            perturbation_labels=perturbation_labels,
+        )
 
     def test__get_dyson_lmult_rule_power_series_case2(self):
         """Test _get_dyson_lmult_rule for higher order terms in the generator
