@@ -20,7 +20,7 @@ Here we walk through some of these options, covering:
    rotating frame to preserve sparsity
 
 
-Throughout this guide we work at the level of the ``Solver`` interface,
+Throughout this guide we work at the level of the :class:`.Solver` interface,
 and consider Hamiltonian dynamics for simplicity, however all of the
 considerations have their analogs for Lindblad dynamics.
 
@@ -28,7 +28,7 @@ considerations have their analogs for Lindblad dynamics.
 -----------------------------------------------------------------------------
 
 Here we show how to perform a simulation in a rotating frame by setting the
-optional ``rotating_frame`` argument when instantiating a ``Solver``, and demonstrate how a
+optional ``rotating_frame`` argument when instantiating a :class:`.Solver`, and demonstrate how a
 well-chosen frame operator :math:`F = -iH_0` can reduce solving time.
 See the :ref:`Rotating frames section of the Models API documentation <Rotating frames>`
 for details on rotating frames.
@@ -74,7 +74,7 @@ First, construct the components of the model:
     # total simulation time
     T = 1. / r
 
-Construct a ``Solver`` for the model as stated, without entering a rotating frame, and solve,
+Construct a :class:`.Solver` for the model as stated, without entering a rotating frame, and solve,
 timing the solver.
 
 .. jupyter-execute::
@@ -87,7 +87,7 @@ timing the solver.
     y0 = np.eye(dim, dtype=complex)
     %time results = solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
 
-Next, define a ``Solver`` in the rotating frame of the static
+Next, define a :class:`.Solver` in the rotating frame of the static
 Hamiltonian by setting the ``rotating_frame`` kwarg, and solve, again timing the solver.
 
 .. jupyter-execute::
@@ -151,7 +151,7 @@ reducing the number of RHS calls required to solve with a given accuracy.
 ---------------------------------------------------------------------------
 
 Next we show how to perform a simulation with the rotating wave approximation (RWA)
-by setting the ``rwa_cutoff_freq`` argument at ``Solver`` instantiation, and show
+by setting the ``rwa_cutoff_freq`` argument at :class:`.Solver` instantiation, and show
 how it results in further speed ups at the expense of solution accuracy. See the API
 documentation for the :meth:`~qiskit_dynamics.models.rotating_wave_approximation` function
 for specific details about the RWA.
@@ -201,7 +201,7 @@ with extra emphasis on the following:
     :ref:`evaluation modes section of the Models API documentation <evaluation modes>`,
     when using a sparse evaluation mode, to preserve sparsity, it is recommended to
     only use *diagonal* rotating frames, which can be specified as a 1d array to the
-    ``rotating_frame`` kwarg of ``Solver`` instantiation.
+    ``rotating_frame`` kwarg of :class:`.Solver` instantiation.
 
 For this section we use JAX as it is more performant. See the
 :ref:`userguide on using JAX <how-to use jax>` for a more detailed
