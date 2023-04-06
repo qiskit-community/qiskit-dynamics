@@ -46,7 +46,7 @@ def _multiset_to_sorted_list(multiset: Multiset) -> List:
     return sorted_list
 
 
-class _MultisetSort:
+class _MultisetSortKey:
     """Dummy class for usage as a key when sorting Multiset instances. This assumes the elements
     of the multisets can themselves be sorted.
     """
@@ -90,7 +90,7 @@ def _sorted_multisets(multisets: Iterable[Multiset]) -> List[Multiset]:
     """Sort in non-decreasing order according to the ordering described in the dummy class
     _MultisetSort.
     """
-    return sorted(multisets, key=_MultisetSort)
+    return sorted(multisets, key=_MultisetSortKey)
 
 
 def _clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
