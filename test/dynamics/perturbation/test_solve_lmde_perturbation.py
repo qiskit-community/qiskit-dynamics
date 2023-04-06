@@ -500,7 +500,7 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D001, results.perturbation_data.get_item([0, 0, 1])[-1])
         self.assertAllClose(expected_D0001, results.perturbation_data.get_item([0, 0, 0, 1])[-1])
         self.assertAllClose(expected_D0011, results.perturbation_data.get_item([0, 0, 1, 1])[-1])
-    
+
     def test_dyson_analytic_case1_1d_relabeled(self):
         """This is the same numerical test as test_dyson_analytic_case1_1d, however it relabels
         the perturbation indices as 0 -> 1, and 1 -> 10. This is an integration test that would

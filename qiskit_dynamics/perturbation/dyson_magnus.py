@@ -804,7 +804,7 @@ def _get_q_term_list(complete_index_multisets: List[Multiset]) -> List:
 def _get_dyson_lmult_rule(
     complete_index_multisets: List[Multiset], perturbation_labels: Optional[List[Multiset]] = None
 ) -> List:
-    """Given a complete list of index multisets, return the lmult rule in the format required for 
+    """Given a complete list of index multisets, return the lmult rule in the format required for
     ``CustomProduct``. Note, the generator :math:`G(t)` is encoded as index ``-1``, as it will be
     prepended to the list of A matrices. Similarly the index of the solution to the LMDE with
     generator :math:`G(t)` is encoded as ``-1``.
@@ -837,7 +837,12 @@ def _get_dyson_lmult_rule(
         if len(term) == 1 and term in perturbation_labels:
             # if term not in perturbation_labels for len(term) == 1 the corresponding Dyson integral
             # will always be 0
-            lmult_rule.append((np.array([1.0, 1.0]), np.array([[-1, term_idx], [perturbation_labels.index(term), -1]])))
+            lmult_rule.append(
+                (
+                    np.array([1.0, 1.0]),
+                    np.array([[-1, term_idx], [perturbation_labels.index(term), -1]]),
+                )
+            )
         else:
             # self multiplied by base generator
             lmult_indices = [[-1, term_idx]]

@@ -554,7 +554,7 @@ class TestDysonProduct(QiskitDynamicsTestCase):
             expected_lmult_rule,
             perturbation_labels=perturbation_labels,
         )
-    
+
     def test__get_dyson_lmult_rule_power_series_case1_missing(self):
         """Test _get_dyson_lmult_rule for higher order terms in the generator
         decomposition case 1 where there is no corresponding perturbation_label term for
@@ -603,7 +603,7 @@ class TestDysonProduct(QiskitDynamicsTestCase):
             expected_lmult_rule,
             perturbation_labels=perturbation_labels,
         )
-    
+
     def test__get_dyson_lmult_rule_power_series_case2_unordered(self):
         """Test _get_dyson_lmult_rule for higher order terms in the generator
         decomposition case 2, with the perturbation_labels being non-canonically ordered.

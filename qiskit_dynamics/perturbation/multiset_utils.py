@@ -50,14 +50,15 @@ class _MultisetSort:
     """Dummy class for usage as a key when sorting Multiset instances. This assumes the elements
     of the multisets can themselves be sorted.
     """
-    __slots__ = "multiset",
+
+    __slots__ = ("multiset",)
 
     def __init__(self, multiset: Multiset):
         self.multiset = multiset
-    
+
     def __lt__(self, other: Multiset) -> bool:
         """Implements an ordering on multisets.
-        
+
         This orders first according to length (the number of elements in each multiset). If ``self``
         and ``other`` are the same length, ``self < other`` if, when written as fully expanded and
         sorted lists, ``self < other`` in lexicographic ordering. E.g. it holds that ``Multiset({0:
