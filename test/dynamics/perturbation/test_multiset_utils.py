@@ -59,6 +59,15 @@ class TestSortedMultisets(QiskitDynamicsTestCase):
         expected = [Multiset([1]), Multiset([0, 2]), Multiset([0, 0, 1]), Multiset([0, 1, 1])]
         self.assertTrue(output == expected)
 
+    def test_case2(self):
+        """Test case which would have caught a bug introduced by a previous implementation of the
+        ordering.
+        """
+        multisets = [Multiset([10]), Multiset([1])]
+        output = _sorted_multisets(multisets)
+        expected = [Multiset([1]), Multiset([10])]
+        self.assertTrue(output == expected)
+
 
 class TestToSortedList(QiskitDynamicsTestCase):
     """Test conversion to sorted list."""

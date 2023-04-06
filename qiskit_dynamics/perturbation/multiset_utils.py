@@ -15,7 +15,7 @@
 Utility functions for working with multisets.
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Iterable
 import itertools
 
 from multiset import Multiset
@@ -46,15 +46,51 @@ def _multiset_to_sorted_list(multiset: Multiset) -> List:
     return sorted_list
 
 
-def _sorted_multisets(multisets: List[Multiset]) -> List[Multiset]:
-    """Sort in non-decreasing order according to:
-
-    ms1 <= ms2 if len(ms1) < len(ms2), or if
-    len(ms1) == len(ms2) and if
-    str(_multiset_to_sorted_list(ms1)) <= str(_multiset_to_sorted_list(ms2)).
+class _MultisetSortKey:
+    """Dummy class for usage as a key when sorting Multiset instances. This assumes the elements
+    of the multisets can themselves be sorted.
     """
 
-    return sorted(multisets, key=lambda x: str(len(x)) + ", " + str(_multiset_to_sorted_list(x)))
+    __slots__ = ("multiset",)
+
+    def __init__(self, multiset: Multiset):
+        self.multiset = multiset
+
+    def __lt__(self, other: Multiset) -> bool:
+        """Implements an ordering on multisets.
+
+        This orders first according to length (the number of elements in each multiset). If ``self``
+        and ``other`` are the same length, ``self < other`` if, when written as fully expanded and
+        sorted lists, ``self < other`` in lexicographic ordering. E.g. it holds that ``Multiset({0:
+        2, 1: 1}) < Multiset({0: 1, 1: 2})``, as the list versions are ``x = [0, 0, 1]``, and ``y =
+        [0, 1, 1]``. Here ``x[0] == y[0]``, but ``x[1] < y[1]``, and hence ``x < y`` in this
+        ordering.
+        """
+        if len(self.multiset) < len(other.multiset):
+            return True
+
+        if len(other.multiset) < len(self.multiset):
+            return False
+
+        unique_entries = set(self.multiset.distinct_elements())
+        unique_entries.update(other.multiset.distinct_elements())
+        unique_entries = sorted(unique_entries)
+
+        for element in unique_entries:
+            self_count = self.multiset[element]
+            other_count = other.multiset[element]
+
+            if self_count != other_count:
+                return self_count > other_count
+
+        return False
+
+
+def _sorted_multisets(multisets: Iterable[Multiset]) -> List[Multiset]:
+    """Sort in non-decreasing order according to the ordering described in the dummy class
+    _MultisetSort.
+    """
+    return sorted(multisets, key=_MultisetSortKey)
 
 
 def _clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
