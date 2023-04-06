@@ -47,8 +47,8 @@ def _multiset_to_sorted_list(multiset: Multiset) -> List:
 
 
 class _MultisetSort:
-    """Dummy class for usage as a key when sorting Multiset instances. This assumes the entries
-    if the multisets can themselves be sorted.
+    """Dummy class for usage as a key when sorting Multiset instances. This assumes the elements
+    of the multisets can themselves be sorted.
     """
     __slots__ = "multiset",
 
@@ -58,12 +58,12 @@ class _MultisetSort:
     def __lt__(self, other: Multiset) -> bool:
         """Implements an ordering on multisets.
         
-        This orders first according to length (the number of elements in each multiset). If self and
-        other are the same length, self < other if, when written as fully expanded and sorted lists,
-        self < other in lexicographic ordering. E.g. it holds that Multiset({0: 2, 1: 1}) <
-        Multiset({0: 1, 1: 2}), as the list versions are [0, 0, 1], and [0, 1, 1]. Here, the first
-        element of each is 0, so there is no comparison, but the second element of the first is <
-        the second, hence the ordering on the multisets.
+        This orders first according to length (the number of elements in each multiset). If ``self``
+        and ``other`` are the same length, ``self < other`` if, when written as fully expanded and
+        sorted lists, ``self < other`` in lexicographic ordering. E.g. it holds that ``Multiset({0:
+        2, 1: 1}) < Multiset({0: 1, 1: 2})``, as the list versions are ``x = [0, 0, 1]``, and ``y =
+        [0, 1, 1]``. Here ``x[0] == y[0]``, but ``x[1] < y[1]``, and hence ``x < y`` in this
+        ordering.
         """
         if len(self.multiset) < len(other.multiset):
             return True
