@@ -1,0 +1,19 @@
+---
+prelude: >
+    This release fixes a bug in the initialisation of a DynamicsBackend when a Target object was provided for the initialisation.
+    Furthermore, it also features the possibility to automatically load a control_channel_map from an existing backend when using 
+    DynamicsBackend.from_backend() method. 
+features:
+  - |
+    Initialising a DynamicsBackend instance using the from_backend() method now loads automatically the
+    control_channel_map of the original backend to the DynamicsBackend option "control_channel_map".
+    Note that if the user sets manually the option "control_channel_map", the provided option will overwrite 
+    The default map from the original backend. 
+
+fixes:
+  - |
+    A bug regarding the setting of the measurement properties at the initialisation of the
+    DynamicsBackend instance was always resetting the measurement instruction to a default setting 
+    even though there was already a measurement instruction stored in the provided Target object. This bug is now fixed
+    and the measurement instruction is added only if the designated qubit in the provided Target does not have a measurement instruction.
+

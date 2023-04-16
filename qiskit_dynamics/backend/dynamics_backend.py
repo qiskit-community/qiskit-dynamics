@@ -203,8 +203,8 @@ class DynamicsBackend(BackendV2):
 
         # add default simulator measure instructions
         measure_properties = {}
+        instruction_schedule_map = target.instruction_schedule_map()
         for qubit in self.options.subsystem_labels:
-            instruction_schedule_map = target.instruction_schedule_map()
             if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
                 with pulse.build() as meas_sched:
                     pulse.acquire(
@@ -683,6 +683,28 @@ class DynamicsBackend(BackendV2):
             channels=hamiltonian_channels,
         )
 
+        # Add control_channel_map from backend (only if not specified before by user)
+        if not "control_channel_map" in options:
+            control_channel_map = {}
+            if hasattr(backend, "control_channels"): # Look in backend.control_channels
+                control_channel_map_backend = {**{qubits: backend.control_channels[qubits][0].index
+                                                  for qubits in backend.control_channels}
+                                               }
+            elif hasattr(backend, "coupling_map"): # Look in backend.coupling_map
+                control_channel_map_backend = {
+                    **{qubits: backend.control_channel(qubits)[0].index for qubits in backend.coupling_map}
+                }
+            else: # Look in backend.configuration()
+                control_channel_map_backend = {**{qubits: backend.configuration().control_channels[qubits][0].index
+                                                  for qubits in backend.configuration().control_channels}
+                                               }
+
+            # Reduce control_channel_map to match subsystem_list
+            for qubits in control_channel_map_backend:
+                if qubits[0] in subsystem_list and qubits[1] in subsystem_list:
+                    control_channel_map[qubits] = control_channel_map_backend[qubits]
+            options["control_channel_map"] = control_channel_map
+
         # build the solver
         if rotating_frame == "auto":
             if "dense" in evaluation_mode:
@@ -868,7 +890,7 @@ def _get_acquire_instruction_timings(
 ) -> Tuple[List[List[float]], List[List[int]], List[List[int]]]:
     """Get the required data from the acquire commands in each schedule.
 
-    Additionally validates that each schedule has acquire instructions occurring at one time, at
+    Additionally validates that each schedule has acquired instructions occurring at one time, at
     least one memory slot is being listed, and all measured subsystems exist in
     ``valid_subsystem_labels``.
 
