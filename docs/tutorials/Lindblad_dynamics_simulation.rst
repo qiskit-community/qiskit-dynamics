@@ -14,7 +14,7 @@ In the sections below we define a model, solve the dynamics and plot
 some observables using the following steps:
 
 1. Define the number of qubits and precompute some matrix operators.
-2. Define all relevant parameters and setup a ``Solver`` instance with the model of the system,
+2. Define all relevant parameters and setup a :class:`Solver` instance with the model of the system,
    consisting of the Hamiltonian and the jump operators of the Lindblad dissipator.
 3. Define the initial state and other parameters for the initial value problem,
    and evolve the system state.
@@ -110,7 +110,7 @@ used in the rest of this tutorial.
 2. Setup the solver
 -------------------
 
-In this section we setup a ``Solver`` class that stores and manipulates
+In this section we setup a :class:`Solver` class that stores and manipulates
 the model to be solved. In the following, we will set :math:`\hbar=1`
 and set the driving amplitude to be :math:`\nu_x \equiv 1`. This sets the
 time units, with the other frequency
@@ -119,7 +119,7 @@ these free parameters, and then create the Hamiltonian matrix and the
 list of dissipator operators. We build the full Hamiltonian matrix by
 summing all single-qubit and two-qubit terms. Since there are no
 time-dependent terms, and we do not plan to take partial derivatives of
-parameters, we do not use the ``Signal`` class in this tutorial. See the other tutorials for various
+parameters, we do not use the :class:`Signal` class in this tutorial. See the other tutorials for various
 generalizations of this approach supported with ``qiskit-dynamics``.
 
 .. jupyter-execute::

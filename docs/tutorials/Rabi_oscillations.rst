@@ -10,8 +10,7 @@ decoherence terms modeled by using a Lindblad master equation.
 In the sections below we define a model, solve the dynamics and plot the
 qubit oscillations using the following steps:
 
-1. Define all relevant parameters and setup a ``Solver`` instance with the Hamiltonian model of
-   the system.
+1. Setup a :class:`.Solver` with the Hamiltonian model
 2. Define the initial state and simulation times, and evolve the system state.
 3. Plot the qubit state as a function of time and discuss the results.
 4. Solve again the the model with jump operators for the Lindblad dissipator, and plot the results.
@@ -20,7 +19,9 @@ In the first step below, we model the time evolution of a qubit’s state
 taken as a two-level system, using the Schrödinger equation with a
 Hamiltonian containing a diagonal term of frequency :math:`\nu_z` and a
 transverse term of amplitude :math:`\nu_x` and harmonic driving
-frequency :math:`\nu_d`,
+frequency :math:`\nu_d` (see how the Hamiltonians are derived on 
+`Qiskit Textbook page on Introduction to Transmon Physics
+<https://qiskit.org/textbook/ch-quantum-hardware/transmon-physics.html>`_),
 
 .. math:: H = \frac{1}{2} \times 2 \pi \nu_z {Z} + 2 \pi \nu_x \cos(2 \pi \nu_d t){X},
 
@@ -33,8 +34,8 @@ where :math:`\{X,Y,Z\}` are the Pauli matrices (also written as
 In the following, we will set :math:`\hbar=1` and fix some arbitrary
 time units, with all frequency parameters scaled accordingly. Below, we
 first set a few values for these frequency parameters, and then setup the
-``Solver`` class instance that stores and manipulates the model to be
-solved, using matrices and ``Signal`` instances. For the
+:class:`.Solver` class instance that stores and manipulates the model to be
+solved, using matrices and :class:`.Signal` instances. For the
 time-independent :math:`z` term we set the signal to a constant, while
 for the trasverse driving term we setup a harmonic signal.
 
@@ -144,8 +145,8 @@ particular this is a realization of the :math:`X` gate.
 
     plot_qubit_dynamics(sol, t_eval, X, Y, Z)
 
-4. Redefine the model with damping and decoherence.
----------------------------------------------------
+4. Redefine the model with damping and decoherence
+--------------------------------------------------
 
 Now we add to our simulation an environment modeled as a memory-less
 (Markovian) bath, solving the Lindblad master equation with the same
