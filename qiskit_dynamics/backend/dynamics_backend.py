@@ -684,26 +684,29 @@ class DynamicsBackend(BackendV2):
         )
 
         # Add control_channel_map from backend (only if not specified before by user)
-        if not "control_channel_map" in options:
+        if "control_channel_map" not in options:
             control_channel_map = {}
-            if hasattr(backend, "control_channels"): # Look in backend.control_channels
+            if hasattr(backend, "control_channels"):  # Look in backend.control_channels
                 control_channel_map_backend = {**{qubits: backend.control_channels[qubits][0].index
                                                   for qubits in backend.control_channels}
                                                }
-            elif hasattr(backend, "coupling_map"): # Look in backend.coupling_map
+            elif hasattr(backend, "coupling_map"):  # Look in backend.coupling_map
                 control_channel_map_backend = {
                     **{qubits: backend.control_channel(qubits)[0].index for qubits in backend.coupling_map}
                 }
-            else: # Look in backend.configuration()
+            elif hasattr(backend.configuration(), "control_channels"):  # Look in backend.configuration()
                 control_channel_map_backend = {**{qubits: backend.configuration().control_channels[qubits][0].index
                                                   for qubits in backend.configuration().control_channels}
                                                }
+            else:
+                control_channel_map_backend = {}
 
             # Reduce control_channel_map to match subsystem_list
-            for qubits in control_channel_map_backend:
-                if qubits[0] in subsystem_list and qubits[1] in subsystem_list:
-                    control_channel_map[qubits] = control_channel_map_backend[qubits]
-            options["control_channel_map"] = control_channel_map
+            if bool(control_channel_map_backend):
+                for qubits in control_channel_map_backend:
+                    if qubits[0] in subsystem_list and qubits[1] in subsystem_list:
+                        control_channel_map[qubits] = control_channel_map_backend[qubits]
+                options["control_channel_map"] = control_channel_map
 
         # build the solver
         if rotating_frame == "auto":
