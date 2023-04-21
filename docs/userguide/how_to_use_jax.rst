@@ -5,7 +5,7 @@ How-to use JAX with ``qiskit-dynamics``
 
 JAX enables just-in-time compilation, automatic differentation, and GPU
 execution. JAX is integrated into ``qiskit-dynamics`` via the
-``Array`` class, which allows most parts of the package to be
+:class:`.Array` class, which allows most parts of the package to be
 executed with either ``numpy`` or ``jax.numpy``.
 
 This guide addresses the following topics:
@@ -20,7 +20,7 @@ This guide addresses the following topics:
 1. How do I configure dynamics to run with JAX?
 -----------------------------------------------
 
-The ``Array`` class provides a means of controlling whether array
+The :class:`.Array` class provides a means of controlling whether array
 operations are performed using ``numpy`` or ``jax.numpy``. In many
 cases, the “default backend” is used to determine which of the two
 options is used.
@@ -50,8 +50,8 @@ The default backend can be observed via:
 
 The ``Array`` class wraps both ``numpy`` and ``jax.numpy``
 arrays. The particular type is indicated by the ``backend`` property,
-and ``numpy`` functions called on an ``Array`` will automatically be
-dispatched to ``numpy`` or ``jax.numpy`` based on the ``Array``\ ’s
+and ``numpy`` functions called on an :class:`.Array` will automatically be
+dispatched to ``numpy`` or ``jax.numpy`` based on the :class:`.Array`\ ’s
 backend. See the API documentation for ``qiskit_dynamics.array`` for
 details.
 
@@ -67,7 +67,7 @@ JAX-transformable functions must be:
   - Pure, in the sense that they have no side-effects.
 
 The previous section shows how to handle the first two points using
-``Array``. The last point further restricts the type of
+:class:`.Array`. The last point further restricts the type of
 code that can be safely transformed. Qiskit Dynamics uses various objects which
 can be updated by setting properties (models, solvers). If a function to
 be transformed requires updating an already-constructed object of this
@@ -90,7 +90,7 @@ functions built using Qiskit Dynamics can be
 just-in-time compiled, resulting in faster simulation times.
 
 For convenience, the ``wrap`` function can be used to transform
-``jax.jit`` to also work on functions that have ``Array`` objects as
+``jax.jit`` to also work on functions that have :class:`.Array` objects as
 inputs and outputs.
 
 .. jupyter-execute::
@@ -99,7 +99,7 @@ inputs and outputs.
 
     jit = wrap(jax.jit, decorator=True)
 
-Construct a ``Solver`` instance with a model that will be used to solve.
+Construct a :class:`.Solver` instance with a model that will be used to solve.
 
 .. jupyter-execute::
 
@@ -234,8 +234,8 @@ To get dynamics to run with JAX, it is necessary to configure dynamics
 to run with JAX *before* building any objects or running any functions.
 The internal behaviour of some objects is modified by what the default
 backend is *at the time of instantiation*. For example, at instantiation
-the operators in a model or ``Solver`` instance will be wrapped in an
-``Array`` whose backend is the current default backend, and changing the
+the operators in a model or :class:`.Solver` instance will be wrapped in an
+:class:`.Array` whose backend is the current default backend, and changing the
 default backend after building the object won’t change this.
 
 4.2 Running Dynamics with JAX on CPU vs GPU
