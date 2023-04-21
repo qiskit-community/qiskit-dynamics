@@ -39,7 +39,8 @@ extensions = [
     'reno.sphinxext',
     'sphinx.ext.intersphinx',
     'nbsphinx',
-    'sphinxcontrib.bibtex'
+    'sphinxcontrib.bibtex',
+    "sphinxcontrib.jquery",  # Remove when changing html_theme to qiskit_ecosystem.
 ]
 templates_path = ["_templates"]
 
