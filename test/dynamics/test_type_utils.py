@@ -30,11 +30,16 @@ from qiskit_dynamics.type_utils import (
     to_BCOO,
     to_numeric_matrix_type,
 )
+from qiskit_dynamics.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
 
-from .common import QiskitDynamicsTestCase, TestJaxBase, TestQutipBase
+
+
+from .common import QiskitDynamicsTestCase, TestJaxBase, TestNumpyBase, TestQutipBase
 
 try:
     from jax.experimental import sparse as jsparse
+    import jax.numpy as jnp
 except ImportError:
     pass
 
@@ -274,103 +279,103 @@ class Testvec_commutator_dissipator(QiskitDynamicsTestCase):
         )
 
 
-class Test_to_array(QiskitDynamicsTestCase):
-    """Tests for to_array."""
+class Test_to_dense(QiskitDynamicsTestCase, TestNumpyBase):
+    """Tests for to_dense."""
 
     def test_None_to_None(self):
         """Test that None input returns None."""
-        self.assertTrue(to_array(None) is None)
+        self.assertTrue(unp.to_dense(None) is None)
 
-    def test_to_array_Operator(self):
-        """Tests for to_array with a single operator"""
+    def test_to_dense_Operator(self):
+        """Tests for to_dense with a single operator"""
         op = Operator.from_label("X")
-        self.assertAllClose(to_array(op), Array([[0, 1], [1, 0]]))
+        self.assertAllClose(unp.to_dense(op), np.array([[0, 1], [1, 0]]))
 
-    def test_to_array_nparray(self):
-        """Tests for to_array with a single numpy array"""
+    def test_to_dense_nparray(self):
+        """Tests for to_dense with a single numpy array"""
         ndarray = np.array([[0, 1], [1, 0]])
-        self.assertAllClose(to_array(ndarray), ndarray)
+        self.assertAllClose(unp.to_dense(ndarray), ndarray)
 
-    def test_to_array_Array(self):
-        """Tests for to_array from a qiskit Array"""
+    def test_to_dense_Array(self):
+        """Tests for to_dense from a qiskit Array"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
-        arr_in = Array(list_of_ops)
-        self.assertAllClose(to_array(arr_in), arr_in)
+        arr_in = unp.asarray(list_of_ops)
+        self.assertAllClose(unp.to_dense(arr_in), arr_in)
 
-    def test_to_array_sparse_matrix(self):
-        """Tests for to_array with a single sparse matrix"""
+    def test_to_dense_sparse_matrix(self):
+        """Tests for to_dense with a single sparse matrix"""
         op = Operator.from_label("X")
         spm = csr_matrix(op)
-        ar = Array(op)
-        self.assertAllClose(to_array(spm), ar)
+        ar = unp.asarray(op)
+        self.assertAllClose(unp.to_dense(spm), ar)
 
-    def test_to_array_Operator_list(self):
-        """Tests for to_array with a list of operators"""
+    def test_to_dense_Operator_list(self):
+        """Tests for to_dense with a list of operators"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         op_arr = [Operator.from_label(s) for s in "XYZ"]
-        normal_array = Array(np.array(list_of_ops))
-        self.assertAllClose(to_array(op_arr), normal_array)
+        normal_array = unp.asarray(np.array(list_of_ops))
+        self.assertAllClose(unp.to_dense(op_arr), normal_array)
 
-    def test_to_array_nparray_list(self):
-        """Tests for to_array with a list of numpy arrays"""
+    def test_to_dense_nparray_list(self):
+        """Tests for to_dense with a list of numpy arrays"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         ndarray_list = [np.array(op) for op in list_of_ops]
-        list_of_arrays = [Array(op) for op in list_of_ops]
-        self.assertAllClose(to_array(ndarray_list), list_of_arrays)
+        list_of_arrays = [unp.asarray(op) for op in list_of_ops]
+        self.assertAllClose(unp.to_dense(ndarray_list), list_of_arrays)
 
-    def test_to_array_list_of_arrays(self):
-        """Tests for to_array with a list of numpy arrays"""
+    def test_to_dense_list_of_arrays(self):
+        """Tests for to_dense with a list of numpy arrays"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         ndarray_list = [np.array(op) for op in list_of_ops]
-        list_of_arrays = [Array(op) for op in list_of_ops]
-        big_array = Array(list_of_arrays)
-        self.assertAllClose(to_array(ndarray_list), big_array)
+        list_of_arrays = [unp.asarray(op) for op in list_of_ops]
+        big_array = unp.asarray(list_of_arrays)
+        self.assertAllClose(unp.to_dense(ndarray_list), big_array)
 
-    def test_to_array_sparse_matrix_list(self):
-        """Tests for to_array with a list of sparse matrices"""
+    def test_to_dense_sparse_matrix_list(self):
+        """Tests for to_dense with a list of sparse matrices"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
-        list_of_arrays = [Array(op) for op in list_of_ops]
+        list_of_arrays = [unp.asarray(op) for op in list_of_ops]
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
-        self.assertAllClose(to_array(sparse_matrices), list_of_arrays)
+        self.assertAllClose(unp.to_dense(sparse_matrices), list_of_arrays)
 
-    def test_to_array_types(self):
-        """Type conversion tests for to_array"""
+    def test_to_dense_types(self):
+        """Type conversion tests for to_dense"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         numpy_ops = np.array(list_of_ops)
-        normal_array = Array(np.array(list_of_ops))
+        normal_array = unp.asarray(np.array(list_of_ops))
         op_arr = [Operator.from_label(s) for s in "XYZ"]
         single_op = op_arr[0]
         list_of_arrays = [Array(op) for op in list_of_ops]
-        assert isinstance(to_array(numpy_ops), np.ndarray)
-        assert isinstance(to_array(normal_array), Array)
-        assert isinstance(to_array(op_arr), np.ndarray)
-        assert isinstance(to_array(single_op), np.ndarray)
-        assert isinstance(to_array(list_of_arrays), np.ndarray)
+        assert isinstance(unp.to_dense(numpy_ops), np.ndarray)
+        assert isinstance(unp.to_dense(normal_array), np.ndarray)
+        assert isinstance(unp.to_dense(op_arr), np.ndarray)
+        assert isinstance(unp.to_dense(single_op), np.ndarray)
+        assert isinstance(unp.to_dense(list_of_arrays), np.ndarray)
 
 
-class Test_to_array_Jax(Test_to_array, TestJaxBase):
-    """Jax version of Test_to_array tests."""
+class Test_to_dense_Jax(TestJaxBase,Test_to_dense):
+    """Jax version of Test_to_dense tests."""
 
-    def test_to_array_types(self):
-        """Type conversion tests for to_array with jax backend"""
+    def test_to_dense_types(self):
+        """Type conversion tests for to_dense with jax backend"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         numpy_ops = np.array(list_of_ops)
-        normal_array = Array(np.array(list_of_ops))
+        normal_array = unp.asarray(np.array(list_of_ops))
         op_arr = [Operator.from_label(s) for s in "XYZ"]
         single_op = op_arr[0]
-        list_of_arrays = [Array(op) for op in list_of_ops]
-        assert isinstance(to_array(numpy_ops), Array)
-        assert isinstance(to_array(normal_array), Array)
-        assert isinstance(to_array(op_arr), Array)
-        assert isinstance(to_array(single_op), Array)
-        assert isinstance(to_array(list_of_arrays), Array)
+        list_of_arrays = [unp.asarray(op) for op in list_of_ops]
+        assert isinstance(unp.to_dense(numpy_ops), np.ndarray)
+        assert isinstance(unp.to_dense(normal_array), np.ndarray)
+        assert isinstance(unp.to_dense(op_arr), np.ndarray)
+        assert isinstance(unp.to_dense(single_op), np.ndarray)
+        assert isinstance(unp.to_dense(list_of_arrays), np.ndarray)
 
-    def test_to_array_BCOO(self):
+    def test_to_dense_BCOO(self):
         """Convert BCOO type to array."""
 
         bcoo = jsparse.BCOO.fromdense(np.array([[0.0, 1.0], [1.0, 0.0]]))
-        out = to_array(bcoo)
-        self.assertTrue(isinstance(out, Array))
+        out = unp.to_dense(bcoo)
+        self.assertTrue(isinstance(out, jnp.ndarray))
         self.assertAllClose(out, np.array([[0.0, 1.0], [1.0, 0.0]]))
 
 
