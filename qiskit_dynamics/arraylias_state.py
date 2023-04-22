@@ -16,10 +16,16 @@
 
 from typing import Union
 from arraylias import numpy_alias
-from scipy.sparse import csr_matrix
+from collections.abc import Iterable
+import numpy as np
+from scipy.sparse import spmatrix, csr_matrix
 from .array import Array
+from qiskit.quantum_info.operators import Operator
+
+
 try:
     from jax.experimental.sparse import BCOO
+    import jax.numpy as jnp
 except ImportError:
     pass
 
@@ -29,21 +35,89 @@ DYNAMICS_ALIAS = numpy_alias()
 # Set qiskit_dynamics.array.Array to be dispatched to numpy
 DYNAMICS_ALIAS.register_type(Array, "numpy")
 
-# register required custom versions of functions for csr type here
-DYNAMICS_ALIAS.register_type(csr_matrix, lib="scipy_sparse")
+# register required custom versions of functions for sparse type here
+DYNAMICS_ALIAS.register_type(spmatrix, lib="scipy_sparse")
 
 # register required custom versions of functions for BCOO type here
 DYNAMICS_ALIAS.register_type(BCOO, lib="jax_sparse")
 
+# register required custom versions of functions for Operator type here
+DYNAMICS_ALIAS.register_type(Operator, lib="operator")
 
-@DYNAMICS_ALIAS.register_function(lib="scipy_sparse", path="asarray")
-def _(csr: csr_matrix):
-    return csr.toarray()
+# register required custom versions of functions for Iterable type here
+# need to discuss registering Iterable type because the coverage of Iterable is too broad.
+DYNAMICS_ALIAS.register_type(Iterable,lib="iterable")
+
+# asarray
+@DYNAMICS_ALIAS.register_function(lib="iterable", path="asarray")
+def _(arr):
+    return DYNAMICS_ALIAS(like=arr[0]).asarray(arr)
+@DYNAMICS_ALIAS.register_fallback(lib="scipy_sparse", path="asarray")
+def _(arr):
+    return np.asarray(arr)
+@DYNAMICS_ALIAS.register_fallback(lib="jax_sparse", path="asarray")
+def _(arr):
+    return jnp.asarray(arr)
 
 
-@DYNAMICS_ALIAS.register_function(lib="jax_sparse", path="asarray")
-def _(bcoo: BCOO):
-    return bcoo.todense()
+# to_dense
+@DYNAMICS_ALIAS.register_function(lib="numpy", path="to_dense")
+def _(op):
+    return op
+@DYNAMICS_ALIAS.register_function(lib="jax", path="to_dense")
+def _(op):
+    return op
+@DYNAMICS_ALIAS.register_function(lib="scipy_sparse", path="to_dense")
+def _(op):
+    return op.toarray()
+@DYNAMICS_ALIAS.register_function(lib="jax_sparse", path="to_dense")
+def _(op):
+    return op.todense()
+@DYNAMICS_ALIAS.register_fallback(path="to_dense")
+def _(op):
+    return np.asarray(op)
+@DYNAMICS_ALIAS.register_function(lib="iterable", path="to_dense")
+def _(op):
+    return DYNAMICS_ALIAS().asarray([DYNAMICS_ALIAS().to_dense(sub_op) for sub_op in op])
+
+
+# to_sparse
+@DYNAMICS_ALIAS.register_function(lib="numpy", path="to_sparse")
+def _(op):
+    return csr_matrix(op)
+@DYNAMICS_ALIAS.register_function(lib="jax", path="to_sparse")
+def _(op):
+    return BCOO.fromdense(op)
+@DYNAMICS_ALIAS.register_function(lib="scipy_sparse", path="to_sparse")
+def _(op):
+    return op
+@DYNAMICS_ALIAS.register_function(lib="jax_sparse", path="to_sparse")
+def _(op):
+    return op
+@DYNAMICS_ALIAS.register_fallback(path="to_sparse")
+def _(op):
+    return csr_matrix(op)
+@DYNAMICS_ALIAS.register_function(lib="iterable", path="to_sparse")
+def _(op):
+    return DYNAMICS_ALIAS().asarray([DYNAMICS_ALIAS().to_sparse(sub_op) for sub_op in op])
+
+
+# to_numeric_matrix_type
+@DYNAMICS_ALIAS.register_function(lib="iterable", path="to_numeric_matrix_type")
+def _(op):
+    return DYNAMICS_ALIAS().asarray([DYNAMICS_ALIAS().to_sparse(sub_op) for sub_op in op])
+@DYNAMICS_ALIAS.register_fallback(path="to_numeric_matrix_type")
+def _(op):
+    return DYNAMICS_ALIAS().asarray(op)
+
+
+# cond
+@DYNAMICS_ALIAS.register_function(lib="numpy", path="cond")
+def _(pred, true_fun, false_fun, *operands):
+  if pred:
+    return true_fun(*operands)
+  else:
+    return false_fun(*operands)
 
 
 DYNAMICS_NUMPY = DYNAMICS_ALIAS()
