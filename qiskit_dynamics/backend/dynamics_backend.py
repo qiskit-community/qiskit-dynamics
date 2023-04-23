@@ -685,15 +685,11 @@ class DynamicsBackend(BackendV2):
 
         # Add control_channel_map from backend (only if not specified before by user)
         if "control_channel_map" not in options:
-            control_channel_map = {}
             if hasattr(backend, "control_channels"):  # Look in backend.control_channels
                 control_channel_map_backend = {**{qubits: backend.control_channels[qubits][0].index
                                                   for qubits in backend.control_channels}
                                                }
-            elif hasattr(backend, "coupling_map"):  # Look in backend.coupling_map
-                control_channel_map_backend = {
-                    **{qubits: backend.control_channel(qubits)[0].index for qubits in backend.coupling_map}
-                }
+
             elif hasattr(backend.configuration(), "control_channels"):  # Look in backend.configuration()
                 control_channel_map_backend = {**{qubits: backend.configuration().control_channels[qubits][0].index
                                                   for qubits in backend.configuration().control_channels}
@@ -703,9 +699,10 @@ class DynamicsBackend(BackendV2):
 
             # Reduce control_channel_map to match subsystem_list
             if bool(control_channel_map_backend):
-                for qubits in control_channel_map_backend:
-                    if qubits[0] in subsystem_list and qubits[1] in subsystem_list:
-                        control_channel_map[qubits] = control_channel_map_backend[qubits]
+                control_channel_map = {}
+                for label, idx in control_channel_map_backend.items():
+                    if f"u{idx}" in hamiltonian_channels:
+                        control_channel_map[label] = idx
                 options["control_channel_map"] = control_channel_map
 
         # build the solver
@@ -893,7 +890,7 @@ def _get_acquire_instruction_timings(
 ) -> Tuple[List[List[float]], List[List[int]], List[List[int]]]:
     """Get the required data from the acquire commands in each schedule.
 
-    Additionally validates that each schedule has acquired instructions occurring at one time, at
+    Additionally validates that each schedule has Acquire instructions occurring at one time, at
     least one memory slot is being listed, and all measured subsystems exist in
     ``valid_subsystem_labels``.
 

@@ -662,8 +662,6 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
                                           (3, 4): [ControlChannel(6)],
                                           (4, 3): [ControlChannel(7)]
                                           }
-        configuration.coupling_map = [[0, 1], [1, 0], [1, 2], [2, 1],
-                                      [1, 3], [3, 1], [3, 4], [4, 3]]
 
         defaults = SimpleNamespace()
         defaults.qubit_freq_est = [
@@ -878,7 +876,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
 
     def test_setting_control_channel_map(self):
         """Test if control_channel_map argument is correctly set in the DynamicsBackend options from the original
-        backend control_channel_map (or coupling_map)"""
+        backend control_channel_map"""
 
         # Check that manual setting of the map overrides the one from original backend
         control_channel_map = {(0, 1): 4                                  }
@@ -897,6 +895,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
         backend = DynamicsBackend.from_backend(self.valid_backend, subsystem_list=[0, 1, 2])
         assert backend.options.control_channel_map == {(0, 1): 0, (1, 0): 1,
                                                        (1, 2): 2, (2, 1): 3,
+                                                       (1, 3): 4
                                                        }
 
         # Check that manually setting the option after the declaration overwrites the previous map
