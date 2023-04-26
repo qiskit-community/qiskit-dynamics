@@ -685,19 +685,22 @@ class DynamicsBackend(BackendV2):
 
         # Add control_channel_map from backend (only if not specified before by user)
         if "control_channel_map" not in options:
-            if hasattr(backend, "control_channels"):  # Look in backend.control_channels
-                control_channel_map_backend = {**{qubits: backend.control_channels[qubits][0].index
-                                                  for qubits in backend.control_channels}
-                                               }
+            if hasattr(backend, "control_channels"):
+                control_channel_map_backend = {
+                    qubits: backend.control_channels[qubits][0].index
+                    for qubits in backend.control_channels
+                }
 
-            elif hasattr(backend.configuration(), "control_channels"):  # Look in backend.configuration()
-                control_channel_map_backend = {**{qubits: backend.configuration().control_channels[qubits][0].index
-                                                  for qubits in backend.configuration().control_channels}
-                                               }
+            elif hasattr(backend.configuration(), "control_channels"):
+                control_channel_map_backend = {
+                    qubits: backend.configuration().control_channels[qubits][0].index
+                    for qubits in backend.configuration().control_channels
+                }
+
             else:
                 control_channel_map_backend = {}
 
-            # Reduce control_channel_map to match subsystem_list
+            # Reduce control_channel_map based on which channels are in the model
             if bool(control_channel_map_backend):
                 control_channel_map = {}
                 for label, idx in control_channel_map_backend.items():

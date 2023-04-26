@@ -551,16 +551,19 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         self.assertDictEqual(res.get_counts(1), {"2": 1024})
         self.assertDictEqual(res.results[1].header.metadata, {"key1": "value1"})
 
-
     def test_valid_measurement_properties(self):
-        """Test that DynamicsBackend instantiation always carries measurement instructions"""
+        """Test that DynamicsBackend instantiation always carries measurement instructions."""
 
         # Case where no measurement instruction is added manually (which is the case for self.simple_backend)
         instruction_schedule_map = self.backend_2q.target.instruction_schedule_map()
-        assert instruction_schedule_map.has(instruction='measure', qubits=self.simple_backend.num_qubits)
         for q in range(self.simple_backend.num_qubits):
-            assert isinstance(instruction_schedule_map.get('measure', q).instructions[0][1], pulse.Acquire)
-            assert len(instruction_schedule_map.get('measure', q).instructions) == 1
+            self.assertTrue(instruction_schedule_map.has(instruction="measure", qubits=q))
+            self.assertTrue(
+                isinstance(
+                    instruction_schedule_map.get("measure", q).instructions[0][1], pulse.Acquire
+                )
+            )
+            self.assertEqual(len(instruction_schedule_map.get("measure", q).instructions), 1)
 
         # Case where measurement instruction is added manually
         custom_meas_duration = 3
@@ -574,16 +577,28 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
                 duration=custom_meas_duration, qubit_or_channel=1, register=pulse.MemorySlot(1)
             )
 
-        measure_properties = {(0,): InstructionProperties(calibration=meas_sched0),
-                              (1,): InstructionProperties(calibration=meas_sched1)}
+        measure_properties = {
+            (0,): InstructionProperties(calibration=meas_sched0),
+            (1,): InstructionProperties(calibration=meas_sched1),
+        }
         target = Target()
         target.add_instruction(Measure(), measure_properties)
-        custom_meas_backend = DynamicsBackend(solver=self.solver_2q, target=target, subsystem_dims=[2, 2])
+        custom_meas_backend = DynamicsBackend(
+            solver=self.solver_2q, target=target, subsystem_dims=[2, 2]
+        )
         instruction_schedule_map = custom_meas_backend.target.instruction_schedule_map()
         for q in range(self.simple_backend.num_qubits):
-            assert isinstance(instruction_schedule_map.get('measure', q).instructions[0][1], pulse.Acquire)
-            assert len(instruction_schedule_map.get('measure', q).instructions) == 1
-            assert instruction_schedule_map.get('measure', q).instructions[0][1].duration == custom_meas_duration
+            self.assertTrue(instruction_schedule_map.has(instruction="measure", qubits=q))
+            self.assertTrue(
+                isinstance(
+                    instruction_schedule_map.get("measure", q).instructions[0][1], pulse.Acquire
+                )
+            )
+            self.assertEqual(instruction_schedule_map.get("measure", q).instructions, 1)
+            self.assertEqual(
+                instruction_schedule_map.get("measure", q).instructions[0][1].duration,
+                custom_meas_duration,
+            )
 
 
 class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
@@ -653,15 +668,16 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
             [UchannelLO(3, (1 + 0j))],
         ]
 
-        configuration.control_channels = {(0, 1): [ControlChannel(0)],
-                                          (1, 0): [ControlChannel(1)],
-                                          (1, 2): [ControlChannel(2)],
-                                          (2, 1): [ControlChannel(3)],
-                                          (1, 3): [ControlChannel(4)],
-                                          (3, 1): [ControlChannel(5)],
-                                          (3, 4): [ControlChannel(6)],
-                                          (4, 3): [ControlChannel(7)]
-                                          }
+        configuration.control_channels = {
+            (0, 1): [ControlChannel(0)],
+            (1, 0): [ControlChannel(1)],
+            (1, 2): [ControlChannel(2)],
+            (2, 1): [ControlChannel(3)],
+            (1, 3): [ControlChannel(4)],
+            (3, 1): [ControlChannel(5)],
+            (3, 4): [ControlChannel(6)],
+            (4, 3): [ControlChannel(7)],
+        }
 
         defaults = SimpleNamespace()
         defaults.qubit_freq_est = [
@@ -875,32 +891,43 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
         self.assertAllClose(expected_operators / 1e9, solver.model.operators / 1e9)
 
     def test_setting_control_channel_map(self):
-        """Test if control_channel_map argument is correctly set in the DynamicsBackend options from the original
-        backend control_channel_map"""
+        """Test if control_channel_map argument is correctly set in DynamicsBackend options from the original
+        backend control_channel_map."""
 
         # Check that manual setting of the map overrides the one from original backend
-        control_channel_map = {(0, 1): 4                                  }
-        backend = DynamicsBackend.from_backend(self.valid_backend, control_channel_map=control_channel_map)
-        assert backend.options.control_channel_map == {(0, 1): 4}
+        control_channel_map = {(0, 1): 4}
+        backend = DynamicsBackend.from_backend(
+            self.valid_backend, control_channel_map=control_channel_map
+        )
+        self.assertDictEqual(backend.options.control_channel_map, {(0, 1): 4})
 
         # Check that control_channel_map from original backend is correctly set in the DynamicsBackend.options
         backend = DynamicsBackend.from_backend(self.valid_backend)
-        assert backend.options.control_channel_map == {(0, 1): 0, (1, 0): 1,
-                                                       (1, 2): 2, (2, 1): 3,
-                                                       (1, 3): 4, (3, 1): 5,
-                                                       (3, 4): 6, (4, 3): 7
-                                                       }
+        self.assertDictEqual(
+            backend.options.control_channel_map,
+            {
+                (0, 1): 0,
+                (1, 0): 1,
+                (1, 2): 2,
+                (2, 1): 3,
+                (1, 3): 4,
+                (3, 1): 5,
+                (3, 4): 6,
+                (4, 3): 7,
+            },
+        )
 
         # Check that reduction to subsystem_list is correct
         backend = DynamicsBackend.from_backend(self.valid_backend, subsystem_list=[0, 1, 2])
-        assert backend.options.control_channel_map == {(0, 1): 0, (1, 0): 1,
-                                                       (1, 2): 2, (2, 1): 3,
-                                                       (1, 3): 4
-                                                       }
+        self.assertDictEqual(
+            backend.options.control_channel_map,
+            {(0, 1): 0, (1, 0): 1, (1, 2): 2, (2, 1): 3, (1, 3): 4},
+        )
 
         # Check that manually setting the option after the declaration overwrites the previous map
-        backend.set_options(control_channel_map = {(0, 1): 3})
-        assert backend.options.control_channel_map == {(0, 1): 3}
+        backend.set_options(control_channel_map={(0, 1): 3})
+        self.assertDictEqual(backend.options.control_channel_map, {(0, 1): 3})
+
 
 class Test_default_experiment_result_function(QiskitDynamicsTestCase):
     """Test default_experiment_result_function."""
