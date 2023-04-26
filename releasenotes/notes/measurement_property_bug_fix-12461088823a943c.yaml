@@ -7,5 +7,5 @@ features:
 fixes:
   - |
     A bug in :meth:`DynamicsBackend.__init__` causing existing measurement instructions for a user-supplied
-    :class:`Target` has been fixed.
+    :class:`Target` to be overwritten has been fixed.
 
