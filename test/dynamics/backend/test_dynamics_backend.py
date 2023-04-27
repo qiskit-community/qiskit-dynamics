@@ -18,7 +18,6 @@ Test DynamicsBackend.
 from types import SimpleNamespace
 
 import numpy as np
-from qiskit.pulse import ControlChannel
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.sparse import csr_matrix
 
@@ -554,7 +553,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
     def test_valid_measurement_properties(self):
         """Test that DynamicsBackend instantiation always carries measurement instructions."""
 
-        # Case where no measurement instruction is added manually (which is the case for self.simple_backend)
+        # Case where no measurement instruction is added manually
         instruction_schedule_map = self.backend_2q.target.instruction_schedule_map()
         for q in range(self.simple_backend.num_qubits):
             self.assertTrue(instruction_schedule_map.has(instruction="measure", qubits=q))
@@ -669,14 +668,14 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
         ]
 
         configuration.control_channels = {
-            (0, 1): [ControlChannel(0)],
-            (1, 0): [ControlChannel(1)],
-            (1, 2): [ControlChannel(2)],
-            (2, 1): [ControlChannel(3)],
-            (1, 3): [ControlChannel(4)],
-            (3, 1): [ControlChannel(5)],
-            (3, 4): [ControlChannel(6)],
-            (4, 3): [ControlChannel(7)],
+            (0, 1): [pulse.ControlChannel(0)],
+            (1, 0): [pulse.ControlChannel(1)],
+            (1, 2): [pulse.ControlChannel(2)],
+            (2, 1): [pulse.ControlChannel(3)],
+            (1, 3): [pulse.ControlChannel(4)],
+            (3, 1): [pulse.ControlChannel(5)],
+            (3, 4): [pulse.ControlChannel(6)],
+            (4, 3): [pulse.ControlChannel(7)],
         }
 
         defaults = SimpleNamespace()
@@ -891,8 +890,8 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
         self.assertAllClose(expected_operators / 1e9, solver.model.operators / 1e9)
 
     def test_setting_control_channel_map(self):
-        """Test if control_channel_map argument is correctly set in DynamicsBackend options from the original
-        backend control_channel_map."""
+        """Test automatic padding of control_channel_map in DynamicsBackend
+        options from original backend."""
 
         # Check that manual setting of the map overrides the one from original backend
         control_channel_map = {(0, 1): 4}
@@ -901,7 +900,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
         )
         self.assertDictEqual(backend.options.control_channel_map, {(0, 1): 4})
 
-        # Check that control_channel_map from original backend is correctly set in the DynamicsBackend.options
+        # Check that control_channel_map from original backend is set in DynamicsBackend.options
         backend = DynamicsBackend.from_backend(self.valid_backend)
         self.assertDictEqual(
             backend.options.control_channel_map,
