@@ -593,7 +593,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
                     instruction_schedule_map.get("measure", q).instructions[0][1], pulse.Acquire
                 )
             )
-            self.assertEqual(instruction_schedule_map.get("measure", q).instructions, 1)
+            self.assertEqual(len(instruction_schedule_map.get("measure", q).instructions), 1)
             self.assertEqual(
                 instruction_schedule_map.get("measure", q).instructions[0][1].duration,
                 custom_meas_duration,
