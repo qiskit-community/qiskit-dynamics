@@ -446,7 +446,7 @@ class Test_to_sparse(QiskitDynamicsTestCase, TestNumpyBase):
         assert isinstance(unp.to_sparse(sparse_matrices)[0], csr_matrix)
 
 
-class Testto_BCOO(QiskitDynamicsTestCase, TestNumpyBase, TestJaxBase):
+class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
     """Test the to_BCOO function."""
 
     def test_None_to_None(self):
