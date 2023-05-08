@@ -26,11 +26,9 @@ from qiskit_dynamics.type_utils import (
     vec_dissipator,
     vec_commutator,
     to_array,
-    to_csr,
     to_BCOO,
     to_numeric_matrix_type,
 )
-from qiskit_dynamics.arraylias_state import ArrayLike
 from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
 
 
@@ -446,7 +444,7 @@ class Test_to_sparse(QiskitDynamicsTestCase, TestNumpyBase):
         assert isinstance(unp.to_sparse(sparse_matrices)[0], csr_matrix)
 
 
-class Testto_BCOO(QiskitDynamicsTestCase, TestJaxBase):
+class Test_to_BCOO(QiskitDynamicsTestCase, TestJaxBase):
     """Test the to_BCOO function."""
 
     def test_None_to_None(self):
@@ -523,16 +521,16 @@ class Test_to_numeric_matrix_type(QiskitDynamicsTestCase):
     def test_to_numeric_matrix_type(self):
         """Tests for to_numeric_matrix_type"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
-        normal_array = Array(np.array(list_of_ops))
-        list_of_arrays = [Array(op) for op in list_of_ops]
+        normal_array = unp.asarray(list_of_ops)
+        list_of_arrays = [unp.asarray(op) for op in list_of_ops]
         op_arr = [Operator.from_label(s) for s in "XYZ"]
         sparse_matrices = [csr_matrix(op) for op in list_of_ops]
-        self.assertAllClose(to_numeric_matrix_type(list_of_ops), normal_array)
-        self.assertAllClose(to_numeric_matrix_type(list_of_arrays), normal_array)
-        self.assertAllClose(to_numeric_matrix_type(op_arr), list_of_arrays)
+        self.assertAllClose(unp.to_numeric_matrix_type(list_of_ops), normal_array)
+        self.assertAllClose(unp.to_numeric_matrix_type(list_of_arrays), normal_array)
+        self.assertAllClose(unp.to_numeric_matrix_type(op_arr), list_of_arrays)
         for i in range(3):
             self.assertAllCloseSparse(
-                to_numeric_matrix_type(sparse_matrices)[i], sparse_matrices[i]
+                unp.to_numeric_matrix_type(sparse_matrices)[i], sparse_matrices[i]
             )
 
 
@@ -542,10 +540,10 @@ class Test_to_numeric_matrix_type_Jax(QiskitDynamicsTestCase, TestJaxBase):
     def test_to_numeric_matrix_type(self):
         """Tests for to_numeric_matrix_type"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
-        bcoo = jsparse.BCOO.fromdense(to_array(list_of_ops))
-        bcoo2 = to_numeric_matrix_type(bcoo)
+        bcoo = jsparse.BCOO.fromdense(unp.to_dense(list_of_ops))
+        bcoo2 = unp.to_numeric_matrix_type(bcoo)
         self.assertTrue(type(bcoo2).__name__ == "BCOO")
-        self.assertAllClose(bcoo.todense(), bcoo2.todense())
+        self.assertAllClose(bcoo.todense(), unp.to_dense(bcoo2))
 
 
 class TestTypeUtilsQutip(QiskitDynamicsTestCase, TestQutipBase):

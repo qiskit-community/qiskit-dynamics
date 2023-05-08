@@ -15,12 +15,12 @@
 """Configure custom instance of numpy alias for Dynamics."""
 
 from typing import Union
-from arraylias import numpy_alias
 from collections.abc import Iterable
+from arraylias import numpy_alias
 import numpy as np
 from scipy.sparse import spmatrix, csr_matrix
-from .array import Array
 from qiskit.quantum_info.operators import Operator
+from .array import Array
 
 
 try:
@@ -59,14 +59,14 @@ def _(arr):
     )
 
 
-@DYNAMICS_ALIAS.register_function(lib="scipy_sparse", path="asarray")
-def _(arr):
-    return np.asarray(arr)
+# @DYNAMICS_ALIAS.register_function(lib="scipy_sparse", path="asarray")
+# def _(arr):
+#     return np.asarray(arr)
 
 
-@DYNAMICS_ALIAS.register_function(lib="jax_sparse", path="asarray")
-def _(arr):
-    return jnp.asarray(arr)
+# @DYNAMICS_ALIAS.register_function(lib="jax_sparse", path="asarray")
+# def _(arr):
+#     return jnp.asarray(arr)
 
 
 @DYNAMICS_ALIAS.register_fallback(path="asarray")
@@ -76,7 +76,7 @@ def _(arr):
 
 # to_dense
 @DYNAMICS_ALIAS.register_default(path="to_dense")
-def _(op):
+def _():
     return None
 
 
@@ -118,7 +118,9 @@ def _(op):
 
 @DYNAMICS_ALIAS.register_function(lib="numpy", path="to_sparse")
 def _(op):
-    return csr_matrix(op)
+    if op.ndim < 3:
+        return csr_matrix(op)
+    return np.array([csr_matrix(sub_op) for sub_op in op])
 
 
 @DYNAMICS_ALIAS.register_function(lib="jax", path="to_sparse")
@@ -152,14 +154,36 @@ def _(op):
 
 
 # to_numeric_matrix_type
+@DYNAMICS_ALIAS.register_function(lib="numpy", path="to_numeric_matrix_type")
+def _(op):
+    return op
+
+
+@DYNAMICS_ALIAS.register_function(lib="jax", path="to_numeric_matrix_type")
+def _(op):
+    return op
+
+
+@DYNAMICS_ALIAS.register_function(lib="scipy_sparse", path="to_numeric_matrix_type")
+def _(op):
+    return op
+
+
+@DYNAMICS_ALIAS.register_function(lib="jax_sparse", path="to_numeric_matrix_type")
+def _(op):
+    return op
+
+
 @DYNAMICS_ALIAS.register_function(lib="iterable", path="to_numeric_matrix_type")
 def _(op):
-    return DYNAMICS_ALIAS().asarray([DYNAMICS_ALIAS().to_sparse(sub_op) for sub_op in op])
+    if isinstance(op[0], spmatrix):
+        return np.array([DYNAMICS_ALIAS().to_sparse(sub_op) for sub_op in op])
+    return DYNAMICS_ALIAS().asarray([DYNAMICS_ALIAS().to_dense(sub_op) for sub_op in op])
 
 
 @DYNAMICS_ALIAS.register_fallback(path="to_numeric_matrix_type")
 def _(op):
-    return DYNAMICS_ALIAS().asarray(op)
+    return op
 
 
 # cond
