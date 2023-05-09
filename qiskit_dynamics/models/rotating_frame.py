@@ -190,12 +190,8 @@ class RotatingFrame:
 
         if isinstance(op, list):
             return [self.operator_into_frame_basis(x, convert_type=False) for x in op]
-        # Is it unnecessary to separate cases if they are integrated into arraylias?
-        elif type(op).__name__ == "BCOO":
-            return self.frame_basis_adjoint @ jsparse_matmul(op, self.frame_basis.data)
-        else:
-            # parentheses are necessary for sparse op evaluation
-            return self.frame_basis_adjoint @ (op @ self.frame_basis)
+
+        return unp.rmatmul(unp.matmul(op, self.frame_basis), self.frame_basis_adjoint)
 
     def operator_out_of_frame_basis(
         self,
@@ -221,12 +217,8 @@ class RotatingFrame:
 
         if isinstance(op, list):
             return [self.operator_out_of_frame_basis(x, convert_type=False) for x in op]
-        # Is it unnecessary to separate cases if they are integrated into arraylias?
-        elif type(op).__name__ == "BCOO":
-            return self.frame_basis @ jsparse_matmul(op, self.frame_basis_adjoint.data)
-        else:
-            # parentheses are necessary for sparse op evaluation
-            return self.frame_basis @ (op @ self.frame_basis_adjoint)
+
+        return unp.rmatmul(unp.matmul(op, self.frame_basis_adjoint), self.frame_basis)
 
     def state_into_frame(
         self,

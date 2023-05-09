@@ -397,7 +397,7 @@ class Test_to_sparse(QiskitDynamicsTestCase, TestNumpyBase):
         """Tests for to_sparse with a single sparse matrix"""
         op = Operator.from_label("X")
         spm = csr_matrix(op)
-        ar = Array(op)
+        ar = unp.asarray(op)
         self.assertAllCloseSparse(unp.to_sparse(ar), spm)
 
     def test_to_sparse_sparse_matrix(self):

@@ -7,6 +7,9 @@ from .asarray import register_to_asarray
 from .to_dense import register_to_dense
 from .to_numeric_matrix_type import register_to_numeric_matrix_type
 from .to_sparse import register_to_sparse
+from .matmul import register_matmul
+from .rmatmul import register_rmatmul
+from .multiply import register_multiply
 
 from ..array import Array
 
@@ -39,6 +42,9 @@ register_to_asarray(alias=DYNAMICS_ALIAS)
 register_to_dense(alias=DYNAMICS_ALIAS)
 register_to_numeric_matrix_type(alias=DYNAMICS_ALIAS)
 register_to_sparse(alias=DYNAMICS_ALIAS)
+register_matmul(alias=DYNAMICS_ALIAS)
+register_multiply(alias=DYNAMICS_ALIAS)
+register_rmatmul(alias=DYNAMICS_ALIAS)
 
 DYNAMICS_NUMPY = DYNAMICS_ALIAS()
 
