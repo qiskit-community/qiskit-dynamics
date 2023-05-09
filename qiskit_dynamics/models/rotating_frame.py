@@ -22,8 +22,6 @@ from scipy.sparse import issparse
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_array, to_numeric_matrix_type
 from qiskit_dynamics.arraylias_state import ArrayLike
 from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
 
@@ -219,7 +217,6 @@ class RotatingFrame:
         """
         if convert_type:
             op = unp.to_numeric_matrix_type(op)
-
         if self.frame_basis is None or op is None:
             return op
 
@@ -393,7 +390,7 @@ class RotatingFrame:
         operator_in_frame_basis: Optional[bool] = False,
         return_in_frame_basis: Optional[bool] = False,
         vectorized_operators: Optional[bool] = False,
-    ) -> Array:
+    ) -> ArrayLike:
         r"""Bring an operator into the frame, i.e. return
         ``exp(-tF) @ operator @ exp(tF)``.
 
@@ -625,65 +622,65 @@ def _enforce_anti_herm(
         QiskitError: If ``mat`` is not Hermitian or anti-Hermitian.
     """
     mat = unp.to_dense(mat)
-    if mat.ndim == 1:
-        # this function checks if pure imaginary. If yes it returns the
-        # array, otherwise it multiplies it by jnp.nan to raise an error
-        # Note: pathways in conditionals in jax cannot raise Exceptions
-        def anti_herm_conditional(b):
-            aherm_pred = unp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
-            return unp.cond(aherm_pred, lambda A: A, lambda A: unp.nan * A, b)
+    # if mat.ndim == 1:
+    #     # this function checks if pure imaginary. If yes it returns the
+    #     # array, otherwise it multiplies it by jnp.nan to raise an error
+    #     # Note: pathways in conditionals in jax cannot raise Exceptions
+    #     def anti_herm_conditional(b):
+    #         aherm_pred = unp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
+    #         return unp.cond(aherm_pred, lambda A: A, lambda A: np.nan * A, b)
 
-        # Check if it is purely real, if not apply anti_herm_conditional
-        herm_pred = unp.allclose(mat, mat.conj(), atol=atol, rtol=rtol)
-        return unp.asarray(unp.cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
-    else:
-        # this function checks if anti-hermitian, if yes returns the array,
-        # otherwise it multiplies it by jnp.nan
-        def anti_herm_conditional(b):
-            aherm_pred = unp.allclose(b, -b.conj().transpose(), atol=atol, rtol=rtol)
-            return unp.cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b)
-
-        # the following lines check if a is hermitian, otherwise it feeds
-        # it into the anti_herm_conditional
-        herm_pred = unp.allclose(mat, mat.conj().transpose(), atol=atol, rtol=rtol)
-        return unp.asarray(unp.cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
-    # if mat.backend == "jax":
-    #     from jax.lax import cond
-
-    #     if mat.ndim == 1:
-    #         # this function checks if pure imaginary. If yes it returns the
-    #         # array, otherwise it multiplies it by jnp.nan to raise an error
-    #         # Note: pathways in conditionals in jax cannot raise Exceptions
-    #         def anti_herm_conditional(b):
-    #             aherm_pred = unp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
-    #             return cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b)
-
-    #         # Check if it is purely real, if not apply anti_herm_conditional
-    #         herm_pred = jnp.allclose(mat, mat.conj(), atol=atol, rtol=rtol)
-    #         return Array(cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
-    #     else:
-    #         # this function checks if anti-hermitian, if yes returns the array,
-    #         # otherwise it multiplies it by jnp.nan
-    #         def anti_herm_conditional(b):
-    #             aherm_pred = jnp.allclose(b, -b.conj().transpose(), atol=atol, rtol=rtol)
-    #             return cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b)
-
-    #         # the following lines check if a is hermitian, otherwise it feeds
-    #         # it into the anti_herm_conditional
-    #         herm_pred = jnp.allclose(mat, mat.conj().transpose(), atol=atol, rtol=rtol)
-    #         return Array(cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
-
+    #     # Check if it is purely real, if not apply anti_herm_conditional
+    #     herm_pred = unp.allclose(mat, mat.conj(), atol=atol, rtol=rtol)
+    #     return unp.asarray(unp.cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
     # else:
-    #     if mat.ndim == 1:
-    #         if np.allclose(mat, mat.conj(), atol=atol, rtol=rtol):
-    #             return -1j * mat
-    #         elif np.allclose(mat, -mat.conj(), atol=atol, rtol=rtol):
-    #             return mat
-    #     else:
-    #         if is_hermitian_matrix(mat, rtol=rtol, atol=atol):
-    #             return -1j * mat
-    #         elif is_hermitian_matrix(1j * mat, rtol=rtol, atol=atol):
-    #             return mat
+    #     # this function checks if anti-hermitian, if yes returns the array,
+    #     # otherwise it multiplies it by jnp.nan
+    #     def anti_herm_conditional(b):
+    #         aherm_pred = unp.allclose(b, -b.conj().transpose(), atol=atol, rtol=rtol)
+    #         return unp.cond(aherm_pred, lambda A: A, lambda A: np.nan * A, b)
 
-    #     # raise error if execution has made it this far
-    #     raise QiskitError("""frame_operator must be either a Hermitian or anti-Hermitian matrix.""")
+    #     # the following lines check if a is hermitian, otherwise it feeds
+    #     # it into the anti_herm_conditional
+    #     herm_pred = unp.allclose(mat, mat.conj().transpose(), atol=atol, rtol=rtol)
+    #     return unp.asarray(unp.cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
+    if not isinstance(mat, np.ndarray):
+        from jax.lax import cond
+
+        if mat.ndim == 1:
+            # this function checks if pure imaginary. If yes it returns the
+            # array, otherwise it multiplies it by jnp.nan to raise an error
+            # Note: pathways in conditionals in jax cannot raise Exceptions
+            def anti_herm_conditional(b):
+                aherm_pred = jnp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
+                return cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b)
+
+            # Check if it is purely real, if not apply anti_herm_conditional
+            herm_pred = jnp.allclose(mat, mat.conj(), atol=atol, rtol=rtol)
+            return unp.asarray(cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
+        else:
+            # this function checks if anti-hermitian, if yes returns the array,
+            # otherwise it multiplies it by jnp.nan
+            def anti_herm_conditional(b):
+                aherm_pred = jnp.allclose(b, -b.conj().transpose(), atol=atol, rtol=rtol)
+                return cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b)
+
+            # the following lines check if a is hermitian, otherwise it feeds
+            # it into the anti_herm_conditional
+            herm_pred = jnp.allclose(mat, mat.conj().transpose(), atol=atol, rtol=rtol)
+            return unp.asarray(cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
+
+    else:
+        if mat.ndim == 1:
+            if np.allclose(mat, mat.conj(), atol=atol, rtol=rtol):
+                return -1j * mat
+            elif np.allclose(mat, -mat.conj(), atol=atol, rtol=rtol):
+                return mat
+        else:
+            if is_hermitian_matrix(mat, rtol=rtol, atol=atol):
+                return -1j * mat
+            elif is_hermitian_matrix(1j * mat, rtol=rtol, atol=atol):
+                return mat
+
+        # raise error if execution has made it this far
+        raise QiskitError("""frame_operator must be either a Hermitian or anti-Hermitian matrix.""")

@@ -76,7 +76,7 @@ def _(arr):
 
 # to_dense
 @DYNAMICS_ALIAS.register_default(path="to_dense")
-def _():
+def _(op):
     return None
 
 
@@ -154,6 +154,11 @@ def _(op):
 
 
 # to_numeric_matrix_type
+@DYNAMICS_ALIAS.register_default(path="to_numeric_matrix_type")
+def _(op):
+    return None
+
+
 @DYNAMICS_ALIAS.register_function(lib="numpy", path="to_numeric_matrix_type")
 def _(op):
     return op
@@ -177,7 +182,7 @@ def _(op):
 @DYNAMICS_ALIAS.register_function(lib="iterable", path="to_numeric_matrix_type")
 def _(op):
     if isinstance(op[0], spmatrix):
-        return np.array([DYNAMICS_ALIAS().to_sparse(sub_op) for sub_op in op])
+        return [DYNAMICS_ALIAS().to_sparse(sub_op) for sub_op in op]
     return DYNAMICS_ALIAS().asarray([DYNAMICS_ALIAS().to_dense(sub_op) for sub_op in op])
 
 
@@ -187,12 +192,12 @@ def _(op):
 
 
 # cond
-@DYNAMICS_ALIAS.register_function(lib="numpy", path="cond")
-def _(pred, true_fun, false_fun, *operands):
-    if pred:
-        return true_fun(*operands)
-    else:
-        return false_fun(*operands)
+# @DYNAMICS_ALIAS.register_function(lib="numpy", path="cond")
+# def _(pred, true_fun, false_fun, *operands):
+#     if pred:
+#         return true_fun(*operands)
+#     else:
+#         return false_fun(*operands)
 
 
 DYNAMICS_NUMPY = DYNAMICS_ALIAS()
