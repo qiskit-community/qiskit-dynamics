@@ -318,10 +318,10 @@ class RotatingFrame:
             operator_in_fame_basis: Whether ``operator`` is already in the basis in which the frame
                 operator is diagonal.
             vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``
-                Array, rather than a ``(dim,dim)`` Array.
+                array, rather than a ``(dim,dim)`` array.
 
         Returns:
-            Array of the newly conjugated operator.
+            ArrayLike: Array of the newly conjugated operator.
         """
         operator = unp.to_numeric_matrix_type(operator)
         op_to_add_in_fb = unp.to_numeric_matrix_type(op_to_add_in_fb)
@@ -357,7 +357,6 @@ class RotatingFrame:
         # diagonal gives inversion
         exp_freq = unp.exp(self.frame_diag * t)
         frame_mat = exp_freq.conj().reshape(self.dim, 1) * exp_freq
-
         # need to define unp.matmul
         if issparse(out):
             out = out.multiply(frame_mat)
@@ -365,9 +364,9 @@ class RotatingFrame:
             out = out * frame_mat.data
         else:
             out = frame_mat * out
-
         if op_to_add_in_fb is not None:
-            op_to_add_in_fb = unp.to_sparse(op_to_add_in_fb)
+            if issparse(out) or type(out).__name__ == "BCOO":
+                op_to_add_in_fb = unp.to_sparse(op_to_add_in_fb)
 
             out = out + op_to_add_in_fb
 
@@ -403,10 +402,10 @@ class RotatingFrame:
                 the frame is diagonal.
             return_in_frame_basis: Whether or not to return the result in the frame basis.
             vectorized_operators: Whether ``operator`` is passed as a vectorized,
-                ``(dim**2,)`` Array, rather than a ``(dim,dim)`` Array.
+                ``(dim**2,)`` array, rather than a ``(dim,dim)`` array.
 
         Returns:
-            Array: The operator in the rotating frame.
+            ArrayLike: The operator in the rotating frame.
         """
         return self._conjugate_and_add(
             t,
@@ -436,10 +435,10 @@ class RotatingFrame:
                 the frame is diagonal.
             return_in_frame_basis: Whether or not to return the result in the frame basis.
             vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``
-                Array, rather than a ``(dim,dim)`` Array.
+                array, rather than a ``(dim,dim)`` array.
 
         Returns:
-            Array: The operator out of the rotating frame.
+            ArrayLike: The operator out of the rotating frame.
         """
         return self.operator_into_frame(
             -t,
@@ -469,10 +468,10 @@ class RotatingFrame:
                 the frame is diagonal.
             return_in_frame_basis: Whether or not to return the result in the frame basis.
             vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``
-                Array, rather than a ``(dim,dim)`` Array.
+                array, rather than a ``(dim,dim)`` array.
 
         Returns:
-            Array: The generator in the rotating frame.
+            ArrayLike: The generator in the rotating frame.
         """
         if self.frame_operator is None:
             return unp.to_numeric_matrix_type(operator)
@@ -507,7 +506,7 @@ class RotatingFrame:
             return_in_frame_basis: Whether or not to return the result in the frame basis.
 
         Returns:
-            Array: The generator out of the rotating frame.
+            ArrayLike: The generator out of the rotating frame.
         """
         if self.frame_operator is None:
             return unp.to_numeric_matrix_type(operator)
@@ -567,12 +566,12 @@ class RotatingFrame:
 
         Args:
             time: The time :math:`t`.
-            op: The ``(dim**2,dim**2)`` Array.
+            op: The ``(dim**2,dim**2)`` array.
             operator_in_frame_basis: Whether the operator is in the frame basis.
             return_in_frame_basis: Whether the operator should be returned in the frame basis.
 
         Returns:
-            ``op`` in the frame.
+            ArrayLike: ``op`` in the frame.
         """
         if self.frame_diag is not None:
             # Put the vectorized operator into the frame basis
@@ -598,7 +597,7 @@ class RotatingFrame:
 
 def _enforce_anti_herm(
     mat: ArrayLike, atol: Optional[float] = 1e-10, rtol: Optional[float] = 1e-10
-):
+) -> ArrayLike:
     r"""Given ``mat``, the logic of this function is:
         - if ``mat`` is hermitian, return ``-1j * mat``
         - if ``mat`` is anti-hermitian, return ``mat``
@@ -615,7 +614,7 @@ def _enforce_anti_herm(
         rtol: The relative tolerance.
 
     Returns:
-        Array: Anti-hermitian version of ``mat``, if applicable.
+        ArrayLike: Anti-hermitian version of ``mat``, if applicable.
 
     Raises:
         ImportError: If the backend is jax and jax is not installed.

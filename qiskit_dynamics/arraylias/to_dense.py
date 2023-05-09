@@ -4,7 +4,9 @@ import numpy as np
 def register_to_dense(alias):
     @alias.register_default(path="to_dense")
     def _(op):
-        return None
+        if op is None:
+            return None
+        return op
 
     @alias.register_function(lib="numpy", path="to_dense")
     def _(op):

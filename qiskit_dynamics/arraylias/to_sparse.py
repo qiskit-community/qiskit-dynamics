@@ -1,11 +1,16 @@
 import numpy as np
 from scipy.sparse import csr_matrix
+from qiskit_dynamics.type_utils import isinstance_qutip_qobj
 
 
 def register_to_sparse(alias):
     @alias.register_default(path="to_sparse")
     def _(op):
-        return None
+        if op is None:
+            return None
+        if isinstance_qutip_qobj(op):
+            return op.data
+        return op
 
     @alias.register_function(lib="numpy", path="to_sparse")
     def _(op):

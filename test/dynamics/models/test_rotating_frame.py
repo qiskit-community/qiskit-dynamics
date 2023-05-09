@@ -521,7 +521,6 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         t = 0.123
         y = qutip.Qobj([[1.0, 1]])
         out = rotating_frame.state_into_frame(t, y)
-        breakpoint()
         self.assertTrue(isinstance(out, csr_matrix))
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertTrue(isinstance(out, csr_matrix))
@@ -586,14 +585,13 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
     def test_conjugate_and_add_BCOO(self):
         """Test _conjugate_and_add with operator being BCOO."""
 
-        rotating_frame = RotatingFrame(self.asarray([1.0, -1.0]))
+        rotating_frame = RotatingFrame(unp.asarray([1.0, -1.0]))
 
         t = 0.123
         op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
         op_to_add = unp.to_sparse(self.asarray([[0.0, -0.11j], [0.0, 1.0]]))
         out = rotating_frame._conjugate_and_add(t, op, op_to_add)
         self.assertTrue(type(out).__name__ == "BCOO")
-
         self.assertAllClose(
             unp.to_dense(out),
             rotating_frame._conjugate_and_add(t, unp.to_dense(op), unp.to_dense(op_to_add)),
@@ -606,7 +604,7 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
 
         rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
 
-        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
+        op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
         output = rotating_frame.operator_into_frame_basis(op)
         expected = rotating_frame.operator_into_frame_basis(unp.to_dense(op))
 
@@ -619,9 +617,9 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
 
         rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
 
-        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
+        op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
         output = rotating_frame.operator_out_of_frame_basis(op)
-        expected = rotating_frame.operator_out_of_frame_basis(to_array(op))
+        expected = rotating_frame.operator_out_of_frame_basis(unp.to_dense(op))
 
         self.assertAllClose(output, expected)
 
