@@ -101,7 +101,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase, TestNumpyBase):
         """Test state_into_frame_basis for a list of sparse arrays."""
 
         ops = [csr_matrix([[0.0, 1.0], [1.0, 0.0]]), csr_matrix([[1.0, 0.0], [0.0, -1.0]])]
-        rotating_frame = RotatingFrame(np.array([[0.0, 1.0], [1.0, 0.0]]))
+        rotating_frame = RotatingFrame(unp.asarray([[0.0, 1.0], [1.0, 0.0]]))
 
         val = rotating_frame.operator_into_frame_basis(ops)
         U = rotating_frame.frame_basis
@@ -602,7 +602,7 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
         frame specified as full matrix.
         """
 
-        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
+        rotating_frame = RotatingFrame(unp.asarray([[1.0, 0.0], [0.0, -1.0]]))
 
         op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
         output = rotating_frame.operator_into_frame_basis(op)
@@ -615,7 +615,7 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
         frame specified as full matrix.
         """
 
-        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
+        rotating_frame = RotatingFrame(unp.asarray([[1.0, 0.0], [0.0, -1.0]]))
 
         op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
         output = rotating_frame.operator_out_of_frame_basis(op)
