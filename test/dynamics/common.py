@@ -28,7 +28,7 @@ try:
 except ImportError:
     pass
 
-from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.array import Array, wrap
 
 

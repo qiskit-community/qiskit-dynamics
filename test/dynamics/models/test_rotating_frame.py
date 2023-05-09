@@ -19,8 +19,8 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from scipy.sparse import csr_matrix
 from qiskit_dynamics.models.rotating_frame import RotatingFrame
-from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
-from qiskit_dynamics.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
 from ..common import QiskitDynamicsTestCase, TestJaxBase, TestNumpyBase
 
 
@@ -521,6 +521,7 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         t = 0.123
         y = qutip.Qobj([[1.0, 1]])
         out = rotating_frame.state_into_frame(t, y)
+        breakpoint()
         self.assertTrue(isinstance(out, csr_matrix))
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertTrue(isinstance(out, csr_matrix))

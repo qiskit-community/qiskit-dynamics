@@ -27,9 +27,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from qiskit import QiskitError
-from qiskit_dynamics.arraylias_state import ArrayLike
-from qiskit_dynamics.arraylias_state import DYNAMICS_ALIAS as alias
-from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_ALIAS as alias
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 
 
 class Signal:

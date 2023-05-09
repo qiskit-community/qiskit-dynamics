@@ -22,8 +22,8 @@ from scipy.sparse import issparse
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
-from qiskit_dynamics.arraylias_state import ArrayLike
-from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 
 try:
     import jax.numpy as jnp

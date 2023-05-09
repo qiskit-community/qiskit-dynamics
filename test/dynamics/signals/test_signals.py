@@ -19,7 +19,7 @@ import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
 from qiskit_dynamics.signals.signals import to_SignalSum
-from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 
 from ..common import QiskitDynamicsTestCase, TestJaxBase, TestNumpyBase
 

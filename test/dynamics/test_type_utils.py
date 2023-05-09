@@ -29,7 +29,7 @@ from qiskit_dynamics.type_utils import (
     to_BCOO,
     to_numeric_matrix_type,
 )
-from qiskit_dynamics.arraylias_state import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 
 
 from .common import QiskitDynamicsTestCase, TestJaxBase, TestNumpyBase, TestQutipBase
