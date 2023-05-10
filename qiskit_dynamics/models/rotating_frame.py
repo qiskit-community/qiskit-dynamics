@@ -612,28 +612,7 @@ def _enforce_anti_herm(
         QiskitError: If ``mat`` is not Hermitian or anti-Hermitian.
     """
     mat = unp.to_dense(mat)
-    # if mat.ndim == 1:
-    #     # this function checks if pure imaginary. If yes it returns the
-    #     # array, otherwise it multiplies it by jnp.nan to raise an error
-    #     # Note: pathways in conditionals in jax cannot raise Exceptions
-    #     def anti_herm_conditional(b):
-    #         aherm_pred = unp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
-    #         return unp.cond(aherm_pred, lambda A: A, lambda A: np.nan * A, b)
 
-    #     # Check if it is purely real, if not apply anti_herm_conditional
-    #     herm_pred = unp.allclose(mat, mat.conj(), atol=atol, rtol=rtol)
-    #     return unp.asarray(unp.cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
-    # else:
-    #     # this function checks if anti-hermitian, if yes returns the array,
-    #     # otherwise it multiplies it by jnp.nan
-    #     def anti_herm_conditional(b):
-    #         aherm_pred = unp.allclose(b, -b.conj().transpose(), atol=atol, rtol=rtol)
-    #         return unp.cond(aherm_pred, lambda A: A, lambda A: np.nan * A, b)
-
-    #     # the following lines check if a is hermitian, otherwise it feeds
-    #     # it into the anti_herm_conditional
-    #     herm_pred = unp.allclose(mat, mat.conj().transpose(), atol=atol, rtol=rtol)
-    #     return unp.asarray(unp.cond(herm_pred, lambda A: -1j * A, anti_herm_conditional, mat))
     if not isinstance(mat, np.ndarray):
         from jax.lax import cond
 
