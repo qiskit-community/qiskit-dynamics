@@ -783,6 +783,7 @@ class SignalList(SignalCollection):
     """
 
     def __init__(self, signal_list: List[Signal]):
+        breakpoint()
         signal_list = [to_SignalSum(signal) for signal in signal_list]
 
         super().__init__(signal_list)
@@ -1090,7 +1091,6 @@ def to_SignalSum(sig: Union[int, float, complex, ArrayLike, Signal]) -> SignalSu
     Raises:
         QiskitError: If the input type is incompatible with SignalSum.
     """
-
     if isinstance(sig, (int, float, complex)) or (isinstance(sig, ArrayLike) and sig.ndim == 0):
         return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):

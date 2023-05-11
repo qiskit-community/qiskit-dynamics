@@ -25,8 +25,8 @@ from qiskit_dynamics.models import (
     RotatingFrame,
 )
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_array
+from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 
 
 def rotating_wave_approximation(
@@ -147,7 +147,7 @@ def rotating_wave_approximation(
         if model.signals is None and model.operators is not None:
             raise ValueError("Model must have nontrivial signals to perform the RWA.")
 
-        cur_drift = to_array(model._get_static_operator(True))
+        cur_drift = unp.to_dense(model._get_static_operator(True))
         if cur_drift is not None:
             cur_drift = cur_drift + frame_shift
             rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
@@ -156,7 +156,7 @@ def rotating_wave_approximation(
             rwa_drift = None
 
         rwa_operators = get_rwa_operators(
-            to_array(model._get_operators(True)),
+            unp.to_dense(model._get_operators(True)),
             model.signals,
             model.rotating_frame,
             frame_freqs,
@@ -185,23 +185,23 @@ def rotating_wave_approximation(
             raise ValueError("Model must have nontrivial dissipator signals to perform the RWA.")
 
         # static hamiltonian part
-        cur_drift = to_array(model._get_static_hamiltonian(True)) + frame_shift
+        cur_drift = unp.to_dense(model._get_static_hamiltonian(True)) + frame_shift
         rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
         rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
 
         # static dissipator part
-        cur_static_dis = to_array(model._get_static_dissipators(in_frame_basis=True))
+        cur_static_dis = unp.to_dense(model._get_static_dissipators(in_frame_basis=True))
         rwa_static_dis = None
         if cur_static_dis is not None:
             rwa_static_dis = []
             for op in cur_static_dis:
-                op = Array(op)
+                op = unp.asarray(op)
                 rwa_op = op * (abs(frame_freqs) < cutoff_freq).astype(int)
                 rwa_op = model.rotating_frame.operator_out_of_frame_basis(rwa_op)
                 rwa_static_dis.append(rwa_op)
 
-        cur_ham_ops = to_array(model._get_hamiltonian_operators(in_frame_basis=True))
-        cur_dis_ops = to_array(model._get_dissipator_operators(in_frame_basis=True))
+        cur_ham_ops = unp.to_dense(model._get_hamiltonian_operators(in_frame_basis=True))
+        cur_dis_ops = unp.to_dense(model._get_dissipator_operators(in_frame_basis=True))
 
         cur_ham_sig, cur_dis_sig = model.signals
 
@@ -235,10 +235,10 @@ def rotating_wave_approximation(
 
 
 def get_rwa_operators(
-    current_ops: Array,
+    current_ops: ArrayLike,
     current_sigs: SignalList,
     rotating_frame: RotatingFrame,
-    frame_freqs: Array,
+    frame_freqs: ArrayLike,
     cutoff_freq: float,
 ):
     r"""Given a set of operators as a ``(k,n,n)`` array, a set of frequencies
@@ -314,5 +314,5 @@ def get_rwa_signals(curr_signal_list: Union[List[Signal], SignalList]):
         imag_signal_components.append(
             SignalSum(Signal(sig.envelope, sig.carrier_freq, sig.phase - np.pi / 2))
         )
-
+    breakpoint()
     return SignalList(real_signal_components + imag_signal_components)

@@ -16,7 +16,6 @@
 import numpy as np
 from scipy.sparse import issparse
 from qiskit.quantum_info import Operator
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.models import (
     GeneratorModel,
@@ -26,7 +25,8 @@ from qiskit_dynamics.models import (
     rotating_wave_approximation,
 )
 from qiskit_dynamics.models.rotating_wave_approximation import get_rwa_operators
-from qiskit_dynamics.type_utils import to_array
+from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
 
@@ -130,27 +130,27 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
 
     def test_generator_model_no_rotating_frame(self):
         """Tests whether RWA works in the absence of a rotating frame"""
-        ops = Array(np.ones((4, 2, 2)))
+        ops = unp.asarray(np.ones((4, 2, 2)))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
-        dft = Array(np.ones((2, 2)))
+        dft = unp.asarray(np.ones((2, 2)))
         GM = GeneratorModel(static_operator=dft, operators=ops, signals=sigs)
         GMP = rotating_wave_approximation(GM, 2)
-        self.assertAllClose(GMP._get_static_operator(True), Array(np.ones((2, 2))))
-        post_rwa_ops = Array(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * Array(
+        self.assertAllClose(GMP._get_static_operator(True), unp.asarray(np.ones((2, 2))))
+        post_rwa_ops = unp.asarray(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * unp.asarray(
             np.ones((8, 2, 2))
         )
         self.assertAllClose(GMP._get_operators(True), post_rwa_ops)
 
     def test_generator_model_no_rotating_frame_no_static_operator(self):
         """Test case of no frame and no static_operator."""
-        ops = Array(np.ones((4, 2, 2)))
+        ops = unp.asarray(np.ones((4, 2, 2)))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
 
         # test without static_operator
         GM = GeneratorModel(static_operator=None, operators=ops, signals=sigs)
         GMP = rotating_wave_approximation(GM, 2)
         self.assertTrue(GMP.static_operator is None)
-        post_rwa_ops = Array(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * Array(
+        post_rwa_ops = unp.asarray(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * unp.asarray(
             np.ones((8, 2, 2))
         )
         self.assertAllClose(GMP._get_operators(True), post_rwa_ops)
@@ -219,7 +219,7 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         """Compare evaluation of static dissipators with non-static."""
 
         np.random.seed(2314)
-        random_mats = lambda *args: Array(np.random.uniform(-1, 1, args))
+        random_mats = lambda *args: unp.asarray(np.random.uniform(-1, 1, args))
         random_complex_mats = lambda *args: random_mats(*args) + 1j * random_mats(*args)
 
         random_diss = random_complex_mats(3, 2, 2)
@@ -247,9 +247,9 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         """Tests signal translation from pre-RWA to post-RWA through
         rotating_wave_approximation.get_rwa_signals when passed a
         GeneratorModel."""
-        ops = Array(np.ones((4, 2, 2)))
+        ops = unp.asarray(np.ones((4, 2, 2)))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
-        dft = Array(np.ones((2, 2)))
+        dft = unp.asarray(np.ones((2, 2)))
         GM = GeneratorModel(operators=ops, signals=sigs, static_operator=dft, rotating_frame=None)
         f = rotating_wave_approximation(GM, 100, return_signal_map=True)[1]
         vals = f(sigs).complex_value(3)
@@ -265,7 +265,7 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
 
     def test_signal_translator_lindblad_model(self):
         """Like test_signal_translator_generator_model, but for LindbladModels."""
-        ops = Array(np.ones((4, 2, 2)))
+        ops = unp.asarray(np.ones((4, 2, 2)))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
         s_prime = [
             Signal(1, 0, -np.pi / 2),
@@ -273,7 +273,7 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
             Signal(1, 1, -np.pi / 2),
             Signal(1, 3, -np.pi / 2),
         ]
-        dft = Array(np.ones((2, 2)))
+        dft = unp.asarray(np.ones((2, 2)))
         LM = LindbladModel(
             static_hamiltonian=dft,
             hamiltonian_operators=ops,
@@ -293,7 +293,7 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
     def test_rwa_operators(self):
         """Tests get_rwa_operators using pseudorandom numbers."""
         np.random.seed(123098123)
-        r = lambda *args: Array(np.random.uniform(-1, 1, args))
+        r = lambda *args: unp.asarray(np.random.uniform(-1, 1, args))
         rj = lambda *args: r(*args) + 1j * r(*args)
         ops = rj(4, 3, 3)
         carrier_freqs = r(4)
@@ -330,8 +330,8 @@ class TestRotatingWaveApproximationJax(TestRotatingWaveApproximation, TestJaxBas
         """Tests that signal_map from the RWA is jitable and gradable."""
 
         sample_sigs = [Signal(1.0, 0.0), Signal(1.0, -3.0), Signal(1.0, 1.0), Signal(1.0, 3.0)]
-        ops = Array(np.ones((4, 2, 2)))
-        static_operator = Array(np.ones((2, 2)))
+        ops = unp.asarray(np.ones((4, 2, 2)))
+        static_operator = unp.asarray(np.ones((2, 2)))
         model = GeneratorModel(
             operators=ops,
             signals=sample_sigs,
@@ -390,7 +390,7 @@ class TestRotatingWaveApproximationSparse(QiskitDynamicsTestCase):
         else:
             self.assertTrue(issparse(op))
 
-        self.assertAllClose(to_array(op), to_array(expected))
+        self.assertAllClose(unp.to_sparse(op), unp.to_sparse(expected))
 
 
 class TestRotatingWaveApproximationSparseJax(TestRotatingWaveApproximationSparse, TestJaxBase):
@@ -399,4 +399,4 @@ class TestRotatingWaveApproximationSparseJax(TestRotatingWaveApproximationSparse
     def assertSparseEquality(self, op, expected):
         """Validate that op is sparse and is equal to expected."""
         self.assertTrue(type(op).__name__ == "BCOO")
-        self.assertAllClose(to_array(op), to_array(expected))
+        self.assertAllClose(unp.to_sparse(op), unp.to_sparse(expected))

@@ -358,7 +358,6 @@ class RotatingFrame:
         if op_to_add_in_fb is not None:
             if issparse(out) or type(out).__name__ == "BCOO":
                 op_to_add_in_fb = unp.to_sparse(op_to_add_in_fb)
-
             out = out + op_to_add_in_fb
 
         # if output is requested to not be in the frame basis, convert it
