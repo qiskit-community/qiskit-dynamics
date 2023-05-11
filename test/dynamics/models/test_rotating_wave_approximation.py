@@ -25,7 +25,6 @@ from qiskit_dynamics.models import (
     rotating_wave_approximation,
 )
 from qiskit_dynamics.models.rotating_wave_approximation import get_rwa_operators
-from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
 from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 from ..common import QiskitDynamicsTestCase, TestJaxBase
 
@@ -136,9 +135,9 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         GM = GeneratorModel(static_operator=dft, operators=ops, signals=sigs)
         GMP = rotating_wave_approximation(GM, 2)
         self.assertAllClose(GMP._get_static_operator(True), unp.asarray(np.ones((2, 2))))
-        post_rwa_ops = unp.asarray(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * unp.asarray(
-            np.ones((8, 2, 2))
-        )
+        post_rwa_ops = unp.asarray(
+            np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))
+        ) * unp.asarray(np.ones((8, 2, 2)))
         self.assertAllClose(GMP._get_operators(True), post_rwa_ops)
 
     def test_generator_model_no_rotating_frame_no_static_operator(self):
@@ -150,9 +149,9 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         GM = GeneratorModel(static_operator=None, operators=ops, signals=sigs)
         GMP = rotating_wave_approximation(GM, 2)
         self.assertTrue(GMP.static_operator is None)
-        post_rwa_ops = unp.asarray(np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))) * unp.asarray(
-            np.ones((8, 2, 2))
-        )
+        post_rwa_ops = unp.asarray(
+            np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1))
+        ) * unp.asarray(np.ones((8, 2, 2)))
         self.assertAllClose(GMP._get_operators(True), post_rwa_ops)
 
     def test_generator_model_rotating_frame_no_operators(self):

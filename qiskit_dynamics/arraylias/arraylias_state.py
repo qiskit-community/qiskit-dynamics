@@ -35,7 +35,7 @@ DYNAMICS_ALIAS.register_type(Operator, lib="operator")
 
 # register required custom versions of functions for Iterable type here
 # need to discuss registering Iterable type because the coverage of Iterable is too broad.
-DYNAMICS_ALIAS.register_type(Iterable, lib="iterable")
+DYNAMICS_ALIAS.register_type(list, lib="list")
 
 
 register_to_asarray(alias=DYNAMICS_ALIAS)

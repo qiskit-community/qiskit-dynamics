@@ -33,6 +33,6 @@ def register_to_dense(alias):
     def _(op):
         return np.asarray(op)
 
-    @alias.register_function(lib="iterable", path="to_dense")
+    @alias.register_function(lib="list", path="to_dense")
     def _(op):
         return alias().asarray([alias().to_dense(sub_op) for sub_op in op])

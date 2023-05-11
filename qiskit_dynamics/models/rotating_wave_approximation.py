@@ -314,5 +314,4 @@ def get_rwa_signals(curr_signal_list: Union[List[Signal], SignalList]):
         imag_signal_components.append(
             SignalSum(Signal(sig.envelope, sig.carrier_freq, sig.phase - np.pi / 2))
         )
-    breakpoint()
     return SignalList(real_signal_components + imag_signal_components)

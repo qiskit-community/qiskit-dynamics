@@ -783,7 +783,6 @@ class SignalList(SignalCollection):
     """
 
     def __init__(self, signal_list: List[Signal]):
-        breakpoint()
         signal_list = [to_SignalSum(signal) for signal in signal_list]
 
         super().__init__(signal_list)
