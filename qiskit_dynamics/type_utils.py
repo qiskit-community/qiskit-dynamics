@@ -27,6 +27,8 @@ from scipy.sparse import identity as sparse_identity
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 
 try:
     from jax.experimental import sparse as jsparse
@@ -245,8 +247,8 @@ def type_spec_from_instance(y):
 
 
 def vec_commutator(
-    A: Union[Array, csr_matrix, List[csr_matrix]]
-) -> Union[Array, csr_matrix, List[csr_matrix]]:
+    A: Union[ArrayLike, csr_matrix, List[csr_matrix]]
+) -> Union[ArrayLike, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map X -> -i[A, X]
     in column-stacking convention. In column-stacking convention we have
 
@@ -279,8 +281,8 @@ def vec_commutator(
         out = [-1j * (sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden)) for mat in A]
         return out
 
-    A = to_array(A)
-    iden = Array(np.eye(A.shape[-1]))
+    A = unp.to_dense(A)
+    iden = unp.asarray(np.eye(A.shape[-1]))
     axes = list(range(A.ndim))
     axes[-1] = axes[-2]
     axes[-2] += 1
@@ -288,8 +290,8 @@ def vec_commutator(
 
 
 def vec_dissipator(
-    L: Union[Array, csr_matrix, List[csr_matrix]]
-) -> Union[Array, csr_matrix, List[csr_matrix]]:
+    L: Union[ArrayLike, csr_matrix, List[csr_matrix]]
+) -> Union[ArrayLike, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)
     in column stacking convention.
@@ -319,10 +321,10 @@ def vec_dissipator(
         ]
         return out
 
-    iden = Array(np.eye(L.shape[-1]))
+    iden = unp.asarray(np.eye(L.shape[-1]))
     axes = list(range(L.ndim))
 
-    L = to_array(L)
+    L = unp.to_dense(L)
     axes[-1] = axes[-2]
     axes[-2] += 1
     Lconj = L.conj()

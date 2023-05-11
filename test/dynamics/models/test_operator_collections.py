@@ -31,25 +31,28 @@ from qiskit_dynamics.models.operator_collections import (
     SparseVectorizedLindbladCollection,
     JAXSparseVectorizedLindbladCollection,
 )
+from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, TestJaxBase, TestNumpyBase
 
 try:
     from jax.experimental import sparse as jsparse
+    from jax import random
 except ImportError:
     pass
 
 
-class TestDenseOperatorCollection(QiskitDynamicsTestCase):
+class TestDenseOperatorCollection(QiskitDynamicsTestCase, TestNumpyBase):
     """Tests for DenseOperatorCollection."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+        self.X = self.asarray(Operator.from_label("X").data)
+        self.Y = self.asarray(Operator.from_label("Y").data)
+        self.Z = self.asarray(Operator.from_label("Z").data)
 
-        self.test_operator_list = Array([self.X, self.Y, self.Z])
+        self.test_operator_list = unp.asarray([self.X, self.Y, self.Z])
         self.simple_collection = DenseOperatorCollection(
             operators=self.test_operator_list, static_operator=None
         )
@@ -96,7 +99,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(self.X, collection(None))
 
 
-class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
+class TestDenseOperatorCollectionJax(TestJaxBase, TestDenseOperatorCollection):
     """Jax version of TestDenseOperatorCollection tests.
 
     Note: This class has more tests due to inheritance.
@@ -105,24 +108,23 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
     def test_functions_jitable(self):
         """Tests that all class functions are jittable."""
         doc = DenseOperatorCollection(
-            operators=Array(self.test_operator_list),
-            static_operator=Array(self.test_operator_list[0]),
+            operators=unp.asarray(self.test_operator_list),
+            static_operator=unp.asarray(self.test_operator_list[0]),
         )
-        rand.seed(3423)
-        coeffs = rand.uniform(-1, 1, 3)
-        self.jit_wrap(doc.evaluate)(Array(coeffs))
-        self.jit_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
+        coeffs = random.uniform(key=random.PRNGKey(3423), shape=[3], minval=-1, maxval=1)
+        breakpoint()
+        self.jit_wrap(doc.evaluate)(unp.asarray(coeffs))
+        self.jit_wrap(doc.evaluate_rhs)(unp.asarray(coeffs), self.X)
 
     def test_functions_gradable(self):
         """Tests that all class functions are gradable."""
         doc = DenseOperatorCollection(
-            operators=Array(self.test_operator_list),
-            static_operator=Array(self.test_operator_list[0]),
+            operators=unp.asarray(self.test_operator_list),
+            static_operator=unp.asarray(self.test_operator_list[0]),
         )
-        rand.seed(5433)
-        coeffs = rand.uniform(-1, 1, 3)
-        self.jit_grad_wrap(doc.evaluate)(Array(coeffs))
-        self.jit_grad_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
+        coeffs = random.uniform(key=random.PRNGKey(5433), shape=[3], minval=-1, maxval=1)
+        self.jit_grad_wrap(doc.evaluate)(unp.asarray(coeffs))
+        self.jit_grad_wrap(doc.evaluate_rhs)(unp.asarray(coeffs), self.X)
 
 
 class TestSparseOperatorCollection(QiskitDynamicsTestCase):
@@ -136,25 +138,25 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
             collection(None)
 
         with self.assertRaisesRegex(QiskitError, "cannot be evaluated."):
-            collection(None, np.array([1.0, 0.0]))
+            collection(None, unp.asarray([1.0, 0.0]))
 
     def test_evaluate_simple_case(self):
         """Simple test case."""
 
         collection = SparseOperatorCollection(operators=[np.eye(2), [[0.0, 1.0], [1.0, 0.0]]])
 
-        value = collection(np.array([1.0, 2.0]))
+        value = collection(unp.asarray([1.0, 2.0]))
         self.assertTrue(issparse(value))
         self.assertAllCloseSparse(value, csr_matrix([[1.0, 2.0], [2.0, 1.0]]))
 
         # 2d case
-        value = collection(np.array([1.0, 2.0]), np.ones((2, 2)))
-        self.assertTrue(isinstance(value, (np.ndarray, Array)))
+        value = collection(unp.asarray([1.0, 2.0]), np.ones((2, 2)))
+        self.assertTrue(isinstance(value, ArrayLike))
         self.assertAllClose(value, 3.0 * np.ones((2, 2)))
 
         # 1d case
-        value = collection(np.array([1.0, 2.0]), np.array([1.0, 1.0]))
-        self.assertTrue(isinstance(value, (np.ndarray, Array)))
+        value = collection(unp.asarray([1.0, 2.0]), unp.asarray([1.0, 1.0]))
+        self.assertTrue(isinstance(value, ArrayLike))
         self.assertAllClose(value, np.array([3.0, 3.0]))
 
     def test_consistency_with_dense_pseudorandom(self):
@@ -183,17 +185,18 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         for _ in range(4):
             op = r(3, 3)
             ham_ops.append(Operator(op))
-            ham_ops_alt.append(Array(op))
+            ham_ops_alt.append(unp.asarray(op))
         sigVals = r(4)
         static_operator_numpy_array = r(3, 3)
         sparse_collection_operator_list = SparseOperatorCollection(
             operators=ham_ops, static_operator=Operator(static_operator_numpy_array)
         )
         sparse_collection_array_list = SparseOperatorCollection(
-            operators=ham_ops_alt, static_operator=to_array(static_operator_numpy_array)
+            operators=ham_ops_alt, static_operator=unp.to_dense(static_operator_numpy_array)
         )
         sparse_collection_pure_array = SparseOperatorCollection(
-            operators=to_array(ham_ops), static_operator=to_array(static_operator_numpy_array)
+            operators=unp.to_dense(ham_ops),
+            static_operator=unp.to_dense(static_operator_numpy_array),
         )
         a = sparse_collection_operator_list(sigVals)
         b = sparse_collection_array_list(sigVals)
@@ -206,7 +209,7 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         X = csr_matrix([[0.0, 1.0], [1.0, 0.0]])
         collection = SparseOperatorCollection(static_operator=X)
         self.assertAllCloseSparse(X, collection(None))
-        self.assertAllClose(np.array([0.0, 1.0]), collection(None, np.array([1.0, 0.0])))
+        self.assertAllClose(np.array([0.0, 1.0]), collection(None, unp.asarray([1.0, 0.0])))
 
 
 class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):

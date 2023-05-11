@@ -22,6 +22,8 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
 from qiskit_dynamics.array import Array, wrap
 from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
+from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 
 try:
     import jax.numpy as jnp
@@ -84,34 +86,36 @@ class BaseOperatorCollection(ABC):
             return self.operators[0].shape[-1]
 
     @property
-    def static_operator(self) -> Array:
+    def static_operator(self) -> ArrayLike:
         """The static part of the operator collection."""
 
     @static_operator.setter
-    def static_operator(self, new_static_operator: Optional[Array] = None):
+    def static_operator(self, new_static_operator: Optional[ArrayLike] = None):
         pass
 
     @property
-    def operators(self) -> Array:
+    def operators(self) -> ArrayLike:
         """The operators of this collection."""
 
     @operators.setter
-    def operators(self, new_operators: Array) -> Array:
+    def operators(self, new_operators: ArrayLike) -> ArrayLike:
         pass
 
     @abstractmethod
-    def evaluate(self, signal_values: Array) -> Array:
+    def evaluate(self, signal_values: ArrayLike) -> ArrayLike:
         r"""Evaluate the operator :math:`\Lambda(c, \cdot) = (G_d + \sum_jc_jG_j)`.
 
         Args:
             signal_values: The signals values :math:`c` to use on the operators.
 
         Returns:
-            An :class:`~Array` that acts on states ``y`` via multiplication.
+            An ArrayLike that acts on states ``y`` via multiplication.
         """
 
     @abstractmethod
-    def evaluate_rhs(self, signal_values: Union[List[Array], Array], y: Array) -> Array:
+    def evaluate_rhs(
+        self, signal_values: Union[List[ArrayLike], ArrayLike], y: ArrayLike
+    ) -> ArrayLike:
         r"""Evaluate the function and return :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y`.
 
         Args:
@@ -123,8 +127,8 @@ class BaseOperatorCollection(ABC):
         """
 
     def __call__(
-        self, signal_values: Union[List[Array], Array], y: Optional[Array] = None
-    ) -> Array:
+        self, signal_values: Union[List[ArrayLike], ArrayLike], y: Optional[ArrayLike] = None
+    ) -> ArrayLike:
         """Call :meth:`~evaluate` or :meth:`~evaluate_rhs` depending on the presense of ``y``.
 
         Args:
@@ -147,31 +151,31 @@ class DenseOperatorCollection(BaseOperatorCollection):
     """
 
     @property
-    def static_operator(self) -> Array:
+    def static_operator(self) -> ArrayLike:
         """The static part of the operator collection."""
         return self._static_operator
 
     @static_operator.setter
-    def static_operator(self, new_static_operator: Array):
-        self._static_operator = to_array(new_static_operator)
+    def static_operator(self, new_static_operator: ArrayLike):
+        self._static_operator = unp.to_dense(new_static_operator)
 
     @property
-    def operators(self) -> Array:
+    def operators(self) -> ArrayLike:
         """Operators in the collection."""
         return self._operators
 
     @operators.setter
-    def operators(self, new_operators: Array):
-        self._operators = to_array(new_operators)
+    def operators(self, new_operators: ArrayLike):
+        self._operators = unp.to_dense(new_operators)
 
-    def evaluate(self, signal_values: Union[Array, None]) -> Array:
+    def evaluate(self, signal_values: Union[ArrayLike, None]) -> ArrayLike:
         r"""Evaluate the operator :math:`\Lambda(c, \cdot) = (G_d + \sum_jc_jG_j)`.
 
         Args:
             signal_values: The signals values :math:`c` to use on the operators.
 
         Returns:
-            An :class:`~Array` that acts on states ``y`` via multiplication.
+            An ArrayLike that acts on states ``y`` via multiplication.
 
         Raises:
             QiskitError: If both static_operator and operators are ``None``.
@@ -187,7 +191,7 @@ class DenseOperatorCollection(BaseOperatorCollection):
             "evaluated."
         )
 
-    def evaluate_rhs(self, signal_values: Union[Array, None], y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: Union[ArrayLike, None], y: ArrayLike) -> ArrayLike:
         r"""Evaluate the function and return :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y`.
 
         Args:
@@ -205,15 +209,15 @@ class SparseOperatorCollection(BaseOperatorCollection):
 
     def __init__(
         self,
-        static_operator: Optional[Union[Array, Operator]] = None,
-        operators: Optional[Union[Array, List[Operator]]] = None,
+        static_operator: Optional[Union[ArrayLike, Operator]] = None,
+        operators: Optional[Union[ArrayLike, List[Operator]]] = None,
         decimals: Optional[int] = 10,
     ):
         """Initialize.
 
         Args:
-            static_operator: (n,n) Array specifying the static_operator term :math:`G_d`.
-            operators: (k,n,n) Array specifying the terms :math:`G_j`.
+            static_operator: (n,n) array specifying the static_operator term :math:`G_d`.
+            operators: (k,n,n) arrray specifying the terms :math:`G_j`.
             decimals: Values will be rounded at ``decimals`` places after decimal.
         """
         self._decimals = decimals
@@ -227,7 +231,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
     @static_operator.setter
     def static_operator(self, new_static_operator: csr_matrix):
         if new_static_operator is not None:
-            self._static_operator = np.round(to_csr(new_static_operator), self._decimals)
+            self._static_operator = np.round(unp.to_sparse(new_static_operator), self._decimals)
         else:
             self._static_operator = None
 
@@ -241,21 +245,21 @@ class SparseOperatorCollection(BaseOperatorCollection):
     @operators.setter
     def operators(self, new_operators: List[csr_matrix]):
         if new_operators is not None:
-            new_operators_to_csr = to_csr(list(new_operators))
+            new_operators_to_csr = unp.to_sparse(list(new_operators))
             new_operators = np.empty(shape=len(new_operators_to_csr), dtype="O")
             for idx, new_op in enumerate(new_operators_to_csr):
                 new_operators[idx] = csr_matrix(np.round(new_op, self._decimals))
 
         self._operators = new_operators
 
-    def evaluate(self, signal_values: Union[Array, None]) -> csr_matrix:
+    def evaluate(self, signal_values: Union[ArrayLike, None]) -> csr_matrix:
         r"""Evaluate the operator :math:`\Lambda(c, \cdot) = (G_d + \sum_jc_jG_j)`.
 
         Args:
             signal_values: The signals values :math:`c` to use on the operators.
 
         Returns:
-            An :class:`~Array` that acts on states ``y`` via multiplication.
+            An ArrayLike that acts on states ``y`` via multiplication.
 
         Raises:
             QiskitError: If collection cannot be evaluated.
@@ -273,7 +277,7 @@ class SparseOperatorCollection(BaseOperatorCollection):
             "evaluated."
         )
 
-    def evaluate_rhs(self, signal_values: Union[Array, None], y: Array) -> Array:
+    def evaluate_rhs(self, signal_values: Union[ArrayLike, None], y: ArrayLike) -> ArrayLike:
         r"""Evaluate the function and return :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y`.
 
         Args:

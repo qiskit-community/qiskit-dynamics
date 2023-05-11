@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.sparse import csr_matrix
-from qiskit_dynamics.type_utils import isinstance_qutip_qobj
+from .utils import isinstance_qutip_qobj
 
 
 def register_to_sparse(alias):
