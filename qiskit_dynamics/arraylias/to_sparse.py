@@ -40,7 +40,7 @@ def register_to_sparse(alias):
     def _(op):
         return csr_matrix(op)
 
-    @alias.register_function(lib="iterable", path="to_sparse")
+    @alias.register_function(lib="list", path="to_sparse")
     def _(op):
         try:
             import jax.numpy as jnp

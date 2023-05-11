@@ -36,7 +36,7 @@ def register_to_numeric_matrix_type(alias):
     def _(op):
         return op
 
-    @alias.register_function(lib="iterable", path="to_numeric_matrix_type")
+    @alias.register_function(lib="list", path="to_numeric_matrix_type")
     def _(op):
         if isinstance(op[0], spmatrix) or isinstance_qutip_qobj(op[0]):
             return [alias().to_sparse(sub_op) for sub_op in op]
