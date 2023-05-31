@@ -1,0 +1,6 @@
+---
+issues:
+  - |
+    Due to a bug in JAX, Dynamics can only be used with versions of jax and jaxlib <=0.4.6. As they
+    depends on newer versions of JAX, Dynamics is also now only compatible with diffrax<=0.3.1 and
+    equinox<=0.10.3.
