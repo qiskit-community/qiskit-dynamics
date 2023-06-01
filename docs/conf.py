@@ -12,10 +12,6 @@
 
 # pylint: disable=invalid-name
 
-"""
-Sphinx documentation builder
-"""
-
 # General options:
 
 project = 'Qiskit Dynamics'
@@ -40,7 +36,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'nbsphinx',
     'sphinxcontrib.bibtex',
-    "sphinxcontrib.jquery",  # Remove when changing html_theme to qiskit_ecosystem.
+    "qiskit_sphinx_theme",
 ]
 templates_path = ["_templates"]
 
