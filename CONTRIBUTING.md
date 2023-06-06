@@ -152,7 +152,7 @@ as:
 fixes:
   - |
     Fixes a race condition in the function ``foo()``. Refer to
-    `#12345 <https://github.com/Qiskit/qiskit-dynamics/issues/12345>` for more
+    `#12345 <https://github.com/Qiskit-Extensions/qiskit-dynamics/issues/12345>` for more
     details.
 ```
 
