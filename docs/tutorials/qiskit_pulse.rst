@@ -48,22 +48,19 @@ First, we use the pulse module in Qiskit to create a pulse schedule.
     # Sample rate of the backend in ns.
     dt = 1 / 4.5
 
-    # Define gaussian envelope function to have a pi rotation.
-    amp = 1.
-    area = 1
-    sig = area*0.399128/r/amp
+    # Define gaussian envelope function to approximately implement an sx gate.
+    amp = 1. / 1.75
+    sig = 0.6985/r/amp
     T = 4*sig
     duration = int(T / dt)
     beta = 2.0
 
-    # The 1.75 factor is used to approximately get a sx gate.
-    # Further "calibration" could be done to refine the pulse amplitude.
-    with pulse.build(name="sx-sy schedule") as xp:
-        pulse.play(pulse.Drag(duration, amp / 1.75, sig / dt, beta), pulse.DriveChannel(0))
+    with pulse.build(name="sx-sy schedule") as sxp:
+        pulse.play(pulse.Drag(duration, amp, sig / dt, beta), pulse.DriveChannel(0))
         pulse.shift_phase(np.pi/2, pulse.DriveChannel(0))
-        pulse.play(pulse.Drag(duration, amp / 1.75, sig / dt, beta), pulse.DriveChannel(0))
+        pulse.play(pulse.Drag(duration, amp, sig / dt, beta), pulse.DriveChannel(0))
 
-    xp.draw()
+    sxp.draw()
 
 
 2. Convert the pulse schedule to a :class:`.Signal`
@@ -87,7 +84,7 @@ virtual ``Z`` gate is applied.
 
     converter = InstructionToSignals(dt, carriers={"d0": w})
 
-    signals = converter.get_signals(xp)
+    signals = converter.get_signals(sxp)
     fig, axs = plt.subplots(1, 2, figsize=(14, 4.5))
     for ax, title in zip(axs, ["envelope", "signal"]):
         signals[0].draw(0, 2*T, 2000, title, axis=ax)
@@ -146,7 +143,7 @@ and in this case should produce identical behavior.
     # Start the qubit in its ground state.
     y0 = Statevector([1., 0.])
 
-    %time sol = hamiltonian_solver.solve(t_span=[0., 2*T], y0=y0, signals=xp, atol=1e-8, rtol=1e-8)
+    %time sol = hamiltonian_solver.solve(t_span=[0., 2*T], y0=y0, signals=sxp, atol=1e-8, rtol=1e-8)
 
 
 .. jupyter-execute::
