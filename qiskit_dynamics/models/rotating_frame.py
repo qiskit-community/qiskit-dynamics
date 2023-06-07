@@ -23,6 +23,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.arraylias.arraylias_state import ArrayLike
+from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_ALIAS
 from qiskit_dynamics.arraylias.arraylias_state import DYNAMICS_NUMPY as unp
 
 try:
@@ -333,7 +334,8 @@ class RotatingFrame:
                 return operator
             else:
                 if op_to_add_in_fb is not None:
-                    op_to_add_in_fb = unp.to_sparse(op_to_add_in_fb)
+                    if issparse(out) or type(out).__name__ == "BCOO":
+                        op_to_add_in_fb = DYNAMICS_ALIAS(like=out).asarray(op_to_add_in_fb)
 
                 return operator + op_to_add_in_fb
 
@@ -357,7 +359,7 @@ class RotatingFrame:
             out = frame_mat * out
         if op_to_add_in_fb is not None:
             if issparse(out) or type(out).__name__ == "BCOO":
-                op_to_add_in_fb = unp.to_sparse(op_to_add_in_fb)
+                op_to_add_in_fb = DYNAMICS_ALIAS(like=out).asarray(op_to_add_in_fb)
 
             out = out + op_to_add_in_fb
 
