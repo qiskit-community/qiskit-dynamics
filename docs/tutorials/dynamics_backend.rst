@@ -143,13 +143,16 @@ differential equation. The full list of allowable ``solver_options`` are the arg
 :func:`.solve_ode`.
 
 Note that, to enable the internal automatic jit-compilation, we choose a JAX integration method.
+Furthermore, note that in the solver options we set the max step size to the pulse sample width
+``dt`` via the ``"hmax"`` argument for the method ``"jax_odeint"``. This is important for preventing
+variable step solvers from accidentally stepping over pulses in schedules with long idle times.
 
 .. jupyter-execute::
 
     from qiskit_dynamics import DynamicsBackend
     
     # Consistent solver option to use throughout notebook
-    solver_options = {"method": "jax_odeint", "atol": 1e-6, "rtol": 1e-8}
+    solver_options = {"method": "jax_odeint", "atol": 1e-6, "rtol": 1e-8, "hmax": dt}
     
     backend = DynamicsBackend(
         solver=solver,
