@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    The :meth:`DynamicsBackend.from_backend` method has been updated to automatically populate the 
+    ``control_channel_map`` option based on the supplied backend if the user does not supply one.
+
+fixes:
+  - |
+    A bug in :meth:`DynamicsBackend.__init__` causing existing measurement instructions for a
+    user-supplied :class:`Target` to be overwritten has been fixed.
+

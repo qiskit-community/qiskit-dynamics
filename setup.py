@@ -23,8 +23,8 @@ requirements = [
     "multiset>=3.0.1",
 ]
 
-jax_extras = ['jax>=0.2.26',
-              'jaxlib>=0.1.75']
+jax_extras = ['jax>=0.2.26, <= 0.4.6',
+              'jaxlib>=0.1.75, <= 0.4.6']
 
 PACKAGES = setuptools.find_packages(exclude=['test*'])
 
@@ -47,7 +47,7 @@ setuptools.setup(
     description="Qiskit ODE solver",
     long_description=README,
     long_description_content_type='text/markdown',
-    url="https://github.com/Qiskit/qiskit-dynamics",
+    url="https://github.com/Qiskit-Extensions/qiskit-dynamics",
     author="Qiskit Development Team",
     author_email="qiskit@qiskit.org",
     license="Apache 2.0",
@@ -68,9 +68,9 @@ setuptools.setup(
     ],
     keywords="qiskit sdk quantum",
     project_urls={
-        "Bug Tracker": "https://github.com/Qiskit/qiskit-dynamics/issues",
-        "Source Code": "https://github.com/Qiskit/qiskit-dynamics",
-        "Documentation": "https://qiskit.org/documentation/dynamics",
+        "Bug Tracker": "https://github.com/Qiskit-Extensions/qiskit-dynamics/issues",
+        "Source Code": "https://github.com/Qiskit-Extensions/qiskit-dynamics",
+        "Documentation": "https://qiskit.org/ecosystem/dynamics/",
     },
     install_requires=requirements,
     include_package_data=True,

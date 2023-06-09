@@ -126,7 +126,7 @@ along with the structure of the differential equation:
   - To compute the truncated perturbative expansion, the signal envelopes are
     approximated as a linear combination of Chebyshev polynomials.
   - The order of the Chebyshev approximations, along with central carrier frequencies
-    for defining the “envelope” of each ``Signal``, must be provided at instantiation.
+    for defining the “envelope” of each :class:`.Signal`, must be provided at instantiation.
 
 See the :class:`.DysonSolver` API docs for more details.
 

@@ -555,6 +555,31 @@ class TestDysonProduct(QiskitDynamicsTestCase):
             perturbation_labels=perturbation_labels,
         )
 
+    def test__get_dyson_lmult_rule_power_series_case1_missing(self):
+        """Test _get_dyson_lmult_rule for higher order terms in the generator
+        decomposition case 1 where there is no corresponding perturbation_label term for
+        a desired expansion term.
+        """
+
+        expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [Multiset(label) for label in expansion_labels]
+        perturbation_labels = [[0], [0, 1], [1, 1]]
+        perturbation_labels = [Multiset(label) for label in perturbation_labels]
+        expected_lmult_rule = [
+            (np.ones(1, dtype=float), np.array([[-1, -1]])),
+            (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
+            (np.ones(1, dtype=float), np.array([[-1, 1]])),
+            (np.ones(3, dtype=float), np.array([[-1, 2], [0, 1], [1, -1]])),
+            (np.ones(2, dtype=float), np.array([[-1, 3], [2, -1]])),
+            (np.ones(4, dtype=float), np.array([[-1, 4], [0, 3], [1, 1], [2, 0]])),
+        ]
+
+        self._test__get_dyson_lmult_rule(
+            expansion_labels,
+            expected_lmult_rule,
+            perturbation_labels=perturbation_labels,
+        )
+
     def test__get_dyson_lmult_rule_power_series_case2(self):
         """Test _get_dyson_lmult_rule for higher order terms in the generator
         decomposition case 2.
@@ -571,6 +596,36 @@ class TestDysonProduct(QiskitDynamicsTestCase):
             (np.ones(4, dtype=float), np.array([[-1, 2], [0, 1], [1, 0], [3, -1]])),
             (np.ones(2, dtype=float), np.array([[-1, 3], [1, 1]])),
             (np.ones(4, dtype=float), np.array([[-1, 4], [0, 3], [1, 2], [3, 1]])),
+        ]
+
+        self._test__get_dyson_lmult_rule(
+            expansion_labels,
+            expected_lmult_rule,
+            perturbation_labels=perturbation_labels,
+        )
+
+    def test__get_dyson_lmult_rule_power_series_case2_unordered(self):
+        """Test _get_dyson_lmult_rule for higher order terms in the generator
+        decomposition case 2, with the perturbation_labels being non-canonically ordered.
+
+        Note that the conversion of case2 to case2_unordered requires relabelling 1 <-> 3
+        in expected_lmult_rule, but also changing the ordering of the pairs in the matrix-product
+        description of expected_lmult_rule, as the rule is constructed by iterating through the
+        entries of perturbation_labels. The matrix-product description must be ordered by the first
+        index.
+        """
+
+        expansion_labels = [[0], [1], [0, 1], [1, 1], [0, 1, 1]]
+        expansion_labels = [Multiset(label) for label in expansion_labels]
+        perturbation_labels = [[0], [0, 1], [2], [1]]
+        perturbation_labels = [Multiset(label) for label in perturbation_labels]
+        expected_lmult_rule = [
+            (np.ones(1, dtype=float), np.array([[-1, -1]])),
+            (np.ones(2, dtype=float), np.array([[-1, 0], [0, -1]])),
+            (np.ones(2, dtype=float), np.array([[-1, 1], [3, -1]])),
+            (np.ones(4, dtype=float), np.array([[-1, 2], [0, 1], [1, -1], [3, 0]])),
+            (np.ones(2, dtype=float), np.array([[-1, 3], [3, 1]])),
+            (np.ones(4, dtype=float), np.array([[-1, 4], [0, 3], [1, 1], [3, 2]])),
         ]
 
         self._test__get_dyson_lmult_rule(
@@ -652,11 +707,10 @@ class TestDysonProduct(QiskitDynamicsTestCase):
         self._test__get_dyson_lmult_rule(expansion_labels, expected_lmult_rule)
 
     def _test__get_dyson_lmult_rule(
-        self, complete_symmetric_dyson_term_list, expected, perturbation_labels=None
+        self, complete_index_multisets, expected, perturbation_labels=None
     ):
-        """Run a test case for _get_symmetric_dyson_mult_rules."""
-        lmult_rule = _get_dyson_lmult_rule(complete_symmetric_dyson_term_list, perturbation_labels)
-
+        """Run a test case for _get_dyson_lmult_rule."""
+        lmult_rule = _get_dyson_lmult_rule(complete_index_multisets, perturbation_labels)
         self.assertMultRulesEqual(lmult_rule, expected)
 
     def assertMultRulesEqual(self, rule1, rule2):

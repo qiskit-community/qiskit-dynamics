@@ -143,13 +143,16 @@ differential equation. The full list of allowable ``solver_options`` are the arg
 :func:`.solve_ode`.
 
 Note that, to enable the internal automatic jit-compilation, we choose a JAX integration method.
+Furthermore, note that in the solver options we set the max step size to the pulse sample width
+``dt`` via the ``"hmax"`` argument for the method ``"jax_odeint"``. This is important for preventing
+variable step solvers from accidentally stepping over pulses in schedules with long idle times.
 
 .. jupyter-execute::
 
     from qiskit_dynamics import DynamicsBackend
     
     # Consistent solver option to use throughout notebook
-    solver_options = {"method": "jax_odeint", "atol": 1e-6, "rtol": 1e-8}
+    solver_options = {"method": "jax_odeint", "atol": 1e-6, "rtol": 1e-8, "hmax": dt}
     
     backend = DynamicsBackend(
         solver=solver,
@@ -318,8 +321,9 @@ To enable running of the single qubit experiments, we add the following to the `
   backend. 
 - Add definitions of ``RZ`` gates as phase shifts. These instructions control the phase of the drive
   channels, as well as any control channels acting on a given qubit.
-- Add a ``CX`` gate which applies to all qubits. While this tutorial will not be utilizing it, this
-  ensures that validation steps checking that the device is fully connected will pass.
+- Add a ``CX`` gate between qubits :math:`(0, 1)` and :math:`(1, 0)`. While this tutorial will not 
+  be utilizing it, this ensures that validation steps checking that the device is fully connected 
+  will pass.
 
 .. jupyter-execute::
 
@@ -336,7 +340,7 @@ To enable running of the single qubit experiments, we add the following to the `
     target.add_instruction(XGate(), properties={(0,): None, (1,): None})
     target.add_instruction(SXGate(), properties={(0,): None, (1,): None})
 
-    target.add_instruction(CXGate())
+    target.add_instruction(CXGate(), properties={(0, 1): None, (1, 0): None})
     
     # Add RZ instruction as phase shift for drag cal
     phi = Parameter("phi")
@@ -471,11 +475,6 @@ values for the single qubit gates calibrated above.
 .. jupyter-execute::
 
     from qiskit_experiments.library import CrossResonanceHamiltonian
-
-    backend.target.add_instruction(
-        instruction=CrossResonanceHamiltonian.CRPulseGate(width=Parameter("width")), 
-        properties={(0, 1): None, (1, 0): None}
-    )
 
     cr_ham_experiment = CrossResonanceHamiltonian(
         qubits=(0, 1), 
