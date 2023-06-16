@@ -17,26 +17,15 @@
 
 try:
     import jax
-    from jax.interpreters.xla import DeviceArray
+    from jax import Array
     from jax.core import Tracer
-    from jax.interpreters.ad import JVPTracer
-    from jax.interpreters.partial_eval import JaxprTracer
 
-    JAX_TYPES = (DeviceArray, Tracer, JaxprTracer, JVPTracer)
+    JAX_TYPES = (Array, Tracer)
 
     try:
-        # This class was introduced in 0.4.0
-        from jax import Array
-
-        JAX_TYPES += (Array,)
-    except ImportError:
-        pass
-
-    try:
-        # This class is not in older versions of Jax
-        from jax.interpreters.partial_eval import DynamicJaxprTracer
-
-        JAX_TYPES += (DynamicJaxprTracer,)
+        # in versions <= 0.4.10
+        from jax.interpreters.xla import DeviceArray
+        JAX_TYPES += (DeviceArray,)
     except ImportError:
         pass
 
