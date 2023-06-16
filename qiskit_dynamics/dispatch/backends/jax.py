@@ -25,6 +25,7 @@ try:
     try:
         # in versions <= 0.4.10
         from jax.interpreters.xla import DeviceArray
+
         JAX_TYPES += (DeviceArray,)
     except ImportError:
         pass
