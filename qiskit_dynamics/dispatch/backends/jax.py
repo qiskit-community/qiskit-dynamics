@@ -26,7 +26,11 @@ try:
 
     if version.parse(jax.__version__) >= version.parse("0.4.4"):
         import os
-        if version.parse(jax.__version__) > version.parse("0.4.6") or os.environ.get('JAX_JIT_PJIT_API_MERGE', None) != '0':
+
+        if (
+            version.parse(jax.__version__) > version.parse("0.4.6")
+            or os.environ.get("JAX_JIT_PJIT_API_MERGE", None) != "0"
+        ):
             warnings.warn(
                 "The functionality in the perturbation module of Qiskit Dynamics requires a JAX "
                 "version <= 0.4.6, due to a bug in JAX versions > 0.4.6. For versions 0.4.4, "
