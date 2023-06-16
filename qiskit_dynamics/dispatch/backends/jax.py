@@ -20,6 +20,19 @@ try:
     from jax import Array
     from jax.core import Tracer
 
+    # warning based on JAX version
+    from packaging import version
+    import warnings
+    if version.parse(jax.__version__) >= version.parse("0.4.4"):
+        warnings.warn(
+            "The functionality in the perturbation module of Qiskit Dynamics requires a JAX "
+            "version <= 0.4.6, due to a bug in JAX versions > 0.4.6. For versions 0.4.4, 0.4.5, "
+            "and 0.4.6, using the perturbation module functionality requires setting "
+            "os.environ['JAX_JIT_PJIT_API_MERGE'] = '0' before importing JAX."
+        )
+
+
+
     JAX_TYPES = (Array, Tracer)
 
     try:
