@@ -23,6 +23,7 @@ try:
     # warning based on JAX version
     from packaging import version
     import warnings
+
     if version.parse(jax.__version__) >= version.parse("0.4.4"):
         warnings.warn(
             "The functionality in the perturbation module of Qiskit Dynamics requires a JAX "
@@ -31,12 +32,11 @@ try:
             "os.environ['JAX_JIT_PJIT_API_MERGE'] = '0' before importing JAX."
         )
 
-
-
     JAX_TYPES = (Array, Tracer)
 
+    # in versions <= 0.4.10
     try:
-        # in versions <= 0.4.10
+        # pylint: disable=ungrouped-imports
         from jax.interpreters.xla import DeviceArray
 
         JAX_TYPES += (DeviceArray,)
