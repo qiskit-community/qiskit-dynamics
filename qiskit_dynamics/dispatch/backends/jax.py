@@ -17,28 +17,28 @@
 
 try:
     import jax
-    from jax.interpreters.xla import DeviceArray
+    from jax import Array
     from jax.core import Tracer
-    from jax.interpreters.ad import JVPTracer
-    from jax.interpreters.partial_eval import JaxprTracer
 
-    JAX_TYPES = (DeviceArray, Tracer, JaxprTracer, JVPTracer)
+    # warning based on JAX version
+    from packaging import version
+    import warnings
 
-    try:
-        # This class was introduced in 0.4.0
-        from jax import Array
+    if version.parse(jax.__version__) >= version.parse("0.4.4"):
+        import os
 
-        JAX_TYPES += (Array,)
-    except ImportError:
-        pass
+        if (
+            version.parse(jax.__version__) > version.parse("0.4.6")
+            or os.environ.get("JAX_JIT_PJIT_API_MERGE", None) != "0"
+        ):
+            warnings.warn(
+                "The functionality in the perturbation module of Qiskit Dynamics requires a JAX "
+                "version <= 0.4.6, due to a bug in JAX versions > 0.4.6. For versions 0.4.4, "
+                "0.4.5, and 0.4.6, using the perturbation module functionality requires setting "
+                "os.environ['JAX_JIT_PJIT_API_MERGE'] = '0' before importing JAX or Dynamics."
+            )
 
-    try:
-        # This class is not in older versions of Jax
-        from jax.interpreters.partial_eval import DynamicJaxprTracer
-
-        JAX_TYPES += (DynamicJaxprTracer,)
-    except ImportError:
-        pass
+    JAX_TYPES = (Array, Tracer)
 
     from ..dispatch import Dispatch
     import numpy as np
@@ -53,7 +53,7 @@ try:
     def _jax_asarray(array, dtype=None, order=None):
         """Wrapper for jax.numpy.asarray"""
         if (
-            isinstance(array, DeviceArray)
+            isinstance(array, JAX_TYPES)
             and order is None
             and (dtype is None or dtype == array.dtype)
         ):
