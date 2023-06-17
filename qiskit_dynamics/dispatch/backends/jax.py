@@ -40,15 +40,6 @@ try:
 
     JAX_TYPES = (Array, Tracer)
 
-    # in versions <= 0.4.10
-    try:
-        # pylint: disable=ungrouped-imports
-        from jax.interpreters.xla import DeviceArray
-
-        JAX_TYPES += (DeviceArray,)
-    except ImportError:
-        pass
-
     from ..dispatch import Dispatch
     import numpy as np
     from .numpy import _numpy_repr
@@ -62,7 +53,7 @@ try:
     def _jax_asarray(array, dtype=None, order=None):
         """Wrapper for jax.numpy.asarray"""
         if (
-            isinstance(array, DeviceArray)
+            isinstance(array, JAX_TYPES)
             and order is None
             and (dtype is None or dtype == array.dtype)
         ):
