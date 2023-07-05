@@ -146,7 +146,10 @@ def _get_memory_slot_probabilities(
 
 
 def _sample_probability_dict(
-    probability_dict: Dict, shots: int, normalize_probabilities: bool = True, seed: Optional[int] = None,
+    probability_dict: Dict,
+    shots: int,
+    normalize_probabilities: bool = True,
+    seed: Optional[int] = None,
 ) -> List[str]:
     """Sample outcomes based on probability dictionary.
 
