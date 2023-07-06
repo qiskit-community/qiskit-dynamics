@@ -785,7 +785,7 @@ def default_experiment_result_function(
 
     yf = solver_result.y[-1]
     tf = solver_result.t[-1]
-    print(yf.trace())
+
     # Take state out of frame, put in dressed basis, and normalize
     if isinstance(yf, Statevector):
         yf = np.array(backend.options.solver.model.rotating_frame.state_out_of_frame(t=tf, y=yf))
