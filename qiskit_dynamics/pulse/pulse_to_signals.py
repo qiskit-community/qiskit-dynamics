@@ -388,8 +388,8 @@ def _nyquist_warn(frequency_shift: Array, dt: float, channel: str):
         Array(frequency_shift).backend != "jax" or not isinstance(jnp.array(0), jax.core.Tracer)
     ) and np.abs(frequency_shift) > 0.5 / dt:
         warn(
-            "Due to SetFrequency and ShiftFrequency instructions, there is a frequency deviation "
-            f"from the analog carrier frequency of channel {channel} larger than the Nyquist "
-            "frequency of the envelope sample size dt. As shifts of the frequency from the analog "
-            "frequency are handled digitally, this will result in aliasing effects."
+            "Due to SetFrequency and ShiftFrequency instructions, the digital carrier frequency "
+            f"of channel {channel} is larger than the Nyquist frequency of the envelope sample "
+            "size dt. As shifts of the frequency from the analog frequency are handled digitally, "
+            "this will result in aliasing effects."
         )
