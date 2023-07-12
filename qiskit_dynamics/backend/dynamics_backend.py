@@ -118,9 +118,9 @@ class DynamicsBackend(BackendV2):
       indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
       ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
     * ``normalize_states``: Boolean indicating whether to normalize states before computing outcome
-      probabilities. Defaults to ``True``. Setting to ``False`` can result in errors if the solution
-      tolerance results in probabilities with significant numerical deviation from a proper
-      probability distribution.
+      probabilities, and normalize probablities before sampling. Defaults to ``True``. Setting to
+      ``False`` can result in errors if the solution tolerance results in probabilities with
+      significant numerical deviation from a proper probability distribution.
     * ``meas_level``: Form of measurement output. Supported values are ``1`` and ``2``. ``1``
       returns IQ points and ``2`` returns counts. Defaults to ``meas_level == 2``.
     * ``meas_return``: Level of measurement data to return. For ``meas_level = 1`` ``"single"``
@@ -819,7 +819,10 @@ def default_experiment_result_function(
 
         # sample
         memory_samples = _sample_probability_dict(
-            memory_slot_probabilities, shots=backend.options.shots, seed=seed
+            memory_slot_probabilities,
+            shots=backend.options.shots,
+            normalize_probabilities=backend.options.normalize_states,
+            seed=seed,
         )
         counts = _get_counts_from_samples(memory_samples)
 
