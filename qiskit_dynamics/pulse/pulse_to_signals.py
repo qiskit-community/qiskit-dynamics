@@ -16,6 +16,7 @@ Pulse schedule to Signals converter.
 
 from typing import Callable, Dict, List, Optional
 import functools
+from warnings import warn
 
 import numpy as np
 import sympy as sym
@@ -188,14 +189,15 @@ class InstructionToSignals:
             if isinstance(inst, ShiftPhase):
                 phases[chan] += inst.phase
 
+            if isinstance(inst, SetPhase):
+                phases[chan] = inst.phase
+            
             if isinstance(inst, ShiftFrequency):
                 frequency_shifts[chan] = frequency_shifts[chan] + Array(inst.frequency)
                 phase_accumulations[chan] = (
                     phase_accumulations[chan] - inst.frequency * start_sample * self._dt
                 )
-
-            if isinstance(inst, SetPhase):
-                phases[chan] = inst.phase
+                _nyquist_warn(frequency_shifts[chan], self._dt, chan)
 
             if isinstance(inst, SetFrequency):
                 phase_accumulations[chan] = phase_accumulations[chan] - (
@@ -204,6 +206,7 @@ class InstructionToSignals:
                     * self._dt
                 )
                 frequency_shifts[chan] = inst.frequency - signals[chan].carrier_freq
+                _nyquist_warn(frequency_shifts[chan], self._dt, chan)
 
         # ensure all signals have the same number of samples
         max_duration = 0
@@ -367,3 +370,15 @@ def _lru_cache_expr(expr: sym.Expr, backend) -> Callable:
             continue
         params.append(param)
     return sym.lambdify(params, expr, modules=backend)
+
+
+def _nyquist_warn(frequency_shift: float, dt: float, channel: str):
+    """Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``."""
+
+    if np.abs(frequency_shift) > 0.5 / dt:
+        warn(
+            "Due to SetFrequency and ShiftFrequency instructions, there is a frequency deviation "
+            f"from the analog carrier frequency of channel {channel} larger than the Nyquist "
+            "frequency of the envelope sample size dt. As shifts of the frequency from the analog "
+            "frequency are handled digitally, this will result in aliasing effects."
+        )
