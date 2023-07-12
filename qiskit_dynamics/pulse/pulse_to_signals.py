@@ -139,7 +139,7 @@ class InstructionToSignals:
           :math:`\Delta\nu \mapsto \mu - \nu`, where :math:`\nu` is the analog carrier frequency.
           Similarly to ``ShiftFrequency``, the shift rule for :math:`\phi_a` is defined to maintain
           carrier wave continuity.
-        
+
         If, at any sample point :math:`k`, :math:`\Delta\nu(k)` is larger than the Nyquist sampling
         rate given by ``dt``, a warning will be raised.
 
@@ -200,7 +200,7 @@ class InstructionToSignals:
 
             if isinstance(inst, SetPhase):
                 phases[chan] = inst.phase
-            
+
             if isinstance(inst, ShiftFrequency):
                 frequency_shifts[chan] = frequency_shifts[chan] + Array(inst.frequency)
                 phase_accumulations[chan] = (
@@ -384,7 +384,9 @@ def _lru_cache_expr(expr: sym.Expr, backend) -> Callable:
 def _nyquist_warn(frequency_shift: Array, dt: float, channel: str):
     """Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``."""
 
-    if (Array(frequency_shift).backend != "jax" or not isinstance(jnp.array(0), jax.core.Tracer)) and np.abs(frequency_shift) > 0.5 / dt:
+    if (
+        Array(frequency_shift).backend != "jax" or not isinstance(jnp.array(0), jax.core.Tracer)
+    ) and np.abs(frequency_shift) > 0.5 / dt:
         warn(
             "Due to SetFrequency and ShiftFrequency instructions, there is a frequency deviation "
             f"from the analog carrier frequency of channel {channel} larger than the Nyquist "
