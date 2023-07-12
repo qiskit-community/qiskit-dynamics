@@ -139,6 +139,9 @@ class InstructionToSignals:
           :math:`\Delta\nu \mapsto \mu - \nu`, where :math:`\nu` is the analog carrier frequency.
           Similarly to ``ShiftFrequency``, the shift rule for :math:`\phi_a` is defined to maintain
           carrier wave continuity.
+        
+        If, at any sample point :math:`k`, :math:`\Delta\nu(k)` is larger than the Nyquist sampling
+        rate given by ``dt``, a warning will be raised.
 
         Args:
             schedule: The schedule to represent in terms of signals. Instances of
