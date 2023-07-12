@@ -41,6 +41,12 @@ from qiskit import QiskitError
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import DiscreteSignal
 
+try:
+    import jax
+    import jax.numpy as jnp
+except ImportError:
+    pass
+
 
 class InstructionToSignals:
     """Converts pulse instructions to signals to be used in models.
@@ -372,10 +378,10 @@ def _lru_cache_expr(expr: sym.Expr, backend) -> Callable:
     return sym.lambdify(params, expr, modules=backend)
 
 
-def _nyquist_warn(frequency_shift: float, dt: float, channel: str):
+def _nyquist_warn(frequency_shift: Array, dt: float, channel: str):
     """Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``."""
 
-    if np.abs(frequency_shift) > 0.5 / dt:
+    if (Array(frequency_shift).backend != "jax" or not isinstance(jnp.array(0), jax.core.Tracer)) and np.abs(frequency_shift) > 0.5 / dt:
         warn(
             "Due to SetFrequency and ShiftFrequency instructions, there is a frequency deviation "
             f"from the analog carrier frequency of channel {channel} larger than the Nyquist "
