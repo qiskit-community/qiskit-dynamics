@@ -146,7 +146,10 @@ def _get_memory_slot_probabilities(
 
 
 def _sample_probability_dict(
-    probability_dict: Dict, shots: int, seed: Optional[int] = None
+    probability_dict: Dict,
+    shots: int,
+    normalize_probabilities: bool = True,
+    seed: Optional[int] = None,
 ) -> List[str]:
     """Sample outcomes based on probability dictionary.
 
@@ -154,6 +157,8 @@ def _sample_probability_dict(
         probability_dict: Dictionary representing probability distribution, with keys being
             outcomes, values being probabilities.
         shots: Number of shots.
+        normalize_probabilities: Whether or not to normalize the probabilities to sum to 1 before
+            sampling.
         seed: Seed to use in rng construction.
 
     Return:
@@ -161,6 +166,11 @@ def _sample_probability_dict(
     """
     rng = np.random.default_rng(seed=seed)
     alphabet, probs = zip(*probability_dict.items())
+
+    if normalize_probabilities:
+        probs = np.array(probs)
+        probs = probs / probs.sum()
+
     return rng.choice(alphabet, size=shots, replace=True, p=probs)
 
 
