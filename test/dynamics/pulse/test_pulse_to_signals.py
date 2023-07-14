@@ -39,6 +39,19 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         # Typical length of samples in units of dt in IBM real backends is 1/4.5.
         self._dt = 1 / 4.5
 
+    def test_nyquist_warning(self):
+        """Test Nyquist warning is raised."""
+        converter = InstructionToSignals(dt=1, carriers={"d0": 0.0})
+
+        sched = Schedule(name="Schedule")
+        sched += pulse.SetFrequency(1.0, pulse.DriveChannel(0))
+        sched += pulse.Play(
+            pulse.Drag(duration=20, amp=0.5, sigma=4, beta=0.5), pulse.DriveChannel(0)
+        )
+
+        with self.assertWarnsRegex(Warning, "Due to SetFrequency and ShiftFrequency"):
+            converter.get_signals(sched)
+
     def test_pulse_to_signals(self):
         """Generic test."""
 
