@@ -96,16 +96,13 @@ class Signal:
             envelope = Array(complex(envelope))
 
         if isinstance(envelope, Array):
-            carrier_freq = Array(carrier_freq)
 
             # if envelope is constant and the carrier is zero, this is a constant signal
-            if (
-                not (
-                    carrier_freq.backend == "jax" and isinstance(carrier_freq.data, jax.core.Tracer)
-                )
-                and carrier_freq == 0.0
-            ):
-                self._is_constant = True
+            try:
+                if carrier_freq == 0.0:
+                    self._is_constant = True
+            except:
+                pass
 
             if envelope.backend == "jax":
                 self._envelope = lambda t: envelope * jnp.ones_like(Array(t).data)
