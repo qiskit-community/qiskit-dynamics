@@ -933,6 +933,22 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
         jit_grad_eval = jit(grad(eval_const))
         self.assertAllClose(jit_grad_eval(3.0), 1.0)
 
+    def test_jit_grad_carrier_freq_construct(self):
+        """Test jit/gradding through a function that constructs a signal and takes carrier frequency
+        as an argument.
+        """
+
+        def eval_sig(a, v, t):
+            a = Array(a)
+            v = Array(v)
+            return Array(Signal(a, v)(t)).data
+
+        jit_eval = jit(eval_sig)
+        self.assertAllClose(jit_eval(1.0, 1.0, 1.0), 1.0)
+
+        jit_grad_eval = jit(grad(eval_sig))
+        self.assertAllClose(jit_grad_eval(1.0, 1.0, 1.0), 1.0)
+
     def test_signal_list_jit_eval(self):
         """Test jit-compilation of SignalList evaluation."""
         call_jit = jit(lambda t: Array(self.signal_list(t)).data)
