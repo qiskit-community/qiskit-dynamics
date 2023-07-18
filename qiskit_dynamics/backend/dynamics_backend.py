@@ -187,12 +187,17 @@ class DynamicsBackend(BackendV2):
         # Set simulator options
         self.set_options(solver=solver, **options)
 
+        """
+        ###############################################################################################
         if self.options.subsystem_labels is None:
             labels = list(range(len(self.options.subsystem_dims)))
             self.set_options(subsystem_labels=labels)
-
+        """
+            
         if self.options.meas_map is None:
-            meas_map = [[idx] for idx in self.options.subsystem_labels]
+            ##########################################################################################
+            #meas_map = [[idx] for idx in self.options.subsystem_labels]
+            meas_map = [[idx] for idx in range(len(self.options.subsystem_dims))]
             self.set_options(meas_map=meas_map)
 
         # self._target = target or Target() doesn't work as bool(target) can be False
@@ -204,7 +209,9 @@ class DynamicsBackend(BackendV2):
         # add default simulator measure instructions
         measure_properties = {}
         instruction_schedule_map = target.instruction_schedule_map()
-        for qubit in self.options.subsystem_labels:
+        #############################################################################################
+        #for qubit in self.options.subsystem_labels:
+        for qubit in range(len(self.options.subsystem_dims)):
             if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
                 with pulse.build() as meas_sched:
                     pulse.acquire(
@@ -226,7 +233,8 @@ class DynamicsBackend(BackendV2):
             solver=None,
             solver_options={},
             subsystem_dims=None,
-            subsystem_labels=None,
+            ##########################################################################################
+            #subsystem_labels=None,
             meas_map=None,
             control_channel_map=None,
             normalize_states=True,
@@ -383,7 +391,8 @@ class DynamicsBackend(BackendV2):
             measurement_subsystems_list,
             memory_slot_indices_list,
         ) = _get_acquire_instruction_timings(
-            schedules, backend.options.subsystem_labels, backend.options.solver._dt
+            #schedules, backend.options.subsystem_labels, backend.options.solver._dt
+            schedules, backend.options.solver._dt
         )
 
         # Build and submit job
@@ -484,11 +493,16 @@ class DynamicsBackend(BackendV2):
         self, qubit: int, ChannelClass: pulse.channels.Channel, method_name: str
     ):
         """Construct a channel instance for a given qubit."""
-        if qubit in self.options.subsystem_labels:
+        #############################################################################################
+        #if qubit in self.options.subsystem_labels:
+        if qubit < len(self.options.subsystem_dims):
             return ChannelClass(qubit)
 
+        ##############################################################################################
+        # reread this
+        ##############################################################################################
         raise QiskitError(
-            f"{method_name} requested for qubit {qubit} which is not in subsystem_list."
+            f"{method_name} requested for qubit {qubit}, which is out of bounds."
         )
 
     def drive_channel(self, qubit: int) -> pulse.DriveChannel:
@@ -671,10 +685,15 @@ class DynamicsBackend(BackendV2):
             static_hamiltonian,
             hamiltonian_operators,
             hamiltonian_channels,
-            subsystem_dims,
+            subsystem_dims_dict,
         ) = parse_backend_hamiltonian_dict(backend_config.hamiltonian, subsystem_list)
-        subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
-
+        ##############################################################################################
+        #subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
+        # set the "trivial subsystems here"
+        # can add the 
+        subsystem_dims = [subsystem_dims_dict.get(idx, 1) for idx in range(backend_num_qubits)]
+        ##############################################################################################
+        import pdb; pdb.set_trace()
         # construct model frequencies dictionary from backend
         channel_freqs = _get_backend_channel_freqs(
             backend_target=backend_target,
@@ -736,7 +755,8 @@ class DynamicsBackend(BackendV2):
         return cls(
             solver=solver,
             target=Target(dt=dt),
-            subsystem_labels=subsystem_list,
+            ##########################################################################################
+            #subsystem_labels=subsystem_list,
             subsystem_dims=subsystem_dims,
             **options,
         )
@@ -804,10 +824,12 @@ def default_experiment_result_function(
         if backend.options.normalize_states:
             yf = yf / np.diag(yf.data).sum()
 
+    ##################################################################################################
+    # Change note: I think this is no longer needed as no more mapping is required
     # compute probabilities for measurement slot values
-    measurement_subsystems = [
-        backend.options.subsystem_labels.index(x) for x in measurement_subsystems
-    ]
+    #measurement_subsystems = [
+    #    backend.options.subsystem_labels.index(x) for x in measurement_subsystems
+    #]
 
     if backend.options.meas_level == MeasLevel.CLASSIFIED:
         memory_slot_probabilities = _get_memory_slot_probabilities(
@@ -892,7 +914,10 @@ def _validate_run_input(run_input, accept_list=True):
 
 
 def _get_acquire_instruction_timings(
-    schedules: List[Schedule], valid_subsystem_labels: List[int], dt: float
+    ##################################################################################################
+    # Change note: maybe change this to "trival_subsystems" for warning
+    #schedules: List[Schedule], valid_subsystem_labels: List[int], dt: float
+    schedules: List[Schedule], dt: float
 ) -> Tuple[List[List[float]], List[List[int]], List[List[int]]]:
     """Get the required data from the acquire commands in each schedule.
 
@@ -941,13 +966,16 @@ def _get_acquire_instruction_timings(
         measurement_subsystems = []
         memory_slot_indices = []
         for inst in schedule_acquires:
-            if inst.channel.index in valid_subsystem_labels:
-                measurement_subsystems.append(inst.channel.index)
-            else:
-                raise QiskitError(
-                    f"Attempted to measure subsystem {inst.channel.index}, but it is not in "
-                    "subsystem_list."
-                )
+            ###########################################################################################
+            # Change note: add validation here, with trivial_subsystems, and/or qubit number
+            #if inst.channel.index in valid_subsystem_labels:
+            #    measurement_subsystems.append(inst.channel.index)
+            #else:
+            #    raise QiskitError(
+            #        f"Attempted to measure subsystem {inst.channel.index}, but it is not in "
+            #        "subsystem_list."
+            #    )
+            measurement_subsystems.append(inst.channel.index)
 
             memory_slot_indices.append(inst.mem_slot.index)
 
