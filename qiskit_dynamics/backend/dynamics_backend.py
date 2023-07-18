@@ -693,7 +693,7 @@ class DynamicsBackend(BackendV2):
         # can add the 
         subsystem_dims = [subsystem_dims_dict.get(idx, 1) for idx in range(backend_num_qubits)]
         ##############################################################################################
-        import pdb; pdb.set_trace()
+
         # construct model frequencies dictionary from backend
         channel_freqs = _get_backend_channel_freqs(
             backend_target=backend_target,
