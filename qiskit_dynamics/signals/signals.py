@@ -26,7 +26,6 @@ from matplotlib import pyplot as plt
 
 try:
     import jax.numpy as jnp
-    import jax
 except ImportError:
     pass
 
@@ -96,12 +95,12 @@ class Signal:
             envelope = Array(complex(envelope))
 
         if isinstance(envelope, Array):
-
             # if envelope is constant and the carrier is zero, this is a constant signal
             try:
+                # try block is for catching JAX tracer errors
                 if carrier_freq == 0.0:
                     self._is_constant = True
-            except:
+            except Exception:  # pylint: disable=broad-except
                 pass
 
             if envelope.backend == "jax":
