@@ -19,6 +19,7 @@ Pulse-enabled simulator backend.
 
 import datetime
 import uuid
+import warnings
 
 from typing import List, Optional, Union, Dict, Tuple
 import copy
@@ -212,6 +213,7 @@ class DynamicsBackend(BackendV2):
         #############################################################################################
         #for qubit in self.options.subsystem_labels:
         for qubit in range(len(self.options.subsystem_dims)):
+        #############################################################################################
             if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
                 with pulse.build() as meas_sched:
                     pulse.acquire(
@@ -224,6 +226,7 @@ class DynamicsBackend(BackendV2):
             target.add_instruction(Measure(), measure_properties)
 
         target.dt = solver._dt
+        target.num_qubits = len(self.options.subsystem_dims)
 
         self._target = target
 
@@ -392,7 +395,7 @@ class DynamicsBackend(BackendV2):
             memory_slot_indices_list,
         ) = _get_acquire_instruction_timings(
             #schedules, backend.options.subsystem_labels, backend.options.solver._dt
-            schedules, backend.options.solver._dt
+            schedules, backend.options.subsystem_dims, backend.options.solver._dt
         )
 
         # Build and submit job
@@ -689,8 +692,6 @@ class DynamicsBackend(BackendV2):
         ) = parse_backend_hamiltonian_dict(backend_config.hamiltonian, subsystem_list)
         ##############################################################################################
         #subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
-        # set the "trivial subsystems here"
-        # can add the 
         subsystem_dims = [subsystem_dims_dict.get(idx, 1) for idx in range(backend_num_qubits)]
         ##############################################################################################
 
@@ -917,7 +918,7 @@ def _get_acquire_instruction_timings(
     ##################################################################################################
     # Change note: maybe change this to "trival_subsystems" for warning
     #schedules: List[Schedule], valid_subsystem_labels: List[int], dt: float
-    schedules: List[Schedule], dt: float
+    schedules: List[Schedule], subsystem_dims: List[int], dt: float
 ) -> Tuple[List[List[float]], List[List[int]], List[List[int]]]:
     """Get the required data from the acquire commands in each schedule.
 
@@ -975,6 +976,14 @@ def _get_acquire_instruction_timings(
             #        f"Attempted to measure subsystem {inst.channel.index}, but it is not in "
             #        "subsystem_list."
             #    )
+            if not inst.channel.index < len(subsystem_dims):
+                raise QiskitError(
+                    f"Attempted to measure out of bounds subsystem {inst.channel.index}."
+                )
+
+            if subsystem_dims[inst.channel.index] == 1:
+                warnings.warn(f"Measuring trivial subsystem {inst.channel.index} with dimension 1.")
+            ###########################################################################################
             measurement_subsystems.append(inst.channel.index)
 
             memory_slot_indices.append(inst.mem_slot.index)
