@@ -185,7 +185,7 @@ class DynamicsBackend(BackendV2):
 
         # Set simulator options
         self.set_options(solver=solver, **options)
-            
+
         if self.options.meas_map is None:
             meas_map = [[idx] for idx in range(len(self.options.subsystem_dims))]
             self.set_options(meas_map=meas_map)
@@ -482,9 +482,7 @@ class DynamicsBackend(BackendV2):
         if qubit < len(self.options.subsystem_dims):
             return ChannelClass(qubit)
 
-        raise QiskitError(
-            f"{method_name} requested for qubit {qubit}, which is out of bounds."
-        )
+        raise QiskitError(f"{method_name} requested for qubit {qubit}, which is out of bounds.")
 
     def drive_channel(self, qubit: int) -> pulse.DriveChannel:
         """Return the drive channel for a given qubit."""
@@ -668,10 +666,7 @@ class DynamicsBackend(BackendV2):
             hamiltonian_channels,
             subsystem_dims_dict,
         ) = parse_backend_hamiltonian_dict(backend_config.hamiltonian, subsystem_list)
-        ##############################################################################################
-        #subsystem_dims = [subsystem_dims[idx] for idx in subsystem_list]
         subsystem_dims = [subsystem_dims_dict.get(idx, 1) for idx in range(backend_num_qubits)]
-        ##############################################################################################
 
         # construct model frequencies dictionary from backend
         channel_freqs = _get_backend_channel_freqs(

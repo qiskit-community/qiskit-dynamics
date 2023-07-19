@@ -129,7 +129,7 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
 
         with self.assertRaisesRegex(QiskitError, "Attempted to measure out of bounds subsystem 1."):
             self.simple_backend.run(schedule)
-    
+
     def test_measure_trivial_subsystem(self):
         """Attempt to measure subsystem with dimension 1."""
 
