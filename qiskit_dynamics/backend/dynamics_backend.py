@@ -110,9 +110,7 @@ class DynamicsBackend(BackendV2):
       indicating solver methods and options. Defaults to the empty dictionary ``{}``.
     * ``subsystem_dims``: Dimensions of subsystems making up the system in ``solver``. Defaults to
       ``[solver.model.dim]``.
-    * ``subsystem_labels``: Integer labels for subsystems. Defaults to ``[0, ...,
-      len(subsystem_dims) - 1]``.
-    * ``meas_map``: Measurement map. Defaults to ``[[idx] for idx in subsystem_labels]``.
+    * ``meas_map``: Measurement map. Defaults to ``[[idx] for idx in range(len(subsystem_dims))]``.
     * ``control_channel_map``: A dictionary mapping control channel labels to indices, to be used
       for control channel index lookup in the :meth:`DynamicsBackend.control_channel` method.
     * ``initial_state``: Initial state for simulation, either the string ``"ground_state"``,
@@ -187,17 +185,8 @@ class DynamicsBackend(BackendV2):
 
         # Set simulator options
         self.set_options(solver=solver, **options)
-
-        """
-        ###############################################################################################
-        if self.options.subsystem_labels is None:
-            labels = list(range(len(self.options.subsystem_dims)))
-            self.set_options(subsystem_labels=labels)
-        """
             
         if self.options.meas_map is None:
-            ##########################################################################################
-            #meas_map = [[idx] for idx in self.options.subsystem_labels]
             meas_map = [[idx] for idx in range(len(self.options.subsystem_dims))]
             self.set_options(meas_map=meas_map)
 
@@ -210,10 +199,7 @@ class DynamicsBackend(BackendV2):
         # add default simulator measure instructions
         measure_properties = {}
         instruction_schedule_map = target.instruction_schedule_map()
-        #############################################################################################
-        #for qubit in self.options.subsystem_labels:
         for qubit in range(len(self.options.subsystem_dims)):
-        #############################################################################################
             if not instruction_schedule_map.has(instruction="measure", qubits=qubit):
                 with pulse.build() as meas_sched:
                     pulse.acquire(
@@ -236,8 +222,6 @@ class DynamicsBackend(BackendV2):
             solver=None,
             solver_options={},
             subsystem_dims=None,
-            ##########################################################################################
-            #subsystem_labels=None,
             meas_map=None,
             control_channel_map=None,
             normalize_states=True,
@@ -394,7 +378,6 @@ class DynamicsBackend(BackendV2):
             measurement_subsystems_list,
             memory_slot_indices_list,
         ) = _get_acquire_instruction_timings(
-            #schedules, backend.options.subsystem_labels, backend.options.solver._dt
             schedules, backend.options.subsystem_dims, backend.options.solver._dt
         )
 
@@ -496,14 +479,9 @@ class DynamicsBackend(BackendV2):
         self, qubit: int, ChannelClass: pulse.channels.Channel, method_name: str
     ):
         """Construct a channel instance for a given qubit."""
-        #############################################################################################
-        #if qubit in self.options.subsystem_labels:
         if qubit < len(self.options.subsystem_dims):
             return ChannelClass(qubit)
 
-        ##############################################################################################
-        # reread this
-        ##############################################################################################
         raise QiskitError(
             f"{method_name} requested for qubit {qubit}, which is out of bounds."
         )
@@ -756,8 +734,6 @@ class DynamicsBackend(BackendV2):
         return cls(
             solver=solver,
             target=Target(dt=dt),
-            ##########################################################################################
-            #subsystem_labels=subsystem_list,
             subsystem_dims=subsystem_dims,
             **options,
         )
@@ -824,13 +800,6 @@ def default_experiment_result_function(
 
         if backend.options.normalize_states:
             yf = yf / np.diag(yf.data).sum()
-
-    ##################################################################################################
-    # Change note: I think this is no longer needed as no more mapping is required
-    # compute probabilities for measurement slot values
-    #measurement_subsystems = [
-    #    backend.options.subsystem_labels.index(x) for x in measurement_subsystems
-    #]
 
     if backend.options.meas_level == MeasLevel.CLASSIFIED:
         memory_slot_probabilities = _get_memory_slot_probabilities(
@@ -915,20 +884,18 @@ def _validate_run_input(run_input, accept_list=True):
 
 
 def _get_acquire_instruction_timings(
-    ##################################################################################################
-    # Change note: maybe change this to "trival_subsystems" for warning
-    #schedules: List[Schedule], valid_subsystem_labels: List[int], dt: float
     schedules: List[Schedule], subsystem_dims: List[int], dt: float
 ) -> Tuple[List[List[float]], List[List[int]], List[List[int]]]:
     """Get the required data from the acquire commands in each schedule.
 
     Additionally validates that each schedule has Acquire instructions occurring at one time, at
-    least one memory slot is being listed, and all measured subsystems exist in
-    ``valid_subsystem_labels``.
+    least one memory slot is being listed, and all measured subsystem indices are less than
+    ``len(subsystem_dims)``. Additionally, a warning is raised if a 'trivial' subsystem is measured,
+    i.e. one with dimension 1.
 
     Args:
         schedules: A list of schedules.
-        valid_subsystem_labels: Valid acquire channel indices.
+        subsystem_dims: List of subsystem dimensions.
         dt: The sample size.
     Returns:
         A tuple of lists containing, for each schedule: the list of integration intervals required
@@ -967,15 +934,6 @@ def _get_acquire_instruction_timings(
         measurement_subsystems = []
         memory_slot_indices = []
         for inst in schedule_acquires:
-            ###########################################################################################
-            # Change note: add validation here, with trivial_subsystems, and/or qubit number
-            #if inst.channel.index in valid_subsystem_labels:
-            #    measurement_subsystems.append(inst.channel.index)
-            #else:
-            #    raise QiskitError(
-            #        f"Attempted to measure subsystem {inst.channel.index}, but it is not in "
-            #        "subsystem_list."
-            #    )
             if not inst.channel.index < len(subsystem_dims):
                 raise QiskitError(
                     f"Attempted to measure out of bounds subsystem {inst.channel.index}."
@@ -983,7 +941,7 @@ def _get_acquire_instruction_timings(
 
             if subsystem_dims[inst.channel.index] == 1:
                 warnings.warn(f"Measuring trivial subsystem {inst.channel.index} with dimension 1.")
-            ###########################################################################################
+
             measurement_subsystems.append(inst.channel.index)
 
             memory_slot_indices.append(inst.mem_slot.index)
