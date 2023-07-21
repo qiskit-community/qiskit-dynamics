@@ -123,11 +123,13 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         """Test a basic system."""
         ham_dict = {"h_str": ["v*np.pi*Z0"], "qub": {"0": 2}, "vars": {"v": 2.1}}
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
         self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
         self.assertTrue(not ham_ops)
         self.assertTrue(not channels)
-        self.assertTrue(subsystem_dims == {0: 2})
+        self.assertTrue(subsystem_dims_dict == {0: 2})
 
     def test_simple_single_q_system(self):
         """Test a basic system."""
@@ -137,12 +139,14 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
 
         self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * self.X])
         self.assertTrue(channels == ["d0"])
-        self.assertTrue(subsystem_dims == {0: 2})
+        self.assertTrue(subsystem_dims_dict == {0: 2})
 
     def test_simple_single_q_system_repeat_entries(self):
         """Test merging of terms with same channel or no channel."""
@@ -152,12 +156,14 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
 
         self.assertAllClose(static_ham, 2 * 2.1 * np.pi * self.Z)
         self.assertAllClose(to_array(ham_ops), [2 * 0.02 * np.pi * self.X])
         self.assertTrue(channels == ["d0"])
-        self.assertTrue(subsystem_dims == {0: 2})
+        self.assertTrue(subsystem_dims_dict == {0: 2})
 
     def test_simple_single_q_system_repeat_entries_different_case(self):
         """Test merging of terms with same channel or no channel,
@@ -169,12 +175,14 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
 
         self.assertAllClose(static_ham, 2 * 2.1 * np.pi * self.Z)
         self.assertAllClose(to_array(ham_ops), [2 * 0.02 * np.pi * self.X])
         self.assertTrue(channels == ["d0"])
-        self.assertTrue(subsystem_dims == {0: 2})
+        self.assertTrue(subsystem_dims_dict == {0: 2})
 
     def test_simple_two_q_system(self):
         """Test a two qubit system."""
@@ -191,7 +199,9 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v0": 2.1, "v1": 2.0, "j": 0.02},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
 
         ident = np.eye(2)
         self.assertAllClose(
@@ -205,7 +215,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             [0.02 * np.pi * np.kron(ident, self.X), 0.03 * np.pi * np.kron(self.X, ident)],
         )
         self.assertTrue(channels == ["d0", "d1"])
-        self.assertTrue(subsystem_dims == {0: 2, 1: 2})
+        self.assertTrue(subsystem_dims_dict == {0: 2, 1: 2})
 
     def test_simple_two_q_system_measurement_channel(self):
         """Test a two qubit system with a measurement-labelled channel."""
@@ -222,7 +232,9 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v0": 2.1, "v1": 2.0, "j": 0.02},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
 
         ident = np.eye(2)
         self.assertAllClose(
@@ -236,7 +248,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             [0.02 * np.pi * np.kron(ident, self.X), 0.03 * np.pi * np.kron(self.X, ident)],
         )
         self.assertTrue(channels == ["d0", "m1"])
-        self.assertTrue(subsystem_dims == {0: 2, 1: 2})
+        self.assertTrue(subsystem_dims_dict == {0: 2, 1: 2})
 
     def test_single_oscillator_system(self):
         """Test single oscillator system."""
@@ -247,12 +259,14 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1, "alpha": -0.33, "r": 0.02},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
 
         self.assertAllClose(static_ham, 2.1 * np.pi * self.N - 0.33 * np.pi * self.N * self.N)
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
         self.assertTrue(channels == ["d0"])
-        self.assertTrue(subsystem_dims == {0: 4})
+        self.assertTrue(subsystem_dims_dict == {0: 4})
 
     def test_two_oscillator_system(self):
         """Test a two qubit system."""
@@ -271,7 +285,9 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v0": 2.1, "v1": 2.0, "alpha0": -0.33, "alpha1": -0.33, "j": 0.02},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
 
         ident = np.eye(4)
 
@@ -291,7 +307,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             ],
         )
         self.assertTrue(channels == ["d0", "d1"])
-        self.assertTrue(subsystem_dims == {0: 4, 1: 4})
+        self.assertTrue(subsystem_dims_dict == {0: 4, 1: 4})
 
     def test_single_q_high_dim(self):
         """Test single q system but higher dim."""
@@ -301,12 +317,14 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             "vars": {"v": 2.1},
         }
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(ham_dict)
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
+            ham_dict
+        )
 
         self.assertAllClose(static_ham, 2.1 * np.pi * (np.eye(4) - 2 * self.N))
         self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
         self.assertTrue(channels == ["d0"])
-        self.assertTrue(subsystem_dims == {0: 4})
+        self.assertTrue(subsystem_dims_dict == {0: 4})
 
     def test_dagger(self):
         """Test correct parsing of dagger."""
@@ -397,13 +415,13 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
         channels_expected = ["d0", "d1", "u0", "u1", "u2"]
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
             ham_dict, subsystem_list=[0, 1]
         )
         self.assertAllClose(static_ham, static_ham_expected)
         self.assertAllClose(ham_ops, ham_ops_expected)
         self.assertTrue(channels == channels_expected)
-        self.assertTrue(subsystem_dims == {0: 4, 1: 4})
+        self.assertTrue(subsystem_dims_dict == {0: 4, 1: 4})
 
         # test case for subsystems [3, 4]
 
@@ -427,10 +445,10 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
         channels_expected = ["d3", "d4", "u5", "u6", "u7"]
 
-        static_ham, ham_ops, channels, subsystem_dims = parse_backend_hamiltonian_dict(
+        static_ham, ham_ops, channels, subsystem_dims_dict = parse_backend_hamiltonian_dict(
             ham_dict, subsystem_list=[3, 4]
         )
         self.assertAllClose(static_ham, static_ham_expected)
         self.assertAllClose(ham_ops, ham_ops_expected)
         self.assertTrue(channels == channels_expected)
-        self.assertTrue(subsystem_dims == {3: 4, 4: 4})
+        self.assertTrue(subsystem_dims_dict == {3: 4, 4: 4})
