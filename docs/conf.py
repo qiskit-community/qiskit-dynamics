@@ -54,7 +54,7 @@ bibtex_bibliography_header = ".. rubric:: References"
 bibtex_footbibliography_header = bibtex_bibliography_header
 
 # html theme options
-html_theme = 'qiskit'
+html_theme = 'qiskit-ecosystem'
 html_last_updated_fmt = '%Y/%m/%d'
 
 html_context = {"analytics_enabled": True}
