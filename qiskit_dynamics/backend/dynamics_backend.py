@@ -544,7 +544,7 @@ class DynamicsBackend(BackendV2):
     @classmethod
     def from_backend(
         cls,
-        backend: Union[BackendV1, BackendV2],
+        backend: BackendV1,
         subsystem_list: Optional[List[int]] = None,
         rotating_frame: Optional[Union[Array, RotatingFrame, str]] = "auto",
         evaluation_mode: str = "dense",
@@ -958,7 +958,7 @@ def _get_acquire_instruction_timings(
 
 
 def _to_schedule_list(
-    run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]], backend: BackendV2
+    run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]], backend: BackendV1
 ):
     """Convert all inputs to schedules, and store the number of classical registers present
     in any circuits.
