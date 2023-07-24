@@ -958,7 +958,7 @@ def _get_acquire_instruction_timings(
 
 
 def _to_schedule_list(
-    run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]], backend: BackendV1
+    run_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]], backend: BackendV2
 ):
     """Convert all inputs to schedules, and store the number of classical registers present
     in any circuits.
