@@ -29,20 +29,20 @@ from .operator_from_string import _operator_from_string
 
 
 def _regex_parser(
-    operator_str: List[str], subsystem_dims: Dict[int, int], subsystem_list: List[int]
+    operator_str: List[str], subsystem_dims_dict: Dict[int, int], subsystem_list: List[int]
 ) -> List[Tuple[np.array, str]]:
     """Function wrapper for regex parsing object.
 
     Args:
         operator_str: List of strings in accepted format as described in
                       string_model_parser.parse_hamiltonian_dict.
-        subsystem_dims: Dictionary mapping subsystem labels to dimensions.
+        subsystem_dims_dict: Dictionary mapping subsystem labels to dimensions.
         subsystem_list: List of subsystems on which the operators are to be constructed.
     Returns:
         List of tuples containing pairs operators and their string coefficients.
     """
 
-    return _HamiltonianParser(h_str=operator_str, subsystem_dims=subsystem_dims).parse(
+    return _HamiltonianParser(h_str=operator_str, subsystem_dims_dict=subsystem_dims_dict).parse(
         subsystem_list
     )
 
@@ -66,15 +66,17 @@ class _HamiltonianParser:
         BrkR=re.compile(r"\)"),
     )
 
-    def __init__(self, h_str, subsystem_dims):
+    def __init__(self, h_str, subsystem_dims_dict):
         """Create new quantum operator generator
 
         Parameters:
             h_str (list): list of Hamiltonian string
-            subsystem_dims (dict): dimension of subsystems
+            subsystem_dims_dict (dict): dimension of subsystems
         """
         self.h_str = h_str
-        self.subsystem_dims = {int(label): int(dim) for label, dim in subsystem_dims.items()}
+        self.subsystem_dims_dict = {
+            int(label): int(dim) for label, dim in subsystem_dims_dict.items()
+        }
         self.str2qopr = {}
 
     def parse(self, qubit_list=None):
@@ -194,7 +196,7 @@ class _HamiltonianParser:
                             if qubit_list is not None and idx not in qubit_list:
                                 return 0, None
                             name = p.group("opr")
-                            opr = _operator_from_string(name, idx, self.subsystem_dims)
+                            opr = _operator_from_string(name, idx, self.subsystem_dims_dict)
                             self.str2qopr[p.group()] = opr
                     elif key == "PrjOpr":
                         _key = key
@@ -202,7 +204,7 @@ class _HamiltonianParser:
                         if p.group() not in self.str2qopr:
                             idx = int(p.group("idx"))
                             name = "P"
-                            opr = _operator_from_string(name, idx, self.subsystem_dims)
+                            opr = _operator_from_string(name, idx, self.subsystem_dims_dict)
                             self.str2qopr[p.group()] = opr
                     elif key in ["Func", "Ext"]:
                         _name = p.group("name")
