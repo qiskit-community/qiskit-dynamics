@@ -96,8 +96,12 @@ class Signal:
 
         if isinstance(envelope, Array):
             # if envelope is constant and the carrier is zero, this is a constant signal
-            if carrier_freq == 0.0:
-                self._is_constant = True
+            try:
+                # try block is for catching JAX tracer errors
+                if carrier_freq == 0.0:
+                    self._is_constant = True
+            except Exception:  # pylint: disable=broad-except
+                pass
 
             if envelope.backend == "jax":
                 self._envelope = lambda t: envelope * jnp.ones_like(Array(t).data)
