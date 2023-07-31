@@ -21,7 +21,7 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.sparse import csr_matrix
 
-from qiskit import QiskitError, pulse, QuantumCircuit
+from qiskit import QiskitError, pulse, QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import XGate, Measure
 from qiskit.transpiler import Target, InstructionProperties
 from qiskit.quantum_info import Statevector, DensityMatrix
@@ -354,6 +354,22 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         result = self.simple_backend.run(circ, seed_simulator=1234567).result()
         self.assertDictEqual(result.get_counts(), {"1": 1024})
         self.assertTrue(result.get_memory() == ["1"] * 1024)
+    
+    def test_circuit_with_multiple_classical_registers(self):
+        """Test simulating a circuit with pulse definitions and multiple classical registers."""
+
+        circ = QuantumCircuit(QuantumRegister(1), ClassicalRegister(1), ClassicalRegister(1))
+        circ.x(0)
+        circ.measure([0], [1])
+
+        with pulse.build() as x_sched0:
+            pulse.play(pulse.Waveform([0.0]), pulse.DriveChannel(0))
+
+        circ.add_calibration("x", [0], x_sched0)
+
+        result = self.simple_backend.run(circ, seed_simulator=1234567).result()
+        self.assertDictEqual(result.get_counts(), {"00": 1024})
+        self.assertTrue(result.get_memory() == ["00"] * 1024)
 
     def test_circuit_with_target_pulse_instructions(self):
         """Test running a circuit on a simulator with defined instructions."""

@@ -965,7 +965,7 @@ def _to_schedule_list(
         elif isinstance(sched, Schedule):
             schedules.append(sched)
         elif isinstance(sched, QuantumCircuit):
-            num_memslots[-1] = sched.cregs[0].size
+            num_memslots[-1] = sum(creg.size for creg in sched.cregs)
             schedules.append(build_schedule(sched, backend, dt=backend.options.solver._dt))
         else:
             raise QiskitError(f"Type {type(sched)} cannot be converted to Schedule.")
