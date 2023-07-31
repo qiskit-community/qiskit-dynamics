@@ -1,10 +1,11 @@
 ---
-title: 'Qiskit Dynamics: A Python package for simulating quantum systems'
+title: 'Qiskit Dynamics: A Python package for simulating the time dynamics of quantum systems'
 tags:
   - Python
   - quantum
   - quantum computer
   - pulse
+  - control
 authors:
   - name: Daniel Puzzuoli
     corresponding: true
@@ -41,13 +42,7 @@ The algorithms used in the perturbation theory module in Qiskit Dynamics are pub
 
 # Other packages
 
-Due to the topic’s importance, many open source packages contain quantum system simulation tools. 
-
-QuTiP `@qutip`
-TorchQuantum `@torchquantum`
-C3 `@C3`
-lindbladmpo `@lindbladmpo`
-
+Due to the topic’s importance, many open source packages contain time-dependent quantum system simulation tools. In Python, these include QuTiP `@qutip`, TorchQuantum `@torchquantum`, and C3 `@C3`. C++ packages (also with Python interfaces) include lindbladmpo `@lindbladmpo` and Quandary `@quandary`. Packages also exist in other languages, such as the Hamiltonian open quantum system toolkit (HOQST) `@hoqst` in Julia, and Spinach `@spinach` in MATLAB.
 
 # Documentation and community
 
