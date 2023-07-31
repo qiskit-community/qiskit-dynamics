@@ -354,7 +354,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         result = self.simple_backend.run(circ, seed_simulator=1234567).result()
         self.assertDictEqual(result.get_counts(), {"1": 1024})
         self.assertTrue(result.get_memory() == ["1"] * 1024)
-    
+
     def test_circuit_with_multiple_classical_registers(self):
         """Test simulating a circuit with pulse definitions and multiple classical registers."""
 
