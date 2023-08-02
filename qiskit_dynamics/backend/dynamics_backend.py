@@ -612,7 +612,7 @@ class DynamicsBackend(BackendV2):
                 Note that while the type hint indicates that `backend` should be a
                 :class:`~qiskit.providers.backend.BackendV1` instance, this method also works for
                 :class:`~qiskit.providers.backend.BackendV2` instances that have been set up with
-        sufficiently populated ``configuration`` and ``defaults`` for backwards compatibility.
+                sufficiently populated ``configuration`` and ``defaults`` for backwards compatibility.
             subsystem_list: The list of qubits in the backend to include in the model.
             rotating_frame: Rotating frame argument for the internal :class:`.Solver`. Defaults to
                 ``"auto"``, allowing this method to pick a rotating frame.
