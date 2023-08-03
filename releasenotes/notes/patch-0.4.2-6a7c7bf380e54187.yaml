@@ -1,0 +1,16 @@
+---
+prelude: >
+    Qiskit Dynamics 0.4.2 is an incremental release with minor bug fixes and additional warnings to
+    help guide users through issues.
+other:
+  - |
+    For users that have JAX installed, a warning has been added upon import of Qiskit Dynamics to
+    notify the user of issues with certain versions: JAX versions newer than ``0.4.6`` break the
+    ``perturbation`` module, and to use ``perturbation`` module with versions ``0.4.4``, ``0.4.5``,
+    or ``0.4.6``, it is necessary to set ``os.environ['JAX_JIT_PJIT_API_MERGE'] = '0'`` before
+    importing JAX or Dynamics.
+  - |
+    A warning has been added to :class:`.InstructionToSignals` class when converting pulse schedules
+    to signals to notify the user if the usage of ``SetFrequency`` or ``ShiftFrequency`` commands 
+    result in a digital carrier frequency larger than the Nyquist frequency of the envelope sample
+    size ``dt``.
