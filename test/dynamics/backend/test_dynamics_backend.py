@@ -21,7 +21,7 @@ import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.sparse import csr_matrix
 
-from qiskit import QiskitError, pulse, QuantumCircuit
+from qiskit import QiskitError, pulse, QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import XGate, Measure
 from qiskit.transpiler import Target, InstructionProperties
 from qiskit.quantum_info import Statevector, DensityMatrix
@@ -127,7 +127,18 @@ class TestDynamicsBackendValidation(QiskitDynamicsTestCase):
             pulse.play(pulse.Waveform([0.5, 0.5, 0.5]), pulse.DriveChannel(0))
             pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(0))
 
-        with self.assertRaisesRegex(QiskitError, "Attempted to measure subsystem 1"):
+        with self.assertRaisesRegex(QiskitError, "Attempted to measure out of bounds subsystem 1."):
+            self.simple_backend.run(schedule)
+
+    def test_measure_trivial_subsystem(self):
+        """Attempt to measure subsystem with dimension 1."""
+
+        with pulse.build() as schedule:
+            pulse.play(pulse.Waveform([0.5, 0.5, 0.5]), pulse.DriveChannel(0))
+            pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(0))
+
+        self.simple_backend.set_options(subsystem_dims=[2, 1])
+        with self.assertWarnsRegex(Warning, "Measuring trivial subsystem 1"):
             self.simple_backend.run(schedule)
 
     def test_invalid_initial_state(self):
@@ -328,19 +339,6 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         counts = self.iq_to_counts(result.get_memory())
         self.assertDictEqual(counts, {"0": 510, "1": 514})
 
-    def test_pi_half_pulse_relabelled(self):
-        """Test simulation of a pi/2 pulse with qubit relabelled."""
-
-        self.simple_backend.set_options(subsystem_labels=[1])
-
-        with pulse.build() as schedule:
-            with pulse.align_right():
-                pulse.play(pulse.Waveform([1.0] * 50), pulse.DriveChannel(0))
-                pulse.acquire(duration=1, qubit_or_channel=1, register=pulse.MemorySlot(1))
-
-        result = self.simple_backend.run(schedule, seed_simulator=398472).result()
-        self.assertDictEqual(result.get_counts(), {"00": 513, "10": 511})
-
     def test_circuit_with_pulse_defs(self):
         """Test simulating a circuit with pulse definitions."""
 
@@ -356,6 +354,22 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         result = self.simple_backend.run(circ, seed_simulator=1234567).result()
         self.assertDictEqual(result.get_counts(), {"1": 1024})
         self.assertTrue(result.get_memory() == ["1"] * 1024)
+
+    def test_circuit_with_multiple_classical_registers(self):
+        """Test simulating a circuit with pulse definitions and multiple classical registers."""
+
+        circ = QuantumCircuit(QuantumRegister(1), ClassicalRegister(1), ClassicalRegister(1))
+        circ.x(0)
+        circ.measure([0], [1])
+
+        with pulse.build() as x_sched0:
+            pulse.play(pulse.Waveform([0.0]), pulse.DriveChannel(0))
+
+        circ.add_calibration("x", [0], x_sched0)
+
+        result = self.simple_backend.run(circ, seed_simulator=1234567).result()
+        self.assertDictEqual(result.get_counts(), {"00": 1024})
+        self.assertTrue(result.get_memory() == ["00"] * 1024)
 
     def test_circuit_with_target_pulse_instructions(self):
         """Test running a circuit on a simulator with defined instructions."""
@@ -1128,7 +1142,7 @@ class Test_get_acquire_instruction_timings(QiskitDynamicsTestCase):
             measurement_subsystems_list,
             memory_slot_indices_list,
         ) = _get_acquire_instruction_timings(
-            schedules=[schedule0, schedule1], valid_subsystem_labels=[0, 1], dt=dt
+            schedules=[schedule0, schedule1], subsystem_dims=[2, 2], dt=dt
         )
 
         self.assertAllClose(np.array(t_span), np.array([[0.0, 104 * dt], [0.0, 100 * dt]]))

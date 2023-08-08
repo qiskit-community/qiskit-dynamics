@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    In the case that ``envelope`` is a constant, the :meth:`.Signal.__init__` method has been
+    updated to not attempt to evaluate ``carrier_freq == 0.0`` if ``carrier_freq`` is a JAX tracer.
+    In this case, it is not possible to determine if the :class:`.Signal` instance is constant. This
+    resolves an error that was being raised during JAX tracing if ``carrier_freq`` is abstract.

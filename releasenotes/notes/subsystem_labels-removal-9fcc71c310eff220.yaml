@@ -1,0 +1,15 @@
+---
+upgrade:
+  - |
+    The ``subsystem_labels`` option has been removed from the :class:`.DynamicsBackend`. This
+    removal impacts some technical aspects of the backend returned by
+    :meth:`.DynamicsBackend.from_backend` when the ``subsystem_list`` argument is used. Using the
+    ``subsystem_list`` argument with :meth:`.DynamicsBackend.from_backend` restricts the internally
+    constructed model to the qubits in ``subsystem_list``. When doing so previously, the option
+    ``subsystem_labels`` would be set to ``subsystem_labels``, and ``subsystem_dims`` would record
+    only the dimensions for the systems in ``subsystem_labels``. To account for the fact that
+    ``subsystem_labels`` no longer exists, :meth:`.DynamicsBackend.from_backend` now constructs
+    ``subsystem_dims`` to list a dimension for all of the qubits in the original backend, however
+    now the dimensions of the removed systems are given as 1 (i.e. they are treated as trivial
+    quantum systems with a single state). This change is made only for technical bookkeping
+    purposes, and has no impact on the core simulation behaviour.

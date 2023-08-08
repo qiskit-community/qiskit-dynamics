@@ -16,6 +16,7 @@ Pulse schedule to Signals converter.
 
 from typing import Callable, Dict, List, Optional
 import functools
+from warnings import warn
 
 import numpy as np
 import sympy as sym
@@ -39,6 +40,12 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import DiscreteSignal
+
+try:
+    import jax
+    import jax.numpy as jnp
+except ImportError:
+    pass
 
 
 class InstructionToSignals:
@@ -133,6 +140,9 @@ class InstructionToSignals:
           Similarly to ``ShiftFrequency``, the shift rule for :math:`\phi_a` is defined to maintain
           carrier wave continuity.
 
+        If, at any sample point :math:`k`, :math:`\Delta\nu(k)` is larger than the Nyquist sampling
+        rate given by ``dt``, a warning will be raised.
+
         Args:
             schedule: The schedule to represent in terms of signals. Instances of
                 :class:`~qiskit.pulse.ScheduleBlock` must first be converted to
@@ -188,14 +198,15 @@ class InstructionToSignals:
             if isinstance(inst, ShiftPhase):
                 phases[chan] += inst.phase
 
+            if isinstance(inst, SetPhase):
+                phases[chan] = inst.phase
+
             if isinstance(inst, ShiftFrequency):
                 frequency_shifts[chan] = frequency_shifts[chan] + Array(inst.frequency)
                 phase_accumulations[chan] = (
                     phase_accumulations[chan] - inst.frequency * start_sample * self._dt
                 )
-
-            if isinstance(inst, SetPhase):
-                phases[chan] = inst.phase
+                _nyquist_warn(frequency_shifts[chan], self._dt, chan)
 
             if isinstance(inst, SetFrequency):
                 phase_accumulations[chan] = phase_accumulations[chan] - (
@@ -204,6 +215,7 @@ class InstructionToSignals:
                     * self._dt
                 )
                 frequency_shifts[chan] = inst.frequency - signals[chan].carrier_freq
+                _nyquist_warn(frequency_shifts[chan], self._dt, chan)
 
         # ensure all signals have the same number of samples
         max_duration = 0
@@ -367,3 +379,17 @@ def _lru_cache_expr(expr: sym.Expr, backend) -> Callable:
             continue
         params.append(param)
     return sym.lambdify(params, expr, modules=backend)
+
+
+def _nyquist_warn(frequency_shift: Array, dt: float, channel: str):
+    """Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``."""
+
+    if (
+        Array(frequency_shift).backend != "jax" or not isinstance(jnp.array(0), jax.core.Tracer)
+    ) and np.abs(frequency_shift) > 0.5 / dt:
+        warn(
+            "Due to SetFrequency and ShiftFrequency instructions, the digital carrier frequency "
+            f"of channel {channel} is larger than the Nyquist frequency of the envelope sample "
+            "size dt. As shifts of the frequency from the analog frequency are handled digitally, "
+            "this will result in aliasing effects."
+        )

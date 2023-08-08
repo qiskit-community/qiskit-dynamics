@@ -21,10 +21,11 @@ requirements = [
     "matplotlib>=3.0",
     "qiskit-terra>=0.23.0",
     "multiset>=3.0.1",
+    "sympy>=1.12"
 ]
 
-jax_extras = ['jax>=0.2.26, <= 0.4.6',
-              'jaxlib>=0.1.75, <= 0.4.6']
+jax_extras = ['jax>=0.4.0, <= 0.4.6',
+              'jaxlib>=0.4.0, <= 0.4.6']
 
 PACKAGES = setuptools.find_packages(exclude=['test*'])
 

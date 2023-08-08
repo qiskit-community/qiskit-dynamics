@@ -163,12 +163,12 @@ def parse_backend_hamiltonian_dict(
     # force keys in hamiltonian['qub'] to be ints
     qub_dict = {int(key): val for key, val in hamiltonian_dict["qub"].items()}
 
-    subsystem_dims = {int(qubit): qub_dict[int(qubit)] for qubit in subsystem_list}
+    subsystem_dims_dict = {int(qubit): qub_dict[int(qubit)] for qubit in subsystem_list}
 
     # Parse the Hamiltonian
     system = _regex_parser(
         operator_str=hamiltonian_dict["h_str"],
-        subsystem_dims=subsystem_dims,
+        subsystem_dims_dict=subsystem_dims_dict,
         subsystem_list=subsystem_list,
     )
 
@@ -227,7 +227,12 @@ def parse_backend_hamiltonian_dict(
             *sorted(zip(reduced_channels, hamiltonian_operators))
         )
 
-    return static_hamiltonian, list(hamiltonian_operators), list(reduced_channels), subsystem_dims
+    return (
+        static_hamiltonian,
+        list(hamiltonian_operators),
+        list(reduced_channels),
+        subsystem_dims_dict,
+    )
 
 
 def _hamiltonian_pre_parse_exceptions(hamiltonian_dict: dict):
