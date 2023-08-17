@@ -9,19 +9,46 @@ tags:
 authors:
   - name: Daniel Puzzuoli
     corresponding: true
+    affiliation: 1
+  - name: Daniel J. Egger
     affiliation: 2
-  - name: Author Without ORCID
-    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
-    affiliation: 2
-  - name: Author with no affiliation
+  - name: Ian Hincks
     affiliation: 3
+  - name: Haggai Landa
+    affiliation: 4
+  - name: Moein Malekakhlagh
+    affiliation: 5
+  - name: Avery Parr
+    affiliation: 
+  - name: Benjamin Rosand
+    affiliation: 6
+  - name: Rupesh R. K.
+    affiliation: 7
+  - name: Matthew Treinish
+    affiliation: 5
+  - name: Kento Ueda
+    affiliation: 8
+  - name: Christopher J. Wood
+    affiliation: 5
 affiliations:
- - name: IBM Quantum, IBM T.J. Watson Research Center, Yorktown Heights, NY, USA
-   index: 1
  - name: IBM Quantum, IBM Canada, Vancouver, BC, Canada
+   index: 1
+ - name: IBM Quantum, IBM Research Europe - Zurich, Ruschlikon, Switzerland
    index: 2
- - name: IBM Quantum, IBM Research Tokyo, Tokyo, Japan
+ - name: IBM Quantum, IBM Canada, Markham, ON, Canada
    index: 3
+ - name: IBM Quantum, IBM Research Israel, Haifa, Israel
+   index: 4
+ - name: IBM Quantum, IBM T.J. Watson Research Center, Yorktown Heights, NY, USA
+   index: 5
+ - name: Yale University, New Haven, CT, USA
+   index: 6
+ - name: School of Physics, University of Hyderabad, Hyderabad, India
+   index: 7
+ - name: IBM Quantum, IBM Research Tokyo, Tokyo, Japan
+   index: 8
+
+
 date: 31 July 2023
 bibliography: paper.bib
 ---
