@@ -37,7 +37,7 @@ affiliations:
    index: 2
  - name: IBM Quantum, IBM Research Europe - Zurich, Ruschlikon, Switzerland
    index: 3
- - name: Yale University, New Haven, CT, USA
+ - name: Department of Physics, Yale University, New Haven, CT, USA
    index: 4
  - name: IBM Quantum, IBM Research Tokyo, Tokyo, Japan
    index: 5
@@ -69,9 +69,9 @@ Numerical simulation of time-dependent quantum systems is a useful tool in quant
 
 Furthermore, having a simulation-based drop-in replacement for real quantum computing systems is useful for developers building software tools for low-level control of experiments, such as Qiskit Pulse `[@alexander_qiskit_2020]` and Qiskit Experiments `[@kanazawa_qiskit_2023]`.
 
-# Related packages
+# Related open source packages
 
-Due to its importance, many open source packages contain time-dependent quantum system simulation tools. In Python, these include QuTiP `[@qutip]`, TorchQuantum `[@torchquantum]`, and C3 `[@C3]`. C++ packages (also with Python interfaces) include lindbladmpo `[@lindbladmpo]` and Quandary `[@quandary]`. Packages also exist in other languages, such as the Hamiltonian open quantum system toolkit (HOQST) `[@hoqst]` in Julia, and Spinach `[@spinach]` in MATLAB.
+Due to its importance, many open source packages contain time-dependent quantum system simulation tools. In Python, these include QuTiP `[@qutip]`, TorchQuantum `[@torchquantum]`, and C3 `[@C3]`. C++ packages (also with Python interfaces) include lindbladmpo `[@lindbladmpo]` and Quandary `[@quandary]`. Packages also exist in other languages, such as the Hamiltonian open quantum system toolkit (HOQST) `[@hoqst]` and a Framework for Quantum Optimal Control `[@julia_qc]` in Julia, and Spinach `[@spinach]` in MATLAB.
 
 # Documentation and community
 
@@ -79,6 +79,6 @@ Qiskit Dynamics documentation, including API docs and tutorials, is available at
 
 # Acknowledgements
 
-We would like to thank Helena Zhang, Naoki Kanazawa, and Will Shanks for help reviewing PRs.
+We would like to thank Helena Zhang, Naoki Kanazawa, Will Shanks, and Arthur Strauss for helpful discussions, reviews, and bug fixes.
 
 # References
