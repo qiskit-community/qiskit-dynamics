@@ -79,6 +79,6 @@ Qiskit Dynamics documentation, including API docs and tutorials, is available at
 
 # Acknowledgements
 
-We would like to thank Helena Zhang, Naoki Kanazawa, Will Shanks, and Arthur Strauss for helpful discussions, reviews, and bug fixes.
+We would like to thank Helena Zhang, Naoki Kanazawa, William E. Shanks, and Arthur Strauss for helpful discussions, reviews, and bug fixes.
 
 # References
