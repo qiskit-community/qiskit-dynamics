@@ -10,44 +10,44 @@ authors:
   - name: Daniel Puzzuoli
     corresponding: true
     affiliation: 1
-  - name: Daniel J. Egger
-    affiliation: 2
-  - name: Ian Hincks
-    affiliation: 3
-  - name: Haggai Landa
-    affiliation: 4
-  - name: Moein Malekakhlagh
-    affiliation: 5
-  - name: Avery Parr
-    affiliation: 6
-  - name: Benjamin Rosand
-    affiliation: 7
-  - name: Rupesh R. K.
-    affiliation: 8
-  - name: Matthew Treinish
-    affiliation: 5
-  - name: Kento Ueda
-    affiliation: 9
   - name: Christopher J. Wood
+    affiliation: 2
+  - name: Daniel J. Egger
+    affiliation: 3
+  - name: Benjamin Rosand
+    affiliation: 4
+  - name: Kento Ueda
     affiliation: 5
+  - name: Ian Hincks
+    affiliation: 6
+  - name: Haggai Landa
+    affiliation: 7
+  - name: Moein Malekakhlagh
+    affiliation: 2
+  - name: Avery Parr
+    affiliation: 8
+  - name: Rupesh R. K.
+    affiliation: 9
+  - name: Matthew Treinish
+    affiliation: 2
 affiliations:
  - name: IBM Quantum, IBM Canada, Vancouver, BC, Canada
    index: 1
- - name: IBM Quantum, IBM Research Europe - Zurich, Ruschlikon, Switzerland
-   index: 2
- - name: IBM Quantum, IBM Canada, Markham, ON, Canada
-   index: 3
- - name: IBM Quantum, IBM Research Israel, Haifa, Israel
-   index: 4
  - name: IBM Quantum, IBM T.J. Watson Research Center, Yorktown Heights, NY, USA
-   index: 5
- - name: Department of Physics, Harvard University, Cambridge, MA, USA
-   index: 6
+   index: 2
+ - name: IBM Quantum, IBM Research Europe - Zurich, Ruschlikon, Switzerland
+   index: 3
  - name: Yale University, New Haven, CT, USA
-   index: 7
- - name: School of Physics, University of Hyderabad, Hyderabad, India
-   index: 8
+   index: 4
  - name: IBM Quantum, IBM Research Tokyo, Tokyo, Japan
+   index: 5
+ - name: IBM Quantum, IBM Canada, Markham, ON, Canada
+   index: 6
+ - name: IBM Quantum, IBM Research Israel, Haifa, Israel
+   index: 7
+ - name: Department of Physics, Harvard University, Cambridge, MA, USA
+   index: 8
+ - name: School of Physics, University of Hyderabad, Hyderabad, India
    index: 9
 
 
