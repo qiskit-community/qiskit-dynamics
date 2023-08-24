@@ -26,7 +26,7 @@ authors:
     affiliation: 2
   - name: Avery Parr
     affiliation: 8
-  - name: Rupesh R. K.
+  - name: R. K. Rupesh
     affiliation: 9
   - name: Matthew Treinish
     affiliation: 2
