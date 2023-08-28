@@ -37,7 +37,7 @@ affiliations:
    index: 2
  - name: IBM Quantum, IBM Research Europe - Zurich, Ruschlikon, Switzerland
    index: 3
- - name: Department of Physics, Yale University, New Haven, CT, USA
+ - name: Yale University, New Haven, CT, USA
    index: 4
  - name: IBM Quantum, IBM Research Tokyo, Tokyo, Japan
    index: 5
