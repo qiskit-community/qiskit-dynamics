@@ -18,18 +18,6 @@ authors:
     affiliation: 4
   - name: Kento Ueda
     affiliation: 5
-  - name: Ian Hincks
-    affiliation: 6
-  - name: Haggai Landa
-    affiliation: 7
-  - name: Moein Malekakhlagh
-    affiliation: 2
-  - name: Avery Parr
-    affiliation: 8
-  - name: R. K. Rupesh
-    affiliation: 9
-  - name: Matthew Treinish
-    affiliation: 2
 affiliations:
  - name: IBM Quantum, IBM Canada, Vancouver, BC, Canada
    index: 1
@@ -41,14 +29,6 @@ affiliations:
    index: 4
  - name: IBM Quantum, IBM Research Tokyo, Tokyo, Japan
    index: 5
- - name: IBM Quantum, IBM Canada, Markham, ON, Canada
-   index: 6
- - name: IBM Quantum, IBM Research Israel, Haifa, Israel
-   index: 7
- - name: Department of Physics, Harvard University, Cambridge, MA, USA
-   index: 8
- - name: School of Physics, University of Hyderabad, Hyderabad, India
-   index: 9
 
 
 date: 31 July 2023
@@ -79,6 +59,6 @@ Qiskit Dynamics documentation, including API docs and tutorials, is available at
 
 # Acknowledgements
 
-We would like to thank Helena Zhang, Naoki Kanazawa, William E. Shanks, and Arthur Strauss for helpful discussions, reviews, and bug fixes.
+We would like to thank Ian Hincks, Naoki Kanazawa, Haggai Landa, Moein Malekakhlagh, Avery Parr, R. K. Rupesh, William E. Shanks, Arthur Strauss, Matthew Treinish, Helena Zhang for helpful discussions, reviews, and contributions to the package.
 
 # References
