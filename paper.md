@@ -31,7 +31,7 @@ affiliations:
    index: 5
 
 
-date: 8 September 2023
+date: 13 September 2023
 bibliography: paper.bib
 ---
 
@@ -45,13 +45,13 @@ Lastly, to facilitate high-perfomance applications, Qiskit Dynamics is compatibl
 
 # Statement of need
 
-Numerical simulation of time-dependent quantum systems is a useful tool in quantum device characterization and design, as well as control optimization. As these applications often involve the expensive process of repeatedly simulating a system across different parameters (e.g. in exploratory parameter scans, or in optimizations), it is important for users to be able to easily select the numerical methods that are most performant for their specific problem. The ability to automatically differentiate and compile simulations is also critical for flexible control optimization research. 
+Numerical simulation of time-dependent quantum systems is a useful tool in quantum device characterization, design, and control optimization. As these applications often involve the expensive process of repeatedly simulating a system across different parameters (e.g. in exploratory parameter scans or in optimizations), users need to be able to easily select the numerical methods that are most performant for their specific problem. The ability to automatically differentiate and compile simulations is also critical for control optimization research. To ensure flexibility and broad applicability, it is important that all of these capabilities work for arbitrary user-specified models.
 
 Furthermore, having a simulation-based drop-in replacement for real quantum computing systems is useful for developers building software tools for low-level control of experiments, such as Qiskit Pulse `[@alexander_qiskit_2020]` and Qiskit Experiments `[@kanazawa_qiskit_2023]`.
 
 # Related open source packages
 
-Due to its importance, many open source packages contain time-dependent quantum system simulation tools. In Python, these include QuTiP `[@qutip]`, TorchQuantum `[@torchquantum]`, and C3 `[@C3]`. C++ packages (also with Python interfaces) include lindbladmpo `[@lindbladmpo]` and Quandary `[@quandary]`. Packages also exist in other languages, such as the Hamiltonian open quantum system toolkit (HOQST) `[@hoqst]` and a Framework for Quantum Optimal Control `[@julia_qc]` in Julia, and Spinach `[@spinach]` in MATLAB.
+Due to its importance, many open source packages contain time-dependent quantum system simulation tools. In Python, these include QuTiP `[@qutip]`, TorchQuantum `[@torchquantum]`, and C3 `[@C3]`. C++ packages (also with Python interfaces) include lindbladmpo `[@lindbladmpo]` and Quandary `[@quandary]`. Packages also exist in other languages, such as the Hamiltonian open quantum system toolkit (HOQST) `[@hoqst]` and a Framework for Quantum Optimal Control `[@julia_qc]` in Julia, and Spinach `[@spinach]` in MATLAB. The features in Qiskit Dynamics for simulating Qiskit Pulse control sequences replace those previously offered in Qiskit Aer `[@aer]`.
 
 # Documentation and community
 
