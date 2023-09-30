@@ -23,6 +23,8 @@ Qiskit extension module for simulating quantum dynamics.
 """
 from .version import __version__
 
+from .arraylias.alias import DYNAMICS_NUMPY_ALIAS, DYNAMICS_SCIPY_ALIAS, DYNAMICS_NUMPY, DYNAMICS_SCIPY
+
 from .models.rotating_frame import RotatingFrame
 
 from .signals.signals import Signal, DiscreteSignal

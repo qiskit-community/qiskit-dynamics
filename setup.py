@@ -21,7 +21,8 @@ requirements = [
     "matplotlib>=3.0",
     "qiskit-terra>=0.23.0",
     "multiset>=3.0.1",
-    "sympy>=1.12"
+    "sympy>=1.12",
+    "arraylias"
 ]
 
 jax_extras = ['jax>=0.4.0, <= 0.4.6',
