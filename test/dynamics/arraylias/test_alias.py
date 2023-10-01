@@ -36,3 +36,16 @@ class TestDynamicsNumpy(QiskitDynamicsTestCase):
 
         expected = np.exp(np.array([1., 2., 3.]))
         self.assertAllClose(output, expected)
+
+
+@partial(test_array_backends, backends=["numpy", "jax", "array_numpy", "array_jax"])
+class TestDynamicsNumpy(QiskitDynamicsTestCase):
+
+    def test_simple_case(self):
+        """Validate correct type and output."""
+        a = self.asarray([1., 2., 3.])
+        output = unp.exp(a)
+        self.assertTrue(isinstance(output, type(a)))
+
+        expected = np.exp(np.array([1., 2., 3.]))
+        self.assertAllClose(output, expected)

@@ -38,8 +38,8 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
-        A = Array(A)
-        B = Array(B)
+        A = np.array(A)
+        B = np.array(B)
 
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
@@ -57,8 +57,8 @@ class QiskitDynamicsTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
-class NumpyBase(unittest.TestCase):
-    """#############################################################################################"""
+class NumpyTestBase(unittest.TestCase):
+    """Base class for tests working with numpy arrays."""
 
     def lib(self):
         return "numpy"
@@ -70,8 +70,9 @@ class NumpyBase(unittest.TestCase):
         return isinstance(a, np.ndarray)
 
 
-class JaxBase(unittest.TestCase):
-    """#############################################################################################"""
+class JaxTestBase(unittest.TestCase):
+    """Base class for tests working with JAX arrays."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -93,7 +94,8 @@ class JaxBase(unittest.TestCase):
         return isinstance(a, jnp.ndarray)
 
 
-class ArrayNumpyBase(unittest.TestCase):
+class ArrayNumpyTestBase(unittest.TestCase):
+    """Base class for tests working with qiskit_dynamics Arrays with numpy backend."""
 
     def lib(self):
         return "array_numpy"
@@ -105,7 +107,8 @@ class ArrayNumpyBase(unittest.TestCase):
         return isinstance(a, Array) and a.backend == "numpy"
 
 
-class ArrayJaxBase(unittest.TestCase):
+class ArrayJaxTestBase(unittest.TestCase):
+    """Base class for tests working with qiskit_dynamics Arrays with jax backend."""
 
     @classmethod
     def setUpClass(cls):
@@ -148,13 +151,43 @@ def test_array_backends(test_class, backends=["numpy", "jax"]):
     module = inspect.getmodule(inspect.stack()[1][0])
 
     libs = ["numpy", "jax", "array_numpy", "array_jax"]
-    base_classes = [NumpyBase, JaxBase, ArrayNumpyBase, ArrayJaxBase]
+    base_classes = [NumpyTestBase, JaxTestBase, ArrayNumpyTestBase, ArrayJaxTestBase]
     for lib, base_class in zip(libs, base_classes):
         if lib in backends:
             class_name = f"{test_class.__name__}_{lib}"
             setattr(module, class_name, type(class_name, (test_class, base_class), dict()))
 
     del test_class
+
+
+class DiffraxTestBase(unittest.TestCase):
+    """Base class with setUpClass and tearDownClass for importing diffrax solvers
+
+    Test cases that inherit from this class will automatically work with diffrax solvers
+    backend.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                import diffrax  # pylint: disable=import-outside-toplevel,unused-import
+        except Exception as err:
+            raise unittest.SkipTest("Skipping diffrax tests.") from err
+
+
+class QutipTestBase(unittest.TestCase):
+    """Base class for tests that utilize Qutip."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                import qutip  # pylint: disable=import-outside-toplevel,unused-import
+        except Exception as err:
+            raise unittest.SkipTest("Skipping qutip tests.") from err
 
 
 # to be removed for 0.5.0
@@ -204,33 +237,3 @@ class TestJaxBase(unittest.TestCase):
         wf = wrap(lambda f: jit(grad(f)), decorator=True)
         f = lambda *args: np.sum(func_to_test(*args)).real
         return wf(f)
-
-
-class TestDiffraxBase(unittest.TestCase):
-    """Base class with setUpClass and tearDownClass for importing diffrax solvers
-
-    Test cases that inherit from this class will automatically work with diffrax solvers
-    backend.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                import diffrax  # pylint: disable=import-outside-toplevel,unused-import
-        except Exception as err:
-            raise unittest.SkipTest("Skipping diffrax tests.") from err
-
-
-class TestQutipBase(unittest.TestCase):
-    """Base class for tests that utilize Qutip."""
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                import qutip  # pylint: disable=import-outside-toplevel,unused-import
-        except Exception as err:
-            raise unittest.SkipTest("Skipping qutip tests.") from err
