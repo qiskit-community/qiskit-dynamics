@@ -20,6 +20,7 @@ from functools import partial
 from ..common import QiskitDynamicsTestCase, test_array_backends
 
 import numpy as np
+import scipy as sp
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_SCIPY as usp
@@ -27,6 +28,7 @@ from qiskit_dynamics import DYNAMICS_SCIPY as usp
 
 @partial(test_array_backends, backends=["numpy", "jax", "array_numpy", "array_jax"])
 class TestDynamicsNumpy(QiskitDynamicsTestCase):
+    """Test cases for global numpy configuration."""
 
     def test_simple_case(self):
         """Validate correct type and output."""
@@ -38,14 +40,15 @@ class TestDynamicsNumpy(QiskitDynamicsTestCase):
         self.assertAllClose(output, expected)
 
 
-@partial(test_array_backends, backends=["numpy", "jax", "array_numpy", "array_jax"])
-class TestDynamicsNumpy(QiskitDynamicsTestCase):
+@partial(test_array_backends, backends=["numpy", "jax"])
+class TestDynamicsScipy(QiskitDynamicsTestCase):
+    """Test cases for global scipy configuration."""
 
     def test_simple_case(self):
         """Validate correct type and output."""
         a = self.asarray([1., 2., 3.])
-        output = unp.exp(a)
+        output = usp.fft.dct(a)
         self.assertTrue(isinstance(output, type(a)))
 
-        expected = np.exp(np.array([1., 2., 3.]))
+        expected = sp.fft.dct(np.array([1., 2., 3.]))
         self.assertAllClose(output, expected)
