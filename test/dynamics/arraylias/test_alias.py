@@ -40,7 +40,7 @@ class TestDynamicsNumpy(QiskitDynamicsTestCase):
         self.assertAllClose(output, expected)
 
 
-@partial(test_array_backends, backends=["numpy", "jax"])
+@partial(test_array_backends)
 class TestDynamicsScipy(QiskitDynamicsTestCase):
     """Test cases for global scipy configuration."""
 
