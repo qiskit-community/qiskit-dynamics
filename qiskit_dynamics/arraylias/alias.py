@@ -12,6 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+Global alias instances.
+"""
+
 from typing import Union
 
 from arraylias import numpy_alias, scipy_alias

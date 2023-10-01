@@ -15,7 +15,6 @@
 Shared functionality and helpers for the unit tests.
 """
 
-import sys
 import warnings
 import unittest
 import inspect
@@ -61,12 +60,15 @@ class NumpyTestBase(unittest.TestCase):
     """Base class for tests working with numpy arrays."""
 
     def lib(self):
+        """Library method."""
         return "numpy"
-    
+
     def asarray(self, a):
+        """Array generation method."""
         return np.array(a)
-    
+
     def assertArrayType(self, a):
+        """Assert the correct array type."""
         return isinstance(a, np.ndarray)
 
 
@@ -83,14 +85,17 @@ class JaxTestBase(unittest.TestCase):
             jax.config.update("jax_platform_name", "cpu")
         except Exception as err:
             raise unittest.SkipTest("Skipping jax tests.") from err
-    
+
     def lib(self):
+        """Library method."""
         return "jax"
-    
+
     def asarray(self, a):
+        """Array generation method."""
         return jnp.array(a)
 
     def assertArrayType(self, a):
+        """Assert the correct array type."""
         return isinstance(a, jnp.ndarray)
 
 
@@ -98,12 +103,15 @@ class ArrayNumpyTestBase(unittest.TestCase):
     """Base class for tests working with qiskit_dynamics Arrays with numpy backend."""
 
     def lib(self):
+        """Library method."""
         return "array_numpy"
-    
+
     def asarray(self, a):
+        """Array generation method."""
         return Array(a)
-    
+
     def assertArrayType(self, a):
+        """Assert the correct array type."""
         return isinstance(a, Array) and a.backend == "numpy"
 
 
@@ -122,30 +130,35 @@ class ArrayJaxTestBase(unittest.TestCase):
             raise unittest.SkipTest("Skipping jax tests.") from err
 
         Array.set_default_backend("jax")
-    
+
     @classmethod
     def tearDownClass(cls):
         """Set numpy back to the default backend."""
         Array.set_default_backend("numpy")
 
     def lib(self):
+        """Library method."""
         return "array_jax"
-    
+
     def asarray(self, a):
+        """Array generation method."""
         return Array(a)
-    
+
     def assertArrayType(self, a):
+        """Assert the correct array type."""
         return isinstance(a, Array) and a.backend == "jax"
 
 
-def test_array_backends(test_class, backends=["numpy", "jax"]):
+def test_array_backends(test_class, backends=None):
     """Test class decorator for different array backends.
-    
+
     Creates subclasses of ``test_class`` with the method ``asarray`` for creating arrays of the
     appropriate type, the ``lib`` method to inspect library, in addition to special setup and
     teardown methods. The original ``test_class`` is then deleted so that it is no longer
     accessible by unittest.
     """
+    if backends is None:
+        backends = ["numpy", "jax"]
 
     # reference to module that called this function
     module = inspect.getmodule(inspect.stack()[1][0])
@@ -155,7 +168,7 @@ def test_array_backends(test_class, backends=["numpy", "jax"]):
     for lib, base_class in zip(libs, base_classes):
         if lib in backends:
             class_name = f"{test_class.__name__}_{lib}"
-            setattr(module, class_name, type(class_name, (test_class, base_class), dict()))
+            setattr(module, class_name, type(class_name, (test_class, base_class), {}))
 
     del test_class
 
