@@ -12,14 +12,34 @@
 # pylint: disable=invalid-name,isinstance-second-argument-not-valid-type
 
 """
-Shared functionality and helpers for the unit tests.
+General infrastructure for unit tests.
+
+``QiskitDynamicsTestCase`` adds general functionality used across tests.
+
+The ``test_array_backends`` decorator, along with the classes with names ``<array_library>TestBase``
+enable writing test cases that are agnostic to the underlying array library. The general setup is:
+- Each ``<array_library>TestBase`` implements an ``array_library`` class method returning a string,
+  an ``asarray`` method for specifically defining arrays for that library, and an
+  ``assertArrayType`` method for validating that an array is from that library. These classes can
+  also implement any required setup and teardown methods for working with that library (e.g.
+  ``JAXTestBase`` skips tests if running) on windows.
+- When used on a given ``test_class``, the decorator ``test_array_backends`` creates a series of
+  subclasses inheriting from ``test_class`` and a desired list of ``<array_library>TestBase``. The
+  desired list is specified via the ``array_libraries`` argument, which are matched against the
+  output of ``<array_library>TestBase.array_library()``. Note that the actual format of the class
+  name ``<array_library>TestBase`` is irrelevant: ``test_array_backends`` automatically detects
+  classes in this file with ``array_library`` class methods.
+Using the above infrastructure, a new array library can be added to the testing infrastructure by
+adding a new ``<array_library>TestBase`` class implementing the required methods, and possibly
+adding the output of ``<array_library>TestBase.array_library()`` to the default list of array
+libraries in ``test_array_backends``.
 """
 
+from typing import Type, Optional, List, Callable, Iterable
 import warnings
 import unittest
 import inspect
 
-from typing import Callable, Iterable
 import numpy as np
 from scipy.sparse import issparse
 
@@ -59,7 +79,8 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 class NumpyTestBase(unittest.TestCase):
     """Base class for tests working with numpy arrays."""
 
-    def lib(self):
+    @classmethod
+    def array_library(cls):
         """Library method."""
         return "numpy"
 
@@ -72,7 +93,7 @@ class NumpyTestBase(unittest.TestCase):
         return isinstance(a, np.ndarray)
 
 
-class JaxTestBase(unittest.TestCase):
+class JAXTestBase(unittest.TestCase):
     """Base class for tests working with JAX arrays."""
 
     @classmethod
@@ -86,7 +107,8 @@ class JaxTestBase(unittest.TestCase):
         except Exception as err:
             raise unittest.SkipTest("Skipping jax tests.") from err
 
-    def lib(self):
+    @classmethod
+    def array_library(cls):
         """Library method."""
         return "jax"
 
@@ -102,7 +124,8 @@ class JaxTestBase(unittest.TestCase):
 class ArrayNumpyTestBase(unittest.TestCase):
     """Base class for tests working with qiskit_dynamics Arrays with numpy backend."""
 
-    def lib(self):
+    @classmethod
+    def array_library(cls):
         """Library method."""
         return "array_numpy"
 
@@ -136,7 +159,8 @@ class ArrayJaxTestBase(unittest.TestCase):
         """Set numpy back to the default backend."""
         Array.set_default_backend("numpy")
 
-    def lib(self):
+    @classmethod
+    def array_library(cls):
         """Library method."""
         return "array_jax"
 
@@ -149,25 +173,36 @@ class ArrayJaxTestBase(unittest.TestCase):
         return isinstance(a, Array) and a.backend == "jax"
 
 
-def test_array_backends(test_class, backends=None):
+def test_array_backends(test_class: Type, array_libraries: Optional[List[str]] = None):
     """Test class decorator for different array backends.
 
-    Creates subclasses of ``test_class`` with the method ``asarray`` for creating arrays of the
-    appropriate type, the ``lib`` method to inspect library, in addition to special setup and
-    teardown methods. The original ``test_class`` is then deleted so that it is no longer
-    accessible by unittest.
+    Creates subclasses of ``test_class`` with any class in this file implementing an
+    ``array_library`` class method whose output matches an entry of ``array_libraries``. These
+    classes are added to the calling module, and the original ``test_class`` is deleted.
+
+    Read the file doc string for the intended usage.
+
+    Args:
+        test_class: The class to create subclasses from.
+        array_libraries: The list of outputs to ``cls.array_library()`` to match when creating
+            subclasses.
+    Returns:
+        None
     """
-    if backends is None:
-        backends = ["numpy", "jax"]
+    if array_libraries is None:
+        array_libraries = ["numpy", "jax"]
 
     # reference to module that called this function
     module = inspect.getmodule(inspect.stack()[1][0])
 
+    # list of classes in this module implementing the array_library method
     classes = inspect.getmembers(inspect.getmodule(inspect.currentframe()), inspect.isclass)
-    base_classes = [cls[1] for cls in classes if hasattr(cls[1], "lib")]
+    base_classes = [cls[1] for cls in classes if hasattr(cls[1], "array_library")]
 
+    # create subclasses
     for base_class in base_classes:
-        lib = base_class.lib()
+        lib = base_class.array_library()
+        if lib in array_libraries:
             class_name = f"{test_class.__name__}_{lib}"
             setattr(module, class_name, type(class_name, (test_class, base_class), {}))
 
