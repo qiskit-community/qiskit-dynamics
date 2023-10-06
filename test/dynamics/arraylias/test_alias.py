@@ -26,7 +26,7 @@ from qiskit_dynamics import DYNAMICS_SCIPY as usp
 from ..common import QiskitDynamicsTestCase, test_array_backends
 
 
-@partial(test_array_backends, backends=["numpy", "jax", "array_numpy", "array_jax"])
+@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
 class TestDynamicsNumpy(QiskitDynamicsTestCase):
     """Test cases for global numpy configuration."""
 
