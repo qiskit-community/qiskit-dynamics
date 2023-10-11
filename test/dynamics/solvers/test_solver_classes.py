@@ -414,7 +414,9 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
         t_span = [0.0, 1.0]
         signals = ([Signal(1.0, carrier_freq=5.0)], [Signal(1.0, carrier_freq=5.0)])
 
-        res1 = rwa_td_lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals)
+        res1 = rwa_td_lindblad_solver.solve(
+            t_span=t_span, y0=y0, signals=signals, atol=1e-12, rtol=1e-12
+        )
 
         self.td_lindblad_model.signals = signals
         rwa_td_lindblad_model = rotating_wave_approximation(self.td_lindblad_model, cutoff_freq=5.0)
@@ -422,7 +424,7 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
             generator=rwa_td_lindblad_model, t_span=t_span, y0=y0, atol=1e-12, rtol=1e-12
         )
 
-        self.assertAllClose(res1.y, res2.y)
+        self.assertAllClose(res1.y[-1], res2.y[-1])
 
     def test_signals_are_None(self):
         """Test the model signals return to being None after simulation."""
