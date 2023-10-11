@@ -29,7 +29,7 @@ from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
 from qiskit_dynamics.array import Array
 
-from ..common import QiskitDynamicsTestCase, TestDiffraxBase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, DiffraxTestBase, TestJaxBase
 
 try:
     from diffrax import PIDController, Tsit5, Dopri5
@@ -614,7 +614,7 @@ class Testjax_odeint(TestSolverMethodJax):
         return True
 
 
-class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
+class Testdiffrax_DOP5(TestSolverMethodJax, DiffraxTestBase):
     """Tests for diffrax Dopri5 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
@@ -633,7 +633,7 @@ class Testdiffrax_DOP5(TestSolverMethodJax, TestDiffraxBase):
         return True
 
 
-class Testdiffrax_Tsit5(TestSolverMethodJax, TestDiffraxBase):
+class Testdiffrax_Tsit5(TestSolverMethodJax, DiffraxTestBase):
     """Tests for diffrax Tsit5 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):

@@ -31,7 +31,7 @@ from qiskit_dynamics.type_utils import (
     to_numeric_matrix_type,
 )
 
-from .common import QiskitDynamicsTestCase, TestJaxBase, TestQutipBase
+from .common import QiskitDynamicsTestCase, TestJaxBase, QutipTestBase
 
 try:
     from jax.experimental import sparse as jsparse
@@ -546,7 +546,7 @@ class Test_to_numeric_matrix_type_Jax(QiskitDynamicsTestCase, TestJaxBase):
         self.assertAllClose(bcoo.todense(), bcoo2.todense())
 
 
-class TestTypeUtilsQutip(QiskitDynamicsTestCase, TestQutipBase):
+class TestTypeUtilsQutip(QiskitDynamicsTestCase, QutipTestBase):
     """Perform type conversion testing for qutip qobj inputs"""
 
     def test_qutip_conversion(self):
