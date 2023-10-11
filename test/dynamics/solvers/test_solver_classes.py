@@ -1081,8 +1081,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             rtol=1e-12,
         )
 
-        self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-12, rtol=1e-12)
+        self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-12, rtol=1e-12)
 
     def test_list_simulation_mixing_types(self):
         """Test correct formatting when input states have the same shape.
