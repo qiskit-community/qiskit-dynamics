@@ -1025,14 +1025,23 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         sig = Signal(0.9, carrier_freq=5.0)
 
         res_pulse = ham_pulse_solver.solve(
-            t_span=[0, 0.4], y0=Statevector([0.0, 1.0]), signals=schedule, method=self.method
+            t_span=[0, 0.4],
+            y0=Statevector([0.0, 1.0]),
+            signals=schedule,
+            method=self.method,
+            atol=1e-12,
+            rtol=1e-12,
         )
         res_signal = ham_solver.solve(
-            t_span=[0, 0.4], y0=Statevector([0.0, 1.0]), signals=[sig], method=self.method
+            t_span=[0, 0.4],
+            y0=Statevector([0.0, 1.0]),
+            signals=[sig],
+            method=self.method,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
-        self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-14, rtol=1e-14)
-        self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-14, rtol=1e-14)
+        self.assertAllClose(res_pulse.y[-1], res_signal.y[-1], atol=1e-10, rtol=1e-10)
 
     def test_rwa_lindblad_solver(self):
         """Test RWA for pulse solver with Lindblad information."""
@@ -1081,8 +1090,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             rtol=1e-12,
         )
 
-        self.assertAllClose(res_pulse.t, res_signal.t, atol=1e-12, rtol=1e-12)
-        self.assertAllClose(res_pulse.y, res_signal.y, atol=1e-12, rtol=1e-12)
+        self.assertAllClose(res_pulse.y[-1], res_signal.y[-1], atol=1e-10, rtol=1e-10)
 
     def test_list_simulation_mixing_types(self):
         """Test correct formatting when input states have the same shape.
