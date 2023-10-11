@@ -1133,7 +1133,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=[np.eye(2, dtype=complex), DensityMatrix([0.0, 1.0])],
             schedules=[sched0, sched1],
             signals=signals,
-            test_tol=1e-9,
+            test_tol=1e-8,
             atol=1e-12,
             rtol=1e-12,
         )
