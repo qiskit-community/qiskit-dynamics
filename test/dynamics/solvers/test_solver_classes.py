@@ -418,7 +418,9 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
 
         self.td_lindblad_model.signals = signals
         rwa_td_lindblad_model = rotating_wave_approximation(self.td_lindblad_model, cutoff_freq=5.0)
-        res2 = solve_lmde(generator=rwa_td_lindblad_model, t_span=t_span, y0=y0)
+        res2 = solve_lmde(
+            generator=rwa_td_lindblad_model, t_span=t_span, y0=y0, atol=1e-12, rtol=1e-12
+        )
 
         self.assertAllClose(res1.y, res2.y)
 
