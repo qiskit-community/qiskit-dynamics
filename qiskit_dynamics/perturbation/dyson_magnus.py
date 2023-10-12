@@ -488,6 +488,8 @@ def _setup_dyson_rhs_jax(
     """
     perturbations_evaluation_order = np.array(perturbations_evaluation_order, dtype=int)
 
+    new_list = [generator] + perturbations
+
     def multiple_eval(t):
         return jnp.array([new_list[idx](t) for idx in perturbations_evaluation_order])
 
