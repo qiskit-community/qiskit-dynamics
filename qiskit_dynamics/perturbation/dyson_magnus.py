@@ -473,7 +473,10 @@ def _setup_dyson_rhs_jax(
     custom_matmul = _CustomMatmul(lmult_rule, index_offset=1, backend="jax")
 
     """
-    ##################################################################################################OLD version
+    ##################################################################################################
+    #Old version - may want to consider keeping this or moving into a test that detects when JAX no
+    # longer has an issue with this
+
     perturbations_evaluation_order = jnp.array(perturbations_evaluation_order, dtype=int)
 
     new_list = [generator] + perturbations
@@ -495,7 +498,6 @@ def _setup_dyson_rhs_jax(
 
     def dyson_rhs(t, y):
         return custom_matmul(multiple_eval(t), y)
-
 
     return dyson_rhs
 
