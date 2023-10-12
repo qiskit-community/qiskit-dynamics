@@ -472,6 +472,8 @@ def _setup_dyson_rhs_jax(
 
     custom_matmul = _CustomMatmul(lmult_rule, index_offset=1, backend="jax")
 
+    """
+    ##################################################################################################OLD version
     perturbations_evaluation_order = jnp.array(perturbations_evaluation_order, dtype=int)
 
     new_list = [generator] + perturbations
@@ -483,6 +485,15 @@ def _setup_dyson_rhs_jax(
 
     def dyson_rhs(t, y):
         return custom_matmul(multiple_eval(perturbations_evaluation_order, t), y)
+    """
+    perturbations_evaluation_order = np.array(perturbations_evaluation_order, dtype=int)
+
+    def multiple_eval(t):
+        return jnp.array([new_list[idx](t) for idx in perturbations_evaluation_order])
+
+    def dyson_rhs(t, y):
+        return custom_matmul(multiple_eval(t), y)
+
 
     return dyson_rhs
 
