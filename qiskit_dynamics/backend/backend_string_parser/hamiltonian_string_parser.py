@@ -69,7 +69,7 @@ def parse_backend_hamiltonian_dict(
       Pauli :math:`Z` operator, and if greater than two dimensional, returns
       :math:`I - 2 * N`, where :math:`N` is the number operator.
     * ``'a'``, ``'A'``, or ``'Sm'``: If two dimensional, the sigma minus operator, and if greater,
-      generalizes to the operator.
+      generalizes to the annihilation operator.
     * ``'C'``, or ``'Sp'``: If two dimensional, sigma plus operator, and if greater,
       generalizes to the creation operator.
     * ``'N'``, or ``'O'``: The number operator.
