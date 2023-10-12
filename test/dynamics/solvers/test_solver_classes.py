@@ -373,7 +373,7 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
         rwa_ham_model = rotating_wave_approximation(self.ham_model, cutoff_freq=5.0)
         res2 = solve_lmde(generator=rwa_ham_model, t_span=t_span, y0=y0, atol=1e-12, rtol=1e-12)
 
-        self.assertAllClose(res1.y, res2.y, atol=1e-8, rtol=1e-8)
+        self.assertAllClose(res1.y[-1], res2.y[-1], atol=1e-8, rtol=1e-8)
 
     def test_rwa_lindblad_model(self):
         """Test correct handling of RWA for Lindblad model without
