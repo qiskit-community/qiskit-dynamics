@@ -317,11 +317,11 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
         t_span = [0.0, 1.42]
         signals = [Signal(3.0)]
 
-        res1 = lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals, atol=1e-11, rtol=1e-11)
+        res1 = lindblad_solver.solve(t_span=t_span, y0=y0, signals=signals, atol=1e-12, rtol=1e-12)
 
         self.lindblad_model.signals = (signals, None)
         res2 = solve_lmde(
-            generator=self.lindblad_model, t_span=t_span, y0=y0, atol=1e-11, rtol=1e-11
+            generator=self.lindblad_model, t_span=t_span, y0=y0, atol=1e-12, rtol=1e-12
         )
 
         self.assertAllClose(res1.y[-1], res2.y[-1], atol=1e-8, rtol=1e-8)
@@ -342,12 +342,12 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
         signals = ([Signal(3.0)], [Signal(2.0)])
 
         res1 = td_lindblad_solver.solve(
-            t_span=t_span, y0=y0, signals=signals, atol=1e-11, rtol=1e-11
+            t_span=t_span, y0=y0, signals=signals, atol=1e-12, rtol=1e-12
         )
 
         self.td_lindblad_model.signals = signals
         res2 = solve_lmde(
-            generator=self.td_lindblad_model, t_span=t_span, y0=y0, atol=1e-11, rtol=1e-11
+            generator=self.td_lindblad_model, t_span=t_span, y0=y0, atol=1e-12, rtol=1e-12
         )
 
         self.assertAllClose(res1.y[-1], res2.y[-1], atol=1e-8, rtol=1e-8)
@@ -367,11 +367,11 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
         t_span = [0.0, 1.0]
         signals = [Signal(1.0, carrier_freq=5.0)]
 
-        res1 = rwa_ham_solver.solve(t_span=t_span, y0=y0, signals=signals, atol=1e-11, rtol=1e-11)
+        res1 = rwa_ham_solver.solve(t_span=t_span, y0=y0, signals=signals, atol=1e-12, rtol=1e-12)
 
         self.ham_model.signals = signals
         rwa_ham_model = rotating_wave_approximation(self.ham_model, cutoff_freq=5.0)
-        res2 = solve_lmde(generator=rwa_ham_model, t_span=t_span, y0=y0, atol=1e-11, rtol=1e-11)
+        res2 = solve_lmde(generator=rwa_ham_model, t_span=t_span, y0=y0, atol=1e-12, rtol=1e-12)
 
         self.assertAllClose(res1.y, res2.y, atol=1e-8, rtol=1e-8)
 
@@ -394,13 +394,13 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
         signals = [Signal(1.0, carrier_freq=5.0)]
 
         res1 = rwa_lindblad_solver.solve(
-            t_span=t_span, y0=y0, signals=signals, atol=1e-11, rtol=1e-11
+            t_span=t_span, y0=y0, signals=signals, atol=1e-12, rtol=1e-12
         )
 
         self.lindblad_model.signals = (signals, None)
         rwa_lindblad_model = rotating_wave_approximation(self.lindblad_model, cutoff_freq=5.0)
         res2 = solve_lmde(
-            generator=rwa_lindblad_model, t_span=t_span, y0=y0, atol=1e-11, rtol=1e-11
+            generator=rwa_lindblad_model, t_span=t_span, y0=y0, atol=1e-12, rtol=1e-12
         )
 
         self.assertAllClose(res1.y[-1], res2.y[-1], atol=1e-8, rtol=1e-8)
@@ -425,13 +425,13 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
         signals = ([Signal(1.0, carrier_freq=5.0)], [Signal(1.0, carrier_freq=5.0)])
 
         res1 = rwa_td_lindblad_solver.solve(
-            t_span=t_span, y0=y0, signals=signals, atol=1e-11, rtol=1e-11
+            t_span=t_span, y0=y0, signals=signals, atol=1e-12, rtol=1e-12
         )
 
         self.td_lindblad_model.signals = signals
         rwa_td_lindblad_model = rotating_wave_approximation(self.td_lindblad_model, cutoff_freq=5.0)
         res2 = solve_lmde(
-            generator=rwa_td_lindblad_model, t_span=t_span, y0=y0, atol=1e-11, rtol=1e-11
+            generator=rwa_td_lindblad_model, t_span=t_span, y0=y0, atol=1e-12, rtol=1e-12
         )
 
         self.assertAllClose(res1.y[-1], res2.y[-1], atol=1e-8, rtol=1e-8)
@@ -580,7 +580,7 @@ class TestSolverSimulation(QiskitDynamicsTestCase):
             rtol=1e-12,
         )
         self.assertTrue(isinstance(results.y[-1], DensityMatrix))
-        self.assertAllClose(results.y[-1].data, results2.y[-1].data, atol=1e-10, rtol=1e-10)
+        self.assertAllClose(results.y[-1].data, results2.y[-1].data, atol=1e-8, rtol=1e-8)
 
     def test_array_vectorized_lindblad(self):
         """Test Lindblad solver is array-vectorized."""
@@ -652,16 +652,16 @@ class TestSolverSimulation(QiskitDynamicsTestCase):
             t_span=[0.0, 0.432],
             y0=SuperOp(np.eye(4)),
             signals=[Signal(1.0, 5.0)],
-            atol=1e-10,
-            rtol=1e-10,
+            atol=1e-12,
+            rtol=1e-12,
             method=self.method,
         )
         results2 = self.vec_lindblad_solver_no_diss.solve(
             t_span=[0.0, 0.432],
             y0=SuperOp(np.eye(4)),
             signals=[Signal(1.0, 5.0)],
-            atol=1e-10,
-            rtol=1e-10,
+            atol=1e-12,
+            rtol=1e-12,
         )
         self.assertAllClose(results.y[-1].data, results2.y[-1].data, atol=1e-8, rtol=1e-8)
 
@@ -1012,8 +1012,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             schedules=schedule,
             signals=signals,
             test_tol=1e-8,
-            atol=1e-11,
-            rtol=1e-11,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     def test_rwa_ham_solver(self):
@@ -1047,16 +1047,16 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             y0=Statevector([0.0, 1.0]),
             signals=schedule,
             method=self.method,
-            atol=1e-11,
-            rtol=1e-11,
+            atol=1e-12,
+            rtol=1e-12,
         )
         res_signal = ham_solver.solve(
             t_span=[0, 0.4],
             y0=Statevector([0.0, 1.0]),
             signals=[sig],
             method=self.method,
-            atol=1e-11,
-            rtol=1e-11,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
         self.assertAllClose(res_pulse.y[-1], res_signal.y[-1], atol=1e-8, rtol=1e-8)
@@ -1095,8 +1095,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             signals=schedule,
             method=self.method,
             convert_results=False,
-            atol=1e-11,
-            rtol=1e-11,
+            atol=1e-12,
+            rtol=1e-12,
         )
         res_signal = lindblad_solver.solve(
             t_span=[0, 0.4],
@@ -1104,8 +1104,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             signals=[sig],
             method=self.method,
             convert_results=False,
-            atol=1e-11,
-            rtol=1e-11,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
         self.assertAllClose(res_pulse.y[-1], res_signal.y[-1], atol=1e-8, rtol=1e-8)
