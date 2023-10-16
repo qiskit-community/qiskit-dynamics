@@ -22,4 +22,10 @@ Models (:mod:`qiskit_dynamics.arraylias`)
 Module for Qiskit Dynamics global NumPy and SciPy aliases.
 """
 
-from .alias import DYNAMICS_NUMPY_ALIAS, DYNAMICS_SCIPY_ALIAS, DYNAMICS_NUMPY, DYNAMICS_SCIPY
+from .alias import (
+    DYNAMICS_NUMPY_ALIAS,
+    DYNAMICS_SCIPY_ALIAS,
+    DYNAMICS_NUMPY,
+    DYNAMICS_SCIPY,
+    ArrayLike,
+)
