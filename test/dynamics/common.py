@@ -76,7 +76,7 @@ class QiskitDynamicsTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
-class NumpyTestBase(unittest.TestCase):
+class NumpyTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with numpy arrays."""
 
     @classmethod
@@ -93,7 +93,7 @@ class NumpyTestBase(unittest.TestCase):
         return isinstance(a, np.ndarray)
 
 
-class JAXTestBase(unittest.TestCase):
+class JAXTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with JAX arrays."""
 
     @classmethod
@@ -121,7 +121,7 @@ class JAXTestBase(unittest.TestCase):
         return isinstance(a, jnp.ndarray)
 
 
-class ArrayNumpyTestBase(unittest.TestCase):
+class ArrayNumpyTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with qiskit_dynamics Arrays with numpy backend."""
 
     @classmethod
@@ -138,7 +138,7 @@ class ArrayNumpyTestBase(unittest.TestCase):
         return isinstance(a, Array) and a.backend == "numpy"
 
 
-class ArrayJaxTestBase(unittest.TestCase):
+class ArrayJaxTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with qiskit_dynamics Arrays with jax backend."""
 
     @classmethod
