@@ -181,7 +181,8 @@ def test_array_backends(test_class: Type, array_libraries: Optional[List[str]] =
     ``array_library`` class method whose output matches an entry of ``array_libraries``. These
     classes are added to the calling module, and the original ``test_class`` is deleted. The classes
     in this file implementing ``array_library`` are assumed to be a subclass of
-    ``QiskitDynamicsTestCase``.
+    ``QiskitDynamicsTestCase``, and hence ``test_class`` should not already be a subclass of
+    ``QiskitDynamicsTestCase`` or ``unittest.TestCase``.
 
     Read the file doc string for the intended usage.
 
