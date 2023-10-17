@@ -33,7 +33,7 @@ except ImportError:
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-class TestSignal(QiskitDynamicsTestCase):
+class TestSignal:
     """Tests for Signal object."""
 
     def setUp(self):
@@ -313,7 +313,7 @@ class TestSignal(QiskitDynamicsTestCase):
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-class TestConstant(QiskitDynamicsTestCase):
+class TestConstant:
     """Tests for constant signal object."""
 
     def setUp(self):
@@ -384,7 +384,7 @@ class TestConstant(QiskitDynamicsTestCase):
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-class TestDiscreteSignal(QiskitDynamicsTestCase):
+class TestDiscreteSignal:
     """Tests for DiscreteSignal object."""
 
     def setUp(self):
@@ -520,8 +520,7 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.assertAllClose(discrete3.samples, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0])
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-class TestSignalSum(QiskitDynamicsTestCase):
+class TestSignalSum:
     """Test evaluation functions for ``SignalSum``."""
 
     def setUp(self):
@@ -738,7 +737,6 @@ class TestSignalSum(QiskitDynamicsTestCase):
         )
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
 class TestDiscreteSignalSum(TestSignalSum):
     """Tests for DiscreteSignalSum."""
 
@@ -768,8 +766,12 @@ class TestDiscreteSignalSum(TestSignalSum):
         self.assertTrue(empty_sum.samples.shape == (1, 0))
 
 
+test_array_backends(TestSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+test_array_backends(TestDiscreteSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+
+
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-class TestSignalList(QiskitDynamicsTestCase):
+class TestSignalList:
     """Test cases for SignalList class."""
 
     def setUp(self):
@@ -834,7 +836,7 @@ class TestSignalList(QiskitDynamicsTestCase):
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-class TestSignalCollection(QiskitDynamicsTestCase):
+class TestSignalCollection:
     """Test cases for SignalCollection functionality."""
 
     def setUp(self):
@@ -886,7 +888,7 @@ class TestSignalCollection(QiskitDynamicsTestCase):
         self.assertAllClose(sum_val, self.discrete_sig_sum(3.0))
 
 
-class TestSignalsJaxTransformations(QiskitDynamicsTestCase, JAXTestBase):
+class TestSignalsJaxTransformations(JAXTestBase):
     """Test cases for jax transformations of signals."""
 
     def setUp(self):
