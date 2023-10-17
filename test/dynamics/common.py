@@ -23,6 +23,7 @@ enable writing test cases that are agnostic to the underlying array library. The
   ``assertArrayType`` method for validating that an array is from that library. These classes can
   also implement any required setup and teardown methods for working with that library (e.g.
   ``JAXTestBase`` skips tests if running on windows).
+- Each ``<array_library>TestBase`` subclasses ``QiskitDynamicsTestCase``. 
 - When used on a given ``test_class``, the decorator ``test_array_backends`` creates a series of
   subclasses inheriting from ``test_class`` and a desired list of ``<array_library>TestBase``. The
   desired list is specified via the ``array_libraries`` argument, which are matched against the
@@ -76,7 +77,7 @@ class QiskitDynamicsTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
-class NumpyTestBase(unittest.TestCase):
+class NumpyTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with numpy arrays."""
 
     @classmethod
@@ -93,7 +94,7 @@ class NumpyTestBase(unittest.TestCase):
         return isinstance(a, np.ndarray)
 
 
-class JAXTestBase(unittest.TestCase):
+class JAXTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with JAX arrays."""
 
     @classmethod
@@ -121,7 +122,7 @@ class JAXTestBase(unittest.TestCase):
         return isinstance(a, jnp.ndarray)
 
 
-class ArrayNumpyTestBase(unittest.TestCase):
+class ArrayNumpyTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with qiskit_dynamics Arrays with numpy backend."""
 
     @classmethod
@@ -138,7 +139,7 @@ class ArrayNumpyTestBase(unittest.TestCase):
         return isinstance(a, Array) and a.backend == "numpy"
 
 
-class ArrayJaxTestBase(unittest.TestCase):
+class ArrayJaxTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with qiskit_dynamics Arrays with jax backend."""
 
     @classmethod
@@ -178,7 +179,9 @@ def test_array_backends(test_class: Type, array_libraries: Optional[List[str]] =
 
     Creates subclasses of ``test_class`` with any class in this file implementing an
     ``array_library`` class method whose output matches an entry of ``array_libraries``. These
-    classes are added to the calling module, and the original ``test_class`` is deleted.
+    classes are added to the calling module, and the original ``test_class`` is deleted. The classes
+    in this file implementing ``array_library`` are assumed to be a subclass of
+    ``QiskitDynamicsTestCase``.
 
     Read the file doc string for the intended usage.
 

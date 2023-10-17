@@ -23,11 +23,11 @@ import scipy as sp
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_SCIPY as usp
 
-from ..common import QiskitDynamicsTestCase, test_array_backends
+from ..common import test_array_backends
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-class TestDynamicsNumpy(QiskitDynamicsTestCase):
+class TestDynamicsNumpy:
     """Test cases for global numpy configuration."""
 
     def test_simple_case(self):
@@ -41,7 +41,7 @@ class TestDynamicsNumpy(QiskitDynamicsTestCase):
 
 
 @test_array_backends
-class TestDynamicsScipy(QiskitDynamicsTestCase):
+class TestDynamicsScipy:
     """Test cases for global scipy configuration."""
 
     def test_simple_case(self):
