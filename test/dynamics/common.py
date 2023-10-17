@@ -23,7 +23,7 @@ enable writing test cases that are agnostic to the underlying array library. The
   ``assertArrayType`` method for validating that an array is from that library. These classes can
   also implement any required setup and teardown methods for working with that library (e.g.
   ``JAXTestBase`` skips tests if running on windows).
-- Each ``<array_library>TestBase`` subclasses ``QiskitDynamicsTestCase``. 
+- Each ``<array_library>TestBase`` subclasses ``QiskitDynamicsTestCase``.
 - When used on a given ``test_class``, the decorator ``test_array_backends`` creates a series of
   subclasses inheriting from ``test_class`` and a desired list of ``<array_library>TestBase``. The
   desired list is specified via the ``array_libraries`` argument, which are matched against the
