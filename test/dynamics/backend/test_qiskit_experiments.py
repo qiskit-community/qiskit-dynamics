@@ -89,7 +89,7 @@ class TestExperimentsIntegration(QiskitDynamicsTestCase, TestJaxBase):
         frequencies = np.linspace(freq_estimate - 1e-2, freq_estimate + 1e-2, 51)
 
         self.simple_backend.set_options(seed_simulator=5243234)
-        spec = RoughFrequencyCal(0, cals, frequencies, backend=self.simple_backend)
+        spec = RoughFrequencyCal([0], cals, frequencies, backend=self.simple_backend)
         spec.set_experiment_options(amp=0.05, sigma=80, duration=320)
 
         spec_data = spec.run().block_for_results()
