@@ -23,7 +23,7 @@ from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, S
 from qiskit_dynamics.signals.signals import to_SignalSum
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 
-from ..common import JAXTestBase, QiskitDynamicsTestCase, test_array_backends
+from ..common import test_array_backends
 
 try:
     from jax import jit, grad
@@ -767,7 +767,9 @@ class TestDiscreteSignalSum(TestSignalSum):
 
 
 test_array_backends(TestSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-test_array_backends(TestDiscreteSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+test_array_backends(
+    TestDiscreteSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"]
+)
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
@@ -886,6 +888,7 @@ class TestSignalCollection:
             sum_val += sig(3.0)
 
         self.assertAllClose(sum_val, self.discrete_sig_sum(3.0))
+
 
 @partial(test_array_backends, array_libraries=["jax"])
 class TestSignalsJaxTransformations:
