@@ -887,8 +887,8 @@ class TestSignalCollection:
 
         self.assertAllClose(sum_val, self.discrete_sig_sum(3.0))
 
-
-class TestSignalsJaxTransformations(JAXTestBase):
+@partial(test_array_backends, array_libraries=["jax"])
+class TestSignalsJaxTransformations:
     """Test cases for jax transformations of signals."""
 
     def setUp(self):
