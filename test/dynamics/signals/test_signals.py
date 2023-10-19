@@ -30,6 +30,8 @@ try:
     import jax.numpy as jnp
 except ImportError:
     pass
+# Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
+# pylint: disable=no-member
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
@@ -827,11 +829,8 @@ class TestSignalList:
         """Test construction with non-wrapped constant values."""
 
         sig_list = SignalList([4.0, 2.0, Signal(lambda t: t)])
-        # pylint: disable=no-member
         self.assertTrue(sig_list[0][0].is_constant)
-        # pylint: disable=no-member
         self.assertTrue(sig_list[1][0].is_constant)
-        # pylint: disable=no-member
         self.assertFalse(sig_list[2][0].is_constant)
 
         self.assertAllClose(sig_list(3.0), self.asarray([4.0, 2.0, 3.0]))
