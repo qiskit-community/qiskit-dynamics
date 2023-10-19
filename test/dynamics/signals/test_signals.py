@@ -39,6 +39,7 @@ class TestSignal:
     """Tests for Signal object."""
 
     def setUp(self):
+        """Setup Signals"""
         self.signal1 = Signal(lambda _: 0.25, carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -319,6 +320,7 @@ class TestConstant:
     """Tests for constant signal object."""
 
     def setUp(self):
+        """Setup constant Signals"""
         self.constant1 = Signal(1.0)
         self.constant2 = Signal(3.0 + 1j * 2)
 
@@ -390,6 +392,7 @@ class TestDiscreteSignal:
     """Tests for DiscreteSignal object."""
 
     def setUp(self):
+        """Setup DiscreteSignals"""
         self.discrete1 = DiscreteSignal(
             dt=0.5, samples=self.asarray([1.0, 2.0, 3.0]), carrier_freq=3.0
         )
@@ -526,6 +529,7 @@ class TestSignalSum:
     """Test evaluation functions for ``SignalSum``."""
 
     def setUp(self):
+        """Setup SignalSums"""
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -743,6 +747,7 @@ class TestDiscreteSignalSum(TestSignalSum):
     """Tests for DiscreteSignalSum."""
 
     def setUp(self):
+        """Setup DiscreteSignalSums"""
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -779,6 +784,7 @@ class TestSignalList:
     """Test cases for SignalList class."""
 
     def setUp(self):
+        """Setup a SignalList"""
         self.sig = Signal(lambda t: t, carrier_freq=3.0)
         self.const = Signal(5.0)
         self.discrete_sig = DiscreteSignal(
@@ -841,6 +847,7 @@ class TestSignalCollection:
     """Test cases for SignalCollection functionality."""
 
     def setUp(self):
+        """Setup SignalCollections"""
         self.sig1 = Signal(lambda t: t, carrier_freq=0.1)
         self.sig2 = Signal(lambda t: t + 1j * t**2, carrier_freq=3.0, phase=1.0)
         self.sig3 = Signal(lambda t: t + 1j * t**2, carrier_freq=3.0, phase=1.2)
@@ -894,6 +901,7 @@ class TestSignalsJaxTransformations:
     """Test cases for jax transformations of signals."""
 
     def setUp(self):
+        """Setup Signals"""
         self.signal = Signal(lambda t: t**2, carrier_freq=3.0)
         self.constant = Signal(3 * np.pi)
         self.discrete_signal = DiscreteSignal(
