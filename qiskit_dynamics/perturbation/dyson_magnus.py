@@ -57,7 +57,7 @@ from .perturbation_data import PowerSeriesData, DysonLikeData
 
 try:
     import jax.numpy as jnp
-    from jax.lax import scan, switch
+    from jax.lax import scan
     from jax import vmap
 except ImportError:
     pass
@@ -472,23 +472,6 @@ def _setup_dyson_rhs_jax(
 
     custom_matmul = _CustomMatmul(lmult_rule, index_offset=1, backend="jax")
 
-    """
-    ##################################################################################################
-    #Old version - may want to consider keeping this or moving into a test that detects when JAX no
-    # longer has an issue with this
-
-    perturbations_evaluation_order = jnp.array(perturbations_evaluation_order, dtype=int)
-
-    new_list = [generator] + perturbations
-
-    def single_eval(idx, t):
-        return switch(idx, new_list, t)
-
-    multiple_eval = vmap(single_eval, in_axes=(0, None))
-
-    def dyson_rhs(t, y):
-        return custom_matmul(multiple_eval(perturbations_evaluation_order, t), y)
-    """
     perturbations_evaluation_order = np.array(perturbations_evaluation_order, dtype=int)
 
     new_list = [generator] + perturbations
