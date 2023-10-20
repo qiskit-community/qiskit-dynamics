@@ -12,17 +12,41 @@
 # pylint: disable=invalid-name,isinstance-second-argument-not-valid-type
 
 """
-Shared functionality and helpers for the unit tests.
+General infrastructure for unit tests.
+
+``QiskitDynamicsTestCase`` adds general functionality used across tests.
+
+The ``test_array_backends`` decorator, along with the classes with names ``<array_library>TestBase``
+enable writing test cases that are agnostic to the underlying array library. The general setup is:
+- Each ``<array_library>TestBase`` implements an ``array_library`` class method returning a string,
+  an ``asarray`` method for specifically defining arrays for that library, and an
+  ``assertArrayType`` method for validating that an array is from that library. These classes can
+  also implement any required setup and teardown methods for working with that library (e.g.
+  ``JAXTestBase`` skips tests if running on windows).
+- Each ``<array_library>TestBase`` subclasses ``QiskitDynamicsTestCase``.
+- When used on a given ``test_class``, the decorator ``test_array_backends`` creates a series of
+  subclasses inheriting from ``test_class`` and a desired list of ``<array_library>TestBase``. The
+  desired list is specified via the ``array_libraries`` argument, which are matched against the
+  output of ``<array_library>TestBase.array_library()``. Note that the actual format of the class
+  name ``<array_library>TestBase`` is irrelevant: ``test_array_backends`` automatically detects
+  classes in this file with ``array_library`` class methods.
+Using the above infrastructure, a new array library can be added to the testing infrastructure by
+adding a new ``<array_library>TestBase`` class implementing the required methods, and possibly
+adding the output of ``<array_library>TestBase.array_library()`` to the default list of array
+libraries in ``test_array_backends``.
 """
 
+from typing import Type, Optional, List, Callable, Iterable
 import warnings
 import unittest
-from typing import Callable, Iterable
+import inspect
+
 import numpy as np
 from scipy.sparse import issparse
 
 try:
     from jax import jit, grad
+    import jax.numpy as jnp
 except ImportError:
     pass
 
@@ -34,8 +58,8 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
-        A = Array(A)
-        B = Array(B)
+        A = np.array(A)
+        B = np.array(B)
 
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
@@ -53,6 +77,173 @@ class QiskitDynamicsTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(A, B, rtol=rtol, atol=atol))
 
 
+class NumpyTestBase(QiskitDynamicsTestCase):
+    """Base class for tests working with numpy arrays."""
+
+    @classmethod
+    def array_library(cls):
+        """Library method."""
+        return "numpy"
+
+    def asarray(self, a):
+        """Array generation method."""
+        return np.array(a)
+
+    def assertArrayType(self, a):
+        """Assert the correct array type."""
+        return isinstance(a, np.ndarray)
+
+
+class JAXTestBase(QiskitDynamicsTestCase):
+    """Base class for tests working with JAX arrays."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            # pylint: disable=import-outside-toplevel
+            import jax
+
+            jax.config.update("jax_enable_x64", True)
+            jax.config.update("jax_platform_name", "cpu")
+        except Exception as err:
+            raise unittest.SkipTest("Skipping jax tests.") from err
+
+    @classmethod
+    def array_library(cls):
+        """Library method."""
+        return "jax"
+
+    def asarray(self, a):
+        """Array generation method."""
+        return jnp.array(a)
+
+    def assertArrayType(self, a):
+        """Assert the correct array type."""
+        return isinstance(a, jnp.ndarray)
+
+
+class ArrayNumpyTestBase(QiskitDynamicsTestCase):
+    """Base class for tests working with qiskit_dynamics Arrays with numpy backend."""
+
+    @classmethod
+    def array_library(cls):
+        """Library method."""
+        return "array_numpy"
+
+    def asarray(self, a):
+        """Array generation method."""
+        return Array(a)
+
+    def assertArrayType(self, a):
+        """Assert the correct array type."""
+        return isinstance(a, Array) and a.backend == "numpy"
+
+
+class ArrayJaxTestBase(QiskitDynamicsTestCase):
+    """Base class for tests working with qiskit_dynamics Arrays with jax backend."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            # pylint: disable=import-outside-toplevel
+            import jax
+
+            jax.config.update("jax_enable_x64", True)
+            jax.config.update("jax_platform_name", "cpu")
+        except Exception as err:
+            raise unittest.SkipTest("Skipping jax tests.") from err
+
+        Array.set_default_backend("jax")
+
+    @classmethod
+    def tearDownClass(cls):
+        """Set numpy back to the default backend."""
+        Array.set_default_backend("numpy")
+
+    @classmethod
+    def array_library(cls):
+        """Library method."""
+        return "array_jax"
+
+    def asarray(self, a):
+        """Array generation method."""
+        return Array(a)
+
+    def assertArrayType(self, a):
+        """Assert the correct array type."""
+        return isinstance(a, Array) and a.backend == "jax"
+
+
+def test_array_backends(test_class: Type, array_libraries: Optional[List[str]] = None):
+    """Test class decorator for different array backends.
+
+    Creates subclasses of ``test_class`` with any class in this file implementing an
+    ``array_library`` class method whose output matches an entry of ``array_libraries``. These
+    classes are added to the calling module, and the original ``test_class`` is deleted. The classes
+    in this file implementing ``array_library`` are assumed to be a subclass of
+    ``QiskitDynamicsTestCase``, and hence ``test_class`` should not already be a subclass of
+    ``QiskitDynamicsTestCase`` or ``unittest.TestCase``.
+
+    Read the file doc string for the intended usage.
+
+    Args:
+        test_class: The class to create subclasses from.
+        array_libraries: The list of outputs to ``cls.array_library()`` to match when creating
+            subclasses.
+    Returns:
+        None
+    """
+    if array_libraries is None:
+        array_libraries = ["numpy", "jax"]
+
+    # reference to module that called this function
+    module = inspect.getmodule(inspect.stack()[1][0])
+
+    # list of classes in this module implementing the array_library method
+    classes = inspect.getmembers(inspect.getmodule(inspect.currentframe()), inspect.isclass)
+    base_classes = [cls[1] for cls in classes if hasattr(cls[1], "array_library")]
+
+    # create subclasses
+    for base_class in base_classes:
+        lib = base_class.array_library()
+        if lib in array_libraries:
+            class_name = f"{test_class.__name__}_{lib}"
+            setattr(module, class_name, type(class_name, (test_class, base_class), {}))
+
+    del test_class
+
+
+class DiffraxTestBase(unittest.TestCase):
+    """Base class with setUpClass and tearDownClass for importing diffrax solvers
+
+    Test cases that inherit from this class will automatically work with diffrax solvers
+    backend.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                import diffrax  # pylint: disable=import-outside-toplevel,unused-import
+        except Exception as err:
+            raise unittest.SkipTest("Skipping diffrax tests.") from err
+
+
+class QutipTestBase(unittest.TestCase):
+    """Base class for tests that utilize Qutip."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                import qutip  # pylint: disable=import-outside-toplevel,unused-import
+        except Exception as err:
+            raise unittest.SkipTest("Skipping qutip tests.") from err
+
+
+# to be removed for 0.5.0
 class TestJaxBase(unittest.TestCase):
     """Base class with setUpClass and tearDownClass for setting jax as the
     default backend.
@@ -99,33 +290,3 @@ class TestJaxBase(unittest.TestCase):
         wf = wrap(lambda f: jit(grad(f)), decorator=True)
         f = lambda *args: np.sum(func_to_test(*args)).real
         return wf(f)
-
-
-class TestDiffraxBase(unittest.TestCase):
-    """Base class with setUpClass and tearDownClass for importing diffrax solvers
-
-    Test cases that inherit from this class will automatically work with diffrax solvers
-    backend.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                import diffrax  # pylint: disable=import-outside-toplevel,unused-import
-        except Exception as err:
-            raise unittest.SkipTest("Skipping diffrax tests.") from err
-
-
-class TestQutipBase(unittest.TestCase):
-    """Base class for tests that utilize Qutip."""
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                import qutip  # pylint: disable=import-outside-toplevel,unused-import
-        except Exception as err:
-            raise unittest.SkipTest("Skipping qutip tests.") from err

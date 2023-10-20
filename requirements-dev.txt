@@ -5,6 +5,9 @@ black~=22.0
 qiskit-sphinx-theme~=1.16.0
 sphinx-autodoc-typehints
 jupyter-sphinx
+# The following line is needed until
+# https://github.com/jupyter/jupyter-sphinx/pull/226 is resolved.
+ipykernel>=4.5.1
 pygments>=2.4
 reno>=3.4.0
 nbsphinx

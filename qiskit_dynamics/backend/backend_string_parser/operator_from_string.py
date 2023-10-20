@@ -26,14 +26,14 @@ import qiskit.quantum_info as qi
 
 
 def _operator_from_string(
-    op_label: str, subsystem_label: int, subsystem_dims: Dict[int, int]
+    op_label: str, subsystem_label: int, subsystem_dims_dict: Dict[int, int]
 ) -> np.ndarray:
     r"""Generates a dense operator acting on a single subsystem, tensoring
     identities for remaining subsystems.
 
     The single system operator is specified via a string in ``op_label``,
     the list of subsystems and their corresponding dimensions are specified in the
-    dictionary ``subsystem_dims``, with system label being the keys specified as ``int``s,
+    dictionary ``subsystem_dims_dict``, with system label being the keys specified as ``int``s,
     and system dimensions the values also specified as ``int``s, and ``subsystem_label``
     indicates which subsystem the operator specified by ``op_label`` acts on.
 
@@ -61,7 +61,7 @@ def _operator_from_string(
     Args:
         op_label: The string labelling the single system operator.
         subsystem_label: Index of the subsystem to apply the operator.
-        subsystem_dims: Dictionary of subsystem labels and dimensions.
+        subsystem_dims_dict: Dictionary of subsystem labels and dimensions.
 
     Returns:
         np.ndarray corresponding to the specified operator.
@@ -75,12 +75,12 @@ def _operator_from_string(
     if op_func is None:
         raise QiskitError(f"String {op_label} does not correspond to a known operator.")
 
-    dim = subsystem_dims[subsystem_label]
+    dim = subsystem_dims_dict[subsystem_label]
     out = qi.Operator(op_func(dim), input_dims=[dim], output_dims=[dim])
 
     # sort subsystem labels and dimensions according to subsystem label
     sorted_subsystem_keys, sorted_subsystem_dims = zip(
-        *sorted(zip(subsystem_dims.keys(), subsystem_dims.values()))
+        *sorted(zip(subsystem_dims_dict.keys(), subsystem_dims_dict.values()))
     )
 
     # get subsystem location in ordered list
