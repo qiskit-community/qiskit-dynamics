@@ -22,7 +22,7 @@ from typing import Callable, Union, List
 import numpy as np
 
 from qiskit import QiskitError
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 
 from .signals import Signal, DiscreteSignal
 
@@ -117,11 +117,11 @@ class Convolution(BaseTransferFunction):
         if isinstance(signal, DiscreteSignal):
             # Perform a discrete time convolution.
             dt = signal.dt
-            func_samples = Array([self._func(dt * i) for i in range(signal.duration)])
+            func_samples = unp.asarray([self._func(dt * i) for i in range(signal.duration)])
             func_samples = func_samples / sum(func_samples)
-            sig_samples = signal(dt * np.arange(signal.duration))
+            sig_samples = signal(dt * unp.arange(signal.duration))
 
-            convoluted_samples = list(np.convolve(func_samples, sig_samples))
+            convoluted_samples = list(unp.convolve(func_samples, sig_samples))
 
             return DiscreteSignal(dt, convoluted_samples, carrier_freq=0.0, phase=0.0)
         else:
@@ -233,8 +233,8 @@ class IQMixer(BaseTransferFunction):
 
         def mixer_func(t):
             """Function of the IQ mixer."""
-            osc_i = np.cos(wp * t + phi_i) + np.cos(wm * t + phi_i)
-            osc_q = np.cos(wp * t + phi_q - np.pi / 2) + np.cos(wm * t + phi_q + np.pi / 2)
+            osc_i = unp.cos(wp * t + phi_i) + unp.cos(wm * t + phi_i)
+            osc_q = unp.cos(wp * t + phi_q - np.pi / 2) + unp.cos(wm * t + phi_q + np.pi / 2)
             return si.envelope(t) * osc_i / 2 + sq.envelope(t) * osc_q / 2
 
         return Signal(mixer_func, carrier_freq=0, phase=0)
