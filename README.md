@@ -61,8 +61,8 @@ questions. For questions that are more suited for a forum we use the Qiskit tag 
 
 Qiskit Dynamics is the work of 
 [many people](https://github.com/Qiskit-Extensions/qiskit-dynamics/graphs/contributors) who
-contribute to the project at different levels. If you use Qiskit Dynamics, please cite our paper as
-per the included 
+contribute to the project at different levels. If you use Qiskit Dynamics, please cite our
+[paper](https://joss.theoj.org/papers/10.21105/joss.05853) as per the included
 [BibTeX file](https://github.com/Qiskit-Extensions/qiskit-dynamics/blob/main/CITATION.bib).
 
 ## License
