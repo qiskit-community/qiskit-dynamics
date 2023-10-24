@@ -1,6 +1,7 @@
 # Qiskit Dynamics
 
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-dynamics.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.05853/status.svg)](https://doi.org/10.21105/joss.05853)
 
 **This repo is still in the early stages of development, there will be breaking API changes**
 
@@ -60,7 +61,8 @@ questions. For questions that are more suited for a forum we use the Qiskit tag 
 
 Qiskit Dynamics is the work of 
 [many people](https://github.com/Qiskit-Extensions/qiskit-dynamics/graphs/contributors) who
-contribute to the project at different levels. If you use Qiskit, please cite as per the included 
+contribute to the project at different levels. If you use Qiskit Dynamics, please cite our paper as
+per the included 
 [BibTeX file](https://github.com/Qiskit-Extensions/qiskit-dynamics/blob/main/CITATION.bib).
 
 ## License
