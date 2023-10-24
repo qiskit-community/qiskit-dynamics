@@ -54,15 +54,9 @@ bibtex_bibliography_header = ".. rubric:: References"
 bibtex_footbibliography_header = bibtex_bibliography_header
 
 # html theme options
-html_theme = 'qiskit_sphinx_theme'
+html_theme = 'qiskit-ecosystem'
 html_last_updated_fmt = '%Y/%m/%d'
-html_theme_options = {
-    'logo_only': True,
-    'display_version': True,
-    'prev_next_buttons_location': 'bottom',
-    'style_external_links': True,
-}
-html_css_files = ['gallery.css']
+
 html_context = {"analytics_enabled": True}
 
 # autodoc/autosummary options
