@@ -220,7 +220,7 @@ class TestSolverMethodJax(TestSolverMethod, TestJaxBase):
 
         def func(a):
             model_copy = self.pseudo_random_model.copy()
-            model_copy.signals = [Signal(Array(a), carrier_freq=1.0)]
+            model_copy.signals = [Signal(a, carrier_freq=1.0)]
             results = self.solve(model_copy, t_span=[0.0, 0.1], y0=self.pseudo_random_y0)
             return results.y[-1]
 

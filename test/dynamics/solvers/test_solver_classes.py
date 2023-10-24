@@ -710,7 +710,7 @@ class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
             yf = solver.solve(
                 t_span=np.array([0.0, 0.1]),
                 y0=np.array([0.0, 1.0]),
-                signals=[Signal(Array(a), 5.0)],
+                signals=[Signal(a, 5.0)],
                 method=self.method,
             ).y[-1]
             return yf

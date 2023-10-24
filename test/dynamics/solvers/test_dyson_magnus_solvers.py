@@ -344,7 +344,7 @@ class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
                 t0=0.0,
                 n_steps=self.n_steps,
                 y0=np.eye(2, dtype=complex),
-                signals=[Signal(Array(c), carrier_freq=5.0)],
+                signals=[Signal(c, carrier_freq=5.0)],
             ).y[-1]
             return dyson_yf
 
@@ -362,7 +362,7 @@ class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
                 t0=0.0,
                 n_steps=self.n_steps,
                 y0=np.eye(2, dtype=complex),
-                signals=[Signal(Array(c), carrier_freq=5.0)],
+                signals=[Signal(c, carrier_freq=5.0)],
             ).y[-1]
             return magnus_yf
 
