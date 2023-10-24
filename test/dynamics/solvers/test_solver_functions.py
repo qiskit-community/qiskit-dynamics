@@ -367,7 +367,7 @@ class Testlanczos_diag(TestSolverMethod):
 
         # simulate directly out of frame
         def pseudo_random_rhs(t, y=None):
-            op = self.static_operator + self.pseudo_random_signal(t).data * self.operators[0]
+            op = self.static_operator + self.pseudo_random_signal(t) * self.operators[0]
             op = -1j * op
             if y is None:
                 return op
