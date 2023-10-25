@@ -24,7 +24,6 @@ from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
 
 from qiskit_dynamics import Solver, Signal, DiscreteSignal, solve_lmde
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel, rotating_wave_approximation
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 from qiskit_dynamics.solvers.solver_classes import organize_signals_to_channels
 
