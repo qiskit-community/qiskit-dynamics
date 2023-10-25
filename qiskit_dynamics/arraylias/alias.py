@@ -20,6 +20,8 @@ from typing import Union
 
 from arraylias import numpy_alias, scipy_alias
 
+from qiskit import QiskitError
+
 from qiskit_dynamics.array import Array
 
 # global NumPy and SciPy aliases
@@ -35,3 +37,18 @@ DYNAMICS_SCIPY = DYNAMICS_SCIPY_ALIAS()
 
 
 ArrayLike = Union[Union[DYNAMICS_NUMPY_ALIAS.registered_types()], list]
+
+
+def _preferred_lib(*args):
+    if len(args) == 1:
+        return DYNAMICS_NUMPY_ALIAS.infer_libs(args[0])
+    
+    lib0 = DYNAMICS_NUMPY_ALIAS.infer_libs(args[0])[0]
+    lib1 = _preferred_lib(args[1:])[0]
+
+    if lib0 == "numpy" and lib1 == "numpy":
+        return "numpy"
+    elif lib0 == "jax" or lib1 == "jax":
+        return "jax"
+    
+    raise QiskitError("_preferred_lib could not resolve preferred library.")
