@@ -20,6 +20,8 @@ from scipy.sparse import csr_matrix, issparse
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics.arraylias.alias import _preferred_lib
 from qiskit_dynamics.array import Array, wrap
 from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
 
@@ -1357,7 +1359,7 @@ class BaseVectorizedLindbladCollection(BaseLindbladOperatorCollection, BaseOpera
     ) -> Array:
         """Concatenate hamiltonian and linblad signals."""
         if self._hamiltonian_operators is not None and self._dissipator_operators is not None:
-            return np.append(ham_sig_vals, dis_sig_vals, axis=-1)
+            return numpy_alias(like=_preferred_lib(ham_sig_vals, dis_sig_vals)).append(ham_sig_vals, dis_sig_vals, axis=-1)
         if self._hamiltonian_operators is not None and self._dissipator_operators is None:
             return ham_sig_vals
         if self._hamiltonian_operators is None and self._dissipator_operators is not None:
