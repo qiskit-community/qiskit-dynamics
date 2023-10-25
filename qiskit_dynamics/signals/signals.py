@@ -70,8 +70,8 @@ class Signal:
     def __init__(
         self,
         envelope: Union[Callable, ArrayLike],
-        carrier_freq: Union[List, ArrayLike] = 0.0,
-        phase: Union[List, ArrayLike] = 0.0,
+        carrier_freq: ArrayLike = 0.0,
+        phase: ArrayLike = 0.0,
         name: Optional[str] = None,
     ):
         """
@@ -123,7 +123,7 @@ class Signal:
         return self._carrier_freq
 
     @carrier_freq.setter
-    def carrier_freq(self, carrier_freq: Union[List, ArrayLike]):
+    def carrier_freq(self, carrier_freq: ArrayLike):
         """Carrier frequency setter. List handling is to support subclasses storing a
         list of frequencies."""
         self._carrier_freq = unp.asarray(carrier_freq)
@@ -135,7 +135,7 @@ class Signal:
         return self._phase
 
     @phase.setter
-    def phase(self, phase: Union[List, ArrayLike]):
+    def phase(self, phase: ArrayLike):
         """Phase setter. List handling is to support subclasses storing a
         list of phases."""
         self._phase = unp.asarray(phase)
