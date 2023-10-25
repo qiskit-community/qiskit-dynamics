@@ -21,6 +21,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics import Signal, Solver, DysonSolver, MagnusSolver
 from qiskit_dynamics.array import Array
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 
 from qiskit_dynamics.solvers.perturbative_solvers.expansion_model import (
     _construct_DCT,
@@ -85,7 +86,7 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
         r = 0.2
 
         def gaussian(amp, sig, t0, t):
-            return amp * np.exp(-((t - t0) ** 2) / (2 * sig**2))
+            return amp * unp.exp(-((t - t0) ** 2) / (2 * sig**2))
 
         # specifications for generating envelope
         amp = 1.0  # amplitude
@@ -94,7 +95,7 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
         T = 7 * sig  # end of signal
 
         # Function to define gaussian envelope, using gaussian wave function
-        gaussian_envelope = lambda t: gaussian(Array(amp), Array(sig), Array(t0), Array(t)).data
+        gaussian_envelope = lambda t: gaussian(amp, sig, t0, t)
 
         obj.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.0)
 
