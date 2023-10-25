@@ -544,7 +544,7 @@ class SignalSum(SignalCollection, Signal):
             elif isinstance(sig, Signal):
                 components.append(sig)
             elif isinstance(sig, (int, float, complex)) or (
-                isinstance(sig, ArrayLike) and sig.ndim == 0
+                not isinstance(sig, (int, float, complex)) and sig.ndim == 0
             ):
                 components.append(Signal(sig))
             else:
