@@ -69,9 +69,9 @@ class Signal:
 
     def __init__(
         self,
-        envelope: Union[Callable, complex, float, int, ArrayLike],
-        carrier_freq: Union[float, List, ArrayLike] = 0.0,
-        phase: Union[float, List, ArrayLike] = 0.0,
+        envelope: Union[Callable, ArrayLike],
+        carrier_freq: Union[List, ArrayLike] = 0.0,
+        phase: Union[List, ArrayLike] = 0.0,
         name: Optional[str] = None,
     ):
         """
@@ -123,7 +123,7 @@ class Signal:
         return self._carrier_freq
 
     @carrier_freq.setter
-    def carrier_freq(self, carrier_freq: Union[float, list, ArrayLike]):
+    def carrier_freq(self, carrier_freq: Union[List, ArrayLike]):
         """Carrier frequency setter. List handling is to support subclasses storing a
         list of frequencies."""
         self._carrier_freq = unp.asarray(carrier_freq)
@@ -135,22 +135,22 @@ class Signal:
         return self._phase
 
     @phase.setter
-    def phase(self, phase: Union[float, list, ArrayLike]):
+    def phase(self, phase: Union[List, ArrayLike]):
         """Phase setter. List handling is to support subclasses storing a
         list of phases."""
         self._phase = unp.asarray(phase)
         self._phase_arg = 1j * self._phase
 
-    def envelope(self, t: Union[float, ArrayLike]) -> Union[complex, ArrayLike]:
+    def envelope(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of the envelope at time t."""
         return self._envelope(t)
 
-    def complex_value(self, t: Union[float, ArrayLike]) -> Union[complex, ArrayLike]:
+    def complex_value(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of the complex value at time t."""
         arg = self._carrier_arg * t + self._phase_arg
         return self.envelope(t) * unp.exp(arg)
 
-    def __call__(self, t: Union[float, ArrayLike]) -> Union[complex, ArrayLike]:
+    def __call__(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of the signal at time(s) t."""
         return unp.real(self.complex_value(t))
 
@@ -271,8 +271,8 @@ class DiscreteSignal(Signal):
         dt: float,
         samples: ArrayLike,
         start_time: float = 0.0,
-        carrier_freq: Union[float, ArrayLike] = 0.0,
-        phase: Union[float, ArrayLike] = 0.0,
+        carrier_freq: ArrayLike = 0.0,
+        phase: ArrayLike = 0.0,
         name: str = None,
     ):
         """Initialize a piecewise constant signal.
@@ -467,7 +467,7 @@ class SignalCollection:
         """Number of components."""
         return len(self.components)
 
-    def __getitem__(self, idx: Union[int, ArrayLike, slice]) -> Union[Signal, "SignalCollection"]:
+    def __getitem__(self, idx: Union[ArrayLike, slice]) -> Union[Signal, "SignalCollection"]:
         """Get item with NumPy-style subscripting, as if this class were a 1d array."""
 
         if type(idx) != int and type(idx) != slice and type(idx) != list and idx.ndim > 0:
@@ -569,7 +569,7 @@ class SignalSum(SignalCollection, Signal):
             self, envelope=envelope, carrier_freq=carrier_freqs, phase=phases, name=name
         )
 
-    def complex_value(self, t: Union[float, ArrayLike]) -> Union[complex, ArrayLike]:
+    def complex_value(self, t: ArrayLike) -> ArrayLike:
         """Return the sum of the complex values of each component."""
         exp_phases = unp.exp(
             unp.expand_dims(unp.asarray(t), -1) * self._carrier_arg + self._phase_arg
@@ -742,7 +742,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         return default_str
 
-    def __getitem__(self, idx: Union[int, ArrayLike]) -> Signal:
+    def __getitem__(self, idx: ArrayLike) -> Signal:
         """Enables numpy-style subscripting, as if this class were a 1d array."""
 
         if type(idx) == int and idx >= len(self):
@@ -796,11 +796,11 @@ class SignalList(SignalCollection):
         )
         self._eval_signals = lambda t: unp.asarray([sig(t) for sig in self.components])
 
-    def complex_value(self, t: Union[float, ArrayLike]) -> ArrayLike:
+    def complex_value(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of complex value of components."""
         return unp.moveaxis(self._eval_complex_value(t), 0, -1)
 
-    def __call__(self, t: Union[float, ArrayLike]) -> ArrayLike:
+    def __call__(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of all components."""
         return unp.moveaxis(self._eval_signals(t), 0, -1)
 
@@ -1076,7 +1076,7 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     return sig1, sig2
 
 
-def to_SignalSum(sig: Union[int, float, complex, ArrayLike, Signal]) -> SignalSum:
+def to_SignalSum(sig: Union[ArrayLike, Signal]) -> SignalSum:
     r"""Convert the input to a SignalSum according to:
 
         - If it is already a ``SignalSum``\, do nothing.
