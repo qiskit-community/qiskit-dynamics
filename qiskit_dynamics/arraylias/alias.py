@@ -39,7 +39,22 @@ DYNAMICS_SCIPY = DYNAMICS_SCIPY_ALIAS()
 ArrayLike = Union[Union[DYNAMICS_NUMPY_ALIAS.registered_types()], list]
 
 
-def _preferred_lib(*args):
+def _preferred_lib(*args, **kwargs):
+    """Given a list of args and kwargs with potentially mixed array types, determine the appropriate
+    library to dispatch to.
+    
+    For each argument, DYNAMICS_NUMPY_ALIAS.infer_libs is called to infer the library. If all are
+    "numpy", then it returns "numpy", and if any are "jax", it returns "jax".
+
+    Args:
+        *args: Positional arguments.
+        **kwargs: Keyword arguments.
+    Returns:
+        str
+    Raises:
+        QiskitError if none of the rules apply.
+    """
+    args = list(args) + list(kwargs.values())
     if len(args) == 1:
         return DYNAMICS_NUMPY_ALIAS.infer_libs(args[0])
     
@@ -52,3 +67,20 @@ def _preferred_lib(*args):
         return "jax"
     
     raise QiskitError("_preferred_lib could not resolve preferred library.")
+
+
+def _numpy_multi_dispatch(*args, path, **kwargs):
+    """Multiple dispatching for NumPy.
+    
+    Given *args and **kwargs, dispatch the function specified by path, to the array library
+    specified by _preferred_lib.
+
+    Args:
+        *args: Positional arguments to pass to function specified by path.
+        path: Path in numpy module structure.
+        **kwargs: Keyword arguments to pass to function specified by path.
+    Returns:
+        Result of evaluating the function at path on the arguments using the preferred library.
+    """
+    lib = _preferred_lib(*args, **kwargs)
+    return DYNAMICS_NUMPY_ALIAS(like=lib, path=path)(*args, **kwargs)
