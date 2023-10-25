@@ -34,4 +34,4 @@ DYNAMICS_NUMPY = DYNAMICS_NUMPY_ALIAS()
 DYNAMICS_SCIPY = DYNAMICS_SCIPY_ALIAS()
 
 
-ArrayLike = Union[DYNAMICS_NUMPY_ALIAS.registered_types()]
+ArrayLike = Union[Union[DYNAMICS_NUMPY_ALIAS.registered_types()], list]
