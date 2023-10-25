@@ -100,7 +100,6 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
 
         dt = 0.0125
         obj.n_steps = int(T // dt) // 3
-        import pdb; pdb.set_trace()
         hamiltonian_operators = 2 * np.pi * r * np.array([[[0.0, 1.0], [1.0, 0.0]]]) / 2
         static_hamiltonian = 2 * np.pi * 5.0 * np.array([[1.0, 0.0], [0.0, -1.0]]) / 2
 
