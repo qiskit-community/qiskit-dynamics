@@ -28,7 +28,7 @@ from qiskit import QiskitError
 from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY_ALIAS as numpy_alias
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
-from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch
+from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch, _preferred_lib
 
 
 class Signal:
@@ -308,7 +308,7 @@ class DiscreteSignal(Signal):
                 -1,
                 len(self.samples),
             )
-            return numpy_alias(like=idx).asarray(self._padded_samples)[idx]
+            return numpy_alias(like=_preferred_lib(self._padded_samples, idx)).asarray(self._padded_samples)[idx]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
