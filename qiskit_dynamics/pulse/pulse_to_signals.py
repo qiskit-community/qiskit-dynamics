@@ -37,6 +37,7 @@ from qiskit.pulse import (
 from qiskit.pulse.exceptions import PulseError
 from qiskit.pulse.library import SymbolicPulse
 from qiskit import QiskitError
+from qiskit_dynamics.array import Array
 from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 
@@ -360,7 +361,7 @@ def get_samples(pulse: SymbolicPulse) -> ArrayLike:
                 f"Pulse parameter '{symbol.name}' is not defined for this instance. "
                 "Please check your waveform expression is correct."
             ) from ex
-    return _lru_cache_expr(envelope, DEFAULT_BACKEND)(*args)
+    return _lru_cache_expr(envelope, Array.default_backend())(*args)
 
 
 @functools.lru_cache(maxsize=None)
@@ -386,7 +387,7 @@ def _nyquist_warn(frequency_shift: ArrayLike, dt: float, channel: str):
     """Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``."""
 
     if (
-        isinstance(frequency_shift, (list, np.array))
+        isinstance(frequency_shift, (list, np.ndarray))
         or not isinstance(jnp.array(0), jax.core.Tracer)
     ) and np.abs(frequency_shift) > 0.5 / dt:
         warn(
