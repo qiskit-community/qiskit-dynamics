@@ -957,8 +957,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             schedules=sched,
             signals=signals,
             test_tol=1e-8,
-            atol=1e-11,
-            rtol=1e-11,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     def test_4_channel_schedule(self):
