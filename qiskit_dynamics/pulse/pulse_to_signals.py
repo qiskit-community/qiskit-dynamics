@@ -37,8 +37,9 @@ from qiskit.pulse import (
 from qiskit.pulse.exceptions import PulseError
 from qiskit.pulse.library import SymbolicPulse
 from qiskit import QiskitError
+from qiskit_dynamics.arraylias import ArrayLike
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import DiscreteSignal
 
 try:
@@ -185,9 +186,9 @@ class InstructionToSignals:
                     inst_samples = get_samples(inst.pulse)
 
                 # build sample array to append to signal
-                times = self._dt * (start_sample + np.arange(len(inst_samples)))
-                samples = inst_samples * np.exp(
-                    Array(
+                times = self._dt * (start_sample + unp.arange(len(inst_samples)))
+                samples = inst_samples * unp.exp(
+                    unp.asarray(
                         2.0j * np.pi * frequency_shifts[chan] * times
                         + 1.0j * phases[chan]
                         + 2.0j * np.pi * phase_accumulations[chan]
@@ -202,7 +203,7 @@ class InstructionToSignals:
                 phases[chan] = inst.phase
 
             if isinstance(inst, ShiftFrequency):
-                frequency_shifts[chan] = frequency_shifts[chan] + Array(inst.frequency)
+                frequency_shifts[chan] = frequency_shifts[chan] + unp.asarray(inst.frequency)
                 phase_accumulations[chan] = (
                     phase_accumulations[chan] - inst.frequency * start_sample * self._dt
                 )
@@ -226,7 +227,7 @@ class InstructionToSignals:
             if sig.duration < max_duration:
                 sig.add_samples(
                     start_sample=sig.duration,
-                    samples=np.zeros(max_duration - sig.duration, dtype=complex),
+                    samples=unp.zeros(max_duration - sig.duration, dtype=complex),
                 )
 
         # filter the channels
@@ -273,7 +274,7 @@ class InstructionToSignals:
             new_freq = sig.carrier_freq + if_modulation
 
             samples_i = sig.samples
-            samples_q = np.imag(samples_i) - 1.0j * np.real(samples_i)
+            samples_q = unp.imag(samples_i) - 1.0j * unp.real(samples_i)
 
             sig_i = DiscreteSignal(
                 sig.dt,
@@ -325,7 +326,7 @@ class InstructionToSignals:
             ) from error
 
 
-def get_samples(pulse: SymbolicPulse) -> np.ndarray:
+def get_samples(pulse: SymbolicPulse) -> ArrayLike:
     """Return samples filled according to the formula that the pulse
     represents and the parameter values it contains.
 
@@ -349,8 +350,8 @@ def get_samples(pulse: SymbolicPulse) -> np.ndarray:
     args = []
     for symbol in sorted(envelope.free_symbols, key=lambda s: s.name):
         if symbol.name == "t":
-            times = Array(np.arange(0, pulse_params["duration"]) + 1 / 2)
-            args.insert(0, times.data)
+            times = unp.arange(0, pulse_params["duration"]) + 1 / 2
+            args.insert(0, times)
             continue
         try:
             args.append(pulse_params[symbol.name])
@@ -359,7 +360,7 @@ def get_samples(pulse: SymbolicPulse) -> np.ndarray:
                 f"Pulse parameter '{symbol.name}' is not defined for this instance. "
                 "Please check your waveform expression is correct."
             ) from ex
-    return _lru_cache_expr(envelope, Array.default_backend())(*args)
+    return _lru_cache_expr(envelope, DEFAULT_BACKEND)(*args)
 
 
 @functools.lru_cache(maxsize=None)
@@ -381,11 +382,12 @@ def _lru_cache_expr(expr: sym.Expr, backend) -> Callable:
     return sym.lambdify(params, expr, modules=backend)
 
 
-def _nyquist_warn(frequency_shift: Array, dt: float, channel: str):
+def _nyquist_warn(frequency_shift: ArrayLike, dt: float, channel: str):
     """Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``."""
 
     if (
-        Array(frequency_shift).backend != "jax" or not isinstance(jnp.array(0), jax.core.Tracer)
+        isinstance(frequency_shift, (list, np.array))
+        or not isinstance(jnp.array(0), jax.core.Tracer)
     ) and np.abs(frequency_shift) > 0.5 / dt:
         warn(
             "Due to SetFrequency and ShiftFrequency instructions, the digital carrier frequency "
