@@ -385,9 +385,8 @@ def _lru_cache_expr(expr: sym.Expr, backend) -> Callable:
 
 def _nyquist_warn(frequency_shift: ArrayLike, dt: float, channel: str):
     """Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``."""
-
     if (
-        isinstance(frequency_shift, (list, np.ndarray))
+        isinstance(frequency_shift, (int, float, list, np.ndarray))
         or not isinstance(jnp.array(0), jax.core.Tracer)
     ) and np.abs(frequency_shift) > 0.5 / dt:
         warn(
