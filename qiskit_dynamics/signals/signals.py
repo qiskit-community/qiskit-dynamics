@@ -308,7 +308,9 @@ class DiscreteSignal(Signal):
                 -1,
                 len(self.samples),
             )
-            return numpy_alias(like=_preferred_lib(self._padded_samples, idx)).asarray(self._padded_samples)[idx]
+            return numpy_alias(like=_preferred_lib(self._padded_samples, idx)).asarray(
+                self._padded_samples
+            )[idx]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
