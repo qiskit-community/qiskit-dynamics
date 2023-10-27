@@ -545,7 +545,7 @@ class SignalSum(SignalCollection, Signal):
             elif isinstance(sig, Signal):
                 components.append(sig)
             elif isinstance(sig, (int, float, complex)) or (
-                isinstance(sig, ArrayLike) and sig.ndim == 0
+                not isinstance(sig, (int, float, complex)) and sig.ndim == 0
             ):
                 components.append(Signal(sig))
             else:
@@ -1095,7 +1095,9 @@ def to_SignalSum(sig: Union[ArrayLike, Signal]) -> SignalSum:
         QiskitError: If the input type is incompatible with SignalSum.
     """
 
-    if isinstance(sig, (int, float, complex)) or (isinstance(sig, ArrayLike) and sig.ndim == 0):
+    if isinstance(sig, (int, float, complex)) or (
+        not isinstance(sig, (int, float, complex, list, Signal)) and sig.ndim == 0
+    ):
         return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
         if sig.samples.shape == (0,):

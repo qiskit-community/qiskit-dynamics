@@ -38,8 +38,10 @@ from qiskit.pulse.exceptions import PulseError
 from qiskit.pulse.library import SymbolicPulse
 from qiskit import QiskitError
 
-from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.array import Array
+from qiskit_dynamics import ArrayLike
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+
 from qiskit_dynamics.signals import DiscreteSignal
 
 try:
@@ -225,7 +227,7 @@ class InstructionToSignals:
             if sig.duration < max_duration:
                 sig.add_samples(
                     start_sample=sig.duration,
-                    samples=np.zeros(max_duration - sig.duration, dtype=complex),
+                    samples=unp.zeros(max_duration - sig.duration, dtype=complex),
                 )
 
         # filter the channels
@@ -272,7 +274,7 @@ class InstructionToSignals:
             new_freq = sig.carrier_freq + if_modulation
 
             samples_i = sig.samples
-            samples_q = np.imag(samples_i) - 1.0j * np.real(samples_i)
+            samples_q = unp.imag(samples_i) - 1.0j * unp.real(samples_i)
 
             sig_i = DiscreteSignal(
                 sig.dt,
@@ -324,7 +326,7 @@ class InstructionToSignals:
             ) from error
 
 
-def get_samples(pulse: SymbolicPulse) -> np.ndarray:
+def get_samples(pulse: SymbolicPulse) -> ArrayLike:
     """Return samples filled according to the formula that the pulse
     represents and the parameter values it contains.
 
@@ -348,8 +350,8 @@ def get_samples(pulse: SymbolicPulse) -> np.ndarray:
     args = []
     for symbol in sorted(envelope.free_symbols, key=lambda s: s.name):
         if symbol.name == "t":
-            times = Array(np.arange(0, pulse_params["duration"]) + 1 / 2)
-            args.insert(0, times.data)
+            times = unp.arange(0, pulse_params["duration"]) + 1 / 2
+            args.insert(0, times)
             continue
         try:
             args.append(pulse_params[symbol.name])
@@ -380,11 +382,11 @@ def _lru_cache_expr(expr: sym.Expr, backend) -> Callable:
     return sym.lambdify(params, expr, modules=backend)
 
 
-def _nyquist_warn(frequency_shift: Array, dt: float, channel: str):
+def _nyquist_warn(frequency_shift: ArrayLike, dt: float, channel: str):
     """Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``."""
-
     if (
-        Array(frequency_shift).backend != "jax" or not isinstance(jnp.array(0), jax.core.Tracer)
+        isinstance(frequency_shift, (int, float, list, np.ndarray))
+        or not isinstance(jnp.array(0), jax.core.Tracer)
     ) and np.abs(frequency_shift) > 0.5 / dt:
         warn(
             "Due to SetFrequency and ShiftFrequency instructions, the digital carrier frequency "
