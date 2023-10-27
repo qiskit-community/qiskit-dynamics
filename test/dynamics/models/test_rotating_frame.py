@@ -13,6 +13,8 @@
 
 """tests for rotating_frame.py"""
 
+import warnings
+
 import numpy as np
 
 from qiskit import QiskitError
@@ -505,7 +507,9 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         """Test frame transformations with no frame."""
 
         try:
-            import qutip
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=Warning)
+                import qutip
         except ImportError:
             return
         rotating_frame = RotatingFrame(None)
