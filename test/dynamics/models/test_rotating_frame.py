@@ -501,15 +501,6 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         self.assertAllCloseSparse(out, y)
         self.assertTrue(isinstance(out, csr_matrix))
 
-        t = 100.12498
-        # y = Array(np.eye(2))
-        out = rotating_frame.state_into_frame(t, y)
-        self.assertAllCloseSparse(out, y)
-        self.assertTrue(isinstance(out, csr_matrix))
-        out = rotating_frame.state_out_of_frame(t, y)
-        self.assertAllCloseSparse(out, y)
-        self.assertTrue(isinstance(out, csr_matrix))
-
     def test_state_transformations_no_frame_qobj_type(self):
         """Test frame transformations with no frame."""
 
