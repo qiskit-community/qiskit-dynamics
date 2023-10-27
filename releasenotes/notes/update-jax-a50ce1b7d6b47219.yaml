@@ -1,7 +1,7 @@
 ---
 issues:
   - |
-    A JAX warning about casting complex values to real is raised when when computing gradients of
+    A JAX warning about casting complex values to real is raised when computing gradients of
     simulations in Qiskit Dynamics. Note that this warning does not appear to signify any error
     in numerical computation, and can be safely ignored.
 upgrade:
