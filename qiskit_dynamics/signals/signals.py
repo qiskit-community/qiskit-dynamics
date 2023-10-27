@@ -25,9 +25,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from qiskit import QiskitError
-from qiskit_dynamics.arraylias import ArrayLike
-from qiskit_dynamics.arraylias import DYNAMICS_NUMPY_ALIAS as numpy_alias
-from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import ArrayLike
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch, _preferred_lib
 
 

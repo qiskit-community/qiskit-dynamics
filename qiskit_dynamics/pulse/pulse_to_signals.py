@@ -39,8 +39,8 @@ from qiskit.pulse.library import SymbolicPulse
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
-from qiskit_dynamics import ArrayLike
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import ArrayLike
 
 from qiskit_dynamics.signals import DiscreteSignal
 

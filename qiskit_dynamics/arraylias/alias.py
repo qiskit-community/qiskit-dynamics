@@ -52,7 +52,7 @@ def _preferred_lib(*args, **kwargs):
     Returns:
         str
     Raises:
-        QiskitError if none of the rules apply.
+        QiskitError: if none of the rules apply.
     """
     args = list(args) + list(kwargs.values())
     if len(args) == 1:
