@@ -23,6 +23,7 @@ import numpy as np
 
 from qiskit import QiskitError
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch
 
 from .signals import Signal, DiscreteSignal
 
@@ -118,10 +119,10 @@ class Convolution(BaseTransferFunction):
             # Perform a discrete time convolution.
             dt = signal.dt
             func_samples = unp.asarray([self._func(dt * i) for i in range(signal.duration)])
-            func_samples = func_samples / sum(func_samples)
+            func_samples = func_samples / unp.sum(func_samples)
             sig_samples = signal(dt * unp.arange(signal.duration))
 
-            convoluted_samples = list(unp.convolve(func_samples, sig_samples))
+            convoluted_samples = _numpy_multi_dispatch(func_samples, sig_samples, path="convolve")#unp.convolve(func_samples, sig_samples)
 
             return DiscreteSignal(dt, convoluted_samples, carrier_freq=0.0, phase=0.0)
         else:

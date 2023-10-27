@@ -37,9 +37,10 @@ from qiskit.pulse import (
 from qiskit.pulse.exceptions import PulseError
 from qiskit.pulse.library import SymbolicPulse
 from qiskit import QiskitError
+
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.arraylias import ArrayLike
-from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import ArrayLike
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 
 from qiskit_dynamics.signals import DiscreteSignal
 
@@ -187,13 +188,11 @@ class InstructionToSignals:
                     inst_samples = get_samples(inst.pulse)
 
                 # build sample array to append to signal
-                times = self._dt * (start_sample + unp.arange(len(inst_samples)))
+                times = self._dt * (start_sample + np.arange(len(inst_samples)))
                 samples = inst_samples * unp.exp(
-                    unp.asarray(
-                        2.0j * np.pi * frequency_shifts[chan] * times
-                        + 1.0j * phases[chan]
-                        + 2.0j * np.pi * phase_accumulations[chan]
-                    )
+                    2.0j * np.pi * frequency_shifts[chan] * times
+                    + 1.0j * phases[chan]
+                    + 2.0j * np.pi * phase_accumulations[chan]
                 )
                 signals[chan].add_samples(start_sample, samples)
 
@@ -204,7 +203,7 @@ class InstructionToSignals:
                 phases[chan] = inst.phase
 
             if isinstance(inst, ShiftFrequency):
-                frequency_shifts[chan] = frequency_shifts[chan] + unp.asarray(inst.frequency)
+                frequency_shifts[chan] = frequency_shifts[chan] + inst.frequency
                 phase_accumulations[chan] = (
                     phase_accumulations[chan] - inst.frequency * start_sample * self._dt
                 )

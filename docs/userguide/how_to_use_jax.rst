@@ -138,7 +138,6 @@ before setting the signals, to ensure the simulation function remains pure.
     def sim_function(amp):
 
         # define a constant signal
-        amp = Array(amp)
         signals = [Signal(amp, carrier_freq=w)]
 
         # simulate and return results
