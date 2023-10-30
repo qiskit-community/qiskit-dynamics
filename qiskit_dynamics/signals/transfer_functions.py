@@ -124,7 +124,7 @@ class Convolution(BaseTransferFunction):
 
             convoluted_samples = _numpy_multi_dispatch(
                 func_samples, sig_samples, path="convolve"
-            )  # unp.convolve(func_samples, sig_samples)
+            )
 
             return DiscreteSignal(dt, convoluted_samples, carrier_freq=0.0, phase=0.0)
         else:
