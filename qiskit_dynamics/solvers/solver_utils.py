@@ -23,7 +23,7 @@ from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.models import LindbladModel
 
 try:
@@ -44,8 +44,8 @@ def is_lindblad_model_not_vectorized(obj: any) -> bool:
 
 
 def merge_t_args(
-    t_span: Union[List, Tuple, Array], t_eval: Optional[Union[List, Tuple, Array]] = None
-) -> Union[List, Tuple, Array]:
+    t_span: ArrayLike, t_eval: Optional[ArrayLike] = None
+) -> np.ndarray:
     """Merge ``t_span`` and ``t_eval`` into a single array.
 
     Validition is similar to scipy ``solve_ivp``: ``t_eval`` must be contained in ``t_span``, and be
@@ -61,7 +61,7 @@ def merge_t_args(
         t_eval: Time points to include in returned results.
 
     Returns:
-        Union[List, Tuple, Array]: Combined list of times.
+        np.ndarray: Combined list of times.
 
     Raises:
         ValueError: If one of several validation checks fail.
@@ -76,7 +76,7 @@ def merge_t_args(
     t_max = np.max(t_span)
     t_direction = np.sign(t_span[1] - t_span[0])
 
-    t_eval = Array(t_eval, backend="numpy")
+    t_eval = np.array(t_eval)
 
     if t_eval.ndim > 1:
         raise ValueError("t_eval must be 1 dimensional.")
@@ -92,12 +92,12 @@ def merge_t_args(
     # add endpoints
     t_eval = np.append(np.append(t_span[0], t_eval), t_span[1])
 
-    return np.array(t_eval)
+    return t_eval
 
 
 def trim_t_results(
     results: OdeResult,
-    t_eval: Optional[Union[List, Tuple, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ) -> OdeResult:
     """Trim ``OdeResult`` object if ``t_eval is not None``.
 
@@ -116,14 +116,14 @@ def trim_t_results(
 
     # remove endpoints
     results.t = results.t[1:-1]
-    results.y = Array(results.y[1:-1])
+    results.y = results.y[1:-1]
 
     return results
 
 
 def merge_t_args_jax(
-    t_span: Union[List, Tuple, Array], t_eval: Optional[Union[List, Tuple, Array]] = None
-) -> Union[List, Tuple, Array]:
+    t_span: ArrayLike, t_eval: Optional[ArrayLike] = None
+) -> jnp.ndarray:
     """JAX-compilable version of merge_t_args.
 
     Rather than raise errors, sets return values to ``jnp.nan`` to signal errors.
@@ -139,7 +139,7 @@ def merge_t_args_jax(
         t_eval: Time points to include in returned results.
 
     Returns:
-        Union[List, Tuple, Array]: Combined list of times.
+        jnp.ndarray: Combined list of times.
 
     Raises:
         ValueError: If either argument is not one dimensional.
@@ -183,7 +183,7 @@ def merge_t_args_jax(
 
 def trim_t_results_jax(
     results: OdeResult,
-    t_eval: Optional[Union[List, Tuple, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ) -> OdeResult:
     """JAX-compilable version of trim_t_results.
 
