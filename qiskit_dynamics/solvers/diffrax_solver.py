@@ -21,8 +21,8 @@ from typing import Callable, Optional, Union, Tuple, List
 from scipy.integrate._ivp.ivp import OdeResult
 from qiskit import QiskitError
 
+from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.dispatch import requires_backend
-from qiskit_dynamics.array import Array, wrap
 
 try:
     import jax.numpy as jnp
@@ -33,10 +33,10 @@ except ImportError:
 @requires_backend("jax")
 def diffrax_solver(
     rhs: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     method: "AbstractSolver",
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ):
     """Routine for calling ``diffrax.diffeqsolve``
@@ -57,15 +57,13 @@ def diffrax_solver(
     """
 
     from diffrax import ODETerm, SaveAt
-    from diffrax import diffeqsolve as _diffeqsolve
-
-    diffeqsolve = wrap(_diffeqsolve)
+    from diffrax import diffeqsolve
 
     # convert rhs and y0 to real
     rhs = real_rhs(rhs)
     y0 = c2r(y0)
 
-    term = ODETerm(lambda t, y, _: Array(rhs(t.real, y), dtype=float).data)
+    term = ODETerm(lambda t, y, _: rhs(t.real, y))
 
     if "saveat" in kwargs and t_eval is not None:
         raise QiskitError(
@@ -82,7 +80,7 @@ def diffrax_solver(
         t0=t_span[0],
         t1=t_span[-1],
         dt0=None,
-        y0=Array(y0, dtype=float),
+        y0=jnp.array(y0, dtype=float),
         **kwargs,
     )
 
@@ -92,7 +90,7 @@ def diffrax_solver(
 
     ys = jnp.swapaxes(r2c(jnp.swapaxes(ys, 0, 1)), 0, 1)
 
-    results_out = OdeResult(t=ts, y=Array(ys, backend="jax", dtype=complex), **sol_dict)
+    results_out = OdeResult(t=ts, y=jnp.array(ys, dtype=complex), **sol_dict)
 
     return results_out
 
@@ -108,7 +106,7 @@ def real_rhs(rhs):
 
 def c2r(arr):
     """Convert complex array to a real array"""
-    return jnp.concatenate([jnp.real(Array(arr).data), jnp.imag(Array(arr).data)])
+    return jnp.concatenate([jnp.real(arr), jnp.imag(arr)])
 
 
 def r2c(arr):
