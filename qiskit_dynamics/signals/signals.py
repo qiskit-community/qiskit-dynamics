@@ -295,7 +295,7 @@ class DiscreteSignal(Signal):
         if len(samples) == 0:
             zero_pad = unp.asarray([0])
         else:
-            zero_pad = unp.expand_dims(unp.zeros_like(unp.asarray(samples[0])), 0)
+            zero_pad = unp.expand_dims(unp.zeros_like(samples[0]), 0)
         self._padded_samples = unp.append(samples, zero_pad, axis=0)
 
         self._start_time = start_time
