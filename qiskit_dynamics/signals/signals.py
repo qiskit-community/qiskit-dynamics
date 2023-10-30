@@ -644,7 +644,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         samples = unp.asarray(samples)
         if carrier_freq is None:
-            carrier_freq = unp.zeros(samples.shape[-1], dtype=float)
+            carrier_freq = np.zeros(samples.shape[-1], dtype=float)
 
         if phase is None:
             phase = unp.zeros(samples.shape[-1], dtype=float)
