@@ -25,7 +25,8 @@ from scipy.integrate import OdeSolver
 from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
 
 from qiskit import QiskitError
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias import ArrayLike
 
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
@@ -95,11 +96,13 @@ def _is_diffrax_method(method: any) -> bool:
 
 def _lanczos_validation(
     rhs: Union[Callable, BaseGeneratorModel],
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     k_dim: int,
 ):
     """Validation checks to run lanczos based solvers."""
+    t_span = unp.asarray(t_span)
+    y0 = unp.asarray(y0)
     if isinstance(rhs, BaseGeneratorModel):
         if not isinstance(rhs, HamiltonianModel):
             raise QiskitError(
@@ -124,10 +127,10 @@ def _lanczos_validation(
 
 def solve_ode(
     rhs: Union[Callable, BaseGeneratorModel],
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ):
     r"""General interface for solving Ordinary Differential Equations (ODEs).
@@ -181,7 +184,7 @@ def solve_ode(
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
-    y0 = Array(y0)
+    y0 = unp.asarray(y0)
 
     if isinstance(rhs, BaseGeneratorModel):
         _, solver_rhs, y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(
@@ -205,7 +208,7 @@ def solve_ode(
     # convert results out of frame basis if necessary
     if isinstance(rhs, BaseGeneratorModel):
         if not model_in_frame_basis:
-            results.y = results_y_out_of_frame_basis(rhs, Array(results.y), y0.ndim)
+            results.y = results_y_out_of_frame_basis(rhs, results.y, y0.ndim)
 
         # convert model back to original basis
         rhs.in_frame_basis = model_in_frame_basis
@@ -215,10 +218,10 @@ def solve_ode(
 
 def solve_lmde(
     generator: Union[Callable, BaseGeneratorModel],
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ):
     r"""General interface for solving Linear Matrix Differential Equations (LMDEs)
@@ -333,7 +336,7 @@ def solve_lmde(
                vectorized evaluation mode."""
         )
 
-    y0 = Array(y0)
+    y0 = unp.asarray(y0)
 
     # setup generator and rhs functions to pass to numerical methods
     if isinstance(generator, BaseGeneratorModel):
@@ -363,7 +366,7 @@ def solve_lmde(
     # convert results to correct basis if necessary
     if isinstance(generator, BaseGeneratorModel):
         if not model_in_frame_basis:
-            results.y = results_y_out_of_frame_basis(generator, Array(results.y), y0.ndim)
+            results.y = results_y_out_of_frame_basis(generator, results.y, y0.ndim)
 
         generator.in_frame_basis = model_in_frame_basis
 
@@ -371,8 +374,8 @@ def solve_lmde(
 
 
 def setup_generator_model_rhs_y0_in_frame_basis(
-    generator_model: BaseGeneratorModel, y0: Array
-) -> Tuple[Callable, Callable, Array]:
+    generator_model: BaseGeneratorModel, y0: ArrayLike
+) -> Tuple[Callable, Callable, ArrayLike]:
     """Helper function for setting up a subclass of
     :class:`~qiskit_dynamics.models.BaseGeneratorModel` to be solved in the frame basis.
 
@@ -416,8 +419,8 @@ def setup_generator_model_rhs_y0_in_frame_basis(
 
 
 def results_y_out_of_frame_basis(
-    generator_model: BaseGeneratorModel, results_y: Array, y0_ndim: int
-) -> Array:
+    generator_model: BaseGeneratorModel, results_y: ArrayLike, y0_ndim: int
+) -> ArrayLike:
     """Convert the results of a simulation for :class:`~qiskit_dynamics.models.BaseGeneratorModel`
     out of the frame basis.
 

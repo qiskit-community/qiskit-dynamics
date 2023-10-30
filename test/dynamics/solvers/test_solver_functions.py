@@ -27,9 +27,8 @@ from scipy.linalg import expm
 from qiskit_dynamics.models import GeneratorModel, HamiltonianModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
-from qiskit_dynamics.array import Array
 
-from ..common import QiskitDynamicsTestCase, DiffraxTestBase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, DiffraxTestBase, JAXTestBase
 
 try:
     from diffrax import PIDController, Tsit5, Dopri5
@@ -44,10 +43,10 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         """Construct standardized RHS functions and models."""
 
         self.t_span = [0.0, 1.0]
-        self.y0 = Array(np.eye(2, dtype=complex))
+        self.y0 = np.eye(2, dtype=complex)
 
-        self.X = Array([[0.0, 1.0], [1.0, 0.0]], dtype=complex)
-        self.Z = Array([[1.0, 0.0], [0.0, -1.0]], dtype=complex)
+        self.X = np.array([[0.0, 1.0], [1.0, 0.0]], dtype=complex)
+        self.Z = np.array([[1.0, 0.0], [0.0, -1.0]], dtype=complex)
 
         op = -1j * 2 * np.pi * self.X / 2
 
@@ -129,10 +128,10 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         if self.is_ode_method:
             # pylint: disable=unused-argument
             def quad_rhs(t, y):
-                return np.real(Array([t**2]))
+                return np.real(np.array([t**2]))
 
-            results = self.solve(quad_rhs, t_span=[0.0, 1.0], y0=Array([0.0]))
-            expected = Array([1.0 / 3])
+            results = self.solve(quad_rhs, t_span=[0.0, 1.0], y0=np.array([0.0]))
+            expected = np.array([1.0 / 3])
             self.assertAllClose(results.y[-1], expected)
 
     def test_basic_model_lmde_from_ode(self):
@@ -143,7 +142,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
                 self.basic_rhs, t_span=self.t_span, y0=self.y0, solver_func=solve_lmde
             )
 
-            expected = expm(-1j * np.pi * self.X.data)
+            expected = expm(-1j * np.pi * self.X)
 
             self.assertAllClose(results.y[-1], expected, atol=self.tol, rtol=self.tol)
 
@@ -152,7 +151,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
 
         results = self.solve(self.basic_rhs, t_span=self.t_span, y0=self.y0)
 
-        expected = expm(-1j * np.pi * self.X.data)
+        expected = expm(-1j * np.pi * self.X)
 
         self.assertAllClose(results.y[-1], expected, atol=self.tol, rtol=self.tol)
 
@@ -162,7 +161,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         reverse_t_span = self.t_span.copy()
         reverse_t_span.reverse()
 
-        reverse_y0 = expm(-1j * np.pi * self.X.data)
+        reverse_y0 = expm(-1j * np.pi * self.X)
 
         results = self.solve(self.basic_rhs, t_span=reverse_t_span, y0=reverse_y0)
 
@@ -173,7 +172,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
 
         results = self.solve(
             self.simple_model,
-            y0=Array([0.0, 1.0], dtype=complex),
+            y0=np.array([0.0, 1.0], dtype=complex),
             t_span=[0, 1 / self.r],
         )
         yf = results.y[-1]
@@ -210,7 +209,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         self.assertTrue(self.pseudo_random_model.in_frame_basis)
 
 
-class TestSolverMethodJax(TestSolverMethod, TestJaxBase):
+class TestSolverMethodJax(TestSolverMethod, JAXTestBase):
     """JAX version of TestSolverMethod. Adds additional jit/grad test."""
 
     def test_pseudo_random_jit_grad(self):
@@ -349,8 +348,8 @@ class Testlanczos_diag(TestSolverMethod):
             evaluation_mode="sparse",
         )
 
-        self.operators = self.pseudo_random_model.operators.data
-        self.static_operator = self.pseudo_random_model.static_operator.data
+        self.operators = self.pseudo_random_model.operators
+        self.static_operator = self.pseudo_random_model.static_operator
 
         # make hermitian
         self.operators = self.operators.conj().transpose(0, 2, 1) + self.operators
