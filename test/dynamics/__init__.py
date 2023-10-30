@@ -13,8 +13,3 @@
 """
 Qiskit Dynamics tests
 """
-
-# temporarily disable a change in JAX 0.4.4 that introduced a bug. Must be run before importing JAX
-import os
-
-os.environ["JAX_JIT_PJIT_API_MERGE"] = "0"

@@ -57,7 +57,7 @@ def lanczos_basis(A: Union[csr_matrix, np.ndarray], y0: np.ndarray, k_dim: int):
 
     q_basis[[0], :] = y0.T
     projection = A @ y0
-    alpha[0] = y0.conj().T @ projection
+    alpha[0] = np.sum(y0.conj() * projection)
     projection = projection - alpha[0] * y0
     beta[0] = np.linalg.norm(projection)
 

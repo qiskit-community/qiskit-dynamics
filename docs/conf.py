@@ -76,7 +76,3 @@ nbsphinx_timeout = 180
 nbsphinx_execute = 'always'
 nbsphinx_widgets_path = ''
 exclude_patterns = ['_build', '**.ipynb_checkpoints']
-
-# this is tied to the temporary restriction to JAX versions <=0.4.6. See issue #190
-import os
-os.environ["JAX_JIT_PJIT_API_MERGE"] = "0"
