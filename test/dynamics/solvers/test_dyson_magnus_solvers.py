@@ -21,6 +21,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics import Signal, Solver, DysonSolver, MagnusSolver
 from qiskit_dynamics.array import Array
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 
 from qiskit_dynamics.solvers.perturbative_solvers.expansion_model import (
     _construct_DCT,
@@ -85,7 +86,7 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
         r = 0.2
 
         def gaussian(amp, sig, t0, t):
-            return amp * np.exp(-((t - t0) ** 2) / (2 * sig**2))
+            return amp * unp.exp(-((t - t0) ** 2) / (2 * sig**2))
 
         # specifications for generating envelope
         amp = 1.0  # amplitude
@@ -94,13 +95,12 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
         T = 7 * sig  # end of signal
 
         # Function to define gaussian envelope, using gaussian wave function
-        gaussian_envelope = lambda t: gaussian(Array(amp), Array(sig), Array(t0), Array(t))
+        gaussian_envelope = lambda t: gaussian(amp, sig, t0, t)
 
         obj.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.0)
 
         dt = 0.0125
         obj.n_steps = int(T // dt) // 3
-
         hamiltonian_operators = 2 * np.pi * r * np.array([[[0.0, 1.0], [1.0, 0.0]]]) / 2
         static_hamiltonian = 2 * np.pi * 5.0 * np.array([[1.0, 0.0], [0.0, -1.0]]) / 2
 
@@ -344,7 +344,7 @@ class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
                 t0=0.0,
                 n_steps=self.n_steps,
                 y0=np.eye(2, dtype=complex),
-                signals=[Signal(Array(c), carrier_freq=5.0)],
+                signals=[Signal(c, carrier_freq=5.0)],
             ).y[-1]
             return dyson_yf
 
@@ -362,7 +362,7 @@ class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
                 t0=0.0,
                 n_steps=self.n_steps,
                 y0=np.eye(2, dtype=complex),
-                signals=[Signal(Array(c), carrier_freq=5.0)],
+                signals=[Signal(c, carrier_freq=5.0)],
             ).y[-1]
             return magnus_yf
 

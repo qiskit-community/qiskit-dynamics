@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2021.
+# (C) Copyright IBM 2021, 2023.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -24,13 +24,11 @@ import operator
 import numpy as np
 from matplotlib import pyplot as plt
 
-try:
-    import jax.numpy as jnp
-except ImportError:
-    pass
-
 from qiskit import QiskitError
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import ArrayLike
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch, _preferred_lib
 
 
 class Signal:
@@ -72,9 +70,9 @@ class Signal:
 
     def __init__(
         self,
-        envelope: Union[Callable, complex, float, int, Array],
-        carrier_freq: Union[float, List, Array] = 0.0,
-        phase: Union[float, List, Array] = 0.0,
+        envelope: Union[Callable, ArrayLike],
+        carrier_freq: ArrayLike = 0.0,
+        phase: ArrayLike = 0.0,
         name: Optional[str] = None,
     ):
         """
@@ -91,10 +89,9 @@ class Signal:
         self._name = name
         self._is_constant = False
 
-        if isinstance(envelope, (complex, float, int)):
-            envelope = Array(complex(envelope))
-
-        if isinstance(envelope, Array):
+        if not callable(envelope):
+            # if not callable, we assume a constant
+            envelope = unp.asarray(envelope)
             # if envelope is constant and the carrier is zero, this is a constant signal
             try:
                 # try block is for catching JAX tracer errors
@@ -103,15 +100,9 @@ class Signal:
             except Exception:  # pylint: disable=broad-except
                 pass
 
-            if envelope.backend == "jax":
-                self._envelope = lambda t: envelope * jnp.ones_like(Array(t).data)
-            else:
-                self._envelope = lambda t: envelope * np.ones_like(t)
-        elif callable(envelope):
-            if Array.default_backend() == "jax":
-                self._envelope = lambda t: Array(envelope(t))
-            else:
-                self._envelope = envelope
+            self._envelope = lambda t: envelope * unp.ones_like(t)
+        else:
+            self._envelope = envelope
 
         # set carrier and phase
         self.carrier_freq = carrier_freq
@@ -128,45 +119,41 @@ class Signal:
         return self._is_constant
 
     @property
-    def carrier_freq(self) -> Array:
+    def carrier_freq(self) -> ArrayLike:
         """The carrier frequency of the signal."""
         return self._carrier_freq
 
     @carrier_freq.setter
-    def carrier_freq(self, carrier_freq: Union[float, list, Array]):
+    def carrier_freq(self, carrier_freq: ArrayLike):
         """Carrier frequency setter. List handling is to support subclasses storing a
         list of frequencies."""
-        if type(carrier_freq) == list:
-            carrier_freq = [Array(entry).data for entry in carrier_freq]
-        self._carrier_freq = Array(carrier_freq)
+        self._carrier_freq = unp.asarray(carrier_freq)
         self._carrier_arg = 1j * 2 * np.pi * self._carrier_freq
 
     @property
-    def phase(self) -> Array:
+    def phase(self) -> ArrayLike:
         """The phase of the signal."""
         return self._phase
 
     @phase.setter
-    def phase(self, phase: Union[float, list, Array]):
+    def phase(self, phase: ArrayLike):
         """Phase setter. List handling is to support subclasses storing a
         list of phases."""
-        if type(phase) == list:
-            phase = [Array(entry).data for entry in phase]
-        self._phase = Array(phase)
+        self._phase = unp.asarray(phase)
         self._phase_arg = 1j * self._phase
 
-    def envelope(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+    def envelope(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of the envelope at time t."""
         return self._envelope(t)
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+    def complex_value(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of the complex value at time t."""
         arg = self._carrier_arg * t + self._phase_arg
-        return self.envelope(t) * np.exp(arg)
+        return self.envelope(t) * unp.exp(arg)
 
-    def __call__(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+    def __call__(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of the signal at time(s) t."""
-        return np.real(self.complex_value(t))
+        return unp.real(self.complex_value(t))
 
     def __str__(self) -> str:
         """Return string representation."""
@@ -203,7 +190,7 @@ class Signal:
         """Return a new signal whose complex value is the complex conjugate of this one."""
 
         def conj_env(t):
-            return np.conjugate(self.envelope(t))
+            return unp.conjugate(self.envelope(t))
 
         return Signal(conj_env, -self.carrier_freq, -self.phase)
 
@@ -283,10 +270,10 @@ class DiscreteSignal(Signal):
     def __init__(
         self,
         dt: float,
-        samples: Union[Array, List],
+        samples: ArrayLike,
         start_time: float = 0.0,
-        carrier_freq: Union[float, List, Array] = 0.0,
-        phase: Union[float, List, Array] = 0.0,
+        carrier_freq: ArrayLike = 0.0,
+        phase: ArrayLike = 0.0,
         name: str = None,
     ):
         """Initialize a piecewise constant signal.
@@ -303,38 +290,27 @@ class DiscreteSignal(Signal):
         """
         self._dt = dt
 
-        samples = Array(samples)
+        samples = unp.asarray(samples)
 
         if len(samples) == 0:
-            zero_pad = np.array([0])
+            zero_pad = np.asarray([0])
         else:
-            zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
-        self._padded_samples = np.append(samples, zero_pad, axis=0)
+            zero_pad = unp.expand_dims(unp.zeros_like(samples[0]), 0)
+        self._padded_samples = unp.append(samples, zero_pad, axis=0)
 
         self._start_time = start_time
 
         # define internal envelope function
-        if samples.backend == "jax":
-
-            def envelope(t):
-                t = Array(t).data
-                idx = jnp.clip(
-                    jnp.array((t - self._start_time) // self._dt, dtype=int),
-                    -1,
-                    len(self.samples),
-                )
-                return self._padded_samples[idx]
-
-        else:
-
-            def envelope(t):
-                t = Array(t).data
-                idx = np.clip(
-                    np.array((t - self._start_time) // self._dt, dtype=int),
-                    -1,
-                    len(self.samples),
-                )
-                return self._padded_samples[idx]
+        def envelope(t):
+            t = unp.asarray(t)
+            idx = unp.clip(
+                unp.array((t - self._start_time) // self._dt, dtype=int),
+                -1,
+                len(self.samples),
+            )
+            return numpy_alias(like=_preferred_lib(self._padded_samples, idx)).asarray(
+                self._padded_samples
+            )[idx]
 
         Signal.__init__(self, envelope=envelope, carrier_freq=carrier_freq, phase=phase, name=name)
 
@@ -410,12 +386,12 @@ class DiscreteSignal(Signal):
         return self._dt
 
     @property
-    def samples(self) -> Array:
+    def samples(self) -> ArrayLike:
         """
         Returns:
             samples: the samples of the piecewise constant signal.
         """
-        return Array(self._padded_samples[:-1])
+        return self._padded_samples[:-1]
 
     @property
     def start_time(self) -> float:
@@ -428,7 +404,7 @@ class DiscreteSignal(Signal):
     def conjugate(self):
         return self.__class__(
             dt=self._dt,
-            samples=np.conjugate(self.samples),
+            samples=unp.conjugate(self.samples),
             start_time=self._start_time,
             carrier_freq=-self.carrier_freq,
             phase=-self.phase,
@@ -445,7 +421,7 @@ class DiscreteSignal(Signal):
         Raises:
             QiskitError: If start_sample is less than the current length of samples.
         """
-        samples = Array(samples)
+        samples = unp.asarray(samples)
 
         if len(samples) < 1:
             return
@@ -453,16 +429,16 @@ class DiscreteSignal(Signal):
         if start_sample < len(self.samples):
             raise QiskitError("Samples can only be added afer the last sample.")
 
-        zero_pad = np.expand_dims(np.zeros_like(Array(samples[0])), 0)
+        zero_pad = unp.expand_dims(unp.zeros_like(samples[0]), 0)
 
         new_samples = self.samples
         if len(self.samples) < start_sample:
-            new_samples = np.append(
-                new_samples, np.repeat(zero_pad, start_sample - len(self.samples))
+            new_samples = unp.append(
+                new_samples, unp.repeat(zero_pad, start_sample - len(self.samples))
             )
 
-        new_samples = np.append(new_samples, samples)
-        self._padded_samples = np.append(new_samples, zero_pad, axis=0)
+        new_samples = _numpy_multi_dispatch(new_samples, samples, path="append")
+        self._padded_samples = unp.append(new_samples, zero_pad, axis=0)
 
     def __str__(self) -> str:
         """Return string representation."""
@@ -494,12 +470,10 @@ class SignalCollection:
         """Number of components."""
         return len(self.components)
 
-    def __getitem__(
-        self, idx: Union[int, List, np.array, slice]
-    ) -> Union[Signal, "SignalCollection"]:
+    def __getitem__(self, idx: Union[ArrayLike, slice]) -> Union[Signal, "SignalCollection"]:
         """Get item with NumPy-style subscripting, as if this class were a 1d array."""
 
-        if type(idx) == np.ndarray and idx.ndim > 0:
+        if type(idx) != slice and unp.asarray(idx).ndim > 0:
             idx = list(idx)
 
         # get a list of the subcomponents
@@ -543,9 +517,9 @@ class SignalSum(SignalCollection, Signal):
         - ``__call__`` evaluates the sum.
         - ``complex_value`` evaluates the sum of the complex values of the individual summands.
 
-    Attributes ``carrier_freq`` and ``phase`` here correspond to an ``Array`` of
+    Attributes ``carrier_freq`` and ``phase`` here correspond to an ``ArrayLike`` of
     frequencies/phases for each term in the sum, and the ``envelope`` method returns an
-    ``Array`` of the envelopes for each summand.
+    ``ArrayLike`` of the envelopes for each summand.
 
     Internally, the signals are stored as a list in the ``components`` attribute, which can
     be accessed via direct subscripting of the object.
@@ -572,28 +546,20 @@ class SignalSum(SignalCollection, Signal):
                 components += sig.components
             elif isinstance(sig, Signal):
                 components.append(sig)
-            elif isinstance(sig, (int, float, complex)) or (
-                isinstance(sig, Array) and sig.ndim == 0
-            ):
-                components.append(Signal(sig))
             else:
-                raise QiskitError(
-                    "Components of a SignalSum must be instances of a Signal subclass."
-                )
+                try:
+                    if unp.asarray(sig).ndim == 0:
+                        components.append(Signal(sig))
+                except QiskitError as qe:
+                    raise QiskitError(
+                        "Components of a SignalSum must be instances "
+                        "of a Signal subclass or a scalar."
+                    ) from qe
 
         SignalCollection.__init__(self, components)
 
-        # set up routine for evaluating envelopes if jax
-        if Array.default_backend() == "jax":
-            jax_arraylist_eval = array_funclist_evaluate([sig.envelope for sig in self.components])
-
-            def envelope(t):
-                return np.moveaxis(jax_arraylist_eval(t), 0, -1)
-
-        else:
-
-            def envelope(t):
-                return np.moveaxis([sig.envelope(t) for sig in self.components], 0, -1)
+        def envelope(t):
+            return unp.moveaxis(unp.asarray([sig.envelope(t) for sig in self.components]), 0, -1)
 
         carrier_freqs = []
         for sig in self.components:
@@ -607,12 +573,10 @@ class SignalSum(SignalCollection, Signal):
             self, envelope=envelope, carrier_freq=carrier_freqs, phase=phases, name=name
         )
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Union[complex, np.array, Array]:
+    def complex_value(self, t: ArrayLike) -> ArrayLike:
         """Return the sum of the complex values of each component."""
-        if Array.default_backend() == "jax":
-            t = Array(t)
-        exp_phases = np.exp(np.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
-        return np.sum(self.envelope(t) * exp_phases, axis=-1)
+        exp_phases = unp.exp(unp.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
+        return unp.sum(self.envelope(t) * exp_phases, axis=-1)
 
     def __str__(self):
         if self.name is not None:
@@ -637,12 +601,12 @@ class SignalSum(SignalCollection, Signal):
         elif len(self) == 1:
             return self.components[0]
 
-        ave_freq = np.sum(self.carrier_freq) / len(self)
+        ave_freq = unp.sum(self.carrier_freq) / len(self)
         shifted_arg = self._carrier_arg - (1j * 2 * np.pi * ave_freq)
 
         def merged_env(t):
-            exp_phases = np.exp(np.expand_dims(Array(t), -1) * shifted_arg + self._phase_arg)
-            return np.sum(self.envelope(t) * exp_phases, axis=-1)
+            exp_phases = unp.exp(unp.expand_dims(t, -1) * shifted_arg + self._phase_arg)
+            return unp.sum(self.envelope(t) * exp_phases, axis=-1)
 
         return Signal(envelope=merged_env, carrier_freq=ave_freq, name=str(self))
 
@@ -655,10 +619,10 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
     def __init__(
         self,
         dt: float,
-        samples: Union[List, Array],
+        samples: ArrayLike,
         start_time: float = 0.0,
-        carrier_freq: Union[List, np.array, Array] = None,
-        phase: Union[List, np.array, Array] = None,
+        carrier_freq: ArrayLike = None,
+        phase: ArrayLike = None,
         name: str = None,
     ):
         r"""Directly initialize a ``DiscreteSignalSum``\. Samples of all terms in the
@@ -675,7 +639,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
             name: name of the signal.
         """
 
-        samples = Array(samples)
+        samples = unp.asarray(samples)
         if carrier_freq is None:
             carrier_freq = np.zeros(samples.shape[-1], dtype=float)
 
@@ -750,7 +714,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         if sample_carrier:
             freq = 0.0 * freq
-            exp_phases = np.exp(np.expand_dims(Array(times), -1) * signal_sum._carrier_arg)
+            exp_phases = unp.exp(unp.expand_dims(times, -1) * signal_sum._carrier_arg)
             samples = signal_sum.envelope(times) * exp_phases
         else:
             samples = signal_sum.envelope(times)
@@ -778,7 +742,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         return default_str
 
-    def __getitem__(self, idx: Union[int, List, np.array, slice]) -> Signal:
+    def __getitem__(self, idx: ArrayLike) -> Signal:
         """Enables numpy-style subscripting, as if this class were a 1d array."""
 
         if type(idx) == int and idx >= len(self):
@@ -789,13 +753,13 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         phases = self.phase[idx]
 
         if samples.ndim == 1:
-            samples = Array([samples])
+            samples = unp.asarray([samples])
 
         if carrier_freqs.ndim == 0:
-            carrier_freqs = Array([carrier_freqs])
+            carrier_freqs = unp.asarray([carrier_freqs])
 
         if phases.ndim == 0:
-            phases = Array([phases])
+            phases = unp.asarray([phases])
 
         if len(samples) == 1:
             return DiscreteSignal(
@@ -827,22 +791,18 @@ class SignalList(SignalCollection):
         super().__init__(signal_list)
 
         # setup complex value and full signal evaluation
-        if Array.default_backend() == "jax":
-            self._eval_complex_value = array_funclist_evaluate(
-                [sig.complex_value for sig in self.components]
-            )
-            self._eval_signals = array_funclist_evaluate(self.components)
-        else:
-            self._eval_complex_value = lambda t: [sig.complex_value(t) for sig in self.components]
-            self._eval_signals = lambda t: [sig(t) for sig in self.components]
+        self._eval_complex_value = lambda t: unp.asarray(
+            [sig.complex_value(t) for sig in self.components]
+        )
+        self._eval_signals = lambda t: unp.asarray([sig(t) for sig in self.components])
 
-    def complex_value(self, t: Union[float, np.array, Array]) -> Union[np.array, Array]:
+    def complex_value(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of complex value of components."""
-        return np.moveaxis(self._eval_complex_value(t), 0, -1)
+        return unp.moveaxis(self._eval_complex_value(t), 0, -1)
 
-    def __call__(self, t: Union[float, np.array, Array]) -> Union[np.array, Array]:
+    def __call__(self, t: ArrayLike) -> ArrayLike:
         """Vectorized evaluation of all components."""
-        return np.moveaxis(self._eval_signals(t), 0, -1)
+        return unp.moveaxis(self._eval_signals(t), 0, -1)
 
     def flatten(self) -> "SignalList":
         """Return a ``SignalList`` with each component flattened."""
@@ -856,8 +816,8 @@ class SignalList(SignalCollection):
         return SignalList(flattened_list)
 
     @property
-    def drift(self) -> Array:
-        r"""Return the drift ``Array``\, i.e. return an ``Array`` whose entries are the sum
+    def drift(self) -> ArrayLike:
+        r"""Return the drift ``ArrayLike``\, i.e. return an ``ArrayLike`` whose entries are the sum
         of the constant parts of the corresponding component of this ``SignalList``\.
         """
 
@@ -870,11 +830,11 @@ class SignalList(SignalCollection):
 
             for term in sig_entry:
                 if term.is_constant:
-                    val += Array(term(0.0)).data
+                    val += term(0.0)
 
             drift_array.append(val)
 
-        return Array(drift_array)
+        return unp.asarray(drift_array)
 
 
 def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
@@ -895,9 +855,11 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
             and sig1.start_time == sig2.start_time
             and sig1.duration == sig2.duration
         ):
-            samples = np.append(sig1.samples, sig2.samples, axis=1)
-            carrier_freq = np.append(sig1.carrier_freq, sig2.carrier_freq)
-            phase = np.append(sig1.phase, sig2.phase)
+            samples = _numpy_multi_dispatch(sig1.samples, sig2.samples, axis=1, path="append")
+            carrier_freq = _numpy_multi_dispatch(
+                sig1.carrier_freq, sig2.carrier_freq, path="append"
+            )
+            phase = _numpy_multi_dispatch(sig1.phase, sig2.phase, path="append")
             return DiscreteSignalSum(
                 dt=sig1.dt,
                 samples=samples,
@@ -951,29 +913,33 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
         ):
             # this vectorized operation produces a 2d array whose columns are the products of
             # the original columns
-            new_samples = Array(
+            new_samples = unp.asarray(
                 0.5
                 * (sig1.samples[:, :, None] * sig2.samples[:, None, :]).reshape(
                     (sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]),
                     order="C",
                 )
             )
-            new_samples_conj = Array(
+            new_samples_conj = unp.asarray(
                 0.5
                 * (sig1.samples[:, :, None] * sig2.samples[:, None, :].conj()).reshape(
                     (sig1.samples.shape[0], sig1.samples.shape[1] * sig2.samples.shape[1]),
                     order="C",
                 )
             )
-            samples = np.append(new_samples, new_samples_conj, axis=1)
+            samples = _numpy_multi_dispatch(new_samples, new_samples_conj, axis=1, path="append")
 
             new_freqs = sig1.carrier_freq + sig2.carrier_freq
             new_freqs_conj = sig1.carrier_freq - sig2.carrier_freq
-            freqs = np.append(Array(new_freqs), Array(new_freqs_conj))
+            freqs = _numpy_multi_dispatch(
+                unp.asarray(new_freqs), unp.asarray(new_freqs_conj), path="append"
+            )
 
             new_phases = sig1.phase + sig2.phase
             new_phases_conj = sig1.phase - sig2.phase
-            phases = np.append(Array(new_phases), Array(new_phases_conj))
+            phases = _numpy_multi_dispatch(
+                unp.asarray(new_phases), unp.asarray(new_phases_conj), path="append"
+            )
 
             return DiscreteSignalSum(
                 dt=sig1.dt,
@@ -1059,7 +1025,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
             )
             pwc2 = DiscreteSignal(
                 dt=sig2.dt,
-                samples=0.5 * sig1.samples * np.conjugate(sig2.samples),
+                samples=0.5 * sig1.samples * unp.conjugate(sig2.samples),
                 start_time=sig2.start_time,
                 carrier_freq=sig1.carrier_freq - sig2.carrier_freq,
                 phase=sig1.phase - sig2.phase,
@@ -1071,7 +1037,7 @@ def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
         return 0.5 * sig1.envelope(t) * sig2.envelope(t)
 
     def new_env2(t):
-        return 0.5 * sig1.envelope(t) * np.conjugate(sig2.envelope(t))
+        return 0.5 * sig1.envelope(t) * unp.conjugate(sig2.envelope(t))
 
     prod1 = Signal(
         envelope=new_env1,
@@ -1116,7 +1082,7 @@ def sort_signals(sig1: Signal, sig2: Signal) -> Tuple[Signal, Signal]:
     return sig1, sig2
 
 
-def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
+def to_SignalSum(sig: Union[ArrayLike, Signal]) -> SignalSum:
     r"""Convert the input to a SignalSum according to:
 
         - If it is already a ``SignalSum``\, do nothing.
@@ -1134,19 +1100,21 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
         QiskitError: If the input type is incompatible with SignalSum.
     """
 
-    if isinstance(sig, (int, float, complex)) or (isinstance(sig, Array) and sig.ndim == 0):
+    if isinstance(sig, (int, float, complex)) or (
+        not isinstance(sig, (int, float, complex, list, Signal)) and sig.ndim == 0
+    ):
         return SignalSum(Signal(sig))
     elif isinstance(sig, DiscreteSignal) and not isinstance(sig, DiscreteSignalSum):
-        if Array(sig.samples.data).shape == (0,):
-            new_samples = Array([sig.samples.data])
+        if sig.samples.shape == (0,):
+            new_samples = unp.asarray([sig.samples])
         else:
-            new_samples = Array([sig.samples.data]).transpose(1, 0)
+            new_samples = unp.asarray([sig.samples]).transpose(1, 0)
         return DiscreteSignalSum(
             dt=sig.dt,
             samples=new_samples,
             start_time=sig.start_time,
-            carrier_freq=Array([sig.carrier_freq.data]),
-            phase=Array([sig.phase.data]),
+            carrier_freq=unp.asarray([sig.carrier_freq]),
+            phase=unp.asarray([sig.phase]),
         )
     elif isinstance(sig, Signal) and not isinstance(sig, SignalSum):
         return SignalSum(sig)
@@ -1154,14 +1122,3 @@ def to_SignalSum(sig: Union[int, float, complex, Array, Signal]) -> SignalSum:
         return sig
 
     raise QiskitError("Input type incompatible with SignalSum.")
-
-
-def array_funclist_evaluate(func_list: List[Callable]) -> Callable:
-    """Utility for evaluating a list of functions in a way that respects Arrays.
-    Currently relevant for JAX evaluation.
-    """
-
-    def eval_func(t):
-        return Array([Array(func(t)).data for func in func_list])
-
-    return eval_func

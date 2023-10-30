@@ -28,6 +28,7 @@ from .arraylias.alias import (
     DYNAMICS_SCIPY_ALIAS,
     DYNAMICS_NUMPY,
     DYNAMICS_SCIPY,
+    ArrayLike,
 )
 
 from .models.rotating_frame import RotatingFrame

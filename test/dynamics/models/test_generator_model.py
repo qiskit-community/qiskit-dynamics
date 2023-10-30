@@ -702,7 +702,7 @@ class TestGeneratorModelSparseJax(TestGeneratorModelSparse, TestJaxBase):
 
         def func(a):
             model_copy = model.copy()
-            model_copy.signals = [Signal(Array(a))]
+            model_copy.signals = [Signal(a)]
             return model_copy(0.232, y)
 
         jitted_func = self.jit_wrap(func)

@@ -15,26 +15,32 @@
 Tests for signals.
 """
 
+from functools import partial
+
 import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, DiscreteSignalSum, SignalList
 from qiskit_dynamics.signals.signals import to_SignalSum
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import test_array_backends
 
 try:
     from jax import jit, grad
     import jax.numpy as jnp
 except ImportError:
     pass
+# Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
+# pylint: disable=no-member
 
 
-class TestSignal(QiskitDynamicsTestCase):
+@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+class TestSignal:
     """Tests for Signal object."""
 
     def setUp(self):
-        self.signal1 = Signal(lambda t: 0.25, carrier_freq=0.3)
+        """Setup Signals"""
+        self.signal1 = Signal(lambda _: 0.25, carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
 
@@ -51,25 +57,27 @@ class TestSignal(QiskitDynamicsTestCase):
 
     def test_envelope_vectorized(self):
         """Test vectorized evaluation of envelope."""
-        t_vals = np.array([1.1, 1.23])
-        self.assertAllClose(self.signal1.envelope(t_vals), np.array([0.25, 0.25]))
+        t_vals = self.asarray([1.1, 1.23])
+        self.assertAllClose(self.signal1.envelope(t_vals), self.asarray([0.25, 0.25]))
         self.assertAllClose(
-            self.signal2.envelope(t_vals), np.array([2 * (1.1**2), 2 * (1.23**2)])
+            self.signal2.envelope(t_vals), self.asarray([2 * (1.1**2), 2 * (1.23**2)])
         )
         self.assertAllClose(
             self.signal3.envelope(t_vals),
-            np.array([2 * (1.1**2) + 1j * 1.1, 2 * (1.23**2) + 1j * 1.23]),
+            self.asarray([2 * (1.1**2) + 1j * 1.1, 2 * (1.23**2) + 1j * 1.23]),
         )
 
-        t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
-        self.assertAllClose(self.signal1.envelope(t_vals), np.array([[0.25, 0.25], [0.25, 0.25]]))
+        t_vals = self.asarray([[1.1, 1.23], [0.1, 0.24]])
+        self.assertAllClose(
+            self.signal1.envelope(t_vals), self.asarray([[0.25, 0.25], [0.25, 0.25]])
+        )
         self.assertAllClose(
             self.signal2.envelope(t_vals),
-            np.array([[2 * (1.1**2), 2 * (1.23**2)], [2 * (0.1**2), 2 * (0.24**2)]]),
+            self.asarray([[2 * (1.1**2), 2 * (1.23**2)], [2 * (0.1**2), 2 * (0.24**2)]]),
         )
         self.assertAllClose(
             self.signal3.envelope(t_vals),
-            np.array(
+            self.asarray(
                 [
                     [2 * (1.1**2) + 1j * 1.1, 2 * (1.23**2) + 1j * 1.23],
                     [2 * (0.1**2) + 1j * 0.1, 2 * (0.24**2) + 1j * 0.24],
@@ -104,10 +112,10 @@ class TestSignal(QiskitDynamicsTestCase):
 
     def test_complex_value_vectorized(self):
         """Test vectorized complex_value evaluation."""
-        t_vals = np.array([1.1, 1.23])
+        t_vals = self.asarray([1.1, 1.23])
         self.assertAllClose(
             self.signal1.complex_value(t_vals),
-            np.array(
+            self.asarray(
                 [
                     0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.1),
                     0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23),
@@ -116,7 +124,7 @@ class TestSignal(QiskitDynamicsTestCase):
         )
         self.assertAllClose(
             self.signal2.complex_value(t_vals),
-            np.array(
+            self.asarray(
                 [
                     2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
                     2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
@@ -125,7 +133,7 @@ class TestSignal(QiskitDynamicsTestCase):
         )
         self.assertAllClose(
             self.signal3.complex_value(t_vals),
-            np.array(
+            self.asarray(
                 [
                     (2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
                     (2 * (1.23**2) + 1j * 1.23)
@@ -134,10 +142,10 @@ class TestSignal(QiskitDynamicsTestCase):
             ),
         )
 
-        t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
+        t_vals = self.asarray([[1.1, 1.23], [0.1, 0.24]])
         self.assertAllClose(
             self.signal1.complex_value(t_vals),
-            np.array(
+            self.asarray(
                 [
                     [
                         0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.1),
@@ -152,7 +160,7 @@ class TestSignal(QiskitDynamicsTestCase):
         )
         self.assertAllClose(
             self.signal2.complex_value(t_vals),
-            np.array(
+            self.asarray(
                 [
                     [
                         2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
@@ -167,7 +175,7 @@ class TestSignal(QiskitDynamicsTestCase):
         )
         self.assertAllClose(
             self.signal3.complex_value(t_vals),
-            np.array(
+            self.asarray(
                 [
                     [
                         (2 * (1.1**2) + 1j * 1.1)
@@ -210,10 +218,10 @@ class TestSignal(QiskitDynamicsTestCase):
 
     def test_call_vectorized(self):
         """Test vectorized __call__."""
-        t_vals = np.array([1.1, 1.23])
+        t_vals = self.asarray([1.1, 1.23])
         self.assertAllClose(
             self.signal1(t_vals),
-            np.array(
+            self.asarray(
                 [
                     0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.1),
                     0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.23),
@@ -222,7 +230,7 @@ class TestSignal(QiskitDynamicsTestCase):
         )
         self.assertAllClose(
             self.signal2(t_vals),
-            np.array(
+            self.asarray(
                 [
                     2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
                     2 * (1.23**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.23),
@@ -231,7 +239,7 @@ class TestSignal(QiskitDynamicsTestCase):
         )
         self.assertAllClose(
             self.signal3(t_vals),
-            np.array(
+            self.asarray(
                 [
                     (2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
                     (2 * (1.23**2) + 1j * 1.23)
@@ -240,10 +248,10 @@ class TestSignal(QiskitDynamicsTestCase):
             ).real,
         )
 
-        t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
+        t_vals = self.asarray([[1.1, 1.23], [0.1, 0.24]])
         self.assertAllClose(
             self.signal1(t_vals),
-            np.array(
+            self.asarray(
                 [
                     [
                         0.25 * np.exp(1j * 2 * np.pi * 0.3 * 1.1),
@@ -258,7 +266,7 @@ class TestSignal(QiskitDynamicsTestCase):
         )
         self.assertAllClose(
             self.signal2(t_vals),
-            np.array(
+            self.asarray(
                 [
                     [
                         2 * (1.1**2) * np.exp(1j * 2 * np.pi * 0.1 * 1.1),
@@ -273,7 +281,7 @@ class TestSignal(QiskitDynamicsTestCase):
         )
         self.assertAllClose(
             self.signal3(t_vals),
-            np.array(
+            self.asarray(
                 [
                     [
                         (2 * (1.1**2) + 1j * 1.1)
@@ -307,10 +315,12 @@ class TestSignal(QiskitDynamicsTestCase):
         )
 
 
-class TestConstant(QiskitDynamicsTestCase):
+@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+class TestConstant:
     """Tests for constant signal object."""
 
     def setUp(self):
+        """Setup constant Signals"""
         self.constant1 = Signal(1.0)
         self.constant2 = Signal(3.0 + 1j * 2)
 
@@ -324,12 +334,12 @@ class TestConstant(QiskitDynamicsTestCase):
 
     def test_envelope_vectorized(self):
         """Test vectorized evaluation of envelope."""
-        t_vals = np.array([1.1, 1.23])
-        self.assertAllClose(self.constant1.envelope(t_vals), np.array([1.0, 1.0]))
+        t_vals = self.asarray([1.1, 1.23])
+        self.assertAllClose(self.constant1.envelope(t_vals), self.asarray([1.0, 1.0]))
         self.assertAllClose(self.constant2.envelope(t_vals), (3.0 + 2j) * np.ones_like(t_vals))
 
-        t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
-        self.assertAllClose(self.constant1.envelope(t_vals), np.array([[1.0, 1.0], [1.0, 1.0]]))
+        t_vals = self.asarray([[1.1, 1.23], [0.1, 0.24]])
+        self.assertAllClose(self.constant1.envelope(t_vals), self.asarray([[1.0, 1.0], [1.0, 1.0]]))
         self.assertAllClose(self.constant2.envelope(t_vals), (3.0 + 2j) * np.ones_like(t_vals))
 
     def test_complex_value(self):
@@ -342,13 +352,13 @@ class TestConstant(QiskitDynamicsTestCase):
 
     def test_complex_value_vectorized(self):
         """Test vectorized complex_value evaluation."""
-        t_vals = np.array([1.1, 1.23])
-        self.assertAllClose(self.constant1.complex_value(t_vals), np.array([1.0, 1.0]))
+        t_vals = self.asarray([1.1, 1.23])
+        self.assertAllClose(self.constant1.complex_value(t_vals), self.asarray([1.0, 1.0]))
         self.assertAllClose(self.constant2.complex_value(t_vals), (3.0 + 2j) * np.ones_like(t_vals))
 
-        t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
+        t_vals = self.asarray([[1.1, 1.23], [0.1, 0.24]])
         self.assertAllClose(
-            self.constant1.complex_value(t_vals), np.array([[1.0, 1.0], [1.0, 1.0]])
+            self.constant1.complex_value(t_vals), self.asarray([[1.0, 1.0], [1.0, 1.0]])
         )
         self.assertAllClose(self.constant2.complex_value(t_vals), (3.0 + 2j) * np.ones_like(t_vals))
 
@@ -362,13 +372,13 @@ class TestConstant(QiskitDynamicsTestCase):
 
     def test_call_vectorized(self):
         """Test vectorized __call__."""
-        t_vals = np.array([1.1, 1.23])
-        self.assertAllClose(self.constant1(t_vals), np.array([1.0, 1.0]))
-        self.assertAllClose(self.constant2(t_vals), np.array([3.0, 3.0]))
+        t_vals = self.asarray([1.1, 1.23])
+        self.assertAllClose(self.constant1(t_vals), self.asarray([1.0, 1.0]))
+        self.assertAllClose(self.constant2(t_vals), self.asarray([3.0, 3.0]))
 
-        t_vals = np.array([[1.1, 1.23], [0.1, 0.24]])
-        self.assertAllClose(self.constant1(t_vals), np.array([[1.0, 1.0], [1.0, 1.0]]))
-        self.assertAllClose(self.constant2(t_vals), np.array([[3.0, 3.0], [3.0, 3.0]]))
+        t_vals = self.asarray([[1.1, 1.23], [0.1, 0.24]])
+        self.assertAllClose(self.constant1(t_vals), self.asarray([[1.0, 1.0], [1.0, 1.0]]))
+        self.assertAllClose(self.constant2(t_vals), self.asarray([[3.0, 3.0], [3.0, 3.0]]))
 
     def test_conjugate(self):
         """Verify conjugate() functioning correctly."""
@@ -377,13 +387,17 @@ class TestConstant(QiskitDynamicsTestCase):
         self.assertAllClose(const_conj(1.1), 3.0)
 
 
-class TestDiscreteSignal(QiskitDynamicsTestCase):
+@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+class TestDiscreteSignal:
     """Tests for DiscreteSignal object."""
 
     def setUp(self):
-        self.discrete1 = DiscreteSignal(dt=0.5, samples=np.array([1.0, 2.0, 3.0]), carrier_freq=3.0)
+        """Setup DiscreteSignals"""
+        self.discrete1 = DiscreteSignal(
+            dt=0.5, samples=self.asarray([1.0, 2.0, 3.0]), carrier_freq=3.0
+        )
         self.discrete2 = DiscreteSignal(
-            dt=0.5, samples=np.array([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
+            dt=0.5, samples=self.asarray([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
         )
 
     def test_envelope(self):
@@ -405,14 +419,14 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
 
     def test_envelope_vectorized(self):
         """Test vectorized evaluation of envelope."""
-        t_vals = np.array([0.1, 1.23])
-        self.assertAllClose(self.discrete1.envelope(t_vals), np.array([1.0, 3.0]))
-        self.assertAllClose(self.discrete2.envelope(t_vals), np.array([1.0 + 2j, 3.0]))
+        t_vals = self.asarray([0.1, 1.23])
+        self.assertAllClose(self.discrete1.envelope(t_vals), self.asarray([1.0, 3.0]))
+        self.assertAllClose(self.discrete2.envelope(t_vals), self.asarray([1.0 + 2j, 3.0]))
 
-        t_vals = np.array([[0.8, 1.23], [0.1, 0.24]])
-        self.assertAllClose(self.discrete1.envelope(t_vals), np.array([[2.0, 3.0], [1.0, 1.0]]))
+        t_vals = self.asarray([[0.8, 1.23], [0.1, 0.24]])
+        self.assertAllClose(self.discrete1.envelope(t_vals), self.asarray([[2.0, 3.0], [1.0, 1.0]]))
         self.assertAllClose(
-            self.discrete2.envelope(t_vals), np.array([[2.0 + 1j, 3.0], [1 + 2j, 1.0 + 2j]])
+            self.discrete2.envelope(t_vals), self.asarray([[2.0 + 1j, 3.0], [1 + 2j, 1.0 + 2j]])
         )
 
     def test_complex_value(self):
@@ -432,23 +446,23 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
 
     def test_complex_value_vectorized(self):
         """Test vectorized complex_value evaluation."""
-        t_vals = np.array([0.1, 1.23])
+        t_vals = self.asarray([0.1, 1.23])
         phases = np.exp(1j * 2 * np.pi * 3.0 * t_vals)
-        self.assertAllClose(self.discrete1.complex_value(t_vals), np.array([1.0, 3.0]) * phases)
+        self.assertAllClose(self.discrete1.complex_value(t_vals), self.asarray([1.0, 3.0]) * phases)
         phases = np.exp(1j * 2 * np.pi * 1.0 * t_vals + 1j * 3.0)
         self.assertAllClose(
-            self.discrete2.complex_value(t_vals), np.array([1.0 + 2j, 3.0]) * phases
+            self.discrete2.complex_value(t_vals), self.asarray([1.0 + 2j, 3.0]) * phases
         )
 
-        t_vals = np.array([[0.8, 1.23], [0.1, 0.24]])
+        t_vals = self.asarray([[0.8, 1.23], [0.1, 0.24]])
         phases = np.exp(1j * 2 * np.pi * 3.0 * t_vals)
         self.assertAllClose(
-            self.discrete1.complex_value(t_vals), np.array([[2.0, 3.0], [1.0, 1.0]]) * phases
+            self.discrete1.complex_value(t_vals), self.asarray([[2.0, 3.0], [1.0, 1.0]]) * phases
         )
         phases = np.exp(1j * 2 * np.pi * 1.0 * t_vals + 1j * 3.0)
         self.assertAllClose(
             self.discrete2.complex_value(t_vals),
-            np.array([[2.0 + 1j, 3.0], [1 + 2j, 1.0 + 2j]]) * phases,
+            self.asarray([[2.0 + 1j, 3.0], [1 + 2j, 1.0 + 2j]]) * phases,
         )
 
     def test_call(self):
@@ -467,21 +481,21 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
 
     def test_call_vectorized(self):
         """Test vectorized __call__."""
-        t_vals = np.array([0.1, 1.23])
+        t_vals = self.asarray([0.1, 1.23])
         phases = np.exp(1j * 2 * np.pi * 3.0 * t_vals)
-        self.assertAllClose(self.discrete1(t_vals), np.real(np.array([1.0, 3.0]) * phases))
+        self.assertAllClose(self.discrete1(t_vals), np.real(self.asarray([1.0, 3.0]) * phases))
         phases = np.exp(1j * 2 * np.pi * 1.0 * t_vals + 1j * 3.0)
-        self.assertAllClose(self.discrete2(t_vals), np.real(np.array([1.0 + 2j, 3.0]) * phases))
+        self.assertAllClose(self.discrete2(t_vals), np.real(self.asarray([1.0 + 2j, 3.0]) * phases))
 
-        t_vals = np.array([[0.8, 1.23], [0.1, 0.24]])
+        t_vals = self.asarray([[0.8, 1.23], [0.1, 0.24]])
         phases = np.exp(1j * 2 * np.pi * 3.0 * t_vals)
         self.assertAllClose(
-            self.discrete1(t_vals), np.real(np.array([[2.0, 3.0], [1.0, 1.0]]) * phases)
+            self.discrete1(t_vals), np.real(self.asarray([[2.0, 3.0], [1.0, 1.0]]) * phases)
         )
         phases = np.exp(1j * 2 * np.pi * 1.0 * t_vals + 1j * 3.0)
         self.assertAllClose(
             self.discrete2(t_vals),
-            np.real(np.array([[2.0 + 1j, 3.0], [1 + 2j, 1.0 + 2j]]) * phases),
+            np.real(self.asarray([[2.0 + 1j, 3.0], [1 + 2j, 1.0 + 2j]]) * phases),
         )
 
     def test_conjugate(self):
@@ -495,9 +509,9 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
     def test_add_samples(self):
         """Verify that add_samples function works correctly"""
 
-        discrete1 = DiscreteSignal(dt=0.5, samples=np.array([]), carrier_freq=3.0)
+        discrete1 = DiscreteSignal(dt=0.5, samples=self.asarray([]), carrier_freq=3.0)
         discrete2 = DiscreteSignal(
-            dt=0.5, samples=np.array([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
+            dt=0.5, samples=self.asarray([1.0 + 2j, 2.0 + 1j, 3.0]), carrier_freq=1.0, phase=3.0
         )
         discrete3 = DiscreteSignal(dt=0.5, samples=[], carrier_freq=3.0)
 
@@ -511,10 +525,11 @@ class TestDiscreteSignal(QiskitDynamicsTestCase):
         self.assertAllClose(discrete3.samples, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0])
 
 
-class TestSignalSum(QiskitDynamicsTestCase):
+class TestSignalSum:
     """Test evaluation functions for ``SignalSum``."""
 
     def setUp(self):
+        """Setup SignalSums"""
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -560,7 +575,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
 
     def test_envelope_vectorized(self):
         """Test vectorized envelope evaluation."""
-        t_vals = np.array([0.0, 1.23])
+        t_vals = self.asarray([0.0, 1.23])
         self.assertAllClose(
             self.sig_sum1.envelope(t_vals),
             [[self.signal1.envelope(t), self.signal2.envelope(t)] for t in t_vals],
@@ -581,7 +596,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
                 for t in t_vals
             ],
         )
-        t_vals = np.array([[0.0, 1.23], [0.1, 2.0]])
+        t_vals = self.asarray([[0.0, 1.23], [0.1, 2.0]])
         self.assertAllClose(
             self.sig_sum1.envelope(t_vals),
             [
@@ -643,7 +658,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
 
     def test_complex_value_vectorized(self):
         """Test vectorized complex_value evaluation."""
-        t_vals = np.array([0.0, 1.23])
+        t_vals = self.asarray([0.0, 1.23])
         self.assertAllClose(
             self.sig_sum1.complex_value(t_vals),
             [self.signal1.complex_value(t) + self.signal2.complex_value(t) for t in t_vals],
@@ -656,7 +671,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
             self.double_sig_sum.complex_value(t_vals),
             [self.signal1.complex_value(t) + self.signal3.complex_value(t) for t in t_vals],
         )
-        t_vals = np.array([[0.0, 1.23], [0.1, 2.0]])
+        t_vals = self.asarray([[0.0, 1.23], [0.1, 2.0]])
         self.assertAllClose(
             self.sig_sum1.complex_value(t_vals),
             [
@@ -692,7 +707,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
 
     def test_call_vectorized(self):
         """Test vectorized __call__."""
-        t_vals = np.array([0.0, 1.23])
+        t_vals = self.asarray([0.0, 1.23])
         self.assertAllClose(
             self.sig_sum1(t_vals), [self.signal1(t) + self.signal2(t) for t in t_vals]
         )
@@ -702,7 +717,7 @@ class TestSignalSum(QiskitDynamicsTestCase):
         self.assertAllClose(
             self.double_sig_sum(t_vals), [self.signal1(t) + self.signal3(t) for t in t_vals]
         )
-        t_vals = np.array([[0.0, 1.23], [0.1, 2.0]])
+        t_vals = self.asarray([[0.0, 1.23], [0.1, 2.0]])
         self.assertAllClose(
             self.sig_sum1(t_vals),
             [[self.signal1(t) + self.signal2(t) for t in t_row] for t_row in t_vals],
@@ -732,6 +747,7 @@ class TestDiscreteSignalSum(TestSignalSum):
     """Tests for DiscreteSignalSum."""
 
     def setUp(self):
+        """Setup DiscreteSignalSums"""
         self.signal1 = Signal(np.vectorize(lambda t: 0.25), carrier_freq=0.3)
         self.signal2 = Signal(lambda t: 2.0 * (t**2), carrier_freq=0.1)
         self.signal3 = Signal(lambda t: 2.0 * (t**2) + 1j * t, carrier_freq=0.1, phase=-0.1)
@@ -757,10 +773,18 @@ class TestDiscreteSignalSum(TestSignalSum):
         self.assertTrue(empty_sum.samples.shape == (1, 0))
 
 
-class TestSignalList(QiskitDynamicsTestCase):
+test_array_backends(TestSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+test_array_backends(
+    TestDiscreteSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"]
+)
+
+
+@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+class TestSignalList:
     """Test cases for SignalList class."""
 
     def setUp(self):
+        """Setup a SignalList"""
         self.sig = Signal(lambda t: t, carrier_freq=3.0)
         self.const = Signal(5.0)
         self.discrete_sig = DiscreteSignal(
@@ -774,9 +798,9 @@ class TestSignalList(QiskitDynamicsTestCase):
     def test_eval(self):
         """Test evaluation of signal sum."""
 
-        t_vals = np.array([0.12, 0.23, 1.23])
+        t_vals = self.asarray([0.12, 0.23, 1.23])
 
-        expected = np.array(
+        expected = self.asarray(
             [
                 self.sig(t_vals) + self.const(t_vals),
                 self.sig(t_vals) * self.discrete_sig(t_vals),
@@ -789,9 +813,9 @@ class TestSignalList(QiskitDynamicsTestCase):
     def test_complex_value(self):
         """Test evaluation of signal sum."""
 
-        t_vals = np.array([0.12, 0.23, 1.23])
+        t_vals = self.asarray([0.12, 0.23, 1.23])
 
-        expected = np.array(
+        expected = self.asarray(
             [
                 self.sig.complex_value(t_vals) + self.const.complex_value(t_vals),
                 np.real(self.sig.complex_value(t_vals)) * self.discrete_sig.complex_value(t_vals),
@@ -804,27 +828,26 @@ class TestSignalList(QiskitDynamicsTestCase):
     def test_drift(self):
         """Test drift evaluation."""
 
-        expected = np.array([self.const(0.0), 0, self.const(0.0)])
+        expected = self.asarray([self.const(0.0), 0, self.const(0.0)])
         self.assertAllClose(self.sig_list.drift, expected)
 
     def test_construction_with_numbers(self):
         """Test construction with non-wrapped constant values."""
 
         sig_list = SignalList([4.0, 2.0, Signal(lambda t: t)])
-        # pylint: disable=no-member
         self.assertTrue(sig_list[0][0].is_constant)
-        # pylint: disable=no-member
         self.assertTrue(sig_list[1][0].is_constant)
-        # pylint: disable=no-member
         self.assertFalse(sig_list[2][0].is_constant)
 
-        self.assertAllClose(sig_list(3.0), np.array([4.0, 2.0, 3.0]))
+        self.assertAllClose(sig_list(3.0), self.asarray([4.0, 2.0, 3.0]))
 
 
-class TestSignalCollection(QiskitDynamicsTestCase):
+@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+class TestSignalCollection:
     """Test cases for SignalCollection functionality."""
 
     def setUp(self):
+        """Setup SignalCollections"""
         self.sig1 = Signal(lambda t: t, carrier_freq=0.1)
         self.sig2 = Signal(lambda t: t + 1j * t**2, carrier_freq=3.0, phase=1.0)
         self.sig3 = Signal(lambda t: t + 1j * t**2, carrier_freq=3.0, phase=1.2)
@@ -843,7 +866,7 @@ class TestSignalCollection(QiskitDynamicsTestCase):
 
         sub02 = self.sig_sum[[0, 2]]
         self.assertTrue(len(sub02) == 2)
-        t_vals = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+        t_vals = self.asarray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
         self.assertAllClose(sub02(t_vals), self.sig1(t_vals) + self.sig3(t_vals))
 
     def test_DiscreteSignalSum_subscript(self):
@@ -851,7 +874,7 @@ class TestSignalCollection(QiskitDynamicsTestCase):
 
         sub02 = self.discrete_sig_sum[[0, 2]]
         self.assertTrue(len(sub02) == 2)
-        t_vals = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]) / 4.0
+        t_vals = self.asarray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]) / 4.0
         self.assertAllClose(sub02(t_vals), self.discrete_sig1(t_vals) + self.discrete_sig3(t_vals))
 
     def test_SignalSum_iterator(self):
@@ -873,34 +896,12 @@ class TestSignalCollection(QiskitDynamicsTestCase):
         self.assertAllClose(sum_val, self.discrete_sig_sum(3.0))
 
 
-class TestSignalJax(TestSignal, TestJaxBase):
-    """Jax version of TestSignal."""
-
-
-class TestConstantJax(TestSignal, TestJaxBase):
-    """Jax version of TestConstant."""
-
-
-class TestDiscreteSignalJax(TestDiscreteSignal, TestJaxBase):
-    """Jax version of TestDiscreteSignal."""
-
-
-class TestSignalSumJax(TestSignalSum, TestJaxBase):
-    """Jax version of TestSignalSum."""
-
-
-class TestDiscreteSignalSumJax(TestDiscreteSignalSum, TestJaxBase):
-    """Jax version of TestSignalSum."""
-
-
-class TestSignalListJax(TestSignalList, TestJaxBase):
-    """Jax version of TestSignalList."""
-
-
-class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
+@partial(test_array_backends, array_libraries=["jax"])
+class TestSignalsJaxTransformations:
     """Test cases for jax transformations of signals."""
 
     def setUp(self):
+        """Setup Signals"""
         self.signal = Signal(lambda t: t**2, carrier_freq=3.0)
         self.constant = Signal(3 * np.pi)
         self.discrete_signal = DiscreteSignal(
@@ -924,8 +925,8 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
         """Test jitting and grad through a function which constructs a constant signal."""
 
         def eval_const(a):
-            a = Array(a)
-            return Signal(a)(1.1).data
+            a = unp.asarray(a)
+            return Signal(a)(1.1)
 
         jit_eval = jit(eval_const)
         self.assertAllClose(jit_eval(3.0), 3.0)
@@ -935,7 +936,7 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
         # validate that is_constant is being properly set
         def eval_const_conditional(a):
-            a = Array(a)
+            a = unp.asarray(a)
             sig = Signal(a)
 
             if sig.is_constant:
@@ -952,9 +953,9 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
         """
 
         def eval_sig(a, v, t):
-            a = Array(a)
-            v = Array(v)
-            return Array(Signal(a, v)(t)).data
+            a = unp.asarray(a)
+            v = unp.asarray(v)
+            return unp.asarray(Signal(a, v)(t))
 
         jit_eval = jit(eval_sig)
         self.assertAllClose(jit_eval(1.0, 1.0, 1.0), 1.0)
@@ -964,9 +965,9 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
     def test_signal_list_jit_eval(self):
         """Test jit-compilation of SignalList evaluation."""
-        call_jit = jit(lambda t: Array(self.signal_list(t)).data)
+        call_jit = jit(lambda t: unp.asarray(self.signal_list(t)))
 
-        t_vals = np.array([0.123, 0.5324, 1.232])
+        t_vals = self.asarray([0.123, 0.5324, 1.232])
         self.assertAllClose(call_jit(t_vals), self.signal_list(t_vals))
 
     def test_jit_grad_eval(self):
@@ -1022,20 +1023,22 @@ class TestSignalsJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
     def _test_jit_signal_eval(self, signal, t=2.1):
         """jit compilation and evaluation of main signal functions."""
-        sig_call_jit = jit(lambda t: Array(signal(t)).data)
+        sig_call_jit = jit(lambda t: self.asarray(signal(t)))
         self.assertAllClose(sig_call_jit(t), signal(t))
-        sig_envelope_jit = jit(lambda t: Array(signal.envelope(t)).data)
+        sig_envelope_jit = jit(lambda t: unp.asarray(signal.envelope(t)))
         self.assertAllClose(sig_envelope_jit(t), signal.envelope(t))
-        sig_complex_value_jit = jit(lambda t: Array(signal.complex_value(t)).data)
+        sig_complex_value_jit = jit(lambda t: unp.asarray(signal.complex_value(t)))
         self.assertAllClose(sig_complex_value_jit(t), signal.complex_value(t))
 
     def _test_grad_eval(self, signal, t, sig_deriv_val, complex_deriv_val):
         """Test chained grad and jit compilation."""
-        sig_call_jit = jit(grad(lambda t: Array(signal(t)).data))
+        sig_call_jit = jit(grad(lambda t: unp.asarray(signal(t))))
         self.assertAllClose(sig_call_jit(t), sig_deriv_val)
-        sig_complex_value_jit_re = jit(grad(lambda t: np.real(Array(signal.complex_value(t))).data))
+        sig_complex_value_jit_re = jit(
+            grad(lambda t: unp.real(unp.asarray(signal.complex_value(t))))
+        )
         sig_complex_value_jit_imag = jit(
-            grad(lambda t: np.imag(Array(signal.complex_value(t))).data)
+            grad(lambda t: np.imag(unp.asarray(signal.complex_value(t))))
         )
         self.assertAllClose(sig_complex_value_jit_re(t), np.real(complex_deriv_val))
         self.assertAllClose(sig_complex_value_jit_imag(t), np.imag(complex_deriv_val))

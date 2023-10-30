@@ -137,6 +137,6 @@ JAX-compiled (or more generally, JAX-transformed).
         # convert from a pulse schedule to a list of signals
         converter = InstructionToSignals(dt, carriers={"d0": w})
         
-        return converter.get_signals(schedule)[0].samples.data
+        return converter.get_signals(schedule)[0].samples
 
     jax.jit(jit_func)(0.4)

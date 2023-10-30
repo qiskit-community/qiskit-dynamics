@@ -220,7 +220,7 @@ class TestSolverMethodJax(TestSolverMethod, TestJaxBase):
 
         def func(a):
             model_copy = self.pseudo_random_model.copy()
-            model_copy.signals = [Signal(Array(a), carrier_freq=1.0)]
+            model_copy.signals = [Signal(a, carrier_freq=1.0)]
             results = self.solve(model_copy, t_span=[0.0, 0.1], y0=self.pseudo_random_y0)
             return results.y[-1]
 
@@ -367,7 +367,7 @@ class Testlanczos_diag(TestSolverMethod):
 
         # simulate directly out of frame
         def pseudo_random_rhs(t, y=None):
-            op = self.static_operator + self.pseudo_random_signal(t).data * self.operators[0]
+            op = self.static_operator + self.pseudo_random_signal(t) * self.operators[0]
             op = -1j * op
             if y is None:
                 return op

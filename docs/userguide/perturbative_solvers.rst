@@ -179,7 +179,7 @@ these functions gives a sense of the speeds attainable by these solvers.
         """For a given envelope amplitude, simulate the final unitary using the
         Dyson solver.
         """
-        drive_signal = Signal(lambda t: Array(amp) * envelope_func(t), carrier_freq=v)
+        drive_signal = Signal(lambda t: amp * envelope_func(t), carrier_freq=v)
         return dyson_solver.solve(
             signals=[drive_signal],
             y0=np.eye(dim, dtype=complex),
@@ -220,7 +220,7 @@ accuracy and simulation speed.
 
     # specify tolerance as an argument to run the simulation at different tolerances
     def ode_sim(amp, tol):
-        drive_signal = Signal(lambda t: Array(amp) * envelope_func(t), carrier_freq=v)
+        drive_signal = Signal(lambda t: amp * envelope_func(t), carrier_freq=v)
         res = solver.solve(
             t_span=[0., int(T // dt) * dt],
             y0=np.eye(dim, dtype=complex),
