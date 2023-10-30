@@ -25,8 +25,7 @@ requirements = [
     "arraylias"
 ]
 
-jax_extras = ['jax>=0.4.0, <= 0.4.6',
-              'jaxlib>=0.4.0, <= 0.4.6']
+jax_extras = ['jax', 'jaxlib']
 
 PACKAGES = setuptools.find_packages(exclude=['test*'])
 

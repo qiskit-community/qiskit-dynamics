@@ -718,3 +718,51 @@ class TestDysonProduct(QiskitDynamicsTestCase):
         for sub_rule1, sub_rule2 in zip(rule1, rule2):
             self.assertAllClose(sub_rule1[0], sub_rule2[0])
             self.assertAllClose(sub_rule1[1], sub_rule2[1])
+
+
+class TestWorkaround(QiskitDynamicsTestCase):
+    """Test whether workaround in dyson_magnus._setup_dyson_rhs_jax is no longer required.
+
+    The workaround was introduced in the same commit as this test class to avoid an error being
+    raised by a non-trivial combination of JAX transformations. The test in this class has been
+    set up to expect the original minimal reproduction of the issue to fail. Once it no longer
+    fails, the changes made to _setup_dyson_rhs_jax in this commit should be reverted.
+
+    See https://github.com/google/jax/discussions/9951#discussioncomment-2385157 for discussion of
+    issue.
+    """
+
+    def test_minimal_example(self):
+        """Test minimal reproduction of issue."""
+
+        with self.assertRaises(Exception):
+            import jax.numpy as jnp
+            from jax import grad, vmap
+            from jax.lax import switch
+            from jax.experimental.ode import odeint
+
+            # pylint: disable=unused-argument
+            def A0(t):
+                return 2.0
+
+            # pylint: disable=unused-argument
+            def A1(a, t):
+                return a**2
+
+            y0 = np.random.rand(2)
+            T = np.pi * 1.232
+
+            def test_func(a):
+                eval_list = [A0, lambda t: A1(a, t)]
+
+                def single_eval(idx, t):
+                    return switch(idx, eval_list, t)
+
+                multiple_eval = vmap(single_eval, in_axes=(0, None))
+                idx_list = jnp.array([0, 1])
+                rhs = lambda y, t: multiple_eval(idx_list, t) * y
+
+                out = odeint(rhs, y0=y0, t=jnp.array([0, T], dtype=float), atol=1e-13, rtol=1e-13)
+                return out
+
+            jit(grad(lambda a: test_func(a)[-1][1].real))(1.0)
