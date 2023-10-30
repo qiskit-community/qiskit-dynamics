@@ -21,7 +21,7 @@ import numpy as np
 
 from scipy.linalg import expm
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.solvers.fixed_step_solvers import (
     RK4_solver,
     scipy_expm_solver,
@@ -56,7 +56,8 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
         """Setup RHS functions for testing of fixed step solvers. Constructed as LMDEs
         so that the tests can be used for both LMDE and ODE methods.
         """
-        self.constant_generator = lambda t: -1j * Array([[0.0, 1.0], [1.0, 0.0]]).data
+        X = np.array([[0.0, 1.0], [1.0, 0.0]])
+        self.constant_generator = lambda t: -1j * X
 
         def constant_rhs(t, y=None):
             if y is None:
@@ -66,8 +67,9 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
 
         self.constant_rhs = constant_rhs
 
+        Y = np.array([[0.0, -1j], [1j, 0.0]])
         self.linear_generator = (
-            lambda t: -1j * Array([[0.0, 1.0 - 1j * t], [1.0 + 1j * t, 0.0]]).data
+            lambda t: -1j * (X + t * Y)
         )
 
         def linear_rhs(t, y=None):
@@ -96,9 +98,7 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
         )
 
         def random_generator(t):
-            t = Array(t)
-            output = np.sin(t) * rand_ops[0] + (t**5) * rand_ops[1] + np.exp(t) * rand_ops[2]
-            return Array(output).data
+            return unp.sin(t) * rand_ops[0] + (t**5) * rand_ops[1] + unp.exp(t) * rand_ops[2] 
 
         self.random_generator = random_generator
 
@@ -466,7 +466,7 @@ class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
             results = self.solve(
                 lambda *args: amp * self.constant_rhs(*args), t_span, self.id2, max_dt=0.1
             )
-            return Array(results.y[-1]).data
+            return results.y[-1]
 
         jit_func = self.jit_wrap(func)
         output = jit_func(1.0)
