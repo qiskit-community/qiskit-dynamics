@@ -115,8 +115,9 @@ example of one.
 .. jupyter-execute::
 
     from qiskit_dynamics import DiscreteSignal
-    from qiskit_dynamics.array import Array
     from qiskit_dynamics.signals import Convolution
+
+    import jax.numpy as jnp
 
     # define convolution filter
     def gaus(t):
@@ -128,13 +129,12 @@ example of one.
 
     # define function mapping parameters to signals
     def signal_mapping(params):
-        samples = Array(params)
 
         # map samples into [-1, 1]
-        bounded_samples = np.arctan(samples) / (np.pi / 2)
+        bounded_samples = jnp.arctan(params) / (np.pi / 2)
 
         # pad with 0 at beginning
-        padded_samples = np.append(Array([0], dtype=complex), bounded_samples)
+        padded_samples = jnp.append(jnp.array([0], dtype=complex), bounded_samples)
 
         # apply filter
         output_signal = convolution(DiscreteSignal(dt=1., samples=padded_samples))

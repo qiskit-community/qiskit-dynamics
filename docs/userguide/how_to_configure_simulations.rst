@@ -246,7 +246,7 @@ further highlight the benefits of the sparse representation.
 
     static_hamiltonian = 2 * np.pi * v * N + np.pi * anharm * N * (N - np.eye(dim))
     drive_hamiltonian = 2 * np.pi * r * (a + adag)
-    drive_signal = Signal(Array(1.), carrier_freq=v)
+    drive_signal = Signal(1., carrier_freq=v)
 
     y0 = np.zeros(dim, dtype=complex)
     y0[1] = 1.
@@ -266,7 +266,7 @@ amplitude, and just-in-time compile it using JAX.
     )
 
     def dense_func(amp):
-        drive_signal = Signal(Array(amp), carrier_freq=v)
+        drive_signal = Signal(amp, carrier_freq=v)
         res = solver.solve(
             t_span=[0., T],
             y0=y0,
@@ -292,7 +292,7 @@ diagonal, but we explicitly highlight the need for this.
                            evaluation_mode='sparse')
 
     def sparse_func(amp):
-        drive_signal = Signal(Array(amp), carrier_freq=v)
+        drive_signal = Signal(amp, carrier_freq=v)
         res = sparse_solver.solve(
             t_span=[0., T],
             y0=y0,

@@ -286,7 +286,8 @@ class TestJaxBase(unittest.TestCase):
         Args:
             func_to_test: The function whose gradient will be graded.
         Returns:
-            JIT-compiled gradient of function."""
+            JIT-compiled gradient of function.
+        """
         wf = wrap(lambda f: jit(grad(f)), decorator=True)
         f = lambda *args: np.sum(func_to_test(*args)).real
         return wf(f)

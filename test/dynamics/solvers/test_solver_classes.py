@@ -24,7 +24,6 @@ from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
 
 from qiskit_dynamics import Solver, Signal, DiscreteSignal, solve_lmde
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel, rotating_wave_approximation
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
 from qiskit_dynamics.solvers.solver_classes import organize_signals_to_channels
 
@@ -710,7 +709,7 @@ class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
             yf = solver.solve(
                 t_span=np.array([0.0, 0.1]),
                 y0=np.array([0.0, 1.0]),
-                signals=[Signal(Array(a), 5.0)],
+                signals=[Signal(a, 5.0)],
                 method=self.method,
             ).y[-1]
             return yf
@@ -957,8 +956,8 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             schedules=sched,
             signals=signals,
             test_tol=1e-8,
-            atol=1e-11,
-            rtol=1e-11,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     def test_4_channel_schedule(self):

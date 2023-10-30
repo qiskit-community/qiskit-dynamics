@@ -269,7 +269,7 @@ class TestSignalAlgebraJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
         def eval_func(t):
             sig_sum = sig1 + sig2
-            return sig_sum(t).data
+            return sig_sum(t)
 
         jit_eval_func = jit(eval_func)
         self.assertAllClose(jit_eval_func(t_vals), eval_func(t_vals))
@@ -279,7 +279,7 @@ class TestSignalAlgebraJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
         def eval_func(t):
             sig_sum = sig1 + sig2
-            return sig_sum(t).data
+            return sig_sum(t)
 
         jit_eval_func = jit(grad(eval_func))
         jit_eval_func(t)
@@ -289,7 +289,7 @@ class TestSignalAlgebraJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
         def eval_func(t):
             sig_sum = sig1 * sig2
-            return sig_sum(t).data
+            return sig_sum(t)
 
         jit_eval_func = jit(eval_func)
         self.assertAllClose(jit_eval_func(t_vals), eval_func(t_vals))
@@ -299,7 +299,7 @@ class TestSignalAlgebraJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
 
         def eval_func(t):
             sig_sum = sig1 * sig2
-            return sig_sum(t).data
+            return sig_sum(t)
 
         jit_eval_func = jit(grad(eval_func))
         jit_eval_func(t)
