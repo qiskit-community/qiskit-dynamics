@@ -37,10 +37,11 @@ from qiskit_dynamics.solvers.lanczos import (
     jax_lanczos_expm,
 )
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 try:
     from jax.scipy.linalg import expm as jexpm
+    from jax import jit, grad
 # pylint: disable=broad-except
 except Exception:
     pass
@@ -453,8 +454,8 @@ class TestLanczosDiagSolver(TestFixedStepBase):
         self.assertAllClose(result2[-1], expm(gen(0) * t_span[-1]) @ y02)
 
 
-class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
-    """JAX version of TestFixedStepBase, adding JAX setup class TestJaxBase,
+class TestJaxFixedStepBase(TestFixedStepBase, JAXTestBase):
+    """JAX version of TestFixedStepBase, adding JAX setup class JAXTestBase,
     and adding jit/grad test.
     """
 
@@ -468,12 +469,12 @@ class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
             )
             return results.y[-1]
 
-        jit_func = self.jit_wrap(func)
+        jit_func = jit(func)
         output = jit_func(1.0)
         expected_y = self.take_n_steps(self.constant_rhs, t=0.0, y=self.id2, h=0.1, n_steps=10)
         self.assertAllClose(expected_y, output)
 
-        grad_func = self.jit_grad_wrap(func)
+        grad_func = jit(grad(lambda *args: func(*args).real.sum()))
         grad_func(1.0)
 
 
