@@ -473,7 +473,7 @@ class SignalCollection:
     def __getitem__(self, idx: Union[ArrayLike, slice]) -> Union[Signal, "SignalCollection"]:
         """Get item with NumPy-style subscripting, as if this class were a 1d array."""
 
-        if type(idx) != int and type(idx) != slice and type(idx) != list and idx.ndim > 0:
+        if type(idx) != slice and unp.asarray(idx).ndim > 0:
             idx = list(idx)
 
         # get a list of the subcomponents
