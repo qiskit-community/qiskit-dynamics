@@ -70,7 +70,7 @@ def merge_t_args(
     if t_eval is None:
         return t_span
 
-    t_span = Array(t_span, backend="numpy")
+    t_span = np.array(t_span)
 
     t_min = np.min(t_span)
     t_max = np.max(t_span)
@@ -92,7 +92,7 @@ def merge_t_args(
     # add endpoints
     t_eval = np.append(np.append(t_span[0], t_eval), t_span[1])
 
-    return Array(t_eval, backend="numpy")
+    return np.array(t_eval)
 
 
 def trim_t_results(
@@ -146,10 +146,10 @@ def merge_t_args_jax(
     """
 
     if t_eval is None:
-        return Array(t_span, backend="jax")
+        return jnp.array(t_span)
 
-    t_span = Array(t_span, backend="jax").data
-    t_eval = Array(t_eval, backend="jax").data
+    t_span = jnp.array(t_span)
+    t_eval = jnp.array(t_eval)
 
     # raise error if not one dimensional
     if t_eval.ndim > 1:
@@ -178,7 +178,7 @@ def merge_t_args_jax(
     # if out[-1] == out[-2], set out[-2] == (out[-3] + out[-1])/2
     out = cond(out[-1] == out[-2], lambda x: x.at[-2].set((x[-3] + x[-1]) / 2), lambda x: x, out)
 
-    return Array(out)
+    return out
 
 
 def trim_t_results_jax(
@@ -203,35 +203,29 @@ def trim_t_results_jax(
 
     if t_eval is not None:
         # remove second entry if t_eval[0] == results.t[0], as this indicates a repeated time
-        results.y = Array(
-            cond(
-                t_eval[0] == results.t[0],
-                lambda y: jnp.append(jnp.array([y[0]]), y[2:], axis=0),
-                lambda y: y[1:],
-                Array(results.y).data,
-            )
+        results.y = cond(
+            t_eval[0] == results.t[0],
+            lambda y: jnp.append(jnp.array([y[0]]), y[2:], axis=0),
+            lambda y: y[1:],
+            jnp.array(results.y),
         )
 
         # remove second last entry if t_eval[-1] == results.t[-1], as this indicates a repeated time
-        results.y = Array(
-            cond(
-                t_eval[-1] == results.t[-1],
-                lambda y: jnp.append(y[:-2], jnp.array([y[-1]]), axis=0),
-                lambda y: y[:-1],
-                Array(results.y).data,
-            )
+        results.y = cond(
+            t_eval[-1] == results.t[-1],
+            lambda y: jnp.append(y[:-2], jnp.array([y[-1]]), axis=0),
+            lambda y: y[:-1],
+            jnp.array(results.y),
         )
 
-        results.t = Array(t_eval)
+        results.t = t_eval
 
     # this handles the odd case that t_span == [a, a]
-    results.y = Array(
-        cond(
-            results.t[0] == results.t[-1],
-            lambda y: y.at[-1].set(y[0]),
-            lambda y: y,
-            Array(results.y).data,
-        )
+    results.y = cond(
+        results.t[0] == results.t[-1],
+        lambda y: y.at[-1].set(y[0]),
+        lambda y: y,
+        jnp.array(results.y),
     )
 
     return results

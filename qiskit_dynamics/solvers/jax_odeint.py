@@ -21,15 +21,15 @@ from typing import Callable, Optional, Union, Tuple, List
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.dispatch import requires_backend
-from qiskit_dynamics.array import Array, wrap
 
 from .solver_utils import merge_t_args_jax, trim_t_results_jax
 
 try:
-    from jax.experimental.ode import odeint as _odeint
-
-    odeint = wrap(_odeint)
+    import jax.numpy as jnp
+    from jax.experimental.ode import odeint
 except ImportError:
     pass
 
@@ -37,9 +37,9 @@ except ImportError:
 @requires_backend("jax")
 def jax_odeint(
     rhs: Callable,
-    t_span: Array,
-    y0: Array,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_span: ArrayLike,
+    y0: ArrayLike,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ):
     """Routine for calling `jax.experimental.ode.odeint`
@@ -58,16 +58,15 @@ def jax_odeint(
     t_list = merge_t_args_jax(t_span, t_eval)
 
     # determine direction of integration
-    t_direction = np.sign(Array(t_list[-1] - t_list[0], backend="jax", dtype=complex))
-    rhs = wrap(rhs)
+    t_direction = unp.sign(unp.asarray(t_list[-1] - t_list[0], dtype=complex))
 
     results = odeint(
         lambda y, t: rhs(np.real(t_direction * t), y) * t_direction,
-        y0=Array(y0, dtype=complex),
-        t=np.real(t_direction) * Array(t_list),
+        y0=unp.asarray(y0, dtype=complex),
+        t=unp.real(t_direction) * unp.asarray(t_list),
         **kwargs,
     )
 
-    results = OdeResult(t=t_list, y=Array(results, backend="jax", dtype=complex))
+    results = OdeResult(t=t_list, y=results)
 
     return trim_t_results_jax(results, t_eval)
