@@ -293,7 +293,7 @@ class DiscreteSignal(Signal):
         samples = unp.asarray(samples)
 
         if len(samples) == 0:
-            zero_pad = unp.asarray([0])
+            zero_pad = np.asarray([0])
         else:
             zero_pad = unp.expand_dims(unp.zeros_like(samples[0]), 0)
         self._padded_samples = unp.append(samples, zero_pad, axis=0)
@@ -546,14 +546,15 @@ class SignalSum(SignalCollection, Signal):
                 components += sig.components
             elif isinstance(sig, Signal):
                 components.append(sig)
-            elif isinstance(sig, (int, float, complex)) or (
-                not isinstance(sig, (int, float, complex)) and sig.ndim == 0
-            ):
-                components.append(Signal(sig))
             else:
-                raise QiskitError(
-                    "Components of a SignalSum must be instances of a Signal subclass."
-                )
+                try:
+                    if unp.asarray(sig).ndim == 0:
+                        components.append(Signal(sig))
+                except QiskitError as qe:
+                    raise QiskitError(
+                        "Components of a SignalSum must be instances "
+                        "of a Signal subclass or a scalar."
+                    ) from qe
 
         SignalCollection.__init__(self, components)
 
@@ -574,9 +575,7 @@ class SignalSum(SignalCollection, Signal):
 
     def complex_value(self, t: ArrayLike) -> ArrayLike:
         """Return the sum of the complex values of each component."""
-        exp_phases = unp.exp(
-            unp.expand_dims(unp.asarray(t), -1) * self._carrier_arg + self._phase_arg
-        )
+        exp_phases = unp.exp(unp.expand_dims(t, -1) * self._carrier_arg + self._phase_arg)
         return unp.sum(self.envelope(t) * exp_phases, axis=-1)
 
     def __str__(self):
@@ -606,9 +605,7 @@ class SignalSum(SignalCollection, Signal):
         shifted_arg = self._carrier_arg - (1j * 2 * np.pi * ave_freq)
 
         def merged_env(t):
-            exp_phases = unp.exp(
-                unp.expand_dims(unp.asarray(t), -1) * shifted_arg + self._phase_arg
-            )
+            exp_phases = unp.exp(unp.expand_dims(t, -1) * shifted_arg + self._phase_arg)
             return unp.sum(self.envelope(t) * exp_phases, axis=-1)
 
         return Signal(envelope=merged_env, carrier_freq=ave_freq, name=str(self))
@@ -717,7 +714,7 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
 
         if sample_carrier:
             freq = 0.0 * freq
-            exp_phases = unp.exp(unp.expand_dims(unp.asarray(times), -1) * signal_sum._carrier_arg)
+            exp_phases = unp.exp(unp.expand_dims(times, -1) * signal_sum._carrier_arg)
             samples = signal_sum.envelope(times) * exp_phases
         else:
             samples = signal_sum.envelope(times)
@@ -858,9 +855,11 @@ def signal_add(sig1: Signal, sig2: Signal) -> SignalSum:
             and sig1.start_time == sig2.start_time
             and sig1.duration == sig2.duration
         ):
-            samples = unp.append(sig1.samples, sig2.samples, axis=1)
-            carrier_freq = unp.append(sig1.carrier_freq, sig2.carrier_freq)
-            phase = unp.append(sig1.phase, sig2.phase)
+            samples = _numpy_multi_dispatch(sig1.samples, sig2.samples, axis=1, path="append")
+            carrier_freq = _numpy_multi_dispatch(
+                sig1.carrier_freq, sig2.carrier_freq, path="append"
+            )
+            phase = _numpy_multi_dispatch(sig1.phase, sig2.phase, path="append")
             return DiscreteSignalSum(
                 dt=sig1.dt,
                 samples=samples,
@@ -928,15 +927,19 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
                     order="C",
                 )
             )
-            samples = unp.append(new_samples, new_samples_conj, axis=1)
+            samples = _numpy_multi_dispatch(new_samples, new_samples_conj, axis=1, path="append")
 
             new_freqs = sig1.carrier_freq + sig2.carrier_freq
             new_freqs_conj = sig1.carrier_freq - sig2.carrier_freq
-            freqs = unp.append(unp.asarray(new_freqs), unp.asarray(new_freqs_conj))
+            freqs = _numpy_multi_dispatch(
+                unp.asarray(new_freqs), unp.asarray(new_freqs_conj), path="append"
+            )
 
             new_phases = sig1.phase + sig2.phase
             new_phases_conj = sig1.phase - sig2.phase
-            phases = unp.append(unp.asarray(new_phases), unp.asarray(new_phases_conj))
+            phases = _numpy_multi_dispatch(
+                unp.asarray(new_phases), unp.asarray(new_phases_conj), path="append"
+            )
 
             return DiscreteSignalSum(
                 dt=sig1.dt,

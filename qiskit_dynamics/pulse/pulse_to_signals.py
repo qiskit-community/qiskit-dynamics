@@ -227,7 +227,7 @@ class InstructionToSignals:
             if sig.duration < max_duration:
                 sig.add_samples(
                     start_sample=sig.duration,
-                    samples=unp.zeros(max_duration - sig.duration, dtype=complex),
+                    samples=np.zeros(max_duration - sig.duration, dtype=complex),
                 )
 
         # filter the channels
