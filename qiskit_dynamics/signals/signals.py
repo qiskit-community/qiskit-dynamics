@@ -429,7 +429,7 @@ class DiscreteSignal(Signal):
         if start_sample < len(self.samples):
             raise QiskitError("Samples can only be added afer the last sample.")
 
-        zero_pad = unp.expand_dims(unp.zeros_like(unp.asarray(samples[0])), 0)
+        zero_pad = unp.expand_dims(unp.zeros_like(samples[0]), 0)
 
         new_samples = self.samples
         if len(self.samples) < start_sample:
