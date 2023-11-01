@@ -18,11 +18,24 @@ Global alias instances.
 
 from typing import Union
 
+from scipy.sparse import spmatrix
+
 from arraylias import numpy_alias, scipy_alias
 
 from qiskit import QiskitError
+from qiskit.quantum_info.operators import Operator
 
 from qiskit_dynamics.array import Array
+
+from .register_functions import (
+    register_asarray,
+    register_matmul,
+    register_multiply,
+    register_rmatmul,
+    register_todense,
+    register_to_numeric_matrix_type,
+    register_tosparse,
+)
 
 # global NumPy and SciPy aliases
 DYNAMICS_NUMPY_ALIAS = numpy_alias()
@@ -31,6 +44,32 @@ DYNAMICS_SCIPY_ALIAS = scipy_alias()
 DYNAMICS_NUMPY_ALIAS.register_type(Array, "numpy")
 DYNAMICS_SCIPY_ALIAS.register_type(Array, "numpy")
 
+# register required custom versions of functions for sparse type here
+DYNAMICS_NUMPY_ALIAS.register_type(spmatrix, lib="scipy_sparse")
+
+try:
+    from jax.experimental.sparse import BCOO
+
+    # register required custom versions of functions for BCOO type here
+    DYNAMICS_NUMPY_ALIAS.register_type(BCOO, lib="jax_sparse")
+except ImportError:
+    pass
+
+# register required custom versions of functions for Operator type here
+DYNAMICS_NUMPY_ALIAS.register_type(Operator, lib="operator")
+
+# register required custom versions of functions for List type here
+# need to discuss registering List type because the coverage of List is too broad.
+DYNAMICS_NUMPY_ALIAS.register_type(list, lib="list")
+
+# register custom functions for numpy_alias
+register_asarray(alias=DYNAMICS_NUMPY_ALIAS)
+register_todense(alias=DYNAMICS_NUMPY_ALIAS)
+register_to_numeric_matrix_type(alias=DYNAMICS_NUMPY_ALIAS)
+register_tosparse(alias=DYNAMICS_NUMPY_ALIAS)
+register_matmul(alias=DYNAMICS_NUMPY_ALIAS)
+register_multiply(alias=DYNAMICS_NUMPY_ALIAS)
+register_rmatmul(alias=DYNAMICS_NUMPY_ALIAS)
 
 DYNAMICS_NUMPY = DYNAMICS_NUMPY_ALIAS()
 DYNAMICS_SCIPY = DYNAMICS_SCIPY_ALIAS()
