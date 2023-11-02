@@ -89,13 +89,13 @@ class NumpyTestBase(QiskitDynamicsTestCase):
         """Array generation method."""
         return np.array(a)
 
-    def zeros(self, shape, dtype= None):
+    def zeros(self, shape, dtype=None):
         """Array filled with zeros generation method."""
-        return np.zeros(shape,dtype)
+        return np.zeros(shape, dtype)
 
-    def ones(self, shape, dtype= None):
+    def ones(self, shape, dtype=None):
         """Array filled with ones generation method."""
-        return np.ones(shape,dtype)
+        return np.ones(shape, dtype)
 
     def assertArrayType(self, a):
         """Assert the correct array type."""
@@ -125,13 +125,13 @@ class JAXTestBase(QiskitDynamicsTestCase):
         """Array generation method."""
         return jnp.array(a)
 
-    def zeros(self, shape, dtype= None):
+    def zeros(self, shape, dtype=None):
         """Array filled with zeros generation method."""
-        return jnp.zeros(shape,dtype)
+        return jnp.zeros(shape, dtype)
 
-    def ones(self, shape, dtype= None):
+    def ones(self, shape, dtype=None):
         """Array filled with ones generation method."""
-        return jnp.ones(shape,dtype)
+        return jnp.ones(shape, dtype)
 
     def assertArrayType(self, a):
         """Assert the correct array type."""
@@ -150,13 +150,13 @@ class ArrayNumpyTestBase(QiskitDynamicsTestCase):
         """Array generation method."""
         return Array(a)
 
-    def zeros(self, shape, dtype= None):
+    def zeros(self, shape, dtype=None):
         """Array filled with zeros generation method."""
-        return Array(np.zeros(shape,dtype))
+        return Array(np.zeros(shape, dtype))
 
-    def ones(self, shape, dtype= None):
+    def ones(self, shape, dtype=None):
         """Array filled with ones generation method."""
-        return Array(np.ones(shape,dtype))
+        return Array(np.ones(shape, dtype))
 
     def assertArrayType(self, a):
         """Assert the correct array type."""
@@ -193,13 +193,13 @@ class ArrayJaxTestBase(QiskitDynamicsTestCase):
         """Array generation method."""
         return Array(a)
 
-    def zeros(self, shape, dtype= None):
+    def zeros(self, shape, dtype=None):
         """Array filled with zeros generation method."""
-        return Array(jnp.zeros(shape,dtype))
+        return Array(jnp.zeros(shape, dtype))
 
-    def ones(self, shape, dtype= None):
+    def ones(self, shape, dtype=None):
         """Array filled with ones generation method."""
-        return Array(jnp.ones(shape,dtype))
+        return Array(jnp.ones(shape, dtype))
 
     def assertArrayType(self, a):
         """Assert the correct array type."""
