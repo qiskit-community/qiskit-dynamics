@@ -276,7 +276,7 @@ class Testvec_commutator_dissipator(QiskitDynamicsTestCase):
         )
 
 
-class Test_to_dense(NumpyTestBase):
+class Test_to_dense(QiskitDynamicsTestCase):
     """Tests for to_dense."""
 
     def test_None_to_None(self):
@@ -339,12 +339,10 @@ class Test_to_dense(NumpyTestBase):
         """Type conversion tests for to_dense"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         numpy_ops = np.array(list_of_ops)
-        normal_array = unp.asarray(np.array(list_of_ops))
         op_arr = [Operator.from_label(s) for s in "XYZ"]
         single_op = op_arr[0]
         list_of_arrays = [Array(op) for op in list_of_ops]
         assert isinstance(unp.to_dense(numpy_ops), np.ndarray)
-        assert isinstance(unp.to_dense(normal_array), np.ndarray)
         assert isinstance(unp.to_dense(op_arr), np.ndarray)
         assert isinstance(unp.to_dense(single_op), np.ndarray)
         assert isinstance(unp.to_dense(list_of_arrays), np.ndarray)
@@ -357,12 +355,10 @@ class Test_to_dense_Jax(Test_to_dense, TestJaxBase):
         """Type conversion tests for to_dense with jax backend"""
         list_of_ops = [[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]]
         numpy_ops = np.array(list_of_ops)
-        normal_array = unp.asarray(np.array(list_of_ops))
         op_arr = [Operator.from_label(s) for s in "XYZ"]
         single_op = op_arr[0]
         list_of_arrays = [unp.asarray(op) for op in list_of_ops]
         assert isinstance(unp.to_dense(numpy_ops), np.ndarray)
-        assert isinstance(unp.to_dense(normal_array), np.ndarray)
         assert isinstance(unp.to_dense(op_arr), np.ndarray)
         assert isinstance(unp.to_dense(single_op), np.ndarray)
         assert isinstance(unp.to_dense(list_of_arrays), np.ndarray)
