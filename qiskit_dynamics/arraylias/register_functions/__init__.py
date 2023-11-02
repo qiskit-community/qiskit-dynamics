@@ -11,6 +11,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+"""
+Register custom functions using alias
+"""
 
 from .asarray import register_asarray
 from .to_dense import register_todense

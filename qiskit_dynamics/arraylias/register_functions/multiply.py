@@ -36,3 +36,7 @@ def register_multiply(alias):
 
     except ImportError:
         pass
+
+    @alias.register_fallback(path="multiply")
+    def _(x, y):
+        return x * y

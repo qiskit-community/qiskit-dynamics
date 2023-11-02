@@ -27,9 +27,11 @@ def register_asarray(alias):
     def _(arr):
         return arr
 
-    # @alias.register_function(lib="scipy_sparse", path="asarray")
-    # def _(arr):
-    #     return arr
+    @alias.register_function(lib="scipy_sparse", path="asarray")
+    def _(arr):
+        if issparse(arr):
+            return arr
+        return csr_matrix(arr)
 
     @alias.register_function(lib="list", path="asarray")
     def _(arr):
@@ -41,12 +43,14 @@ def register_asarray(alias):
     def _(arr):
         return np.asarray(arr)
 
-    # try:
-    #     from jax.experimental.sparse import BCOO
+    try:
+        from jax.experimental.sparse import BCOO
 
-    #     @alias.register_function(lib="jax_sparse", path="asarray")
-    #     def _(arr):
-    #         return arr
+        @alias.register_function(lib="jax_sparse", path="asarray")
+        def _(arr):
+            if type(arr).__name__ == "BCOO":
+                return arr
+            return BCOO.fromdense(arr)
 
-    # except ImportError:
-    #     pass
+    except ImportError:
+        pass

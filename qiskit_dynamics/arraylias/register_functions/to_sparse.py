@@ -45,20 +45,16 @@ def register_tosparse(alias):
         def _(arr):
             return BCOO.fromdense(arr)
 
-        # @alias.register_function(lib="jax_sparse", path="to_sparse")
-        # def _(arr):
-        #     return arr
+        @alias.register_function(lib="jax_sparse", path="to_sparse")
+        def _(arr):
+            return arr
 
     except ImportError:
         pass
 
-    # @alias.register_function(lib="scipy_sparse", path="to_sparse")
-    # def _(arr):
-    #     return arr
-
-    @alias.register_fallback(path="to_sparse")
+    @alias.register_function(lib="scipy_sparse", path="to_sparse")
     def _(arr):
-        return csr_matrix(arr)
+        return arr
 
     @alias.register_function(lib="list", path="to_sparse")
     def _(arr):
@@ -70,3 +66,7 @@ def register_tosparse(alias):
         except ImportError:
             pass
         return np.array([csr_matrix(sub_arr) for sub_arr in arr])
+
+    @alias.register_fallback(path="to_sparse")
+    def _(arr):
+        return csr_matrix(arr)

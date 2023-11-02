@@ -24,44 +24,44 @@ def register_to_numeric_matrix_type(alias):
     """register to_numeric_matrix_type functions to each array libraries"""
 
     @alias.register_default(path="to_numeric_matrix_type")
-    def _(op):
-        if op is None:
+    def _(arr):
+        if arr is None:
             return None
-        if isinstance_qutip_qobj(op):
-            return alias().to_sparse(op.data)
-        return op
+        if isinstance_qutip_qobj(arr):
+            return alias().to_sparse(arr.data)
+        return arr
 
-    # @alias.register_function(lib="numpy", path="to_numeric_matrix_type")
-    # def _(op):
-    #     return op
+    @alias.register_function(lib="numpy", path="to_numeric_matrix_type")
+    def _(arr):
+        return arr
 
     @alias.register_function(lib="operator", path="to_numeric_matrix_type")
-    def _(op):
-        return alias().to_dense(op)
+    def _(arr):
+        return alias().to_dense(arr)
 
-    # try:
+    try:
 
-    #     @alias.register_function(lib="jax", path="to_numeric_matrix_type")
-    #     def _(op):
-    #         return op
+        @alias.register_function(lib="jax", path="to_numeric_matrix_type")
+        def _(arr):
+            return arr
 
-    #     @alias.register_function(lib="jax_sparse", path="to_numeric_matrix_type")
-    #     def _(op):
-    #         return op
+        @alias.register_function(lib="jax_sparse", path="to_numeric_matrix_type")
+        def _(arr):
+            return arr
 
-    # except ImportError:
-    #     pass
+    except ImportError:
+        pass
 
-    # @alias.register_function(lib="scipy_sparse", path="to_numeric_matrix_type")
-    # def _(op):
-    #     return op
+    @alias.register_function(lib="scipy_sparse", path="to_numeric_matrix_type")
+    def _(arr):
+        return arr
 
     @alias.register_function(lib="list", path="to_numeric_matrix_type")
-    def _(op):
-        if isinstance(op[0], spmatrix) or isinstance_qutip_qobj(op[0]):
-            return [alias().to_sparse(sub_op) for sub_op in op]
-        return alias().asarray([alias().to_dense(sub_op) for sub_op in op])
+    def _(arr):
+        if isinstance(arr[0], spmatrix) or isinstance_qutip_qobj(arr[0]):
+            return [alias().to_sparse(sub_arr) for sub_arr in arr]
+        return alias().asarray([alias().to_dense(sub_arr) for sub_arr in arr])
 
     @alias.register_fallback(path="to_numeric_matrix_type")
-    def _(op):
-        return op
+    def _(arr):
+        return arr

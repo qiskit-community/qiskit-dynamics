@@ -23,36 +23,36 @@ def register_todense(alias):
     """register to_dense functions to each array libraries"""
 
     @alias.register_default(path="to_dense")
-    def _(op):
-        if op is None:
+    def _(arr):
+        if arr is None:
             return None
-        return op
+        return arr
 
-    # @alias.register_function(lib="numpy", path="to_dense")
-    # def _(op):
-    #     return op
+    @alias.register_function(lib="numpy", path="to_dense")
+    def _(arr):
+        return arr
 
     try:
 
-        # @alias.register_function(lib="jax", path="to_dense")
-        # def _(op):
-        #     return op
+        @alias.register_function(lib="jax", path="to_dense")
+        def _(arr):
+            return arr
 
         @alias.register_function(lib="jax_sparse", path="to_dense")
-        def _(op):
-            return op.todense()
+        def _(arr):
+            return arr.todense()
 
     except ImportError:
         pass
 
     @alias.register_function(lib="scipy_sparse", path="to_dense")
-    def _(op):
-        return op.toarray()
-
-    @alias.register_fallback(path="to_dense")
-    def _(op):
-        return np.asarray(op)
+    def _(arr):
+        return arr.toarray()
 
     @alias.register_function(lib="list", path="to_dense")
-    def _(op):
-        return alias().asarray([alias().to_dense(sub_op) for sub_op in op])
+    def _(arr):
+        return alias().asarray([alias().to_dense(sub_arr) for sub_arr in arr])
+
+    @alias.register_fallback(path="to_dense")
+    def _(arr):
+        return np.asarray(arr)
