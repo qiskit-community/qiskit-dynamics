@@ -13,36 +13,31 @@
 
 """tests for rotating_frame.py"""
 
+from functools import partial
+import unittest
 import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from scipy.sparse import csr_matrix
 from qiskit_dynamics.models.rotating_frame import RotatingFrame
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_BCOO, to_array
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from qiskit_dynamics.arraylias import ArrayLike
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from ..common import JAXTestBase, NumpyTestBase, test_array_backends
+
+# Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
+# pylint: disable=no-member
 
 
-class TestRotatingFrame(QiskitDynamicsTestCase):
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
+class TestRotatingFrame:
     """Tests for RotatingFrame."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
-
-    def test_instantiation_errors(self):
-        """Check different modes of error raising for frame setting."""
-
-        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
-            RotatingFrame(Array([1.0, 1j]))
-
-        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
-            RotatingFrame(Array([[1.0, 0.0], [0.0, 1j]]))
-
-        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
-            RotatingFrame(self.Z + 1j * self.X)
+        """Setup Pauli operators"""
+        self.X = self.asarray(Operator.from_label("X").data)
+        self.Y = self.asarray(Operator.from_label("Y").data)
+        self.Z = self.asarray(Operator.from_label("Z").data)
 
     def test_state_out_of_frame_basis(self):
         """Test state_out_of_frame_basis."""
@@ -52,12 +47,12 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
             low=-10, high=10, size=(6, 6)
         )
 
-        frame_op = Array(rand_op - rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
         rotating_frame = RotatingFrame(frame_op)
 
-        _, U = np.linalg.eigh(1j * frame_op)
+        _, U = unp.linalg.eigh(1j * frame_op)
 
-        y0 = Array(
+        y0 = self.asarray(
             rng.uniform(low=-10, high=10, size=(6, 6))
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
@@ -78,13 +73,13 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
             low=-10, high=10, size=(10, 10)
         )
 
-        frame_op = Array(rand_op - rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
         rotating_frame = RotatingFrame(frame_op)
 
         _, U = np.linalg.eigh(1j * frame_op)
         Uadj = U.conj().transpose()
 
-        y0 = Array(
+        y0 = self.asarray(
             rng.uniform(low=-10, high=10, size=(10, 10))
             + 1j * rng.uniform(low=-10, high=10, size=(10, 10))
         )
@@ -101,7 +96,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         """Test state_into_frame_basis for a list of sparse arrays."""
 
         ops = [csr_matrix([[0.0, 1.0], [1.0, 0.0]]), csr_matrix([[1.0, 0.0], [0.0, -1.0]])]
-        rotating_frame = RotatingFrame(np.array([[0.0, 1.0], [1.0, 0.0]]))
+        rotating_frame = RotatingFrame(self.asarray([[0.0, 1.0], [1.0, 0.0]]))
 
         val = rotating_frame.operator_into_frame_basis(ops)
         U = rotating_frame.frame_basis
@@ -113,7 +108,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         """Test state_out_of_frame_basis for a list of sparse arrays."""
 
         ops = [csr_matrix([[0.0, 1.0], [1.0, 0.0]]), csr_matrix([[1.0, 0.0], [0.0, -1.0]])]
-        rotating_frame = RotatingFrame(np.array([[0.0, 1.0], [1.0, 0.0]]))
+        rotating_frame = RotatingFrame(self.asarray([[0.0, 1.0], [1.0, 0.0]]))
 
         val = rotating_frame.operator_out_of_frame_basis(ops)
         U = rotating_frame.frame_basis
@@ -124,17 +119,17 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def test_state_transformations_no_frame(self):
         """Test frame transformations with no frame."""
 
-        rotating_frame = RotatingFrame(Array(np.zeros(2)))
+        rotating_frame = RotatingFrame(self.asarray(np.zeros(2)))
 
         t = 0.123
-        y = Array([1.0, 1j])
+        y = self.asarray([1.0, 1j])
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
 
         t = 100.12498
-        y = Array(np.eye(2))
+        y = self.asarray(np.eye(2))
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
         out = rotating_frame.state_out_of_frame(t, y)
@@ -142,9 +137,9 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
 
     def test_state_into_frame_2_level(self):
         """Test state_into_frame with a non-trival frame."""
-        frame_op = -1j * np.pi * (self.X + 0.1 * self.Y + 12.0 * self.Z).data
+        frame_op = -1j * np.pi * (self.X + 0.1 * self.Y + 12.0 * self.Z)
         t = 1312.132
-        y0 = Array([[1.0, 2.0], [3.0, 4.0]])
+        y0 = self.asarray([[1.0, 2.0], [3.0, 4.0]])
 
         self._test_state_into_frame(t, frame_op, y0)
         self._test_state_into_frame(t, frame_op, y0, y_in_frame_basis=True)
@@ -160,10 +155,10 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
             low=-10, high=10, size=(5, 5)
         )
 
-        frame_op = Array(rand_op - rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
 
         t = 1312.132
-        y0 = Array(
+        y0 = self.asarray(
             rng.uniform(low=-10, high=10, size=(5, 5))
             + 1j * rng.uniform(low=-10, high=10, size=(5, 5))
         )
@@ -179,7 +174,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def _test_state_into_frame(
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
-        evals, U = np.linalg.eigh(1j * frame_op)
+        evals, U = unp.linalg.eigh(1j * frame_op)
         evals = -1j * evals
 
         rotating_frame = RotatingFrame(frame_op)
@@ -189,7 +184,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         if not y_in_frame_basis:
             expected = U.conj().transpose() @ expected
 
-        expected = np.diag(np.exp(-t * Array(evals))) @ expected
+        expected = unp.diag(unp.exp(-t * self.asarray(evals))) @ expected
 
         if not return_in_frame_basis:
             expected = U @ expected
@@ -198,9 +193,9 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
 
     def test_state_out_of_frame_2_level(self):
         """Test state_out_of_frame with a non-trival frame."""
-        frame_op = -1j * np.pi * (3.1 * self.X + 1.1 * self.Y + 12.0 * self.Z).data
+        frame_op = -1j * np.pi * (3.1 * self.X + 1.1 * self.Y + 12.0 * self.Z)
         t = 122.132
-        y0 = Array([[1.0, 2.0], [3.0, 4.0]])
+        y0 = self.asarray([[1.0, 2.0], [3.0, 4.0]])
         self._test_state_out_of_frame(t, frame_op, y0)
         self._test_state_out_of_frame(t, frame_op, y0, y_in_frame_basis=True)
         self._test_state_out_of_frame(t, frame_op, y0, return_in_frame_basis=True)
@@ -215,10 +210,10 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
             low=-10, high=10, size=(6, 6)
         )
 
-        frame_op = Array(rand_op - rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(
+        y0 = self.asarray(
             rng.uniform(low=-10, high=10, size=(6, 6))
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
@@ -234,8 +229,8 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def _test_state_out_of_frame(
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
-        evals, U = np.linalg.eigh(1j * frame_op)
-        evals = -1j * Array(evals)
+        evals, U = unp.linalg.eigh(1j * frame_op)
+        evals = -1j * self.asarray(evals)
 
         rotating_frame = RotatingFrame(frame_op)
 
@@ -244,7 +239,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         if not y_in_frame_basis:
             expected = U.conj().transpose() @ expected
 
-        expected = np.diag(np.exp(t * evals)) @ expected
+        expected = unp.diag(unp.exp(t * evals)) @ expected
 
         if not return_in_frame_basis:
             expected = U @ expected
@@ -258,10 +253,10 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
             low=-10, high=10, size=(6, 6)
         )
 
-        frame_op = Array(rand_op - rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(
+        y0 = self.asarray(
             rng.uniform(low=-10, high=10, size=(6, 6))
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
@@ -277,8 +272,8 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def _test_operator_into_frame(
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
-        evals, U = np.linalg.eigh(1j * frame_op)
-        evals = -1j * Array(evals)
+        evals, U = unp.linalg.eigh(1j * frame_op)
+        evals = -1j * self.asarray(evals)
         Uadj = U.conj().transpose()
 
         rotating_frame = RotatingFrame(frame_op)
@@ -288,7 +283,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
 
-        expected = np.diag(np.exp(-t * evals)) @ expected @ np.diag(np.exp(t * evals))
+        expected = unp.diag(unp.exp(-t * evals)) @ expected @ unp.diag(unp.exp(t * evals))
 
         if not return_in_frame_basis:
             expected = U @ expected @ Uadj
@@ -298,7 +293,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def test_operator_out_of_frame(self):
         """Test operator_out_of_frame."""
         rng = np.random.default_rng(37164093)
-        rand_op = Array(
+        rand_op = self.asarray(
             rng.uniform(low=-10, high=10, size=(6, 6))
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
@@ -306,7 +301,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         frame_op = rand_op - rand_op.conj().transpose()
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(
+        y0 = self.asarray(
             rng.uniform(low=-10, high=10, size=(6, 6))
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
@@ -322,8 +317,8 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def _test_operator_out_of_frame(
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
-        evals, U = np.linalg.eigh(1j * frame_op)
-        evals = -1j * Array(evals)
+        evals, U = unp.linalg.eigh(1j * frame_op)
+        evals = -1j * self.asarray(evals)
         Uadj = U.conj().transpose()
 
         rotating_frame = RotatingFrame(frame_op)
@@ -333,7 +328,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
 
-        expected = np.diag(np.exp(t * evals)) @ expected @ np.diag(np.exp(-t * evals))
+        expected = unp.diag(unp.exp(t * evals)) @ expected @ unp.diag(unp.exp(-t * evals))
 
         if not return_in_frame_basis:
             expected = U @ expected @ Uadj
@@ -343,7 +338,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
     def test_generator_into_frame(self):
         """Test operator_out_of_frame."""
         rng = np.random.default_rng(111)
-        rand_op = Array(
+        rand_op = self.asarray(
             rng.uniform(low=-10, high=10, size=(6, 6))
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
@@ -351,7 +346,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         frame_op = rand_op - rand_op.conj().transpose()
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(
+        y0 = self.asarray(
             rng.uniform(low=-10, high=10, size=(6, 6))
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
@@ -368,8 +363,8 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
         """Helper function for testing generator_into_frame."""
-        evals, U = np.linalg.eigh(1j * frame_op)
-        evals = -1j * Array(evals)
+        evals, U = unp.linalg.eigh(1j * frame_op)
+        evals = -1j * self.asarray(evals)
         Uadj = U.conj().transpose()
 
         rotating_frame = RotatingFrame(frame_op)
@@ -379,7 +374,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
 
-        expected = np.diag(np.exp(-t * evals)) @ expected @ np.diag(np.exp(t * evals))
+        expected = unp.diag(unp.exp(-t * evals)) @ expected @ unp.diag(unp.exp(t * evals))
         expected = expected - np.diag(evals)
 
         if not return_in_frame_basis:
@@ -394,10 +389,10 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
             low=-10, high=10, size=(6, 6)
         )
 
-        frame_op = Array(rand_op - rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
 
         t = rng.uniform(low=-100, high=100)
-        y0 = Array(
+        y0 = self.asarray(
             rng.uniform(low=-10, high=10, size=(6, 6))
             + 1j * rng.uniform(low=-10, high=10, size=(6, 6))
         )
@@ -414,8 +409,8 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         self, t, frame_op, y, y_in_frame_basis=False, return_in_frame_basis=False
     ):
         """Helper function for testing generator_into_frame."""
-        evals, U = np.linalg.eigh(1j * frame_op)
-        evals = -1j * Array(evals)
+        evals, U = unp.linalg.eigh(1j * frame_op)
+        evals = -1j * self.asarray(evals)
         Uadj = U.conj().transpose()
 
         rotating_frame = RotatingFrame(frame_op)
@@ -425,7 +420,7 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         if not y_in_frame_basis:
             expected = Uadj @ expected @ U
 
-        expected = np.diag(np.exp(t * evals)) @ expected @ np.diag(np.exp(-t * evals))
+        expected = unp.diag(unp.exp(t * evals)) @ expected @ unp.diag(unp.exp(-t * evals))
         expected = expected + np.diag(evals)
 
         if not return_in_frame_basis:
@@ -437,12 +432,12 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         """Test whether passing a vectorized (dim**2, k) operator to _conjugate_and_add
         with vectorized_operators = True is the same as passing a (k,dim,dim) array of
         operators."""
-        vectorized_rhos = np.array(
+        vectorized_rhos = self.asarray(
             [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
         ).transpose()
 
         nonvectord_rhos = vectorized_rhos.reshape((2, 2, 3), order="F").transpose([2, 0, 1])
-        rotating_frame = RotatingFrame(np.array([1j, 2j]))
+        rotating_frame = RotatingFrame(self.asarray([1j, 2j]))
 
         vectorized_result = rotating_frame._conjugate_and_add(
             0.1, vectorized_rhos, vectorized_operators=True
@@ -484,7 +479,8 @@ class TestRotatingFrame(QiskitDynamicsTestCase):
         self.assertAllClose(op1, op2.reshape((6, 6), order="F"))
 
 
-class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
+class TestRotatingFrameTypeHandling:
     """Type handling testing with rotating frame functions"""
 
     def test_state_transformations_no_frame_csr_matrix_type(self):
@@ -502,7 +498,7 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         self.assertTrue(isinstance(out, csr_matrix))
 
         t = 100.12498
-        # y = Array(np.eye(2))
+        # y = self.asarray(np.eye(2))
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllCloseSparse(out, y)
         self.assertTrue(isinstance(out, csr_matrix))
@@ -562,40 +558,42 @@ class TestRotatingFrameTypeHandling(QiskitDynamicsTestCase):
         rotating_frame = RotatingFrame(None)
 
         t = 0.123
-        y = Array([1.0, 1j])
+        y = self.asarray([1.0, 1j])
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertTrue(isinstance(out, Array))
+        self.assertTrue(isinstance(out, ArrayLike))
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertTrue(isinstance(out, Array))
+        self.assertTrue(isinstance(out, ArrayLike))
 
         t = 100.12498
-        y = Array(np.eye(2))
+        y = self.asarray(np.eye(2))
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertTrue(isinstance(out, Array))
+        self.assertTrue(isinstance(out, ArrayLike))
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertTrue(isinstance(out, Array))
+        self.assertTrue(isinstance(out, ArrayLike))
 
 
-class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
+@partial(test_array_backends, array_libraries=["jax"])
+class TestRotatingFrameJAXBCOO:
     """Test correct handling of JAX BCOO arrays in relevant functions."""
 
     def test_conjugate_and_add_BCOO(self):
         """Test _conjugate_and_add with operator being BCOO."""
 
-        rotating_frame = RotatingFrame(np.array([1.0, -1.0]))
+        rotating_frame = RotatingFrame(self.asarray([1.0, -1.0]))
 
         t = 0.123
-        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
-        op_to_add = to_BCOO(np.array([[0.0, -0.11j], [0.0, 1.0]]))
+        op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
+        op_to_add = unp.to_sparse(self.asarray([[0.0, -0.11j], [0.0, 1.0]]))
         out = rotating_frame._conjugate_and_add(t, op, op_to_add)
         self.assertTrue(type(out).__name__ == "BCOO")
 
         self.assertAllClose(
-            to_array(out), rotating_frame._conjugate_and_add(t, to_array(op), to_array(op_to_add))
+            unp.to_dense(out),
+            rotating_frame._conjugate_and_add(t, unp.to_dense(op), unp.to_dense(op_to_add)),
         )
 
     def test_operator_into_frame_basis(self):
@@ -603,11 +601,11 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
         frame specified as full matrix.
         """
 
-        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
+        rotating_frame = RotatingFrame(self.asarray([[1.0, 0.0], [0.0, -1.0]]))
 
-        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
+        op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
         output = rotating_frame.operator_into_frame_basis(op)
-        expected = rotating_frame.operator_into_frame_basis(to_array(op))
+        expected = rotating_frame.operator_into_frame_basis(unp.to_dense(op))
 
         self.assertAllClose(output, expected)
 
@@ -616,20 +614,57 @@ class TestRotatingJAXBCOO(QiskitDynamicsTestCase, TestJaxBase):
         frame specified as full matrix.
         """
 
-        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
+        rotating_frame = RotatingFrame(self.asarray([[1.0, 0.0], [0.0, -1.0]]))
 
-        op = to_BCOO(np.array([[1.0, -1j], [0.0, 1.0]]))
+        op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
         output = rotating_frame.operator_out_of_frame_basis(op)
-        expected = rotating_frame.operator_out_of_frame_basis(to_array(op))
+        expected = rotating_frame.operator_out_of_frame_basis(unp.to_dense(op))
 
         self.assertAllClose(output, expected)
 
 
-class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
+class TestRotatingFrameNumpy(NumpyTestBase):
+    """Tests for RotatingFrameNumpy."""
+
+    def setUp(self):
+        self.X = self.asarray(Operator.from_label("X").data)
+        self.Y = self.asarray(Operator.from_label("Y").data)
+        self.Z = self.asarray(Operator.from_label("Z").data)
+
+    def test_instantiation_errors(self):
+        """Check different modes of error raising for frame setting."""
+
+        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
+            RotatingFrame(self.asarray([1.0, 1j]))
+
+        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
+            RotatingFrame(self.asarray([[1.0, 0.0], [0.0, 1j]]))
+
+        with self.assertRaisesRegex(QiskitError, "Hermitian or anti-Hermitian"):
+            RotatingFrame(self.Z + 1j * self.X)
+
+
+class TestRotatingFrameJax(JAXTestBase):
     """Jax version of TestRotatingFrame tests.
 
     Note: This class has more tests due to inheritance.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            # pylint: disable=import-outside-toplevel
+            import jax
+
+            jax.config.update("jax_enable_x64", True)
+            jax.config.update("jax_platform_name", "cpu")
+        except Exception as err:
+            raise unittest.SkipTest("Skipping jax tests.") from err
+
+    def setUp(self):
+        self.X = self.asarray(Operator.from_label("X").data)
+        self.Y = self.asarray(Operator.from_label("Y").data)
+        self.Z = self.asarray(Operator.from_label("Z").data)
 
     def test_instantiation_errors(self):
         """Check different modes of error raising for frame setting.
@@ -639,10 +674,10 @@ class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
         # pylint: disable=import-outside-toplevel
         import jax.numpy as jnp
 
-        rotating_frame = RotatingFrame(Array([1.0, 1j]))
+        rotating_frame = RotatingFrame(self.asarray([1.0, 1j]))
         self.assertTrue(jnp.isnan(rotating_frame.frame_diag[0]))
 
-        rotating_frame = RotatingFrame(Array([[1.0, 0.0], [0.0, 1j]]))
+        rotating_frame = RotatingFrame(self.asarray([[1.0, 0.0], [0.0, 1j]]))
         self.assertTrue(jnp.isnan(rotating_frame.frame_diag[0]))
 
         rotating_frame = RotatingFrame(self.Z + 1j * self.X)
@@ -651,19 +686,21 @@ class TestRotatingFrameJax(TestRotatingFrame, TestJaxBase):
     def test_jitting(self):
         """Test jitting of state_into_frame and _conjugate_and_add."""
 
-        rotating_frame = RotatingFrame(Array([1.0, -1.0]))
+        from jax import jit
 
-        self.jit_wrap(rotating_frame.state_into_frame)(t=0.1, y=np.array([0.0, 1.0]))
-        self.jit_wrap(rotating_frame._conjugate_and_add)(
-            t=0.1, operator=np.array([[0.0, 1.0], [1.0, 0.0]])
+        rotating_frame = RotatingFrame(self.asarray([1.0, -1.0]))
+
+        jit(rotating_frame.state_into_frame)(t=0.1, y=self.asarray([0.0, 1.0]))
+        jit(rotating_frame._conjugate_and_add)(
+            t=0.1, operator=self.asarray([[0.0, 1.0], [1.0, 0.0]])
         )
 
     def test_jit_and_grad(self):
         """Test jitting and gradding of state_into_frame and _conjugate_and_add."""
 
-        rotating_frame = RotatingFrame(Array([1.0, -1.0]))
+        from jax import jit, grad
 
-        self.jit_grad_wrap(rotating_frame.state_into_frame)(0.1, np.array([0.0, 1.0]))
-        self.jit_grad_wrap(rotating_frame._conjugate_and_add)(
-            0.1, np.array([[0.0, 1.0], [1.0, 0.0]])
-        )
+        rotating_frame = RotatingFrame(self.asarray([1.0, -1.0]))
+
+        jit(grad(rotating_frame.state_into_frame))(0.1, self.asarray([0.0, 1.0]))
+        jit(grad(rotating_frame._conjugate_and_add))(0.1, self.asarray([[0.0, 1.0], [1.0, 0.0]]))
