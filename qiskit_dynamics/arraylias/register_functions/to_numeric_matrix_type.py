@@ -17,8 +17,8 @@ Registering to_numeric_matrix_type functions to alias
 """
 
 from scipy.sparse import spmatrix
-from qiskit_dynamics.type_utils import isinstance_qutip_qobj
 from arraylias.exceptions import LibraryError
+from qiskit_dynamics.type_utils import isinstance_qutip_qobj
 
 
 def register_to_numeric_matrix_type(alias):
