@@ -40,6 +40,9 @@ def register_to_numeric_matrix_type(alias):
         return alias().to_dense(arr)
 
     try:
+        # check if jax libraries are registered by import jax
+        # pylint: disable=unused-import
+        import jax
 
         @alias.register_function(lib="jax", path="to_numeric_matrix_type")
         def _(arr):

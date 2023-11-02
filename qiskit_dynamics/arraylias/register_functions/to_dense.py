@@ -33,6 +33,9 @@ def register_todense(alias):
         return arr
 
     try:
+        # check if jax libraries are registered by import jax
+        # pylint: disable=unused-import
+        import jax
 
         @alias.register_function(lib="jax", path="to_dense")
         def _(arr):
