@@ -17,6 +17,7 @@ Registering to_dense functions to alias
 """
 
 import numpy as np
+from arraylias.exceptions import LibraryError
 
 
 def register_todense(alias):
@@ -33,9 +34,6 @@ def register_todense(alias):
         return arr
 
     try:
-        # check if jax libraries are registered by import jax
-        # pylint: disable=unused-import
-        import jax
 
         @alias.register_function(lib="jax", path="to_dense")
         def _(arr):
@@ -45,7 +43,7 @@ def register_todense(alias):
         def _(arr):
             return arr.todense()
 
-    except ImportError:
+    except LibraryError:
         pass
 
     @alias.register_function(lib="scipy_sparse", path="to_dense")

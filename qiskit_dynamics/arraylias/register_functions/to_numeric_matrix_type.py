@@ -18,6 +18,7 @@ Registering to_numeric_matrix_type functions to alias
 
 from scipy.sparse import spmatrix
 from qiskit_dynamics.type_utils import isinstance_qutip_qobj
+from arraylias.exceptions import LibraryError
 
 
 def register_to_numeric_matrix_type(alias):
@@ -40,9 +41,6 @@ def register_to_numeric_matrix_type(alias):
         return alias().to_dense(arr)
 
     try:
-        # check if jax libraries are registered by import jax
-        # pylint: disable=unused-import
-        import jax
 
         @alias.register_function(lib="jax", path="to_numeric_matrix_type")
         def _(arr):
@@ -52,7 +50,7 @@ def register_to_numeric_matrix_type(alias):
         def _(arr):
             return arr
 
-    except ImportError:
+    except LibraryError:
         pass
 
     @alias.register_function(lib="scipy_sparse", path="to_numeric_matrix_type")
