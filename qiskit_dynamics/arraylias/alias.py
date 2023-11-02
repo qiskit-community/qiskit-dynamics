@@ -39,7 +39,7 @@ DYNAMICS_SCIPY = DYNAMICS_SCIPY_ALIAS()
 ArrayLike = Union[Union[DYNAMICS_NUMPY_ALIAS.registered_types()], list]
 
 
-def _preferred_lib(*args, **kwargs):
+def _preferred_lib(*args):
     """Given a list of args and kwargs with potentially mixed array types, determine the appropriate
     library to dispatch to.
 
@@ -48,18 +48,17 @@ def _preferred_lib(*args, **kwargs):
 
     Args:
         *args: Positional arguments.
-        **kwargs: Keyword arguments.
     Returns:
         str
     Raises:
         QiskitError: if none of the rules apply.
     """
-    args = list(args) + list(kwargs.values())
+    args = list(args)
     if len(args) == 1:
         return DYNAMICS_NUMPY_ALIAS.infer_libs(args[0])
 
     lib0 = DYNAMICS_NUMPY_ALIAS.infer_libs(args[0])[0]
-    lib1 = _preferred_lib(args[1:])[0]
+    lib1 = _preferred_lib(*args[1:])[0]
 
     if lib0 == "numpy" and lib1 == "numpy":
         return "numpy"
@@ -82,5 +81,5 @@ def _numpy_multi_dispatch(*args, path, **kwargs):
     Returns:
         Result of evaluating the function at path on the arguments using the preferred library.
     """
-    lib = _preferred_lib(*args, **kwargs)
+    lib = _preferred_lib(*args)
     return DYNAMICS_NUMPY_ALIAS(like=lib, path=path)(*args, **kwargs)
