@@ -807,7 +807,6 @@ class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
 
         out_static = transfer_static_operator_between_frames(static_operator, new_frame=new_frame)
         out_operators = transfer_operators_between_frames(operators, new_frame=new_frame)
-
         self.assertTrue(isinstance(out_static, csr_matrix))
         self.assertTrue(isinstance(out_operators, list) and issparse(out_operators[0]))
 
