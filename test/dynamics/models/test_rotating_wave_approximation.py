@@ -136,27 +136,27 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
 
     def test_generator_model_no_rotating_frame(self):
         """Tests whether RWA works in the absence of a rotating frame"""
-        ops = self.ones((4, 2, 2))
+        ops = np.ones((4, 2, 2))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
-        dft = self.ones((2, 2))
+        dft = np.ones((2, 2))
         GM = GeneratorModel(static_operator=dft, operators=ops, signals=sigs)
         GMP = rotating_wave_approximation(GM, 2)
-        self.assertAllClose(GMP._get_static_operator(True), self.ones((2, 2)))
-        post_rwa_ops = self.asarray([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1)) * self.ones(
+        self.assertAllClose(GMP._get_static_operator(True), np.ones((2, 2)))
+        post_rwa_ops = self.asarray([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1)) * np.ones(
             (8, 2, 2)
         )
         self.assertAllClose(GMP._get_operators(True), post_rwa_ops)
 
     def test_generator_model_no_rotating_frame_no_static_operator(self):
         """Test case of no frame and no static_operator."""
-        ops = self.ones((4, 2, 2))
+        ops = np.ones((4, 2, 2))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
 
         # test without static_operator
         GM = GeneratorModel(static_operator=None, operators=ops, signals=sigs)
         GMP = rotating_wave_approximation(GM, 2)
         self.assertTrue(GMP.static_operator is None)
-        post_rwa_ops = self.asarray([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1)) * self.ones(
+        post_rwa_ops = self.asarray([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1)) * np.ones(
             (8, 2, 2)
         )
 
@@ -216,7 +216,7 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
 
         rwa_ham_model = rotating_wave_approximation(self.classic_hamiltonian, 2 * self.v)
 
-        self.assertAllClose(rwa_ham_model.static_operator, self.zeros((2, 2)))
+        self.assertAllClose(rwa_ham_model.static_operator, np.zeros((2, 2)))
         expected_ops = (
             2
             * np.pi
@@ -258,9 +258,9 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
         """Tests signal translation from pre-RWA to post-RWA through
         rotating_wave_approximation.get_rwa_signals when passed a
         GeneratorModel."""
-        ops = self.ones((4, 2, 2))
+        ops = np.ones((4, 2, 2))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
-        dft = self.ones((2, 2))
+        dft = np.ones((2, 2))
         GM = GeneratorModel(operators=ops, signals=sigs, static_operator=dft, rotating_frame=None)
         f = rotating_wave_approximation(GM, 100, return_signal_map=True)[1]
         vals = f(sigs).complex_value(3)
@@ -276,7 +276,7 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
 
     def test_signal_translator_lindblad_model(self):
         """Like test_signal_translator_generator_model, but for LindbladModels."""
-        ops = self.ones((4, 2, 2))
+        ops = np.ones((4, 2, 2))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
         s_prime = [
             Signal(1, 0, -np.pi / 2),
@@ -284,7 +284,7 @@ class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
             Signal(1, 1, -np.pi / 2),
             Signal(1, 3, -np.pi / 2),
         ]
-        dft = self.ones((2, 2))
+        dft = np.ones((2, 2))
         LM = LindbladModel(
             static_hamiltonian=dft,
             hamiltonian_operators=ops,
@@ -341,8 +341,8 @@ class TestRotatingWaveApproximationJax(JAXTestBase):
         """Tests that signal_map from the RWA is jitable and gradable."""
 
         sample_sigs = [Signal(1.0, 0.0), Signal(1.0, -3.0), Signal(1.0, 1.0), Signal(1.0, 3.0)]
-        ops = self.ones((4, 2, 2))
-        static_operator = self.ones((2, 2))
+        ops = np.ones((4, 2, 2))
+        static_operator = np.ones((2, 2))
         model = GeneratorModel(
             operators=ops,
             signals=sample_sigs,
@@ -390,7 +390,7 @@ class TestRotatingWaveApproximationSparse:
 
         rwa_ham_model = rotating_wave_approximation(self.classic_hamiltonian, 2 * self.v)
 
-        self.assertSparseEquality(rwa_ham_model.static_operator, self.zeros((2, 2)))
+        self.assertSparseEquality(rwa_ham_model.static_operator, np.zeros((2, 2)))
         expected_ops = (
             2
             * np.pi

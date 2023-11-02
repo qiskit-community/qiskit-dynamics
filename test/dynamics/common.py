@@ -89,14 +89,6 @@ class NumpyTestBase(QiskitDynamicsTestCase):
         """Array generation method."""
         return np.array(a)
 
-    def zeros(self, shape, dtype=None):
-        """Array filled with zeros generation method."""
-        return np.zeros(shape, dtype)
-
-    def ones(self, shape, dtype=None):
-        """Array filled with ones generation method."""
-        return np.ones(shape, dtype)
-
     def assertArrayType(self, a):
         """Assert the correct array type."""
         return isinstance(a, np.ndarray)
@@ -125,14 +117,6 @@ class JAXTestBase(QiskitDynamicsTestCase):
         """Array generation method."""
         return jnp.array(a)
 
-    def zeros(self, shape, dtype=None):
-        """Array filled with zeros generation method."""
-        return jnp.zeros(shape, dtype)
-
-    def ones(self, shape, dtype=None):
-        """Array filled with ones generation method."""
-        return jnp.ones(shape, dtype)
-
     def assertArrayType(self, a):
         """Assert the correct array type."""
         return isinstance(a, jnp.ndarray)
@@ -149,14 +133,6 @@ class ArrayNumpyTestBase(QiskitDynamicsTestCase):
     def asarray(self, a):
         """Array generation method."""
         return Array(a)
-
-    def zeros(self, shape, dtype=None):
-        """Array filled with zeros generation method."""
-        return Array(np.zeros(shape, dtype))
-
-    def ones(self, shape, dtype=None):
-        """Array filled with ones generation method."""
-        return Array(np.ones(shape, dtype))
 
     def assertArrayType(self, a):
         """Assert the correct array type."""
@@ -192,14 +168,6 @@ class ArrayJaxTestBase(QiskitDynamicsTestCase):
     def asarray(self, a):
         """Array generation method."""
         return Array(a)
-
-    def zeros(self, shape, dtype=None):
-        """Array filled with zeros generation method."""
-        return Array(jnp.zeros(shape, dtype))
-
-    def ones(self, shape, dtype=None):
-        """Array filled with ones generation method."""
-        return Array(jnp.ones(shape, dtype))
 
     def assertArrayType(self, a):
         """Assert the correct array type."""
