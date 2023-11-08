@@ -14,7 +14,7 @@
 
 
 """
-Registering rmatmul functions to alias
+Register rmatmul functions to alias.
 """
 
 import numpy as np
