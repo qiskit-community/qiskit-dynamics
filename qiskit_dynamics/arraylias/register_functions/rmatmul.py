@@ -21,7 +21,7 @@ import numpy as np
 
 
 def register_rmatmul(alias):
-    """register rmatmul functions to each array libraries"""
+    """Register rmatmul functions to each array library."""
 
     @alias.register_function(lib="numpy", path="rmatmul")
     def _(x, y):
