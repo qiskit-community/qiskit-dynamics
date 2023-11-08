@@ -30,9 +30,10 @@ from qiskit_dynamics.models.operator_collections import (
     SparseOperatorCollection,
     JAXSparseOperatorCollection,
 )
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.type_utils import to_numeric_matrix_type
+from qiskit_dynamics.arraylias import ArrayLike
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY_ALIAS
 from .rotating_frame import RotatingFrame
 
 try:
@@ -93,7 +94,7 @@ class BaseGeneratorModel(ABC):
         pass
 
     @abstractmethod
-    def evaluate(self, time: float) -> Array:
+    def evaluate(self, time: float) -> ArrayLike:
         r"""If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
 
         Args:
@@ -101,7 +102,7 @@ class BaseGeneratorModel(ABC):
         """
 
     @abstractmethod
-    def evaluate_rhs(self, time: float, y: Array) -> Array:
+    def evaluate_rhs(self, time: float, y: ArrayLike) -> ArrayLike:
         r"""Evaluate the right hand side :math:`\dot{y}(t) = \Lambda(t, y)`.
 
         Args:
@@ -113,7 +114,7 @@ class BaseGeneratorModel(ABC):
         """Return a copy of self."""
         return copy(self)
 
-    def __call__(self, time: float, y: Optional[Array] = None) -> Array:
+    def __call__(self, time: float, y: Optional[ArrayLike] = None) -> ArrayLike:
         r"""Evaluate generator RHS functions. If ``y is None``, attemps to evaluate
         :math:`\Lambda(t, \cdot)`, otherwise, calculates :math:`\Lambda(t, y)`.
 
@@ -122,7 +123,7 @@ class BaseGeneratorModel(ABC):
             y: Optional state.
 
         Returns:
-            Array: Either the evaluated model, or the RHS for the given y.
+            ArrayLike: Either the evaluated model, or the RHS for the given y.
         """
         return self.evaluate(time) if y is None else self.evaluate_rhs(time, y)
 
@@ -139,17 +140,17 @@ class GeneratorModel(BaseGeneratorModel):
 
         G(t) = \sum_i s_i(t) G_i + G_d
 
-    where the :math:`G_i` are matrices (represented by :class:`Operator` or :class:`Array` objects),
+    where the :math:`G_i` are matrices (represented by :class:`Operator` or `ArrayLike` objects),
     the :math:`s_i(t)` are signals represented by a list of :class:`Signal` objects, and :math:`G_d`
     is the constant-in-time static term of the generator.
     """
 
     def __init__(
         self,
-        static_operator: Optional[Array] = None,
-        operators: Optional[Array] = None,
+        static_operator: Optional[ArrayLike] = None,
+        operators: Optional[ArrayLike] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, ArrayLike, RotatingFrame]] = None,
         in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
     ):
@@ -204,7 +205,7 @@ class GeneratorModel(BaseGeneratorModel):
 
          * ``"dense"``: Stores/evaluates operators using dense Arrays.
          * ``"sparse"``: Stores/evaluates operators using sparse matrices. If the default Array
-           backend is JAX, implemented with JAX BCOO arrays, otherwise uses scipy
+           is JAX, implemented with JAX BCOO arrays, otherwise uses scipy
            :class:`csr_matrix` sparse type. Note that JAX sparse mode is only recommended for use on
            CPU.
 
@@ -236,7 +237,7 @@ class GeneratorModel(BaseGeneratorModel):
         return self._rotating_frame
 
     @rotating_frame.setter
-    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
+    def rotating_frame(self, rotating_frame: Union[Operator, ArrayLike, RotatingFrame]):
         new_frame = RotatingFrame(rotating_frame)
 
         new_static_operator = transfer_static_operator_between_frames(
@@ -301,22 +302,22 @@ class GeneratorModel(BaseGeneratorModel):
         self._in_frame_basis = in_frame_basis
 
     @property
-    def operators(self) -> Array:
+    def operators(self) -> ArrayLike:
         """The operators in the model."""
         return self._get_operators(in_frame_basis=self._in_frame_basis)
 
     @property
-    def static_operator(self) -> Array:
+    def static_operator(self) -> ArrayLike:
         """The static operator."""
         return self._get_static_operator(in_frame_basis=self._in_frame_basis)
 
     @static_operator.setter
-    def static_operator(self, static_operator: Array):
+    def static_operator(self, static_operator: ArrayLike):
         self._set_static_operator(
             new_static_operator=static_operator, operator_in_frame_basis=self._in_frame_basis
         )
 
-    def _get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
+    def _get_operators(self, in_frame_basis: Optional[bool] = False) -> ArrayLike:
         """Get the operators used in the model construction.
 
         Args:
@@ -330,7 +331,7 @@ class GeneratorModel(BaseGeneratorModel):
             return self.rotating_frame.operator_out_of_frame_basis(ops)
         return ops
 
-    def _get_static_operator(self, in_frame_basis: Optional[bool] = False) -> Array:
+    def _get_static_operator(self, in_frame_basis: Optional[bool] = False) -> ArrayLike:
         """Get the constant term.
 
         Args:
@@ -346,7 +347,7 @@ class GeneratorModel(BaseGeneratorModel):
 
     def _set_static_operator(
         self,
-        new_static_operator: Array,
+        new_static_operator: ArrayLike,
         operator_in_frame_basis: Optional[bool] = False,
     ):
         """Sets static term. Note that if the model has a rotating frame this will override any
@@ -367,14 +368,14 @@ class GeneratorModel(BaseGeneratorModel):
 
             self._operator_collection.static_operator = new_static_operator
 
-    def evaluate(self, time: float) -> Array:
+    def evaluate(self, time: float) -> ArrayLike:
         """Evaluate the model in array format as a matrix, independent of state.
 
         Args:
             time: The time to evaluate the model at.
 
         Returns:
-            Array: The evaluated model as a matrix.
+            ArrayLike: The evaluated model as a matrix.
 
         Raises:
             QiskitError: If model cannot be evaluated.
@@ -392,12 +393,12 @@ class GeneratorModel(BaseGeneratorModel):
             time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
         )
 
-    def evaluate_rhs(self, time: float, y: Array) -> Array:
+    def evaluate_rhs(self, time: float, y: ArrayLike) -> ArrayLike:
         r"""Evaluate ``G(t) @ y``.
 
         Args:
             time: The time to evaluate the model at .
-            y: Array specifying system state.
+            y: ArrayLike specifying system state.
 
         Returns:
             Array defined by :math:`G(t) \times y`.
@@ -431,10 +432,10 @@ class GeneratorModel(BaseGeneratorModel):
 
 
 def transfer_static_operator_between_frames(
-    static_operator: Union[None, Array, csr_matrix],
-    new_frame: Optional[Union[Array, RotatingFrame]] = None,
-    old_frame: Optional[Union[Array, RotatingFrame]] = None,
-) -> Tuple[Union[None, Array]]:
+    static_operator: Union[None, ArrayLike, csr_matrix],
+    new_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
+    old_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
+) -> Tuple[Union[None, ArrayLike]]:
     """Helper function for transforming the static operator of a model from one frame basis into
     another.
 
@@ -495,10 +496,10 @@ def transfer_static_operator_between_frames(
 
 
 def transfer_operators_between_frames(
-    operators: Union[None, Array, List[csr_matrix]],
-    new_frame: Optional[Union[Array, RotatingFrame]] = None,
-    old_frame: Optional[Union[Array, RotatingFrame]] = None,
-) -> Tuple[Union[None, Array]]:
+    operators: Union[None, ArrayLike, List[csr_matrix]],
+    new_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
+    old_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
+) -> Tuple[Union[None, ArrayLike]]:
     """Helper function for transforming a list of operators for a model from one frame basis into
     another.
 
@@ -536,8 +537,8 @@ def transfer_operators_between_frames(
 
 def construct_operator_collection(
     evaluation_mode: str,
-    static_operator: Union[None, Array, csr_matrix],
-    operators: Union[None, Array, List[csr_matrix]],
+    static_operator: Union[None, ArrayLike],
+    operators: Union[None, ArrayLike, List[csr_matrix]],
 ) -> BaseOperatorCollection:
     """Construct an operator collection for :class:`GeneratorModel`.
 
@@ -555,7 +556,9 @@ def construct_operator_collection(
 
     if evaluation_mode == "dense":
         return DenseOperatorCollection(static_operator=static_operator, operators=operators)
-    if evaluation_mode == "sparse" and Array.default_backend() == "jax":
+    if evaluation_mode == "sparse" and DYNAMICS_NUMPY_ALIAS.infer_libs(static_operator) == (
+        "jax_sparse",
+    ):
         # warn that sparse mode when using JAX is primarily recommended for use on CPU
         if jax.default_backend() != "cpu":
             warn(
