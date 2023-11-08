@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-Registering matmul functions to alias
+Register matmul functions to alias.
 """
 
 
