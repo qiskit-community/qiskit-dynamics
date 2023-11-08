@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-Registering asarray functions to alias
+Registering to_sparse functions to alias.
 """
 
 import numpy as np
