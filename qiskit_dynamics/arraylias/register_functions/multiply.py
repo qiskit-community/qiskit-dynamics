@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-Registering multiply functions to alias
+Register multiply functions to alias.
 """
 
 
