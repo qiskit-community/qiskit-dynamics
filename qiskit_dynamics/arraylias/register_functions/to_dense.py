@@ -21,7 +21,7 @@ from arraylias.exceptions import LibraryError
 
 
 def register_todense(alias):
-    """register to_dense functions to each array libraries"""
+    """Register to_dense functions to each array library."""
 
     @alias.register_default(path="to_dense")
     def _(arr):
