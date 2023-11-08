@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-Registering to_dense functions to alias
+Register to_dense functions to alias.
 """
 
 import numpy as np
