@@ -18,7 +18,7 @@ Register matmul functions to alias.
 
 
 def register_matmul(alias):
-    """register matmul functions to each array libraries"""
+    """Register matmul functions to required array libraries."""
 
     @alias.register_function(lib="scipy_sparse", path="matmul")
     def _(x, y):
