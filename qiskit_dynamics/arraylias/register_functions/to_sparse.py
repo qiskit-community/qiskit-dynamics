@@ -22,7 +22,7 @@ from qiskit_dynamics.type_utils import isinstance_qutip_qobj
 
 
 def register_tosparse(alias):
-    """register to_sparse functions to each array libraries"""
+    """Register to_sparse functions to each array library."""
 
     @alias.register_default(path="to_sparse")
     def _(arr):
