@@ -11,6 +11,9 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
+# Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
+# pylint: disable=no-member
+
 """Tests for qiskit_dynamics.models.rotating_wave_approximation"""
 
 from functools import partial
@@ -27,17 +30,18 @@ from qiskit_dynamics.models import (
 )
 from qiskit_dynamics.models.rotating_wave_approximation import get_rwa_operators
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
-from ..common import JAXTestBase, QiskitDynamicsTestCase, test_array_backends
+from ..common import JAXTestBase, test_array_backends
 
 # Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
 # pylint: disable=no-member
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-class TestRotatingWaveApproximation(QiskitDynamicsTestCase):
+class TestRotatingWaveApproximation:
     """Tests the rotating_wave_approximation function."""
 
     def setUp(self):
+        """Setup Hamiltonian model"""
         self.v = 5.0
         self.r = 0.1
         static_operator = 2 * np.pi * self.v * Operator.from_label("Z") / 2

@@ -36,7 +36,7 @@ def register_tosparse(alias):
     def _(arr):
         if arr.ndim < 3:
             return csr_matrix(arr)
-        return np.array([csr_matrix(sub_arr) for sub_arr in arr])
+        return [csr_matrix(sub_arr) for sub_arr in arr]
 
     try:
         from jax.experimental.sparse import BCOO
