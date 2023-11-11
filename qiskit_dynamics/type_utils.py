@@ -16,8 +16,9 @@
 """Utilities for type handling/conversion, primarily dealing with
 reshaping arrays, and handling qiskit types that wrap arrays.
 """
+from __future__ import annotations
 
-from typing import Union, List
+from typing import Union, List, TYPE_CHECKING
 from collections.abc import Iterable
 import numpy as np
 from scipy.sparse import csr_matrix, issparse, spmatrix
@@ -32,6 +33,9 @@ try:
     from jax.experimental import sparse as jsparse
 except ImportError:
     pass
+
+if TYPE_CHECKING:
+    from qiskit_dynamics.arraylias import ArrayLike
 
 
 class StateTypeConverter:
@@ -245,8 +249,8 @@ def type_spec_from_instance(y):
 
 
 def vec_commutator(
-    A: Union[Array, csr_matrix, List[csr_matrix]]
-) -> Union[Array, csr_matrix, List[csr_matrix]]:
+    A: Union[ArrayLike, csr_matrix, List[csr_matrix]]
+) -> Union[ArrayLike, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map X -> -i[A, X]
     in column-stacking convention. In column-stacking convention we have
 
@@ -269,6 +273,8 @@ def vec_commutator(
         Array: vectorized version of the map.
     """
 
+    from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+
     if issparse(A):
         # single, sparse matrix
         sp_iden = sparse_identity(A.shape[-1], format="csr")
@@ -279,17 +285,15 @@ def vec_commutator(
         out = [-1j * (sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden)) for mat in A]
         return out
 
-    A = to_array(A)
-    iden = Array(np.eye(A.shape[-1]))
+    A = unp.to_dense(A)
+    iden = np.eye(A.shape[-1])
     axes = list(range(A.ndim))
     axes[-1] = axes[-2]
     axes[-2] += 1
     return -1j * (np.kron(iden, A) - np.kron(A.transpose(axes), iden))
 
 
-def vec_dissipator(
-    L: Union[Array, csr_matrix, List[csr_matrix]]
-) -> Union[Array, csr_matrix, List[csr_matrix]]:
+def vec_dissipator(L: Union[ArrayLike, List[csr_matrix]]) -> Union[ArrayLike, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)
     in column stacking convention.
@@ -302,6 +306,7 @@ def vec_dissipator(
 
     Note: this function is also "vectorized" in the programming sense for dense matrices.
     """
+    from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 
     if issparse(L):
         sp_iden = sparse_identity(L[0].shape[-1], format="csr")
@@ -319,10 +324,9 @@ def vec_dissipator(
         ]
         return out
 
-    iden = Array(np.eye(L.shape[-1]))
+    iden = np.eye(L.shape[-1])
     axes = list(range(L.ndim))
-
-    L = to_array(L)
+    L = unp.to_dense(L)
     axes[-1] = axes[-2]
     axes[-2] += 1
     Lconj = L.conj()
