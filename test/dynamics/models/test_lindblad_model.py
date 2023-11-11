@@ -11,21 +11,31 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name,redundant-keyword-arg
 
+# Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
+# pylint: disable=no-member
+
 """Tests for qiskit_dynamics.models.lindblad_models.py. Most
 of the actual calculation checking is handled at the level of a
 models.operator_collection.DenseLindbladOperatorCollection test."""
 
-import numpy as np
+from functools import partial
 
-from scipy.linalg import expm
+import numpy as np
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_array
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias import DYNAMICS_SCIPY as scp
+from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch
+from ..common import QiskitDynamicsTestCase, test_array_backends
+
+try:
+    from jax import jit
+except ImportError:
+    pass
 
 
 class TestLindbladModelErrors(QiskitDynamicsTestCase):
@@ -151,13 +161,14 @@ class TestLindbladModelValidation(QiskitDynamicsTestCase):
         self.assertAllClose(lindblad_model(1.0, np.eye(2)), np.zeros(2))
 
 
-class TestLindbladModel(QiskitDynamicsTestCase):
+class TestLindbladModel:
     """Tests for LindbladModel."""
 
     def setUp(self):
-        self.X = Operator.from_label("X").data
-        self.Y = Operator.from_label("Y").data
-        self.Z = Operator.from_label("Z").data
+        """Setup Lindblad model"""
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
 
         # define a basic hamiltonian
         w = 2.0
@@ -168,7 +179,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.w = w
         self.r = r
 
-        static_dissipators = Array([[[0.0, 0.0], [1.0, 0.0]]])
+        static_dissipators = self.asarray([[[0.0, 0.0], [1.0, 0.0]]])
 
         self.basic_lindblad = LindbladModel(
             hamiltonian_operators=ham_operators,
@@ -184,14 +195,14 @@ class TestLindbladModel(QiskitDynamicsTestCase):
 
     def test_basic_lindblad_lmult(self):
         """Test lmult method of Lindblad generator OperatorModel."""
-        A = Array([[1.0, 2.0], [3.0, 4.0]])
+        A = self.asarray([[1.0, 2.0], [3.0, 4.0]])
 
         t = 1.123
         ham = (
             2 * np.pi * self.w * self.Z / 2
             + 2 * np.pi * self.r * np.cos(2 * np.pi * self.w * t) * self.X / 2
         )
-        sm = Array([[0.0, 0.0], [1.0, 0.0]])
+        sm = self.asarray([[0.0, 0.0], [1.0, 0.0]])
 
         expected = self._evaluate_lindblad_rhs(A, ham, [sm])
         if "vectorized" in self.evaluation_mode:
@@ -205,7 +216,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         """Test evaluation with just dissipators."""
 
         model = LindbladModel(
-            dissipator_operators=[self.X],
+            dissipator_operators=self.asarray([self.X]),
             dissipator_signals=[1.0],
             evaluation_mode=self.evaluation_mode,
         )
@@ -225,7 +236,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         """Test evaluation with just dissipators."""
 
         model = LindbladModel(
-            static_dissipators=[self.X, self.Y], evaluation_mode=self.evaluation_mode
+            static_dissipators=self.asarray([self.X, self.Y]), evaluation_mode=self.evaluation_mode
         )
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
@@ -255,7 +266,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         """Test evaluation with just hamiltonian operators."""
 
         model = LindbladModel(
-            hamiltonian_operators=[self.X],
+            hamiltonian_operators=self.asarray([self.X]),
             hamiltonian_signals=[1.0],
             evaluation_mode=self.evaluation_mode,
         )
@@ -283,14 +294,14 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         randoperators = rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_ham, dim, dim)
         )
-        rand_ham_ops = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
+        rand_ham_ops = self.asarray(randoperators + randoperators.conj().transpose([0, 2, 1]))
 
         # generate random hamiltonian coefficients
         rand_ham_coeffs = rng.uniform(low=-b, high=b, size=(num_ham)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_ham)
         )
-        rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
-        rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
+        rand_ham_carriers = self.asarray(rng.uniform(low=-b, high=b, size=(num_ham)))
+        rand_ham_phases = self.asarray(rng.uniform(low=-b, high=b, size=(num_ham)))
 
         ham_sigs = []
         for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
@@ -299,13 +310,13 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         ham_sigs = SignalList(ham_sigs)
 
         # generate random static dissipators
-        rand_static_diss = Array(
+        rand_static_diss = self.asarray(
             rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
             + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
         )
 
         # generate random dissipators
-        rand_diss = Array(
+        rand_diss = self.asarray(
             rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
             + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
         )
@@ -314,8 +325,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         rand_diss_coeffs = rng.uniform(low=-b, high=b, size=(num_diss)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_diss)
         )
-        rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
-        rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
+        rand_diss_carriers = self.asarray(rng.uniform(low=-b, high=b, size=(num_diss)))
+        rand_diss_phases = self.asarray(rng.uniform(low=-b, high=b, size=(num_diss)))
 
         diss_sigs = []
         for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
@@ -327,8 +338,8 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        frame_op = Array(rand_op - rand_op.conj().transpose())
-        evect = np.linalg.eigh(1j * frame_op)[1]
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
+        evect = unp.linalg.eigh(1j * frame_op)[1]
         into_frame_basis = lambda x: evect.T.conj() @ x @ evect
 
         # construct model
@@ -349,10 +360,10 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             * np.exp(1j * 2 * np.pi * rand_diss_carriers * t + 1j * rand_diss_phases)
         )
 
-        ham_coeffs = np.real(
-            rand_ham_coeffs * np.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
+        ham_coeffs = unp.real(
+            rand_ham_coeffs * unp.exp(1j * 2 * np.pi * rand_ham_carriers * t + 1j * rand_ham_phases)
         )
-        ham = np.tensordot(ham_coeffs, rand_ham_ops, axes=1)
+        ham = _numpy_multi_dispatch(ham_coeffs, rand_ham_ops, path="tensordot", axes=1)
 
         self.assertAllClose(ham_coeffs, ham_sigs(t))
         self.assertAllClose(diss_coeffs, diss_sigs(t))
@@ -360,21 +371,21 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         lindblad_model.in_frame_basis = True
         self.assertAllClose(
             into_frame_basis(rand_diss),
-            to_array(lindblad_model.dissipator_operators),
+            unp.to_dense(lindblad_model.dissipator_operators),
         )
         self.assertAllClose(
             into_frame_basis(rand_ham_ops),
-            to_array(lindblad_model.hamiltonian_operators),
+            unp.to_dense(lindblad_model.hamiltonian_operators),
         )
         self.assertAllClose(
             into_frame_basis(-1j * frame_op),
-            to_array(lindblad_model.static_hamiltonian),
+            unp.to_dense(lindblad_model.static_hamiltonian),
         )
         lindblad_model.in_frame_basis = False
         self.assertAllClose(-1j * frame_op, lindblad_model.static_hamiltonian)
 
         # evaluation tests
-        A = Array(
+        A = self.asarray(
             rng.uniform(low=-b, high=b, size=(dim, dim))
             + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
         )
@@ -468,7 +479,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         # the frame
         if frame_op is not None:
             frame_op = np.array(frame_op)
-            U = expm(-t * frame_op)
+            U = scp.linalg.expm(-t * frame_op)
             Uadj = U.conj().transpose()
 
             ham = U @ ham @ Uadj - 1j * frame_op
@@ -530,21 +541,21 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertTrue(model.static_hamiltonian is None)
 
 
-class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
+class TestLindbladModelJax(TestLindbladModel):
     """Jax version of TestLindbladModel tests."""
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        rho = Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
+        rho = self.asarray(np.array([[0.2, 0.4], [0.6, 0.8]]))
         if "vectorized" in self.evaluation_mode:
             rho = rho.flatten(order="F")
 
-        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
+        jit(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
-        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
+        self.basic_lindblad.rotating_frame = self.asarray(np.array([[3j, 2j], [2j, 0]]))
+        jit(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
     def test_gradable_funcs(self):
         """Tests whether all functions are gradable.
@@ -606,7 +617,7 @@ class TestLindbladModelSparse(TestLindbladModel):
         # test non-diagonal frame
         model.rotating_frame = self.Z
         rho = np.array([[1.0, 0.0], [0.0, 0.0]])
-        ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
+        ham = scp.linalg.expm(1j * self.Z) @ self.X @ scp.linalg.expm(-1j * self.Z)
         expected = -1j * (ham @ rho - rho @ ham)
         if "vectorized" in self.evaluation_mode:
             expected = expected.flatten(order="F")
@@ -630,7 +641,7 @@ class TestLindbladModelSparse(TestLindbladModel):
         model.evaluation_mode = self.evaluation_mode
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]])
-        ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
+        ham = scp.linalg.expm(1j * self.Z) @ self.X @ scp.linalg.expm(-1j * self.Z)
         expected = -1j * (ham @ rho - rho @ ham)
         if "vectorized" in self.evaluation_mode:
             expected = expected.flatten(order="F")
@@ -643,6 +654,7 @@ class TestLindbladModelJAXSparse(TestLindbladModelSparse, TestLindbladModelJax):
     """JAX sparse-mode tests."""
 
 
+@partial(test_array_backends, array_libraries=["numpy", "array_numpy"])
 class TestLindbladModelDenseVectorized(TestLindbladModel):
     """Test class for dense vectorized mode operation of LindbladModel."""
 
@@ -651,6 +663,7 @@ class TestLindbladModelDenseVectorized(TestLindbladModel):
         return "dense_vectorized"
 
 
+@partial(test_array_backends, array_libraries=["numpy", "array_numpy"])
 class TestLindbladModelSparseVectorized(TestLindbladModelSparse):
     """Test class for sparse vectorized mode operation of LindbladModel."""
 
@@ -659,6 +672,7 @@ class TestLindbladModelSparseVectorized(TestLindbladModelSparse):
         return "sparse_vectorized"
 
 
+@partial(test_array_backends, array_libraries=["jax"])
 class TestLindbladModelDenseVectorizedJax(TestLindbladModelJax):
     """Test class for jax dense vectorized mode operation of LindbladModel."""
 
@@ -667,6 +681,7 @@ class TestLindbladModelDenseVectorizedJax(TestLindbladModelJax):
         return "dense_vectorized"
 
 
+@partial(test_array_backends, array_libraries=["jax"])
 class TestLindbladModelSparseVectorizedJax(TestLindbladModelJax):
     """Test class for jax sparse vectorized mode operation of LindbladModel."""
 
@@ -683,3 +698,9 @@ def get_const_func(const):
         return const
 
     return env
+
+
+test_array_backends(TestLindbladModel, array_libraries=["numpy", "array_nunpy"])
+test_array_backends(TestLindbladModelJax, array_libraries=["jax"])
+test_array_backends(TestLindbladModelSparse, array_libraries=["numpy", "array_nunpy"])
+test_array_backends(TestLindbladModelJAXSparse, array_libraries=["jax"])
