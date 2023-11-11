@@ -11,8 +11,10 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Tests for operator_collections.py."""
+# Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
+# pylint: disable=no-member
 
+"""Tests for operator_collections.py."""
 import numpy as np
 import numpy.random as rand
 from scipy.sparse import issparse
@@ -31,25 +33,27 @@ from qiskit_dynamics.models.operator_collections import (
     SparseVectorizedLindbladCollection,
     JAXSparseVectorizedLindbladCollection,
 )
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_array
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from ..common import test_array_backends
 
 try:
+    from jax import jit
+    import jax.numpy as jnp
     from jax.experimental import sparse as jsparse
 except ImportError:
     pass
 
 
-class TestDenseOperatorCollection(QiskitDynamicsTestCase):
+class TestDenseOperatorCollection:
     """Tests for DenseOperatorCollection."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+        """Setup DenseOperatorCollection"""
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
 
-        self.test_operator_list = Array([self.X, self.Y, self.Z])
+        self.test_operator_list = self.asarray([self.X, self.Y, self.Z])
         self.simple_collection = DenseOperatorCollection(
             operators=self.test_operator_list, static_operator=None
         )
@@ -96,7 +100,7 @@ class TestDenseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(self.X, collection(None))
 
 
-class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
+class TestDenseOperatorCollectionJax(TestDenseOperatorCollection):
     """Jax version of TestDenseOperatorCollection tests.
 
     Note: This class has more tests due to inheritance.
@@ -105,27 +109,31 @@ class TestDenseOperatorCollectionJax(TestDenseOperatorCollection, TestJaxBase):
     def test_functions_jitable(self):
         """Tests that all class functions are jittable."""
         doc = DenseOperatorCollection(
-            operators=Array(self.test_operator_list),
-            static_operator=Array(self.test_operator_list[0]),
+            operators=self.asarray(self.test_operator_list),
+            static_operator=self.asarray(self.test_operator_list[0]),
         )
         rand.seed(3423)
         coeffs = rand.uniform(-1, 1, 3)
-        self.jit_wrap(doc.evaluate)(Array(coeffs))
-        self.jit_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
+        jit(doc.evaluate)(self.asarray(coeffs))
+        jit(doc.evaluate_rhs)(self.asarray(coeffs), self.X)
 
     def test_functions_gradable(self):
         """Tests that all class functions are gradable."""
         doc = DenseOperatorCollection(
-            operators=Array(self.test_operator_list),
-            static_operator=Array(self.test_operator_list[0]),
+            operators=self.asarray(self.test_operator_list),
+            static_operator=self.asarray(self.test_operator_list[0]),
         )
         rand.seed(5433)
         coeffs = rand.uniform(-1, 1, 3)
-        self.jit_grad_wrap(doc.evaluate)(Array(coeffs))
-        self.jit_grad_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
+        self.jit_grad_wrap(doc.evaluate)(self.asarray(coeffs))
+        self.jit_grad_wrap(doc.evaluate_rhs)(self.asarray(coeffs), self.X)
 
 
-class TestSparseOperatorCollection(QiskitDynamicsTestCase):
+test_array_backends(TestDenseOperatorCollection, array_libraries=["numpy", "array_numpy"])
+test_array_backends(TestDenseOperatorCollectionJax, array_libraries=["jax"])
+
+
+class TestSparseOperatorCollection:
     """Tests for SparseOperatorCollection."""
 
     def test_empty_collection_error(self):
@@ -149,12 +157,12 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
 
         # 2d case
         value = collection(np.array([1.0, 2.0]), np.ones((2, 2)))
-        self.assertTrue(isinstance(value, (np.ndarray, Array)))
+        self.assertTrue(isinstance(value, np.ndarray))
         self.assertAllClose(value, 3.0 * np.ones((2, 2)))
 
         # 1d case
         value = collection(np.array([1.0, 2.0]), np.array([1.0, 1.0]))
-        self.assertTrue(isinstance(value, (np.ndarray, Array)))
+        self.assertTrue(isinstance(value, np.ndarray))
         self.assertAllClose(value, np.array([3.0, 3.0]))
 
     def test_consistency_with_dense_pseudorandom(self):
@@ -183,17 +191,18 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         for _ in range(4):
             op = r(3, 3)
             ham_ops.append(Operator(op))
-            ham_ops_alt.append(Array(op))
+            ham_ops_alt.append(self.asarray(op))
         sigVals = r(4)
         static_operator_numpy_array = r(3, 3)
         sparse_collection_operator_list = SparseOperatorCollection(
             operators=ham_ops, static_operator=Operator(static_operator_numpy_array)
         )
         sparse_collection_array_list = SparseOperatorCollection(
-            operators=ham_ops_alt, static_operator=to_array(static_operator_numpy_array)
+            operators=ham_ops_alt, static_operator=unp.to_dense(static_operator_numpy_array)
         )
         sparse_collection_pure_array = SparseOperatorCollection(
-            operators=to_array(ham_ops), static_operator=to_array(static_operator_numpy_array)
+            operators=unp.to_dense(ham_ops),
+            static_operator=unp.to_dense(static_operator_numpy_array),
         )
         a = sparse_collection_operator_list(sigVals)
         b = sparse_collection_array_list(sigVals)
@@ -209,15 +218,15 @@ class TestSparseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllClose(np.array([0.0, 1.0]), collection(None, np.array([1.0, 0.0])))
 
 
-class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):
+class TestJAXSparseOperatorCollection:
     """Test cases for JAXSparseOperatorCollection."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
-
-        self.test_operator_list = Array([self.X, self.Y, self.Z])
+        """Setup JAXSparseOperatorCollection"""
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
+        self.test_operator_list = self.asarray([self.X, self.Y, self.Z])
         self.simple_collection = JAXSparseOperatorCollection(
             operators=self.test_operator_list, static_operator=None
         )
@@ -243,7 +252,7 @@ class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):
 
         res = (
             JAXSparseOperatorCollection(
-                operators=self.test_operator_list, static_operator=np.eye(2)
+                operators=self.test_operator_list, static_operator=jnp.eye(2)
             )
         )(coeffs)
         self.assertTrue(isinstance(res, jsparse.BCOO))
@@ -255,8 +264,10 @@ class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):
         """Test JAXSparseOperatorCollection evaluation
         using pseudorandom arrays."""
         rand.seed(342)
-        vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
-        arr = rand.uniform(-1, 1, (32, 128, 128))
+        vals = self.asarray(rand.uniform(-1, 1, 32)) + 1j * self.asarray(
+            rand.uniform(-1, 1, (10, 32))
+        )
+        arr = self.asarray(rand.uniform(-1, 1, (32, 128, 128)))
         collection = JAXSparseOperatorCollection(operators=arr)
         for i in range(10):
             res = collection(vals[i])
@@ -275,45 +286,50 @@ class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):
     def test_functions_jitable(self):
         """Tests that all class functions are jittable."""
         doc = JAXSparseOperatorCollection(
-            operators=Array(self.test_operator_list),
-            static_operator=Array(self.test_operator_list[0]),
+            operators=self.asarray(self.test_operator_list),
+            static_operator=self.asarray(self.test_operator_list[0]),
         )
         rand.seed(3423)
         coeffs = rand.uniform(-1, 1, 3)
-        self.jit_wrap(doc.evaluate)(Array(coeffs))
-        self.jit_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
+        jit(doc.evaluate)(self.asarray(coeffs))
+        jit(doc.evaluate_rhs)(self.asarray(coeffs), self.X)
 
     def test_functions_gradable(self):
         """Tests that all class functions are gradable."""
         doc = JAXSparseOperatorCollection(
-            operators=Array(self.test_operator_list),
-            static_operator=Array(self.test_operator_list[0]),
+            operators=self.asarray(self.test_operator_list),
+            static_operator=self.asarray(self.test_operator_list[0]),
         )
         rand.seed(5433)
         coeffs = rand.uniform(-1, 1, 3)
-        self.jit_grad_wrap(doc.evaluate)(Array(coeffs))
-        self.jit_grad_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
+        self.jit_grad_wrap(doc.evaluate)(self.asarray(coeffs))
+        self.jit_grad_wrap(doc.evaluate_rhs)(self.asarray(coeffs), self.X)
 
 
-class TestDenseLindbladCollection(QiskitDynamicsTestCase):
+test_array_backends(TestSparseOperatorCollection, array_libraries=["numpy", "array_numpy"])
+test_array_backends(TestJAXSparseOperatorCollection, array_libraries=["jax"])
+
+
+class TestDenseLindbladCollection:
     """Tests for DenseLindbladCollection."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+        """Setup variables for DenseLindbladCollection"""
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
         rand.seed(2134024)
         n = 16
         k = 8
         m = 4
         l = 2
-        self.hamiltonian_operators = rand.uniform(-1, 1, (k, n, n))
-        self.dissipator_operators = rand.uniform(-1, 1, (m, n, n))
-        self.static_hamiltonian = rand.uniform(-1, 1, (n, n))
-        self.rho = rand.uniform(-1, 1, (n, n))
-        self.multiple_rho = rand.uniform(-1, 1, (l, n, n))
-        self.ham_sig_vals = rand.uniform(-1, 1, (k))
-        self.dis_sig_vals = rand.uniform(-1, 1, (m))
+        self.hamiltonian_operators = self.asarray(rand.uniform(-1, 1, (k, n, n)))
+        self.dissipator_operators = self.asarray(rand.uniform(-1, 1, (m, n, n)))
+        self.static_hamiltonian = self.asarray(rand.uniform(-1, 1, (n, n)))
+        self.rho = self.asarray(rand.uniform(-1, 1, (n, n)))
+        self.multiple_rho = self.asarray(rand.uniform(-1, 1, (l, n, n)))
+        self.ham_sig_vals = self.asarray(rand.uniform(-1, 1, (k)))
+        self.dis_sig_vals = self.asarray(rand.uniform(-1, 1, (m)))
         self.r = lambda *args: rand.uniform(-1, 1, args) + 1j * rand.uniform(-1, 1, args)
 
     def construct_collection(self, *args, **kwargs):
@@ -422,7 +438,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(ham_terms + dis_anticommutator + dis_extra, res)
 
     def test_multiple_density_matrix_evaluation(self):
-        """Test to ensure that passing multiple density matrices as a (k,n,n) Array functions."""
+        """Test to ensure that passing multiple density matrices as a (k,n,n) array functions."""
 
         # Now, test if vectorization works as intended
         full_lindblad_collection = self.construct_collection(
@@ -444,8 +460,8 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
 
         collection = self.construct_collection(static_hamiltonian=self.X)
 
-        self.assertAllClose(to_array(collection.evaluate_hamiltonian(None)), self.X)
-        rho = Array([[1.0, 0.0], [0.0, 0.0]])
+        self.assertAllClose(unp.to_dense(collection.evaluate_hamiltonian(None)), self.X)
+        rho = self.asarray([[1.0, 0.0], [0.0, 0.0]])
         expected = -1j * (self.X @ rho - rho @ self.X)
         self.assertAllClose(collection.evaluate_rhs(None, None, rho), expected)
 
@@ -538,13 +554,13 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         for i in range(4):
             H_i = self.r(3, 3)
             L_i = self.r(3, 3)
-            ham_op_terms.append(Operator(H_i))
-            ham_ar_terms.append(Array(H_i))
-            dis_op_terms.append(Operator(L_i))
-            dis_ar_terms.append(Array(L_i))
+            ham_op_terms.append(self.asarray(Operator(H_i)))
+            ham_ar_terms.append(self.asarray(H_i))
+            dis_op_terms.append(self.asarray(Operator(L_i)))
+            dis_ar_terms.append(self.asarray(L_i))
         H_d = self.r(3, 3)
-        op_static_hamiltonian = Operator(H_d)
-        ar_static_hamiltonian = Array(H_d)
+        op_static_hamiltonian = self.asarray(Operator(H_d))
+        ar_static_hamiltonian = self.asarray(H_d)
         op_collection = self.construct_collection(
             hamiltonian_operators=ham_op_terms,
             static_hamiltonian=op_static_hamiltonian,
@@ -566,33 +582,37 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
         )
 
 
-class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
+class TestDenseLindbladCollectionJax(TestDenseLindbladCollection):
     """Jax version of TestDenseLindbladCollection tests."""
 
     def test_functions_jitable(self):
         """Tests that all class functions are jittable"""
         dlc = self.construct_collection(
-            hamiltonian_operators=Array(self.hamiltonian_operators),
-            static_hamiltonian=Array(self.static_hamiltonian),
-            dissipator_operators=Array(self.dissipator_operators),
+            hamiltonian_operators=self.asarray(self.hamiltonian_operators),
+            static_hamiltonian=self.asarray(self.static_hamiltonian),
+            dissipator_operators=self.asarray(self.dissipator_operators),
         )
 
-        self.jit_wrap(dlc.evaluate_rhs)(
-            Array(self.ham_sig_vals), Array(self.dis_sig_vals), self.rho
+        jit(dlc.evaluate_rhs)(
+            self.asarray(self.ham_sig_vals), self.asarray(self.dis_sig_vals), self.rho
         )
-        self.jit_wrap(dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
+        jit(dlc.evaluate_hamiltonian)(self.asarray(self.ham_sig_vals))
 
     def test_functions_gradable(self):
         """Tests if all class functions are gradable"""
         dlc = self.construct_collection(
-            hamiltonian_operators=Array(self.hamiltonian_operators),
-            static_hamiltonian=Array(self.static_hamiltonian),
-            dissipator_operators=Array(self.dissipator_operators),
+            hamiltonian_operators=self.asarray(self.hamiltonian_operators),
+            static_hamiltonian=self.asarray(self.static_hamiltonian),
+            dissipator_operators=self.asarray(self.dissipator_operators),
         )
         self.jit_grad_wrap(dlc.evaluate_rhs)(
-            Array(self.ham_sig_vals), Array(self.dis_sig_vals), self.rho
+            self.asarray(self.ham_sig_vals), self.asarray(self.dis_sig_vals), self.rho
         )
-        self.jit_grad_wrap(dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
+        self.jit_grad_wrap(dlc.evaluate_hamiltonian)(self.asarray(self.ham_sig_vals))
+
+
+test_array_backends(TestDenseLindbladCollection, array_libraries=["numpy", "array_numpy"])
+test_array_backends(TestDenseLindbladCollectionJax, array_libraries=["jax"])
 
 
 class TestSparseLindbladCollection(TestDenseLindbladCollection):
@@ -609,10 +629,15 @@ class TestJAXSparseLindbladCollection(TestDenseLindbladCollectionJax):
         return JAXSparseLindbladCollection(*args, **kwargs)
 
 
-class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
+test_array_backends(TestSparseLindbladCollection, array_libraries=["numpy", "array_numpy"])
+test_array_backends(TestJAXSparseLindbladCollection, array_libraries=["jax"])
+
+
+class TestDenseVectorizedLindbladCollection:
     """Tests for DenseVectorizedLindbladCollection."""
 
     def setUp(self) -> None:
+        """Setup DenseVectorizedLindbladCollection"""
         rand.seed(123098341)
         n = 16
         k = 4
@@ -758,13 +783,17 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         self.assertAllClose(a, b)
 
 
-class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
+class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection):
     """Jax version of TestDenseVectorizedLindbladCollection tests.
 
     Note: The evaluation processes for DenseVectorizedLindbladCollection
     are not directly jitable or compilable. The compilation of these steps
     is taken care of by the tests for LindbladModel.
     """
+
+
+test_array_backends(TestDenseVectorizedLindbladCollection, array_libraries=["numpy", "array_numpy"])
+test_array_backends(TestDenseVectorizedLindbladCollectionJax, array_libraries=["jax", "array_jax"])
 
 
 class TestSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladCollection):
@@ -801,13 +830,24 @@ class TestJAXSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladColle
         r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
 
         self.r = r
-        self.rand_ham = r(k, n, n)
-        self.rand_static_dis = r(k, n, n)
-        self.rand_dis = r(m, n, n)
-        self.rand_dft = r(n, n)
-        self.rho = r(n, n)
-        self.t = r()
-        self.rand_ham_coeffs = r(k)
-        self.rand_dis_coeffs = r(m)
+        self.rand_ham = self.asarray(r(k, n, n))
+        self.rand_static_dis = self.asarray(r(k, n, n))
+        self.rand_dis = self.asarray(r(m, n, n))
+        self.rand_dft = self.asarray(r(n, n))
+        self.rho = self.asarray(r(n, n))
+        self.t = self.asarray(r())
+        self.rand_ham_coeffs = self.asarray(r(k))
+        self.rand_dis_coeffs = self.asarray(r(m))
         self.vectorized_class = JAXSparseVectorizedLindbladCollection
         self.non_vectorized_class = JAXSparseLindbladCollection
+
+
+test_array_backends(
+    TestSparseVectorizedLindbladCollection, array_libraries=["numpy", "array_numpy"]
+)
+test_array_backends(
+    TestJAXSparseVectorizedLindbladCollection,
+    array_libraries=[
+        "jax",
+    ],
+)
