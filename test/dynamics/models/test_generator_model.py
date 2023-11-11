@@ -10,10 +10,12 @@
 # files need to carry a notice indicating that they have been altered from the originals.
 # pylint: disable=invalid-name
 
+# Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
+# pylint: disable=no-member
+
 """Tests for generator_models.py. """
 
 from scipy.sparse import issparse, csr_matrix
-from scipy.linalg import expm
 import numpy as np
 import numpy.random as rand
 from qiskit import QiskitError
@@ -24,9 +26,18 @@ from qiskit_dynamics.models.generator_model import (
     transfer_operators_between_frames,
 )
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.array import Array, wrap
-from qiskit_dynamics.type_utils import to_array
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from qiskit_dynamics.arraylias import ArrayLike
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias import DYNAMICS_SCIPY as scp
+from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch
+from ..common import QiskitDynamicsTestCase, test_array_backends
+
+
+try:
+    from jax import jit
+    import jax.numpy as jnp
+except ImportError:
+    pass
 
 
 class TestGeneratorModelErrors(QiskitDynamicsTestCase):
@@ -72,13 +83,14 @@ class TestGeneratorModelErrors(QiskitDynamicsTestCase):
             model.signals = lambda t: t
 
 
-class TestGeneratorModel(QiskitDynamicsTestCase):
+class TestGeneratorModel:
     """Tests for GeneratorModel."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+        """Setup GeneratorModel"""
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
 
         # define a basic model
         w = 2.0
@@ -95,8 +107,8 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         set up basic model.
         """
 
-        self._basic_frame_evaluate_test(Array([1j, -1j]), 1.123)
-        self._basic_frame_evaluate_test(Array([1j, -1j]), np.pi)
+        self._basic_frame_evaluate_test(self.asarray([1j, -1j]), 1.123)
+        self._basic_frame_evaluate_test(self.asarray([1j, -1j]), np.pi)
 
     def test_non_diag_frame_operator_basic_model(self):
         """Test setting a non-diagonal frame operator for the internally
@@ -113,15 +125,15 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
-            frame_operator = Array(frame_operator.data)
-        if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
-            frame_operator = np.diag(frame_operator)
+            frame_operator = self.asarray(frame_operator)
+        if isinstance(frame_operator, ArrayLike) and frame_operator.ndim == 1:
+            frame_operator = unp.diag(frame_operator)
 
         value = self.basic_model(t)
 
         i2pi = -1j * 2 * np.pi
 
-        U = expm(-np.array(frame_operator) * t)
+        U = scp.linalg.expm(-np.array(frame_operator) * t)
 
         # drive coefficient
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
@@ -142,14 +154,14 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         value = self.basic_model(t)
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        expected = i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2
+        expected = i2pi * self.w * self.Z / 2 + i2pi * d_coeff * self.X / 2
 
         self.assertAllClose(value, expected)
 
     def test_evaluate_generator_in_frame_basis_basic_model(self):
         """Test generator evaluation in frame basis in the basic_model."""
 
-        frame_op = -1j * (self.X + 0.2 * self.Y + 0.1 * self.Z).data
+        frame_op = -1j * self.asarray(self.X + 0.2 * self.Y + 0.1 * self.Z)
 
         # enter the frame given by the -1j * X
         self.basic_model.rotating_frame = frame_op
@@ -158,23 +170,19 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self.basic_model.in_frame_basis = True
 
         # get the frame basis that is used in model
-        _, U = wrap(np.linalg.eigh)(1j * frame_op)
+        _, U = unp.linalg.eigh(1j * frame_op)
 
         t = 3.21412
         value = self.basic_model(t)
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
-        U = expm(np.array(frame_op) * t) @ U
+        U = scp.linalg.expm(unp.asarray(frame_op) * t) @ U
         Uadj = U.conj().transpose()
 
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        expected = (
-            Uadj
-            @ (i2pi * self.w * self.Z.data / 2 + i2pi * d_coeff * self.X.data / 2 - frame_op)
-            @ U
-        )
+        expected = Uadj @ (i2pi * self.w * self.Z / 2 + i2pi * d_coeff * self.X / 2 - frame_op) @ U
 
         self.assertAllClose(value, expected)
 
@@ -188,17 +196,17 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        frame_op = Array(rand_op - rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
         randoperators = rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_terms, dim, dim)
         )
 
-        rand_coeffs = Array(
+        rand_coeffs = self.asarray(
             rng.uniform(low=-b, high=b, size=(num_terms))
             + 1j * rng.uniform(low=-b, high=b, size=(num_terms))
         )
-        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
-        rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_carriers = self.asarray(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_phases = self.asarray(rng.uniform(low=-b, high=b, size=(num_terms)))
 
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
@@ -209,19 +217,18 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        frame_op = Array(rand_op - rand_op.conj().transpose())
-        randoperators = Array(
+        frame_op = self.asarray(rand_op - rand_op.conj().transpose())
+        randoperators = self.asarray(
             rng.uniform(low=-b, high=b, size=(num_terms, dim, dim))
             + 1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim))
         )
 
-        rand_coeffs = Array(
+        rand_coeffs = self.asarray(
             rng.uniform(low=-b, high=b, size=(num_terms))
             + 1j * rng.uniform(low=-b, high=b, size=(num_terms))
         )
-        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
-        rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
-
+        rand_carriers = self.asarray(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_phases = self.asarray(rng.uniform(low=-b, high=b, size=(num_terms)))
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
     def _test_evaluate(self, frame_op, operators, coefficients, carriers, phases):
@@ -241,24 +248,23 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         model.rotating_frame = frame_op
 
         value = model(1.0)
-        coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
+        coeffs = unp.real(coefficients * unp.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
 
         self.assertAllClose(
             model.rotating_frame.operator_out_of_frame_basis(
                 model._operator_collection.evaluate(coeffs)
             ),
-            np.tensordot(coeffs, operators, axes=1) - frame_op,
+            _numpy_multi_dispatch(coeffs, operators, path="tensordot", axes=1) - frame_op,
         )
-
         expected = (
-            expm(-np.array(frame_op))
-            @ np.tensordot(coeffs, operators, axes=1)
-            @ expm(np.array(frame_op))
+            scp.linalg.expm(-unp.asarray(frame_op))
+            @ _numpy_multi_dispatch(coeffs, operators, path="tensordot", axes=1)
+            @ scp.linalg.expm(unp.asarray(frame_op))
             - frame_op
         )
 
         self.assertAllClose(value, expected)
-        if value.backend != "jax":
+        if self.array_library != "jax":
             model.evaluation_mode = "sparse"
             state = np.arange(operators.shape[-1] * 4).reshape(operators.shape[-1], 4)
             value = model(1.0)
@@ -280,7 +286,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         i2pi = -1j * 2 * np.pi
         Z_coeff = (2 * t) * np.cos(2 * np.pi * 1 * t)
         X_coeff = self.r * (t**2) * np.cos(2 * np.pi * 2 * t)
-        expected = i2pi * Z_coeff * self.Z.data / 2 + i2pi * X_coeff * self.X.data / 2
+        expected = i2pi * Z_coeff * self.Z / 2 + i2pi * X_coeff * self.X / 2
         self.assertAllClose(value, expected)
 
     def test_signal_setting_None(self):
@@ -293,45 +299,45 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         """Test for checking that with known operators that
         the Model returns the analyticlly known values."""
 
-        test_operator_list = Array([self.X, self.Y, self.Z])
+        test_operator_list = self.asarray([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(
             operators=test_operator_list, static_operator=None, signals=signals, rotating_frame=None
         )
 
         res = simple_model.evaluate(2)
-        self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
+        self.assertAllClose(res, self.asarray([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
         simple_model.static_operator = np.eye(2)
         res = simple_model.evaluate(2)
-        self.assertAllClose(res, Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
+        self.assertAllClose(res, self.asarray([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]))
 
     def test_evaluate_in_frame_basis_analytic(self):
         """Tests evaluation in rotating frame against analytic values,
         both in specified basis and in frame basis."""
-        test_operator_list = Array([self.X, self.Y, self.Z])
+        test_operator_list = self.asarray([self.X, self.Y, self.Z])
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(
             operators=test_operator_list, static_operator=None, signals=signals, rotating_frame=None
         )
         simple_model.static_operator = np.eye(2)
-        fop = Array([[0, 1j], [1j, 0]])
+        fop = self.asarray([[0, 1j], [1j, 0]])
         simple_model.rotating_frame = fop
         res = simple_model(2.0)
         expected = (
-            expm(np.array(-2 * fop))
-            @ (Array([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]) - fop)
-            @ expm(np.array(2 * fop))
+            scp.linalg.expm(unp.asarray(-2 * fop))
+            @ (self.asarray([[0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 1.5 + 0j]]) - fop)
+            @ scp.linalg.expm(unp.asarray(2 * fop))
         )
         self.assertAllClose(res, expected)
 
         simple_model.in_frame_basis = True
         res = simple_model(2)
         expected = (
-            np.array([[1, 1], [1, -1]])
+            unp.asarray([[1, 1], [1, -1]])
             / np.sqrt(2)
             @ expected
-            @ np.array([[1, 1], [1, -1]])
+            @ unp.asarray([[1, 1], [1, -1]])
             / np.sqrt(2)
         )
 
@@ -343,21 +349,21 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         and then assigning them in any order.
         """
 
-        paulis = Array([self.X, self.Y, self.Z])
-        extra = Array(np.eye(2))
-        state = Array([0.2, 0.5])
+        paulis = self.asarray([self.X, self.Y, self.Z])
+        extra = self.asarray(np.eye(2))
+        state = self.asarray([0.2, 0.5])
 
         t = 2
 
         sarr = [Signal(1, j / 3) for j in range(3)]
         sigvals = SignalList(sarr)(t)
 
-        farr = Array(np.array([[3j, 2j], [2j, 0]]))
-        farr2 = Array(np.array([[1j, 2], [-2, 3j]]))
-        evals, evect = wrap(np.linalg.eig)(farr)
-        diafarr = np.diag(evals)
+        farr = self.asarray(np.array([[3j, 2j], [2j, 0]]))
+        farr2 = self.asarray(np.array([[1j, 2], [-2, 3j]]))
+        evals, evect = unp.linalg.eig(farr)
+        diafarr = unp.diag(evals)
 
-        paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
+        paulis_in_frame_basis = unp.conjugate(unp.transpose(evect)) @ paulis @ evect
 
         ## Run checks without rotating frame for now
         gm1 = GeneratorModel(operators=paulis, signals=sarr, static_operator=extra)
@@ -376,7 +382,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         t31 = gm3.evaluate(t)
         gm3.in_frame_basis = True
         t32 = gm3.evaluate(t)
-        t_analytical = Array([[0.5, 1.0 + 0.5j], [1.0 - 0.5j, 1.5]])
+        t_analytical = self.asarray([[0.5, 1.0 + 0.5j], [1.0 - 0.5j, 1.5]])
 
         self.assertAllClose(t11, t12)
         self.assertAllClose(t11, t21)
@@ -389,7 +395,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         ts1 = gm1.evaluate_rhs(t, state)
         gm1.in_frame_basis = True
         ts2 = gm1.evaluate_rhs(t, state)
-        ts_analytical = Array([0.6 + 0.25j, 0.95 - 0.1j])
+        ts_analytical = self.asarray([0.6 + 0.25j, 0.95 - 0.1j])
 
         self.assertAllClose(ts1, ts2)
         self.assertAllClose(ts1, ts_analytical)
@@ -422,10 +428,13 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         gm7.rotating_frame = farr2
         gm7.rotating_frame = farr
 
-        t_in_frame_actual = Array(
-            np.diag(np.exp(-t * evals))
-            @ (np.tensordot(sigvals, paulis_in_frame_basis, axes=1) - diafarr)
-            @ np.diag(np.exp(t * evals))
+        t_in_frame_actual = self.asarray(
+            unp.diag(unp.exp(-t * evals))
+            @ (
+                _numpy_multi_dispatch(sigvals, paulis_in_frame_basis, path="tensordot", axes=1)
+                - diafarr
+            )
+            @ unp.diag(unp.exp(t * evals))
         )
         tf1 = gm1.evaluate(t)
         tf2 = gm2.evaluate(t)
@@ -447,29 +456,33 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         """Tests whether evaluate(t) @ state == evaluate_rhs(t,state)
         for analytically known values."""
 
-        paulis = Array([self.X, self.Y, self.Z])
-        extra = Array(np.eye(2))
+        paulis = self.asarray([self.X, self.Y, self.Z])
+        extra = self.asarray(np.eye(2))
 
         t = 2
 
-        farr = Array(np.array([[3j, 2j], [2j, 0]]))
-        evals, evect = wrap(np.linalg.eig)(farr)
-        diafarr = np.diag(evals)
+        farr = self.asarray(np.array([[3j, 2j], [2j, 0]]))
+        evals, evect = unp.linalg.eig(farr)
+        diafarr = unp.diag(evals)
 
-        paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
+        paulis_in_frame_basis = unp.conjugate(unp.transpose(evect)) @ paulis @ evect
         extra_in_basis = evect.T.conj() @ extra @ evect
 
         sarr = [Signal(1, j / 3) for j in range(3)]
         sigvals = SignalList(sarr)(t)
 
-        t_in_frame_actual = Array(
-            np.diag(np.exp(-t * evals))
-            @ (np.tensordot(sigvals, paulis_in_frame_basis, axes=1) + extra_in_basis - diafarr)
-            @ np.diag(np.exp(t * evals))
+        t_in_frame_actual = self.asarray(
+            unp.diag(unp.exp(-t * evals))
+            @ (
+                _numpy_multi_dispatch(sigvals, paulis_in_frame_basis, path="tensordot", axes=1)
+                + extra_in_basis
+                - diafarr
+            )
+            @ unp.diag(unp.exp(t * evals))
         )
 
-        state = Array([0.3, 0.1])
-        state_in_frame_basis = np.conjugate(np.transpose(evect)) @ state
+        state = self.asarray([0.3, 0.1])
+        state_in_frame_basis = unp.conjugate(unp.transpose(evect)) @ state
 
         gm1 = GeneratorModel(
             operators=paulis,
@@ -484,10 +497,10 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
             t_in_frame_actual @ state_in_frame_basis,
         )
 
-        t_not_in_frame_actual = Array(
-            expm(np.array(-t * farr))
-            @ (np.tensordot(sigvals, paulis, axes=1) + extra - farr)
-            @ expm(np.array(t * farr))
+        t_not_in_frame_actual = self.asarray(
+            scp.linalg.expm(unp.asarray(-t * farr))
+            @ (_numpy_multi_dispatch(sigvals, paulis, path="tensordot", axes=1) + extra - farr)
+            @ scp.linalg.expm(unp.asarray(t * farr))
         )
 
         gm2 = GeneratorModel(
@@ -505,7 +518,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         gm1.rotating_frame = None
         gm2.rotating_frame = None
 
-        t_expected = np.tensordot(sigvals, paulis, axes=1) + extra
+        t_expected = _numpy_multi_dispatch(sigvals, paulis, path="tensordot", axes=1) + extra
 
         state_in_frame_basis = state
 
@@ -544,7 +557,7 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
             )
 
         farr = rand.uniform(-1, 1, (n, n))
-        farr = farr - np.conjugate(np.transpose(farr))
+        farr = farr - np.conjugate(unp.transpose(farr))
 
         gm.rotating_frame = farr
 
@@ -578,7 +591,9 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         frame_op = -1j * (self.Z + 1.232 * self.Y)
         static_model.rotating_frame = frame_op
         t = 1.2312
-        expected = expm(-frame_op.data * t) @ (self.X - frame_op) @ expm(frame_op.data * t)
+        expected = (
+            scp.linalg.expm(-frame_op * t) @ (self.X - frame_op) @ scp.linalg.expm(frame_op * t)
+        )
         self.assertAllClose(expected, static_model(t))
 
     def test_get_operators_when_None(self):
@@ -588,20 +603,20 @@ class TestGeneratorModel(QiskitDynamicsTestCase):
         self.assertTrue(model.operators is None)
 
 
-class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
+class TestGeneratorModelJax(TestGeneratorModel):
     """Jax version of TestGeneratorModel tests."""
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        self.jit_wrap(self.basic_model.evaluate)(1.0)
-        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+        jit(self.basic_model.evaluate)(1.0)
+        jit(self.basic_model.evaluate_rhs)(1, jnp.array([0.2, 0.4]))
 
-        self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+        self.basic_model.rotating_frame = jnp.array([[3j, 2j], [2j, 0]])
 
-        self.jit_wrap(self.basic_model.evaluate)(1)
-        self.jit_wrap(self.basic_model.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+        jit(self.basic_model.evaluate)(1)
+        jit(self.basic_model.evaluate_rhs)(1, jnp.array([0.2, 0.4]))
 
         self.basic_model.rotating_frame = None
 
@@ -610,23 +625,28 @@ class TestGeneratorModelJax(TestGeneratorModel, TestJaxBase):
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
         self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
-        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, jnp.array([0.2, 0.4]))
 
-        self.basic_model.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+        self.basic_model.rotating_frame = jnp.array([[3j, 2j], [2j, 0]])
 
         self.jit_grad_wrap(self.basic_model.evaluate)(1.0)
-        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, Array(np.array([0.2, 0.4])))
+        self.jit_grad_wrap(self.basic_model.evaluate_rhs)(1.0, jnp.array([0.2, 0.4]))
 
         self.basic_model.rotating_frame = None
 
 
-class TestGeneratorModelSparse(QiskitDynamicsTestCase):
+test_array_backends(TestGeneratorModel, array_libraries=["numpy", "array_nunpy"])
+test_array_backends(TestGeneratorModelJax, array_libraries=["jax"])
+
+
+class TestGeneratorModelSparse:
     """Sparse-mode specific tests."""
 
     def setUp(self):
-        self.X = Operator.from_label("X").data
-        self.Y = Operator.from_label("Y").data
-        self.Z = Operator.from_label("Z").data
+        """Setup Pauli operators"""
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
 
     def test_switch_modes_and_evaluate(self):
         """Test construction of a model, switching modes, and evaluating."""
@@ -649,7 +669,11 @@ class TestGeneratorModelSparse(QiskitDynamicsTestCase):
 
         # test non-diagonal frame
         model.rotating_frame = self.Z
-        expected = expm(1j * self.Z) @ ((1 + 1j) * self.Z + self.X) @ expm(-1j * self.Z)
+        expected = (
+            scp.linalg.expm(1j * self.Z)
+            @ ((1 + 1j) * self.Z + self.X)
+            @ scp.linalg.expm(-1j * self.Z)
+        )
         val = model(1.0)
         self.assertAllClose(val, expected)
 
@@ -670,23 +694,27 @@ class TestGeneratorModelSparse(QiskitDynamicsTestCase):
 
         model.evaluation_mode = "sparse"
 
-        expected = expm(1j * self.Z) @ ((1 + 1j) * self.Z + self.X) @ expm(-1j * self.Z)
+        expected = (
+            scp.linalg.expm(1j * self.Z)
+            @ ((1 + 1j) * self.Z + self.X)
+            @ scp.linalg.expm(-1j * self.Z)
+        )
         val = model(1.0)
         self.validate_generator_eval(val, expected)
 
     def validate_generator_eval(self, op, expected):
         """Validate that op is sparse and agrees with expected."""
         self.assertTrue(issparse(op))
-        self.assertAllClose(to_array(op), to_array(expected))
+        self.assertAllClose(unp.to_dense(op), unp.to_dense(expected))
 
 
-class TestGeneratorModelSparseJax(TestGeneratorModelSparse, TestJaxBase):
+class TestGeneratorModelSparseJax(TestGeneratorModelSparse):
     """JAX version of sparse model tests."""
 
     def validate_generator_eval(self, op, expected):
         """Validate that op is sparse and agrees with expected."""
         self.assertTrue(type(op).__name__ == "BCOO")
-        self.assertAllClose(to_array(op), to_array(expected))
+        self.assertAllClose(unp.to_dense(op), unp.to_dense(expected))
 
     def test_jit_grad(self):
         """Test jitting and gradding."""
@@ -712,7 +740,11 @@ class TestGeneratorModelSparseJax(TestGeneratorModelSparse, TestJaxBase):
         grad_jit_func(1.2)
 
 
-class Testtransfer_operator_functions(QiskitDynamicsTestCase):
+test_array_backends(TestGeneratorModelSparse, array_libraries=["numpy", "array_nunpy"])
+test_array_backends(TestGeneratorModelSparseJax, array_libraries=["jax"])
+
+
+class Testtransfer_operator_functions:
     """Tests for transfer_static_operator_between_frames and transfer_operators_between_frames."""
 
     def test_all_None(self):
@@ -727,15 +759,15 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
     def test_array_inputs_diagonal_frame(self):
         """Test correct handling when operators are arrays for diagonal frames."""
 
-        static_operator = -1j * np.array([[1.0, 0.0], [0.0, -1.0]])
-        operators = -1j * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]])
-        new_frame = -1j * np.array([1.0, -1.0])
+        static_operator = -1j * self.asarray([[1.0, 0.0], [0.0, -1.0]])
+        operators = -1j * self.asarray([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]])
+        new_frame = -1j * self.asarray([1.0, -1.0])
 
         out_static = transfer_static_operator_between_frames(static_operator, new_frame=new_frame)
         out_operators = transfer_operators_between_frames(operators, new_frame=new_frame)
 
-        self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
-        self.assertTrue(isinstance(out_operators, (np.ndarray, Array)))
+        self.assertTrue(isinstance(out_static, ArrayLike))
+        self.assertTrue(isinstance(out_operators, ArrayLike))
 
         self.assertAllClose(out_operators, operators)
         self.assertAllClose(out_static, np.zeros((2, 2)))
@@ -764,14 +796,14 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         new_frame = RotatingFrame(new_frame - new_frame.conj().transpose())
 
         out_static = transfer_static_operator_between_frames(
-            Array(static_operator), new_frame=new_frame, old_frame=old_frame
+            self.asarray(static_operator), new_frame=new_frame, old_frame=old_frame
         )
         out_operators = transfer_operators_between_frames(
-            Array(operators), new_frame=new_frame, old_frame=old_frame
+            self.asarray(operators), new_frame=new_frame, old_frame=old_frame
         )
 
-        self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
-        self.assertTrue(isinstance(out_operators, (np.ndarray, Array)))
+        self.assertTrue(isinstance(out_static, ArrayLike))
+        self.assertTrue(isinstance(out_operators, ArrayLike))
 
         expected_static = new_frame.operator_into_frame_basis(
             (old_frame.operator_out_of_frame_basis(static_operator) + old_frame.frame_operator)
@@ -786,8 +818,9 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         self.assertAllClose(out_operators, expected_operators)
 
 
-class Testtransfer_operator_functionsJax(Testtransfer_operator_functions, TestJaxBase):
-    """JAX version of Testtransfer_operator_functions."""
+test_array_backends(
+    Testtransfer_operator_functions, array_libraries=["numpy", "array_nunpy", "jax", "array_jax"]
+)
 
 
 class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
@@ -842,14 +875,14 @@ class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
             operators, new_frame=new_frame, old_frame=old_frame
         )
 
-        self.assertTrue(isinstance(out_static, (np.ndarray, Array)))
+        self.assertTrue(isinstance(out_static, np.ndarray))
         self.assertTrue(
-            isinstance(out_operators, list) and isinstance(out_operators[0], (np.ndarray, Array))
+            isinstance(out_operators, list) and isinstance(out_operators[0], np.ndarray)
         )
 
         expected_ops = [U @ (op @ Uadj) for op in operators]
         expected_static = (
-            U @ to_array(static_operator) @ Uadj + (-1j * old_frame) - np.diag(new_frame)
+            U @ unp.to_dense(static_operator) @ Uadj + (-1j * old_frame) - np.diag(new_frame)
         )
 
         self.assertAllClose(out_operators, expected_ops)

@@ -19,7 +19,6 @@ from abc import ABC, abstractmethod
 from typing import Tuple, Union, List, Optional
 from warnings import warn
 from copy import copy
-import numpy as np
 from scipy.sparse import csr_matrix, issparse, diags
 
 from qiskit import QiskitError
@@ -31,9 +30,9 @@ from qiskit_dynamics.models.operator_collections import (
     JAXSparseOperatorCollection,
 )
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY_ALIAS
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 from .rotating_frame import RotatingFrame
 
 try:
@@ -176,6 +175,7 @@ class GeneratorModel(BaseGeneratorModel):
             )
 
         # initialize internal operator representation
+
         self._operator_collection = construct_operator_collection(
             evaluation_mode=evaluation_mode, static_operator=static_operator, operators=operators
         )
@@ -252,7 +252,6 @@ class GeneratorModel(BaseGeneratorModel):
         )
 
         self._rotating_frame = new_frame
-
         self._operator_collection = construct_operator_collection(
             self.evaluation_mode, new_static_operator, new_operators
         )
@@ -453,7 +452,7 @@ def transfer_static_operator_between_frames(
     new_frame = RotatingFrame(new_frame)
     old_frame = RotatingFrame(old_frame)
 
-    static_operator = to_numeric_matrix_type(static_operator)
+    static_operator = unp.to_numeric_matrix_type(static_operator)
 
     # transform out of old frame basis, and add the old frame operator
     if static_operator is not None:
@@ -473,7 +472,7 @@ def transfer_static_operator_between_frames(
                     static_operator = csr_matrix(old_frame.frame_operator)
             else:
                 if old_frame.frame_operator.ndim == 1:
-                    static_operator = np.diag(old_frame.frame_operator)
+                    static_operator = unp.diag(old_frame.frame_operator)
                 else:
                     static_operator = old_frame.frame_operator
     # transform into new frame basis, and add the new frame operator
@@ -490,7 +489,7 @@ def transfer_static_operator_between_frames(
             if issparse(static_operator):
                 static_operator = -diags(new_frame.frame_diag, format="csr")
             else:
-                static_operator = -np.diag(new_frame.frame_diag)
+                static_operator = -unp.diag(new_frame.frame_diag)
 
     return static_operator
 
@@ -514,7 +513,7 @@ def transfer_operators_between_frames(
     new_frame = RotatingFrame(new_frame)
     old_frame = RotatingFrame(old_frame)
 
-    operators = to_numeric_matrix_type(operators)
+    operators = unp.to_numeric_matrix_type(operators)
 
     # transform out of old frame basis
     if operators is not None:
@@ -553,12 +552,15 @@ def construct_operator_collection(
     Raises:
         NotImplementedError: If the ``evaluation_mode`` is invalid.
     """
-
+    is_static_operator_jax = any(
+        lib in ("jax", "jax_sparse") for lib in DYNAMICS_NUMPY_ALIAS.infer_libs(static_operator)
+    )
+    is_operators_jax = any(
+        lib in ("jax", "jax_sparse") for lib in DYNAMICS_NUMPY_ALIAS.infer_libs(operators)
+    )
     if evaluation_mode == "dense":
         return DenseOperatorCollection(static_operator=static_operator, operators=operators)
-    if evaluation_mode == "sparse" and DYNAMICS_NUMPY_ALIAS.infer_libs(static_operator) == (
-        "jax_sparse",
-    ):
+    if evaluation_mode == "sparse" and (is_static_operator_jax or is_operators_jax):
         # warn that sparse mode when using JAX is primarily recommended for use on CPU
         if jax.default_backend() != "cpu":
             warn(
