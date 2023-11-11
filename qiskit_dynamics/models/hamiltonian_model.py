@@ -16,7 +16,6 @@ Hamiltonian models module.
 """
 
 from typing import Union, List, Optional
-import numpy as np
 from scipy.sparse import csr_matrix, issparse
 from scipy.sparse.linalg import norm as spnorm
 
@@ -24,7 +23,8 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_numeric_matrix_type, to_array
+from qiskit_dynamics.arraylias import ArrayLike
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 from .generator_model import (
     GeneratorModel,
     transfer_static_operator_between_frames,
@@ -64,10 +64,10 @@ class HamiltonianModel(GeneratorModel):
 
     def __init__(
         self,
-        static_operator: Optional[Array] = None,
+        static_operator: ArrayLike = None,
         operators: Optional[List[Operator]] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[Operator, ArrayLike, RotatingFrame]] = None,
         in_frame_basis: bool = False,
         evaluation_mode: str = "dense",
         validate: bool = True,
@@ -95,8 +95,8 @@ class HamiltonianModel(GeneratorModel):
         """
 
         # verify operators are Hermitian, and if so instantiate
-        operators = to_numeric_matrix_type(operators)
-        static_operator = to_numeric_matrix_type(static_operator)
+        operators = unp.to_numeric_matrix_type(operators)
+        static_operator = unp.to_numeric_matrix_type(static_operator)
 
         if validate:
             if (operators is not None) and (not is_hermitian(operators)):
@@ -126,7 +126,9 @@ class HamiltonianModel(GeneratorModel):
         return super().rotating_frame
 
     @rotating_frame.setter
-    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]) -> Array:
+    def rotating_frame(
+        self, rotating_frame: Union[Operator, ArrayLike, RotatingFrame]
+    ) -> ArrayLike:
         new_frame = RotatingFrame(rotating_frame)
 
         # convert static operator to new frame setup
@@ -187,7 +189,7 @@ class HamiltonianModel(GeneratorModel):
 
 
 def is_hermitian(
-    operators: Union[Array, csr_matrix, List[csr_matrix], "BCOO"], tol: Optional[float] = 1e-10
+    operators: Union[ArrayLike, List[csr_matrix]], tol: Optional[float] = 1e-10
 ) -> bool:
     """Validate that operators are Hermitian.
 
@@ -202,19 +204,22 @@ def is_hermitian(
     Raises:
         QiskitError: If an unexpeted type is received.
     """
-    if isinstance(operators, (np.ndarray, Array)):
-        adj = None
-        if operators.ndim == 2:
-            adj = np.transpose(np.conjugate(operators))
-        elif operators.ndim == 3:
-            adj = np.transpose(np.conjugate(operators), (0, 2, 1))
-        return np.linalg.norm(adj - operators) < tol
-    elif issparse(operators):
+    if issparse(operators):
         return spnorm(operators - operators.conj().transpose()) < tol
     elif isinstance(operators, list) and issparse(operators[0]):
         return all(spnorm(op - op.conj().transpose()) < tol for op in operators)
     elif type(operators).__name__ == "BCOO":
         # fall back on array case for BCOO
-        return is_hermitian(to_array(operators))
+        return is_hermitian(unp.to_dense(operators))
+    elif isinstance(operators, ArrayLike):
+        try:
+            adj = None
+            if operators.ndim == 2:
+                adj = unp.transpose(unp.conjugate(operators))
+            elif operators.ndim == 3:
+                adj = unp.transpose(unp.conjugate(operators), (0, 2, 1))
+            return unp.linalg.norm(adj - operators) < tol
+        except AttributeError:
+            pass
 
     raise QiskitError("is_hermitian got an unexpected type.")

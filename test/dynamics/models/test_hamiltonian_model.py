@@ -11,7 +11,11 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
+# Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
+# pylint: disable=no-member
+
 """tests for qiskit_dynamics.models.HamiltonianModel"""
+from functools import partial
 
 import numpy as np
 
@@ -24,10 +28,19 @@ from qiskit_dynamics.models import HamiltonianModel
 from qiskit_dynamics.models.hamiltonian_model import is_hermitian
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_BCOO, to_csr
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from qiskit_dynamics.arraylias import ArrayLike
+from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias import DYNAMICS_SCIPY as scp
+from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch
+from ..common import QiskitDynamicsTestCase, test_array_backends
+
+try:
+    from jax import jit
+except ImportError:
+    pass
 
 
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
 class TestHamiltonianModelValidation(QiskitDynamicsTestCase):
     """Test validation handling of HamiltonianModel."""
 
@@ -35,52 +48,41 @@ class TestHamiltonianModelValidation(QiskitDynamicsTestCase):
         """Test raising error if operators are not Hermitian."""
 
         with self.assertRaisesRegex(QiskitError, "operators must be Hermitian."):
-            HamiltonianModel(operators=[np.array([[0.0, 1.0], [0.0, 0.0]])])
+            HamiltonianModel(operators=[self.asarray([[0.0, 1.0], [0.0, 0.0]])])
 
-    def test_operators_csr_not_hermitian(self):
+    def test_operators_sparse_not_hermitian(self):
         """Test raising error if operators are not Hermitian."""
 
         with self.assertRaisesRegex(QiskitError, "operators must be Hermitian."):
-            HamiltonianModel(operators=self.to_sparse([[[0.0, 1.0], [0.0, 0.0]]]))
+            HamiltonianModel(operators=unp.to_sparse(self.asarray([[[0.0, 1.0], [0.0, 0.0]]])))
 
     def test_static_operator_not_hermitian(self):
         """Test raising error if static_operator is not Hermitian."""
 
         with self.assertRaisesRegex(QiskitError, "static_operator must be Hermitian."):
             HamiltonianModel(
-                operators=[np.array([[0.0, 1.0], [1.0, 0.0]])],
-                static_operator=np.array([[0.0, 1.0], [0.0, 0.0]]),
+                operators=[self.asarray([[0.0, 1.0], [1.0, 0.0]])],
+                static_operator=self.asarray([[0.0, 1.0], [0.0, 0.0]]),
             )
 
     def test_validate_false(self):
         """Verify setting validate=False avoids error raising."""
 
         ham_model = HamiltonianModel(
-            operators=[np.array([[0.0, 1.0], [0.0, 0.0]])], signals=[1.0], validate=False
+            operators=[self.asarray([[0.0, 1.0], [0.0, 0.0]])], signals=[1.0], validate=False
         )
 
-        self.assertAllClose(ham_model(1.0), -1j * np.array([[0.0, 1.0], [0.0, 0.0]]))
-
-    def to_sparse(self, ops):
-        """Conversion of an operator or list of operators to the correct
-        sparse format for this class."""
-        return to_csr(ops)
+        self.assertAllClose(ham_model(1.0), -1j * self.asarray([[0.0, 1.0], [0.0, 0.0]]))
 
 
-class TestHamiltonianModelValidationJax(TestHamiltonianModelValidation, TestJaxBase):
-    """Test HamiltonianModel validation with JAX backend."""
-
-    def to_sparse(self, ops):
-        return to_BCOO(ops)
-
-
-class TestHamiltonianModel(QiskitDynamicsTestCase):
+class TestHamiltonianModel:
     """Tests for HamiltonianModel."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+        """Setup HamiltonianModel"""
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
 
         # define a basic hamiltonian
         w = 2.0
@@ -101,7 +103,7 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         modifies frame handling.
 
         Args:
-            frame_operator (Array): now assumed to be a Hermitian operator H, with the
+            frame_operator (ArrayLike): now assumed to be a Hermitian operator H, with the
                             frame being entered being F=-1j * H
             t (float): time of frame transformation
         """
@@ -110,16 +112,16 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
         # convert to 2d array
         if isinstance(frame_operator, Operator):
-            frame_operator = Array(frame_operator.data)
-        if isinstance(frame_operator, Array) and frame_operator.ndim == 1:
-            frame_operator = np.diag(frame_operator)
+            frame_operator = self.asarray(frame_operator.data)
+        if isinstance(frame_operator, ArrayLike) and frame_operator.ndim == 1:
+            frame_operator = unp.diag(frame_operator)
 
         value = self.basic_hamiltonian(t) / -1j
 
         twopi = 2 * np.pi
 
         # frame is F=-1j * H, and need to compute exp(-F * t)
-        U = expm(1j * np.array(frame_operator) * t)
+        U = expm(1j * unp.asarray(frame_operator) * t)
 
         # drive coefficient
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
@@ -138,8 +140,8 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         set up basic hamiltonian.
         """
 
-        self._basic_frame_evaluate_test(Array([1.0, -1.0]), 1.123)
-        self._basic_frame_evaluate_test(Array([1.0, -1.0]), np.pi)
+        self._basic_frame_evaluate_test(self.asarray([1.0, -1.0]), 1.123)
+        self._basic_frame_evaluate_test(self.asarray([1.0, -1.0]), np.pi)
 
     def test_non_diag_frame_operator_basic_hamiltonian(self):
         """Test setting a non-diagonal frame operator for the internally
@@ -155,14 +157,14 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         value = self.basic_hamiltonian(t) / -1j
         twopi = 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        expected = twopi * self.w * self.Z.data / 2 + twopi * d_coeff * self.X.data / 2
+        expected = twopi * self.w * self.Z / 2 + twopi * d_coeff * self.X / 2
 
         self.assertAllClose(value, expected)
 
     def test_evaluate_in_frame_basis_basic_hamiltonian(self):
         """Test generator evaluation in frame basis in the basic_hamiltonian."""
 
-        frame_op = (self.X + 0.2 * self.Y + 0.1 * self.Z).data
+        frame_op = self.X + 0.2 * self.Y + 0.1 * self.Z
 
         # enter the frame given by the -1j * X
         self.basic_hamiltonian.rotating_frame = frame_op
@@ -170,22 +172,20 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
 
         # get the frame basis used in model. Note that the Frame object
         # orders the basis according to the ordering of eigh
-        _, U = np.linalg.eigh(frame_op)
+        _, U = unp.linalg.eigh(frame_op)
 
         t = 3.21412
         value = self.basic_hamiltonian(t) / -1j
 
         # compose the frame basis transformation with the exponential
         # frame rotation (this will be multiplied on the right)
-        U = expm(-1j * frame_op * t) @ U
+        U = scp.linalg.expm(-1j * frame_op * t) @ U
         Uadj = U.conj().transpose()
 
         twopi = 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
         expected = (
-            Uadj
-            @ (twopi * self.w * self.Z.data / 2 + twopi * d_coeff * self.X.data / 2 - frame_op)
-            @ U
+            Uadj @ (twopi * self.w * self.Z / 2 + twopi * d_coeff * self.X / 2 - frame_op) @ U
         )
 
         self.assertAllClose(value, expected)
@@ -202,19 +202,19 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        frame_op = Array(rand_op + rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op + rand_op.conj().transpose())
 
         # random hermitian operators
         randoperators = rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_terms, dim, dim)
         )
-        randoperators = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
+        randoperators = self.asarray(randoperators + randoperators.conj().transpose([0, 2, 1]))
 
         rand_coeffs = rng.uniform(low=-b, high=b, size=(num_terms)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_terms)
         )
-        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
-        rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_carriers = self.asarray(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_phases = self.asarray(rng.uniform(low=-b, high=b, size=(num_terms)))
 
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
@@ -227,19 +227,19 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        frame_op = Array(rand_op + rand_op.conj().transpose())
+        frame_op = self.asarray(rand_op + rand_op.conj().transpose())
 
         # random hermitian operators
         randoperators = rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_terms, dim, dim)
         )
-        randoperators = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
+        randoperators = self.asarray(randoperators + randoperators.conj().transpose([0, 2, 1]))
 
         rand_coeffs = rng.uniform(low=-b, high=b, size=(num_terms)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_terms)
         )
-        rand_carriers = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
-        rand_phases = Array(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_carriers = self.asarray(rng.uniform(low=-b, high=b, size=(num_terms)))
+        rand_phases = self.asarray(rng.uniform(low=-b, high=b, size=(num_terms)))
 
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
@@ -263,9 +263,9 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         value = model(1.0) / -1j
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
         expected = (
-            expm(1j * np.array(frame_op))
-            @ np.tensordot(coeffs, operators, axes=1)
-            @ expm(-1j * np.array(frame_op))
+            scp.linalg.expm(1j * self.asarray(frame_op))
+            @ _numpy_multi_dispatch(coeffs, operators, path="tensordot", axes=1)
+            @ scp.linalg.expm(-1j * self.asarray(frame_op))
             - frame_op
         )
         self.assertAllClose(model._signals(1), coeffs)
@@ -283,24 +283,28 @@ class TestHamiltonianModel(QiskitDynamicsTestCase):
         frame_op = -1j * (self.Z + 1.232 * self.Y)
         static_model.rotating_frame = frame_op
         t = 1.2312
-        expected = expm(-frame_op.data * t) @ (-1j * self.X - frame_op) @ expm(frame_op.data * t)
+        expected = (
+            scp.linalg.expm(-frame_op * t)
+            @ (-1j * self.X - frame_op)
+            @ scp.linalg.expm(frame_op * t)
+        )
         self.assertAllClose(expected, static_model(t))
 
 
-class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
+class TestHamiltonianModelJax(TestHamiltonianModel):
     """Jax version of TestHamiltonianModel tests."""
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        self.jit_wrap(self.basic_hamiltonian.evaluate)(1)
-        self.jit_wrap(self.basic_hamiltonian.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+        jit(self.basic_hamiltonian.evaluate)(1)
+        jit(self.basic_hamiltonian.evaluate_rhs)(1, self.asarray([0.2, 0.4]))
 
-        self.basic_hamiltonian.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
+        self.basic_hamiltonian.rotating_frame = self.asarray([[3j, 2j], [2j, 0]])
 
-        self.jit_wrap(self.basic_hamiltonian.evaluate)(1)
-        self.jit_wrap(self.basic_hamiltonian.evaluate_rhs)(1, Array(np.array([0.2, 0.4])))
+        jit(self.basic_hamiltonian.evaluate)(1)
+        jit(self.basic_hamiltonian.evaluate_rhs)(1, self.asarray([0.2, 0.4]))
 
         self.basic_hamiltonian.rotating_frame = None
 
@@ -319,22 +323,33 @@ class TestHamiltonianModelJax(TestHamiltonianModel, TestJaxBase):
         self.basic_hamiltonian.rotating_frame = None
 
 
-class Testis_hermitian(QiskitDynamicsTestCase):
+test_array_backends(TestHamiltonianModel, array_libraries=["numpy", "array_nunpy"])
+test_array_backends(TestHamiltonianModelJax, array_libraries=["jax"])
+
+
+@partial(test_array_backends, array_libraries=["numpy", "array_numpy"])
+class Testis_hermitian:
     """Test is_hermitian validation function."""
 
     def test_2d_array(self):
         """Test 2d array case."""
-        self.assertTrue(is_hermitian(Array([[1.0, 0.0], [0.0, 1.0]])))
-        self.assertFalse(is_hermitian(Array([[0.0, 1.0], [0.0, 0.0]])))
-        self.assertFalse(is_hermitian(Array([[0.0, 1j], [0.0, 0.0]])))
-        self.assertTrue(is_hermitian(Array([[0.0, 1j], [-1j, 0.0]])))
+        self.assertTrue(is_hermitian(self.asarray([[1.0, 0.0], [0.0, 1.0]])))
+        self.assertFalse(is_hermitian(self.asarray([[0.0, 1.0], [0.0, 0.0]])))
+        self.assertFalse(is_hermitian(self.asarray([[0.0, 1j], [0.0, 0.0]])))
+        self.assertTrue(is_hermitian(self.asarray([[0.0, 1j], [-1j, 0.0]])))
 
     def test_3d_array(self):
         """Test 3d array case."""
-        self.assertTrue(is_hermitian(Array([[[1.0, 0.0], [0.0, 1.0]]])))
-        self.assertFalse(is_hermitian(Array([[[0.0, 1.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 0.0]]])))
-        self.assertFalse(is_hermitian(Array([[[0.0, 1j], [0.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]])))
-        self.assertTrue(is_hermitian(Array([[[0.0, 1j], [-1j, 0.0]], [[0.0, 1.0], [1.0, 0.0]]])))
+        self.assertTrue(is_hermitian(self.asarray([[[1.0, 0.0], [0.0, 1.0]]])))
+        self.assertFalse(
+            is_hermitian(self.asarray([[[0.0, 1.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 0.0]]]))
+        )
+        self.assertFalse(
+            is_hermitian(self.asarray([[[0.0, 1j], [0.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]]))
+        )
+        self.assertTrue(
+            is_hermitian(self.asarray([[[0.0, 1j], [-1j, 0.0]], [[0.0, 1.0], [1.0, 0.0]]]))
+        )
 
     def test_csr_matrix(self):
         """Test csr_matrix case."""
@@ -363,12 +378,13 @@ class Testis_hermitian(QiskitDynamicsTestCase):
         )
 
 
-class Testis_hermitianBCOO(QiskitDynamicsTestCase, TestJaxBase):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testis_hermitianBCOO:
     """Test is_hermitian for jax BCOO case."""
 
     def test_2d_cases(self):
         """Test BCOO 2d cases."""
-        self.assertTrue(is_hermitian(to_BCOO([[1.0, 0.0], [0.0, 1.0]])))
-        self.assertFalse(is_hermitian(to_BCOO([[0.0, 1.0], [0.0, 0.0]])))
-        self.assertFalse(is_hermitian(to_BCOO([[0.0, 1j], [0.0, 0.0]])))
-        self.assertTrue(is_hermitian(to_BCOO([[0.0, 1j], [-1j, 0.0]])))
+        self.assertTrue(is_hermitian(unp.to_sparse(self.asarray([[1.0, 0.0], [0.0, 1.0]]))))
+        self.assertFalse(is_hermitian(unp.to_sparse(self.asarray([[0.0, 1.0], [0.0, 0.0]]))))
+        self.assertFalse(is_hermitian(unp.to_sparse(self.asarray([[0.0, 1j], [0.0, 0.0]]))))
+        self.assertTrue(is_hermitian(unp.to_sparse(self.asarray([[0.0, 1j], [-1j, 0.0]]))))
