@@ -25,7 +25,7 @@ def register_asarray(alias):
 
     @alias.register_default(path="asarray")
     def _(arr):
-        return arr
+        return np.asarray(arr)
 
     @alias.register_function(lib="scipy_sparse", path="asarray")
     def _(arr):
