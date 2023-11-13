@@ -27,7 +27,7 @@ def register_todense(alias):
     def _(arr):
         if arr is None:
             return None
-        return arr
+        return np.asarray(arr)
 
     @alias.register_function(lib="numpy", path="to_dense")
     def _(arr):
