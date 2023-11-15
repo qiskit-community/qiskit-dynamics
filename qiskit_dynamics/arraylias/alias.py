@@ -57,9 +57,6 @@ except ImportError:
 
 # register custom functions for numpy_alias
 register_asarray(alias=DYNAMICS_NUMPY_ALIAS)
-register_todense(alias=DYNAMICS_NUMPY_ALIAS)
-register_to_numeric_matrix_type(alias=DYNAMICS_NUMPY_ALIAS)
-register_tosparse(alias=DYNAMICS_NUMPY_ALIAS)
 register_matmul(alias=DYNAMICS_NUMPY_ALIAS)
 register_multiply(alias=DYNAMICS_NUMPY_ALIAS)
 register_rmatmul(alias=DYNAMICS_NUMPY_ALIAS)
