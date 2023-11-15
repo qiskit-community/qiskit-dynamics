@@ -20,6 +20,10 @@ Register multiply functions to alias.
 def register_multiply(alias):
     """Register multiply functions to each array library."""
 
+    @alias.register_fallback(path="multiply")
+    def _(x, y):
+        return x * y
+
     @alias.register_function(lib="scipy_sparse", path="multiply")
     def _(x, y):
         return x.multiply(y)
@@ -36,7 +40,3 @@ def register_multiply(alias):
 
     except ImportError:
         pass
-
-    @alias.register_fallback(path="multiply")
-    def _(x, y):
-        return x * y

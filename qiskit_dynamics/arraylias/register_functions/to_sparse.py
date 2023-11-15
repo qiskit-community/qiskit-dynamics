@@ -32,6 +32,10 @@ def register_tosparse(alias):
             return arr.data
         return arr
 
+    @alias.register_fallback(path="to_sparse")
+    def _(arr):
+        return csr_matrix(arr)
+
     @alias.register_function(lib="numpy", path="to_sparse")
     def _(arr):
         if arr.ndim < 3:
@@ -55,7 +59,3 @@ def register_tosparse(alias):
     @alias.register_function(lib="scipy_sparse", path="to_sparse")
     def _(arr):
         return arr
-
-    @alias.register_fallback(path="to_sparse")
-    def _(arr):
-        return csr_matrix(arr)

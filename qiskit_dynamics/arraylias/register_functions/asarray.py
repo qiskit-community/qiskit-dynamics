@@ -27,6 +27,10 @@ def register_asarray(alias):
     def _(arr):
         return np.asarray(arr)
 
+    @alias.register_fallback(path="asarray")
+    def _(arr):
+        return np.asarray(arr)
+
     @alias.register_function(lib="scipy_sparse", path="asarray")
     def _(arr):
         if issparse(arr):
@@ -44,7 +48,3 @@ def register_asarray(alias):
 
     except ImportError:
         pass
-
-    @alias.register_fallback(path="asarray")
-    def _(arr):
-        return np.asarray(arr)

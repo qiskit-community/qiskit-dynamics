@@ -29,6 +29,10 @@ def register_todense(alias):
             return None
         return np.asarray(arr)
 
+    @alias.register_fallback(path="to_dense")
+    def _(arr):
+        return np.asarray(arr)
+
     @alias.register_function(lib="numpy", path="to_dense")
     def _(arr):
         return arr
@@ -49,7 +53,3 @@ def register_todense(alias):
     @alias.register_function(lib="scipy_sparse", path="to_dense")
     def _(arr):
         return arr.toarray()
-
-    @alias.register_fallback(path="to_dense")
-    def _(arr):
-        return np.asarray(arr)

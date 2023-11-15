@@ -31,6 +31,10 @@ def register_to_numeric_matrix_type(alias):
             return alias().to_sparse(arr.data)
         return arr
 
+    @alias.register_fallback(path="to_numeric_matrix_type")
+    def _(arr):
+        return arr
+
     @alias.register_function(lib="numpy", path="to_numeric_matrix_type")
     def _(arr):
         return arr
@@ -49,9 +53,5 @@ def register_to_numeric_matrix_type(alias):
         pass
 
     @alias.register_function(lib="scipy_sparse", path="to_numeric_matrix_type")
-    def _(arr):
-        return arr
-
-    @alias.register_fallback(path="to_numeric_matrix_type")
     def _(arr):
         return arr
