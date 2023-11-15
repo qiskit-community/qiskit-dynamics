@@ -31,9 +31,6 @@ from .register_functions import (
     register_matmul,
     register_multiply,
     register_rmatmul,
-    register_todense,
-    register_to_numeric_matrix_type,
-    register_tosparse,
 )
 
 # global NumPy and SciPy aliases
