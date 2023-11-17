@@ -23,7 +23,6 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from scipy.sparse import csr_matrix
 from qiskit_dynamics.models.rotating_frame import RotatingFrame
-from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY_ALIAS
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 from ..common import JAXTestBase, NumpyTestBase, test_array_backends
@@ -100,7 +99,6 @@ class TestRotatingFrame:
 
         ops = [csr_matrix([[0.0, 1.0], [1.0, 0.0]]), csr_matrix([[1.0, 0.0], [0.0, -1.0]])]
         rotating_frame = RotatingFrame(self.asarray([[0.0, 1.0], [1.0, 0.0]]))
-
         val = rotating_frame.operator_into_frame_basis(ops)
         U = rotating_frame.frame_basis
         Uadj = rotating_frame.frame_basis_adjoint
@@ -566,19 +564,19 @@ class TestRotatingFrameTypeHandling:
         y = self.asarray([1.0, 1j])
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertTrue(isinstance(out, ArrayLike))
+        self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertTrue(isinstance(out, ArrayLike))
+        self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
 
         t = 100.12498
         y = self.asarray(np.eye(2))
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertTrue(isinstance(out, ArrayLike))
+        self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertTrue(isinstance(out, ArrayLike))
+        self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
 
 
 @partial(test_array_backends, array_libraries=["jax"])

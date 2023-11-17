@@ -143,7 +143,7 @@ class RotatingFrame:
         Returns:
             ArrayLike: The state in the frame basis.
         """
-        y = unp.to_numeric_matrix_type(y)
+        y = unp.asarray(y)
         if self.frame_basis_adjoint is None:
             return y
 
@@ -158,7 +158,7 @@ class RotatingFrame:
         Returns:
             Array: The state in the frame basis.
         """
-        y = unp.to_numeric_matrix_type(y)
+        y = unp.asarray(y)
         if self.frame_basis is None:
             return y
 
@@ -182,7 +182,7 @@ class RotatingFrame:
             Array: The operator in the frame basis.
         """
         if convert_type:
-            op = unp.to_numeric_matrix_type(op)
+            op = unp.asarray(op)
 
         if self.frame_basis is None or op is None:
             return op
@@ -210,7 +210,7 @@ class RotatingFrame:
             ArrayLike: The operator in the frame basis.
         """
         if convert_type:
-            op = unp.to_numeric_matrix_type(op)
+            op = unp.asarray(op)
 
         if self.frame_basis is None or op is None:
             return op
@@ -239,7 +239,7 @@ class RotatingFrame:
         Returns:
             ArrayLike: The state in the rotating frame.
         """
-        y = unp.to_numeric_matrix_type(y)
+        y = unp.asarray(y)
         if self._frame_operator is None:
             return y
 
@@ -314,8 +314,9 @@ class RotatingFrame:
         Returns:
             Array of the newly conjugated operator.
         """
-        operator = unp.to_numeric_matrix_type(operator)
-        op_to_add_in_fb = unp.to_numeric_matrix_type(op_to_add_in_fb)
+        operator = unp.asarray(operator)
+        if op_to_add_in_fb is not None:
+            op_to_add_in_fb = unp.asarray(op_to_add_in_fb)
         if vectorized_operators:
             # If passing vectorized operator, undo vectorization temporarily
             if self._frame_operator is None:
@@ -460,7 +461,7 @@ class RotatingFrame:
             ArrayLike: The generator in the rotating frame.
         """
         if self.frame_operator is None:
-            return unp.to_numeric_matrix_type(operator)
+            return unp.asarray(operator)
         else:
             # conjugate and subtract the frame diagonal
             return self._conjugate_and_add(
@@ -495,7 +496,7 @@ class RotatingFrame:
             ArrayLike: The generator out of the rotating frame.
         """
         if self.frame_operator is None:
-            return unp.to_numeric_matrix_type(operator)
+            return unp.asarray(operator)
         else:
             # conjugate and add the frame diagonal
             return self._conjugate_and_add(

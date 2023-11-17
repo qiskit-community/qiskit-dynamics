@@ -19,12 +19,16 @@ Registering asarray functions to alias
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
 
+from qiskit_dynamics.type_utils import isinstance_qutip_qobj
+
 
 def register_asarray(alias):
     """register asarray functions to each array libraries"""
 
     @alias.register_default(path="asarray")
     def _(arr):
+        if isinstance_qutip_qobj(arr):
+            return csr_matrix(arr)
         return np.asarray(arr)
 
     @alias.register_fallback(path="asarray")
@@ -33,7 +37,7 @@ def register_asarray(alias):
 
     @alias.register_function(lib="scipy_sparse", path="asarray")
     def _(arr):
-        if issparse(arr):
+        if issparse(arr) or issparse(arr[0]):
             return arr
         return csr_matrix(arr)
 
