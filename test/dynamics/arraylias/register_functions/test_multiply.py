@@ -30,12 +30,14 @@ class TestMultiplyFunction(QiskitDynamicsTestCase):
         """Test register_fallback."""
         x = np.array([1, 0])
         y = np.array([1, 0])
+        self.assertTrue(isinstance(unp.multiply(x, y), np.ndarray))
         self.assertAllClose(unp.multiply(x, y), [1, 0])
 
     def test_scipy_sparse(self):
         """Test multiply for scipy_sparse."""
         x = csr_matrix([[1, 0], [0, 1]])
         y = csr_matrix([[2, 2], [2, 2]])
+        self.assertTrue(isinstance(unp.multiply(x, y), csr_matrix))
         self.assertAllClose(csr_matrix.toarray(unp.multiply(x, y)), [[2, 0], [0, 2]])
 
     def test_jax_sparse(self):
@@ -45,6 +47,7 @@ class TestMultiplyFunction(QiskitDynamicsTestCase):
 
             x = BCOO.fromdense([[1, 0], [0, 1]])
             y = BCOO.fromdense([[2, 2], [2, 2]])
+            self.assertTrue(isinstance(unp.multiply(x, y), BCOO))
             self.assertAllClose(BCOO.todense(unp.multiply(x, y)), [[2, 0], [0, 2]])
         except ImportError as err:
             raise unittest.SkipTest("Skipping jax tests.") from err

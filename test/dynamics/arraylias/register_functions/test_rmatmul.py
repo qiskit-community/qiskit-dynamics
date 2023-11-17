@@ -23,19 +23,21 @@ from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from ...common import QiskitDynamicsTestCase
 
 
-class TestMultiplyFunction(QiskitDynamicsTestCase):
+class TestRmatmulFunction(QiskitDynamicsTestCase):
     """Test cases for rmatmul functions registered in dynamics_numpy_alias."""
 
     def test_numpy(self):
         """Test rmatmul for numpy."""
         x = np.array([[1, 1], [1, 1]])
         y = np.array([[1, 2], [3, 4]])
+        self.assertTrue(isinstance(unp.rmatmul(x, y), np.ndarray))
         self.assertAllClose(unp.rmatmul(x, y), [[3, 3], [7, 7]])
 
     def test_scipy_sparse(self):
         """Test rmatmul for scipy_sparse."""
         x = csr_matrix([[1, 1], [1, 1]])
         y = csr_matrix([[1, 2], [3, 4]])
+        self.assertTrue(isinstance(unp.rmatmul(x, y), csr_matrix))
         self.assertAllClose(csr_matrix.toarray(unp.rmatmul(x, y)), [[3, 3], [7, 7]])
 
     def test_jax(self):
@@ -45,6 +47,7 @@ class TestMultiplyFunction(QiskitDynamicsTestCase):
 
             x = jnp.array([[1, 1], [1, 1]])
             y = jnp.array([[1, 2], [3, 4]])
+            self.assertTrue(isinstance(unp.rmatmul(x, y), jnp.ndarray))
             self.assertAllClose(unp.rmatmul(x, y), [[3, 3], [7, 7]])
         except ImportError as err:
             raise unittest.SkipTest("Skipping jax tests.") from err
@@ -56,6 +59,7 @@ class TestMultiplyFunction(QiskitDynamicsTestCase):
 
             x = BCOO.fromdense([[1, 1], [1, 1]])
             y = BCOO.fromdense([[1, 2], [3, 4]])
+            self.assertTrue(isinstance(unp.rmatmul(x, y), BCOO))
             self.assertAllClose(BCOO.todense(unp.rmatmul(x, y)), [[3, 3], [7, 7]])
         except ImportError as err:
             raise unittest.SkipTest("Skipping jax tests.") from err

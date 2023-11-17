@@ -23,13 +23,14 @@ from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from ...common import QiskitDynamicsTestCase
 
 
-class TestMultiplyFunction(QiskitDynamicsTestCase):
+class TestMatmulFunction(QiskitDynamicsTestCase):
     """Test cases for matmul functions registered in dynamics_numpy_alias."""
 
     def test_scipy_sparse(self):
         """Test matmul for scipy_sparse."""
         x = csr_matrix([[1, 0], [0, 1]])
         y = csr_matrix([[2, 2], [2, 2]])
+        self.assertTrue(isinstance(unp.matmul(x, y), csr_matrix))
         self.assertAllClose(csr_matrix.toarray(unp.matmul(x, y)), [[2, 2], [2, 2]])
 
     def test_jax_sparse(self):
@@ -39,6 +40,7 @@ class TestMultiplyFunction(QiskitDynamicsTestCase):
 
             x = BCOO.fromdense([[1, 0], [0, 1]])
             y = BCOO.fromdense([[2, 2], [2, 2]])
+            self.assertTrue(isinstance(unp.matmul(x, y), BCOO))
             self.assertAllClose(BCOO.todense(unp.matmul(x, y)), [[2, 2], [2, 2]])
         except ImportError as err:
             raise unittest.SkipTest("Skipping jax tests.") from err
