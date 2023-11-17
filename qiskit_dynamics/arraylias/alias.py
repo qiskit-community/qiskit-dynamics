@@ -18,11 +18,20 @@ Global alias instances.
 
 from typing import Union
 
+from scipy.sparse import spmatrix
+
 from arraylias import numpy_alias, scipy_alias
 
 from qiskit import QiskitError
 
 from qiskit_dynamics.array import Array
+
+from .register_functions import (
+    register_asarray,
+    register_matmul,
+    register_multiply,
+    register_rmatmul,
+)
 
 # global NumPy and SciPy aliases
 DYNAMICS_NUMPY_ALIAS = numpy_alias()
@@ -34,6 +43,23 @@ DYNAMICS_SCIPY_ALIAS.register_type(Array, "numpy")
 
 DYNAMICS_NUMPY = DYNAMICS_NUMPY_ALIAS()
 DYNAMICS_SCIPY = DYNAMICS_SCIPY_ALIAS()
+
+# register required custom versions of functions for sparse type here
+DYNAMICS_NUMPY_ALIAS.register_type(spmatrix, lib="scipy_sparse")
+
+try:
+    from jax.experimental.sparse import BCOO
+
+    # register required custom versions of functions for BCOO type here
+    DYNAMICS_NUMPY_ALIAS.register_type(BCOO, lib="jax_sparse")
+except ImportError:
+    pass
+
+# register custom functions for numpy_alias
+register_asarray(alias=DYNAMICS_NUMPY_ALIAS)
+register_matmul(alias=DYNAMICS_NUMPY_ALIAS)
+register_multiply(alias=DYNAMICS_NUMPY_ALIAS)
+register_rmatmul(alias=DYNAMICS_NUMPY_ALIAS)
 
 
 ArrayLike = Union[Union[DYNAMICS_NUMPY_ALIAS.registered_types()], list]

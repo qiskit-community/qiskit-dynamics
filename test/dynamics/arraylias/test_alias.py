@@ -16,10 +16,13 @@ Test global alias instances.
 """
 
 from functools import partial
+import unittest
 
 import numpy as np
 import scipy as sp
+from scipy.sparse import csr_matrix
 
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_SCIPY as usp
 
@@ -52,3 +55,24 @@ class TestDynamicsScipy:
 
         expected = sp.fft.dct(np.array([1.0, 2.0, 3.0]))
         self.assertAllClose(output, expected)
+
+
+class TestDynamicsNumpyAliasType(unittest.TestCase):
+    """Test cases for which types are registered in dynamics_numpy_alias."""
+
+    def test_spmatrix_type(self):
+        """Test spmatrix is registered as scipy_sparse."""
+        sp_matrix = csr_matrix([[0.0, 1.0], [1.0, 0.0]])
+        registered_type_name = "scipy_sparse"
+        self.assertTrue(registered_type_name in DYNAMICS_NUMPY_ALIAS.infer_libs(sp_matrix))
+
+    def test_bcoo_type(self):
+        """Test bcoo is registered."""
+        try:
+            from jax.experimental.sparse import BCOO
+
+            bcoo = BCOO.fromdense([[0.0, 1.0], [1.0, 0.0]])
+            registered_type_name = "jax_sparse"
+            self.assertTrue(registered_type_name in DYNAMICS_NUMPY_ALIAS.infer_libs(bcoo)[0])
+        except ImportError as err:
+            raise unittest.SkipTest("Skipping jax tests.") from err
