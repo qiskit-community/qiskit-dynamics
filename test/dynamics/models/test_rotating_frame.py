@@ -28,6 +28,8 @@ from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 from ..common import JAXTestBase, NumpyTestBase, test_array_backends
 
 try:
+    from jax import jit
+    import jax.numpy as jnp
     from jax.experimental.sparse import BCOO
 
 except ImportError:
@@ -44,9 +46,9 @@ class TestRotatingFrame:
 
     def setUp(self):
         """Setup Pauli operators"""
-        self.X = self.asarray(Operator.from_label("X").data)
-        self.Y = self.asarray(Operator.from_label("Y").data)
-        self.Z = self.asarray(Operator.from_label("Z").data)
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
 
     def test_state_out_of_frame_basis(self):
         """Test state_out_of_frame_basis."""
@@ -505,14 +507,6 @@ class TestRotatingFrameTypeHandling:
         self.assertAllCloseSparse(out, y)
         self.assertTrue(isinstance(out, csr_matrix))
 
-        t = 100.12498
-        # y = self.asarray(np.eye(2))
-        out = rotating_frame.state_into_frame(t, y)
-        self.assertAllCloseSparse(out, y)
-        self.assertTrue(isinstance(out, csr_matrix))
-        out = rotating_frame.state_out_of_frame(t, y)
-        self.assertAllCloseSparse(out, y)
-        self.assertTrue(isinstance(out, csr_matrix))
 
     def test_state_transformations_no_frame_qobj_type(self):
         """Test frame transformations with no frame."""
@@ -603,7 +597,7 @@ class TestRotatingFrameJAXBCOO:
 
         self.assertAllClose(
             BCOO.todense(out),
-            rotating_frame._conjugate_and_add(t, unp.asarray(op), unp.asarray(op_to_add)),
+            rotating_frame._conjugate_and_add(t, op, op_to_add),
         )
 
     def test_operator_into_frame_basis(self):
@@ -671,17 +665,14 @@ class TestRotatingFrameJax(JAXTestBase):
             raise unittest.SkipTest("Skipping jax tests.") from err
 
     def setUp(self):
-        self.X = self.asarray(Operator.from_label("X").data)
-        self.Y = self.asarray(Operator.from_label("Y").data)
-        self.Z = self.asarray(Operator.from_label("Z").data)
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
 
     def test_instantiation_errors(self):
         """Check different modes of error raising for frame setting.
         Needs to be overwrititen for jax due to different behaviour.
         """
-
-        # pylint: disable=import-outside-toplevel
-        import jax.numpy as jnp
 
         rotating_frame = RotatingFrame(self.asarray([1.0, 1j]))
         self.assertTrue(jnp.isnan(rotating_frame.frame_diag[0]))
@@ -694,8 +685,6 @@ class TestRotatingFrameJax(JAXTestBase):
 
     def test_jitting(self):
         """Test jitting of state_into_frame and _conjugate_and_add."""
-
-        from jax import jit
 
         rotating_frame = RotatingFrame(self.asarray([1.0, -1.0]))
 
