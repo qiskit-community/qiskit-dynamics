@@ -16,9 +16,6 @@ Register custom functions using alias
 """
 
 from .asarray import register_asarray
-from .to_dense import register_todense
-from .to_numeric_matrix_type import register_to_numeric_matrix_type
-from .to_sparse import register_tosparse
 from .matmul import register_matmul
 from .rmatmul import register_rmatmul
 from .multiply import register_multiply
