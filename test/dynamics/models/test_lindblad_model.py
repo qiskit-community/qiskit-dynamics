@@ -283,14 +283,14 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         randoperators = rng.uniform(low=-b, high=b, size=(num_ham, dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_ham, dim, dim)
         )
-        rand_ham_ops = randoperators + randoperators.conj().transpose([0, 2, 1])
+        rand_ham_ops = Array(randoperators + randoperators.conj().transpose([0, 2, 1]))
 
         # generate random hamiltonian coefficients
         rand_ham_coeffs = rng.uniform(low=-b, high=b, size=(num_ham)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_ham)
         )
-        rand_ham_carriers = rng.uniform(low=-b, high=b, size=(num_ham))
-        rand_ham_phases = rng.uniform(low=-b, high=b, size=(num_ham))
+        rand_ham_carriers = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
+        rand_ham_phases = Array(rng.uniform(low=-b, high=b, size=(num_ham)))
 
         ham_sigs = []
         for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
@@ -299,21 +299,23 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         ham_sigs = SignalList(ham_sigs)
 
         # generate random static dissipators
-        rand_static_diss = rng.uniform(
-            low=-b, high=b, size=(num_diss, dim, dim)
-        ) + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        rand_static_diss = Array(
+            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        )
 
         # generate random dissipators
-        rand_diss = rng.uniform(low=-b, high=b, size=(num_diss, dim, dim)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_diss, dim, dim)
+        rand_diss = Array(
+            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
         )
 
         # random dissipator coefficients
         rand_diss_coeffs = rng.uniform(low=-b, high=b, size=(num_diss)) + 1j * rng.uniform(
             low=-b, high=b, size=(num_diss)
         )
-        rand_diss_carriers = rng.uniform(low=-b, high=b, size=(num_diss))
-        rand_diss_phases = rng.uniform(low=-b, high=b, size=(num_diss))
+        rand_diss_carriers = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
+        rand_diss_phases = Array(rng.uniform(low=-b, high=b, size=(num_diss)))
 
         diss_sigs = []
         for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
@@ -325,7 +327,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         rand_op = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
             low=-b, high=b, size=(dim, dim)
         )
-        frame_op = rand_op - rand_op.conj().transpose()
+        frame_op = Array(rand_op - rand_op.conj().transpose())
         evect = np.linalg.eigh(1j * frame_op)[1]
         into_frame_basis = lambda x: evect.T.conj() @ x @ evect
 
@@ -372,8 +374,9 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         self.assertAllClose(-1j * frame_op, lindblad_model.static_hamiltonian)
 
         # evaluation tests
-        A = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
-            low=-b, high=b, size=(dim, dim)
+        A = Array(
+            rng.uniform(low=-b, high=b, size=(dim, dim))
+            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
         )
 
         expected = self._evaluate_lindblad_rhs(
@@ -534,13 +537,13 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        rho = np.array([[0.2, 0.4], [0.6, 0.8]])
+        rho = Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
         if "vectorized" in self.evaluation_mode:
             rho = rho.flatten(order="F")
 
         self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
-        self.basic_lindblad.rotating_frame = np.array([[3j, 2j], [2j, 0]])
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
         self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
     def test_gradable_funcs(self):
@@ -548,13 +551,13 @@ class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
 
-        rho = np.array([[0.2, 0.4], [0.6, 0.8]])
+        rho = Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
         if "vectorized" in self.evaluation_mode:
             rho = rho.flatten(order="F")
 
         self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
-        self.basic_lindblad.rotating_frame = np.array([[3j, 2j], [2j, 0]])
+        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
         self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
 
 
