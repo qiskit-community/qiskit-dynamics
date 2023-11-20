@@ -27,6 +27,13 @@ from qiskit_dynamics.arraylias import DYNAMICS_NUMPY_ALIAS
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
 from ..common import JAXTestBase, NumpyTestBase, test_array_backends
 
+try:
+    from jax.experimental.sparse import BCOO
+
+except ImportError:
+    pass
+
+
 # Classes that don't explicitly inherit QiskitDynamicsTestCase get no-member errors
 # pylint: disable=no-member
 
@@ -589,14 +596,14 @@ class TestRotatingFrameJAXBCOO:
         rotating_frame = RotatingFrame(self.asarray([1.0, -1.0]))
 
         t = 0.123
-        op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
-        op_to_add = unp.to_sparse(self.asarray([[0.0, -0.11j], [0.0, 1.0]]))
-        out = rotating_frame._conjugate_and_add(t, op, op_to_add)
+        op = self.asarray([[1.0, -1j], [0.0, 1.0]])
+        op_to_add = self.asarray([[0.0, -0.11j], [0.0, 1.0]])
+        out = rotating_frame._conjugate_and_add(t, BCOO.fromdense(op), BCOO.fromdense(op_to_add))
         self.assertTrue(type(out).__name__ == "BCOO")
 
         self.assertAllClose(
-            unp.to_dense(out),
-            rotating_frame._conjugate_and_add(t, unp.to_dense(op), unp.to_dense(op_to_add)),
+            BCOO.todense(out),
+            rotating_frame._conjugate_and_add(t, unp.asarray(op), unp.asarray(op_to_add)),
         )
 
     def test_operator_into_frame_basis(self):
@@ -605,10 +612,9 @@ class TestRotatingFrameJAXBCOO:
         """
 
         rotating_frame = RotatingFrame(self.asarray([[1.0, 0.0], [0.0, -1.0]]))
-
-        op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
-        output = rotating_frame.operator_into_frame_basis(op)
-        expected = rotating_frame.operator_into_frame_basis(unp.to_dense(op))
+        op = self.asarray([[1.0, -1j], [0.0, 1.0]])
+        output = rotating_frame.operator_into_frame_basis(BCOO.fromdense(op))
+        expected = rotating_frame.operator_into_frame_basis(op)
 
         self.assertAllClose(output, expected)
 
@@ -619,9 +625,9 @@ class TestRotatingFrameJAXBCOO:
 
         rotating_frame = RotatingFrame(self.asarray([[1.0, 0.0], [0.0, -1.0]]))
 
-        op = unp.to_sparse(self.asarray([[1.0, -1j], [0.0, 1.0]]))
-        output = rotating_frame.operator_out_of_frame_basis(op)
-        expected = rotating_frame.operator_out_of_frame_basis(unp.to_dense(op))
+        op = self.asarray([[1.0, -1j], [0.0, 1.0]])
+        output = rotating_frame.operator_out_of_frame_basis(BCOO.fromdense(op))
+        expected = rotating_frame.operator_out_of_frame_basis(op)
 
         self.assertAllClose(output, expected)
 
@@ -630,9 +636,9 @@ class TestRotatingFrameNumpy(NumpyTestBase):
     """Tests for RotatingFrameNumpy."""
 
     def setUp(self):
-        self.X = self.asarray(Operator.from_label("X").data)
-        self.Y = self.asarray(Operator.from_label("Y").data)
-        self.Z = self.asarray(Operator.from_label("Z").data)
+        self.X = self.asarray(Operator.from_label("X"))
+        self.Y = self.asarray(Operator.from_label("Y"))
+        self.Z = self.asarray(Operator.from_label("Z"))
 
     def test_instantiation_errors(self):
         """Check different modes of error raising for frame setting."""

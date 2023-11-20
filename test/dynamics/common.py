@@ -47,6 +47,7 @@ from scipy.sparse import issparse
 try:
     from jax import jit, grad
     import jax.numpy as jnp
+
 except ImportError:
     pass
 

@@ -59,7 +59,10 @@ class RotatingFrame:
     """
 
     def __init__(
-        self, frame_operator: Union[ArrayLike, Operator], atol: float = 1e-10, rtol: float = 1e-10
+        self,
+        frame_operator: Union[ArrayLike, Operator, None],
+        atol: float = 1e-10,
+        rtol: float = 1e-10,
     ):
         """Initialize with a frame operator.
 
@@ -74,7 +77,8 @@ class RotatingFrame:
             frame_operator = frame_operator.frame_operator
 
         self._frame_operator = frame_operator
-        frame_operator = unp.to_dense(frame_operator)
+        if frame_operator is not None:
+            frame_operator = unp.asarray(frame_operator)
 
         if frame_operator is None:
             self._dim = None
@@ -607,7 +611,7 @@ def _enforce_anti_herm(
         ImportError: If the backend is jax and jax is not installed.
         QiskitError: If ``mat`` is not Hermitian or anti-Hermitian.
     """
-    mat = unp.to_dense(mat)
+    mat = unp.asarray(mat)
 
     try:
         from jax.lax import cond, convert_element_type
