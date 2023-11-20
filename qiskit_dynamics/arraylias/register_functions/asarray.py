@@ -31,10 +31,6 @@ def register_asarray(alias):
             return csr_matrix(arr)
         return np.asarray(arr)
 
-    @alias.register_fallback(path="asarray")
-    def _(arr):
-        return np.asarray(arr)
-
     @alias.register_function(lib="scipy_sparse", path="asarray")
     def _(arr):
         if issparse(arr) or issparse(arr[0]):
