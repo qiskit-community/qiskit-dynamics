@@ -489,8 +489,7 @@ class TestRotatingFrame:
         self.assertAllClose(op1, op2.reshape((6, 6), order="F"))
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax"])
-class TestRotatingFrameTypeHandling:
+class TestRotatingFrameTypeHandling(NumpyTestBase):
     """Type handling testing with rotating frame functions"""
 
     def test_state_transformations_no_frame_csr_matrix_type(self):
@@ -506,7 +505,6 @@ class TestRotatingFrameTypeHandling:
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllCloseSparse(out, y)
         self.assertTrue(isinstance(out, csr_matrix))
-
 
     def test_state_transformations_no_frame_qobj_type(self):
         """Test frame transformations with no frame."""
