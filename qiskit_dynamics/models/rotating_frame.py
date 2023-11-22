@@ -356,8 +356,7 @@ class RotatingFrame:
         out = unp.multiply(out, frame_mat)
 
         if op_to_add_in_fb is not None:
-            if issparse(out) or type(out).__name__ == "BCOO":
-                op_to_add_in_fb = DYNAMICS_NUMPY_ALIAS(like=out).asarray(op_to_add_in_fb)
+            op_to_add_in_fb = DYNAMICS_NUMPY_ALIAS(like=out).asarray(op_to_add_in_fb)
 
             out = out + op_to_add_in_fb
 
