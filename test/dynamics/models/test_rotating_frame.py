@@ -548,7 +548,7 @@ class TestRotatingFrameTypeHandling:
         self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
 
         t = 100.12498
-        y = self.asarray(Operator(np.eye(2)))
+        y = Operator(np.eye(2))
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
         self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
