@@ -562,7 +562,7 @@ class TestRotatingFrameTypeHandling:
         rotating_frame = RotatingFrame(None)
 
         t = 0.123
-        y = self.asarray([1.0, 1j])
+        y = np.asarray([1.0, 1j])
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
         self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
