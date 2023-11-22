@@ -336,8 +336,7 @@ class RotatingFrame:
             if op_to_add_in_fb is None:
                 return operator
             else:
-                if issparse(operator) or type(operator).__name__ == "BCOO":
-                    op_to_add_in_fb = DYNAMICS_NUMPY_ALIAS(like=operator).asarray(op_to_add_in_fb)
+                op_to_add_in_fb = DYNAMICS_NUMPY_ALIAS(like=operator).asarray(op_to_add_in_fb)
 
                 return operator + op_to_add_in_fb
 
