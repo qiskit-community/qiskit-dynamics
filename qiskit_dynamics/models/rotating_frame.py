@@ -612,9 +612,15 @@ def _enforce_anti_herm(
     mat = unp.asarray(mat)
 
     try:
-        from jax.lax import cond, convert_element_type
+        from jax.lax import cond, convert_element_type, dtypes
 
         if isinstance(unp.asarray(mat), jnp.ndarray):
+            complex_dtype = (
+                jnp.complex128
+                if dtypes.canonicalize_dtype(jnp.float64) == jnp.float64
+                else jnp.complex64
+            )
+
             if mat.ndim == 1:
                 # this function checks if pure imaginary. If yes it returns the
                 # array, otherwise it multiplies it by jnp.nan to raise an error
@@ -622,7 +628,7 @@ def _enforce_anti_herm(
                 def anti_herm_conditional(b):
                     aherm_pred = jnp.allclose(b, -b.conj(), atol=atol, rtol=rtol)
                     return convert_element_type(
-                        cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b), jnp.complex128
+                        cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b), complex_dtype
                     )
 
                 # Check if it is purely real, if not apply anti_herm_conditional
@@ -634,7 +640,7 @@ def _enforce_anti_herm(
                 def anti_herm_conditional(b):
                     aherm_pred = jnp.allclose(b, -b.conj().transpose(), atol=atol, rtol=rtol)
                     return convert_element_type(
-                        cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b), jnp.complex128
+                        cond(aherm_pred, lambda A: A, lambda A: jnp.nan * A, b), complex_dtype
                     )
 
                 # the following lines check if a is hermitian, otherwise it feeds
