@@ -91,6 +91,7 @@ class RotatingFrame:
             # if Hermitian convert to anti-Hermitian
             frame_operator = _enforce_anti_herm(frame_operator, atol=atol, rtol=rtol)
 
+            self._frame_diag = frame_operator
             self._frame_basis = None
             self._frame_basis_adjoint = None
             self._dim = len(self._frame_diag)
