@@ -615,11 +615,7 @@ def _enforce_anti_herm(
         from jax.lax import cond, convert_element_type, dtypes
 
         if isinstance(unp.asarray(mat), jnp.ndarray):
-            complex_dtype = (
-                jnp.complex128
-                if dtypes.canonicalize_dtype(jnp.float64) == jnp.float64
-                else jnp.complex64
-            )
+            complex_dtype = dtypes.canonicalize_dtype(jnp.complex128)
 
             if mat.ndim == 1:
                 # this function checks if pure imaginary. If yes it returns the
