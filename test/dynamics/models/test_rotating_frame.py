@@ -540,19 +540,19 @@ class TestRotatingFrameTypeHandling(NumpyTestBase):
         y = Operator([1.0, 1j])
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
+        self.assertArrayType(out)
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
+        self.assertArrayType(out)
 
         t = 100.12498
         y = Operator(np.eye(2))
         out = rotating_frame.state_into_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
+        self.assertArrayType(out)
         out = rotating_frame.state_out_of_frame(t, y)
         self.assertAllClose(out, y)
-        self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
+        self.assertArrayType(out)
 
     def test_state_transformations_no_frame_array_type(self):
         """Test frame transformations with no frame."""
@@ -578,20 +578,20 @@ class TestRotatingFrameTypeHandling(NumpyTestBase):
         self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
 
 
-@partial(test_array_backends, array_libraries=["jax"])
+@partial(test_array_backends, array_libraries=["jax_sparse"])
 class TestRotatingFrameJAXBCOO:
     """Test correct handling of JAX BCOO arrays in relevant functions."""
 
     def test_conjugate_and_add_BCOO(self):
         """Test _conjugate_and_add with operator being BCOO."""
 
-        rotating_frame = RotatingFrame(self.asarray([1.0, -1.0]))
+        rotating_frame = RotatingFrame(np.array([1.0, -1.0]))
 
         t = 0.123
-        op = self.asarray([[1.0, -1j], [0.0, 1.0]])
-        op_to_add = self.asarray([[0.0, -0.11j], [0.0, 1.0]])
-        out = rotating_frame._conjugate_and_add(t, BCOO.fromdense(op), BCOO.fromdense(op_to_add))
-        self.assertTrue(type(out).__name__ == "BCOO")
+        op = np.array([[1.0, -1j], [0.0, 1.0]])
+        op_to_add = np.array([[0.0, -0.11j], [0.0, 1.0]])
+        out = rotating_frame._conjugate_and_add(t, self.asarray(op), self.asarray(op_to_add))
+        self.assertArrayType(out)
 
         self.assertAllClose(
             BCOO.todense(out),
@@ -603,9 +603,9 @@ class TestRotatingFrameJAXBCOO:
         frame specified as full matrix.
         """
 
-        rotating_frame = RotatingFrame(self.asarray([[1.0, 0.0], [0.0, -1.0]]))
-        op = self.asarray([[1.0, -1j], [0.0, 1.0]])
-        output = rotating_frame.operator_into_frame_basis(BCOO.fromdense(op))
+        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
+        op = np.array([[1.0, -1j], [0.0, 1.0]])
+        output = rotating_frame.operator_into_frame_basis(self.asarray(op))
         expected = rotating_frame.operator_into_frame_basis(op)
 
         self.assertAllClose(output, expected)
@@ -615,10 +615,10 @@ class TestRotatingFrameJAXBCOO:
         frame specified as full matrix.
         """
 
-        rotating_frame = RotatingFrame(self.asarray([[1.0, 0.0], [0.0, -1.0]]))
+        rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
 
-        op = self.asarray([[1.0, -1j], [0.0, 1.0]])
-        output = rotating_frame.operator_out_of_frame_basis(BCOO.fromdense(op))
+        op = np.array([[1.0, -1j], [0.0, 1.0]])
+        output = rotating_frame.operator_out_of_frame_basis(self.asarray(op))
         expected = rotating_frame.operator_out_of_frame_basis(op)
 
         self.assertAllClose(output, expected)
