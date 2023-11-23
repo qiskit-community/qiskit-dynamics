@@ -646,10 +646,7 @@ class TestRotatingFrameNumpy(NumpyTestBase):
 
 
 class TestRotatingFrameJax(JAXTestBase):
-    """Jax version of TestRotatingFrame tests.
-
-    Note: This class has more tests due to inheritance.
-    """
+    """Additional JAX-specific testing of JAX transformations and error handling."""
 
     @classmethod
     def setUpClass(cls):
