@@ -42,7 +42,7 @@ except ImportError:
 
 @partial(test_array_backends, array_libraries=["numpy", "jax"])
 class TestRotatingFrame:
-    """Tests for RotatingFrame."""
+    """Tests for RotatingFrame, with the frame_operator having array type numpy or jax."""
 
     def setUp(self):
         """Setup Pauli operators"""
