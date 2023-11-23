@@ -624,8 +624,8 @@ class TestRotatingFrameJAXBCOO:
         self.assertAllClose(output, expected)
 
 
-class TestRotatingFrameNumpy(NumpyTestBase):
-    """Tests for RotatingFrameNumpy."""
+class TestRotatingFrameNumpyErrorHandling(NumpyTestBase):
+    """Tests of error handling when instantiating RotatingFrame with a numpy array."""
 
     def setUp(self):
         self.X = self.asarray(Operator.from_label("X"))
