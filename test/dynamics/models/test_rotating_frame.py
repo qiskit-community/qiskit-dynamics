@@ -490,7 +490,7 @@ class TestRotatingFrame:
 
 
 class TestRotatingFrameTypeHandling(NumpyTestBase):
-    """Type handling testing with rotating frame functions"""
+    """Type handling testing for RotatingFrame methods for inputs of type csr_matrix, qutip, Operator, and numpy array."""
 
     def test_state_transformations_no_frame_csr_matrix_type(self):
         """Test frame transformations with no frame."""
