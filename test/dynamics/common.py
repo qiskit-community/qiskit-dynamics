@@ -42,11 +42,13 @@ import unittest
 import inspect
 
 import numpy as np
-from scipy.sparse import issparse
+from scipy.sparse import csr_matrix, issparse
 
 try:
     from jax import jit, grad
     import jax.numpy as jnp
+    from jax.experimental.sparse import BCOO
+
 except ImportError:
     pass
 
@@ -120,6 +122,64 @@ class JAXTestBase(QiskitDynamicsTestCase):
     def assertArrayType(self, a):
         """Assert the correct array type."""
         return isinstance(a, jnp.ndarray)
+
+    def jit_grad(self, func_to_test: Callable) -> Callable:
+        """Tests whether a function can be graded. Converts
+        all functions to scalar, real functions if they are not
+        already.
+        Args:
+            func_to_test: The function whose gradient will be graded.
+        Returns:
+            JIT-compiled gradient of function.
+        """
+        wf = lambda f: jit(grad(f))
+        f = lambda *args: np.sum(func_to_test(*args)).real
+        return wf(f)
+
+
+class ScipySparseTestBase(QiskitDynamicsTestCase):
+    """Base class for tests working with scipy_sparse arrays."""
+
+    @classmethod
+    def array_library(cls):
+        """Library method."""
+        return "scipy_sparse"
+
+    def asarray(self, a):
+        """Array generation method."""
+        return csr_matrix(a)
+
+    def assertArrayType(self, a):
+        """Assert the correct array type."""
+        return issparse(a)
+
+
+class JAXSparseTestBase(QiskitDynamicsTestCase):
+    """Base class for tests working with jax_sparse arrays."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            # pylint: disable=import-outside-toplevel
+            import jax
+
+            jax.config.update("jax_enable_x64", True)
+            jax.config.update("jax_platform_name", "cpu")
+        except Exception as err:
+            raise unittest.SkipTest("Skipping jax tests.") from err
+
+    @classmethod
+    def array_library(cls):
+        """Library method."""
+        return "jax_sparse"
+
+    def asarray(self, a):
+        """Array generation method."""
+        return BCOO.fromdense(a)
+
+    def assertArrayType(self, a):
+        """Assert the correct array type."""
+        return type(a).__name__ == "BCOO"
 
 
 class ArrayNumpyTestBase(QiskitDynamicsTestCase):
