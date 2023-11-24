@@ -582,7 +582,7 @@ class TestRotatingFrameTypeHandling(NumpyTestBase):
 class TestRotatingFrameMethodsSparse:
     """Test RotatingFrame methods when input is a sparse type."""
 
-    def test_conjugate_and(self):
+    def test_conjugate_and_add(self):
         """Test _conjugate_and_add with operator being sparse."""
 
         rotating_frame = RotatingFrame(np.array([1.0, -1.0]))
