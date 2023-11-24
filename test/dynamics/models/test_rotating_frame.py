@@ -578,12 +578,12 @@ class TestRotatingFrameTypeHandling(NumpyTestBase):
         self.assertEqual(DYNAMICS_NUMPY_ALIAS.infer_libs(out)[0], self.array_library())
 
 
-@partial(test_array_backends, array_libraries=["jax_sparse"])
-class TestRotatingFrameJAXBCOO:
-    """Test correct handling of JAX BCOO arrays in relevant functions."""
+@partial(test_array_backends, array_libraries=["scipy_sparse", "jax_sparse"])
+class TestRotatingFrameMethodsSparse:
+    """Test RotatingFrame methods when input is a sparse type."""
 
-    def test_conjugate_and_add_BCOO(self):
-        """Test _conjugate_and_add with operator being BCOO."""
+    def test_conjugate_and(self):
+        """Test _conjugate_and_add with operator being sparse."""
 
         rotating_frame = RotatingFrame(np.array([1.0, -1.0]))
 
@@ -594,19 +594,25 @@ class TestRotatingFrameJAXBCOO:
         self.assertArrayType(out)
 
         self.assertAllClose(
-            BCOO.todense(out),
+            out.todense(),
             rotating_frame._conjugate_and_add(t, op, op_to_add),
         )
 
     def test_operator_into_frame_basis(self):
-        """Test operator_into_frame_basis with operator being BCOO, for
-        frame specified as full matrix.
+        """Test operator_into_frame_basis with operator being sparse. Note that as the frame is not
+        explicitly specified as diagonal, the output here will actually be dense to the method
+        involving sparse-dense multiplications.
         """
 
         rotating_frame = RotatingFrame(np.array([[1.0, 0.0], [0.0, -1.0]]))
         op = np.array([[1.0, -1j], [0.0, 1.0]])
         output = rotating_frame.operator_into_frame_basis(self.asarray(op))
         expected = rotating_frame.operator_into_frame_basis(op)
+        
+        if "jax" in self.array_library():
+            self.assertTrue(isinstance(output, jnp.ndarray))
+        else:
+            self.assertTrue(isinstance(output, np.ndarray))
 
         self.assertAllClose(output, expected)
 
