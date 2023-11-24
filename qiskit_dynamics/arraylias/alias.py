@@ -82,13 +82,16 @@ def _preferred_lib(*args, **kwargs):
     """
     args = list(args) + list(kwargs.values())
     if len(args) == 1:
-        return DYNAMICS_NUMPY_ALIAS.infer_libs(args[0])
+        libs = DYNAMICS_NUMPY_ALIAS.infer_libs(args[0])
+        return libs[0] if len(libs) > 0 else "numpy"
 
-    lib0 = DYNAMICS_NUMPY_ALIAS.infer_libs(args[0])[0]
-    lib1 = _preferred_lib(args[1:])[0]
+    lib0 = _preferred_lib(args[0])
+    lib1 = _preferred_lib(args[1:])
 
     if lib0 == "numpy" and lib1 == "numpy":
         return "numpy"
+    elif lib0 == "jax_sparse" or lib1 == "jax_sparse":
+        return "jax_sparse"
     elif lib0 == "jax" or lib1 == "jax":
         return "jax"
 

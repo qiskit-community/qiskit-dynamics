@@ -20,7 +20,9 @@ from scipy.sparse import csr_matrix, issparse
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators.operator import Operator
-from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics.arraylias.alias import ArrayLike, _numpy_multi_dispatch
 from qiskit_dynamics.array import Array, wrap
 from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
 
@@ -54,6 +56,111 @@ try:
 except ImportError:
     BCOO = None
 
+
+class OperatorCollection:
+    r"""Initial attempt, this should work for numpy, jax, jax_sparse.
+    
+    Old text from abstract base class:
+    Abstract class representing a two-variable matrix function.
+
+    This class represents a function :math:`c,y \mapsto \Lambda(c, y)`, which is assumed to be
+    decomposed as :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y` for matrices :math:`G_d` and
+    :math:`G_j`, with :math:`G_d` referred to as the static operator.
+
+    Describes an interface for evaluating the map or its action on ``y``, given the 1d set of values
+    :math:`c_j`.
+    """
+
+    def __init__(
+        self, 
+        static_operator: Optional[ArrayLike] = None,
+        operators: Optional[ArrayLike] = None,
+        array_library: Optional[str] = None
+    ):
+        if array_library == "scipy_sparse":
+            raise QiskitError("scipy_sparse is not a valid array_library for OperatorCollection.")
+
+        if static_operator is not None:
+            self._static_operator = numpy_alias(like=array_library).asarray(static_operator)
+        else:
+            self._static_operator = None
+        
+        if operators is not None:
+            self._operators = numpy_alias(like=array_library).asarray(operators)
+        else:
+            self._operators = None
+    
+    @property
+    def dim(self) -> int:
+        """The matrix dimension."""
+        if self.static_operator is not None:
+            return self.static_operator.shape[-1]
+        else:
+            return self.operators[0].shape[-1]
+
+    @property
+    def static_operator(self) -> Union[ArrayLike, None]:
+        """The static part of the operator collection."""
+        return self._static_operator
+
+    @property
+    def operators(self) -> Union[ArrayLike, None]:
+        """The operators of this collection."""
+        return self._operators
+    
+    def evaluate(self, coefficients: Union[ArrayLike, None]) -> ArrayLike:
+        r"""Evaluate the operator :math:`\Lambda(c, \cdot) = (G_d + \sum_jc_jG_j)`.
+
+        Args:
+            coefficients: The coefficient values :math:`c`.
+
+        Returns:
+            An ``ArrayLike`` that acts on states ``y`` via multiplication.
+
+        Raises:
+            QiskitError: If both static_operator and operators are ``None``.
+        """
+        if self._static_operator is not None and self._operators is not None:
+            return _numpy_multi_dispatch(coefficients, self._operators, path="tensordot", axes=1) + self._static_operator
+        elif self._static_operator is None and self._operators is not None:
+            return _numpy_multi_dispatch(coefficients, self._operators, path="tensordot", axes=1)
+        elif self._static_operator is not None:
+            return self._static_operator
+        raise QiskitError(
+            "OperatorCollection with None for both static_operator and operators cannot be "
+            "evaluated."
+        )
+
+    def evaluate_rhs(self, coefficients: Union[ArrayLike, None], y: ArrayLike) -> ArrayLike:
+        r"""Evaluate the function and return :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y`.
+
+        Args:
+            coefficients: The coefficients :math:`c`.
+            y: The system state.
+
+        Returns:
+            The evaluated function.
+        """
+        return _numpy_multi_dispatch(self.evaluate(coefficients), y, path="dot")
+
+    def __call__(
+        self, coefficients: Union[ArrayLike, None], y: Optional[ArrayLike] = None
+    ) -> ArrayLike:
+        """Call :meth:`~evaluate` or :meth:`~evaluate_rhs` depending on the presense of ``y``.
+
+        Args:
+            coefficients: The coefficients :math:`c` to use for evaluation.
+            y: Optionally, the system state.
+
+        Returns:
+            The output of :meth:`~evaluate` or :meth:`self.evaluate_rhs`.
+        """
+        return self.evaluate(coefficients) if y is None else self.evaluate_rhs(coefficients, y)
+
+
+########################################################################################################
+# OLD
+########################################################################################################
 
 class BaseOperatorCollection(ABC):
     r"""Abstract class representing a two-variable matrix function.
