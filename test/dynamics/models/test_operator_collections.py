@@ -25,6 +25,7 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
     OperatorCollection,
     ScipySparseOperatorCollection,
+    LindbladOperatorCollection,
     DenseOperatorCollection, # start of old
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
@@ -227,6 +228,287 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllCloseSparse(X, collection(None))
         self.assertAllClose(np.array([0.0, 1.0]), collection(None, np.array([1.0, 0.0])))
 
+
+@partial(test_array_backends, array_libraries=["numpy", "jax"])#, "jax_sparse"])
+class TestLindbladOperatorCollection:
+    """Tests for LindbladOperatorCollection."""
+
+    def setUp(self):
+        self.X = Operator.from_label("X").data
+        self.Y = Operator.from_label("Y").data
+        self.Z = Operator.from_label("Z").data
+        rand.seed(2134024)
+        n = 16
+        k = 8
+        m = 4
+        l = 2
+        self.hamiltonian_operators = rand.uniform(-1, 1, (k, n, n))
+        self.dissipator_operators = rand.uniform(-1, 1, (m, n, n))
+        self.static_hamiltonian = rand.uniform(-1, 1, (n, n))
+        self.rho = rand.uniform(-1, 1, (n, n))
+        self.multiple_rho = rand.uniform(-1, 1, (l, n, n))
+        self.ham_sig_vals = rand.uniform(-1, 1, (k))
+        self.dis_sig_vals = rand.uniform(-1, 1, (m))
+        self.r = lambda *args: rand.uniform(-1, 1, args) + 1j * rand.uniform(-1, 1, args)
+
+    def construct_collection(self, *args, **kwargs):
+        """Construct collection to be tested by this class
+        Used for inheritance.
+        """
+        return LindbladOperatorCollection(*args, **kwargs)
+
+    def test_empty_collection_error(self):
+        """Test errors get raised for empty collection."""
+        collection = self.construct_collection()
+        with self.assertRaisesRegex(QiskitError, "cannot evaluate rhs"):
+            collection(None, None, np.array([[1.0, 0.0], [0.0, 0.0]]))
+
+        with self.assertRaisesRegex(QiskitError, "cannot evaluate Hamiltonian"):
+            collection.evaluate_hamiltonian(None)
+
+    def test_no_static_hamiltonian_no_dissipator(self):
+        """Test evaluation with just hamiltonian operators."""
+
+        ham_only_collection = self.construct_collection(
+            hamiltonian_operators=self.hamiltonian_operators,
+            static_hamiltonian=None,
+            dissipator_operators=None,
+            array_library=self.array_library()
+        )
+        hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
+        res = ham_only_collection(self.ham_sig_vals, None, self.rho)
+
+        # In the case of no dissipator terms, expect the Von Neumann equation
+        expected = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
+        self.assertAllClose(res, expected)
+
+    def test_static_hamiltonian_no_dissipator(self):
+        """Tests evaluation with a static_hamiltonian and no dissipator."""
+        # Now, test adding a static_hamiltonian
+        ham_static_hamiltonian_collection = self.construct_collection(
+            hamiltonian_operators=self.hamiltonian_operators,
+            static_hamiltonian=self.static_hamiltonian,
+            dissipator_operators=None,
+            array_library=self.array_library()
+        )
+        hamiltonian = (
+            np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
+            + self.static_hamiltonian
+        )
+        res = ham_static_hamiltonian_collection(self.ham_sig_vals, None, self.rho)
+        # In the case of no dissipator terms, expect the Von Neumann equation
+        expected = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
+        self.assertAllClose(res, expected)
+
+    def test_static_hamiltonian_dissipator(self):
+        """Tests if providing both static_hamiltonian and dissipator is OK."""
+        full_lindblad_collection = self.construct_collection(
+            hamiltonian_operators=self.hamiltonian_operators,
+            static_hamiltonian=self.static_hamiltonian,
+            dissipator_operators=self.dissipator_operators,
+            array_library=self.array_library()
+        )
+        res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.rho)
+        hamiltonian = (
+            np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
+            + self.static_hamiltonian
+        )
+        ham_terms = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
+        dis_anticommutator = (-1 / 2) * np.tensordot(
+            self.dis_sig_vals,
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        )
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = np.tensordot(
+            self.dis_sig_vals,
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        )
+        self.assertAllClose(ham_terms + dis_anticommutator + dis_extra, res)
+
+    def test_full_collection(self):
+        """Tests correct evaluation with all terms."""
+        full_lindblad_collection = self.construct_collection(
+            hamiltonian_operators=self.hamiltonian_operators,
+            static_hamiltonian=self.static_hamiltonian,
+            dissipator_operators=self.dissipator_operators,
+            array_library=self.array_library()
+        )
+        res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.rho)
+        hamiltonian = (
+            np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
+            + self.static_hamiltonian
+        )
+        ham_terms = -1j * (hamiltonian.dot(self.rho) - self.rho.dot(hamiltonian))
+        dis_anticommutator = (-1 / 2) * np.tensordot(
+            self.dis_sig_vals,
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        )
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = np.tensordot(
+            self.dis_sig_vals,
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        )
+        self.assertAllClose(ham_terms + dis_anticommutator + dis_extra, res)
+
+    def test_multiple_density_matrix_evaluation(self):
+        """Test to ensure that passing multiple density matrices as a (k,n,n) Array functions."""
+
+        # Now, test if vectorization works as intended
+        full_lindblad_collection = self.construct_collection(
+            hamiltonian_operators=self.hamiltonian_operators,
+            static_hamiltonian=self.static_hamiltonian,
+            dissipator_operators=self.dissipator_operators,
+            array_library=self.array_library()
+        )
+        res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho)
+        for i, _ in enumerate(self.multiple_rho):
+            self.assertAllClose(
+                res[i],
+                full_lindblad_collection(
+                    self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho[i]
+                ),
+            )
+
+    def test_static_hamiltonian_only(self):
+        """Test construction and evaluation with a static hamiltonian only."""
+
+        collection = self.construct_collection(static_hamiltonian=self.X, array_library=self.array_library())
+
+        self.assertAllClose(collection.evaluate_hamiltonian(None), self.X)
+        rho = np.array([[1.0, 0.0], [0.0, 0.0]])
+        expected = -1j * (self.X @ rho - rho @ self.X)
+        self.assertAllClose(collection.evaluate_rhs(None, None, rho), expected)
+
+    def test_dissipators_only(self):
+        """Tests correct evaluation with just dissipators."""
+        collection = self.construct_collection(
+            hamiltonian_operators=None,
+            static_hamiltonian=None,
+            dissipator_operators=self.dissipator_operators,
+            array_library=self.array_library()
+        )
+        res = collection(None, self.dis_sig_vals, self.rho)
+        dis_anticommutator = (-1 / 2) * np.tensordot(
+            self.dis_sig_vals,
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        )
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = np.tensordot(
+            self.dis_sig_vals,
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        )
+        self.assertAllClose(dis_anticommutator + dis_extra, res)
+
+    def test_static_dissipator_only(self):
+        """Test correct evaluation with just static dissipators."""
+        collection = self.construct_collection(
+            static_dissipators=self.dissipator_operators,
+            array_library=self.array_library()
+        )
+        res = collection(None, None, self.rho)
+        dis_anticommutator = (-1 / 2) * np.tensordot(
+            np.ones_like(self.dis_sig_vals),
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        )
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = np.tensordot(
+            np.ones_like(self.dis_sig_vals),
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        )
+        self.assertAllClose(dis_anticommutator + dis_extra, res)
+
+    def test_both_dissipators(self):
+        """Test correct evaluation with both kinds of dissipators."""
+
+        sin_ops = np.sin(self.dissipator_operators)
+
+        collection = self.construct_collection(
+            static_dissipators=self.dissipator_operators, dissipator_operators=sin_ops,
+            array_library=self.array_library()
+        )
+        res = collection(None, self.dis_sig_vals, self.rho)
+        dis_anticommutator = (-1 / 2) * np.tensordot(
+            np.ones_like(self.dis_sig_vals),
+            np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1]))
+            @ self.dissipator_operators,
+            axes=1,
+        ) + (-1 / 2) * np.tensordot(
+            self.dis_sig_vals,
+            np.conjugate(np.transpose(sin_ops, [0, 2, 1])) @ sin_ops,
+            axes=1,
+        )
+        dis_anticommutator = dis_anticommutator.dot(self.rho) + self.rho.dot(dis_anticommutator)
+        dis_extra = np.tensordot(
+            np.ones_like(self.dis_sig_vals),
+            self.dissipator_operators
+            @ self.rho
+            @ np.conjugate(np.transpose(self.dissipator_operators, [0, 2, 1])),
+            axes=1,
+        ) + np.tensordot(
+            self.dis_sig_vals,
+            sin_ops @ self.rho @ np.conjugate(np.transpose(sin_ops, [0, 2, 1])),
+            axes=1,
+        )
+        self.assertAllClose(dis_anticommutator + dis_extra, res)
+
+    def test_operator_type_construction(self):
+        """Tests if collection can take Operator specification of components."""
+        ham_op_terms = []
+        ham_ar_terms = []
+        dis_op_terms = []
+        dis_ar_terms = []
+        # pylint: disable=unused-variable
+        for i in range(4):
+            H_i = self.r(3, 3)
+            L_i = self.r(3, 3)
+            ham_op_terms.append(Operator(H_i))
+            ham_ar_terms.append(Array(H_i))
+            dis_op_terms.append(Operator(L_i))
+            dis_ar_terms.append(Array(L_i))
+        H_d = self.r(3, 3)
+        op_static_hamiltonian = Operator(H_d)
+        ar_static_hamiltonian = Array(H_d)
+        op_collection = self.construct_collection(
+            hamiltonian_operators=ham_op_terms,
+            static_hamiltonian=op_static_hamiltonian,
+            dissipator_operators=dis_op_terms,
+            array_library=self.array_library()
+        )
+        ar_collection = self.construct_collection(
+            hamiltonian_operators=ham_ar_terms,
+            static_hamiltonian=ar_static_hamiltonian,
+            dissipator_operators=dis_ar_terms,
+            array_library=self.array_library()
+        )
+        sigVals = self.r(4)
+        rho = self.r(3, 3)
+        many_rho = self.r(16, 3, 3)
+        self.assertAllClose(
+            op_collection(sigVals, sigVals, rho), ar_collection(sigVals, sigVals, rho)
+        )
+        self.assertAllClose(
+            op_collection(sigVals, sigVals, many_rho), ar_collection(sigVals, sigVals, many_rho)
+        )
 
 #########################################################################################################
 # Old
