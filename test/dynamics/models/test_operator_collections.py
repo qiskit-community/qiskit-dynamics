@@ -25,7 +25,8 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
     OperatorCollection,
     ScipySparseOperatorCollection,
-    LindbladOperatorCollection,
+    LindbladCollection,
+    ScipySparseLindbladCollection,
     DenseOperatorCollection, # start of old
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
@@ -228,10 +229,12 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllCloseSparse(X, collection(None))
         self.assertAllClose(np.array([0.0, 1.0]), collection(None, np.array([1.0, 0.0])))
 
-
-@partial(test_array_backends, array_libraries=["numpy", "jax"])#, "jax_sparse"])
-class TestLindbladOperatorCollection:
-    """Tests for LindbladOperatorCollection."""
+#######################################################################################################
+# get jax_sparse working with this
+#######################################################################################################
+@partial(test_array_backends, array_libraries=["numpy", "jax", "scipy_sparse"])#, "jax_sparse"])
+class TestLindbladCollection:
+    """Tests for LindbladCollection."""
 
     def setUp(self):
         self.X = Operator.from_label("X").data
@@ -255,7 +258,10 @@ class TestLindbladOperatorCollection:
         """Construct collection to be tested by this class
         Used for inheritance.
         """
-        return LindbladOperatorCollection(*args, **kwargs)
+        if self.array_library() == "scipy_sparse":
+            return ScipySparseLindbladCollection(*args, **kwargs)
+
+        return LindbladCollection(*args, **kwargs, array_library=self.array_library())
 
     def test_empty_collection_error(self):
         """Test errors get raised for empty collection."""
@@ -272,8 +278,7 @@ class TestLindbladOperatorCollection:
         ham_only_collection = self.construct_collection(
             hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=None,
-            dissipator_operators=None,
-            array_library=self.array_library()
+            dissipator_operators=None
         )
         hamiltonian = np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
         res = ham_only_collection(self.ham_sig_vals, None, self.rho)
@@ -288,8 +293,7 @@ class TestLindbladOperatorCollection:
         ham_static_hamiltonian_collection = self.construct_collection(
             hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
-            dissipator_operators=None,
-            array_library=self.array_library()
+            dissipator_operators=None
         )
         hamiltonian = (
             np.tensordot(self.ham_sig_vals, self.hamiltonian_operators, axes=1)
@@ -305,8 +309,7 @@ class TestLindbladOperatorCollection:
         full_lindblad_collection = self.construct_collection(
             hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
-            dissipator_operators=self.dissipator_operators,
-            array_library=self.array_library()
+            dissipator_operators=self.dissipator_operators
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.rho)
         hamiltonian = (
@@ -335,8 +338,7 @@ class TestLindbladOperatorCollection:
         full_lindblad_collection = self.construct_collection(
             hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
-            dissipator_operators=self.dissipator_operators,
-            array_library=self.array_library()
+            dissipator_operators=self.dissipator_operators
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.rho)
         hamiltonian = (
@@ -367,8 +369,7 @@ class TestLindbladOperatorCollection:
         full_lindblad_collection = self.construct_collection(
             hamiltonian_operators=self.hamiltonian_operators,
             static_hamiltonian=self.static_hamiltonian,
-            dissipator_operators=self.dissipator_operators,
-            array_library=self.array_library()
+            dissipator_operators=self.dissipator_operators
         )
         res = full_lindblad_collection(self.ham_sig_vals, self.dis_sig_vals, self.multiple_rho)
         for i, _ in enumerate(self.multiple_rho):
@@ -382,7 +383,7 @@ class TestLindbladOperatorCollection:
     def test_static_hamiltonian_only(self):
         """Test construction and evaluation with a static hamiltonian only."""
 
-        collection = self.construct_collection(static_hamiltonian=self.X, array_library=self.array_library())
+        collection = self.construct_collection(static_hamiltonian=self.X)
 
         self.assertAllClose(collection.evaluate_hamiltonian(None), self.X)
         rho = np.array([[1.0, 0.0], [0.0, 0.0]])
@@ -394,8 +395,7 @@ class TestLindbladOperatorCollection:
         collection = self.construct_collection(
             hamiltonian_operators=None,
             static_hamiltonian=None,
-            dissipator_operators=self.dissipator_operators,
-            array_library=self.array_library()
+            dissipator_operators=self.dissipator_operators
         )
         res = collection(None, self.dis_sig_vals, self.rho)
         dis_anticommutator = (-1 / 2) * np.tensordot(
@@ -417,8 +417,7 @@ class TestLindbladOperatorCollection:
     def test_static_dissipator_only(self):
         """Test correct evaluation with just static dissipators."""
         collection = self.construct_collection(
-            static_dissipators=self.dissipator_operators,
-            array_library=self.array_library()
+            static_dissipators=self.dissipator_operators
         )
         res = collection(None, None, self.rho)
         dis_anticommutator = (-1 / 2) * np.tensordot(
@@ -443,8 +442,7 @@ class TestLindbladOperatorCollection:
         sin_ops = np.sin(self.dissipator_operators)
 
         collection = self.construct_collection(
-            static_dissipators=self.dissipator_operators, dissipator_operators=sin_ops,
-            array_library=self.array_library()
+            static_dissipators=self.dissipator_operators, dissipator_operators=sin_ops
         )
         res = collection(None, self.dis_sig_vals, self.rho)
         dis_anticommutator = (-1 / 2) * np.tensordot(
@@ -482,23 +480,21 @@ class TestLindbladOperatorCollection:
             H_i = self.r(3, 3)
             L_i = self.r(3, 3)
             ham_op_terms.append(Operator(H_i))
-            ham_ar_terms.append(Array(H_i))
+            ham_ar_terms.append(H_i)
             dis_op_terms.append(Operator(L_i))
-            dis_ar_terms.append(Array(L_i))
+            dis_ar_terms.append(L_i)
         H_d = self.r(3, 3)
         op_static_hamiltonian = Operator(H_d)
-        ar_static_hamiltonian = Array(H_d)
+        ar_static_hamiltonian = H_d
         op_collection = self.construct_collection(
             hamiltonian_operators=ham_op_terms,
             static_hamiltonian=op_static_hamiltonian,
-            dissipator_operators=dis_op_terms,
-            array_library=self.array_library()
+            dissipator_operators=dis_op_terms
         )
         ar_collection = self.construct_collection(
             hamiltonian_operators=ham_ar_terms,
             static_hamiltonian=ar_static_hamiltonian,
-            dissipator_operators=dis_ar_terms,
-            array_library=self.array_library()
+            dissipator_operators=dis_ar_terms
         )
         sigVals = self.r(4)
         rho = self.r(3, 3)
@@ -509,6 +505,45 @@ class TestLindbladOperatorCollection:
         self.assertAllClose(
             op_collection(sigVals, sigVals, many_rho), ar_collection(sigVals, sigVals, many_rho)
         )
+
+
+#######################################################################################################
+# get jax_sparse working with this
+#######################################################################################################
+@partial(test_array_backends, array_libraries=["jax"])#, "jax_sparse"])
+class TestLindbladOperatorCollectionJAXTransformations:
+    """JAX transformation tests for LindbladOperatorCollection."""
+
+    def setUp(self):
+        self.X = Operator.from_label("X").data
+        self.Y = Operator.from_label("Y").data
+        self.Z = Operator.from_label("Z").data
+        rand.seed(2134024)
+        n = 16
+        k = 8
+        m = 4
+        l = 2
+        self.hamiltonian_operators = rand.uniform(-1, 1, (k, n, n))
+        self.dissipator_operators = rand.uniform(-1, 1, (m, n, n))
+        self.static_hamiltonian = rand.uniform(-1, 1, (n, n))
+        self.rho = rand.uniform(-1, 1, (n, n))
+        self.multiple_rho = rand.uniform(-1, 1, (l, n, n))
+        self.ham_sig_vals = rand.uniform(-1, 1, (k))
+        self.dis_sig_vals = rand.uniform(-1, 1, (m))
+        self.r = lambda *args: rand.uniform(-1, 1, args) + 1j * rand.uniform(-1, 1, args)
+
+    def test_functions_gradable(self):
+        """Tests if all class functions are gradable"""
+        dlc = LindbladCollection(
+            hamiltonian_operators=self.hamiltonian_operators,
+            static_hamiltonian=self.static_hamiltonian,
+            dissipator_operators=self.dissipator_operators,
+            array_library=self.array_library()
+        )
+        self.jit_grad(dlc.evaluate_rhs)(
+            self.ham_sig_vals, self.dis_sig_vals, self.rho
+        )
+        self.jit_grad(dlc.evaluate_hamiltonian)(self.ham_sig_vals)
 
 #########################################################################################################
 # Old
@@ -770,7 +805,7 @@ class TestJAXSparseOperatorCollection(QiskitDynamicsTestCase, TestJaxBase):
         self.jit_grad_wrap(doc.evaluate)(Array(coeffs))
         self.jit_grad_wrap(doc.evaluate_rhs)(Array(coeffs), self.X)
 
-
+# covered by TestLindbladOperatorCollection
 class TestDenseLindbladCollection(QiskitDynamicsTestCase):
     """Tests for DenseLindbladCollection."""
 
@@ -1041,7 +1076,7 @@ class TestDenseLindbladCollection(QiskitDynamicsTestCase):
             op_collection(sigVals, sigVals, many_rho), ar_collection(sigVals, sigVals, many_rho)
         )
 
-
+# covered by TestLinbladOperatorCollectionJAXTransformations
 class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
     """Jax version of TestDenseLindbladCollection tests."""
 
