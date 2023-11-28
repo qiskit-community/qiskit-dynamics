@@ -128,6 +128,124 @@ class OperatorCollection:
         return self.evaluate(coefficients) if y is None else self.evaluate_rhs(coefficients, y)
 
 
+class ScipySparseOperatorCollection:
+    r"""Scipy sparse version of :class:`OperatorCollection`."""
+
+    def __init__(
+        self,
+        static_operator: Optional[ArrayLike] = None,
+        operators: Optional[ArrayLike] = None,
+        decimals: Optional[int] = 10,
+    ):
+        """Initialize.
+
+        Args:
+            static_operator: (n,n) Array specifying the static_operator term :math:`G_d`.
+            operators: (k,n,n) Array specifying the terms :math:`G_j`.
+            decimals: Values will be rounded at ``decimals`` places after decimal.
+        """
+        self._decimals = decimals
+
+        if static_operator is not None:
+            self._static_operator = numpy_alias(like="scipy_sparse").asarray(np.round(static_operator, self._decimals))
+        else:
+            self._static_operator = None
+
+        if operators is not None:
+            ops = np.empty(shape=len(operators), dtype="O")
+            for idx, op in enumerate(operators):
+                ops[idx] = numpy_alias(like="scipy_sparse").asarray(np.round(op, self._decimals))
+            
+            self._operators = ops
+        else:
+            self._operators = None
+
+    @property
+    def static_operator(self) -> csr_matrix:
+        """The static part of the operator collection."""
+        return self._static_operator
+
+    @property
+    def operators(self) -> List[csr_matrix]:
+        if self._operators is None:
+            return None
+
+        return list(self._operators)
+
+    def evaluate(self, coefficients: Union[ArrayLike, None]) -> csr_matrix:
+        r"""Evaluate the operator :math:`\Lambda(c, \cdot) = (G_d + \sum_jc_jG_j)`.
+
+        Args:
+            signal_values: The signals values :math:`c` to use on the operators.
+
+        Returns:
+            An :class:`~Array` that acts on states ``y`` via multiplication.
+
+        Raises:
+            QiskitError: If collection cannot be evaluated.
+        """
+        if self._static_operator is not None and self._operators is not None:
+            return (
+                np.tensordot(coefficients, self._operators, axes=1).item() + self._static_operator
+            )
+        elif self._static_operator is None and self._operators is not None:
+            return np.tensordot(coefficients, self._operators, axes=1).item()
+        elif self.static_operator is not None:
+            return self._static_operator
+        raise QiskitError(
+            f"{type(self).__name__} with None for both static_operator and operators cannot be "
+            "evaluated."
+        )
+
+    def evaluate_rhs(self, coefficients: Union[ArrayLike, None], y: ArrayLike) -> ArrayLike:
+        r"""Evaluate the function and return :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y`.
+
+        Args:
+            signal_values: The signals :math:`c` to use on the operators.
+            y: The system state.
+
+        Returns:
+            The evaluated function.
+        Raises:
+            QiskitError: If the function cannot be evaluated.
+        """
+        if len(y.shape) == 2:
+            # For 2d array, compute linear combination then multiply
+            gen = self.evaluate(coefficients)
+            return gen.dot(y)
+        elif len(y.shape) == 1:
+            # For a 1d array, multiply individual matrices then compute linear combination
+            tmparr = np.empty(shape=(1), dtype="O")
+            tmparr[0] = y
+
+            if self._static_operator is not None and self._operators is not None:
+                return np.dot(coefficients, self._operators * tmparr) + self.static_operator.dot(y)
+            elif self._static_operator is None and self._operators is not None:
+                return np.dot(coefficients, self._operators * tmparr)
+            elif self.static_operator is not None:
+                return self.static_operator.dot(y)
+
+            raise QiskitError(
+                self.__class__.__name__
+                + """  with None for both static_operator and
+                                operators cannot be evaluated."""
+            )
+
+        raise QiskitError(self.__class__.__name__ + """  cannot evaluate RHS for y.ndim > 3.""")
+
+    def __call__(
+        self, coefficients: Union[ArrayLike, None], y: Optional[ArrayLike] = None
+    ) -> ArrayLike:
+        """Call :meth:`~evaluate` or :meth:`~evaluate_rhs` depending on the presense of ``y``.
+
+        Args:
+            coefficients: The coefficients :math:`c` to use for evaluation.
+            y: Optionally, the system state.
+
+        Returns:
+            The output of :meth:`~evaluate` or :meth:`self.evaluate_rhs`.
+        """
+        return self.evaluate(coefficients) if y is None else self.evaluate_rhs(coefficients, y)
 ########################################################################################################
 # OLD
 ########################################################################################################
