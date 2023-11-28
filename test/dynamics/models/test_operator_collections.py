@@ -13,6 +13,8 @@
 
 """Tests for operator_collections.py."""
 
+from functools import partial
+
 import numpy as np
 import numpy.random as rand
 from scipy.sparse import issparse
@@ -21,6 +23,7 @@ from scipy.sparse import csr_matrix
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
+    OperatorCollection,
     DenseOperatorCollection,
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
@@ -33,13 +36,83 @@ from qiskit_dynamics.models.operator_collections import (
 )
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import test_array_backends, QiskitDynamicsTestCase, TestJaxBase
 
 try:
     from jax.experimental import sparse as jsparse
 except ImportError:
     pass
 
+
+@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse"])
+class TestOperatorCollection:
+    """Test cases for OperatorCollection."""
+
+    def setUp(self):
+        self.X = Array(Operator.from_label("X").data)
+        self.Y = Array(Operator.from_label("Y").data)
+        self.Z = Array(Operator.from_label("Z").data)
+
+        self.test_operator_list = Array([self.X, self.Y, self.Z])
+        self.simple_collection = OperatorCollection(
+            operators=self.test_operator_list, static_operator=None, array_library=self.array_library()
+        )
+
+    def test_empty_collection_error(self):
+        """Verify that evaluating with no operators or static_operator raises an error."""
+
+        collection = OperatorCollection(operators=None, static_operator=None)
+        with self.assertRaisesRegex(QiskitError, "cannot be evaluated."):
+            collection(None)
+
+    def test_known_values_basic_functionality(self):
+        """Test OperatorCollection evaluation against analytically known values."""
+        rand.seed(34983)
+        coeffs = rand.uniform(-1, 1, 3)
+
+        res = self.simple_collection(coeffs)
+        self.assertAllClose(res, coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z)
+
+        res = (
+            OperatorCollection(operators=self.test_operator_list, static_operator=np.eye(2), array_library=self.array_library())
+        )(coeffs)
+        self.assertAllClose(
+            res, np.eye(2) + coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z
+        )
+
+    def test_basic_functionality_pseudorandom(self):
+        """Test OperatorCollection evaluation using pseudorandom arrays."""
+        rand.seed(342)
+        vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
+        arr = rand.uniform(-1, 1, (32, 128, 128))
+        res = OperatorCollection(operators=arr, array_library=self.array_library())(vals)
+        for i in range(10):
+            total = 0
+            for j in range(32):
+                total = total + vals[i, j] * arr[j]
+            self.assertAllClose(res[i], total)
+
+    def test_static_collection(self):
+        """Test the case in which only a static operator is present."""
+        collection = OperatorCollection(operators=None, static_operator=self.X, array_library=self.array_library())
+        self.assertAllClose(self.X, collection(None))
+    
+    def test_collection_with_no_explicit_array_library(self):
+        """Test when array_library is not explicitly passed."""
+        rand.seed(342)
+        vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
+        arr = rand.uniform(-1, 1, (32, 128, 128))
+        res = OperatorCollection(operators=self.asarray(arr))(vals)
+        for i in range(10):
+            total = 0
+            for j in range(32):
+                total = total + vals[i, j] * arr[j]
+            self.assertAllClose(res[i], total)
+
+
+#########################################################################################################
+# Old
+#########################################################################################################
 
 class TestDenseOperatorCollection(QiskitDynamicsTestCase):
     """Tests for DenseOperatorCollection."""
