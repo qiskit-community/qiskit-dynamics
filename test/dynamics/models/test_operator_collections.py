@@ -71,11 +71,14 @@ class TestOperatorCollection:
         coeffs = rand.uniform(-1, 1, 3)
 
         res = self.simple_collection(coeffs)
+        self.assertArrayType(res)
         self.assertAllClose(res, coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z)
 
         res = (
             OperatorCollection(operators=self.test_operator_list, static_operator=np.eye(2), array_library=self.array_library())
         )(coeffs)
+
+        self.assertArrayType(res)
         self.assertAllClose(
             res, np.eye(2) + coeffs[0] * self.X + coeffs[1] * self.Y + coeffs[2] * self.Z
         )
@@ -85,12 +88,14 @@ class TestOperatorCollection:
         rand.seed(342)
         vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
         arr = rand.uniform(-1, 1, (32, 128, 128))
-        res = OperatorCollection(operators=arr, array_library=self.array_library())(vals)
+        collection = OperatorCollection(operators=arr, array_library=self.array_library())
         for i in range(10):
+            res = collection(vals[i])
+            self.assertArrayType(res)
             total = 0
             for j in range(32):
                 total = total + vals[i, j] * arr[j]
-            self.assertAllClose(res[i], total)
+            self.assertAllClose(res, total)
 
     def test_static_collection(self):
         """Test the case in which only a static operator is present."""
@@ -102,12 +107,14 @@ class TestOperatorCollection:
         rand.seed(342)
         vals = rand.uniform(-1, 1, 32) + 1j * rand.uniform(-1, 1, (10, 32))
         arr = rand.uniform(-1, 1, (32, 128, 128))
-        res = OperatorCollection(operators=self.asarray(arr))(vals)
+        collection = OperatorCollection(operators=self.asarray(arr))
         for i in range(10):
+            res = collection(vals[i])
+            self.assertArrayType(res)
             total = 0
             for j in range(32):
                 total = total + vals[i, j] * arr[j]
-            self.assertAllClose(res[i], total)
+            self.assertAllClose(res, total)
 
 
 #########################################################################################################

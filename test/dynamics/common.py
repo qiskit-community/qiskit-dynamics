@@ -52,6 +52,8 @@ try:
 except ImportError:
     pass
 
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
+
 from qiskit_dynamics.array import Array, wrap
 
 
@@ -60,6 +62,11 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
+        if "sparse" in DYNAMICS_NUMPY_ALIAS.infer_libs(A)[0]:
+            A = A.todense()
+        if "sparse" in DYNAMICS_NUMPY_ALIAS.infer_libs(B)[0]:
+            B = B.todense()
+        
         A = np.array(A)
         B = np.array(B)
 

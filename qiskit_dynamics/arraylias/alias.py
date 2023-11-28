@@ -31,6 +31,7 @@ from .register_functions import (
     register_matmul,
     register_multiply,
     register_rmatmul,
+    register_linear_combo
 )
 
 # global NumPy and SciPy aliases
@@ -60,6 +61,7 @@ register_asarray(alias=DYNAMICS_NUMPY_ALIAS)
 register_matmul(alias=DYNAMICS_NUMPY_ALIAS)
 register_multiply(alias=DYNAMICS_NUMPY_ALIAS)
 register_rmatmul(alias=DYNAMICS_NUMPY_ALIAS)
+register_linear_combo(alias=DYNAMICS_NUMPY_ALIAS)
 
 
 ArrayLike = Union[Union[DYNAMICS_NUMPY_ALIAS.registered_types()], list]

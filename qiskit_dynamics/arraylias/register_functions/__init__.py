@@ -19,3 +19,4 @@ from .asarray import register_asarray
 from .matmul import register_matmul
 from .rmatmul import register_rmatmul
 from .multiply import register_multiply
+from .linear_combo import register_linear_combo

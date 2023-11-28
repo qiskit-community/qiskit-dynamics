@@ -25,7 +25,7 @@ from scipy.sparse import csr_matrix
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_SCIPY as usp
-from qiskit_dynamics.arraylias.alias import _preferred_lib
+from qiskit_dynamics.arraylias.alias import _preferred_lib, _numpy_multi_dispatch
 
 from ..common import test_array_backends, JAXTestBase
 
@@ -83,6 +83,20 @@ class TestDynamicsNumpyAliasType(unittest.TestCase):
             self.assertTrue(registered_type_name in DYNAMICS_NUMPY_ALIAS.infer_libs(bcoo)[0])
         except ImportError as err:
             raise unittest.SkipTest("Skipping jax tests.") from err
+
+
+@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse"])
+class Test_linear_combo:
+
+    def test_linear_combo(self):
+        mats = self.asarray([[[0., 1.], [1., 0.]], [[1j, 0.], [0., -1j]]])
+        coeffs = np.array([1., 2.])
+        out = _numpy_multi_dispatch(coeffs, mats, path="linear_combo")
+        self.assertArrayType(out)
+        
+        if "sparse" in self.array_library():
+            out = out.todense()
+        self.assertAllClose(out, np.array([[2j, 1.], [1., -2j]]))
 
 
 class Test_preferred_lib(JAXTestBase):

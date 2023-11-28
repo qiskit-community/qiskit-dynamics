@@ -26,36 +26,6 @@ from qiskit_dynamics.arraylias.alias import ArrayLike, _numpy_multi_dispatch
 from qiskit_dynamics.array import Array, wrap
 from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
 
-try:
-    import jax.numpy as jnp
-    from jax.experimental import sparse as jsparse
-
-    # sparse versions of jax.numpy operations
-    jsparse_sum = jsparse.sparsify(jnp.sum)
-    jsparse_matmul = jsparse.sparsify(jnp.matmul)
-    jsparse_add = jsparse.sparsify(jnp.add)
-    jsparse_subtract = jsparse.sparsify(jnp.subtract)
-
-    BCOO = jsparse.BCOO
-
-    def jsparse_linear_combo(coeffs: Array, mats: Array):
-        """Method for computing a linear combination of sparse arrays.
-
-        Args:
-            coeffs: A vector of coefficients.
-            mats: A 3-d array.
-        Returns:
-           The coefficients multiplied against the first axis of the array, and summed.
-        """
-        # pylint: disable=unexpected-keyword-arg
-        return jsparse_sum(jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats, axis=0)
-
-    # sparse version of computing A @ X @ B
-    jsparse_triple_product = jsparse.sparsify(lambda A, X, B: A @ X @ B)
-
-except ImportError:
-    BCOO = None
-
 
 class OperatorCollection:
     r"""Initial attempt, this should work for numpy, jax, jax_sparse.
@@ -121,9 +91,9 @@ class OperatorCollection:
             QiskitError: If both static_operator and operators are ``None``.
         """
         if self._static_operator is not None and self._operators is not None:
-            return _numpy_multi_dispatch(coefficients, self._operators, path="tensordot", axes=1) + self._static_operator
+            return _numpy_multi_dispatch(coefficients, self._operators, path="linear_combo") + self._static_operator
         elif self._static_operator is None and self._operators is not None:
-            return _numpy_multi_dispatch(coefficients, self._operators, path="tensordot", axes=1)
+            return _numpy_multi_dispatch(coefficients, self._operators, path="linear_combo")
         elif self._static_operator is not None:
             return self._static_operator
         raise QiskitError(
@@ -161,6 +131,37 @@ class OperatorCollection:
 ########################################################################################################
 # OLD
 ########################################################################################################
+
+try:
+    import jax.numpy as jnp
+    from jax.experimental import sparse as jsparse
+
+    # sparse versions of jax.numpy operations
+    jsparse_sum = jsparse.sparsify(jnp.sum)
+    jsparse_matmul = jsparse.sparsify(jnp.matmul)
+    jsparse_add = jsparse.sparsify(jnp.add)
+    jsparse_subtract = jsparse.sparsify(jnp.subtract)
+
+    BCOO = jsparse.BCOO
+
+    def jsparse_linear_combo(coeffs: Array, mats: Array):
+        """Method for computing a linear combination of sparse arrays.
+
+        Args:
+            coeffs: A vector of coefficients.
+            mats: A 3-d array.
+        Returns:
+           The coefficients multiplied against the first axis of the array, and summed.
+        """
+        # pylint: disable=unexpected-keyword-arg
+        return jsparse_sum(jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats, axis=0)
+
+    # sparse version of computing A @ X @ B
+    jsparse_triple_product = jsparse.sparsify(lambda A, X, B: A @ X @ B)
+
+except ImportError:
+    BCOO = None
+
 
 class BaseOperatorCollection(ABC):
     r"""Abstract class representing a two-variable matrix function.
