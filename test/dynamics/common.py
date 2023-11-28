@@ -188,6 +188,19 @@ class JAXSparseTestBase(QiskitDynamicsTestCase):
         """Assert the correct array type."""
         return type(a).__name__ == "BCOO"
 
+    def jit_grad(self, func_to_test: Callable) -> Callable:
+        """Tests whether a function can be graded. Converts
+        all functions to scalar, real functions if they are not
+        already.
+        Args:
+            func_to_test: The function whose gradient will be graded.
+        Returns:
+            JIT-compiled gradient of function.
+        """
+        wf = lambda f: jit(grad(f))
+        f = lambda *args: np.sum(func_to_test(*args)).real
+        return wf(f)
+
 
 class ArrayNumpyTestBase(QiskitDynamicsTestCase):
     """Base class for tests working with qiskit_dynamics Arrays with numpy backend."""

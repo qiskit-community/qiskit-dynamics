@@ -49,11 +49,11 @@ class TestOperatorCollection:
     """Test cases for OperatorCollection."""
 
     def setUp(self):
-        self.X = Array(Operator.from_label("X").data)
-        self.Y = Array(Operator.from_label("Y").data)
-        self.Z = Array(Operator.from_label("Z").data)
+        self.X = Operator.from_label("X").data
+        self.Y = Operator.from_label("Y").data
+        self.Z = Operator.from_label("Z").data
 
-        self.test_operator_list = Array([self.X, self.Y, self.Z])
+        self.test_operator_list = [self.X, self.Y, self.Z]
         self.simple_collection = OperatorCollection(
             operators=self.test_operator_list, static_operator=None, array_library=self.array_library()
         )
@@ -115,6 +115,32 @@ class TestOperatorCollection:
             for j in range(32):
                 total = total + vals[i, j] * arr[j]
             self.assertAllClose(res, total)
+
+
+@partial(test_array_backends, array_libraries=["jax", "jax_sparse"])
+class TestOperatorCollectionJAXTransformations:
+
+    def setUp(self):
+        self.X = Operator.from_label("X").data
+        self.Y = Operator.from_label("Y").data
+        self.Z = Operator.from_label("Z").data
+
+        self.test_operator_list = [self.X, self.Y, self.Z]
+        self.simple_collection = OperatorCollection(
+            operators=self.test_operator_list, static_operator=None, array_library=self.array_library()
+        )
+
+    def test_functions_gradable(self):
+        """Tests that all class functions are gradable."""
+        doc = OperatorCollection(
+            operators=self.test_operator_list,
+            static_operator=self.test_operator_list[0],
+            array_library=self.array_library()
+        )
+        rand.seed(5433)
+        coeffs = rand.uniform(-1, 1, 3)
+        self.jit_grad(doc.evaluate)(coeffs)
+        self.jit_grad(doc.evaluate_rhs)(coeffs, self.X)
 
 
 #########################################################################################################

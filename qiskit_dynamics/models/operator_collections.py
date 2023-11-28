@@ -111,7 +111,7 @@ class OperatorCollection:
         Returns:
             The evaluated function.
         """
-        return _numpy_multi_dispatch(self.evaluate(coefficients), y, path="dot")
+        return _numpy_multi_dispatch(self.evaluate(coefficients), y, path="matmul")
 
     def __call__(
         self, coefficients: Union[ArrayLike, None], y: Optional[ArrayLike] = None
