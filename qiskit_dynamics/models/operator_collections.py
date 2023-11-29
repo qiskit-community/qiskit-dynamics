@@ -305,7 +305,7 @@ class LindbladCollection:
 
             self._static_dissipators_adj = unp.conjugate(
                 unp.transpose(self._static_dissipators, [0, 2, 1])
-            ).copy()
+            )
             self._static_dissipators_product_sum = -0.5 * unp.sum(
                 unp.matmul(self._static_dissipators_adj, self._static_dissipators), axis=0
             )
@@ -316,7 +316,7 @@ class LindbladCollection:
             self._dissipator_operators = numpy_alias(like=array_library).asarray(dissipator_operators)
             self._dissipator_operators_adj = unp.conjugate(
                 unp.transpose(self._dissipator_operators, [0, 2, 1])
-            ).copy()
+            )
             self._dissipator_products = unp.matmul(
                 self._dissipator_operators_adj, self._dissipator_operators
             )

@@ -232,7 +232,7 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
 #######################################################################################################
 # get jax_sparse working with this
 #######################################################################################################
-@partial(test_array_backends, array_libraries=["numpy", "jax", "scipy_sparse"])#, "jax_sparse"])
+@partial(test_array_backends, array_libraries=["numpy", "jax", "scipy_sparse", "jax_sparse"])
 class TestLindbladCollection:
     """Tests for LindbladCollection."""
 
@@ -1105,7 +1105,7 @@ class TestDenseLindbladCollectionJax(TestDenseLindbladCollection, TestJaxBase):
         )
         self.jit_grad_wrap(dlc.evaluate_hamiltonian)(Array(self.ham_sig_vals))
 
-
+# covered by TestLindbladCollection
 class TestSparseLindbladCollection(TestDenseLindbladCollection):
     """Tests for SparseLindbladCollection."""
 

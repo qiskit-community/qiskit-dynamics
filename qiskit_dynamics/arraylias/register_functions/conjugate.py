@@ -11,14 +11,21 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
-Register custom functions using alias
+Registering conjugate.
 """
 
-from .asarray import register_asarray
-from .matmul import register_matmul
-from .rmatmul import register_rmatmul
-from .multiply import register_multiply
-from .linear_combo import register_linear_combo
-from .conjugate import register_conjugate
-from .transpose import register_transpose
+def register_conjugate(alias):
+    """Register linear functions for each array library."""
+
+    try:
+        import jax.numpy as jnp
+        from jax.experimental.sparse import sparsify
+
+        # can be changed to sparsify(jnp.conjugate) when implemented
+        bcoo_conj = sparsify(lambda x: jnp.real(x) - 1j * jnp.imag(x))
+        alias.register_function(func=bcoo_conj, lib="jax_sparse", path="conjugate")
+        
+    except ImportError:
+        pass
