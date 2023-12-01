@@ -25,10 +25,8 @@ from scipy.sparse import csr_matrix, issparse, diags
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
-    BaseOperatorCollection,
-    DenseOperatorCollection,
-    SparseOperatorCollection,
-    JAXSparseOperatorCollection,
+    OperatorCollection,
+    ScipySparseOperatorCollection
 )
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
@@ -538,7 +536,7 @@ def construct_operator_collection(
     evaluation_mode: str,
     static_operator: Union[None, Array, csr_matrix],
     operators: Union[None, Array, List[csr_matrix]],
-) -> BaseOperatorCollection:
+) -> Union[OperatorCollection, ScipySparseOperatorCollection]:
     """Construct an operator collection for :class:`GeneratorModel`.
 
     Args:
@@ -547,14 +545,15 @@ def construct_operator_collection(
         operators: Operators for the model.
 
     Returns:
-        BaseOperatorCollection: The relevant operator collection.
+        Union[OperatorCollection, ScipySparseOperatorCollection]: The relevant operator collection.
 
     Raises:
         NotImplementedError: If the ``evaluation_mode`` is invalid.
     """
 
     if evaluation_mode == "dense":
-        return DenseOperatorCollection(static_operator=static_operator, operators=operators)
+        #return DenseOperatorCollection(static_operator=static_operator, operators=operators)
+        pass
     if evaluation_mode == "sparse" and Array.default_backend() == "jax":
         # warn that sparse mode when using JAX is primarily recommended for use on CPU
         if jax.default_backend() != "cpu":
@@ -563,9 +562,11 @@ def construct_operator_collection(
                 stacklevel=2,
             )
 
-        return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
+        #return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
+        pass
     if evaluation_mode == "sparse":
-        return SparseOperatorCollection(static_operator=static_operator, operators=operators)
+        #return SparseOperatorCollection(static_operator=static_operator, operators=operators)
+        pass
 
     raise NotImplementedError(
         f"Evaluation mode '{evaluation_mode}' is not supported. Call "

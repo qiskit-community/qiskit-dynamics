@@ -39,6 +39,7 @@ def _to_csr_object_array(ops, decimals):
         return None
     return np.array([numpy_alias(like="scipy_sparse").asarray(np.round(op, decimals)) for op in ops])
 
+
 class OperatorCollection:
     r"""Initial attempt, this should work for numpy, jax, jax_sparse.
     
@@ -1017,3 +1018,39 @@ class ScipySparseVectorizedLindbladCollection(VectorizedLindbladCollection):
         return ScipySparseOperatorCollection(
             *args, **kwargs
         )
+
+    
+def package_density_matrices(y: Array) -> Array:
+    """Sends an array ``y`` of density matrices to a ``(1,)`` array of dtype object, where entry
+    ``[0]`` is ``y``. Formally avoids for-loops through vectorization.
+
+    Args:
+        y: An array.
+    Returns:
+        Array with dtype object.
+    """
+    # As written here, only works for (n,n) Arrays
+    obj_arr = np.empty(shape=(1,), dtype="O")
+    obj_arr[0] = y
+    return obj_arr
+
+
+# Using vectorization with signature, works on (k,n,n) Arrays -> (k,1) Array
+package_density_matrices = np.vectorize(package_density_matrices, signature="(n,n)->(1)")
+
+
+def unpackage_density_matrices(y: Array) -> Array:
+    """Inverse function of :func:`package_density_matrices`.
+
+    Since this function is much slower than packaging, avoid it unless absolutely needed (as in case
+    of passing multiple density matrices to :meth:`SparseLindbladCollection.evaluate_rhs`).
+
+    Args:
+        y: An array to extract the first element from.
+    Returns:
+        A ``(k,n,n)`` array.
+    """
+    return y[0]
+
+
+unpackage_density_matrices = np.vectorize(unpackage_density_matrices, signature="(1)->(n,n)")

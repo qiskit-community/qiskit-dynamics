@@ -62,9 +62,9 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
-        if "sparse" in DYNAMICS_NUMPY_ALIAS.infer_libs(A)[0]:
+        if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(A)):
             A = A.todense()
-        if "sparse" in DYNAMICS_NUMPY_ALIAS.infer_libs(B)[0]:
+        if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(B)):
             B = B.todense()
         
         A = np.array(A)
