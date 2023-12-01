@@ -66,7 +66,7 @@ class QiskitDynamicsTestCase(unittest.TestCase):
             A = A.todense()
         if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(B)):
             B = B.todense()
-        
+
         A = np.array(A)
         B = np.array(B)
 

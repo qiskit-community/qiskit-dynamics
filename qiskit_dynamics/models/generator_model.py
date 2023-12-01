@@ -26,7 +26,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
     OperatorCollection,
-    ScipySparseOperatorCollection
+    ScipySparseOperatorCollection,
 )
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
@@ -552,7 +552,7 @@ def construct_operator_collection(
     """
 
     if evaluation_mode == "dense":
-        #return DenseOperatorCollection(static_operator=static_operator, operators=operators)
+        # return DenseOperatorCollection(static_operator=static_operator, operators=operators)
         pass
     if evaluation_mode == "sparse" and Array.default_backend() == "jax":
         # warn that sparse mode when using JAX is primarily recommended for use on CPU
@@ -562,10 +562,10 @@ def construct_operator_collection(
                 stacklevel=2,
             )
 
-        #return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
+        # return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
         pass
     if evaluation_mode == "sparse":
-        #return SparseOperatorCollection(static_operator=static_operator, operators=operators)
+        # return SparseOperatorCollection(static_operator=static_operator, operators=operators)
         pass
 
     raise NotImplementedError(

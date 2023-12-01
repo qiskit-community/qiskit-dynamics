@@ -33,7 +33,7 @@ from .register_functions import (
     register_rmatmul,
     register_linear_combo,
     register_transpose,
-    register_conjugate
+    register_conjugate,
 )
 
 # global NumPy and SciPy aliases

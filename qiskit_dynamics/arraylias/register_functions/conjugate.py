@@ -16,6 +16,7 @@
 Registering conjugate.
 """
 
+
 def register_conjugate(alias):
     """Register linear functions for each array library."""
 
@@ -29,7 +30,8 @@ def register_conjugate(alias):
             if jnp.issubdtype(x.dtype, canonicalize_dtype(jnp.complex128)):
                 return x.real - 1j * x.imag
             return x
+
         alias.register_function(func=sparsify(conj_workaround), lib="jax_sparse", path="conjugate")
-        
+
     except ImportError:
         pass

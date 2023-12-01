@@ -34,7 +34,7 @@ from .operator_collections import (
     LindbladCollection,
     ScipySparseLindbladCollection,
     VectorizedLindbladCollection,
-    ScipySparseVectorizedLindbladCollection
+    ScipySparseVectorizedLindbladCollection,
 )
 from .rotating_frame import RotatingFrame
 
@@ -651,10 +651,12 @@ def construct_lindblad_operator_collection(
     hamiltonian_operators: Union[None, Array, List[csr_matrix]],
     static_dissipators: Union[None, Array, csr_matrix],
     dissipator_operators: Union[None, Array, List[csr_matrix]],
-) -> Union[LindbladCollection,
+) -> Union[
+    LindbladCollection,
     ScipySparseLindbladCollection,
     VectorizedLindbladCollection,
-    ScipySparseVectorizedLindbladCollection]:
+    ScipySparseVectorizedLindbladCollection,
+]:
     """Construct a Lindblad operator collection.
 
     Args:
@@ -685,24 +687,24 @@ def construct_lindblad_operator_collection(
         )
 
     if evaluation_mode == "dense":
-        #CollectionClass = DenseLindbladCollection
+        # CollectionClass = DenseLindbladCollection
         pass
     elif evaluation_mode == "sparse":
         if Array.default_backend() == "jax":
-            #CollectionClass = JAXSparseLindbladCollection
+            # CollectionClass = JAXSparseLindbladCollection
             pass
         else:
-            #CollectionClass = SparseLindbladCollection
+            # CollectionClass = SparseLindbladCollection
             pass
     elif evaluation_mode == "dense_vectorized":
-        #CollectionClass = DenseVectorizedLindbladCollection
+        # CollectionClass = DenseVectorizedLindbladCollection
         pass
     elif evaluation_mode == "sparse_vectorized":
         if Array.default_backend() == "jax":
-            #CollectionClass = JAXSparseVectorizedLindbladCollection
+            # CollectionClass = JAXSparseVectorizedLindbladCollection
             pass
         else:
-            #CollectionClass = SparseVectorizedLindbladCollection
+            # CollectionClass = SparseVectorizedLindbladCollection
             pass
     else:
         raise NotImplementedError(

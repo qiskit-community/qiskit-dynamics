@@ -24,6 +24,7 @@ try:
 except ImportError:
     pass
 
+
 def register_linear_combo(alias):
     """Register linear functions for each array library."""
 
@@ -37,12 +38,13 @@ def register_linear_combo(alias):
 
     try:
         import jax.numpy as jnp
-        
+
         @alias.register_function(lib="jax", path="linear_combo")
         def _(coeffs, mats):
             return jnp.tensordot(coeffs, mats, axes=1)
-        
+
         from jax.experimental.sparse import sparsify
+
         jsparse_sum = sparsify(jnp.sum)
 
         @alias.register_function(lib="jax_sparse", path="linear_combo")
