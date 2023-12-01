@@ -545,7 +545,7 @@ class TestLindbladCollectionJAXTransformations:
 ########################################################################################################
 # Add jax sparse to this
 ########################################################################################################
-@partial(test_array_backends, array_libraries=["numpy", "jax"])#, "jax_sparse"])
+@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse"])
 class TestVectorizedLindbladCollection:
     """Tests for VectorizedLindbladCollection."""
 
