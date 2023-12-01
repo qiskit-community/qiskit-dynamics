@@ -29,24 +29,10 @@ from qiskit_dynamics.models.operator_collections import (
     ScipySparseLindbladCollection,
     VectorizedLindbladCollection,
     ScipySparseVectorizedLindbladCollection,
-    DenseOperatorCollection, # start of old
-    DenseLindbladCollection,
-    DenseVectorizedLindbladCollection,
-    SparseLindbladCollection,
-    JAXSparseLindbladCollection,
-    SparseOperatorCollection,
-    JAXSparseOperatorCollection,
-    SparseVectorizedLindbladCollection,
-    JAXSparseVectorizedLindbladCollection,
 )
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.type_utils import to_array
-from ..common import test_array_backends, QiskitDynamicsTestCase, TestJaxBase
-
-try:
-    from jax.experimental import sparse as jsparse
-except ImportError:
-    pass
+from ..common import test_array_backends, QiskitDynamicsTestCase
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse"])
