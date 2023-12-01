@@ -804,23 +804,25 @@ class VectorizedLindbladCollection:
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
         """
 
+        self._array_library = array_library
+
         if array_library == "scipy_sparse":
             raise QiskitError("scipy_sparse is not a valid array_library for OperatorCollection.")
 
         if static_hamiltonian is not None:
-            self._static_hamiltonian = numpy_alias(like=array_library).asarray(static_hamiltonian)
+            self._static_hamiltonian = self._convert_to_array_type(static_hamiltonian)
             self._vec_static_hamiltonian = vec_commutator(self._static_hamiltonian)
         else:
             self._static_hamiltonian = None
         
         if hamiltonian_operators is not None:
-            self._hamiltonian_operators = numpy_alias(like=array_library).asarray(hamiltonian_operators)
+            self._hamiltonian_operators = self._convert_to_array_type(hamiltonian_operators)
             self._vec_hamiltonian_operators = vec_commutator(self._hamiltonian_operators)
         else:
             self._hamiltonian_operators = None
         
         if static_dissipators is not None:
-            self._static_dissipators = numpy_alias(like=array_library).asarray(static_dissipators)
+            self._static_dissipators = self._convert_to_array_type(static_dissipators)
             self._vec_static_dissipators_sum = unp.sum(
                 vec_dissipator(self._static_dissipators), axis=0
             )
@@ -828,7 +830,7 @@ class VectorizedLindbladCollection:
             self._static_dissipators = None
         
         if dissipator_operators is not None:
-            self._dissipator_operators = numpy_alias(like=array_library).asarray(dissipator_operators)
+            self._dissipator_operators = self._convert_to_array_type(dissipator_operators)
             self._vec_dissipator_operators = vec_dissipator(self._dissipator_operators)
         else:
             self._dissipator_operators = None
@@ -857,17 +859,15 @@ class VectorizedLindbladCollection:
             operators = None
         
         # build internally used operator collection
-        self._operator_collection = OperatorCollection(
+        self._operator_collection = self._construct_operator_collection(
             static_operator=static_operator,
-            operators=operators,
-            array_library=array_library
+            operators=operators
         )
 
     @property
     def static_hamiltonian(self) -> Union[ArrayLike, None]:
         """The static part of the operator collection."""
         return self._static_hamiltonian
-
 
     @property
     def hamiltonian_operators(self) -> Union[ArrayLike, None]:
@@ -922,15 +922,8 @@ class VectorizedLindbladCollection:
         Returns:
             The evaluated function.
         """
-        combined_coeffs = None
-        if self._hamiltonian_operators is not None and self._dissipator_operators is not None:
-            combined_coeffs = _numpy_multi_dispatch(ham_coefficients, dis_coefficients, path="append", axis=-1)
-        if self._hamiltonian_operators is not None and self._dissipator_operators is None:
-            combined_coeffs = ham_coefficients
-        if self._hamiltonian_operators is None and self._dissipator_operators is not None:
-            combined_coeffs = dis_coefficients
-
-        return self._operator_collection.evaluate(combined_coeffs)
+        coeffs = self._concatenate_coefficients(ham_coefficients, dis_coefficients)
+        return self._operator_collection.evaluate(coeffs)
 
     def evaluate_rhs(self, ham_coefficients: Optional[ArrayLike], dis_coefficients: Optional[ArrayLike], y: ArrayLike) -> ArrayLike:
         r"""Evaluates the RHS of the Lindblad equation using vectorized maps.
@@ -943,7 +936,8 @@ class VectorizedLindbladCollection:
         Returns:
             Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking convention.
         """
-        return _matmul(self.evaluate(ham_coefficients, dis_coefficients), y)
+        coeffs = self._concatenate_coefficients(ham_coefficients, dis_coefficients)
+        return self._operator_collection.evaluate_rhs(coeffs, y)
 
     def __call__(
         self, ham_coefficients: Optional[ArrayLike], dis_coefficients: Optional[ArrayLike], y: Optional[ArrayLike]
@@ -963,6 +957,66 @@ class VectorizedLindbladCollection:
 
         return self.evaluate_rhs(ham_coefficients, dis_coefficients, y)
 
+    def _convert_to_array_type(self, obj: Any) -> ArrayLike:
+        return numpy_alias(like=self._array_library).asarray(obj)
+
+    def _construct_operator_collection(self, *args, **kwargs):
+        """The class used for evaluating the vectorized model or RHS."""
+        return OperatorCollection(
+            *args, **kwargs, array_library=self._array_library
+        )
+    
+    def _concatenate_coefficients(self, ham_coefficients, dis_coefficients):
+        if self._hamiltonian_operators is not None and self._dissipator_operators is not None:
+            return _numpy_multi_dispatch(ham_coefficients, dis_coefficients, path="append", axis=-1)
+        if self._hamiltonian_operators is not None and self._dissipator_operators is None:
+            return ham_coefficients
+        if self._hamiltonian_operators is None and self._dissipator_operators is not None:
+            return dis_coefficients
+        
+        return None
+
+class ScipySparseVectorizedLindbladCollection(VectorizedLindbladCollection):
+    r"""Vectorized version of :class:`ScipySparseLindbladCollection`.
+
+    # old text ########################################################################################
+
+    Utilizes :class:`BaseVectorizedLindbladCollection` for property handling,
+    :class:`SparseLindbladCollection` for evaluate_hamiltonian, and
+    :class:`SparseOperatorCollection` for static_operator and operator property handling.
+    """
+
+    def __init__(
+        self,
+        static_hamiltonian: Optional[ArrayLike] = None,
+        hamiltonian_operators: Optional[ArrayLike] = None,
+        static_dissipators: Optional[ArrayLike] = None,
+        dissipator_operators: Optional[ArrayLike] = None,
+        decimals: Optional[int] = 10
+    ):
+        self._decimals = decimals
+        super().__init__(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            static_dissipators=static_dissipators,
+            dissipator_operators=dissipator_operators,
+        )
+
+    def _convert_to_array_type(self, obj: any) -> Union[csr_matrix, List[csr_matrix]]:
+        if obj is None:
+            return None
+
+        obj = to_csr(obj)
+        if issparse(obj):
+            return np.round(obj, decimals=self._decimals)
+        else:
+            return [np.round(sub_obj, decimals=self._decimals) for sub_obj in obj]
+
+    def _construct_operator_collection(self, *args, **kwargs):
+        """The class used for evaluating the vectorized model or RHS."""
+        return ScipySparseOperatorCollection(
+            *args, **kwargs
+        )
 
 ########################################################################################################
 # OLD

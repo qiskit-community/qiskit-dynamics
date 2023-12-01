@@ -28,6 +28,7 @@ from qiskit_dynamics.models.operator_collections import (
     LindbladCollection,
     ScipySparseLindbladCollection,
     VectorizedLindbladCollection,
+    ScipySparseVectorizedLindbladCollection,
     DenseOperatorCollection, # start of old
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
@@ -542,10 +543,7 @@ class TestLindbladCollectionJAXTransformations:
         self.jit_grad(dlc.evaluate_hamiltonian)(self.ham_sig_vals)
 
 
-########################################################################################################
-# Add jax sparse to this
-########################################################################################################
-@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse"])
+@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"])
 class TestVectorizedLindbladCollection:
     """Tests for VectorizedLindbladCollection."""
 
@@ -565,16 +563,26 @@ class TestVectorizedLindbladCollection:
         self.t = r()
         self.rand_ham_coeffs = r(k)
         self.rand_dis_coeffs = r(m)
-        self.vectorized_class = VectorizedLindbladCollection
-        self.non_vectorized_class = LindbladCollection
+
+    def _build_vectorized_collection(self, *args, **kwargs):
+        if self.array_library() == "scipy_sparse":
+            return ScipySparseVectorizedLindbladCollection(*args, **kwargs)
+        else:
+            return VectorizedLindbladCollection(*args, **kwargs, array_library=self.array_library())
+
+    def _build_non_vectorized_collection(self, *args, **kwargs):
+        if self.array_library() == "scipy_sparse":
+            return ScipySparseLindbladCollection(*args, **kwargs)
+        else:
+            return LindbladCollection(*args, **kwargs, array_library=self.array_library())
 
     def test_empty_collection_error(self):
         """Test errors get raised for empty collection."""
-        collection = self.vectorized_class()
+        collection = self._build_vectorized_collection()
         with self.assertRaisesRegex(QiskitError, "OperatorCollection with None"):
             collection(None, None, np.array([[1.0, 0.0], [0.0, 0.0]]))
 
-        with self.assertRaisesRegex(QiskitError, self.vectorized_class.__name__ + " with None"):
+        with self.assertRaisesRegex(QiskitError, "LindbladCollection with None"):
             collection.evaluate_hamiltonian(None)
 
     def test_consistency_all_terms(self):
@@ -673,19 +681,17 @@ class TestVectorizedLindbladCollection:
     ):
         """Consistency test template for non-vectorized class and vectorized class."""
 
-        collection = self.non_vectorized_class(
+        collection = self._build_non_vectorized_collection(
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
             static_dissipators=static_dissipators,
-            dissipator_operators=dissipator_operators,
-            array_library=self.array_library()
+            dissipator_operators=dissipator_operators
         )
-        vec_collection = self.vectorized_class(
+        vec_collection = self._build_vectorized_collection(
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
             static_dissipators=static_dissipators,
-            dissipator_operators=dissipator_operators,
-            array_library=self.array_library()
+            dissipator_operators=dissipator_operators
         )
 
         a = collection.evaluate_rhs(self.rand_ham_coeffs, self.rand_dis_coeffs, self.rho).flatten(
@@ -1263,14 +1269,14 @@ class TestSparseLindbladCollection(TestDenseLindbladCollection):
     def construct_collection(self, *args, **kwargs):
         return SparseLindbladCollection(*args, **kwargs)
 
-
+# covered by TestLindbladCollection
 class TestJAXSparseLindbladCollection(TestDenseLindbladCollectionJax):
     """Tests for JAXSparseLindbladCollection."""
 
     def construct_collection(self, *args, **kwargs):
         return JAXSparseLindbladCollection(*args, **kwargs)
 
-
+# covered by TestVectorizedLindbladCollection
 class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
     """Tests for DenseVectorizedLindbladCollection."""
 
@@ -1419,7 +1425,7 @@ class TestDenseVectorizedLindbladCollection(QiskitDynamicsTestCase):
         )
         self.assertAllClose(a, b)
 
-
+# covered
 class TestDenseVectorizedLindbladCollectionJax(TestDenseVectorizedLindbladCollection, TestJaxBase):
     """Jax version of TestDenseVectorizedLindbladCollection tests.
 
@@ -1451,7 +1457,7 @@ class TestSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladCollecti
         self.vectorized_class = SparseVectorizedLindbladCollection
         self.non_vectorized_class = SparseLindbladCollection
 
-
+# covered
 class TestJAXSparseVectorizedLindbladCollection(TestDenseVectorizedLindbladCollectionJax):
     """Tests for JAXSparseVectorizedLindbladCollection."""
 
