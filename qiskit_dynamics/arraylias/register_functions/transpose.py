@@ -21,12 +21,11 @@ def register_transpose(alias):
     """Register linear functions for each array library."""
 
     try:
-        import jax.numpy as jnp
         from jax.experimental.sparse import bcoo_transpose
 
         @alias.register_function(lib="jax_sparse", path="transpose")
-        def _(a, axes=None):
-            return bcoo_transpose(a, permutation=axes)
+        def _(arr, axes=None):
+            return bcoo_transpose(arr, permutation=axes)
 
     except ImportError:
         pass

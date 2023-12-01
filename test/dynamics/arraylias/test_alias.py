@@ -87,7 +87,7 @@ class TestDynamicsNumpyJAXBCOOType(JAXTestBase):
 @partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse"])
 class Test_linear_combo:
     """Test registered linear_combo function."""
-    
+
     def test_simple_case(self):
         """Simple test case for linear combo."""
         mats = self.asarray([[[0.0, 1.0], [1.0, 0.0]], [[1j, 0.0], [0.0, -1j]]])

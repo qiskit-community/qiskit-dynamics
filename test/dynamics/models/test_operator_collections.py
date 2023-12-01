@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """Tests for operator_collections.py."""
 
@@ -40,6 +40,7 @@ class TestOperatorCollection:
     """Test cases for OperatorCollection."""
 
     def setUp(self):
+        """Build a simple OperatorCollection."""
         self.X = Operator.from_label("X").data
         self.Y = Operator.from_label("Y").data
         self.Z = Operator.from_label("Z").data
@@ -118,7 +119,10 @@ class TestOperatorCollection:
 
 @partial(test_array_backends, array_libraries=["jax", "jax_sparse"])
 class TestOperatorCollectionJAXTransformations:
+    """Test JAX transformations applied to OperatorCollection evaluation methods."""
+
     def setUp(self):
+        """Build simple OperatorCollection instance."""
         self.X = Operator.from_label("X").data
         self.Y = Operator.from_label("Y").data
         self.Z = Operator.from_label("Z").data
@@ -234,6 +238,7 @@ class TestLindbladCollection:
     """Tests for LindbladCollection and ScipySparseLindbladCollection."""
 
     def setUp(self):
+        """Build pseudo-random LindbladCollection instance."""
         self.X = Operator.from_label("X").data
         self.Y = Operator.from_label("Y").data
         self.Z = Operator.from_label("Z").data
@@ -509,6 +514,7 @@ class TestLindbladCollectionJAXTransformations:
     """JAX transformation tests for LindbladCollection."""
 
     def setUp(self):
+        """Build re-usable operators and pseudo-random LindbladCollection instance."""
         self.X = Operator.from_label("X").data
         self.Y = Operator.from_label("Y").data
         self.Z = Operator.from_label("Z").data
@@ -543,6 +549,7 @@ class TestVectorizedLindbladCollection:
     """Tests for VectorizedLindbladCollection."""
 
     def setUp(self) -> None:
+        """Build pseudo random operators."""
         rand.seed(123098341)
         n = 16
         k = 4

@@ -12,19 +12,16 @@
 
 """Operator collections as math/calculation objects for model classes."""
 
-from abc import ABC, abstractmethod
 from typing import Any, Union, List, Optional
-from copy import copy
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
 
 from qiskit import QiskitError
-from qiskit.quantum_info.operators.operator import Operator
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
 from qiskit_dynamics.arraylias.alias import ArrayLike, _numpy_multi_dispatch
-from qiskit_dynamics.array import Array, wrap
-from qiskit_dynamics.type_utils import to_array, to_csr, to_BCOO, vec_commutator, vec_dissipator
+from qiskit_dynamics.array import Array
+from qiskit_dynamics.type_utils import to_csr, vec_commutator, vec_dissipator
 
 
 def _linear_combo(coeffs, mats):
@@ -433,7 +430,6 @@ class LindbladCollection:
         """
         raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
 
-    @abstractmethod
     def evaluate_rhs(
         self,
         ham_coefficients: Union[None, ArrayLike],
@@ -1052,7 +1048,7 @@ class ScipySparseVectorizedLindbladCollection(VectorizedLindbladCollection):
         return ScipySparseOperatorCollection(*args, **kwargs)
 
 
-def package_density_matrices(y: Array) -> Array:
+def package_density_matrices(y: ArrayLike) -> ArrayLike:
     """Sends an array ``y`` of density matrices to a ``(1,)`` array of dtype object, where entry
     ``[0]`` is ``y``. Formally avoids for-loops through vectorization.
 
@@ -1071,7 +1067,7 @@ def package_density_matrices(y: Array) -> Array:
 package_density_matrices = np.vectorize(package_density_matrices, signature="(n,n)->(1)")
 
 
-def unpackage_density_matrices(y: Array) -> Array:
+def unpackage_density_matrices(y: ArrayLike) -> ArrayLike:
     """Inverse function of :func:`package_density_matrices`.
 
     Since this function is much slower than packaging, avoid it unless absolutely needed (as in case
