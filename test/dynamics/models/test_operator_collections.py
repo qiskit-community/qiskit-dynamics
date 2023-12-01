@@ -229,9 +229,7 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
         self.assertAllCloseSparse(X, collection(None))
         self.assertAllClose(np.array([0.0, 1.0]), collection(None, np.array([1.0, 0.0])))
 
-#######################################################################################################
-# get jax_sparse working with this
-#######################################################################################################
+
 @partial(test_array_backends, array_libraries=["numpy", "jax", "scipy_sparse", "jax_sparse"])
 class TestLindbladCollection:
     """Tests for LindbladCollection."""
@@ -507,12 +505,9 @@ class TestLindbladCollection:
         )
 
 
-#######################################################################################################
-# get jax_sparse working with this
-#######################################################################################################
-@partial(test_array_backends, array_libraries=["jax"])#, "jax_sparse"])
-class TestLindbladOperatorCollectionJAXTransformations:
-    """JAX transformation tests for LindbladOperatorCollection."""
+@partial(test_array_backends, array_libraries=["jax", "jax_sparse"])
+class TestLindbladCollectionJAXTransformations:
+    """JAX transformation tests for LindbladCollection."""
 
     def setUp(self):
         self.X = Operator.from_label("X").data
