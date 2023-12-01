@@ -317,7 +317,7 @@ class LindbladCollection:
                 from jax.experimental.sparse import BCOO
                 self._static_dissipators = BCOO.fromdense(self._static_dissipators, n_batch=1)
                 self._static_dissipators_adj = BCOO.fromdense(self._static_dissipators_adj, n_batch=1)
-                self._static_dissipators_product_sum = BCOO.fromdense(self._static_dissipators_product_sum, n_batch=1)
+                self._static_dissipators_product_sum = BCOO.fromdense(self._static_dissipators_product_sum)
         else:
             self._static_dissipators = None
         
@@ -327,11 +327,10 @@ class LindbladCollection:
             else:
                 self._dissipator_operators = numpy_alias(like=array_library).asarray(dissipator_operators)
 
-            self._dissipator_operators = numpy_alias(like=array_library).asarray(dissipator_operators)
             self._dissipator_operators_adj = unp.conjugate(
                 unp.transpose(self._dissipator_operators, [0, 2, 1])
             )
-            self._dissipator_products = unp.matmul(
+            self._dissipator_products = -0.5 * unp.matmul(
                 self._dissipator_operators_adj, self._dissipator_operators
             )
 
@@ -449,13 +448,13 @@ class LindbladCollection:
             # A matrix
             if self._static_dissipators is None:
                 dissipators_matrix = _linear_combo(
-                    -0.5 * dis_coefficients, self._dissipator_products
+                    dis_coefficients, self._dissipator_products
                 )
             elif self._dissipator_operators is None:
                 dissipators_matrix = self._static_dissipators_product_sum
             else:
                 dissipators_matrix = self._static_dissipators_product_sum + _linear_combo(
-                    -0.5 * dis_coefficients, self._dissipator_products
+                    dis_coefficients, self._dissipator_products
                 )
 
             if hamiltonian_matrix is not None:
