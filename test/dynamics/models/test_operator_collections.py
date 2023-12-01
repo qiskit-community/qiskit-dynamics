@@ -27,6 +27,7 @@ from qiskit_dynamics.models.operator_collections import (
     ScipySparseOperatorCollection,
     LindbladCollection,
     ScipySparseLindbladCollection,
+    VectorizedLindbladCollection,
     DenseOperatorCollection, # start of old
     DenseLindbladCollection,
     DenseVectorizedLindbladCollection,
@@ -232,7 +233,7 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "scipy_sparse", "jax_sparse"])
 class TestLindbladCollection:
-    """Tests for LindbladCollection."""
+    """Tests for LindbladCollection and ScipySparseLindbladCollection."""
 
     def setUp(self):
         self.X = Operator.from_label("X").data
@@ -539,6 +540,161 @@ class TestLindbladCollectionJAXTransformations:
             self.ham_sig_vals, self.dis_sig_vals, self.rho
         )
         self.jit_grad(dlc.evaluate_hamiltonian)(self.ham_sig_vals)
+
+
+########################################################################################################
+# Add jax sparse to this
+########################################################################################################
+@partial(test_array_backends, array_libraries=["numpy", "jax"])#, "jax_sparse"])
+class TestVectorizedLindbladCollection:
+    """Tests for VectorizedLindbladCollection."""
+
+    def setUp(self) -> None:
+        rand.seed(123098341)
+        n = 16
+        k = 4
+        m = 2
+        r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
+
+        self.r = r
+        self.rand_ham = r(k, n, n)
+        self.rand_dis = r(m, n, n)
+        self.rand_dft = r(n, n)
+        self.rand_static_dis = r(k, n, n)
+        self.rho = r(n, n)
+        self.t = r()
+        self.rand_ham_coeffs = r(k)
+        self.rand_dis_coeffs = r(m)
+        self.vectorized_class = VectorizedLindbladCollection
+        self.non_vectorized_class = LindbladCollection
+
+    def test_empty_collection_error(self):
+        """Test errors get raised for empty collection."""
+        collection = self.vectorized_class()
+        with self.assertRaisesRegex(QiskitError, "OperatorCollection with None"):
+            collection(None, None, np.array([[1.0, 0.0], [0.0, 0.0]]))
+
+        with self.assertRaisesRegex(QiskitError, self.vectorized_class.__name__ + " with None"):
+            collection.evaluate_hamiltonian(None)
+
+    def test_consistency_all_terms(self):
+        """Check consistency with non-vectorized class when hamiltonian,
+        static_hamiltonian, and dissipator terms defined."""
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=self.rand_ham,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=self.rand_dis,
+        )
+
+    def test_consistency_no_dissipators(self):
+        """Check consistency with non-vectorized class when only hamiltonian and
+        static_hamiltonian terms defined.
+        """
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=self.rand_ham,
+            static_dissipators=None,
+            dissipator_operators=None,
+        )
+
+    def test_consistency_no_static_terms(self):
+        """Check consistency with DenseLindbladCollection without static terms."""
+        self._consistency_test(
+            static_hamiltonian=None,
+            hamiltonian_operators=self.rand_ham,
+            static_dissipators=None,
+            dissipator_operators=self.rand_dis,
+        )
+
+    def test_consistency_no_hamiltonian_operators(self):
+        """Check consistency with non-vectorized class when hamiltonian,
+        static_hamiltonian, static_dissipators, and dissipator terms defined."""
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=None,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=self.rand_dis,
+        )
+
+    def test_consistency_only_dissipators(self):
+        """Check consistency with non-vectorized class when no hamiltonian
+        or static_hamiltonian defined."""
+        self._consistency_test(
+            static_hamiltonian=None,
+            hamiltonian_operators=None,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=self.rand_dis,
+        )
+
+    def test_consistency_only_static_hamiltonian(self):
+        """Check consistency with non-vectorized class when only
+        static_hamiltonian defined."""
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=None,
+            static_dissipators=None,
+            dissipator_operators=None,
+        )
+
+    def test_consistency_only_hamiltonian_operators(self):
+        """Check consistency with non-vectorized class when only hamiltonian operators defined."""
+        self._consistency_test(
+            static_hamiltonian=None,
+            hamiltonian_operators=self.rand_ham,
+            static_dissipators=None,
+            dissipator_operators=None,
+        )
+
+    def test_consistency_only_static_dissipators(self):
+        """Check consistency with non-vectorized class when only hamiltonian operators defined."""
+        self._consistency_test(
+            static_hamiltonian=None,
+            hamiltonian_operators=None,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=None,
+        )
+
+    def test_consistency_only_static_terms(self):
+        """Check consistency with non-vectorized class when only hamiltonian operators defined."""
+        self._consistency_test(
+            static_hamiltonian=self.rand_dft,
+            hamiltonian_operators=None,
+            static_dissipators=self.rand_static_dis,
+            dissipator_operators=None,
+        )
+
+    def _consistency_test(
+        self,
+        static_hamiltonian=None,
+        hamiltonian_operators=None,
+        static_dissipators=None,
+        dissipator_operators=None,
+    ):
+        """Consistency test template for non-vectorized class and vectorized class."""
+
+        collection = self.non_vectorized_class(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            static_dissipators=static_dissipators,
+            dissipator_operators=dissipator_operators,
+            array_library=self.array_library()
+        )
+        vec_collection = self.vectorized_class(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            static_dissipators=static_dissipators,
+            dissipator_operators=dissipator_operators,
+            array_library=self.array_library()
+        )
+
+        a = collection.evaluate_rhs(self.rand_ham_coeffs, self.rand_dis_coeffs, self.rho).flatten(
+            order="F"
+        )
+        b = vec_collection.evaluate_rhs(
+            self.rand_ham_coeffs, self.rand_dis_coeffs, self.rho.flatten(order="F")
+        )
+        self.assertAllClose(a, b)
 
 #########################################################################################################
 # Old

@@ -33,6 +33,11 @@ def _linear_combo(coeffs, mats):
 def _matmul(A, B, **kwargs):
     return _numpy_multi_dispatch(A, B, path="matmul", **kwargs)
 
+def _to_csr_object_array(ops, decimals):
+    """Turn a list of matrices into a numpy object array of scipy sparse matrix instances."""
+    if ops is None:
+        return None
+    return np.array([numpy_alias(like="scipy_sparse").asarray(np.round(op, decimals)) for op in ops])
 
 class OperatorCollection:
     r"""Initial attempt, this should work for numpy, jax, jax_sparse.
@@ -758,11 +763,206 @@ class ScipySparseLindbladCollection:
         return self.evaluate_rhs(ham_coefficients, dis_coefficients, y)
 
 
-def _to_csr_object_array(ops, decimals):
-    """Turn a list of matrices into a numpy object array of scipy sparse matrix instances."""
-    if ops is None:
-        return None
-    return np.array([numpy_alias(like="scipy_sparse").asarray(np.round(op, decimals)) for op in ops])
+class VectorizedLindbladCollection:
+    """VectorizedLindblad collection for numpy, jax, jax_sparse
+
+    
+    **************** Old Text from BaseVectorizedLindbladCollection
+    Base class for Vectorized Lindblad collections.
+
+    The vectorized Lindblad equation represents the Lindblad master equation in the structure
+    of a linear matrix differential equation in standard form. Hence, this class inherits
+    from both ``BaseLindbladOperatorCollection`` and ``BaseOperatorCollection``.
+
+    This class manages the general property handling of converting operators in a Lindblad
+    collection to the correct type, constructing vectorized versions, and combining for use in a
+    BaseOperatorCollection. Requires implementation of:
+
+        - ``convert_to_internal_type``: Convert operators to the required internal type,
+          e.g. csr or Array.
+        - ``evaluation_class``: Class property that returns the subclass of BaseOperatorCollection
+          to be used when evaluating the model, e.g. DenseOperatorCollection or
+          SparseOperatorCollection.
+    """
+
+    def __init__(
+        self,
+        static_hamiltonian: Optional[ArrayLike] = None,
+        hamiltonian_operators: Optional[ArrayLike] = None,
+        static_dissipators: Optional[ArrayLike] = None,
+        dissipator_operators: Optional[ArrayLike] = None,
+        array_library: Optional[str] = None
+    ):
+        r"""Initialize collection.
+
+        Args:
+            static_hamiltonian: Constant term :math:`H_d` to be added to the Hamiltonian of the
+                                system.
+            hamiltonian_operators: Specifies breakdown of Hamiltonian
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
+            static_dissipators: Dissipator terms with coefficient 1.
+            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
+        """
+
+        if array_library == "scipy_sparse":
+            raise QiskitError("scipy_sparse is not a valid array_library for OperatorCollection.")
+
+        if static_hamiltonian is not None:
+            self._static_hamiltonian = numpy_alias(like=array_library).asarray(static_hamiltonian)
+            self._vec_static_hamiltonian = vec_commutator(self._static_hamiltonian)
+        else:
+            self._static_hamiltonian = None
+        
+        if hamiltonian_operators is not None:
+            self._hamiltonian_operators = numpy_alias(like=array_library).asarray(hamiltonian_operators)
+            self._vec_hamiltonian_operators = vec_commutator(self._hamiltonian_operators)
+        else:
+            self._hamiltonian_operators = None
+        
+        if static_dissipators is not None:
+            self._static_dissipators = numpy_alias(like=array_library).asarray(static_dissipators)
+            self._vec_static_dissipators_sum = unp.sum(
+                vec_dissipator(self._static_dissipators), axis=0
+            )
+        else:
+            self._static_dissipators = None
+        
+        if dissipator_operators is not None:
+            self._dissipator_operators = numpy_alias(like=array_library).asarray(dissipator_operators)
+            self._vec_dissipator_operators = vec_dissipator(self._dissipator_operators)
+        else:
+            self._dissipator_operators = None
+        
+
+        # concatenate static operators
+        if self._static_hamiltonian is not None and self._static_dissipators is not None:
+            static_operator = self._vec_static_hamiltonian + self._vec_static_dissipators_sum
+        elif self._static_hamiltonian is None and self._static_dissipators is not None:
+            static_operator = self._vec_static_dissipators_sum
+        elif self._static_hamiltonian is not None and self._static_dissipators is None:
+            static_operator = self._vec_static_hamiltonian
+        else:
+            static_operator = None
+        
+        # concatenate non-static operators
+        if self._hamiltonian_operators is not None and self._dissipator_operators is not None:
+            operators = unp.append(
+                self._vec_hamiltonian_operators, self._vec_dissipator_operators, axis=0
+            )
+        elif self._hamiltonian_operators is not None and self._dissipator_operators is None:
+            operators = self._vec_hamiltonian_operators
+        elif self._hamiltonian_operators is None and self._dissipator_operators is not None:
+            operators = self._vec_dissipator_operators
+        else:
+            operators = None
+        
+        # build internally used operator collection
+        self._operator_collection = OperatorCollection(
+            static_operator=static_operator,
+            operators=operators,
+            array_library=array_library
+        )
+
+    @property
+    def static_hamiltonian(self) -> Union[ArrayLike, None]:
+        """The static part of the operator collection."""
+        return self._static_hamiltonian
+
+
+    @property
+    def hamiltonian_operators(self) -> Union[ArrayLike, None]:
+        """The operators for the non-static part of Hamiltonian."""
+        return self._hamiltonian_operators
+
+    @property
+    def static_dissipators(self) -> Union[ArrayLike, None]:
+        """The operators for the static part of dissipator."""
+        return self._static_dissipators
+
+    @property
+    def dissipator_operators(self) -> Union[ArrayLike, None]:
+        """The operators for the non-static part of dissipator."""
+        return self._dissipator_operators
+
+    def evaluate_hamiltonian(self, ham_coefficients: Union[None, ArrayLike]) -> ArrayLike:
+        r"""Evaluate the Hamiltonian of the model.
+
+        Args:
+            ham_coefficients: The values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+
+        Returns:
+            The Hamiltonian.
+        
+        Raises:
+            QiskitError: If collection not sufficiently specified.
+        """
+        if self._static_hamiltonian is not None and self._hamiltonian_operators is not None:
+            return (
+                _linear_combo(ham_coefficients, self._hamiltonian_operators)
+                + self._static_hamiltonian
+            )
+        elif self._static_hamiltonian is None and self._hamiltonian_operators is not None:
+            return _linear_combo(ham_coefficients, self._hamiltonian_operators)
+        elif self._static_hamiltonian is not None:
+            return self._static_hamiltonian
+        else:
+            raise QiskitError(
+                self.__class__.__name__
+                + """ with None for both static_hamiltonian and
+                                hamiltonian_operators cannot evaluate Hamiltonian."""
+            )
+
+    def evaluate(self, ham_coefficients: Optional[ArrayLike], dis_coefficients: Optional[ArrayLike]) -> ArrayLike:
+        r"""Compute and return :math:`\Lambda(c_1, c_2, \cdot)`.
+
+        Args:
+            ham_sig_vals: The signals :math:`c_1` to use on the Hamiltonians.
+            dis_sig_vals: The signals :math:`c_2` to use on the dissipators.
+
+        Returns:
+            The evaluated function.
+        """
+        combined_coeffs = None
+        if self._hamiltonian_operators is not None and self._dissipator_operators is not None:
+            combined_coeffs = _numpy_multi_dispatch(ham_coefficients, dis_coefficients, path="append", axis=-1)
+        if self._hamiltonian_operators is not None and self._dissipator_operators is None:
+            combined_coeffs = ham_coefficients
+        if self._hamiltonian_operators is None and self._dissipator_operators is not None:
+            combined_coeffs = dis_coefficients
+
+        return self._operator_collection.evaluate(combined_coeffs)
+
+    def evaluate_rhs(self, ham_coefficients: Optional[ArrayLike], dis_coefficients: Optional[ArrayLike], y: ArrayLike) -> ArrayLike:
+        r"""Evaluates the RHS of the Lindblad equation using vectorized maps.
+
+        Args:
+            ham_sig_vals: Hamiltonian signal coefficients.
+            dis_sig_vals: Dissipator signal coefficients. If none involved, pass ``None``.
+            y: Density matrix represented as a vector using column-stacking convention.
+
+        Returns:
+            Vectorized RHS of Lindblad equation :math:`\dot{\rho}` in column-stacking convention.
+        """
+        return _matmul(self.evaluate(ham_coefficients, dis_coefficients), y)
+
+    def __call__(
+        self, ham_coefficients: Optional[ArrayLike], dis_coefficients: Optional[ArrayLike], y: Optional[ArrayLike]
+    ) -> ArrayLike:
+        """Call :meth:`~evaluate` or :meth:`~evaluate_rhs` depending on the presense of ``y``.
+
+        Args:
+            ham_coefficients: The signals :math:`c_1` to use on the Hamiltonians.
+            dis_coefficients: The signals :math:`c_2` to use on the dissipators.
+            y: Optionally, the system state.
+
+        Returns:
+            The evaluated function.
+        """
+        if y is None:
+            return self.evaluate(ham_coefficients, dis_coefficients)
+
+        return self.evaluate_rhs(ham_coefficients, dis_coefficients, y)
+
 
 ########################################################################################################
 # OLD
