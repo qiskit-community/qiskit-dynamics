@@ -20,12 +20,16 @@ def register_conjugate(alias):
     """Register linear functions for each array library."""
 
     try:
+        from jax.dtypes import canonicalize_dtype
         import jax.numpy as jnp
         from jax.experimental.sparse import sparsify
 
         # can be changed to sparsify(jnp.conjugate) when implemented
-        bcoo_conj = sparsify(lambda x: jnp.real(x) - 1j * jnp.imag(x))
-        alias.register_function(func=bcoo_conj, lib="jax_sparse", path="conjugate")
+        def conj_workaround(x):
+            if jnp.issubdtype(x.dtype, canonicalize_dtype(jnp.complex128)):
+                return x.real - 1j * x.imag
+            return x
+        alias.register_function(func=sparsify(conj_workaround), lib="jax_sparse", path="conjugate")
         
     except ImportError:
         pass

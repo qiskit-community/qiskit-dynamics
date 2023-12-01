@@ -245,11 +245,11 @@ class TestLindbladCollection:
         k = 8
         m = 4
         l = 2
-        self.hamiltonian_operators = rand.uniform(-1, 1, (k, n, n))
+        self.hamiltonian_operators = rand.uniform(-1, 1, (k, n, n)) + 1j * rand.uniform(-1, 1, (k, n, n))
         self.dissipator_operators = rand.uniform(-1, 1, (m, n, n))
-        self.static_hamiltonian = rand.uniform(-1, 1, (n, n))
-        self.rho = rand.uniform(-1, 1, (n, n))
-        self.multiple_rho = rand.uniform(-1, 1, (l, n, n))
+        self.static_hamiltonian = rand.uniform(-1, 1, (n, n)) + 1j * rand.uniform(-1, 1, (n, n))
+        self.rho = rand.uniform(-1, 1, (n, n)) + 1j * rand.uniform(-1, 1, (n, n))
+        self.multiple_rho = rand.uniform(-1, 1, (l, n, n)) + 1j * rand.uniform(-1, 1, (l, n, n))
         self.ham_sig_vals = rand.uniform(-1, 1, (k))
         self.dis_sig_vals = rand.uniform(-1, 1, (m))
         self.r = lambda *args: rand.uniform(-1, 1, args) + 1j * rand.uniform(-1, 1, args)

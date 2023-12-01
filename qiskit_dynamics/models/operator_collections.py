@@ -301,7 +301,10 @@ class LindbladCollection:
             self._hamiltonian_operators = None
 
         if static_dissipators is not None:
-            self._static_dissipators = numpy_alias(like=array_library).asarray(static_dissipators)
+            if array_library == "jax_sparse":
+                self._static_dissipators = numpy_alias(like="jax").asarray(static_dissipators)
+            else:
+                self._static_dissipators = numpy_alias(like=array_library).asarray(static_dissipators)
 
             self._static_dissipators_adj = unp.conjugate(
                 unp.transpose(self._static_dissipators, [0, 2, 1])
@@ -309,10 +312,21 @@ class LindbladCollection:
             self._static_dissipators_product_sum = -0.5 * unp.sum(
                 unp.matmul(self._static_dissipators_adj, self._static_dissipators), axis=0
             )
+
+            if array_library == "jax_sparse":
+                from jax.experimental.sparse import BCOO
+                self._static_dissipators = BCOO.fromdense(self._static_dissipators, n_batch=1)
+                self._static_dissipators_adj = BCOO.fromdense(self._static_dissipators_adj, n_batch=1)
+                self._static_dissipators_product_sum = BCOO.fromdense(self._static_dissipators_product_sum, n_batch=1)
         else:
             self._static_dissipators = None
         
         if dissipator_operators is not None:
+            if array_library == "jax_sparse":
+                self._dissipator_operators = numpy_alias(like="jax").asarray(dissipator_operators)
+            else:
+                self._dissipator_operators = numpy_alias(like=array_library).asarray(dissipator_operators)
+
             self._dissipator_operators = numpy_alias(like=array_library).asarray(dissipator_operators)
             self._dissipator_operators_adj = unp.conjugate(
                 unp.transpose(self._dissipator_operators, [0, 2, 1])
@@ -320,6 +334,12 @@ class LindbladCollection:
             self._dissipator_products = unp.matmul(
                 self._dissipator_operators_adj, self._dissipator_operators
             )
+
+            if array_library == "jax_sparse":
+                from jax.experimental.sparse import BCOO
+                self._dissipator_operators = BCOO.fromdense(self._dissipator_operators, n_batch=1)
+                self._dissipator_operators_adj = BCOO.fromdense(self._dissipator_operators_adj, n_batch=1)
+                self._dissipator_products = BCOO.fromdense(self._dissipator_products, n_batch=1)
         else:
             self._dissipator_operators = None
 
