@@ -19,11 +19,6 @@ by a 3d array).
 
 import numpy as np
 
-try:
-    import jax.numpy as jnp
-except ImportError:
-    pass
-
 
 def register_linear_combo(alias):
     """Register linear functions for each array library."""
@@ -49,6 +44,7 @@ def register_linear_combo(alias):
 
         @alias.register_function(lib="jax_sparse", path="linear_combo")
         def _(coeffs, mats):
+            # pylint: disable=unexpected-keyword-arg
             return jsparse_sum(jnp.broadcast_to(coeffs[:, None, None], mats.shape) * mats, axis=0)
 
     except ImportError:

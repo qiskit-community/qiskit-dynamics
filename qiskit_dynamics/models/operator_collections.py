@@ -9,6 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """Operator collections as math/calculation objects for model classes."""
 
@@ -42,17 +43,13 @@ def _to_csr_object_array(ops, decimals):
 
 
 class OperatorCollection:
-    r"""Initial attempt, this should work for numpy, jax, jax_sparse.
-
-    Old text from abstract base class:
-    Abstract class representing a two-variable matrix function.
+    r"""Class for evaluating a linear combination of operators acting on a state.
 
     This class represents a function :math:`c,y \mapsto \Lambda(c, y)`, which is assumed to be
     decomposed as :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y` for matrices :math:`G_d` and
     :math:`G_j`, with :math:`G_d` referred to as the static operator.
 
-    Describes an interface for evaluating the map or its action on ``y``, given the 1d set of values
-    :math:`c_j`.
+    This works for ``array_library in ["numpy", "jax", "jax_sparse"]``.
     """
 
     def __init__(
@@ -61,6 +58,16 @@ class OperatorCollection:
         operators: Optional[ArrayLike] = None,
         array_library: Optional[str] = None,
     ):
+        """Initialize.
+
+        Args:
+            operators: ``(k,n,n)`` array specifying the terms :math:`G_j`.
+            static_operator: ``(n,n)`` array specifying the extra static_operator :math:`G_d`.
+            array_library: Underlying library to use for array operations.
+
+        Raises:
+            QiskitError: If "scipy_sparse" is passed as array_library.
+        """
         if array_library == "scipy_sparse":
             raise QiskitError("scipy_sparse is not a valid array_library for OperatorCollection.")
 
@@ -168,12 +175,13 @@ class ScipySparseOperatorCollection:
         self._operators = _to_csr_object_array(operators, decimals)
 
     @property
-    def static_operator(self) -> csr_matrix:
+    def static_operator(self) -> Union[None, csr_matrix]:
         """The static part of the operator collection."""
         return self._static_operator
 
     @property
-    def operators(self) -> List[csr_matrix]:
+    def operators(self) -> Union[None, List[csr_matrix]]:
+        """The operators of this collection."""
         if self._operators is None:
             return None
 
@@ -183,7 +191,7 @@ class ScipySparseOperatorCollection:
         r"""Evaluate the operator :math:`\Lambda(c, \cdot) = (G_d + \sum_jc_jG_j)`.
 
         Args:
-            signal_values: The signals values :math:`c` to use on the operators.
+            coefficients: The signals values :math:`c` to use on the operators.
 
         Returns:
             An :class:`~Array` that acts on states ``y`` via multiplication.
@@ -208,7 +216,7 @@ class ScipySparseOperatorCollection:
         r"""Evaluate the function and return :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y`.
 
         Args:
-            signal_values: The signals :math:`c` to use on the operators.
+            coefficients: The signals :math:`c` to use on the operators.
             y: The system state.
 
         Returns:
@@ -256,10 +264,7 @@ class ScipySparseOperatorCollection:
 
 
 class LindbladCollection:
-    r"""This now handles "numpy", "jax" (add "jax_sparse" after)
-
-    Old text:
-    Abstract class representing a two-variable matrix function for evaluating the right hand
+    r"""Class representing a two-variable matrix function for evaluating the right hand
     side of the Lindblad equation.
 
     In particular, this object represents the function:
@@ -275,6 +280,8 @@ class LindbladCollection:
 
     Describes an interface for evaluating the map or its action on :math:`\rho`,
     given a pair of 1d sets of values :math:`c_1, c_2`.
+
+    This class works for ``array_library in ["numpy", "jax", "jax_sparse"]``.
     """
 
     def __init__(
@@ -294,6 +301,10 @@ class LindbladCollection:
                 as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
             static_dissipators: Constant dissipator terms.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
+            array_library: Array library to use for storing arrays in the collection.
+
+        Raises:
+            QiskitError: If "scipy_sparse" is passed as the array_library.
         """
 
         if array_library == "scipy_sparse":
@@ -385,7 +396,7 @@ class LindbladCollection:
         """The operators for the non-static part of dissipator."""
         return self._dissipator_operators
 
-    def evaluate_hamiltonian(self, ham_coefficients: Union[None, ArrayLike]) -> ArrayLike:
+    def evaluate_hamiltonian(self, ham_coefficients: Optional[ArrayLike]) -> ArrayLike:
         r"""Evaluate the Hamiltonian of the model.
 
         Args:
@@ -414,7 +425,7 @@ class LindbladCollection:
             )
 
     def evaluate(
-        self, ham_coefficients: Union[None, ArrayLike], dis_coefficients: Union[None, ArrayLike]
+        self, ham_coefficients: Optional[ArrayLike], dis_coefficients: Optional[ArrayLike]
     ) -> ArrayLike:
         r"""Evaluate the function and return :math:`\Lambda(c_1, c_2, \cdot)`.
 
@@ -432,8 +443,8 @@ class LindbladCollection:
 
     def evaluate_rhs(
         self,
-        ham_coefficients: Union[None, ArrayLike],
-        dis_coefficients: Union[None, ArrayLike],
+        ham_coefficients: Optional[ArrayLike],
+        dis_coefficients: Optional[ArrayLike],
         y: ArrayLike,
     ) -> ArrayLike:
         r"""Evaluates Lindblad equation RHS given a pair of signal values for the hamiltonian terms
@@ -449,8 +460,8 @@ class LindbladCollection:
             C = \sum_j \gamma_j(t) L_j y L_j^\dagger.
 
         Args:
-            ham_sig_vals: Hamiltonian coefficient values, :math:`s_j(t)`.
-            dis_sig_vals: Dissipator signal values, :math:`\gamma_j(t)`.
+            ham_coefficients: Hamiltonian coefficient values, :math:`s_j(t)`.
+            dis_coefficients: Dissipator signal values, :math:`\gamma_j(t)`.
             y: Density matrix as ``(n,n)`` array representing the state at time :math:`t`.
 
         Returns:
@@ -527,8 +538,8 @@ class LindbladCollection:
 
     def __call__(
         self,
-        ham_coefficients: Union[None, ArrayLike],
-        dis_coefficients: Union[None, ArrayLike],
+        ham_coefficients: Optional[ArrayLike],
+        dis_coefficients: Optional[ArrayLike],
         y: Optional[ArrayLike],
     ) -> ArrayLike:
         """Call :meth:`~evaluate` or :meth:`~evaluate_rhs` depending on the presense of ``y``.
@@ -630,7 +641,7 @@ class ScipySparseLindbladCollection:
 
         return list(self._dissipator_operators)
 
-    def evaluate_hamiltonian(self, ham_coefficients: Union[None, ArrayLike]) -> csr_matrix:
+    def evaluate_hamiltonian(self, ham_coefficients: Optional[ArrayLike]) -> csr_matrix:
         r"""Compute the Hamiltonian.
 
         Args:
@@ -656,8 +667,25 @@ class ScipySparseLindbladCollection:
                                 hamiltonian_operators cannot evaluate Hamiltonian."""
             )
 
+    def evaluate(
+        self, ham_coefficients: Optional[ArrayLike], dis_coefficients: Optional[ArrayLike]
+    ) -> ArrayLike:
+        r"""Evaluate the function and return :math:`\Lambda(c_1, c_2, \cdot)`.
+
+        Args:
+            ham_coefficients: The signals :math:`c_1` to use on the Hamiltonians.
+            dis_coefficients: The signals :math:`c_2` to use on the dissipators.
+
+        Returns:
+            The evaluated function.
+
+        Raises:
+            ValueError: Always.
+        """
+        raise ValueError("Non-vectorized Lindblad collections cannot be evaluated without a state.")
+
     def evaluate_rhs(
-        self, ham_coefficients: Union[None, Array], dis_coefficients: Union[None, Array], y: Array
+        self, ham_coefficients: Optional[ArrayLike], dis_coefficients: Optional[ArrayLike], y: Array
     ) -> Array:
         r"""Evaluate the RHS of the Lindblad model for a given list of signal values.
 
@@ -788,11 +816,7 @@ class ScipySparseLindbladCollection:
 
 
 class VectorizedLindbladCollection:
-    """VectorizedLindblad collection for numpy, jax, jax_sparse
-
-
-    **************** Old Text from BaseVectorizedLindbladCollection
-    Base class for Vectorized Lindblad collections.
+    """Vectorized Lindblad collection class.
 
     The vectorized Lindblad equation represents the Lindblad master equation in the structure
     of a linear matrix differential equation in standard form. Hence, this class inherits
@@ -807,6 +831,8 @@ class VectorizedLindbladCollection:
         - ``evaluation_class``: Class property that returns the subclass of BaseOperatorCollection
           to be used when evaluating the model, e.g. DenseOperatorCollection or
           SparseOperatorCollection.
+
+    This class works for ``array_library in ["numpy", "jax", "jax_sparse"]``.
     """
 
     def __init__(
@@ -826,6 +852,9 @@ class VectorizedLindbladCollection:
                 as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
             static_dissipators: Dissipator terms with coefficient 1.
             dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
+
+        Raises:
+            QiskitError: If "scipy_sparse" is passed as array_library.
         """
 
         self._array_library = array_library
@@ -940,8 +969,8 @@ class VectorizedLindbladCollection:
         r"""Compute and return :math:`\Lambda(c_1, c_2, \cdot)`.
 
         Args:
-            ham_sig_vals: The signals :math:`c_1` to use on the Hamiltonians.
-            dis_sig_vals: The signals :math:`c_2` to use on the dissipators.
+            ham_coefficients: The signals :math:`c_1` to use on the Hamiltonians.
+            dis_coefficients: The signals :math:`c_2` to use on the dissipators.
 
         Returns:
             The evaluated function.
@@ -958,8 +987,8 @@ class VectorizedLindbladCollection:
         r"""Evaluates the RHS of the Lindblad equation using vectorized maps.
 
         Args:
-            ham_sig_vals: Hamiltonian signal coefficients.
-            dis_sig_vals: Dissipator signal coefficients. If none involved, pass ``None``.
+            ham_coefficients: Hamiltonian signal coefficients.
+            dis_coefficients: Dissipator signal coefficients. If none involved, pass ``None``.
             y: Density matrix represented as a vector using column-stacking convention.
 
         Returns:
@@ -1008,14 +1037,7 @@ class VectorizedLindbladCollection:
 
 
 class ScipySparseVectorizedLindbladCollection(VectorizedLindbladCollection):
-    r"""Vectorized version of :class:`ScipySparseLindbladCollection`.
-
-    # old text ########################################################################################
-
-    Utilizes :class:`BaseVectorizedLindbladCollection` for property handling,
-    :class:`SparseLindbladCollection` for evaluate_hamiltonian, and
-    :class:`SparseOperatorCollection` for static_operator and operator property handling.
-    """
+    r"""Scipy sparse version of VectorizedLindbladCollection."""
 
     def __init__(
         self,
@@ -1025,6 +1047,17 @@ class ScipySparseVectorizedLindbladCollection(VectorizedLindbladCollection):
         dissipator_operators: Optional[ArrayLike] = None,
         decimals: Optional[int] = 10,
     ):
+        r"""Initialize collection.
+
+        Args:
+            static_hamiltonian: Constant term :math:`H_d` to be added to the Hamiltonian of the
+                                system.
+            hamiltonian_operators: Specifies breakdown of Hamiltonian
+                as :math:`H(t) = \sum_j s(t) H_j+H_d` by specifying H_j. (k,n,n) array.
+            static_dissipators: Dissipator terms with coefficient 1.
+            dissipator_operators: the terms :math:`L_j` in Lindblad equation. (m,n,n) array.
+            decimals: Decimals to round the sparse operators to 0.
+        """
         self._decimals = decimals
         super().__init__(
             static_hamiltonian=static_hamiltonian,
