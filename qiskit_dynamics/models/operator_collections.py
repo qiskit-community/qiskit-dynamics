@@ -215,7 +215,7 @@ class ScipySparseOperatorCollection:
         r"""Evaluate the function and return :math:`\Lambda(c, y) = (G_d + \sum_jc_jG_j)  y`.
 
         Args:
-            coefficients: The signals :math:`c` to use on the operators.
+            coefficients: The coefficients :math:`c` to use on the operators.
             y: The system state.
 
         Returns:
