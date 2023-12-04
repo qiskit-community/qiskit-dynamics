@@ -609,7 +609,9 @@ class ScipySparseLindbladCollection:
             )
 
             # pre-compute products
-            self._dissipator_products = self._dissipator_operators_adj * self._dissipator_operators
+            self._dissipator_products = (
+                -0.5 * self._dissipator_operators_adj * self._dissipator_operators
+            )
 
     @property
     def static_hamiltonian(self) -> Union[None, csr_matrix]:
@@ -742,14 +744,12 @@ class ScipySparseLindbladCollection:
         if self._dissipator_operators is not None or self._static_dissipators is not None:
             # A matrix
             if self._static_dissipators is None:
-                dissipators_matrix = np.sum(
-                    -0.5 * dis_coefficients * self._dissipator_products, axis=-1
-                )
+                dissipators_matrix = np.sum(dis_coefficients * self._dissipator_products, axis=-1)
             elif self._dissipator_operators is None:
                 dissipators_matrix = self._static_dissipators_product_sum
             else:
                 dissipators_matrix = self._static_dissipators_product_sum + np.sum(
-                    -0.5 * dis_coefficients * self._dissipator_products, axis=-1
+                    dis_coefficients * self._dissipator_products, axis=-1
                 )
 
             if hamiltonian_matrix is not None:
