@@ -307,7 +307,7 @@ class LindbladCollection:
         """
 
         if array_library == "scipy_sparse":
-            raise QiskitError("scipy_sparse is not a valid array_library for OperatorCollection.")
+            raise QiskitError("scipy_sparse is not a valid array_library for LindbladCollection.")
 
         if static_hamiltonian is not None:
             self._static_hamiltonian = numpy_alias(like=array_library).asarray(static_hamiltonian)
