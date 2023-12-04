@@ -190,7 +190,7 @@ class ScipySparseOperatorCollection:
         r"""Evaluate the operator :math:`\Lambda(c, \cdot) = (G_d + \sum_jc_jG_j)`.
 
         Args:
-            coefficients: The signals values :math:`c` to use on the operators.
+            coefficients: The coefficient values :math:`c` to use on the operators.
 
         Returns:
             An :class:`~Array` that acts on states ``y`` via multiplication.
