@@ -1008,8 +1008,8 @@ class VectorizedLindbladCollection:
         """Call :meth:`~evaluate` or :meth:`~evaluate_rhs` depending on the presense of ``y``.
 
         Args:
-            ham_coefficients: The signals :math:`c_1` to use on the Hamiltonians.
-            dis_coefficients: The signals :math:`c_2` to use on the dissipators.
+            ham_coefficients: The signal coefficients :math:`c_1` to use on the Hamiltonians.
+            dis_coefficients: The signal coefficients :math:`c_2` to use on the dissipators.
             y: Optionally, the system state.
 
         Returns:
