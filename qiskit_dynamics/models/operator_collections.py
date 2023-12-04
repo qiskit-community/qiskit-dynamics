@@ -644,7 +644,7 @@ class ScipySparseLindbladCollection:
         r"""Compute the Hamiltonian.
 
         Args:
-            ham_coefficients: [Real] values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
+            ham_coefficients: The values of :math:`s_j` in :math:`H = \sum_j s_j(t) H_j + H_d`.
         Returns:
             Hamiltonian matrix.
         Raises:
