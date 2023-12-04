@@ -460,7 +460,7 @@ class LindbladCollection:
 
         Args:
             ham_coefficients: Hamiltonian coefficient values, :math:`s_j(t)`.
-            dis_coefficients: Dissipator signal values, :math:`\gamma_j(t)`.
+            dis_coefficients: Dissipator coefficient values, :math:`\gamma_j(t)`.
             y: Density matrix as ``(n,n)`` array representing the state at time :math:`t`.
 
         Returns:
