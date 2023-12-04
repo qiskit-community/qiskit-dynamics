@@ -971,8 +971,8 @@ class VectorizedLindbladCollection:
         r"""Compute and return :math:`\Lambda(c_1, c_2, \cdot)`.
 
         Args:
-            ham_coefficients: The signals :math:`c_1` to use on the Hamiltonians.
-            dis_coefficients: The signals :math:`c_2` to use on the dissipators.
+            ham_coefficients: The signal coefficients :math:`c_1` to use on the Hamiltonians.
+            dis_coefficients: The signal coefficients :math:`c_2` to use on the dissipators.
 
         Returns:
             The evaluated function.
