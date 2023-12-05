@@ -52,6 +52,8 @@ try:
 except ImportError:
     pass
 
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
+
 from qiskit_dynamics.array import Array, wrap
 
 
@@ -60,6 +62,11 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
+        if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(A)):
+            A = A.todense()
+        if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(B)):
+            B = B.todense()
+
         A = np.array(A)
         B = np.array(B)
 
@@ -180,6 +187,19 @@ class JAXSparseTestBase(QiskitDynamicsTestCase):
     def assertArrayType(self, a):
         """Assert the correct array type."""
         return type(a).__name__ == "BCOO"
+
+    def jit_grad(self, func_to_test: Callable) -> Callable:
+        """Tests whether a function can be graded. Converts
+        all functions to scalar, real functions if they are not
+        already.
+        Args:
+            func_to_test: The function whose gradient will be graded.
+        Returns:
+            JIT-compiled gradient of function.
+        """
+        wf = lambda f: jit(grad(f))
+        f = lambda *args: np.sum(func_to_test(*args)).real
+        return wf(f)
 
 
 class ArrayNumpyTestBase(QiskitDynamicsTestCase):

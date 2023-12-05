@@ -11,14 +11,21 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
-Register custom functions using alias
+Registering transpose.
 """
 
-from .asarray import register_asarray
-from .matmul import register_matmul
-from .rmatmul import register_rmatmul
-from .multiply import register_multiply
-from .linear_combo import register_linear_combo
-from .conjugate import register_conjugate
-from .transpose import register_transpose
+
+def register_transpose(alias):
+    """Register linear functions for each array library."""
+
+    try:
+        from jax.experimental.sparse import bcoo_transpose
+
+        @alias.register_function(lib="jax_sparse", path="transpose")
+        def _(arr, axes=None):
+            return bcoo_transpose(arr, permutation=axes)
+
+    except ImportError:
+        pass
