@@ -277,7 +277,7 @@ def vec_commutator(
         # taken to be 1d array of 2d sparse matrices
         sp_iden = sparse_identity(A[0].shape[-1], format="csr")
         out = [-1j * (sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden)) for mat in A]
-        return out
+        return np.array(out)
 
     A = to_array(A)
     iden = Array(np.eye(A.shape[-1]))
@@ -317,7 +317,7 @@ def vec_dissipator(
             * (sparse_kron(sp_iden, mat.conj().T * mat) + sparse_kron(mat.T * mat.conj(), sp_iden))
             for mat in L
         ]
-        return out
+        return np.array(out)
 
     iden = Array(np.eye(L.shape[-1]))
     axes = list(range(L.ndim))
