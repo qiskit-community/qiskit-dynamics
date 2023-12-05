@@ -31,13 +31,10 @@ from .generator_model import (
 )
 from .hamiltonian_model import HamiltonianModel, is_hermitian
 from .operator_collections import (
-    BaseLindbladOperatorCollection,
-    DenseLindbladCollection,
-    DenseVectorizedLindbladCollection,
-    SparseLindbladCollection,
-    JAXSparseLindbladCollection,
-    SparseVectorizedLindbladCollection,
-    JAXSparseVectorizedLindbladCollection,
+    LindbladCollection,
+    ScipySparseLindbladCollection,
+    VectorizedLindbladCollection,
+    ScipySparseVectorizedLindbladCollection,
 )
 from .rotating_frame import RotatingFrame
 
@@ -654,7 +651,12 @@ def construct_lindblad_operator_collection(
     hamiltonian_operators: Union[None, Array, List[csr_matrix]],
     static_dissipators: Union[None, Array, csr_matrix],
     dissipator_operators: Union[None, Array, List[csr_matrix]],
-) -> BaseLindbladOperatorCollection:
+) -> Union[
+    LindbladCollection,
+    ScipySparseLindbladCollection,
+    VectorizedLindbladCollection,
+    ScipySparseVectorizedLindbladCollection,
+]:
     """Construct a Lindblad operator collection.
 
     Args:
@@ -685,19 +687,25 @@ def construct_lindblad_operator_collection(
         )
 
     if evaluation_mode == "dense":
-        CollectionClass = DenseLindbladCollection
+        # CollectionClass = DenseLindbladCollection
+        pass
     elif evaluation_mode == "sparse":
         if Array.default_backend() == "jax":
-            CollectionClass = JAXSparseLindbladCollection
+            # CollectionClass = JAXSparseLindbladCollection
+            pass
         else:
-            CollectionClass = SparseLindbladCollection
+            # CollectionClass = SparseLindbladCollection
+            pass
     elif evaluation_mode == "dense_vectorized":
-        CollectionClass = DenseVectorizedLindbladCollection
+        # CollectionClass = DenseVectorizedLindbladCollection
+        pass
     elif evaluation_mode == "sparse_vectorized":
         if Array.default_backend() == "jax":
-            CollectionClass = JAXSparseVectorizedLindbladCollection
+            # CollectionClass = JAXSparseVectorizedLindbladCollection
+            pass
         else:
-            CollectionClass = SparseVectorizedLindbladCollection
+            # CollectionClass = SparseVectorizedLindbladCollection
+            pass
     else:
         raise NotImplementedError(
             f"Evaluation mode '{evaluation_mode}' is not supported. See "

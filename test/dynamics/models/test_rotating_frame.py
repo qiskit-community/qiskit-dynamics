@@ -30,7 +30,6 @@ from ..common import JAXTestBase, NumpyTestBase, test_array_backends
 try:
     from jax import jit
     import jax.numpy as jnp
-    from jax.experimental.sparse import BCOO
 
 except ImportError:
     pass
@@ -490,7 +489,9 @@ class TestRotatingFrame:
 
 
 class TestRotatingFrameTypeHandling(NumpyTestBase):
-    """Type handling testing for RotatingFrame methods for inputs of type csr_matrix, qutip, Operator, and numpy array."""
+    """Type handling testing for RotatingFrame methods for inputs of type csr_matrix, qutip,
+    Operator, and numpy array.
+    """
 
     def test_state_transformations_no_frame_csr_matrix_type(self):
         """Test frame transformations with no frame."""
@@ -608,7 +609,7 @@ class TestRotatingFrameMethodsSparse:
         op = np.array([[1.0, -1j], [0.0, 1.0]])
         output = rotating_frame.operator_into_frame_basis(self.asarray(op))
         expected = rotating_frame.operator_into_frame_basis(op)
-        
+
         if "jax" in self.array_library():
             self.assertTrue(isinstance(output, jnp.ndarray))
         else:
