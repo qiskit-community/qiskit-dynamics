@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Adds the :meth:`.DynamicsBackend.solve` function for ODE simulations with arbitrary input types
+    `y0` (`Statevector`, `Operator`, ..), corresponding to the :meth:`.Solver.solve` function of the
+    backends preconfigured :class:`.Solver` member.

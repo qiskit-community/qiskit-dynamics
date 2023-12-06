@@ -16,6 +16,7 @@ Test DynamicsBackend.
 """
 
 from types import SimpleNamespace
+from itertools import product
 
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
@@ -24,7 +25,7 @@ from scipy.sparse import csr_matrix
 from qiskit import QiskitError, pulse, QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import XGate, Measure
 from qiskit.transpiler import Target, InstructionProperties
-from qiskit.quantum_info import Statevector, DensityMatrix
+from qiskit.quantum_info import Statevector, DensityMatrix, Operator, Choi
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.providers.models.backendconfiguration import UchannelLO
 from qiskit.providers.backend import QubitProperties
@@ -36,6 +37,7 @@ from qiskit_dynamics.backend.dynamics_backend import (
     _get_acquire_instruction_timings,
     _get_backend_channel_freqs,
 )
+from qiskit_dynamics.pulse import InstructionToSignals
 from ..common import QiskitDynamicsTestCase
 
 
@@ -300,6 +302,35 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         ).result()
         counts = self.iq_to_counts(result.get_memory())
         self.assertDictEqual(counts, {"1": 1024})
+
+    def test_solve(self):
+        """Test the ODE simulation with different signal and y0 types."""
+        n_samples = 100
+        with pulse.build() as x_sched0:
+            pulse.play(pulse.Waveform([1.0] * n_samples), pulse.DriveChannel(0))
+        x_circ0 = QuantumCircuit(1)
+        x_circ0.x(0)
+        x_circ0.add_calibration("x", [0], x_sched0)
+        x_signal0 = InstructionToSignals(
+            dt=self.simple_backend.dt,
+            carriers=self.simple_backend.options.solver._channel_carrier_freqs,
+        ).get_signals(x_sched0)[0]
+
+        y0_variety = [
+            Statevector(np.array([[1.0], [0.0]])),
+            Operator(np.eye(2)),
+            DensityMatrix(QuantumCircuit(1)),
+            Choi(QuantumCircuit(1)),
+        ]
+        signal_variety = [x_sched0, x_circ0, x_signal0]
+        for signal, y0 in product(signal_variety, y0_variety):
+            solver_results = self.simple_backend.solve(
+                t_span=[0, n_samples * self.simple_backend.dt], y0=y0, signals=[signal]
+            )
+            if isinstance(solver_results, list):
+                assert all(result.success for result in solver_results)
+            else:
+                assert solver_results.success
 
     def test_pi_pulse_initial_state(self):
         """Test simulation of a pi pulse with a different initial state."""
