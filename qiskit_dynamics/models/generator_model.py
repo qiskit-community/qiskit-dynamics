@@ -22,6 +22,9 @@ from copy import copy
 import numpy as np
 from scipy.sparse import csr_matrix, issparse, diags
 
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics.arraylias.alias import ArrayLike
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
@@ -40,6 +43,262 @@ except ImportError:
 
 
 class BaseGeneratorModel(ABC):
+    r"""Defines an interface for a time-dependent linear differential equation of the form
+    :math:`\dot{y}(t) = \Lambda(t, y)`, where :math:`\Lambda` is linear in :math:`y`. The core
+    functionality is evaluation of :math:`\Lambda(t, y)`, as well as, if possible, evaluation of the
+    map :math:`\Lambda(t, \cdot)`.
+    """
+
+    @property
+    @abstractmethod
+    def dim(self) -> int:
+        """The matrix dimension."""
+
+    @property
+    @abstractmethod
+    def rotating_frame(self) -> RotatingFrame:
+        """The rotating frame."""
+
+    @property
+    @abstractmethod
+    def in_frame_basis(self) -> bool:
+        """Whether or not the model is evaluated in the basis in which the frame is diagonalized."""
+
+    @property
+    @abstractmethod
+    def array_library(self) -> Union[None, str]:
+        """Array library used to store the operators in the model."""
+
+    @abstractmethod
+    def evaluate(self, time: float) -> ArrayLike:
+        r"""If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
+
+        Args:
+            time: The time to evaluate the model at.
+        """
+
+    @abstractmethod
+    def evaluate_rhs(self, time: float, y: ArrayLike) -> ArrayLike:
+        r"""Evaluate the right hand side :math:`\dot{y}(t) = \Lambda(t, y)`.
+
+        Args:
+            time: The time to evaluate the model at.
+            y: State of the differential equation.
+        """
+
+    def __call__(self, time: float, y: Optional[ArrayLike] = None) -> ArrayLike:
+        r"""Evaluate generator RHS functions. If ``y is None``, attemps to evaluate
+        :math:`\Lambda(t, \cdot)`, otherwise, calculates :math:`\Lambda(t, y)`.
+
+        Args:
+            time: The time to evaluate at.
+            y: Optional state.
+
+        Returns:
+            Array: Either the evaluated model, or the RHS for the given y.
+        """
+        return self.evaluate(time) if y is None else self.evaluate_rhs(time, y)
+
+
+class GeneratorModel(BaseGeneratorModel):
+    r"""A model for a a linear matrix differential equation in standard form.
+
+    :class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the map
+    :math:`\Lambda(t, y)` is explicitly constructed as:
+
+    .. math::
+
+        \Lambda(t, y) = G(t)y,
+
+        G(t) = \sum_i s_i(t) G_i + G_d
+
+    where the :math:`G_i` are matrices (represented by :class:`Operator` or :class:`Array` objects),
+    the :math:`s_i(t)` are signals represented by a list of :class:`Signal` objects, and :math:`G_d`
+    is the constant-in-time static term of the generator.
+    """
+
+    def __init__(
+        self,
+        static_operator: Optional[ArrayLike] = None,
+        operators: Optional[ArrayLike] = None,
+        signals: Optional[Union[SignalList, List[Signal]]] = None,
+        rotating_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
+        in_frame_basis: bool = False,
+        array_library: Optional[str] = None
+    ):
+        """Initialize.
+
+        Args:
+            static_operator: Constant part of the generator.
+            operators: A list of operators :math:`G_i`.
+            signals: Stores the terms :math:`s_i(t)`. While required for evaluation,
+                :class:`GeneratorModel` signals are not required at instantiation.
+            rotating_frame: Rotating frame operator.
+            in_frame_basis: Whether to represent the model in the basis in which the rotating frame
+                operator is diagonalized.
+            array_library: Array library for storing the operators in the model. Supported options
+                are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
+                the arrays will be handled by general dispatching rules. Call 
+                ``help(GeneratorModel.array_library)`` for more details.
+        Raises:
+            QiskitError: If model not sufficiently specified.
+        """
+        if static_operator is None and operators is None:
+            raise QiskitError(
+                f"{type(self).__name__} requires at least one of static_operator or operators to "
+                "be specified at construction."
+            )
+
+        self._array_library = array_library
+        self._rotating_frame = RotatingFrame(rotating_frame)
+        self._in_frame_basis = in_frame_basis
+
+        # set up internal operators
+        static_operator = _static_operator_into_frame_basis(
+            static_operator=static_operator, 
+            rotating_frame=self._rotating_frame,
+            array_library=array_library
+        )
+
+        operators = _operators_into_frame_basis(
+            operators=operators,
+            rotating_frame=rotating_frame,
+            array_library=array_library
+        )
+
+        self._operator_collection = _get_operator_collection(
+            static_operator=static_operator,
+            operators=operators,
+            array_library=array_library
+        )
+
+        ##############################################################################################
+        # put signal setting logic here
+
+    @property
+    def rotating_frame(self) -> RotatingFrame:
+        """The rotating frame."""
+        return self._rotating_frame
+
+    @property
+    def in_frame_basis(self) -> bool:
+        """Whether or not the model is evaluated in the basis in which the frame is diagonalized."""
+        return self._in_frame_basis
+
+    @property
+    def array_library(self) -> Union[None, str]:
+        """Array library used to store the operators in the model."""
+        return self._array_library
+    
+    @property
+    def static_operator(self) -> Union[ArrayLike, None]:
+        """The static operator."""
+        #################################################################################################
+        # this actually needs to take the static operator out of the frame basis if in_frame_basis is False
+        return self._operator_collection.static_operator
+    
+    @property
+    def operators(self) -> Union[ArrayLike, None]:
+        """The operators."""
+        #################################################################################################
+        # this actually needs to take the operators out of the frame basis if in_frame_basis is False
+        return self._operator_collection.operators
+
+
+def _static_operator_into_frame_basis(
+    static_operator: Union[None, ArrayLike],
+    rotating_frame: RotatingFrame,
+    array_library: Optional[ArrayLike] = None,
+) -> Union[None, Array]:
+    """This will merge the functionality of transfer_static_operator_between_frames, and the 
+    rotating_frame setter.
+
+    This returns the static operator *in the frame basis*, after subtracting the frame operator
+    """
+
+    # handle static_operator is None case
+    if static_operator is None:
+        if rotating_frame.frame_operator is None:
+            return None
+        if array_library == "scipy_sparse":
+            return -diags(rotating_frame.frame_diag, format="csr")
+        return unp.diag(-rotating_frame.frame_diag)
+
+    static_operator = numpy_alias(like=array_library).asarray(static_operator)
+
+    ##################################################################################################
+    # do we need to recast this for sparse arrays?
+    return rotating_frame.generator_into_frame(
+        t=0., 
+        operator=static_operator, 
+        return_in_frame_basis=True
+    )
+
+def _operators_into_frame_basis(
+    operators: Union[None, list, ArrayLike],
+    rotating_frame: RotatingFrame,
+    array_library: Optional[ArrayLike] = None,
+) -> Union[None, Array]:
+    """This merges the functionality of transfer_operators_between_frames, and the 
+    rotating_frame setter.
+
+    returns operators *in the frame basis*
+    """
+    if operators is None:
+        return None
+    
+
+    ##################################################################################################
+    # do we need to recast this for sparse arrays?
+    new_ops = []
+    for op in operators:
+        op = numpy_alias(like=array_library).asarray(op)
+        new_ops.append(rotating_frame.operator_into_frame_basis(op))
+    
+    return new_ops
+
+def _get_operator_collection(
+    static_operator: Union[None, ArrayLike],
+    operators: Union[None, ArrayLike],
+    array_library: Optional[str] = None
+) -> Union[OperatorCollection, ScipySparseOperatorCollection]:
+    """Construct an operator collection for :class:`GeneratorModel`.
+
+    Args:
+        static_operator: Static operator of the model.
+        operators: Operators for the model.
+        array_library: Array library to use.
+
+    Returns:
+        Union[OperatorCollection, ScipySparseOperatorCollection]: The relevant operator collection.
+    """
+
+    ##################################################################################################
+    # should we add some inference here? Both for scipy and for jax_sparse? 
+    # Note that jax_sparse needs to be instantiated from dense arrays (sadly)
+    ##################################################################################################
+    if array_library == "scipy_sparse":
+        return ScipySparseOperatorCollection(static_operator=static_operator, operators=operators)
+    
+    if array_library == "jax_sparse":
+        # warn that sparse mode when using JAX is primarily recommended for use on CPU
+        if jax.default_backend() != "cpu":
+            warn(
+                """Using sparse mode with JAX is primarily recommended for use on CPU.""",
+                stacklevel=2,
+            )
+
+    return OperatorCollection(
+        static_operator=static_operator, 
+        operators=operators, 
+        array_library=array_library
+    )
+
+######################################################################################################
+# OLD
+######################################################################################################
+
+class BaseGeneratorModelOld(ABC):
     r"""Defines an interface for a time-dependent linear differential equation of the form
     :math:`\dot{y}(t) = \Lambda(t, y)`, where :math:`\Lambda` is linear in :math:`y`. The core
     functionality is evaluation of :math:`\Lambda(t, y)`, as well as, if possible, evaluation of the
@@ -125,7 +384,7 @@ class BaseGeneratorModel(ABC):
         return self.evaluate(time) if y is None else self.evaluate_rhs(time, y)
 
 
-class GeneratorModel(BaseGeneratorModel):
+class GeneratorModelOld(BaseGeneratorModel):
     r"""A model for a a linear matrix differential equation in standard form.
 
     :class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the map
