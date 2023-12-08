@@ -162,7 +162,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         operators = _operators_into_frame_basis(
             operators=operators,
-            rotating_frame=rotating_frame,
+            rotating_frame=self._rotating_frame,
             array_library=array_library
         )
 
@@ -174,6 +174,11 @@ class GeneratorModel(BaseGeneratorModel):
 
         self._signals = None
         self.signals = signals
+
+    @property
+    def dim(self) -> int:
+        """The matrix dimension."""
+        return self._operator_collection.dim
 
     @property
     def rotating_frame(self) -> RotatingFrame:
