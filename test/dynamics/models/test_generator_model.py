@@ -653,11 +653,62 @@ class TestGeneratorModel:
         self.assertTrue(model.operators is None)
 
 
+@partial(test_array_backends, array_libraries=["jax", "jax_sparse"])
+class TestGeneratorModelJAXTransformations:
+    """Test GeneratorModel under JAX transformations."""
+
+    def setUp(self):
+        self.X = Operator.from_label("X").data
+        self.Y = Operator.from_label("Y").data
+        self.Z = Operator.from_label("Z").data
+
+        # define basic model elements
+        self.w = 2.0
+        self.r = 0.5
+        self.operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * self.r * self.X / 2]
+        self.signals = [self.w, Signal(1.0, self.w)]
+
+        self.basic_model = GeneratorModel(
+            operators=self.operators, 
+            signals=self.signals,
+            array_library=self.array_library()
+        )
+
+        self.basic_model_w_frame = GeneratorModel(
+            operators=self.operators, 
+            signals=self.signals,
+            rotating_frame=np.array([[3j, 2j], [2j, 0]]),
+            array_library=self.array_library()
+        )
+
+
+    def test_jitable_funcs(self):
+        """Tests whether all functions are jitable. Checks if having a frame makes a difference, as
+        well as all jax-compatible evaluation_modes.
+        """
+        from jax import jit
+
+        jit(self.basic_model.evaluate)(1.0)
+        jit(self.basic_model.evaluate_rhs)(1.0, np.array([0.2, 0.4]))
+
+        jit(self.basic_model_w_frame.evaluate)(1.)
+        jit(self.basic_model_w_frame.evaluate_rhs)(1., np.array([0.2, 0.4]))
+
+    def test_gradable_funcs(self):
+        """Tests whether all functions are gradable. Checks if having a frame makes a difference, as
+        well as all jax-compatible evaluation_modes.
+        """
+        self.jit_grad(self.basic_model.evaluate)(1.0)
+        self.jit_grad(self.basic_model.evaluate_rhs)(1.0, np.array([0.2, 0.4]))
+
+        self.jit_grad(self.basic_model_w_frame.evaluate)(1.0)
+        self.jit_grad(self.basic_model_w_frame.evaluate_rhs)(1.0, np.array([0.2, 0.4]))
+
 ######################################################################################################
 # OLD
 #######################################################################################################
 
-
+# covered by TestGeneratorModel
 class TestGeneratorModelOld(QiskitDynamicsTestCase):
     """Tests for GeneratorModel."""
 
@@ -1174,7 +1225,7 @@ class TestGeneratorModelOld(QiskitDynamicsTestCase):
         self.assertTrue(model.operators is None)
 
 
-class TestGeneratorModelJax(TestGeneratorModelOld, TestJaxBase):
+class TestGeneratorModelJaxOld(TestGeneratorModelOld, TestJaxBase):
     """Jax version of TestGeneratorModel tests."""
 
     def test_jitable_funcs(self):
@@ -1205,7 +1256,7 @@ class TestGeneratorModelJax(TestGeneratorModelOld, TestJaxBase):
 
         self.basic_model.rotating_frame = None
 
-
+# no longer relevant as this tests setter behaviour
 class TestGeneratorModelSparse(QiskitDynamicsTestCase):
     """Sparse-mode specific tests."""
 
