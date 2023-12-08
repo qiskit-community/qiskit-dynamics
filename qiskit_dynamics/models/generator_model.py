@@ -172,8 +172,8 @@ class GeneratorModel(BaseGeneratorModel):
             array_library=array_library
         )
 
-        ##############################################################################################
-        # put signal setting logic here
+        self._signals = None
+        self.signals = signals
 
     @property
     def rotating_frame(self) -> RotatingFrame:
@@ -185,6 +185,10 @@ class GeneratorModel(BaseGeneratorModel):
         """Whether or not the model is evaluated in the basis in which the frame is diagonalized."""
         return self._in_frame_basis
 
+    @in_frame_basis.setter
+    def in_frame_basis(self, in_frame_basis: bool):
+        self._in_frame_basis = in_frame_basis
+
     @property
     def array_library(self) -> Union[None, str]:
         """Array library used to store the operators in the model."""
@@ -193,16 +197,123 @@ class GeneratorModel(BaseGeneratorModel):
     @property
     def static_operator(self) -> Union[ArrayLike, None]:
         """The static operator."""
-        #################################################################################################
-        # this actually needs to take the static operator out of the frame basis if in_frame_basis is False
-        return self._operator_collection.static_operator
+        if self._operator_collection.static_operator is None:
+            return None
+
+        if self.in_frame_basis:
+            return self._operator_collection.static_operator
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.static_operator
+        )
     
     @property
     def operators(self) -> Union[ArrayLike, None]:
-        """The operators."""
-        #################################################################################################
-        # this actually needs to take the operators out of the frame basis if in_frame_basis is False
-        return self._operator_collection.operators
+        """The operators in the model."""
+        if self._operator_collection.operators is None:
+            return None
+
+        if self.in_frame_basis:
+            return self._operator_collection.operators
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.operators
+        )
+    
+    @property
+    def signals(self) -> SignalList:
+        """The signals in the model.
+
+        Raises:
+            QiskitError: If set to ``None`` when operators exist, or when set to a number of signals
+                different then the number of operators.
+        """
+        return self._signals
+
+    @signals.setter
+    def signals(self, signals: Union[SignalList, List[Signal]]):
+        if signals is None:
+            self._signals = None
+        elif signals is not None and self.operators is None:
+            raise QiskitError("Signals must be None if operators is None.")
+        else:
+            # if signals is a list, instantiate a SignalList
+            if isinstance(signals, list):
+                signals = SignalList(signals)
+
+            # if it isn't a SignalList by now, raise an error
+            if not isinstance(signals, SignalList):
+                raise QiskitError("Signals specified in unaccepted format.")
+
+            # verify signal length is same as operators
+            if isinstance(self.operators, list):
+                len_operators = len(self.operators)
+            else:
+                len_operators = self.operators.shape[0]
+            if len(signals) != len_operators:
+                raise QiskitError("Signals needs to have the same length as operators.")
+
+            self._signals = signals
+
+    def evaluate(self, time: float) -> ArrayLike:
+        """Evaluate the model in array format as a matrix, independent of state.
+
+        Args:
+            time: The time to evaluate the model at.
+
+        Returns:
+            Array: The evaluated model as a matrix.
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
+        """
+        if self._signals is None and self._operator_collection.operators is not None:
+            raise QiskitError(
+                f"{type(self).__name__} with non-empty operators must be evaluated signals."
+            )
+
+        # Evaluated in frame basis, but without rotations
+        op_combo = self._operator_collection(self._signals(time) if self._signals else None)
+
+        # Apply rotations e^{-Ft}Ae^{Ft} in frame basis where F = D
+        return self.rotating_frame.operator_into_frame(
+            time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
+        )
+
+    def evaluate_rhs(self, time: float, y: Array) -> Array:
+        r"""Evaluate ``G(t) @ y``.
+
+        Args:
+            time: The time to evaluate the model at .
+            y: Array specifying system state.
+
+        Returns:
+            Array defined by :math:`G(t) \times y`.
+
+        Raises:
+            QiskitError: If model cannot be evaluated.
+        """
+        if self._signals is None:
+            if self._operator_collection.operators is not None:
+                raise QiskitError(
+                    f"{type(self).__name__} with non-empty operators must be evaluated signals."
+                )
+            sig_vals = None
+        else:
+            sig_vals = self._signals.__call__(time)
+
+        if self.rotating_frame is not None:
+            # First, compute e^{tF}y as a pre-rotation in the frame basis
+            out = self.rotating_frame.state_out_of_frame(
+                time, y, y_in_frame_basis=self._in_frame_basis, return_in_frame_basis=True
+            )
+            # Then, compute the product Ae^{tF}y
+            out = self._operator_collection(sig_vals, out)
+            # Finally, we have the full operator e^{-tF}Ae^{tF}y
+            out = self.rotating_frame.state_into_frame(
+                time, out, y_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
+            )
+            return out
+
+        return self._operator_collection(sig_vals, y)
 
 
 def _static_operator_into_frame_basis(
@@ -276,6 +387,7 @@ def _get_operator_collection(
     ##################################################################################################
     # should we add some inference here? Both for scipy and for jax_sparse? 
     # Note that jax_sparse needs to be instantiated from dense arrays (sadly)
+    # at this level we should start making release notes about these limitations
     ##################################################################################################
     if array_library == "scipy_sparse":
         return ScipySparseOperatorCollection(static_operator=static_operator, operators=operators)
