@@ -34,26 +34,12 @@ from ..common import QiskitDynamicsTestCase, test_array_backends, TestJaxBase
 class Testis_hermitian:
     """Test is_hermitian validation function."""
 
-    def test_2d_array(self):
+    def test_cases(self):
         """Test 2d array case."""
         self.assertTrue(is_hermitian(self.asarray([[1.0, 0.0], [0.0, 1.0]])))
         self.assertFalse(is_hermitian(self.asarray([[0.0, 1.0], [0.0, 0.0]])))
         self.assertFalse(is_hermitian(self.asarray([[0.0, 1j], [0.0, 0.0]])))
         self.assertTrue(is_hermitian(self.asarray([[0.0, 1j], [-1j, 0.0]])))
-
-    def test_3d_array(self):
-        """Test 3d array case. For scipy sparse this means a list of csr matrices."""
-
-        if self.array_library() == "scipy_sparse":
-            self.assertTrue(is_hermitian([self.asarray([[1.0, 0.0], [0.0, 1.0]])]))
-            self.assertFalse(is_hermitian([self.asarray([[0.0, 1.0], [0.0, 0.0]]), self.asarray([[0.0, 1.0], [1.0, 0.0]])]))
-            self.assertFalse(is_hermitian([self.asarray([[0.0, 1j], [0.0, 0.0]]), self.asarray([[1.0, 0.0], [0.0, 1.0]])]))
-            self.assertTrue(is_hermitian([self.asarray([[0.0, 1j], [-1j, 0.0]]), self.asarray([[0.0, 1.0], [1.0, 0.0]])]))
-        else:
-            self.assertTrue(is_hermitian(self.asarray([[[1.0, 0.0], [0.0, 1.0]]])))
-            self.assertFalse(is_hermitian(self.asarray([[[0.0, 1.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 0.0]]])))
-            self.assertFalse(is_hermitian(self.asarray([[[0.0, 1j], [0.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]])))
-            self.assertTrue(is_hermitian(self.asarray([[[0.0, 1j], [-1j, 0.0]], [[0.0, 1.0], [1.0, 0.0]]])))
 
 
 

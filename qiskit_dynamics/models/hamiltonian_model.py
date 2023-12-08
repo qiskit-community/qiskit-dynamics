@@ -72,7 +72,7 @@ class HamiltonianModel(GeneratorModel):
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
         in_frame_basis: bool = False,
-        evaluation_mode: str = "dense",
+        array_library: Optional[str] = None,
         validate: bool = True,
     ):
         """Initialize, ensuring that the operators are Hermitian.
@@ -81,30 +81,28 @@ class HamiltonianModel(GeneratorModel):
             static_operator: Time-independent term in the Hamiltonian.
             operators: List of Operator objects.
             signals: List of coefficients :math:`s_i(t)`. Not required at instantiation, but
-                     necessary for evaluation of the model.
-            rotating_frame: Rotating frame operator.
-                            If specified with a 1d array, it is interpreted as the
-                            diagonal of a diagonal matrix. Assumed to store
-                            the antihermitian matrix F = -iH.
+                necessary for evaluation of the model.
+            rotating_frame: Rotating frame operator. If specified with a 1d array, it is interpreted
+                as the diagonal of a diagonal matrix. Assumed to store the antihermitian matrix
+                F = -iH.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
-                            frame operator is diagonalized.
-            evaluation_mode: Evaluation mode to use. Supported options are ``'dense'`` and
-                             ``'sparse'``. Call ``help(HamiltonianModel.evaluation_mode)`` for more
-                             details.
-            validate: If True check input operators are Hermitian.
+                frame operator is diagonalized.
+            array_library: Array library for storing the operators in the model. Supported options
+                are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
+                the arrays will be handled by general dispatching rules. Call
+                ``help(GeneratorModel.array_library)`` for more details.
+            validate: If ``True`` check input operators are Hermitian. Note that this is
+                incompatible with JAX transformations.
 
         Raises:
             QiskitError: if operators are not Hermitian
         """
 
         # verify operators are Hermitian, and if so instantiate
-        operators = to_numeric_matrix_type(operators)
-        static_operator = to_numeric_matrix_type(static_operator)
-
         if validate:
-            if (operators is not None) and (not is_hermitian(operators)):
+            if (operators is not None) and (not all(is_hermitian(numpy_alias(like=array_library).asarray(op)) for op in operators)):
                 raise QiskitError("""HamiltonianModel operators must be Hermitian.""")
-            if (static_operator is not None) and (not is_hermitian(static_operator)):
+            if (static_operator is not None) and (not is_hermitian(numpy_alias(like=array_library).asarray(static_operator))):
                 raise QiskitError("""HamiltonianModel static_operator must be Hermitian.""")
 
         super().__init__(
@@ -113,7 +111,7 @@ class HamiltonianModel(GeneratorModel):
             signals=signals,
             rotating_frame=rotating_frame,
             in_frame_basis=in_frame_basis,
-            evaluation_mode=evaluation_mode,
+            array_library=array_library,
         )
 
     @property
@@ -190,34 +188,28 @@ class HamiltonianModel(GeneratorModel):
 
 
 def is_hermitian(
-    operators: Union[ArrayLike, List[csr_matrix]], tol: Optional[float] = 1e-10
+    operator: ArrayLike, tol: Optional[float] = 1e-10
 ) -> bool:
-    """Validate that operators are Hermitian.
+    """Validate that an operator is Hermitian.
 
     Args:
-        operators: Either a 2d array representing a single operator, a 3d array representing a list
-            of operators, a ``csr_matrix``, or a list of ``csr_matrix``.
+        operators: A 2d array representing a single operator.
         tol: Tolerance for checking zeros.
 
     Returns:
-        bool: Whether or not the operators are Hermitian to within tolerance.
+        bool: Whether or not the operator is Hermitian to within tolerance.
 
     Raises:
         QiskitError: If an unexpeted type is received.
     """
-    if issparse(operators):
-        return spnorm(operators - operators.conj().transpose()) < tol
-    elif isinstance(operators, list) and issparse(operators[0]):
-        return all(spnorm(op - op.conj().transpose()) < tol for op in operators)
-    elif type(operators).__name__ == "BCOO":
+    if issparse(operator):
+        return spnorm(operator - operator.conj().transpose()) < tol
+    elif type(operator).__name__ == "BCOO":
         # fall back on array case for BCOO
-        return is_hermitian(operators.todense())
-    elif isinstance(operators, ArrayLike):
+        return is_hermitian(operator.todense())
+    elif isinstance(operator, ArrayLike):
         adj = None
-        if operators.ndim == 2:
-            adj = np.transpose(np.conjugate(operators))
-        elif operators.ndim == 3:
-            adj = np.transpose(np.conjugate(operators), (0, 2, 1))
-        return np.linalg.norm(adj - operators) < tol
+        adj = np.transpose(np.conjugate(operator))
+        return np.linalg.norm(adj - operator) < tol
 
     raise QiskitError("is_hermitian got an unexpected type.")
