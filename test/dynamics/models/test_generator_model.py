@@ -8,7 +8,7 @@
 #
 # Any modifications or derivative works of this code must retain this copyright notice, and modified
 # files need to carry a notice indicating that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """Tests for generator_models.py. """
 
@@ -24,7 +24,7 @@ from qiskit_dynamics.arraylias.alias import ArrayLike
 from qiskit_dynamics.models import GeneratorModel, RotatingFrame
 from qiskit_dynamics.models.generator_model import (
     _static_operator_into_frame_basis,
-    _operators_into_frame_basis
+    _operators_into_frame_basis,
 )
 from qiskit_dynamics.signals import Signal, SignalList
 from ..common import QiskitDynamicsTestCase, test_array_backends
@@ -80,8 +80,12 @@ class Test_into_frame_basis_functions:
     def test_all_None(self):
         """Test all arguments being None."""
 
-        static_operator = _static_operator_into_frame_basis(None, RotatingFrame(None), array_library=self.array_library())
-        operators = _operators_into_frame_basis(None, RotatingFrame(None), array_library=self.array_library())
+        static_operator = _static_operator_into_frame_basis(
+            None, RotatingFrame(None), array_library=self.array_library()
+        )
+        operators = _operators_into_frame_basis(
+            None, RotatingFrame(None), array_library=self.array_library()
+        )
 
         self.assertTrue(static_operator is None)
         self.assertTrue(operators is None)
@@ -93,8 +97,12 @@ class Test_into_frame_basis_functions:
         operators = -1j * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]])
         rotating_frame = RotatingFrame(-1j * np.array([1.0, -1.0]))
 
-        out_static = _static_operator_into_frame_basis(static_operator, rotating_frame=rotating_frame, array_library=self.array_library())
-        out_operators = _operators_into_frame_basis(operators, rotating_frame=rotating_frame, array_library=self.array_library())
+        out_static = _static_operator_into_frame_basis(
+            static_operator, rotating_frame=rotating_frame, array_library=self.array_library()
+        )
+        out_operators = _operators_into_frame_basis(
+            operators, rotating_frame=rotating_frame, array_library=self.array_library()
+        )
 
         self.assertArrayType(out_static)
         self.assertArrayType(out_operators)
@@ -121,8 +129,12 @@ class Test_into_frame_basis_functions:
         )
         rotating_frame = RotatingFrame(rotating_frame - rotating_frame.conj().transpose())
 
-        out_static = _static_operator_into_frame_basis(static_operator, rotating_frame=rotating_frame, array_library=self.array_library())
-        out_operators = _operators_into_frame_basis(operators, rotating_frame=rotating_frame, array_library=self.array_library())
+        out_static = _static_operator_into_frame_basis(
+            static_operator, rotating_frame=rotating_frame, array_library=self.array_library()
+        )
+        out_operators = _operators_into_frame_basis(
+            operators, rotating_frame=rotating_frame, array_library=self.array_library()
+        )
 
         self.assertArrayType(out_static)
         self.assertArrayType(out_operators)
@@ -130,10 +142,7 @@ class Test_into_frame_basis_functions:
         expected_static = rotating_frame.operator_into_frame_basis(
             static_operator - rotating_frame.frame_operator
         )
-        expected_operators = [
-            rotating_frame.operator_into_frame_basis(op)
-            for op in operators
-        ]
+        expected_operators = [rotating_frame.operator_into_frame_basis(op) for op in operators]
 
         self.assertAllClose(out_static, expected_static)
         self.assertAllClose(out_operators, expected_operators)
@@ -144,6 +153,7 @@ class TestGeneratorModel:
     """Tests for GeneratorModel."""
 
     def setUp(self):
+        """Build simple model elements."""
         self.X = Operator.from_label("X").data
         self.Y = Operator.from_label("Y").data
         self.Z = Operator.from_label("Z").data
@@ -155,9 +165,7 @@ class TestGeneratorModel:
         self.signals = [self.w, Signal(1.0, self.w)]
 
         self.basic_model = GeneratorModel(
-            operators=self.operators, 
-            signals=self.signals,
-            array_library=self.array_library()
+            operators=self.operators, signals=self.signals, array_library=self.array_library()
         )
 
     def test_diag_frame_operator_basic_model(self):
@@ -180,10 +188,10 @@ class TestGeneratorModel:
         basic_model.
         """
         basic_model = GeneratorModel(
-            operators=self.operators, 
+            operators=self.operators,
             signals=self.signals,
             rotating_frame=frame_operator,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         # convert to 2d array
@@ -230,10 +238,10 @@ class TestGeneratorModel:
         frame_op = -1j * (self.X + 0.2 * self.Y + 0.1 * self.Z)
 
         basic_model = GeneratorModel(
-            operators=self.operators, 
+            operators=self.operators,
             signals=self.signals,
             rotating_frame=frame_op,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         # set to operate in frame basis
@@ -252,11 +260,7 @@ class TestGeneratorModel:
 
         i2pi = -1j * 2 * np.pi
         d_coeff = self.r * np.cos(2 * np.pi * self.w * t)
-        expected = (
-            Uadj
-            @ (i2pi * self.w * self.Z / 2 + i2pi * d_coeff * self.X / 2 - frame_op)
-            @ U
-        )
+        expected = Uadj @ (i2pi * self.w * self.Z / 2 + i2pi * d_coeff * self.X / 2 - frame_op) @ U
 
         self.assertAllClose(value, expected)
 
@@ -275,9 +279,8 @@ class TestGeneratorModel:
             low=-b, high=b, size=(num_terms, dim, dim)
         )
 
-        rand_coeffs = (
-            rng.uniform(low=-b, high=b, size=(num_terms))
-            + 1j * rng.uniform(low=-b, high=b, size=(num_terms))
+        rand_coeffs = rng.uniform(low=-b, high=b, size=(num_terms)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_terms)
         )
         rand_carriers = rng.uniform(low=-b, high=b, size=(num_terms))
         rand_phases = rng.uniform(low=-b, high=b, size=(num_terms))
@@ -292,14 +295,12 @@ class TestGeneratorModel:
             low=-b, high=b, size=(dim, dim)
         )
         frame_op = rand_op - rand_op.conj().transpose()
-        randoperators = (
-            rng.uniform(low=-b, high=b, size=(num_terms, dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(num_terms, dim, dim))
+        randoperators = rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_terms, dim, dim)
         )
 
-        rand_coeffs = (
-            rng.uniform(low=-b, high=b, size=(num_terms))
-            + 1j * rng.uniform(low=-b, high=b, size=(num_terms))
+        rand_coeffs = rng.uniform(low=-b, high=b, size=(num_terms)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_terms)
         )
         rand_carriers = rng.uniform(low=-b, high=b, size=(num_terms))
         rand_phases = rng.uniform(low=-b, high=b, size=(num_terms))
@@ -319,7 +320,12 @@ class TestGeneratorModel:
                 return env
 
             sig_list.append(Signal(get_env_func(), freq, phase))
-        model = GeneratorModel(operators=operators, signals=sig_list, rotating_frame=frame_op, array_library=self.array_library())
+        model = GeneratorModel(
+            operators=operators,
+            signals=sig_list,
+            rotating_frame=frame_op,
+            array_library=self.array_library(),
+        )
 
         value = model(1.0)
         coeffs = np.real(coefficients * np.exp(1j * 2 * np.pi * carriers * 1.0 + 1j * phases))
@@ -368,7 +374,11 @@ class TestGeneratorModel:
         test_operator_list = [self.X, self.Y, self.Z]
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(
-            operators=test_operator_list, static_operator=None, signals=signals, rotating_frame=None, array_library=self.array_library()
+            operators=test_operator_list,
+            static_operator=None,
+            signals=signals,
+            rotating_frame=None,
+            array_library=self.array_library(),
         )
 
         res = simple_model.evaluate(2)
@@ -376,7 +386,11 @@ class TestGeneratorModel:
         self.assertAllClose(res, np.array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
         simple_model = GeneratorModel(
-            operators=test_operator_list, static_operator=self.asarray(np.eye(2)), signals=signals, rotating_frame=None, array_library=self.array_library()
+            operators=test_operator_list,
+            static_operator=self.asarray(np.eye(2)),
+            signals=signals,
+            rotating_frame=None,
+            array_library=self.array_library(),
         )
         res = simple_model.evaluate(2)
         self.assertArrayType(res)
@@ -389,11 +403,11 @@ class TestGeneratorModel:
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         fop = np.array([[0, 1j], [1j, 0]])
         simple_model = GeneratorModel(
-            operators=test_operator_list, 
-            static_operator=self.asarray(np.eye(2)), 
-            signals=signals, 
+            operators=test_operator_list,
+            static_operator=self.asarray(np.eye(2)),
+            signals=signals,
             rotating_frame=fop,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         res = simple_model(2.0)
         expected = (
@@ -437,10 +451,19 @@ class TestGeneratorModel:
         paulis_in_frame_basis = np.conjugate(np.transpose(evect)) @ paulis @ evect
 
         ## Run checks without rotating frame for now
-        gm1 = GeneratorModel(operators=paulis, signals=sarr, static_operator=extra, array_library=self.array_library())
-        gm2 = GeneratorModel(operators=paulis, static_operator=extra, array_library=self.array_library())
+        gm1 = GeneratorModel(
+            operators=paulis,
+            signals=sarr,
+            static_operator=extra,
+            array_library=self.array_library(),
+        )
+        gm2 = GeneratorModel(
+            operators=paulis, static_operator=extra, array_library=self.array_library()
+        )
         gm2.signals = sarr
-        gm3 = GeneratorModel(operators=paulis, static_operator=extra, array_library=self.array_library())
+        gm3 = GeneratorModel(
+            operators=paulis, static_operator=extra, array_library=self.array_library()
+        )
         gm3.signals = SignalList(sarr)
 
         # All should be the same, because there are no frames involved
@@ -484,16 +507,29 @@ class TestGeneratorModel:
         gm1.in_frame_basis = False
         self.assertAllClose(gm1(t) @ state, ts1)
 
-
         ## Now, run checks with frame
         # If passing a frame in the first place, operators must be in frame basis.
         # Testing at the same time whether having static_operator = None is an issue.
         gm1 = GeneratorModel(
-            operators=paulis, signals=sarr, rotating_frame=RotatingFrame(farr), in_frame_basis=True, array_library=self.array_library()
+            operators=paulis,
+            signals=sarr,
+            rotating_frame=RotatingFrame(farr),
+            in_frame_basis=True,
+            array_library=self.array_library(),
         )
-        gm2 = GeneratorModel(operators=paulis, rotating_frame=farr, in_frame_basis=True, array_library=self.array_library())
+        gm2 = GeneratorModel(
+            operators=paulis,
+            rotating_frame=farr,
+            in_frame_basis=True,
+            array_library=self.array_library(),
+        )
         gm2.signals = SignalList(sarr)
-        gm3 = GeneratorModel(operators=paulis, rotating_frame=farr, in_frame_basis=True, array_library=self.array_library())
+        gm3 = GeneratorModel(
+            operators=paulis,
+            rotating_frame=farr,
+            in_frame_basis=True,
+            array_library=self.array_library(),
+        )
         gm3.signals = sarr
 
         t_in_frame_actual = (
@@ -546,7 +582,7 @@ class TestGeneratorModel:
             rotating_frame=farr,
             static_operator=extra,
             in_frame_basis=True,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         res = gm1(t)
         self.assertArrayType(res)
@@ -568,7 +604,7 @@ class TestGeneratorModel:
             rotating_frame=farr,
             static_operator=extra,
             in_frame_basis=False,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         gm1.in_frame_basis = False
         res = gm2(t)
@@ -592,7 +628,12 @@ class TestGeneratorModel:
 
         operators = rand.uniform(-1, 1, (k, n, n))
 
-        gm = GeneratorModel(operators=operators, static_operator=None, signals=sig_list, array_library=self.array_library())
+        gm = GeneratorModel(
+            operators=operators,
+            static_operator=None,
+            signals=sig_list,
+            array_library=self.array_library(),
+        )
         self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
         self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
         for i in range(m):
@@ -604,7 +645,13 @@ class TestGeneratorModel:
         # add pseudo frame to test
         farr = rand.uniform(-1, 1, (n, n))
         farr = farr - np.conjugate(np.transpose(farr))
-        gm = gm = GeneratorModel(operators=operators, static_operator=None, signals=sig_list, rotating_frame=farr, array_library=self.array_library())
+        gm = gm = GeneratorModel(
+            operators=operators,
+            static_operator=None,
+            signals=sig_list,
+            rotating_frame=farr,
+            array_library=self.array_library(),
+        )
 
         self.assertTrue(gm.evaluate_rhs(t, normal_states).shape == (n,))
         self.assertTrue(gm.evaluate_rhs(t, vectorized_states).shape == (n, m))
@@ -634,7 +681,9 @@ class TestGeneratorModel:
 
         # now with frame
         frame_op = -1j * (self.Z + 1.232 * self.Y)
-        static_model = GeneratorModel(static_operator=self.X, rotating_frame=frame_op, array_library=self.array_library())
+        static_model = GeneratorModel(
+            static_operator=self.X, rotating_frame=frame_op, array_library=self.array_library()
+        )
         t = 1.2312
         expected = expm(-frame_op * t) @ (self.X - frame_op) @ expm(frame_op * t)
         res = static_model(t)
@@ -644,7 +693,9 @@ class TestGeneratorModel:
     def test_get_operators_when_None(self):
         """Test getting operators when None."""
 
-        model = GeneratorModel(static_operator=np.array([[1.0, 0.0], [0.0, -1.0]]), array_library=self.array_library())
+        model = GeneratorModel(
+            static_operator=np.array([[1.0, 0.0], [0.0, -1.0]]), array_library=self.array_library()
+        )
         self.assertTrue(model.operators is None)
 
 
@@ -653,6 +704,7 @@ class TestGeneratorModelJAXTransformations:
     """Test GeneratorModel under JAX transformations."""
 
     def setUp(self):
+        """Build simple model elements."""
         self.X = Operator.from_label("X").data
         self.Y = Operator.from_label("Y").data
         self.Z = Operator.from_label("Z").data
@@ -664,18 +716,15 @@ class TestGeneratorModelJAXTransformations:
         self.signals = [self.w, Signal(1.0, self.w)]
 
         self.basic_model = GeneratorModel(
-            operators=self.operators, 
-            signals=self.signals,
-            array_library=self.array_library()
+            operators=self.operators, signals=self.signals, array_library=self.array_library()
         )
 
         self.basic_model_w_frame = GeneratorModel(
-            operators=self.operators, 
+            operators=self.operators,
             signals=self.signals,
             rotating_frame=np.array([[3j, 2j], [2j, 0]]),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
-
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable. Checks if having a frame makes a difference, as
@@ -686,8 +735,8 @@ class TestGeneratorModelJAXTransformations:
         jit(self.basic_model.evaluate)(1.0)
         jit(self.basic_model.evaluate_rhs)(1.0, np.array([0.2, 0.4]))
 
-        jit(self.basic_model_w_frame.evaluate)(1.)
-        jit(self.basic_model_w_frame.evaluate_rhs)(1., np.array([0.2, 0.4]))
+        jit(self.basic_model_w_frame.evaluate)(1.0)
+        jit(self.basic_model_w_frame.evaluate_rhs)(1.0, np.array([0.2, 0.4]))
 
     def test_gradable_funcs(self):
         """Tests whether all functions are gradable. Checks if having a frame makes a difference, as

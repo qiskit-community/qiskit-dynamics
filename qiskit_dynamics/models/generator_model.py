@@ -16,24 +16,20 @@ Generator models module.
 """
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Union, List, Optional
+from typing import Union, List, Optional
 from warnings import warn
-from copy import copy
-import numpy as np
-from scipy.sparse import csr_matrix, issparse, diags
+from scipy.sparse import diags
+
+from qiskit import QiskitError
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
 from qiskit_dynamics.arraylias.alias import ArrayLike
-from qiskit import QiskitError
-from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models.operator_collections import (
     OperatorCollection,
     ScipySparseOperatorCollection,
 )
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from .rotating_frame import RotatingFrame
 
 try:
@@ -124,7 +120,7 @@ class GeneratorModel(BaseGeneratorModel):
         signals: Optional[Union[SignalList, List[Signal]]] = None,
         rotating_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
         in_frame_basis: bool = False,
-        array_library: Optional[str] = None
+        array_library: Optional[str] = None,
     ):
         """Initialize.
 
@@ -138,7 +134,7 @@ class GeneratorModel(BaseGeneratorModel):
                 operator is diagonalized.
             array_library: Array library for storing the operators in the model. Supported options
                 are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
-                the arrays will be handled by general dispatching rules. Call 
+                the arrays will be handled by general dispatching rules. Call
                 ``help(GeneratorModel.array_library)`` for more details.
         Raises:
             QiskitError: If model not sufficiently specified.
@@ -155,21 +151,17 @@ class GeneratorModel(BaseGeneratorModel):
 
         # set up internal operators
         static_operator = _static_operator_into_frame_basis(
-            static_operator=static_operator, 
+            static_operator=static_operator,
             rotating_frame=self._rotating_frame,
-            array_library=array_library
+            array_library=array_library,
         )
 
         operators = _operators_into_frame_basis(
-            operators=operators,
-            rotating_frame=self._rotating_frame,
-            array_library=array_library
+            operators=operators, rotating_frame=self._rotating_frame, array_library=array_library
         )
 
         self._operator_collection = _get_operator_collection(
-            static_operator=static_operator,
-            operators=operators,
-            array_library=array_library
+            static_operator=static_operator, operators=operators, array_library=array_library
         )
 
         self._signals = None
@@ -198,7 +190,7 @@ class GeneratorModel(BaseGeneratorModel):
     def array_library(self) -> Union[None, str]:
         """Array library used to store the operators in the model."""
         return self._array_library
-    
+
     @property
     def static_operator(self) -> Union[ArrayLike, None]:
         """The static operator."""
@@ -210,7 +202,7 @@ class GeneratorModel(BaseGeneratorModel):
         return self.rotating_frame.operator_out_of_frame_basis(
             self._operator_collection.static_operator
         )
-    
+
     @property
     def operators(self) -> Union[ArrayLike, None]:
         """The operators in the model."""
@@ -219,10 +211,8 @@ class GeneratorModel(BaseGeneratorModel):
 
         if self.in_frame_basis:
             return self._operator_collection.operators
-        return self.rotating_frame.operator_out_of_frame_basis(
-            self._operator_collection.operators
-        )
-    
+        return self.rotating_frame.operator_out_of_frame_basis(self._operator_collection.operators)
+
     @property
     def signals(self) -> SignalList:
         """The signals in the model.
@@ -283,7 +273,7 @@ class GeneratorModel(BaseGeneratorModel):
             time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
         )
 
-    def evaluate_rhs(self, time: float, y: Array) -> Array:
+    def evaluate_rhs(self, time: float, y: ArrayLike) -> ArrayLike:
         r"""Evaluate ``G(t) @ y``.
 
         Args:
@@ -325,11 +315,9 @@ def _static_operator_into_frame_basis(
     static_operator: Union[None, ArrayLike],
     rotating_frame: RotatingFrame,
     array_library: Optional[ArrayLike] = None,
-) -> Union[None, Array]:
-    """This will merge the functionality of transfer_static_operator_between_frames, and the 
-    rotating_frame setter.
-
-    This returns the static operator *in the frame basis*, after subtracting the frame operator
+) -> Union[None, ArrayLike]:
+    """Converts the static_operator into the frame basis, including a subtraction of the frame
+    operator. This function also enforces typing via array_library.
     """
 
     # handle static_operator is None case
@@ -343,38 +331,39 @@ def _static_operator_into_frame_basis(
     static_operator = numpy_alias(like=array_library).asarray(static_operator)
 
     return rotating_frame.generator_into_frame(
-        t=0., 
-        operator=static_operator, 
-        return_in_frame_basis=True
+        t=0.0, operator=static_operator, return_in_frame_basis=True
     )
+
 
 def _operators_into_frame_basis(
     operators: Union[None, list, ArrayLike],
     rotating_frame: RotatingFrame,
     array_library: Optional[ArrayLike] = None,
-) -> Union[None, Array]:
-    """This merges the functionality of transfer_operators_between_frames, and the 
-    rotating_frame setter.
-
-    returns operators *in the frame basis*
+) -> Union[None, ArrayLike]:
+    """Converts operators into the frame basis. This function also enforces typing via
+    array_library.
     """
     if operators is None:
         return None
-    
-    if array_library == "scipy_sparse" or (array_library is None and "scipy_sparse" in numpy_alias.infer_libs(operators)):
+
+    if array_library == "scipy_sparse" or (
+        array_library is None and "scipy_sparse" in numpy_alias.infer_libs(operators)
+    ):
         ops = []
         for op in operators:
             op = numpy_alias(like="scipy_sparse").asarray(op)
             ops.append(rotating_frame.operator_into_frame_basis(op))
         return ops
 
-    return rotating_frame.operator_into_frame_basis(numpy_alias(like=array_library).asarray(operators))
+    return rotating_frame.operator_into_frame_basis(
+        numpy_alias(like=array_library).asarray(operators)
+    )
 
 
 def _get_operator_collection(
     static_operator: Union[None, ArrayLike],
     operators: Union[None, ArrayLike],
-    array_library: Optional[str] = None
+    array_library: Optional[str] = None,
 ) -> Union[OperatorCollection, ScipySparseOperatorCollection]:
     """Construct an operator collection for :class:`GeneratorModel`.
 
@@ -387,14 +376,9 @@ def _get_operator_collection(
         Union[OperatorCollection, ScipySparseOperatorCollection]: The relevant operator collection.
     """
 
-    ##################################################################################################
-    # should we add some inference here? Both for scipy and for jax_sparse? 
-    # Note that jax_sparse needs to be instantiated from dense arrays (sadly)
-    # at this level we should start making release notes about these limitations
-    ##################################################################################################
     if array_library == "scipy_sparse":
         return ScipySparseOperatorCollection(static_operator=static_operator, operators=operators)
-    
+
     if array_library == "jax_sparse":
         # warn that sparse mode when using JAX is primarily recommended for use on CPU
         if jax.default_backend() != "cpu":
@@ -404,7 +388,5 @@ def _get_operator_collection(
             )
 
     return OperatorCollection(
-        static_operator=static_operator, 
-        operators=operators, 
-        array_library=array_library
+        static_operator=static_operator, operators=operators, array_library=array_library
     )

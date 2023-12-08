@@ -26,8 +26,8 @@ from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_model import (
     BaseGeneratorModel,
-#    transfer_static_operator_between_frames,
-#    transfer_operators_between_frames,
+    #    transfer_static_operator_between_frames,
+    #    transfer_operators_between_frames,
 )
 from .hamiltonian_model import HamiltonianModel, is_hermitian
 from .operator_collections import (
