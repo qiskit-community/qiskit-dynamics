@@ -342,8 +342,6 @@ def _static_operator_into_frame_basis(
 
     static_operator = numpy_alias(like=array_library).asarray(static_operator)
 
-    ##################################################################################################
-    # do we need to recast this for sparse arrays?
     return rotating_frame.generator_into_frame(
         t=0., 
         operator=static_operator, 
@@ -363,15 +361,15 @@ def _operators_into_frame_basis(
     if operators is None:
         return None
     
+    if array_library == "scipy_sparse" or (array_library is None and "scipy_sparse" in numpy_alias.infer_libs(operators)):
+        ops = []
+        for op in operators:
+            op = numpy_alias(like="scipy_sparse").asarray(op)
+            ops.append(rotating_frame.operator_into_frame_basis(op))
+        return ops
 
-    ##################################################################################################
-    # do we need to recast this for sparse arrays?
-    new_ops = []
-    for op in operators:
-        op = numpy_alias(like=array_library).asarray(op)
-        new_ops.append(rotating_frame.operator_into_frame_basis(op))
-    
-    return new_ops
+    return rotating_frame.operator_into_frame_basis(numpy_alias(like=array_library).asarray(operators))
+
 
 def _get_operator_collection(
     static_operator: Union[None, ArrayLike],

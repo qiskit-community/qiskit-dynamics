@@ -12,6 +12,8 @@
 
 """Tests for generator_models.py. """
 
+from functools import partial
+
 from scipy.sparse import issparse, csr_matrix
 from scipy.linalg import expm
 import numpy as np
@@ -22,11 +24,13 @@ from qiskit_dynamics.models import GeneratorModel, RotatingFrame
 from qiskit_dynamics.models.generator_model import (
     transfer_static_operator_between_frames,
     transfer_operators_between_frames,
+    _static_operator_into_frame_basis,
+    _operators_into_frame_basis
 )
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.array import Array, wrap
 from qiskit_dynamics.type_utils import to_array
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, TestJaxBase, test_array_backends
 
 
 class TestGeneratorModelErrors(QiskitDynamicsTestCase):
@@ -70,6 +74,72 @@ class TestGeneratorModelErrors(QiskitDynamicsTestCase):
         model = GeneratorModel(operators=np.array([[[1.0, 0.0], [0.0, -1.0]]]))
         with self.assertRaisesRegex(QiskitError, "unaccepted format."):
             model.signals = lambda t: t
+
+
+@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"])
+class Test_into_frame_basis_functions:
+    """Tests for _static_operator_into_frame_basis and _operators_into_frame_basis."""
+
+    def test_all_None(self):
+        """Test all arguments being None."""
+
+        static_operator = _static_operator_into_frame_basis(None, RotatingFrame(None), array_library=self.array_library())
+        operators = _operators_into_frame_basis(None, RotatingFrame(None), array_library=self.array_library())
+
+        self.assertTrue(static_operator is None)
+        self.assertTrue(operators is None)
+
+    def test_array_inputs_diagonal_frame(self):
+        """Test correct handling when operators are arrays for diagonal frames."""
+
+        static_operator = -1j * np.array([[1.0, 0.0], [0.0, -1.0]])
+        operators = -1j * np.array([[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]]])
+        rotating_frame = RotatingFrame(-1j * np.array([1.0, -1.0]))
+
+        out_static = _static_operator_into_frame_basis(static_operator, rotating_frame=rotating_frame, array_library=self.array_library())
+        out_operators = _operators_into_frame_basis(operators, rotating_frame=rotating_frame, array_library=self.array_library())
+
+        self.assertArrayType(out_static)
+        self.assertArrayType(out_operators)
+
+        self.assertAllClose(out_operators, operators)
+        self.assertAllClose(out_static, np.zeros((2, 2)))
+
+    def test_array_inputs_pseudo_random(self):
+        """Test correct handling when operators are pseudo random arrays."""
+
+        rng = np.random.default_rng(34233)
+        num_terms = 3
+        dim = 5
+        b = 1.0  # bound on size of random terms
+        static_operator = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        operators = rng.uniform(low=-b, high=b, size=(num_terms, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+
+        rotating_frame = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
+        )
+        rotating_frame = RotatingFrame(rotating_frame - rotating_frame.conj().transpose())
+
+        out_static = _static_operator_into_frame_basis(static_operator, rotating_frame=rotating_frame, array_library=self.array_library())
+        out_operators = _operators_into_frame_basis(operators, rotating_frame=rotating_frame, array_library=self.array_library())
+
+        self.assertArrayType(out_static)
+        self.assertArrayType(out_operators)
+
+        expected_static = rotating_frame.operator_into_frame_basis(
+            static_operator - rotating_frame.frame_operator
+        )
+        expected_operators = [
+            rotating_frame.operator_into_frame_basis(op)
+            for op in operators
+        ]
+
+        self.assertAllClose(out_static, expected_static)
+        self.assertAllClose(out_operators, expected_operators)
 
 ######################################################################################################
 # OLD
@@ -715,7 +785,7 @@ class TestGeneratorModelSparseJax(TestGeneratorModelSparse, TestJaxBase):
         grad_jit_func = self.jit_grad_wrap(func)
         grad_jit_func(1.2)
 
-
+# covered by Test_into_frame_basis_functions
 class Testtransfer_operator_functions(QiskitDynamicsTestCase):
     """Tests for transfer_static_operator_between_frames and transfer_operators_between_frames."""
 
@@ -790,10 +860,11 @@ class Testtransfer_operator_functions(QiskitDynamicsTestCase):
         self.assertAllClose(out_operators, expected_operators)
 
 
+# covered by Test_into_frame_basis_functions
 class Testtransfer_operator_functionsJax(Testtransfer_operator_functions, TestJaxBase):
     """JAX version of Testtransfer_operator_functions."""
 
-
+# covered by Test_into_frame_basis_functions
 class Testtransfer_operator_functionsSparse(QiskitDynamicsTestCase):
     """Tests for transfer_static_operator_between_frames and transfer_operators_between_frames
     for sparse cases.
