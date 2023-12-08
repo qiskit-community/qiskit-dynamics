@@ -370,18 +370,18 @@ class TestGeneratorModel:
         """Test for checking that with known operators that
         the Model returns the analyticlly known values."""
 
-        test_operator_list = self.asarray([self.X, self.Y, self.Z])
+        test_operator_list = [self.X, self.Y, self.Z]
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         simple_model = GeneratorModel(
-            operators=test_operator_list, static_operator=None, signals=signals, rotating_frame=None
+            operators=test_operator_list, static_operator=None, signals=signals, rotating_frame=None, array_library=self.array_library()
         )
 
         res = simple_model.evaluate(2)
         self.assertArrayType(res)
-        self.assertAllClose(res, Array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
+        self.assertAllClose(res, np.array([[-0.5 + 0j, 1.0 + 0.5j], [1.0 - 0.5j, 0.5 + 0j]]))
 
         simple_model = GeneratorModel(
-            operators=test_operator_list, static_operator=self.asarray(np.eye(2)), signals=signals, rotating_frame=None
+            operators=test_operator_list, static_operator=self.asarray(np.eye(2)), signals=signals, rotating_frame=None, array_library=self.array_library()
         )
         res = simple_model.evaluate(2)
         self.assertArrayType(res)
@@ -390,14 +390,15 @@ class TestGeneratorModel:
     def test_evaluate_in_frame_basis_analytic(self):
         """Tests evaluation in rotating frame against analytic values,
         both in specified basis and in frame basis."""
-        test_operator_list = self.asarray([self.X, self.Y, self.Z])
+        test_operator_list = [self.X, self.Y, self.Z]
         signals = SignalList([Signal(1, j / 3) for j in range(3)])
         fop = np.array([[0, 1j], [1j, 0]])
         simple_model = GeneratorModel(
             operators=test_operator_list, 
             static_operator=self.asarray(np.eye(2)), 
             signals=signals, 
-            rotating_frame=fop
+            rotating_frame=fop,
+            array_library=self.array_library()
         )
         res = simple_model(2.0)
         expected = (
