@@ -17,23 +17,16 @@ Hamiltonian models module.
 
 from typing import Union, List, Optional
 import numpy as np
-from scipy.sparse import csr_matrix, issparse
+from scipy.sparse import issparse
 from scipy.sparse.linalg import norm as spnorm
 
 from qiskit import QiskitError
-from qiskit.quantum_info.operators import Operator
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
 from qiskit_dynamics.arraylias.alias import ArrayLike
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_numeric_matrix_type, to_array
-from .generator_model import (
-    GeneratorModel,
-    _static_operator_into_frame_basis,
-    _operators_into_frame_basis
-)
+from .generator_model import GeneratorModel
 from .rotating_frame import RotatingFrame
 
 
@@ -69,10 +62,10 @@ class HamiltonianModel(GeneratorModel):
 
     def __init__(
         self,
-        static_operator: Optional[Array] = None,
-        operators: Optional[List[Operator]] = None,
+        static_operator: Optional[ArrayLike] = None,
+        operators: Optional[ArrayLike] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
         in_frame_basis: bool = False,
         array_library: Optional[str] = None,
         validate: bool = True,
@@ -105,12 +98,14 @@ class HamiltonianModel(GeneratorModel):
             if validate and not is_hermitian(static_operator):
                 raise QiskitError("""HamiltonianModel static_operator must be Hermitian.""")
             static_operator = -1j * numpy_alias(like=array_library).asarray(static_operator)
-        
+
         if operators is not None:
             if validate and any(not is_hermitian(op) for op in operators):
                 raise QiskitError("""HamiltonianModel operators must be Hermitian.""")
-            
-            if array_library == "scipy_sparse" or (array_library is None and "scipy_sparse" in numpy_alias.infer_libs(operators)):
+
+            if array_library == "scipy_sparse" or (
+                array_library is None and "scipy_sparse" in numpy_alias.infer_libs(operators)
+            ):
                 operators = [-1j * numpy_alias(like=array_library).asarray(op) for op in operators]
             else:
                 operators = -1j * numpy_alias(like=array_library).asarray(operators)
@@ -145,21 +140,21 @@ class HamiltonianModel(GeneratorModel):
         if self.in_frame_basis:
             ops = self._operator_collection.operators
         else:
-            ops = self.rotating_frame.operator_out_of_frame_basis(self._operator_collection.operators)
-        
+            ops = self.rotating_frame.operator_out_of_frame_basis(
+                self._operator_collection.operators
+            )
+
         if isinstance(ops, list):
             return [1j * op for op in ops]
-        
+
         return 1j * ops
 
 
-def is_hermitian(
-    operator: ArrayLike, tol: Optional[float] = 1e-10
-) -> bool:
+def is_hermitian(operator: ArrayLike, tol: Optional[float] = 1e-10) -> bool:
     """Validate that an operator is Hermitian.
 
     Args:
-        operators: A 2d array representing a single operator.
+        operator: A 2d array representing a single operator.
         tol: Tolerance for checking zeros.
 
     Returns:
