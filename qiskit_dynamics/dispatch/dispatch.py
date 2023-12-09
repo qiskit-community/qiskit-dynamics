@@ -326,7 +326,7 @@ def requires_backend(backend: str) -> Callable:
                 raise DispatchError(
                     f"Array backend '{backend}' required by {descriptor} "
                     "is not installed. Please install the optional "
-                    "library '{backend}'."
+                    f"library '{backend}'."
                 )
 
         # Decorate a function or method
