@@ -52,9 +52,11 @@ class HamiltonianModel(GeneratorModel):
 
     .. code-block:: python
 
-        hamiltonian = HamiltonianModel(static_operator=static_operator,
-                                       operators=operators,
-                                       signals=signals)
+        hamiltonian = HamiltonianModel(
+            static_operator=static_operator,
+            operators=operators,
+            signals=signals
+        )
 
     This class inherits most functionality from :class:`GeneratorModel`, with the following
     modifications:
@@ -98,12 +100,20 @@ class HamiltonianModel(GeneratorModel):
             QiskitError: if operators are not Hermitian
         """
 
-        # verify operators are Hermitian, and if so instantiate
-        if validate:
-            if (operators is not None) and (not all(is_hermitian(numpy_alias(like=array_library).asarray(op)) for op in operators)):
-                raise QiskitError("""HamiltonianModel operators must be Hermitian.""")
-            if (static_operator is not None) and (not is_hermitian(numpy_alias(like=array_library).asarray(static_operator))):
+        # prepare and validate operators
+        if static_operator is not None:
+            if validate and not is_hermitian(static_operator):
                 raise QiskitError("""HamiltonianModel static_operator must be Hermitian.""")
+            static_operator = -1j * numpy_alias(like=array_library).asarray(static_operator)
+        
+        if operators is not None:
+            if validate and any(not is_hermitian(op) for op in operators):
+                raise QiskitError("""HamiltonianModel operators must be Hermitian.""")
+            
+            if array_library == "scipy_sparse" or (array_library is None and "scipy_sparse" in numpy_alias.infer_libs(operators)):
+                operators = [-1j * numpy_alias(like=array_library).asarray(op) for op in operators]
+            else:
+                operators = -1j * numpy_alias(like=array_library).asarray(operators)
 
         super().__init__(
             static_operator=static_operator,
@@ -115,76 +125,32 @@ class HamiltonianModel(GeneratorModel):
         )
 
     @property
-    def rotating_frame(self) -> RotatingFrame:
-        """The rotating frame.
+    def static_operator(self) -> Union[ArrayLike, None]:
+        """The static operator."""
+        if self._operator_collection.static_operator is None:
+            return None
 
-        This property can be set with a :class:`RotatingFrame` instance, or any valid constructor
-        argument to this class. It can either be Hermitian or anti-Hermitian, and in either case
-        only the anti-Hermitian version :math:`F=-iH` will be stored.
-
-        Setting this property updates the internal operator list to use the new frame.
-        """
-        return super().rotating_frame
-
-    @rotating_frame.setter
-    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]) -> Array:
-        new_frame = RotatingFrame(rotating_frame)
-
-        # convert static operator to new frame setup
-        static_op = self._get_static_operator(in_frame_basis=True)
-        if static_op is not None:
-            static_op = -1j * static_op
-
-        new_static_operator = transfer_static_operator_between_frames(
-            static_op,
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
+        if self.in_frame_basis:
+            return self._operator_collection.static_operator
+        return 1j * self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.static_operator
         )
 
-        if new_static_operator is not None:
-            new_static_operator = 1j * new_static_operator
+    @property
+    def operators(self) -> Union[ArrayLike, None]:
+        """The operators in the model."""
+        if self._operator_collection.operators is None:
+            return None
 
-        # convert operators to new frame set up
-        new_operators = transfer_operators_between_frames(
-            self._get_operators(in_frame_basis=True),
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
-        )
-
-        self._rotating_frame = new_frame
-
-        self._operator_collection = construct_operator_collection(
-            self.evaluation_mode, new_static_operator, new_operators
-        )
-
-    def evaluate(self, time: float) -> Array:
-        """Evaluate the model in array format as a matrix, independent of state.
-
-        Args:
-            time: The time to evaluate the model at.
-
-        Returns:
-            Array: The evaluated model as an anti-Hermitian matrix.
-
-        Raises:
-            QiskitError: If model cannot be evaluated.
-        """
-        return -1j * super().evaluate(time)
-
-    def evaluate_rhs(self, time: float, y: Array) -> Array:
-        r"""Evaluate ``-1j * H(t) @ y``.
-
-        Args:
-            time: The time to evaluate the model at .
-            y: Array specifying system state.
-
-        Returns:
-            Array defined by :math:`G(t) \times y`.
-
-        Raises:
-            QiskitError: If model cannot be evaluated.
-        """
-        return -1j * super().evaluate_rhs(time, y)
+        if self.in_frame_basis:
+            ops = self._operator_collection.operators
+        else:
+            ops = self.rotating_frame.operator_out_of_frame_basis(self._operator_collection.operators)
+        
+        if isinstance(ops, list):
+            return [1j * op for op in ops]
+        
+        return 1j * ops
 
 
 def is_hermitian(
@@ -202,6 +168,8 @@ def is_hermitian(
     Raises:
         QiskitError: If an unexpeted type is received.
     """
+    operator = unp.asarray(operator)
+
     if issparse(operator):
         return spnorm(operator - operator.conj().transpose()) < tol
     elif type(operator).__name__ == "BCOO":
