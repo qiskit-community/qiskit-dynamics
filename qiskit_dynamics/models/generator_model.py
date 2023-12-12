@@ -134,8 +134,7 @@ class GeneratorModel(BaseGeneratorModel):
                 operator is diagonalized.
             array_library: Array library for storing the operators in the model. Supported options
                 are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
-                the arrays will be handled by general dispatching rules. Call
-                ``help(GeneratorModel.array_library)`` for more details.
+                the arrays will be handled by general dispatching rules.
         Raises:
             QiskitError: If model not sufficiently specified.
         """
