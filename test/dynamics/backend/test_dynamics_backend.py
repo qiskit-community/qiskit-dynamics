@@ -37,7 +37,6 @@ from qiskit_dynamics.backend.dynamics_backend import (
     _get_acquire_instruction_timings,
     _get_backend_channel_freqs,
 )
-from qiskit_dynamics.pulse import InstructionToSignals
 from ..common import QiskitDynamicsTestCase
 
 
@@ -304,17 +303,13 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         self.assertDictEqual(counts, {"1": 1024})
 
     def test_solve(self):
-        """Test the ODE simulation with different signal and y0 types."""
+        """Test the ODE simulation with different input and y0 types."""
         n_samples = 100
         with pulse.build() as x_sched0:
             pulse.play(pulse.Waveform([1.0] * n_samples), pulse.DriveChannel(0))
         x_circ0 = QuantumCircuit(1)
         x_circ0.x(0)
         x_circ0.add_calibration("x", [0], x_sched0)
-        x_signal0 = InstructionToSignals(
-            dt=self.simple_backend.dt,
-            carriers=self.simple_backend.options.solver._channel_carrier_freqs,
-        ).get_signals(x_sched0)[0]
 
         y0_variety = [
             Statevector(np.array([[1.0], [0.0]])),
@@ -322,10 +317,10 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             DensityMatrix(QuantumCircuit(1)),
             Choi(QuantumCircuit(1)),
         ]
-        signal_variety = [x_sched0, x_circ0, x_signal0]
-        for signal, y0 in product(signal_variety, y0_variety):
+        input_variety = [x_sched0, x_circ0]
+        for solve_input, y0 in product(input_variety, y0_variety):
             solver_results = self.simple_backend.solve(
-                t_span=[0, n_samples * self.simple_backend.dt], y0=y0, signals=[signal]
+                t_span=[0, n_samples * self.simple_backend.dt], y0=y0, solve_input=[solve_input]
             )
             if isinstance(solver_results, list):
                 assert all(result.success for result in solver_results)

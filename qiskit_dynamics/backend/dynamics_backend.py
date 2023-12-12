@@ -347,12 +347,10 @@ class DynamicsBackend(BackendV2):
         self,
         t_span: Array,
         y0: Union[Array, QuantumState, BaseOperator],
-        signals: Optional[
+        solve_input: Optional[
             Union[
                 List[QuantumCircuit],
                 List[Union[Schedule, ScheduleBlock]],
-                List[Signal],
-                Tuple[List[Signal], List[Signal]],
             ]
         ] = None,
         convert_results: bool = True,
@@ -363,12 +361,8 @@ class DynamicsBackend(BackendV2):
         Args:
             t_span: Time interval to integrate over.
             y0: Initial state.
-            signals: Specification of time-dependent coefficients to simulate, either in
-                     Signal format or as Qiskit Pulse Pulse schedules.
-                     If specifying in Signal format, if ``dissipator_operators is None``,
-                     specify as a list of signals for the Hamiltonian component, otherwise
-                     specify as a tuple of two lists, one for Hamiltonian components, and
-                     one for the ``dissipator_operators`` coefficients.
+            solve_input: Time evolution of the system in terms of quantum circuits or qiskit
+                         pulse schedules.
             convert_results: If ``True``, convert returned solver state results to the same class
                              as y0. If ``False``, states will be returned in the native array type
                              used by the specified solver method.
@@ -379,18 +373,13 @@ class DynamicsBackend(BackendV2):
         """
         if validate:
             _validate_run_input(
-                signals, accepted_types=(QuantumCircuit, Schedule, ScheduleBlock, Signal)
+                solve_input, accepted_types=(QuantumCircuit, Schedule, ScheduleBlock)
             )
-        signals = [
-            build_schedule(signal, self, dt=self.options.solver._dt)
-            if isinstance(signal, QuantumCircuit)
-            else signal
-            for signal in signals
-        ]
+        schedules, _ = _to_schedule_list(solve_input, backend=self)
         solver_results = self.options.solver.solve(
             t_span=t_span,
             y0=y0,
-            signals=signals,
+            signals=schedules,
             convert_results=convert_results,
             **self.options.solver_options,
         )
