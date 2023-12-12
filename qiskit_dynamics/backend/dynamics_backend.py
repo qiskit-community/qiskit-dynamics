@@ -345,17 +345,25 @@ class DynamicsBackend(BackendV2):
     def solve(
         self,
         t_span: Array,
-        y0: Union[Array, QuantumState, BaseOperator],
+        y0: Optional[Union[Array, QuantumState, BaseOperator]] = None,
         solve_input: Optional[
             Union[
                 List[QuantumCircuit],
                 List[Union[Schedule, ScheduleBlock]],
             ]
         ] = None,
-        convert_results: bool = True,
-        validate: bool = True,
+        convert_results: Optional[bool] = True,
+        validate: Optional[bool] = True,
     ) -> Union[OdeResult, List[OdeResult]]:
-        """Solve a list of simulations
+        """Simulate a list of :class:`~qiskit.circuit.QuantumCircuit`,
+           :class:`~qiskit.pulse.Schedule`, or :class:`~qiskit.pulse.ScheduleBlock` instances and
+           return the ``OdeResult``.
+
+        This method is analogous to :meth:`.Solver.solve`, however it additionally utilizes
+        transpilation and the backend configuration to convert
+        :class:`~qiskit.circuit.QuantumCircuit` instances into pulse-level schedules for simulation.
+        The options for the solver will be drawn from ``self.options.solver_options``, and if
+        ``y0`` is not specified, it will be set from ``self.options.initial_state``.
 
         Args:
             t_span: Time interval to integrate over.
@@ -373,6 +381,13 @@ class DynamicsBackend(BackendV2):
         if validate:
             _validate_run_input(solve_input)
         schedules, _ = _to_schedule_list(solve_input, backend=self)
+
+        # use default y0 if not given as parameter
+        if y0 is None:
+            y0 = self.options.initial_state
+        if y0 == "ground_state":
+            y0 = Statevector(self._dressed_states[:, 0])
+
         solver_results = self.options.solver.solve(
             t_span=t_span,
             y0=y0,
@@ -405,7 +420,7 @@ class DynamicsBackend(BackendV2):
         """
 
         if validate:
-            _validate_run_input(run_input, accepted_types=(QuantumCircuit, Schedule, ScheduleBlock))
+            _validate_run_input(run_input)
 
         # Configure run options for simulation
         if options:

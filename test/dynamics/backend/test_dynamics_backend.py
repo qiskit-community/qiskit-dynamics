@@ -316,6 +316,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             Operator(np.eye(2)),
             DensityMatrix(QuantumCircuit(1)),
             Choi(QuantumCircuit(1)),
+            None,
         ]
         input_variety = [x_sched0, x_circ0]
         for solve_input, y0 in product(input_variety, y0_variety):
