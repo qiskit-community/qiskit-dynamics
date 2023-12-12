@@ -51,7 +51,6 @@ from qiskit.quantum_info.states.quantum_state import QuantumState
 from qiskit_dynamics import RotatingFrame
 from qiskit_dynamics.array import Array
 from qiskit_dynamics.solvers.solver_classes import Solver
-from qiskit_dynamics.signals import Signal
 
 from .dynamics_job import DynamicsJob
 from .backend_utils import (
@@ -372,9 +371,7 @@ class DynamicsBackend(BackendV2):
             OdeResult: object with formatted output types.
         """
         if validate:
-            _validate_run_input(
-                solve_input, accepted_types=(QuantumCircuit, Schedule, ScheduleBlock)
-            )
+            _validate_run_input(solve_input)
         schedules, _ = _to_schedule_list(solve_input, backend=self)
         solver_results = self.options.solver.solve(
             t_span=t_span,
@@ -918,15 +915,15 @@ def default_experiment_result_function(
         raise QiskitError(f"meas_level=={backend.options.meas_level} not implemented.")
 
 
-def _validate_run_input(run_input, accepted_types, accept_list=True):
+def _validate_run_input(run_input, accept_list=True):
     """Raise errors if the run_input is not one of QuantumCircuit, Schedule, ScheduleBlock, or
     a list of these.
     """
     if isinstance(run_input, list) and accept_list:
         # if list apply recursively, but no longer accept lists
         for x in run_input:
-            _validate_run_input(x, accepted_types, accept_list=False)
-    elif not isinstance(run_input, accepted_types):
+            _validate_run_input(x, accept_list=False)
+    elif not isinstance(run_input, (QuantumCircuit, Schedule, ScheduleBlock)):
         caller_func_name = inspect.stack()[1].function
         raise QiskitError(
             f"Input type {type(run_input)} not supported by DynamicsBackend.{caller_func_name}."
