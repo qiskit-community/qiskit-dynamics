@@ -337,7 +337,7 @@ def _static_operator_into_frame_basis(
 def _operators_into_frame_basis(
     operators: Union[None, list, ArrayLike],
     rotating_frame: RotatingFrame,
-    array_library: Optional[ArrayLike] = None,
+    array_library: Optional[str] = None,
 ) -> Union[None, ArrayLike]:
     """Converts operators into the frame basis. This function also enforces typing via
     array_library.
