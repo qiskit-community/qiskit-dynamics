@@ -157,14 +157,42 @@ class LindbladModel(BaseGeneratorModel):
             if (static_hamiltonian is not None) and (not is_hermitian(static_hamiltonian)):
                 raise QiskitError("""LinbladModel static_hamiltonian must be Hermitian.""")
             if (hamiltonian_operators is not None) and any(not is_hermitian(op) for op in hamiltonian_operators):
-                raise QiskitError("""HamiltonianModel operators must be Hermitian.""")
+                raise QiskitError("""LindbladModel hamiltonian_operators must be Hermitian.""")
 
         self._array_library = array_library
         self._vectorized = vectorized
         self._rotating_frame = RotatingFrame(rotating_frame)
         self._in_frame_basis = in_frame_basis
 
-        self._operator_collection = _construct_lindblad_operator_collection(
+        # jax sparse arrays cannot be used directly at this stage
+        setup_library = array_library
+        if array_library == "jax_sparse":
+            setup_library = "jax"
+
+        # set up internal operators
+        if static_hamiltonian is not None:
+            static_hamiltonian = -1j * static_hamiltonian
+        static_hamiltonian = _static_operator_into_frame_basis(
+            static_operator=static_hamiltonian,
+            rotating_frame=self._rotating_frame,
+            array_library=setup_library,
+        )
+        if static_hamiltonian is not None:
+            static_hamiltonian = 1j * static_hamiltonian
+
+        hamiltonian_operators = _operators_into_frame_basis(
+            operators=hamiltonian_operators, rotating_frame=self._rotating_frame, array_library=setup_library
+        )
+
+        static_dissipators = _operators_into_frame_basis(
+            operators=static_dissipators, rotating_frame=self._rotating_frame, array_library=setup_library
+        )
+
+        dissipator_operators = _operators_into_frame_basis(
+            operators=dissipator_operators, rotating_frame=self._rotating_frame, array_library=setup_library
+        )
+
+        self._operator_collection = _get_lindblad_operator_collection(
             array_library=array_library,
             vectorized=vectorized,
             static_hamiltonian=static_hamiltonian,
@@ -501,7 +529,7 @@ class LindbladModel(BaseGeneratorModel):
         return rhs
 
 
-def _construct_lindblad_operator_collection(
+def _get_lindblad_operator_collection(
     array_library: Optional[str],
     vectorized: bool,
     static_hamiltonian: Optional[ArrayLike],
