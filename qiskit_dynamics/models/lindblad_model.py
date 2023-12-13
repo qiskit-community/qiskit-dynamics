@@ -565,7 +565,12 @@ def _get_lindblad_operator_collection(
         dissipator_operators: Dissipation operators with variable coefficients.
 
     Returns:
-        OperatorCollection: Right-hand side evaluation object.
+        Union[
+            LindbladCollection,
+            ScipySparseLindbladCollection,
+            VectorizedLindbladCollection,
+            ScipySparseVectorizedLindbladCollection,
+        ]: Right-hand side evaluation object.
     """
 
     operator_kwargs = {
