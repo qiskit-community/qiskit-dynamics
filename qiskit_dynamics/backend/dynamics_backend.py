@@ -930,16 +930,17 @@ def default_experiment_result_function(
         raise QiskitError(f"meas_level=={backend.options.meas_level} not implemented.")
 
 
-def _validate_run_input(run_input, accept_list=True):
+def _validate_run_input(run_input, accept_list=True, caller_func_name: str = None):
     """Raise errors if the run_input is not one of QuantumCircuit, Schedule, ScheduleBlock, or
     a list of these.
     """
+    if caller_func_name is None:
+        caller_func_name = inspect.stack()[1].function
     if isinstance(run_input, list) and accept_list:
         # if list apply recursively, but no longer accept lists
         for x in run_input:
-            _validate_run_input(x, accept_list=False)
+            _validate_run_input(x, accept_list=False, caller_func_name=caller_func_name)
     elif not isinstance(run_input, (QuantumCircuit, Schedule, ScheduleBlock)):
-        caller_func_name = inspect.stack()[1].function
         raise QiskitError(
             f"Input type {type(run_input)} not supported by DynamicsBackend.{caller_func_name}."
         )
