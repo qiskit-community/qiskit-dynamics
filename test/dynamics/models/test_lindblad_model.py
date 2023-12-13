@@ -151,9 +151,10 @@ class TestLindbladModelValidation(QiskitDynamicsTestCase):
         self.assertAllClose(lindblad_model(1.0, np.eye(2)), np.zeros(2))
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"])
-class TestLindbladModel(QiskitDynamicsTestCase):
-    """Tests for LindbladModel."""
+class TestLindbladModel:
+    """Tests for LindbladModel. This class is turned into a proper test class through inheritance
+    below.
+    """
 
     def setUp(self):
         self.X = Operator.from_label("X").data
@@ -331,7 +332,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
             low=-b, high=b, size=(dim, dim)
         )
         frame_op = rand_op - rand_op.conj().transpose()
-        eval, evect = np.linalg.eigh(1j * frame_op)
+        evect = np.linalg.eigh(1j * frame_op)[1]
         into_frame_basis = lambda x: evect.T.conj() @ x @ evect
 
         # construct model
@@ -468,8 +469,7 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         Note: here we force everything into numpy arrays as these parts of
         the test are just for confirmation
         """
-        # if a frame operator is given, transform the model pieces into
-        # the frame
+        # if a frame operator is given, transform the model pieces into the frame
         if frame_op is not None:
             frame_op = np.array(frame_op)
             U = expm(-t * frame_op)
@@ -533,158 +533,90 @@ class TestLindbladModel(QiskitDynamicsTestCase):
         )
         self.assertTrue(model.static_hamiltonian is None)
 
-'''
-class TestLindbladModelJax(TestLindbladModel, TestJaxBase):
-    """Jax version of TestLindbladModel tests."""
+
+@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"])
+class TestLindbladModelVectorized(TestLindbladModel):
+
+    @property
+    def vectorized(self):
+        True
+
+test_array_backends(TestLindbladModel, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"])
+
+
+class TestLindbladModelJAXTransformations:
+    """JAX transformation tests for TestLindbladModel tests. This class is turned into a test class
+    below.
+    """
+
+    def setUp(self):
+        self.X = Operator.from_label("X").data
+        self.Y = Operator.from_label("Y").data
+        self.Z = Operator.from_label("Z").data
+
+        # define a basic hamiltonian
+        w = 2.0
+        r = 0.5
+        ham_operators = [2 * np.pi * self.Z / 2, 2 * np.pi * r * self.X / 2]
+        ham_signals = [w, Signal(1.0, w)]
+
+        self.w = w
+        self.r = r
+
+        static_dissipators = [[[0.0, 0.0], [1.0, 0.0]]]
+
+        self.basic_lindblad = LindbladModel(
+            hamiltonian_operators=ham_operators,
+            hamiltonian_signals=ham_signals,
+            static_dissipators=static_dissipators,
+            array_library=self.array_library(),
+            vectorized=self.vectorized
+        )
+
+        self.rf_lindblad = LindbladModel(
+            hamiltonian_operators=ham_operators,
+            hamiltonian_signals=ham_signals,
+            static_dissipators=static_dissipators,
+            rotating_frame=np.array([[3j, 2j], [2j, 0]]),
+            array_library=self.array_library(),
+            vectorized=self.vectorized
+        )
+
+    @property
+    def vectorized(self):
+        return False
 
     def test_jitable_funcs(self):
         """Tests whether all functions are jitable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
-        rho = Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
-        if "vectorized" in self.evaluation_mode:
+        rho = np.array([[0.2, 0.4], [0.6, 0.8]])
+        if self.vectorized:
             rho = rho.flatten(order="F")
 
-        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
+        from jax import jit
 
-        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-        self.jit_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
+        jit(self.basic_lindblad.evaluate_rhs)(1.0, rho)
+        jit(self.rf_lindblad.evaluate_rhs)(1.0, rho)
 
     def test_gradable_funcs(self):
         """Tests whether all functions are gradable.
         Checks if having a frame makes a difference, as well as
         all jax-compatible evaluation_modes."""
 
-        rho = Array(np.array([[0.2, 0.4], [0.6, 0.8]]))
-        if "vectorized" in self.evaluation_mode:
+        rho = np.array([[0.2, 0.4], [0.6, 0.8]])
+        if self.vectorized:
             rho = rho.flatten(order="F")
 
-        self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
-
-        self.basic_lindblad.rotating_frame = Array(np.array([[3j, 2j], [2j, 0]]))
-        self.jit_grad_wrap(self.basic_lindblad.evaluate_rhs)(1.0, rho)
+        self.jit_grad(self.basic_lindblad.evaluate_rhs)(1.0, rho)
+        self.jit_grad(self.rf_lindblad.evaluate_rhs)(1.0, rho)
 
 
-class TestLindbladModelSparse(TestLindbladModel):
-    """Sparse-mode tests."""
+@partial(test_array_backends, array_libraries=["jax", "jax_sparse"])
+class TestLindbladModelJAXTransformationsVectorized(TestLindbladModelJAXTransformations):
 
     @property
-    def evaluation_mode(self):
-        """Evaluation mode to use for tests."""
-        return "sparse"
+    def vectorized(self):
+        True
 
-    def test_switch_modes_and_evaluate(self):
-        """Test construction of a model, switching modes, and evaluating."""
-
-        model = LindbladModel(
-            static_hamiltonian=self.Z,
-            hamiltonian_operators=[self.X],
-            hamiltonian_signals=[1.0],
-            evaluation_mode=self.evaluation_mode,
-        )
-        rho = np.array([[1.0, 0.0], [0.0, 0.0]])
-        ham = self.Z + self.X
-        expected = -1j * (ham @ rho - rho @ ham)
-        if "vectorized" in self.evaluation_mode:
-            expected = expected.flatten(order="F")
-            rho = rho.flatten(order="F")
-
-        self.assertAllClose(model(1.0, rho), expected)
-
-        if "vectorized" in self.evaluation_mode:
-            model.evaluation_mode = "dense_vectorized"
-        else:
-            model.evaluation_mode = "dense"
-
-        self.assertAllClose(model(1.0, rho), expected)
-
-    def test_frame_change_sparse(self):
-        """Test setting a frame after instantiation in sparse mode and evaluating."""
-        model = LindbladModel(
-            static_hamiltonian=self.Z,
-            hamiltonian_operators=[self.X],
-            hamiltonian_signals=[1.0],
-            evaluation_mode=self.evaluation_mode,
-        )
-
-        # test non-diagonal frame
-        model.rotating_frame = self.Z
-        rho = np.array([[1.0, 0.0], [0.0, 0.0]])
-        ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
-        expected = -1j * (ham @ rho - rho @ ham)
-        if "vectorized" in self.evaluation_mode:
-            expected = expected.flatten(order="F")
-            rho = rho.flatten(order="F")
-        self.assertAllClose(expected, model(1.0, rho))
-
-        # test diagonal frame
-        model.rotating_frame = np.array([1.0, -1.0])
-        self.assertAllClose(expected, model(1.0, rho))
-
-    def test_switching_to_sparse_with_frame(self):
-        """Test switching to sparse with a frame already set."""
-
-        model = LindbladModel(
-            static_hamiltonian=self.Z,
-            hamiltonian_operators=[self.X],
-            hamiltonian_signals=[1.0],
-            rotating_frame=np.array([1.0, -1.0]),
-        )
-
-        model.evaluation_mode = self.evaluation_mode
-
-        rho = np.array([[1.0, 0.0], [0.0, 0.0]])
-        ham = expm(1j * self.Z) @ self.X @ expm(-1j * self.Z)
-        expected = -1j * (ham @ rho - rho @ ham)
-        if "vectorized" in self.evaluation_mode:
-            expected = expected.flatten(order="F")
-            rho = rho.flatten(order="F")
-
-        self.assertAllClose(expected, model(1.0, rho))
-
-
-class TestLindbladModelJAXSparse(TestLindbladModelSparse, TestLindbladModelJax):
-    """JAX sparse-mode tests."""
-
-
-class TestLindbladModelDenseVectorized(TestLindbladModel):
-    """Test class for dense vectorized mode operation of LindbladModel."""
-
-    @property
-    def evaluation_mode(self):
-        return "dense_vectorized"
-
-
-class TestLindbladModelSparseVectorized(TestLindbladModelSparse):
-    """Test class for sparse vectorized mode operation of LindbladModel."""
-
-    @property
-    def evaluation_mode(self):
-        return "sparse_vectorized"
-
-
-class TestLindbladModelDenseVectorizedJax(TestLindbladModelJax):
-    """Test class for jax dense vectorized mode operation of LindbladModel."""
-
-    @property
-    def evaluation_mode(self):
-        return "dense_vectorized"
-
-
-class TestLindbladModelSparseVectorizedJax(TestLindbladModelJax):
-    """Test class for jax sparse vectorized mode operation of LindbladModel."""
-
-    @property
-    def evaluation_mode(self):
-        return "sparse_vectorized"
-
-
-def get_const_func(const):
-    """Helper function for defining a constant function."""
-
-    # pylint: disable=unused-argument
-    def env(t):
-        return const
-
-    return env
-'''
+test_array_backends(TestLindbladModelJAXTransformations, array_libraries=["jax", "jax_sparse"])
