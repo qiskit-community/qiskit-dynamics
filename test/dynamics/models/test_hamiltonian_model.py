@@ -101,7 +101,7 @@ class TestHamiltonianModel:
         basic_model.
 
         Args:
-            frame_operator (Array): now assumed to be a Hermitian operator H, with the
+            frame_operator (ArrayLike): now assumed to be a Hermitian operator H, with the
                             frame being entered being F=-1j * H
             t (float): time of frame transformation
         """
