@@ -17,10 +17,8 @@ Lindblad model module.
 
 from typing import Tuple, Union, List, Optional
 from warnings import warn
-from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
-from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.arraylias.alias import ArrayLike
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_model import (
@@ -156,7 +154,9 @@ class LindbladModel(BaseGeneratorModel):
         if validate:
             if (static_hamiltonian is not None) and (not is_hermitian(static_hamiltonian)):
                 raise QiskitError("""LinbladModel static_hamiltonian must be Hermitian.""")
-            if (hamiltonian_operators is not None) and any(not is_hermitian(op) for op in hamiltonian_operators):
+            if (hamiltonian_operators is not None) and any(
+                not is_hermitian(op) for op in hamiltonian_operators
+            ):
                 raise QiskitError("""LindbladModel hamiltonian_operators must be Hermitian.""")
 
         self._array_library = array_library
@@ -181,15 +181,21 @@ class LindbladModel(BaseGeneratorModel):
             static_hamiltonian = 1j * static_hamiltonian
 
         hamiltonian_operators = _operators_into_frame_basis(
-            operators=hamiltonian_operators, rotating_frame=self._rotating_frame, array_library=setup_library
+            operators=hamiltonian_operators,
+            rotating_frame=self._rotating_frame,
+            array_library=setup_library,
         )
 
         static_dissipators = _operators_into_frame_basis(
-            operators=static_dissipators, rotating_frame=self._rotating_frame, array_library=setup_library
+            operators=static_dissipators,
+            rotating_frame=self._rotating_frame,
+            array_library=setup_library,
         )
 
         dissipator_operators = _operators_into_frame_basis(
-            operators=dissipator_operators, rotating_frame=self._rotating_frame, array_library=setup_library
+            operators=dissipator_operators,
+            rotating_frame=self._rotating_frame,
+            array_library=setup_library,
         )
 
         self._operator_collection = _get_lindblad_operator_collection(
@@ -248,7 +254,7 @@ class LindbladModel(BaseGeneratorModel):
             rotating_frame=hamiltonian.rotating_frame,
             in_frame_basis=hamiltonian.in_frame_basis,
             array_library=array_library,
-            vectorized=vectorized
+            vectorized=vectorized,
         )
 
     @property
@@ -361,7 +367,9 @@ class LindbladModel(BaseGeneratorModel):
 
         if self.in_frame_basis:
             return self._operator_collection.hamiltonian_operators
-        return self.rotating_frame.operator_out_of_frame_basis(self._operator_collection.hamiltonian_operators)
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.hamiltonian_operators
+        )
 
     @property
     def static_dissipators(self) -> ArrayLike:
@@ -371,7 +379,9 @@ class LindbladModel(BaseGeneratorModel):
 
         if self.in_frame_basis:
             return self._operator_collection.static_dissipators
-        return self.rotating_frame.operator_out_of_frame_basis(self._operator_collection.static_dissipators)
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.static_dissipators
+        )
 
     @property
     def dissipator_operators(self) -> ArrayLike:
@@ -381,13 +391,15 @@ class LindbladModel(BaseGeneratorModel):
 
         if self.in_frame_basis:
             return self._operator_collection.dissipator_operators
-        return self.rotating_frame.operator_out_of_frame_basis(self._operator_collection.dissipator_operators)
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.dissipator_operators
+        )
 
     @property
     def array_library(self) -> Union[None, str]:
         """Array library used to store the operators in the model."""
         return self._array_library
-    
+
     @property
     def vectorized(self) -> bool:
         """Whether or not the Lindblad equation is vectorized."""
@@ -419,7 +431,7 @@ class LindbladModel(BaseGeneratorModel):
                 ham,
                 operator_in_frame_basis=True,
                 return_in_frame_basis=self._in_frame_basis,
-                vectorized_operators=self.vectorized_operators,
+                vectorized_operators=self.vectorized,
             )
 
         return ham
@@ -560,13 +572,13 @@ def _get_lindblad_operator_collection(
         "static_hamiltonian": static_hamiltonian,
         "hamiltonian_operators": hamiltonian_operators,
         "static_dissipators": static_dissipators,
-        "dissipator_operators": dissipator_operators
+        "dissipator_operators": dissipator_operators,
     }
 
     if array_library == "scipy_sparse":
         if vectorized:
             return ScipySparseVectorizedLindbladCollection(**operator_kwargs)
-        
+
         return ScipySparseLindbladCollection(**operator_kwargs)
 
     if array_library == "jax_sparse":
@@ -579,5 +591,5 @@ def _get_lindblad_operator_collection(
 
     if vectorized:
         return VectorizedLindbladCollection(**operator_kwargs, array_library=array_library)
-    
+
     return LindbladCollection(**operator_kwargs, array_library=array_library)

@@ -9,11 +9,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name,redundant-keyword-arg
+# pylint: disable=invalid-name,redundant-keyword-arg,no-member
 
-"""Tests for qiskit_dynamics.models.lindblad_models.py. Most
-of the actual calculation checking is handled at the level of a
-models.operator_collection.DenseLindbladOperatorCollection test."""
+"""Tests for qiskit_dynamics.models.lindblad_models.py."""
 
 from functools import partial
 
@@ -25,7 +23,7 @@ from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import LindbladModel
 from qiskit_dynamics.signals import Signal, SignalList
-from ..common import QiskitDynamicsTestCase, TestJaxBase, test_array_backends
+from ..common import QiskitDynamicsTestCase, test_array_backends
 
 
 class TestLindbladModelErrors(QiskitDynamicsTestCase):
@@ -157,6 +155,7 @@ class TestLindbladModel:
     """
 
     def setUp(self):
+        """Build simple model."""
         self.X = Operator.from_label("X").data
         self.Y = Operator.from_label("Y").data
         self.Z = Operator.from_label("Z").data
@@ -177,7 +176,7 @@ class TestLindbladModel:
             hamiltonian_signals=ham_signals,
             static_dissipators=static_dissipators,
             array_library=self.array_library(),
-            vectorized=self.vectorized
+            vectorized=self.vectorized,
         )
 
     @property
@@ -211,7 +210,7 @@ class TestLindbladModel:
             dissipator_operators=[self.X],
             dissipator_signals=[1.0],
             array_library=self.array_library(),
-            vectorized=self.vectorized
+            vectorized=self.vectorized,
         )
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
@@ -229,7 +228,9 @@ class TestLindbladModel:
         """Test evaluation with just dissipators."""
 
         model = LindbladModel(
-            static_dissipators=[self.X, self.Y], array_library=self.array_library(), vectorized=self.vectorized
+            static_dissipators=[self.X, self.Y],
+            array_library=self.array_library(),
+            vectorized=self.vectorized,
         )
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
@@ -245,7 +246,11 @@ class TestLindbladModel:
     def test_evaluate_only_static_hamiltonian(self):
         """Test evaluation with just static hamiltonian."""
 
-        model = LindbladModel(static_hamiltonian=self.X, array_library=self.array_library(), vectorized=self.vectorized)
+        model = LindbladModel(
+            static_hamiltonian=self.X,
+            array_library=self.array_library(),
+            vectorized=self.vectorized,
+        )
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
         expected = self._evaluate_lindblad_rhs(rho, ham=self.X)
@@ -261,7 +266,8 @@ class TestLindbladModel:
         model = LindbladModel(
             hamiltonian_operators=[self.X],
             hamiltonian_signals=[1.0],
-            array_library=self.array_library(), vectorized=self.vectorized
+            array_library=self.array_library(),
+            vectorized=self.vectorized,
         )
 
         rho = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
@@ -303,15 +309,13 @@ class TestLindbladModel:
         ham_sigs = SignalList(ham_sigs)
 
         # generate random static dissipators
-        rand_static_diss = (
-            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
-        )
+        rand_static_diss = rng.uniform(
+            low=-b, high=b, size=(num_diss, dim, dim)
+        ) + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
 
         # generate random dissipators
-        rand_diss = (
-            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        rand_diss = rng.uniform(low=-b, high=b, size=(num_diss, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_diss, dim, dim)
         )
 
         # random dissipator coefficients
@@ -343,8 +347,8 @@ class TestLindbladModel:
             dissipator_operators=rand_diss,
             dissipator_signals=diss_sigs,
             rotating_frame=frame_op,
-            array_library=self.array_library(), 
-            vectorized=self.vectorized
+            array_library=self.array_library(),
+            vectorized=self.vectorized,
         )
 
         t = rng.uniform(low=-b, high=b)
@@ -379,9 +383,8 @@ class TestLindbladModel:
         self.assertAllClose(-1j * frame_op, lindblad_model.static_hamiltonian)
 
         # evaluation tests
-        A = (
-            rng.uniform(low=-b, high=b, size=(dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
+        A = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
         )
 
         expected = self._evaluate_lindblad_rhs(
@@ -428,23 +431,24 @@ class TestLindbladModel:
         b = 1.0  # bound on size of random terms
 
         # generate random dissipators
-        rand_diss = (
-            rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(num_diss, dim, dim))
+        rand_diss = rng.uniform(low=-b, high=b, size=(num_diss, dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(num_diss, dim, dim)
         )
 
         static_model = LindbladModel(
-            static_dissipators=rand_diss, array_library=self.array_library(), vectorized=self.vectorized
+            static_dissipators=rand_diss,
+            array_library=self.array_library(),
+            vectorized=self.vectorized,
         )
         non_static_model = LindbladModel(
             dissipator_operators=rand_diss,
             dissipator_signals=[1.0] * num_diss,
-            array_library=self.array_library(), vectorized=self.vectorized
+            array_library=self.array_library(),
+            vectorized=self.vectorized,
         )
 
-        rand_input = (
-            rng.uniform(low=-b, high=b, size=(dim, dim))
-            + 1j * rng.uniform(low=-b, high=b, size=(dim, dim))
+        rand_input = rng.uniform(low=-b, high=b, size=(dim, dim)) + 1j * rng.uniform(
+            low=-b, high=b, size=(dim, dim)
         )
         if self.vectorized:
             rand_input = rand_input.flatten(order="F")
@@ -521,7 +525,8 @@ class TestLindbladModel:
 
         model = LindbladModel(
             static_hamiltonian=np.array([[1.0, 0.0], [0.0, -1.0]]),
-            array_library=self.array_library(), vectorized=self.vectorized
+            array_library=self.array_library(),
+            vectorized=self.vectorized,
         )
         self.assertTrue(model.hamiltonian_operators is None)
         self.assertTrue(model.static_dissipators is None)
@@ -529,19 +534,26 @@ class TestLindbladModel:
 
         model = LindbladModel(
             hamiltonian_operators=[np.array([[1.0, 0.0], [0.0, -1.0]])],
-            array_library=self.array_library(), vectorized=self.vectorized
+            array_library=self.array_library(),
+            vectorized=self.vectorized,
         )
         self.assertTrue(model.static_hamiltonian is None)
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"])
 class TestLindbladModelVectorized(TestLindbladModel):
+    """Vectorized version of tests."""
 
     @property
     def vectorized(self):
-        True
+        """Whether or not to use vectorized model."""
+        return True
 
-test_array_backends(TestLindbladModel, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"])
+
+# Tests for non-vectorized lindblad models
+test_array_backends(
+    TestLindbladModel, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"]
+)
 
 
 class TestLindbladModelJAXTransformations:
@@ -550,6 +562,7 @@ class TestLindbladModelJAXTransformations:
     """
 
     def setUp(self):
+        """Build simple model."""
         self.X = Operator.from_label("X").data
         self.Y = Operator.from_label("Y").data
         self.Z = Operator.from_label("Z").data
@@ -570,7 +583,7 @@ class TestLindbladModelJAXTransformations:
             hamiltonian_signals=ham_signals,
             static_dissipators=static_dissipators,
             array_library=self.array_library(),
-            vectorized=self.vectorized
+            vectorized=self.vectorized,
         )
 
         self.rf_lindblad = LindbladModel(
@@ -579,11 +592,12 @@ class TestLindbladModelJAXTransformations:
             static_dissipators=static_dissipators,
             rotating_frame=np.array([[3j, 2j], [2j, 0]]),
             array_library=self.array_library(),
-            vectorized=self.vectorized
+            vectorized=self.vectorized,
         )
 
     @property
     def vectorized(self):
+        """Whether or not to do vectorized tests."""
         return False
 
     def test_jitable_funcs(self):
@@ -614,9 +628,12 @@ class TestLindbladModelJAXTransformations:
 
 @partial(test_array_backends, array_libraries=["jax", "jax_sparse"])
 class TestLindbladModelJAXTransformationsVectorized(TestLindbladModelJAXTransformations):
+    """Test JAX transformations for vectorized lindblad model."""
 
     @property
     def vectorized(self):
-        True
+        return True
 
+
+# test JAX transformations for non-vectorized
 test_array_backends(TestLindbladModelJAXTransformations, array_libraries=["jax", "jax_sparse"])
