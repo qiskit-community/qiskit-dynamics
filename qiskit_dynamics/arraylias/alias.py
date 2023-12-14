@@ -119,3 +119,18 @@ def _numpy_multi_dispatch(*args, path, **kwargs):
     """
     lib = _preferred_lib(*args, **kwargs)
     return DYNAMICS_NUMPY_ALIAS(like=lib, path=path)(*args, **kwargs)
+
+
+def _to_dense(x):
+    libs = DYNAMICS_NUMPY_ALIAS.infer_libs(x)
+    if "scipy_sparse" in libs or "jax_sparse" in libs:
+        return DYNAMICS_NUMPY.array(x.todense())
+    return x
+
+def _to_dense_list(x):
+    libs = DYNAMICS_NUMPY_ALIAS.infer_libs(x)
+    if "scipy_sparse" in libs:
+        return DYNAMICS_NUMPY.array([op.todense() for op in x])
+    elif "jax_sparse" in libs:
+        return x.todense()
+    return x
