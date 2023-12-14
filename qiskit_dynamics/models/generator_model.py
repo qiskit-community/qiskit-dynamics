@@ -16,21 +16,20 @@ Generator models module.
 """
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Union, List, Optional
+from typing import Union, List, Optional
 from warnings import warn
-from copy import copy
-import numpy as np
-from scipy.sparse import csr_matrix, issparse, diags
+from scipy.sparse import diags
 
 from qiskit import QiskitError
-from qiskit.quantum_info.operators import Operator
+
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics.arraylias.alias import ArrayLike
 from qiskit_dynamics.models.operator_collections import (
     OperatorCollection,
     ScipySparseOperatorCollection,
 )
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.signals import Signal, SignalList
-from qiskit_dynamics.type_utils import to_numeric_matrix_type
 from .rotating_frame import RotatingFrame
 
 try:
@@ -44,15 +43,6 @@ class BaseGeneratorModel(ABC):
     :math:`\dot{y}(t) = \Lambda(t, y)`, where :math:`\Lambda` is linear in :math:`y`. The core
     functionality is evaluation of :math:`\Lambda(t, y)`, as well as, if possible, evaluation of the
     map :math:`\Lambda(t, \cdot)`.
-
-    Additionally, the class defines interfaces for:
-
-     * Setting a "rotating frame", specified either directly as a :class:`RotatingFrame`
-        instance, or an operator from which a :class:`RotatingFrame` instance can be constructed.
-        The exact meaning of this transformation is determined by the structure of
-        :math:`\Lambda(t, y)`, and is therefore by handled by concrete subclasses.
-     * Setting an internal "evaluation mode", to set the specific numerical methods to use
-        when evaluating :math:`\Lambda(t, y)`.
     """
 
     @property
@@ -65,33 +55,18 @@ class BaseGeneratorModel(ABC):
     def rotating_frame(self) -> RotatingFrame:
         """The rotating frame."""
 
-    @rotating_frame.setter
-    @abstractmethod
-    def rotating_frame(self, rotating_frame: RotatingFrame):
-        pass
-
     @property
     @abstractmethod
     def in_frame_basis(self) -> bool:
         """Whether or not the model is evaluated in the basis in which the frame is diagonalized."""
 
-    @in_frame_basis.setter
-    @abstractmethod
-    def in_frame_basis(self, in_frame_basis: bool):
-        pass
-
     @property
     @abstractmethod
-    def evaluation_mode(self) -> str:
-        """Numerical evaluation mode of the model."""
-
-    @evaluation_mode.setter
-    @abstractmethod
-    def evaluation_mode(self, new_mode: str):
-        pass
+    def array_library(self) -> Union[None, str]:
+        """Array library used to store the operators in the model."""
 
     @abstractmethod
-    def evaluate(self, time: float) -> Array:
+    def evaluate(self, time: float) -> ArrayLike:
         r"""If possible, evaluate the map :math:`\Lambda(t, \cdot)`.
 
         Args:
@@ -99,7 +74,7 @@ class BaseGeneratorModel(ABC):
         """
 
     @abstractmethod
-    def evaluate_rhs(self, time: float, y: Array) -> Array:
+    def evaluate_rhs(self, time: float, y: ArrayLike) -> ArrayLike:
         r"""Evaluate the right hand side :math:`\dot{y}(t) = \Lambda(t, y)`.
 
         Args:
@@ -107,11 +82,7 @@ class BaseGeneratorModel(ABC):
             y: State of the differential equation.
         """
 
-    def copy(self):
-        """Return a copy of self."""
-        return copy(self)
-
-    def __call__(self, time: float, y: Optional[Array] = None) -> Array:
+    def __call__(self, time: float, y: Optional[ArrayLike] = None) -> ArrayLike:
         r"""Evaluate generator RHS functions. If ``y is None``, attemps to evaluate
         :math:`\Lambda(t, \cdot)`, otherwise, calculates :math:`\Lambda(t, y)`.
 
@@ -144,12 +115,12 @@ class GeneratorModel(BaseGeneratorModel):
 
     def __init__(
         self,
-        static_operator: Optional[Array] = None,
-        operators: Optional[Array] = None,
+        static_operator: Optional[ArrayLike] = None,
+        operators: Optional[ArrayLike] = None,
         signals: Optional[Union[SignalList, List[Signal]]] = None,
-        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
         in_frame_basis: bool = False,
-        evaluation_mode: str = "dense",
+        array_library: Optional[str] = None,
     ):
         """Initialize.
 
@@ -161,8 +132,9 @@ class GeneratorModel(BaseGeneratorModel):
             rotating_frame: Rotating frame operator.
             in_frame_basis: Whether to represent the model in the basis in which the rotating frame
                 operator is diagonalized.
-            evaluation_mode: Evaluation mode to use. Supported options are ``'dense'`` and
-                ``'sparse'``. Call ``help(GeneratorModel.evaluation_mode)`` for more details.
+            array_library: Array library for storing the operators in the model. Supported options
+                are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
+                the arrays will be handled by general dispatching rules.
         Raises:
             QiskitError: If model not sufficiently specified.
         """
@@ -172,21 +144,26 @@ class GeneratorModel(BaseGeneratorModel):
                 "be specified at construction."
             )
 
-        # initialize internal operator representation
-        self._operator_collection = construct_operator_collection(
-            evaluation_mode=evaluation_mode, static_operator=static_operator, operators=operators
+        self._array_library = array_library
+        self._rotating_frame = RotatingFrame(rotating_frame)
+        self._in_frame_basis = in_frame_basis
+
+        # set up internal operators
+        static_operator = _static_operator_into_frame_basis(
+            static_operator=static_operator,
+            rotating_frame=self._rotating_frame,
+            array_library=array_library,
         )
-        self._evaluation_mode = evaluation_mode
 
-        # set frame
-        self._rotating_frame = None
-        self.rotating_frame = rotating_frame
+        operators = _operators_into_frame_basis(
+            operators=operators, rotating_frame=self._rotating_frame, array_library=array_library
+        )
 
-        # set operation in frame basis
-        self._in_frame_basis = None
-        self.in_frame_basis = in_frame_basis
+        self._operator_collection = _get_operator_collection(
+            static_operator=static_operator, operators=operators, array_library=array_library
+        )
 
-        # initialize signal-related attributes
+        self._signals = None
         self.signals = signals
 
     @property
@@ -195,64 +172,45 @@ class GeneratorModel(BaseGeneratorModel):
         return self._operator_collection.dim
 
     @property
-    def evaluation_mode(self) -> str:
-        """Numerical evaluation mode of the model.
-
-        Possible values:
-
-         * ``"dense"``: Stores/evaluates operators using dense Arrays.
-         * ``"sparse"``: Stores/evaluates operators using sparse matrices. If the default Array
-           backend is JAX, implemented with JAX BCOO arrays, otherwise uses scipy
-           :class:`csr_matrix` sparse type. Note that JAX sparse mode is only recommended for use on
-           CPU.
-
-        Raises:
-            NotImplementedError: If, when being set, ``new_mode`` is not one of the above supported
-            evaluation modes.
-        """
-        return self._evaluation_mode
-
-    @evaluation_mode.setter
-    def evaluation_mode(self, new_mode: str):
-        if new_mode != self._evaluation_mode:
-            self._operator_collection = construct_operator_collection(
-                new_mode,
-                self._operator_collection.static_operator,
-                self._operator_collection.operators,
-            )
-            self._evaluation_mode = new_mode
-
-    @property
     def rotating_frame(self) -> RotatingFrame:
-        """The rotating frame.
-
-        This property can be set with a :class:`RotatingFrame` instance, or any valid constructor
-        argument to this class.
-
-        Setting this property updates the internal operator to use the new frame.
-        """
+        """The rotating frame."""
         return self._rotating_frame
 
-    @rotating_frame.setter
-    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
-        new_frame = RotatingFrame(rotating_frame)
+    @property
+    def in_frame_basis(self) -> bool:
+        """Whether or not the model is evaluated in the basis in which the frame is diagonalized."""
+        return self._in_frame_basis
 
-        new_static_operator = transfer_static_operator_between_frames(
-            self._get_static_operator(in_frame_basis=True),
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
-        )
-        new_operators = transfer_operators_between_frames(
-            self._get_operators(in_frame_basis=True),
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
+    @in_frame_basis.setter
+    def in_frame_basis(self, in_frame_basis: bool):
+        self._in_frame_basis = in_frame_basis
+
+    @property
+    def array_library(self) -> Union[None, str]:
+        """Array library used to store the operators in the model."""
+        return self._array_library
+
+    @property
+    def static_operator(self) -> Union[ArrayLike, None]:
+        """The static operator."""
+        if self._operator_collection.static_operator is None:
+            return None
+
+        if self.in_frame_basis:
+            return self._operator_collection.static_operator
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.static_operator
         )
 
-        self._rotating_frame = new_frame
+    @property
+    def operators(self) -> Union[ArrayLike, None]:
+        """The operators in the model."""
+        if self._operator_collection.operators is None:
+            return None
 
-        self._operator_collection = construct_operator_collection(
-            self.evaluation_mode, new_static_operator, new_operators
-        )
+        if self.in_frame_basis:
+            return self._operator_collection.operators
+        return self.rotating_frame.operator_out_of_frame_basis(self._operator_collection.operators)
 
     @property
     def signals(self) -> SignalList:
@@ -289,83 +247,7 @@ class GeneratorModel(BaseGeneratorModel):
 
             self._signals = signals
 
-    @property
-    def in_frame_basis(self) -> bool:
-        """Whether the model is represented in the basis that diagonalizes the frame operator."""
-        return self._in_frame_basis
-
-    @in_frame_basis.setter
-    def in_frame_basis(self, in_frame_basis: bool):
-        self._in_frame_basis = in_frame_basis
-
-    @property
-    def operators(self) -> Array:
-        """The operators in the model."""
-        return self._get_operators(in_frame_basis=self._in_frame_basis)
-
-    @property
-    def static_operator(self) -> Array:
-        """The static operator."""
-        return self._get_static_operator(in_frame_basis=self._in_frame_basis)
-
-    @static_operator.setter
-    def static_operator(self, static_operator: Array):
-        self._set_static_operator(
-            new_static_operator=static_operator, operator_in_frame_basis=self._in_frame_basis
-        )
-
-    def _get_operators(self, in_frame_basis: Optional[bool] = False) -> Array:
-        """Get the operators used in the model construction.
-
-        Args:
-            in_frame_basis: Flag indicating whether to return the operators
-            in the basis in which the rotating frame operator is diagonal.
-        Returns:
-            The operators in the basis specified by ``in_frame_basis``.
-        """
-        ops = self._operator_collection.operators
-        if ops is not None and not in_frame_basis and self.rotating_frame is not None:
-            return self.rotating_frame.operator_out_of_frame_basis(ops)
-        return ops
-
-    def _get_static_operator(self, in_frame_basis: Optional[bool] = False) -> Array:
-        """Get the constant term.
-
-        Args:
-            in_frame_basis: Whether the returned static_operator should be in the basis in which the
-                frame is diagonal.
-        Returns:
-            The static operator term.
-        """
-        op = self._operator_collection.static_operator
-        if not in_frame_basis and self.rotating_frame is not None:
-            return self.rotating_frame.operator_out_of_frame_basis(op)
-        return op
-
-    def _set_static_operator(
-        self,
-        new_static_operator: Array,
-        operator_in_frame_basis: Optional[bool] = False,
-    ):
-        """Sets static term. Note that if the model has a rotating frame this will override any
-        contributions to the static term due to the frame transformation.
-
-        Args:
-            new_static_operator: The static operator operator.
-            operator_in_frame_basis: Whether `new_static_operator` is already in the rotating frame
-                basis.
-        """
-        if new_static_operator is None:
-            self._operator_collection.static_operator = None
-        else:
-            if not operator_in_frame_basis and self.rotating_frame is not None:
-                new_static_operator = self.rotating_frame.operator_into_frame_basis(
-                    new_static_operator
-                )
-
-            self._operator_collection.static_operator = new_static_operator
-
-    def evaluate(self, time: float) -> Array:
+    def evaluate(self, time: float) -> ArrayLike:
         """Evaluate the model in array format as a matrix, independent of state.
 
         Args:
@@ -390,7 +272,7 @@ class GeneratorModel(BaseGeneratorModel):
             time, op_combo, operator_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
         )
 
-    def evaluate_rhs(self, time: float, y: Array) -> Array:
+    def evaluate_rhs(self, time: float, y: ArrayLike) -> ArrayLike:
         r"""Evaluate ``G(t) @ y``.
 
         Args:
@@ -428,133 +310,75 @@ class GeneratorModel(BaseGeneratorModel):
         return self._operator_collection(sig_vals, y)
 
 
-def transfer_static_operator_between_frames(
-    static_operator: Union[None, Array, csr_matrix],
-    new_frame: Optional[Union[Array, RotatingFrame]] = None,
-    old_frame: Optional[Union[Array, RotatingFrame]] = None,
-) -> Tuple[Union[None, Array]]:
-    """Helper function for transforming the static operator of a model from one frame basis into
-    another.
-
-    ``static_operator`` is additionally transformed as a generator: the old frame operator is added,
-    and the new one is subtracted.
-
-    Args:
-        static_operator: Static operator of the model. None is treated as 0.
-        new_frame: New rotating frame.
-        old_frame: Old rotating frame.
-
-    Returns:
-        static_operator: Transformed as described above.
+def _static_operator_into_frame_basis(
+    static_operator: Union[None, ArrayLike],
+    rotating_frame: RotatingFrame,
+    array_library: Optional[ArrayLike] = None,
+) -> Union[None, ArrayLike]:
+    """Converts the static_operator into the frame basis, including a subtraction of the frame
+    operator. This function also enforces typing via array_library.
     """
-    new_frame = RotatingFrame(new_frame)
-    old_frame = RotatingFrame(old_frame)
 
-    static_operator = to_numeric_matrix_type(static_operator)
+    # handle static_operator is None case
+    if static_operator is None:
+        if rotating_frame.frame_operator is None:
+            return None
+        if array_library == "scipy_sparse":
+            return -diags(rotating_frame.frame_diag, format="csr")
+        return unp.diag(-rotating_frame.frame_diag)
 
-    # transform out of old frame basis, and add the old frame operator
-    if static_operator is not None:
-        static_operator = old_frame.generator_out_of_frame(
-            t=0.0,
-            operator=static_operator,
-            operator_in_frame_basis=True,
-            return_in_frame_basis=False,
-        )
-    else:
-        # "add" the frame operator to 0
-        if old_frame.frame_operator is not None:
-            if issparse(static_operator):
-                if old_frame.frame_operator.ndim == 1:
-                    static_operator = diags(old_frame.frame_operator, format="csr")
-                else:
-                    static_operator = csr_matrix(old_frame.frame_operator)
-            else:
-                if old_frame.frame_operator.ndim == 1:
-                    static_operator = np.diag(old_frame.frame_operator)
-                else:
-                    static_operator = old_frame.frame_operator
-    # transform into new frame basis, and add the new frame operator
-    if static_operator is not None:
-        static_operator = new_frame.generator_into_frame(
-            t=0.0,
-            operator=static_operator,
-            operator_in_frame_basis=False,
-            return_in_frame_basis=True,
-        )
-    else:
-        # "subtract" the frame operator from 0
-        if new_frame.frame_operator is not None:
-            if issparse(static_operator):
-                static_operator = -diags(new_frame.frame_diag, format="csr")
-            else:
-                static_operator = -np.diag(new_frame.frame_diag)
+    static_operator = numpy_alias(like=array_library).asarray(static_operator)
 
-    return static_operator
+    return rotating_frame.generator_into_frame(
+        t=0.0, operator=static_operator, return_in_frame_basis=True
+    )
 
 
-def transfer_operators_between_frames(
-    operators: Union[None, Array, List[csr_matrix]],
-    new_frame: Optional[Union[Array, RotatingFrame]] = None,
-    old_frame: Optional[Union[Array, RotatingFrame]] = None,
-) -> Tuple[Union[None, Array]]:
-    """Helper function for transforming a list of operators for a model from one frame basis into
-    another.
-
-    Args:
-        operators: Operators of the model. If ``None``, remains as ``None``.
-        new_frame: New rotating frame.
-        old_frame: Old rotating frame.
-
-    Returns:
-        operators: Transformed as described above.
+def _operators_into_frame_basis(
+    operators: Union[None, list, ArrayLike],
+    rotating_frame: RotatingFrame,
+    array_library: Optional[str] = None,
+) -> Union[None, ArrayLike]:
+    """Converts operators into the frame basis. This function also enforces typing via
+    array_library.
     """
-    new_frame = RotatingFrame(new_frame)
-    old_frame = RotatingFrame(old_frame)
+    if operators is None:
+        return None
 
-    operators = to_numeric_matrix_type(operators)
+    if array_library == "scipy_sparse" or (
+        array_library is None and "scipy_sparse" in numpy_alias.infer_libs(operators)
+    ):
+        ops = []
+        for op in operators:
+            op = numpy_alias(like="scipy_sparse").asarray(op)
+            ops.append(rotating_frame.operator_into_frame_basis(op))
+        return ops
 
-    # transform out of old frame basis
-    if operators is not None:
-        # For sparse case, if list, loop
-        if isinstance(operators, list):
-            operators = [old_frame.operator_out_of_frame_basis(op) for op in operators]
-        else:
-            operators = old_frame.operator_out_of_frame_basis(operators)
-
-    # transform into new frame basis
-    if operators is not None:
-        # For sparse case, if list, loop
-        if isinstance(operators, list):
-            operators = [new_frame.operator_into_frame_basis(op) for op in operators]
-        else:
-            operators = new_frame.operator_into_frame_basis(operators)
-
-    return operators
+    return rotating_frame.operator_into_frame_basis(
+        numpy_alias(like=array_library).asarray(operators)
+    )
 
 
-def construct_operator_collection(
-    evaluation_mode: str,
-    static_operator: Union[None, Array, csr_matrix],
-    operators: Union[None, Array, List[csr_matrix]],
+def _get_operator_collection(
+    static_operator: Union[None, ArrayLike],
+    operators: Union[None, ArrayLike],
+    array_library: Optional[str] = None,
 ) -> Union[OperatorCollection, ScipySparseOperatorCollection]:
     """Construct an operator collection for :class:`GeneratorModel`.
 
     Args:
-        evaluation_mode: Evaluation mode.
         static_operator: Static operator of the model.
         operators: Operators for the model.
+        array_library: Array library to use.
 
     Returns:
         Union[OperatorCollection, ScipySparseOperatorCollection]: The relevant operator collection.
-
-    Raises:
-        NotImplementedError: If the ``evaluation_mode`` is invalid.
     """
 
-    if evaluation_mode == "dense":
-        # return DenseOperatorCollection(static_operator=static_operator, operators=operators)
-        pass
-    if evaluation_mode == "sparse" and Array.default_backend() == "jax":
+    if array_library == "scipy_sparse":
+        return ScipySparseOperatorCollection(static_operator=static_operator, operators=operators)
+
+    if array_library == "jax_sparse":
         # warn that sparse mode when using JAX is primarily recommended for use on CPU
         if jax.default_backend() != "cpu":
             warn(
@@ -562,13 +386,6 @@ def construct_operator_collection(
                 stacklevel=2,
             )
 
-        # return JAXSparseOperatorCollection(static_operator=static_operator, operators=operators)
-        pass
-    if evaluation_mode == "sparse":
-        # return SparseOperatorCollection(static_operator=static_operator, operators=operators)
-        pass
-
-    raise NotImplementedError(
-        f"Evaluation mode '{evaluation_mode}' is not supported. Call "
-        "help(GeneratorModel.evaluation_mode) for available options."
+    return OperatorCollection(
+        static_operator=static_operator, operators=operators, array_library=array_library
     )
