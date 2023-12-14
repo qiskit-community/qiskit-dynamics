@@ -1,0 +1,12 @@
+---
+upgrade:
+  - |
+    The interface for :class:`.GeneratorModel`, :class:`.HamiltonianModel`, and
+    :class:`.LindbladModel` has been modified. The ``copy`` method has been removed, and all setter
+    methods other than ``in_frame_basis`` and ``signals`` have been removed. The ``evaluation_mode``
+    construction argument has been replaced by ``array_library``, which controls which array library
+    is used internally to store and evaluate operations, and the additional ``vectorized`` boolean
+    argument has been added to :class:`.LindbladModel` to control whether the equation is evaluated
+    in vectorized mode. Note that, regardless of array library used, dense arrays must be supplied
+    to the constructors of these classes, due to peculiarities of the internal setup for sparse
+    libraries.
