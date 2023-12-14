@@ -179,7 +179,7 @@ def rotating_wave_approximation(
             signals=rwa_signals,
             rotating_frame=model.rotating_frame,
             in_frame_basis=model.in_frame_basis,
-            array_library=model.array_library
+            array_library=model.array_library,
         )
         if return_signal_map:
             return rwa_model, get_rwa_signals
@@ -234,7 +234,7 @@ def rotating_wave_approximation(
             rotating_frame=model.rotating_frame,
             in_frame_basis=model.in_frame_basis,
             array_library=model.array_library,
-            vectorized=model.vectorized
+            vectorized=model.vectorized,
         )
 
         if return_signal_map:

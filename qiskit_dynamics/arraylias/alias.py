@@ -127,6 +127,7 @@ def _to_dense(x):
         return DYNAMICS_NUMPY.array(x.todense())
     return x
 
+
 def _to_dense_list(x):
     libs = DYNAMICS_NUMPY_ALIAS.infer_libs(x)
     if "scipy_sparse" in libs:

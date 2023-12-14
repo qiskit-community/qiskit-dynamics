@@ -456,6 +456,7 @@ def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "B
 
     return jsparse.BCOO.fromdense(to_array(op).data)
 
+
 #####################################################################################################
 # try to remove this
 def to_numeric_matrix_type(

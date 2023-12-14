@@ -9,14 +9,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """Tests for qiskit_dynamics.models.rotating_wave_approximation"""
 
 from functools import partial
 
 import numpy as np
-from scipy.sparse import issparse
 from qiskit.quantum_info import Operator
 from qiskit_dynamics.signals import Signal, SignalList
 from qiskit_dynamics.models import (
@@ -27,7 +26,7 @@ from qiskit_dynamics.models import (
     rotating_wave_approximation,
 )
 from qiskit_dynamics.models.rotating_wave_approximation import get_rwa_operators
-from ..common import test_array_backends, QiskitDynamicsTestCase, TestJaxBase
+from ..common import test_array_backends
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse", "scipy_sparse"])
@@ -35,6 +34,7 @@ class TestRotatingWaveApproximation:
     """Tests the rotating_wave_approximation function."""
 
     def setUp(self):
+        """Build simple model."""
         self.v = 5.0
         self.r = 0.1
         static_operator = 2 * np.pi * self.v * Operator.from_label("Z") / 2
@@ -46,7 +46,7 @@ class TestRotatingWaveApproximation:
             operators=operators,
             signals=signals,
             rotating_frame=np.diag(static_operator),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
     def test_generator_model_rwa_with_frame(self):
@@ -67,13 +67,13 @@ class TestRotatingWaveApproximation:
         )
         GM2 = rotating_wave_approximation(GM, 1 / 2 / np.pi)
         self.assertAllClose(GM2.signals(0), [-1, -1, 3, 1, -2, -1])
-        
-        val = GM2(0.)
+
+        val = GM2(0.0)
         self.assertArrayType(val)
         self.assertAllClose(
             val, [[0.25 - 4.0j, -0.25 - 0.646447j], [-0.25 - 1.35355j, -0.25 - 2.0j]], rtol=1e-5
         )
-        val = GM2(1.)
+        val = GM2(1.0)
         self.assertArrayType(val)
         self.assertAllClose(
             val,
@@ -88,7 +88,7 @@ class TestRotatingWaveApproximation:
         """Test analytic RWA with a frame operator with model in frame basis."""
         frame_op = np.array([[4j, 1j], [1j, 2j]])
         sigs = SignalList([Signal(1 + 1j * k, k / 3, np.pi / 2 * k) for k in range(1, 4)])
-        self.assertAllClose(sigs(0.), np.array([-1, -1, 3]))
+        self.assertAllClose(sigs(0.0), np.array([-1, -1, 3]))
         ops = np.array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]], [[1, 0], [0, -1]]])
 
         GM = GeneratorModel(
@@ -97,16 +97,16 @@ class TestRotatingWaveApproximation:
             signals=sigs,
             rotating_frame=frame_op,
             in_frame_basis=True,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         rotating_frame = GM.rotating_frame
-        val = GM(0.)
+        val = GM(0.0)
         self.assertArrayType(val)
         self.assertAllClose(
             val,
             rotating_frame.operator_into_frame_basis(np.array([[3 - 4j, -1], [-1 - 2j, -3 - 2j]])),
         )
-        val = GM(1.)
+        val = GM(1.0)
         self.assertArrayType(val)
         self.assertAllClose(
             val,
@@ -119,7 +119,7 @@ class TestRotatingWaveApproximation:
         )
         GM2 = rotating_wave_approximation(GM, 1 / 2 / np.pi)
         self.assertAllClose(GM2.signals(0), [-1, -1, 3, 1, -2, -1])
-        val = GM2(0.)
+        val = GM2(0.0)
         self.assertArrayType(val)
         self.assertAllClose(
             val,
@@ -128,7 +128,7 @@ class TestRotatingWaveApproximation:
             ),
             rtol=1e-5,
         )
-        val = GM2(1.)
+        val = GM2(1.0)
         self.assertArrayType(val)
         self.assertAllClose(
             val,
@@ -149,7 +149,9 @@ class TestRotatingWaveApproximation:
         ops = np.ones((4, 2, 2))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
         dft = np.ones((2, 2))
-        GM = GeneratorModel(static_operator=dft, operators=ops, signals=sigs, array_library=self.array_library())
+        GM = GeneratorModel(
+            static_operator=dft, operators=ops, signals=sigs, array_library=self.array_library()
+        )
         GMP = rotating_wave_approximation(GM, 2)
         self.assertArrayType(GMP._operator_collection.static_operator)
         self.assertAllClose(GMP._operator_collection.static_operator, np.ones((2, 2)))
@@ -163,7 +165,9 @@ class TestRotatingWaveApproximation:
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
 
         # test without static_operator
-        GM = GeneratorModel(static_operator=None, operators=ops, signals=sigs, array_library=self.array_library())
+        GM = GeneratorModel(
+            static_operator=None, operators=ops, signals=sigs, array_library=self.array_library()
+        )
         GMP = rotating_wave_approximation(GM, 2)
         self.assertTrue(GMP.static_operator is None)
         post_rwa_ops = np.array([1, 0, 1, 0, 0, 0, 0, 0]).reshape((8, 1, 1)) * np.ones((8, 2, 2))
@@ -179,10 +183,10 @@ class TestRotatingWaveApproximation:
             operators=None,
             signals=None,
             rotating_frame=frame_op,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         GM2 = rotating_wave_approximation(GM, 1.0)
-        val = GM2(0.)
+        val = GM2(0.0)
         self.assertArrayType(val)
         self.assertAllClose(val, np.array([[3.0, 0], [0, 2.0]]))
 
@@ -193,7 +197,7 @@ class TestRotatingWaveApproximation:
         model = LindbladModel(
             static_hamiltonian=np.array([[3.0, 1], [1, 2.0]]) + np.diag(frame_op),
             rotating_frame=frame_op,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         rwa_model = rotating_wave_approximation(model, 1.0)
         ham = np.array([[3.0, 0], [0, 2.0]])
@@ -214,7 +218,7 @@ class TestRotatingWaveApproximation:
             static_hamiltonian=U @ np.array([[3.0, 1], [1, 2.0]]) @ Uadj + frame_op,
             rotating_frame=frame_op,
             in_frame_basis=True,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         rwa_model = rotating_wave_approximation(model, 0.99)
         # flipped due to eigenvalue ordering
@@ -248,10 +252,12 @@ class TestRotatingWaveApproximation:
             hamiltonian=self.classic_hamiltonian,
             dissipator_operators=random_diss,
             dissipator_signals=[1.0] * 3,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         lindblad_model2 = LindbladModel.from_hamiltonian(
-            hamiltonian=self.classic_hamiltonian, static_dissipators=random_diss, array_library=self.array_library()
+            hamiltonian=self.classic_hamiltonian,
+            static_dissipators=random_diss,
+            array_library=self.array_library(),
         )
 
         rwa_lindblad_model1 = rotating_wave_approximation(lindblad_model1, cutoff_freq=self.v)
@@ -271,7 +277,13 @@ class TestRotatingWaveApproximation:
         ops = np.ones((4, 2, 2))
         sigs = [Signal(1, 0), Signal(1, -3, 0), Signal(1, 1), Signal(1, 3, 0)]
         dft = np.ones((2, 2))
-        GM = GeneratorModel(operators=ops, signals=sigs, static_operator=dft, rotating_frame=None, array_library=self.array_library())
+        GM = GeneratorModel(
+            operators=ops,
+            signals=sigs,
+            static_operator=dft,
+            rotating_frame=None,
+            array_library=self.array_library(),
+        )
         f = rotating_wave_approximation(GM, 100, return_signal_map=True)[1]
         vals = f(sigs).complex_value(3)
         self.assertAllClose(vals[:4], GM.signals.complex_value(3))
@@ -301,7 +313,7 @@ class TestRotatingWaveApproximation:
             hamiltonian_signals=sigs,
             dissipator_operators=ops,
             dissipator_signals=sigs,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         f = rotating_wave_approximation(LM, 100, return_signal_map=True)[1]
         rwa_ham_sig, rwa_dis_sig = f((sigs, sigs))
