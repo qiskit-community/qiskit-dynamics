@@ -17,7 +17,7 @@
 Wrapper for jax.experimental.ode.odeint
 """
 
-from typing import Callable, Optional, Union, Tuple, List
+from typing import Callable, Optional
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
@@ -61,7 +61,7 @@ def jax_odeint(
     t_direction = unp.sign(unp.asarray(t_list[-1] - t_list[0], dtype=complex))
 
     results = odeint(
-        lambda y, t: rhs(np.real(t_direction * t), y) * t_direction,
+        lambda y, t: rhs(unp.real(t_direction * t), y) * t_direction,
         y0=unp.asarray(y0, dtype=complex),
         t=unp.real(t_direction) * unp.asarray(t_list),
         **kwargs,

@@ -17,7 +17,7 @@
 Wrapper for diffrax solvers
 """
 
-from typing import Callable, Optional, Union, Tuple, List
+from typing import Callable, Optional
 from scipy.integrate._ivp.ivp import OdeResult
 from qiskit import QiskitError
 
