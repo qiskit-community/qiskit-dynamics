@@ -19,16 +19,19 @@ Tests for solve_ode and solve_lmde interfaces and helper functions are in
 test_solver_functions_interface.py
 """
 
+from functools import partial
 from abc import ABC, abstractmethod
 
 import numpy as np
 from scipy.linalg import expm
 
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+
 from qiskit_dynamics.models import GeneratorModel, HamiltonianModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
 
-from ..common import QiskitDynamicsTestCase, DiffraxTestBase, JAXTestBase
+from ..common import QiskitDynamicsTestCase, DiffraxTestBase, JAXTestBase, test_array_backends
 
 try:
     from diffrax import PIDController, Tsit5, Dopri5
@@ -36,8 +39,9 @@ except ImportError:
     pass
 
 
-class TestSolverMethod(ABC, QiskitDynamicsTestCase):
-    """Abstract base class for setting up models and RHS to be used in tests."""
+class TestSolverMethod(ABC):
+    """Abstract base class for setting up models and RHS to be used in tests. Note that this
+    assumes subclasses will use ``test_array_backends``."""
 
     def setUp(self):
         """Construct standardized RHS functions and models."""
@@ -65,7 +69,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         self.r = 0.1
         signals = [self.w, Signal(lambda t: 1.0, self.w)]
         operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * self.r * self.X / 2]
-        self.simple_model = GeneratorModel(operators=operators, signals=signals)
+        self.simple_model = GeneratorModel(operators=operators, signals=signals, array_library=self.array_library())
 
         # construct randomized RHS
         dim = 7
@@ -95,6 +99,7 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
             signals=[self.pseudo_random_signal],
             static_operator=static_operator,
             rotating_frame=frame_op,
+            array_library=self.array_library()
         )
 
         # simulate directly out of frame
@@ -128,10 +133,11 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         if self.is_ode_method:
             # pylint: disable=unused-argument
             def quad_rhs(t, y):
-                return np.real(np.array([t**2]))
+                return unp.real(unp.array([t**2]))
 
             results = self.solve(quad_rhs, t_span=[0.0, 1.0], y0=np.array([0.0]))
             expected = np.array([1.0 / 3])
+
             self.assertAllClose(results.y[-1], expected)
 
     def test_basic_model_lmde_from_ode(self):
@@ -209,8 +215,10 @@ class TestSolverMethod(ABC, QiskitDynamicsTestCase):
         self.assertTrue(self.pseudo_random_model.in_frame_basis)
 
 
-class TestSolverMethodJax(TestSolverMethod, JAXTestBase):
-    """JAX version of TestSolverMethod. Adds additional jit/grad test."""
+class TestSolverMethodJAX(TestSolverMethod):
+    """JAX version of TestSolverMethod. Adds additional jit/grad test. Assumes will be subclassed
+    using test_array_backends with JAX array librarys.
+    """
 
     def test_pseudo_random_jit_grad(self):
         """Validate jitting and gradding through the method at the level of
@@ -218,19 +226,20 @@ class TestSolverMethodJax(TestSolverMethod, JAXTestBase):
         """
 
         def func(a):
-            model_copy = self.pseudo_random_model.copy()
-            model_copy.signals = [Signal(a, carrier_freq=1.0)]
-            results = self.solve(model_copy, t_span=[0.0, 0.1], y0=self.pseudo_random_y0)
+            self.pseudo_random_model.signals = [Signal(a, carrier_freq=1.0)]
+            results = self.solve(self.pseudo_random_model, t_span=[0.0, 0.1], y0=self.pseudo_random_y0)
+            self.pseudo_random_model.signals = None
             return results.y[-1]
 
-        jit_func = self.jit_wrap(func)
-        self.assertAllClose(jit_func(1.0), func(1.0))
+        # verify we can jit
+        from jax import jit
+        self.assertAllClose(jit(func)(1.0), func(1.0))
 
         # just verify that this runs without error
-        jit_grad_func = self.jit_grad_wrap(func)
-        jit_grad_func(1.0)
+        self.jit_grad(func)(1.0)
 
 
+@partial(test_array_backends, array_libraries=["numpy"])
 class TestRK4(TestSolverMethod):
     """Test class for RK4_solver."""
 
@@ -249,8 +258,8 @@ class TestRK4(TestSolverMethod):
     def is_ode_method(self):
         return True
 
-
-class Testjax_RK4(TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_RK4(TestSolverMethodJAX):
     """Test class for jax_RK4_solver."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
@@ -269,7 +278,8 @@ class Testjax_RK4(TestSolverMethodJax):
         return True
 
 
-class Testjax_RK4_parallel(TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_RK4_parallel(TestSolverMethodJAX):
     """Test class for jax_RK4_parallel_solver."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -289,6 +299,7 @@ class Testjax_RK4_parallel(TestSolverMethodJax):
         return results
 
 
+@partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_expm(TestSolverMethod):
     """Test class for scipy_expm_solver."""
 
@@ -303,7 +314,7 @@ class Testscipy_expm(TestSolverMethod):
             **kwargs,
         )
 
-
+@partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_expm_magnus2(TestSolverMethod):
     """Test class for scipy_expm_solver with magnus_order==2."""
 
@@ -319,7 +330,7 @@ class Testscipy_expm_magnus2(TestSolverMethod):
             **kwargs,
         )
 
-
+@partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_expm_magnus3(TestSolverMethod):
     """Test class for scipy_expm_solver with magnus_order==3."""
 
@@ -336,6 +347,7 @@ class Testscipy_expm_magnus3(TestSolverMethod):
         )
 
 
+# test_array_backends is called later as we need to subclass this
 class Testlanczos_diag(TestSolverMethod):
     """Test class for lanczos_diag_solver."""
 
@@ -343,13 +355,13 @@ class Testlanczos_diag(TestSolverMethod):
         super().setUp()
 
         self.simple_model = HamiltonianModel(
-            operators=1j * self.simple_model.operators,
+            operators=1j * np.array([op.todense() for op in self.simple_model.operators]),
             signals=self.simple_model.signals,
-            evaluation_mode="sparse",
+            array_library=self.array_library(),
         )
 
-        self.operators = self.pseudo_random_model.operators
-        self.static_operator = self.pseudo_random_model.static_operator
+        self.operators = np.array(self.pseudo_random_model.operators)
+        self.static_operator = np.array(self.pseudo_random_model.static_operator)
 
         # make hermitian
         self.operators = self.operators.conj().transpose(0, 2, 1) + self.operators
@@ -361,7 +373,7 @@ class Testlanczos_diag(TestSolverMethod):
             signals=[self.pseudo_random_signal],
             static_operator=self.static_operator,
             rotating_frame=self.frame_op,
-            evaluation_mode="sparse",
+            array_library=self.array_library(),
         )
 
         # simulate directly out of frame
@@ -388,7 +400,8 @@ class Testlanczos_diag(TestSolverMethod):
         )
 
 
-class Testjax_lanczos_diag(Testlanczos_diag, TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax_sparse"])
+class Testjax_lanczos_diag(Testlanczos_diag, TestSolverMethodJAX):
     """Test class for jax_expm_solver."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -403,8 +416,11 @@ class Testjax_lanczos_diag(Testlanczos_diag, TestSolverMethodJax):
             **kwargs,
         )
 
+test_array_backends(Testlanczos_diag, array_libraries=["scipy_sparse"])
 
-class Testjax_expm(TestSolverMethodJax):
+
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_expm(TestSolverMethodJAX):
     """Test class for jax_expm_solver."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -419,7 +435,8 @@ class Testjax_expm(TestSolverMethodJax):
         )
 
 
-class Testjax_expm_magnus2(TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_expm_magnus2(TestSolverMethodJAX):
     """Test class for jax_expm_solver with magnus_order==2."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -435,7 +452,8 @@ class Testjax_expm_magnus2(TestSolverMethodJax):
         )
 
 
-class Testjax_expm_magnus3(TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_expm_magnus3(TestSolverMethodJAX):
     """Test class for jax_expm_solver with magnus_order==3."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -451,7 +469,8 @@ class Testjax_expm_magnus3(TestSolverMethodJax):
         )
 
 
-class Testjax_expm_parallel(TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_expm_parallel(TestSolverMethodJAX):
     """Test class for jax_expm_parallel_solver."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -471,7 +490,8 @@ class Testjax_expm_parallel(TestSolverMethodJax):
         return results
 
 
-class Testjax_expm_parallel_magnus2(TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_expm_parallel_magnus2(TestSolverMethodJAX):
     """Test class for jax_expm_parallel_solver with magnus_order==2."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -492,7 +512,8 @@ class Testjax_expm_parallel_magnus2(TestSolverMethodJax):
         return results
 
 
-class Testjax_expm_parallel_magnus3(TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_expm_parallel_magnus3(TestSolverMethodJAX):
     """Test class for jax_expm_parallel_solver with magnus_order==3."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_lmde, **kwargs):
@@ -513,6 +534,7 @@ class Testjax_expm_parallel_magnus3(TestSolverMethodJax):
         return results
 
 
+@partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_RK45(TestSolverMethod):
     """Tests for scipy solve_ivp RK45 method."""
 
@@ -533,6 +555,7 @@ class Testscipy_RK45(TestSolverMethod):
         return True
 
 
+@partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_RK23(TestSolverMethod):
     """Tests for scipy solve_ivp RK23 method."""
 
@@ -553,6 +576,7 @@ class Testscipy_RK23(TestSolverMethod):
         return True
 
 
+@partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_BDF(TestSolverMethod):
     """Tests for scipy solve_ivp BDF method."""
 
@@ -573,6 +597,7 @@ class Testscipy_BDF(TestSolverMethod):
         return True
 
 
+@partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_DOP853(TestSolverMethod):
     """Tests for scipy solve_ivp DOP853 method."""
 
@@ -593,7 +618,8 @@ class Testscipy_DOP853(TestSolverMethod):
         return True
 
 
-class Testjax_odeint(TestSolverMethodJax):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testjax_odeint(TestSolverMethodJAX):
     """Tests for jax odeint method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
@@ -613,7 +639,8 @@ class Testjax_odeint(TestSolverMethodJax):
         return True
 
 
-class Testdiffrax_DOP5(TestSolverMethodJax, DiffraxTestBase):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testdiffrax_DOP5(TestSolverMethodJAX, DiffraxTestBase):
     """Tests for diffrax Dopri5 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
@@ -632,7 +659,8 @@ class Testdiffrax_DOP5(TestSolverMethodJax, DiffraxTestBase):
         return True
 
 
-class Testdiffrax_Tsit5(TestSolverMethodJax, DiffraxTestBase):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testdiffrax_Tsit5(TestSolverMethodJAX, DiffraxTestBase):
     """Tests for diffrax Tsit5 method."""
 
     def solve(self, rhs, t_span, y0, t_eval=None, solver_func=solve_ode, **kwargs):
@@ -649,7 +677,3 @@ class Testdiffrax_Tsit5(TestSolverMethodJax, DiffraxTestBase):
     @property
     def is_ode_method(self):
         return True
-
-
-# delete abstract classes so unittest doesn't attempt to run them
-del TestSolverMethod, TestSolverMethodJax

@@ -109,7 +109,7 @@ def _lanczos_validation(
                 """Lanczos solver can only be used for HamiltonianModel or function-based
                     anti-Hermitian generators."""
             )
-        if "sparse" not in rhs.evaluation_mode:
+        if "sparse" not in rhs.array_library:
             warn(
                 """lanczos_diag should be used with a generator in sparse mode
                 for better performance.""",
@@ -244,7 +244,7 @@ def solve_lmde(
         Not all model classes are by-default in standard form. E.g.
         :class:`~qiskit_dynamics.models.LindbladModel` represents an LMDE which is not typically
         written in standard form. As such, using LMDE-specific methods with this generator requires
-        setting a vectorized evaluation mode.
+        the equation to be vectorized.
 
     The ``method`` argument exposes solvers specialized to both LMDEs, as well as general ODE
     solvers. If the method is not specific to LMDEs, the problem will be passed to
@@ -273,12 +273,12 @@ def solve_lmde(
       behaviour. Note that this method contains calls to ``jax.numpy.eigh``, which may have limited
       validity when automatically differentiated.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
-      behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
+      behaviour. Note that this method cannot be used for a model using a sparse array library.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
       parallel operations. I.e. all matrix-exponentials for taking a single step are computed in
       parallel using ``jax.vmap``, and are subsequently multiplied together in parallel using
       ``jax.lax.associative_scan``. This method is only recommended for use with GPU execution. Note
-      that this method cannot be used for a model in sparse evaluation mode.
+      that this method cannot be used for a model using a sparse array library.
     - ``'jax_RK4_parallel'``: 4th order Runge-Kutta fixed step solver. Under the assumption of the
       structure of an LMDE, utilizes the same parallelization approach as ``'jax_expm_parallel'``,
       however the single step rule is the standard 4th order Runge-Kutta rule, rather than
@@ -306,8 +306,8 @@ def solve_lmde(
     Additional Information:
         While all :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses represent LMDEs,
         they are not all in standard form by defualt. Using an LMDE-specific models like
-        :class:`~qiskit_dynamics.models.LindbladModel` requires first setting a vectorized
-        evaluation mode.
+        :class:`~qiskit_dynamics.models.LindbladModel` requires first setting the model to be
+        vectorized.
     """
 
     # delegate to solve_ode if necessary
@@ -332,8 +332,7 @@ def solve_lmde(
     # lmde-specific methods can't be used with LindbladModel unless vectorized
     if is_lindblad_model_not_vectorized(generator):
         raise QiskitError(
-            """LMDE-specific methods with LindbladModel requires setting a
-               vectorized evaluation mode."""
+            "LMDE-specific methods with LindbladModel requires setting a vectorized=True."
         )
 
     y0 = unp.asarray(y0)
@@ -355,7 +354,7 @@ def solve_lmde(
         elif method == "jax_lanczos_diag":
             results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
-        if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
+        if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.array_library:
             raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
         results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm_parallel":
@@ -396,7 +395,7 @@ def setup_generator_model_rhs_y0_in_frame_basis(
     if not model_in_frame_basis:
         if (
             isinstance(generator_model, LindbladModel)
-            and "vectorized" in generator_model.evaluation_mode
+            and generator_model.vectorized
         ):
             if generator_model.rotating_frame.frame_basis is not None:
                 y0 = generator_model.rotating_frame.vectorized_frame_basis_adjoint @ y0
@@ -441,7 +440,7 @@ def results_y_out_of_frame_basis(
 
     if (
         isinstance(generator_model, LindbladModel)
-        and "vectorized" in generator_model.evaluation_mode
+        and generator_model.vectorized
     ):
         if generator_model.rotating_frame.frame_basis is not None:
             results_y = generator_model.rotating_frame.vectorized_frame_basis @ results_y
