@@ -35,12 +35,12 @@ except ImportError:
 
 def is_lindblad_model_vectorized(obj: any) -> bool:
     """Return True if obj is a vectorized LindbladModel."""
-    return isinstance(obj, LindbladModel) and ("vectorized" in obj.evaluation_mode)
+    return isinstance(obj, LindbladModel) and obj.vectorized
 
 
 def is_lindblad_model_not_vectorized(obj: any) -> bool:
     """Return True if obj is a non-vectorized LindbladModel."""
-    return isinstance(obj, LindbladModel) and ("vectorized" not in obj.evaluation_mode)
+    return isinstance(obj, LindbladModel) and not obj.vectorized
 
 
 def merge_t_args(
