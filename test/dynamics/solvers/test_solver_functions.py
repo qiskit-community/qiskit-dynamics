@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """Standardized test cases for results of calls to solve_lmde and solve_ode,
 for both variable and fixed-step methods. These tests set up common test cases
@@ -31,7 +31,7 @@ from qiskit_dynamics.models import GeneratorModel, HamiltonianModel
 from qiskit_dynamics.signals import Signal, DiscreteSignal
 from qiskit_dynamics import solve_ode, solve_lmde
 
-from ..common import QiskitDynamicsTestCase, DiffraxTestBase, JAXTestBase, test_array_backends
+from ..common import test_array_backends, DiffraxTestBase
 
 try:
     from diffrax import PIDController, Tsit5, Dopri5
@@ -69,7 +69,9 @@ class TestSolverMethod(ABC):
         self.r = 0.1
         signals = [self.w, Signal(lambda t: 1.0, self.w)]
         operators = [-1j * 2 * np.pi * self.Z / 2, -1j * 2 * np.pi * self.r * self.X / 2]
-        self.simple_model = GeneratorModel(operators=operators, signals=signals, array_library=self.array_library())
+        self.simple_model = GeneratorModel(
+            operators=operators, signals=signals, array_library=self.array_library()
+        )
 
         # construct randomized RHS
         dim = 7
@@ -99,7 +101,7 @@ class TestSolverMethod(ABC):
             signals=[self.pseudo_random_signal],
             static_operator=static_operator,
             rotating_frame=frame_op,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         # simulate directly out of frame
@@ -227,12 +229,15 @@ class TestSolverMethodJAX(TestSolverMethod):
 
         def func(a):
             self.pseudo_random_model.signals = [Signal(a, carrier_freq=1.0)]
-            results = self.solve(self.pseudo_random_model, t_span=[0.0, 0.1], y0=self.pseudo_random_y0)
+            results = self.solve(
+                self.pseudo_random_model, t_span=[0.0, 0.1], y0=self.pseudo_random_y0
+            )
             self.pseudo_random_model.signals = None
             return results.y[-1]
 
         # verify we can jit
         from jax import jit
+
         self.assertAllClose(jit(func)(1.0), func(1.0))
 
         # just verify that this runs without error
@@ -257,6 +262,7 @@ class TestRK4(TestSolverMethod):
     @property
     def is_ode_method(self):
         return True
+
 
 @partial(test_array_backends, array_libraries=["jax"])
 class Testjax_RK4(TestSolverMethodJAX):
@@ -314,6 +320,7 @@ class Testscipy_expm(TestSolverMethod):
             **kwargs,
         )
 
+
 @partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_expm_magnus2(TestSolverMethod):
     """Test class for scipy_expm_solver with magnus_order==2."""
@@ -329,6 +336,7 @@ class Testscipy_expm_magnus2(TestSolverMethod):
             magnus_order=2,
             **kwargs,
         )
+
 
 @partial(test_array_backends, array_libraries=["numpy"])
 class Testscipy_expm_magnus3(TestSolverMethod):
@@ -415,6 +423,7 @@ class Testjax_lanczos_diag(Testlanczos_diag, TestSolverMethodJAX):
             k_dim=max(y0.shape),
             **kwargs,
         )
+
 
 test_array_backends(Testlanczos_diag, array_libraries=["scipy_sparse"])
 

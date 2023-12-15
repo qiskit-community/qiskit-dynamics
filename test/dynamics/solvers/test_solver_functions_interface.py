@@ -185,7 +185,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
             hamiltonian_signals=[Signal(1.0, 5.0)],
             static_hamiltonian=Operator.from_label("Z"),
             static_dissipators=[Operator.from_label("Y")],
-            vectorized=True
+            vectorized=True,
         )
 
         self.frame_op = 1.2 * Operator.from_label("X") - 3.132 * Operator.from_label("Y")
@@ -197,7 +197,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
             operators=[Operator.from_label("X")],
             signals=[Signal(1.0, 5.0)],
             static_operator=Operator.from_label("Z"),
-            rotating_frame=self.frame_op
+            rotating_frame=self.frame_op,
         )
 
         self.rf_lindblad_model = LindbladModel(
@@ -205,7 +205,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
             hamiltonian_signals=[Signal(1.0, 5.0)],
             static_hamiltonian=Operator.from_label("Z"),
             static_dissipators=[Operator.from_label("Y")],
-            rotating_frame=self.frame_op
+            rotating_frame=self.frame_op,
         )
 
         self.rf_vec_lindblad_model = LindbladModel(
@@ -214,7 +214,7 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
             static_hamiltonian=Operator.from_label("Z"),
             static_dissipators=[Operator.from_label("Y")],
             rotating_frame=self.frame_op,
-            vectorized=True
+            vectorized=True,
         )
 
     def test_hamiltonian_setup_no_frame(self):
@@ -300,7 +300,9 @@ class TestLMDEGeneratorModelSetup(QiskitDynamicsTestCase):
         """Test functions for vectorized LindbladModel with frame."""
 
         y0 = np.array([[3.43, 1.31], [3.0, 1.23]]).flatten()
-        gen, rhs, new_y0, _ = setup_generator_model_rhs_y0_in_frame_basis(self.rf_vec_lindblad_model, y0)
+        gen, rhs, new_y0, _ = setup_generator_model_rhs_y0_in_frame_basis(
+            self.rf_vec_lindblad_model, y0
+        )
 
         # expect nothing to happen
         self.assertAllClose(np.kron(self.Uadj.conj(), self.Uadj) @ y0, new_y0)

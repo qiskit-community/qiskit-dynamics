@@ -312,7 +312,7 @@ class DiffraxTestBase(unittest.TestCase):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 import diffrax  # pylint: disable=import-outside-toplevel,unused-import
-            
+
             # pylint: disable=import-outside-toplevel
             import jax
 

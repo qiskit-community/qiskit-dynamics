@@ -15,7 +15,7 @@
 Custom fixed step solvers.
 """
 
-from typing import Callable, Optional, Union, Tuple, List
+from typing import Callable, Optional, Tuple
 from warnings import warn
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
@@ -611,7 +611,9 @@ def fixed_step_lmde_solver_parallel_template_jax(
     return trim_t_results(results, t_eval)
 
 
-def get_fixed_step_sizes(t_span: ArrayLike, t_eval: ArrayLike, max_dt: float) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+def get_fixed_step_sizes(
+    t_span: ArrayLike, t_eval: ArrayLike, max_dt: float
+) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
     """Merge ``t_span`` and ``t_eval``, and determine the number of time steps and
     and step sizes (no larger than ``max_dt``) required to fixed-step integrate between
     each time point.

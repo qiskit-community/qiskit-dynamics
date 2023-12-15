@@ -17,12 +17,12 @@ r"""
 Solver functions.
 """
 
-from typing import Optional, Union, Callable, Tuple, List, TypeVar
+from typing import Optional, Union, Callable, Tuple, TypeVar
 from warnings import warn
 
 from scipy.integrate import OdeSolver
 
-from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
+from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
@@ -132,7 +132,7 @@ def solve_ode(
     method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
     t_eval: Optional[ArrayLike] = None,
     **kwargs,
-):
+) -> OdeResult:
     r"""General interface for solving Ordinary Differential Equations (ODEs).
 
     ODEs are differential equations of the form
@@ -223,7 +223,7 @@ def solve_lmde(
     method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
     t_eval: Optional[ArrayLike] = None,
     **kwargs,
-):
+) -> OdeResult:
     r"""General interface for solving Linear Matrix Differential Equations (LMDEs)
     in standard form.
 
@@ -393,10 +393,7 @@ def setup_generator_model_rhs_y0_in_frame_basis(
 
     # if model not specified in frame basis, transform initial state into frame basis
     if not model_in_frame_basis:
-        if (
-            isinstance(generator_model, LindbladModel)
-            and generator_model.vectorized
-        ):
+        if isinstance(generator_model, LindbladModel) and generator_model.vectorized:
             if generator_model.rotating_frame.frame_basis is not None:
                 y0 = generator_model.rotating_frame.vectorized_frame_basis_adjoint @ y0
         elif isinstance(generator_model, LindbladModel):
@@ -438,10 +435,7 @@ def results_y_out_of_frame_basis(
     if y0_ndim == 1:
         results_y = results_y.T
 
-    if (
-        isinstance(generator_model, LindbladModel)
-        and generator_model.vectorized
-    ):
+    if isinstance(generator_model, LindbladModel) and generator_model.vectorized:
         if generator_model.rotating_frame.frame_basis is not None:
             results_y = generator_model.rotating_frame.vectorized_frame_basis @ results_y
     elif isinstance(generator_model, LindbladModel):

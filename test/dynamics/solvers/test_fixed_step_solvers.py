@@ -69,9 +69,7 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
         self.constant_rhs = constant_rhs
 
         Y = np.array([[0.0, -1j], [1j, 0.0]])
-        self.linear_generator = (
-            lambda t: -1j * (X + t * Y)
-        )
+        self.linear_generator = lambda t: -1j * (X + t * Y)
 
         def linear_rhs(t, y=None):
             if y is None:
@@ -99,7 +97,7 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
         )
 
         def random_generator(t):
-            return unp.sin(t) * rand_ops[0] + (t**5) * rand_ops[1] + unp.exp(t) * rand_ops[2] 
+            return unp.sin(t) * rand_ops[0] + (t**5) * rand_ops[1] + unp.exp(t) * rand_ops[2]
 
         self.random_generator = random_generator
 

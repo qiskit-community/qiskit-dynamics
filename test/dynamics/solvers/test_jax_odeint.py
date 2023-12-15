@@ -135,6 +135,7 @@ class TestJaxOdeint(JAXTestBase):
         def func(t_s, t_e):
             results = jax_odeint(self.simple_rhs, t_s, y0, t_eval=t_e, atol=1e-10, rtol=1e-10)
             return results.t, results.y
+
         t, y = jit(func)(t_span, t_eval)
 
         self.assertAllClose(t_eval, t)
@@ -165,7 +166,8 @@ class TestJaxOdeint(JAXTestBase):
             return results.y[-1].real.sum()
 
         self.assertAllClose(
-            jit(grad(lambda a: sim_function(a).real.sum()))(2.0), 4 * (0.5 + (2.0**3 - 1.0**3) / 3)
+            jit(grad(lambda a: sim_function(a).real.sum()))(2.0),
+            4 * (0.5 + (2.0**3 - 1.0**3) / 3),
         )
 
     def test_empty_integration(self):

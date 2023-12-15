@@ -17,7 +17,7 @@
 Utility functions for solvers.
 """
 
-from typing import Optional, Union, List, Tuple, Callable
+from typing import Optional, List, Tuple, Callable
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
@@ -43,9 +43,7 @@ def is_lindblad_model_not_vectorized(obj: any) -> bool:
     return isinstance(obj, LindbladModel) and not obj.vectorized
 
 
-def merge_t_args(
-    t_span: ArrayLike, t_eval: Optional[ArrayLike] = None
-) -> np.ndarray:
+def merge_t_args(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> np.ndarray:
     """Merge ``t_span`` and ``t_eval`` into a single array.
 
     Validition is similar to scipy ``solve_ivp``: ``t_eval`` must be contained in ``t_span``, and be
@@ -121,9 +119,7 @@ def trim_t_results(
     return results
 
 
-def merge_t_args_jax(
-    t_span: ArrayLike, t_eval: Optional[ArrayLike] = None
-) -> jnp.ndarray:
+def merge_t_args_jax(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> jnp.ndarray:
     """JAX-compilable version of merge_t_args.
 
     Rather than raise errors, sets return values to ``jnp.nan`` to signal errors.

@@ -18,7 +18,6 @@ Wrapper for jax.experimental.ode.odeint
 """
 
 from typing import Callable, Optional
-import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
@@ -28,7 +27,6 @@ from qiskit_dynamics.dispatch import requires_backend
 from .solver_utils import merge_t_args_jax, trim_t_results_jax
 
 try:
-    import jax.numpy as jnp
     from jax.experimental.ode import odeint
 except ImportError:
     pass
