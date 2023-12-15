@@ -344,20 +344,15 @@ class DynamicsBackend(BackendV2):
 
     def solve(
         self,
+        solve_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
         t_span: Array,
         y0: Optional[Union[Array, QuantumState, BaseOperator]] = None,
-        solve_input: Optional[
-            Union[
-                List[QuantumCircuit],
-                List[Union[Schedule, ScheduleBlock]],
-            ]
-        ] = None,
         convert_results: Optional[bool] = True,
         validate: Optional[bool] = True,
     ) -> Union[OdeResult, List[OdeResult]]:
         """Simulate a list of :class:`~qiskit.circuit.QuantumCircuit`,
-           :class:`~qiskit.pulse.Schedule`, or :class:`~qiskit.pulse.ScheduleBlock` instances and
-           return the ``OdeResult``.
+        :class:`~qiskit.pulse.Schedule`, or :class:`~qiskit.pulse.ScheduleBlock` instances and
+        return the ``OdeResult``.
 
         This method is analogous to :meth:`.Solver.solve`, however it additionally utilizes
         transpilation and the backend configuration to convert
