@@ -16,6 +16,8 @@
 Registering asarray functions to alias
 """
 
+from typing import Iterable
+
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
 
@@ -33,7 +35,7 @@ def register_asarray(alias):
 
     @alias.register_function(lib="scipy_sparse", path="asarray")
     def _(arr):
-        if issparse(arr) or issparse(arr[0]):
+        if issparse(arr) or (isinstance(arr, Iterable) and issparse(arr[0])):
             return arr
         return csr_matrix(arr)
 
