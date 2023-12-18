@@ -249,7 +249,7 @@ def get_rwa_operators(
     rotating_frame: RotatingFrame,
     frame_freqs: ArrayLike,
     cutoff_freq: float,
-):
+) -> ArrayLike:
     r"""Given a set of operators as a ``(k,n,n)`` array, a set of frequencies
     :math:`\operatorname{frame_freqs}_{jk} = \operatorname{Im}[-d_j+d_k]` where :math:`d_i` the
     :math:`i^{th}` eigenlvalue of the frame operator :math:`F`, the current signals of a model, and
@@ -297,7 +297,7 @@ def get_rwa_operators(
     )
 
 
-def get_rwa_signals(curr_signal_list: Union[List[Signal], SignalList]):
+def get_rwa_signals(curr_signal_list: Union[List[Signal], SignalList]) -> SignalList:
     """Helper function that converts pre-RWA signals to post-RWA signals.
 
     Args:
