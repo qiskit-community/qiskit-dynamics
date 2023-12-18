@@ -122,6 +122,7 @@ def _numpy_multi_dispatch(*args, path, **kwargs):
 
 
 def _to_dense(x):
+    """Convert an array to dense."""
     libs = DYNAMICS_NUMPY_ALIAS.infer_libs(x)
     if "scipy_sparse" in libs or "jax_sparse" in libs:
         return DYNAMICS_NUMPY.array(x.todense())
@@ -129,6 +130,9 @@ def _to_dense(x):
 
 
 def _to_dense_list(x):
+    """Convert a list of arrays to their corresponding dense version. Assumes input is either a list
+    of scipy sparse, a BCOO array, or numpy/jax array.
+    """
     libs = DYNAMICS_NUMPY_ALIAS.infer_libs(x)
     if "scipy_sparse" in libs:
         return DYNAMICS_NUMPY.array([op.todense() for op in x])
