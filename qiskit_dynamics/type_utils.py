@@ -352,6 +352,8 @@ def isinstance_qutip_qobj(obj):
     return False
 
 
+#####################################################################################################
+# try to remove this
 # pylint: disable=too-many-return-statements
 def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False):
     """Convert an operator or list of operators to an Array.
@@ -396,6 +398,8 @@ def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], 
         return op
 
 
+#####################################################################################################
+# try to remove this
 # pylint: disable=too-many-return-statements
 def to_csr(
     op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False
@@ -429,6 +433,8 @@ def to_csr(
         return csr_matrix(op)
 
 
+#####################################################################################################
+# try to remove this
 @requires_backend("jax")
 def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "BCOO"]) -> "BCOO":
     """Convert input op or list of ops to a jax BCOO sparse array.
@@ -451,6 +457,8 @@ def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "B
     return jsparse.BCOO.fromdense(to_array(op).data)
 
 
+#####################################################################################################
+# try to remove this
 def to_numeric_matrix_type(
     op: Union[Operator, Array, spmatrix, List[Operator], List[Array], List[spmatrix]]
 ):

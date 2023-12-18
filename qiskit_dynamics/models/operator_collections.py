@@ -174,6 +174,14 @@ class ScipySparseOperatorCollection:
         self._operators = _to_csr_object_array(operators, decimals)
 
     @property
+    def dim(self) -> int:
+        """The matrix dimension."""
+        if self.static_operator is not None:
+            return self.static_operator.shape[-1]
+        else:
+            return self.operators[0].shape[-1]
+
+    @property
     def static_operator(self) -> Union[None, csr_matrix]:
         """The static part of the operator collection."""
         return self._static_operator
