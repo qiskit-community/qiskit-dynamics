@@ -234,7 +234,7 @@ def _get_iq_data(
         QiskitError: If number of centers and levels don't match.
     """
     rng = np.random.default_rng(seed)
-    subsystem_dims = state.dims()
+    subsystem_dims = [dim for dim in state.dims() if dim != 1]
     probabilities = state.probabilities()
     probabilities_tensor = probabilities.reshape(list(reversed(subsystem_dims)))
 
