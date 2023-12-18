@@ -19,7 +19,7 @@ from typing import Tuple, Union, List, Optional
 from warnings import warn
 
 from qiskit import QiskitError
-from qiskit_dynamics.arraylias.alias import ArrayLike
+from qiskit_dynamics.arraylias.alias import ArrayLike, _to_dense, _to_dense_list
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_model import (
     BaseGeneratorModel,
@@ -245,11 +245,11 @@ class LindbladModel(BaseGeneratorModel):
         hamiltonian.in_frame_basis = in_frame_basis
 
         return cls(
-            static_hamiltonian=static_hamiltonian,
-            hamiltonian_operators=hamiltonian_operators,
+            static_hamiltonian=_to_dense(static_hamiltonian),
+            hamiltonian_operators=_to_dense_list(hamiltonian_operators),
             hamiltonian_signals=hamiltonian.signals,
-            static_dissipators=static_dissipators,
-            dissipator_operators=dissipator_operators,
+            static_dissipators=_to_dense_list(static_dissipators),
+            dissipator_operators=_to_dense_list(dissipator_operators),
             dissipator_signals=dissipator_signals,
             rotating_frame=hamiltonian.rotating_frame,
             in_frame_basis=hamiltonian.in_frame_basis,

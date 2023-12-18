@@ -25,7 +25,12 @@ from scipy.sparse import csr_matrix
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_SCIPY as usp
-from qiskit_dynamics.arraylias.alias import _preferred_lib, _numpy_multi_dispatch
+from qiskit_dynamics.arraylias.alias import (
+    _preferred_lib,
+    _numpy_multi_dispatch,
+    _to_dense,
+    _to_dense_list,
+)
 
 from ..common import test_array_backends, JAXTestBase
 
@@ -120,3 +125,44 @@ class Test_preferred_lib(JAXTestBase):
         """Test that it prefers jax_sparse over jax."""
         self.assertEqual(_preferred_lib(jnp.array(1.0)), "jax")
         self.assertEqual(_preferred_lib(jnp.array(1.0), BCOO.fromdense([1.0, 2.0])), "jax_sparse")
+
+
+@partial(test_array_backends, array_libraries=["numpy", "scipy_sparse", "jax", "jax_sparse"])
+class Test_to_dense:
+    """Tests for _to_dense utility function."""
+
+    def test_2d_array(self):
+        """Simple type checking test."""
+
+        x = self.asarray([[0.0, 1.0], [1.0, 0.0]])
+        out = _to_dense(x)
+
+        if self.array_library() in ["numpy", "scipy_sparse"]:
+            self.assertTrue(isinstance(out, np.ndarray))
+
+        if "jax" in self.array_library():
+            self.assertTrue(isinstance(out, jnp.ndarray))
+
+
+@partial(test_array_backends, array_libraries=["numpy", "scipy_sparse", "jax", "jax_sparse"])
+class Test_to_dense_list:
+    """Tests for _to_dense_list utility function."""
+
+    def test_list(self):
+        """Simple type checking test."""
+
+        x = [[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]], [[1.0, 0.0], [0.0, -1.0]]]
+        if self.array_library() == "scipy_sparse":
+            op_list = [self.asarray(op) for op in x]
+        else:
+            op_list = self.asarray(x)
+
+        out = _to_dense_list(op_list)
+
+        if self.array_library() in ["numpy", "scipy_sparse"]:
+            self.assertTrue(isinstance(out, np.ndarray))
+
+        if "jax" in self.array_library():
+            self.assertTrue(isinstance(out, jnp.ndarray))
+
+        self.assertAllClose(out, np.array(x))
