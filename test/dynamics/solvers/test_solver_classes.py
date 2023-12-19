@@ -775,9 +775,10 @@ class TestSolverConstructionJAXTransformations:
         self.jit_grad(func)(1.0)
 
 
-'''
+
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
 @ddt
-class TestPulseSimulation(QiskitDynamicsTestCase):
+class TestPulseSimulation:
     """Test simulation of pulse schedules."""
 
     def setUp(self):
@@ -787,7 +788,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
         self.X = X
         self.Z = Z
 
-        self.static_ham_solver = Solver(static_hamiltonian=5 * Z, rotating_frame=5 * Z, dt=0.1)
+        self.static_ham_solver = Solver(static_hamiltonian=5 * Z, rotating_frame=5 * Z, dt=0.1, array_library=self.array_library())
 
         self.ham_solver = Solver(
             hamiltonian_operators=[X],
@@ -796,10 +797,11 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
+            array_library=self.array_library()
         )
 
         self.static_lindblad_solver = Solver(
-            static_dissipators=[0.01 * X], static_hamiltonian=5 * Z, rotating_frame=5 * Z, dt=0.1
+            static_dissipators=[0.01 * X], static_hamiltonian=5 * Z, rotating_frame=5 * Z, dt=0.1, array_library=self.array_library()
         )
 
         self.lindblad_solver = Solver(
@@ -810,6 +812,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
+            array_library=self.array_library()
         )
 
         self.ham_solver_2_channels = Solver(
@@ -819,6 +822,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             hamiltonian_channels=["d0", "d1"],
             channel_carrier_freqs={"d0": 5.0, "d1": 3.1},
             dt=0.1,
+            array_library=self.array_library()
         )
 
         self.td_lindblad_solver = Solver(
@@ -831,10 +835,14 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             dissipator_channels=["d1"],
             channel_carrier_freqs={"d0": 5.0, "d1": 3.1},
             dt=0.1,
-            evaluation_mode="dense_vectorized",
+            array_library=self.array_library(),
+            vectorized=True,
         )
 
-        self.method = "DOP853"
+        if self.array_library() == "numpy":
+            self.method = "DOP853"
+        elif self.array_library() == "jax":
+            self.method = "jax_odeint"
 
     @unpack
     @data(("static_ham_solver",), ("static_lindblad_solver",))
@@ -996,6 +1004,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             dissipator_channels=["d1", "d3"],
             channel_carrier_freqs={"d0": 5.0, "d1": 3.1, "d2": 0, "d3": 4.0},
             dt=dt,
+            array_library=self.array_library()
         )
 
         with pulse.build() as schedule:
@@ -1048,6 +1057,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
             rwa_cutoff_freq=1.5 * 5.0,
+            array_library=self.array_library()
         )
 
         ham_solver = Solver(
@@ -1056,6 +1066,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             rotating_frame=5 * self.Z,
             rwa_cutoff_freq=1.5 * 5.0,
             rwa_carrier_freqs=[5.0],
+            array_library=self.array_library()
         )
 
         with pulse.build() as schedule:
@@ -1094,6 +1105,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
             rwa_cutoff_freq=1.5 * 5.0,
+            array_library=self.array_library()
         )
 
         lindblad_solver = Solver(
@@ -1103,6 +1115,7 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             rotating_frame=5 * self.Z,
             rwa_cutoff_freq=1.5 * 5.0,
             rwa_carrier_freqs=[5.0],
+            array_library=self.array_library()
         )
 
         with pulse.build() as schedule:
@@ -1247,12 +1260,25 @@ class TestPulseSimulation(QiskitDynamicsTestCase):
             self.assertAllClose(pulse_res.y[-1], signal_res.y[-1], atol=test_tol, rtol=test_tol)
 
 
-class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
-    """Test class for pulse simulation with JAX."""
+
+@partial(test_array_backends, array_libraries=["jax"])
+class TestPulseSimulationJAXPeculiarities:
+    """Test class for technical issues of pulse simulation with JAX."""
 
     def setUp(self):
-        super().setUp()
-        self.method = "jax_odeint"
+        """Set up some simple models."""
+        X = 2 * np.pi * Operator.from_label("X") / 2
+        Z = 2 * np.pi * Operator.from_label("Z") / 2
+
+        self.ham_solver = Solver(
+            hamiltonian_operators=[X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
+            dt=0.1,
+            array_library=self.array_library()
+        )
 
     def test_t_eval_t_span_jax_odeint(self):
         """Test internal jitting works when specifying t_eval and t_span. This catches a bug
@@ -1268,7 +1294,7 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
             t_span=[0.0, 0.1],
             y0=np.array([0.0, 1.0]),
             t_eval=[0.0, 0.05, 0.1],
-            method=self.method,
+            method="jax_odeint",
         )
 
     def test_t_eval_t_span_diffrax(self):
@@ -1333,7 +1359,7 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
                 valid_amp_conditions=valid_amp_conditions_expr,
             )
 
-        def jit_func(amp):
+        def func(amp):
             with pulse.build() as sched:
                 pulse.play(constant_pulse(amp), pulse.DriveChannel(0))
 
@@ -1341,10 +1367,10 @@ class TestPulseSimulationJAX(TestPulseSimulation, TestJaxBase):
                 signals=sched,
                 t_span=[0.0, 0.1],
                 y0=np.array([0.0, 1.0]),
-                method=self.method,
+                method="jax_odeint",
             )
 
-        self.jit_wrap(jit_func)(0.1)
+        jit(func)(0.1)
 
 
 @ddt
@@ -1559,5 +1585,3 @@ class TestSolverListSimulation(QiskitDynamicsTestCase):
 
         self.assertAllClose(results[0].y[-1], res0.y[-1])
         self.assertAllClose(results[1].y[-1], res1.y[-1])
-
-'''
