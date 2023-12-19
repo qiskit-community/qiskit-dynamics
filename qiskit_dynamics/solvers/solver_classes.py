@@ -172,9 +172,9 @@ class Solver:
       frequencies will be used for the RWA.
     * ``dt``: The envelope sample width.
 
-    If configured to simulate Pulse schedules, a JAX-based solver method is chosen, and the model
-    ``array_library`` is JAX compatible, calling :meth:`.Solver.solve` will automatically compile
-    simulation runs.
+    If configured to simulate Pulse schedules, and a JAX-based solver method is chosen when calling
+    :meth:`.Solver.solve`, :meth:`.Solver.solve` will automatically attempt to compile a single
+    function to re-use for all schedule simulations.
 
     The evolution given by the model can be simulated by calling :meth:`.Solver.solve`, which
     calls :func:`.solve_lmde`, and does various automatic
