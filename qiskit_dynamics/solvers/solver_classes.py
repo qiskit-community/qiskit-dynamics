@@ -19,6 +19,7 @@ Solver classes.
 
 
 from typing import Optional, Union, Tuple, Any, Type, List, Callable
+from warnings import warn
 
 import numpy as np
 
@@ -36,6 +37,7 @@ from qiskit.quantum_info import SuperOp, Operator, DensityMatrix
 
 from qiskit_dynamics import ArrayLike
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
 
 from qiskit_dynamics.models import (
     HamiltonianModel,
@@ -170,9 +172,9 @@ class Solver:
       frequencies will be used for the RWA.
     * ``dt``: The envelope sample width.
 
-    If configured to simulate Pulse schedules while ``Array.default_backend() == 'jax'``,
-    calling :meth:`.Solver.solve` will automatically compile
-    simulation runs when calling with a JAX-based solver method.
+    If configured to simulate Pulse schedules, a JAX-based solver method is chosen, and the model
+    ``array_library`` is JAX compatible, calling :meth:`.Solver.solve` will automatically compile
+    simulation runs.
 
     The evolution given by the model can be simulated by calling :meth:`.Solver.solve`, which
     calls :func:`.solve_lmde`, and does various automatic
@@ -522,12 +524,19 @@ class Solver:
         all_results = None
         method = kwargs.get("method", "")
         if (
-            Array.default_backend() == "jax"
-            and (method == "jax_odeint" or _is_diffrax_method(method))
+            (method == "jax_odeint" or _is_diffrax_method(method))
             and all(isinstance(x, Schedule) for x in signals_list)
             # check if jit transformation is already performed.
             and not (isinstance(jnp.array(0), core.Tracer))
         ):
+            if self.model.array_library not in ["numpy", "jax", "jax_sparse"]:
+                warn(
+                    "Attempting to internally JAX-compile simulation of schedules, with "
+                    'Solver.model.array_library not in ["numpy", "jax", "jax_sparse"]. If an error '
+                    "is not raised, explicitly set array_library at Solver instantation to one of "
+                    "these options to remove this warning."
+                )
+
             all_results = self._solve_schedule_list_jax(
                 t_span_list=t_span_list,
                 y0_list=y0_list,
@@ -760,8 +769,8 @@ def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, Li
     # validate types
     if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(model):
         raise QiskitError(
-            """Simulating SuperOp for a LindbladModel requires setting
-            vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
+            """Simulating SuperOp for a LindbladModel requires setting vectorized evaluation. 
+            Set vectorized=True when constructing LindbladModel.
             """
         )
 
@@ -772,7 +781,7 @@ def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, Li
     elif (
         (y0_cls is DensityMatrix)
         and isinstance(model, LindbladModel)
-        and "vectorized" in model.evaluation_mode
+        and model.vectorized
     ):
         y0 = y0.flatten(order="F")
 
@@ -804,7 +813,7 @@ def format_final_states(y, model, y0_input, y0_cls):
     elif y0_cls is SuperOp and isinstance(model, HamiltonianModel):
         # convert to SuperOp and compose
         return (
-            unp.einsum("nka,nlb->nklab", y.conj(), y).reshape(
+            numpy_alias(like=y).einsum("nka,nlb->nklab", y.conj(), y).reshape(
                 y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2
             )
             @ y0_input
