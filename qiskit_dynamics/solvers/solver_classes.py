@@ -668,7 +668,11 @@ class Solver:
                 all_samples[idx, 0 : len(sig.samples)] = np.array(sig.samples)
 
             results_t, results_y = jit_sim_function(
-                unp.asarray(t_span), unp.asarray(y0), unp.asarray(all_samples), unp.asarray(y0_input), y0_cls
+                unp.asarray(t_span),
+                unp.asarray(y0),
+                unp.asarray(all_samples),
+                unp.asarray(y0_input),
+                y0_cls,
             )
             results = OdeResult(t=results_t, y=results_y)
 
@@ -769,7 +773,7 @@ def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, Li
     # validate types
     if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(model):
         raise QiskitError(
-            """Simulating SuperOp for a LindbladModel requires setting vectorized evaluation. 
+            """Simulating SuperOp for a LindbladModel requires setting vectorized evaluation.
             Set vectorized=True when constructing LindbladModel.
             """
         )
@@ -778,11 +782,7 @@ def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, Li
     if y0_cls in [DensityMatrix, SuperOp] and isinstance(model, HamiltonianModel):
         y0 = np.eye(model.dim, dtype=complex)
     # if LindbladModel is vectorized and simulating a density matrix, flatten
-    elif (
-        (y0_cls is DensityMatrix)
-        and isinstance(model, LindbladModel)
-        and model.vectorized
-    ):
+    elif (y0_cls is DensityMatrix) and isinstance(model, LindbladModel) and model.vectorized:
         y0 = y0.flatten(order="F")
 
     # validate y0 shape before passing to solve_lmde
@@ -813,9 +813,9 @@ def format_final_states(y, model, y0_input, y0_cls):
     elif y0_cls is SuperOp and isinstance(model, HamiltonianModel):
         # convert to SuperOp and compose
         return (
-            numpy_alias(like=y).einsum("nka,nlb->nklab", y.conj(), y).reshape(
-                y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2
-            )
+            numpy_alias(like=y)
+            .einsum("nka,nlb->nklab", y.conj(), y)
+            .reshape(y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2)
             @ y0_input
         )
     elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(model):

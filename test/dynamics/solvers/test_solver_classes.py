@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """
 Tests for solver classes module.
@@ -28,12 +28,13 @@ from qiskit_dynamics import Solver, Signal, DiscreteSignal, solve_lmde
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel, rotating_wave_approximation
 from qiskit_dynamics.solvers.solver_classes import organize_signals_to_channels
 
-from ..common import QiskitDynamicsTestCase, test_array_backends, TestJaxBase
+from ..common import QiskitDynamicsTestCase, test_array_backends
 
 try:
     from jax import jit
 except ImportError:
     pass
+
 
 class TestSolverValidation(QiskitDynamicsTestCase):
     """Test validation checks."""
@@ -709,7 +710,7 @@ class TestSolverSimulationJAXTransformations:
             hamiltonian_operators=[X],
             static_hamiltonian=5 * Z,
             rotating_frame=5 * Z,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
     def test_jit_solve(self):
@@ -747,11 +748,12 @@ class TestSolverSimulationJAXTransformations:
 @partial(test_array_backends, array_libraries=["jax"])
 class TestSolverConstructionJAXTransformations:
     """Test construction of Solver within a function to be JAX transformed.."""
+
     def test_transform_through_construction_when_validate_false(self):
         """Test that a function building a Solver can be compiled if validate=False."""
 
-        Z = np.array([[1., 0.], [0., -1.]])
-        X = np.array([[0., 1.], [1., 0.]])
+        Z = np.array([[1.0, 0.0], [0.0, -1.0]])
+        X = np.array([[0.0, 1.0], [1.0, 0.0]])
 
         def func(a):
             solver = Solver(
@@ -759,7 +761,7 @@ class TestSolverConstructionJAXTransformations:
                 hamiltonian_operators=[X],
                 rotating_frame=5 * Z,
                 validate=False,
-                array_library=self.array_library()
+                array_library=self.array_library(),
             )
             yf = solver.solve(
                 t_span=np.array([0.0, 0.1]),
@@ -775,7 +777,6 @@ class TestSolverConstructionJAXTransformations:
         self.jit_grad(func)(1.0)
 
 
-
 @partial(test_array_backends, array_libraries=["numpy", "jax"])
 @ddt
 class TestPulseSimulation:
@@ -788,7 +789,12 @@ class TestPulseSimulation:
         self.X = X
         self.Z = Z
 
-        self.static_ham_solver = Solver(static_hamiltonian=5 * Z, rotating_frame=5 * Z, dt=0.1, array_library=self.array_library())
+        self.static_ham_solver = Solver(
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            dt=0.1,
+            array_library=self.array_library(),
+        )
 
         self.ham_solver = Solver(
             hamiltonian_operators=[X],
@@ -797,11 +803,15 @@ class TestPulseSimulation:
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         self.static_lindblad_solver = Solver(
-            static_dissipators=[0.01 * X], static_hamiltonian=5 * Z, rotating_frame=5 * Z, dt=0.1, array_library=self.array_library()
+            static_dissipators=[0.01 * X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            dt=0.1,
+            array_library=self.array_library(),
         )
 
         self.lindblad_solver = Solver(
@@ -812,7 +822,7 @@ class TestPulseSimulation:
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         self.ham_solver_2_channels = Solver(
@@ -822,7 +832,7 @@ class TestPulseSimulation:
             hamiltonian_channels=["d0", "d1"],
             channel_carrier_freqs={"d0": 5.0, "d1": 3.1},
             dt=0.1,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         self.td_lindblad_solver = Solver(
@@ -1004,7 +1014,7 @@ class TestPulseSimulation:
             dissipator_channels=["d1", "d3"],
             channel_carrier_freqs={"d0": 5.0, "d1": 3.1, "d2": 0, "d3": 4.0},
             dt=dt,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         with pulse.build() as schedule:
@@ -1057,7 +1067,7 @@ class TestPulseSimulation:
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
             rwa_cutoff_freq=1.5 * 5.0,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         ham_solver = Solver(
@@ -1066,7 +1076,7 @@ class TestPulseSimulation:
             rotating_frame=5 * self.Z,
             rwa_cutoff_freq=1.5 * 5.0,
             rwa_carrier_freqs=[5.0],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         with pulse.build() as schedule:
@@ -1105,7 +1115,7 @@ class TestPulseSimulation:
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
             rwa_cutoff_freq=1.5 * 5.0,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         lindblad_solver = Solver(
@@ -1115,7 +1125,7 @@ class TestPulseSimulation:
             rotating_frame=5 * self.Z,
             rwa_cutoff_freq=1.5 * 5.0,
             rwa_carrier_freqs=[5.0],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         with pulse.build() as schedule:
@@ -1260,7 +1270,6 @@ class TestPulseSimulation:
             self.assertAllClose(pulse_res.y[-1], signal_res.y[-1], atol=test_tol, rtol=test_tol)
 
 
-
 @partial(test_array_backends, array_libraries=["jax"])
 class TestPulseSimulationJAXPeculiarities:
     """Test class for technical issues of pulse simulation with JAX."""
@@ -1277,7 +1286,7 @@ class TestPulseSimulationJAXPeculiarities:
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=0.1,
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
     def test_t_eval_t_span_jax_odeint(self):
