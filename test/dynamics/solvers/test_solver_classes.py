@@ -26,11 +26,14 @@ from qiskit.quantum_info import Operator, Statevector, SuperOp, DensityMatrix
 
 from qiskit_dynamics import Solver, Signal, DiscreteSignal, solve_lmde
 from qiskit_dynamics.models import HamiltonianModel, LindbladModel, rotating_wave_approximation
-from qiskit_dynamics.type_utils import to_array
 from qiskit_dynamics.solvers.solver_classes import organize_signals_to_channels
 
 from ..common import QiskitDynamicsTestCase, test_array_backends, TestJaxBase
 
+try:
+    from jax import jit
+except ImportError:
+    pass
 
 class TestSolverValidation(QiskitDynamicsTestCase):
     """Test validation checks."""
@@ -692,41 +695,22 @@ class TestSolverSimulation:
         self.assertTrue(results.y[-1].data[0, 0] > 0.99 and results.y[-1].data[0, 0] < 0.999)
 
 
-'''
-class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
-    """JAX version of TestSolverSimulation."""
+@partial(test_array_backends, array_libraries=["jax", "jax_sparse"])
+class TestSolverSimulationJAXTransformations:
+    """Test Solver class within JAX transformations."""
 
     def setUp(self):
-        """Set method to 'jax_odeint' to speed up running of jax version of tests."""
-        super().setUp()
-        self.method = "jax_odeint"
-
-    def test_transform_through_construction_when_validate_false(self):
-        """Test that a function building a Solver can be compiled if validate=False."""
-
-        Z = to_array(self.Z)
-        X = to_array(self.X)
-
-        def func(a):
-            solver = Solver(
-                static_hamiltonian=5 * Z,
-                hamiltonian_operators=[X],
-                rotating_frame=5 * Z,
-                validate=False,
-            )
-            yf = solver.solve(
-                t_span=np.array([0.0, 0.1]),
-                y0=np.array([0.0, 1.0]),
-                signals=[Signal(a, 5.0)],
-                method=self.method,
-            ).y[-1]
-            return yf
-
-        jit_func = self.jit_wrap(func)
-        self.assertAllClose(jit_func(2.0), func(2.0))
-
-        jit_grad_func = self.jit_grad_wrap(func)
-        jit_grad_func(1.0)
+        """Set up some simple models."""
+        X = 2 * np.pi * Operator.from_label("X") / 2
+        Z = 2 * np.pi * Operator.from_label("Z") / 2
+        self.X = X
+        self.Z = Z
+        self.ham_solver = Solver(
+            hamiltonian_operators=[X],
+            static_hamiltonian=5 * Z,
+            rotating_frame=5 * Z,
+            array_library=self.array_library()
+        )
 
     def test_jit_solve(self):
         """Test jitting setting signals and solving."""
@@ -736,12 +720,11 @@ class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
                 t_span=np.array([0.0, 1.0]),
                 y0=np.array([0.0, 1.0]),
                 signals=[Signal(lambda t: a, 5.0)],
-                method=self.method,
+                method="jax_odeint",
             ).y[-1]
             return yf
 
-        jit_func = self.jit_wrap(func)
-        self.assertAllClose(jit_func(2.0), func(2.0))
+        self.assertAllClose(jit(func)(2.0), func(2.0))
 
     def test_jit_grad_solve(self):
         """Test jitting setting signals and solving."""
@@ -754,14 +737,45 @@ class TestSolverSimulationJax(TestSolverSimulation, TestJaxBase):
                 t_span=[0.0, 1.0],
                 y0=np.array([[0.0, 1.0], [0.0, 1.0]], dtype=complex),
                 signals=([Signal(lambda t: a, 5.0)], [1.0]),
-                method=self.method,
+                method="jax_odeint",
             ).y[-1]
             return yf
 
-        jit_grad_func = self.jit_grad_wrap(func)
-        jit_grad_func(1.0)
+        self.jit_grad(func)(1.0)
 
 
+@partial(test_array_backends, array_libraries=["jax"])
+class TestSolverConstructionJAXTransformations:
+    """Test construction of Solver within a function to be JAX transformed.."""
+    def test_transform_through_construction_when_validate_false(self):
+        """Test that a function building a Solver can be compiled if validate=False."""
+
+        Z = np.array([[1., 0.], [0., -1.]])
+        X = np.array([[0., 1.], [1., 0.]])
+
+        def func(a):
+            solver = Solver(
+                static_hamiltonian=5 * Z,
+                hamiltonian_operators=[X],
+                rotating_frame=5 * Z,
+                validate=False,
+                array_library=self.array_library()
+            )
+            yf = solver.solve(
+                t_span=np.array([0.0, 0.1]),
+                y0=np.array([0.0, 1.0]),
+                signals=[Signal(a, 5.0)],
+                method="jax_odeint",
+            ).y[-1]
+            return yf
+
+        self.assertAllClose(jit(func)(2.0), func(2.0))
+
+        # validate that grad can be compiled and evaluated
+        self.jit_grad(func)(1.0)
+
+
+'''
 @ddt
 class TestPulseSimulation(QiskitDynamicsTestCase):
     """Test simulation of pulse schedules."""
