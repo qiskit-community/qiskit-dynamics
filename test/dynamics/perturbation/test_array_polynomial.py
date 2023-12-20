@@ -589,27 +589,30 @@ class TestArrayPolynomialAlgebraJAXTransformations:
 
         self.jit_grad(func)(1.0, 2.0, 3.0, 4.0, np.array([5.0, 6.0]))
 
-'''
-class TestArrayPolynomial(QiskitDynamicsTestCase):
+
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
+class TestArrayPolynomial:
     """Test the ArrayPolynomial class."""
 
     def setUp(self):
         """Set up typical polynomials including edge cases."""
 
-        self.constant_0d = ArrayPolynomial(constant_term=3.0)
-        self.constant_22d = ArrayPolynomial(constant_term=np.eye(2))
+        self.constant_0d = ArrayPolynomial(constant_term=3.0, array_library=self.array_library())
+        self.constant_22d = ArrayPolynomial(constant_term=np.eye(2), array_library=self.array_library())
         self.non_constant_0d = ArrayPolynomial(
-            array_coefficients=np.array([1.0, 2.0, 3.0]), monomial_labels=[[0], [1], [2]]
+            array_coefficients=np.array([1.0, 2.0, 3.0]), monomial_labels=[[0], [1], [2]], array_library=self.array_library()
         )
         self.non_constant_32d = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 3, 2),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.array([[0.0, 1.0], [1.0, 0.0], [-1.0, -1.0]]),
+            array_library=self.array_library()
         )
         self.non_constant_complex = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
 
     def test_validation_error_no_ops(self):
@@ -736,6 +739,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
             constant_term=np.random.rand(2, 2) + 1j * np.random.rand(2, 2),
             array_coefficients=np.random.rand(3, 2, 2) + 1j * np.random.rand(3, 2, 2),
             monomial_labels=[[0], [1], [2]],
+            array_library=self.array_library()
         )
 
         ap_real = ap.real
@@ -750,6 +754,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
             constant_term=np.random.rand() + 1j * np.random.rand(),
             array_coefficients=np.random.rand(3) + 1j * np.random.rand(3),
             monomial_labels=[[0], [1], [2]],
+            array_library=self.array_library()
         )
 
         ap_real = ap.real
@@ -770,7 +775,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
             Multiset({1: 2}),
         ]
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=monomial_labels)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=monomial_labels, array_library=self.array_library())
 
         c = np.array([3.0, 4.0])
         output = ap(c)
@@ -811,7 +816,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         rng = np.random.default_rng(938122)
         c = rng.uniform(size=(2,))
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -837,7 +842,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         rng = np.random.default_rng(22321)
         c = rng.uniform(size=(3,))
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -879,7 +884,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         rng = np.random.default_rng(23421)
         c = rng.uniform(size=(3,))
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -928,7 +933,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         rng = np.random.default_rng(23421)
         c = rng.uniform(size=(3, 20))
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -958,7 +963,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         multiset_list = [Multiset({0: 1}), Multiset({1: 1})]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
 
         c = np.array([3.0, 2.0])
         self.assertAllClose(ap.compute_monomials(c), c)
@@ -969,7 +974,7 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         multiset_list = [Multiset({2: 2}), Multiset({0: 1}), Multiset({1: 1, 2: 1})]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list)
+        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
 
         c = np.array([3.0, 2.0, 4.0])
         self.assertAllClose(ap.compute_monomials(c), np.array([16.0, 3.0, 8.0]))
@@ -985,8 +990,9 @@ class TestArrayPolynomial(QiskitDynamicsTestCase):
         self.assertTrue(ap_indexed.monomial_labels, ap.monomial_labels)
 
 
-class TestArrayPolynomialJax(TestArrayPolynomial, TestJaxBase):
-    """JAX version of TestArrayPolynomial."""
+@partial(test_array_backends, array_libraries=["jax"])
+class TestArrayPolynomialJAXTransformations:
+    """Test JAX transformations with ArrayPolynomial evaluation."""
 
     def test_jit_compute_monomials(self):
         """Test jitting works."""
@@ -1030,4 +1036,3 @@ class TestArrayPolynomialJax(TestArrayPolynomial, TestJaxBase):
         expected = np.array([1.0 + 0.0 + 4.0 + 3.0 + 0.0, 0.0 + 1.0 + 0.0 + 2.0 + 6.0])
 
         self.assertAllClose(expected, monomial_function_jit_grad(c))
-'''
