@@ -77,8 +77,8 @@ class _CustomBinaryOp:
             operation_rule: Rule for the binary op as described in the doc string.
             binary_op: The binary operation.
             index_offset: Shift to be added to the indices in operation_rule.
-            operation_rule_compiled: True if the operation_rule already corresponds to a
-                                     rule that has been compiled to the internal representation.
+            operation_rule_compiled: True if the operation_rule already corresponds to a rule that
+                has been compiled to the internal representation.
         """
 
         # store binary op and compile rule to internal format for evaluation
