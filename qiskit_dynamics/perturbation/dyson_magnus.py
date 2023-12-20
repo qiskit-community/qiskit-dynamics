@@ -370,7 +370,7 @@ def _solve_lmde_magnus_jax(
 
     # compute Magnus terms from Dyson and update the results
     magnus_terms = _magnus_from_dyson_jax(
-        results.perturbation_data.labels, results.perturbation_data
+        results.perturbation_data.labels, results.perturbation_data.data
     )
     results.perturbation_data.metadata = {"expansion_type": "magnus"}
     results.perturbation_data.data = magnus_terms
@@ -472,7 +472,7 @@ def _setup_dyson_rhs_jax(
         ]
         lmult_rule = _get_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_labels)
 
-    custom_matmul = _CustomMatmul(lmult_rule, index_offset=1, backend="jax")
+    custom_matmul = _CustomMatmul(lmult_rule, index_offset=1)
 
     perturbations_evaluation_order = np.array(perturbations_evaluation_order, dtype=int)
 
