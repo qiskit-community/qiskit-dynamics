@@ -34,6 +34,7 @@ class Test_CustomBinaryOp:
     """Test _CustomBinaryOp in the cases of matmul and mul."""
 
     def setUp(self):
+        """Set up sample multiplication rules."""
         self.mult_rule1 = [
             (np.array([1.0, 2.0, 3.0]), np.array([[0, 2], [1, 1], [2, 0]])),
             (np.array([1.0]), np.array([[0, 2]])),
@@ -143,6 +144,7 @@ class Test_CustomBinaryOpJAXTransformations:
     """JAX version of Test_CustomBinaryOp."""
 
     def setUp(self):
+        """Set up sample multiplication rules."""
         self.mult_rule1 = [
             (np.array([1.0, 2.0, 3.0]), np.array([[0, 2], [1, 1], [2, 0]])),
             (np.array([1.0]), np.array([[0, 2]])),

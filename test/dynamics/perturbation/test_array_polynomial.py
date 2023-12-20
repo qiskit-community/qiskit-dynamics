@@ -51,13 +51,13 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(1, 4, 6) + 1j * np.random.rand(1, 4, 6),
             monomial_labels=[[0]],
             constant_term=np.random.rand(4, 6) + 1j * np.random.rand(4, 6),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         with self.assertRaisesRegex(QiskitError, "broadcastable"):
@@ -71,7 +71,7 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(1, 4, 6) + 1j * np.random.rand(1, 4, 6),
             monomial_labels=[[0]],
             constant_term=np.random.rand(4, 6) + 1j * np.random.rand(4, 6),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         neg_ap = -ap
@@ -83,7 +83,9 @@ class TestArrayPolynomialAlgebra:
     def test_addition_only_constant(self):
         """Addition with constant only ArrayPolynomials."""
 
-        result = ArrayPolynomial(constant_term=1.0, array_library=self.array_library()) + ArrayPolynomial(constant_term=2.0, array_library=self.array_library())
+        result = ArrayPolynomial(
+            constant_term=1.0, array_library=self.array_library()
+        ) + ArrayPolynomial(constant_term=2.0, array_library=self.array_library())
 
         self.assertTrue(result.constant_term == 3.0)
         self.assertTrue(result.monomial_labels == [])
@@ -92,8 +94,16 @@ class TestArrayPolynomialAlgebra:
     def test_addition_only_non_constant(self):
         """Addition with ArrayPolynomials with no constant part."""
 
-        ap1 = ArrayPolynomial(monomial_labels=[[0]], array_coefficients=np.array([1.0]), array_library=self.array_library())
-        ap2 = ArrayPolynomial(monomial_labels=[[1]], array_coefficients=np.array([2.0]), array_library=self.array_library())
+        ap1 = ArrayPolynomial(
+            monomial_labels=[[0]],
+            array_coefficients=np.array([1.0]),
+            array_library=self.array_library(),
+        )
+        ap2 = ArrayPolynomial(
+            monomial_labels=[[1]],
+            array_coefficients=np.array([2.0]),
+            array_library=self.array_library(),
+        )
         result = ap1 + ap2
 
         self.assertTrue(result.constant_term is None)
@@ -107,13 +117,13 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         result = ap1 + ap2
 
@@ -129,13 +139,13 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         result = ap1 + ap2
 
@@ -161,7 +171,7 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         result = ap1 + 1.2
@@ -176,7 +186,7 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(1, 2, 2) + 1j * np.random.rand(1, 2, 2),
             monomial_labels=[[0]],
             constant_term=np.random.rand(2, 2) + 1j * np.random.rand(2, 2),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         result = ap1 + np.eye(2)
@@ -191,13 +201,13 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         result = ap1.add(ap2, monomial_filter=lambda x: len(x) <= 1)
 
@@ -223,13 +233,13 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [0, 0, 0], [0, 0, 0, 0]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         ms = Multiset({0: 3})
@@ -258,13 +268,13 @@ class TestArrayPolynomialAlgebra:
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [0, 0, 0], [0, 0, 0, 0]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         ms_list = [Multiset({0: 3})]
@@ -287,13 +297,13 @@ class TestArrayPolynomialAlgebra:
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(1, 2, 2),
             monomial_labels=[[0]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(1, 2, 2),
             monomial_labels=[[0]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         result = binary_op(ap1, ap2)
@@ -316,8 +326,12 @@ class TestArrayPolynomialAlgebra:
     def test_distributive_binary_op_constant_only(self, binary_op):
         """Test binary_op of two ArrayPolynomials with only constant terms."""
 
-        ap1 = ArrayPolynomial(constant_term=np.random.rand(2, 2), array_library=self.array_library())
-        ap2 = ArrayPolynomial(constant_term=np.random.rand(2, 2), array_library=self.array_library())
+        ap1 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2), array_library=self.array_library()
+        )
+        ap2 = ArrayPolynomial(
+            constant_term=np.random.rand(2, 2), array_library=self.array_library()
+        )
 
         result = binary_op(ap1, ap2)
         self.assertAllClose(result.constant_term, binary_op(ap1.constant_term, ap2.constant_term))
@@ -333,13 +347,13 @@ class TestArrayPolynomialAlgebra:
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         result = binary_op(ap1, ap2)
@@ -377,7 +391,7 @@ class TestArrayPolynomialAlgebra:
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         v = np.random.rand(2, 2)
 
@@ -399,7 +413,7 @@ class TestArrayPolynomialAlgebra:
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         c = 2.324
@@ -419,7 +433,7 @@ class TestArrayPolynomialAlgebra:
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         v = np.random.rand(2)
 
@@ -446,13 +460,13 @@ class TestArrayPolynomialAlgebra:
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         # keep only terms with degree <= 2
@@ -488,13 +502,13 @@ class TestArrayPolynomialAlgebra:
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         # keep if degree <= 2 or if it is a submultiset of Multiset({0: 3})
@@ -534,13 +548,13 @@ class TestArrayPolynomialAlgebra:
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         # keep only a specific set of terms
@@ -555,6 +569,7 @@ class TestArrayPolynomialAlgebra:
         self.assertAllClose(result.array_coefficients, expected_coefficients)
         self.assertTrue(result.monomial_labels == expected_monomial_labels)
         self.assertTrue(result.constant_term is None)
+
 
 @partial(test_array_backends, array_libraries=["jax"])
 @ddt
@@ -598,21 +613,25 @@ class TestArrayPolynomial:
         """Set up typical polynomials including edge cases."""
 
         self.constant_0d = ArrayPolynomial(constant_term=3.0, array_library=self.array_library())
-        self.constant_22d = ArrayPolynomial(constant_term=np.eye(2), array_library=self.array_library())
+        self.constant_22d = ArrayPolynomial(
+            constant_term=np.eye(2), array_library=self.array_library()
+        )
         self.non_constant_0d = ArrayPolynomial(
-            array_coefficients=np.array([1.0, 2.0, 3.0]), monomial_labels=[[0], [1], [2]], array_library=self.array_library()
+            array_coefficients=np.array([1.0, 2.0, 3.0]),
+            monomial_labels=[[0], [1], [2]],
+            array_library=self.array_library(),
         )
         self.non_constant_32d = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 3, 2),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.array([[0.0, 1.0], [1.0, 0.0], [-1.0, -1.0]]),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
         self.non_constant_complex = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
     def test_validation_error_no_ops(self):
@@ -739,7 +758,7 @@ class TestArrayPolynomial:
             constant_term=np.random.rand(2, 2) + 1j * np.random.rand(2, 2),
             array_coefficients=np.random.rand(3, 2, 2) + 1j * np.random.rand(3, 2, 2),
             monomial_labels=[[0], [1], [2]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         ap_real = ap.real
@@ -754,7 +773,7 @@ class TestArrayPolynomial:
             constant_term=np.random.rand() + 1j * np.random.rand(),
             array_coefficients=np.random.rand(3) + 1j * np.random.rand(3),
             monomial_labels=[[0], [1], [2]],
-            array_library=self.array_library()
+            array_library=self.array_library(),
         )
 
         ap_real = ap.real
@@ -775,7 +794,11 @@ class TestArrayPolynomial:
             Multiset({1: 2}),
         ]
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=monomial_labels, array_library=self.array_library())
+        ap = ArrayPolynomial(
+            array_coefficients=coeffs,
+            monomial_labels=monomial_labels,
+            array_library=self.array_library(),
+        )
 
         c = np.array([3.0, 4.0])
         output = ap(c)
@@ -816,7 +839,11 @@ class TestArrayPolynomial:
         rng = np.random.default_rng(938122)
         c = rng.uniform(size=(2,))
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
+        ap = ArrayPolynomial(
+            array_coefficients=coeffs,
+            monomial_labels=multiset_list,
+            array_library=self.array_library(),
+        )
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -842,7 +869,11 @@ class TestArrayPolynomial:
         rng = np.random.default_rng(22321)
         c = rng.uniform(size=(3,))
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
+        ap = ArrayPolynomial(
+            array_coefficients=coeffs,
+            monomial_labels=multiset_list,
+            array_library=self.array_library(),
+        )
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -884,7 +915,11 @@ class TestArrayPolynomial:
         rng = np.random.default_rng(23421)
         c = rng.uniform(size=(3,))
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
+        ap = ArrayPolynomial(
+            array_coefficients=coeffs,
+            monomial_labels=multiset_list,
+            array_library=self.array_library(),
+        )
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -933,7 +968,11 @@ class TestArrayPolynomial:
         rng = np.random.default_rng(23421)
         c = rng.uniform(size=(3, 20))
 
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
+        ap = ArrayPolynomial(
+            array_coefficients=coeffs,
+            monomial_labels=multiset_list,
+            array_library=self.array_library(),
+        )
 
         output_monomials = ap.compute_monomials(c)
         expected_monomials = np.array(
@@ -963,7 +1002,11 @@ class TestArrayPolynomial:
         multiset_list = [Multiset({0: 1}), Multiset({1: 1})]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
+        ap = ArrayPolynomial(
+            array_coefficients=coeffs,
+            monomial_labels=multiset_list,
+            array_library=self.array_library(),
+        )
 
         c = np.array([3.0, 2.0])
         self.assertAllClose(ap.compute_monomials(c), c)
@@ -974,7 +1017,11 @@ class TestArrayPolynomial:
         multiset_list = [Multiset({2: 2}), Multiset({0: 1}), Multiset({1: 1, 2: 1})]
         # coeffs don't matter in this case
         coeffs = np.zeros((len(multiset_list), 2, 2), dtype=complex)
-        ap = ArrayPolynomial(array_coefficients=coeffs, monomial_labels=multiset_list, array_library=self.array_library())
+        ap = ArrayPolynomial(
+            array_coefficients=coeffs,
+            monomial_labels=multiset_list,
+            array_library=self.array_library(),
+        )
 
         c = np.array([3.0, 2.0, 4.0])
         self.assertAllClose(ap.compute_monomials(c), np.array([16.0, 3.0, 8.0]))

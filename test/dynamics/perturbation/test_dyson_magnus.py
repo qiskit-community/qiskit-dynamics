@@ -30,7 +30,7 @@ from qiskit_dynamics.perturbation.dyson_magnus import (
     _magnus_from_dyson_jax,
 )
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase, test_array_backends
+from ..common import QiskitDynamicsTestCase, test_array_backends
 
 try:
     from jax import jit
@@ -43,6 +43,7 @@ class TestMagnusFromDyson:
     """Test _magnus_from_dyson and _magnus_from_dyson_jax functions."""
 
     def setUp(self):
+        """Set dyson to magnus conversion function based on array library."""
         if self.array_library() == "jax":
             self._magnus_from_dyson = _magnus_from_dyson_jax
         else:

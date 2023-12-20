@@ -40,7 +40,6 @@ from scipy.integrate._ivp.ivp import OdeResult
 from multiset import Multiset
 
 from qiskit_dynamics import ArrayLike
-from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.solvers.solver_functions import solve_ode
 
 from qiskit_dynamics.perturbation.custom_binary_op import (
@@ -261,19 +260,6 @@ def _solve_lmde_dyson_jax(
 
     if y0 is None:
         y0 = jnp.eye(mat_dim, dtype=complex)
-    '''
-    #################################################################################################
-    # I believe this is unnecessary now
-    # ensure perturbations and generator to return raw jax arrays
-    def func_transform(f):
-        def new_func(t):
-            return Array(f(t), backend="jax").data
-
-        return new_func
-
-    generator = func_transform(generator)
-    perturbations = [func_transform(a_func) for a_func in perturbations]
-    '''
 
     # construct term list an RHS based on whether dyson or dyson-like
     complete_term_list = None

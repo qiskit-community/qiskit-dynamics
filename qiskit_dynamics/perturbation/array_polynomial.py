@@ -132,7 +132,7 @@ class ArrayPolynomial:
         constant_term: Optional[ArrayLike] = None,
         array_coefficients: Optional[ArrayLike] = None,
         monomial_labels: Optional[List[Multiset]] = None,
-        array_library: Optional[str] = None
+        array_library: Optional[str] = None,
     ):
         """Construct a multivariable matrix polynomial.
 
@@ -163,7 +163,7 @@ class ArrayPolynomial:
         self._array_coefficients = None
         if array_coefficients is not None:
             self._array_coefficients = numpy_alias(like=array_library).asarray(array_coefficients)
-        
+
         self._constant_term = None
         if constant_term is not None:
             self._constant_term = numpy_alias(like=array_library).asarray(constant_term)
@@ -439,15 +439,11 @@ class ArrayPolynomial:
 
         raise QiskitError(f"Type {type(other)} not supported by ArrayPolynomial.mul.")
 
-    def __add__(
-        self, other: Union["ArrayPolynomial", ArrayLike]
-    ) -> "ArrayPolynomial":
+    def __add__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for addition of two ArrayPolynomials."""
         return self.add(other)
 
-    def __radd__(
-        self, other: Union["ArrayPolynomial", ArrayLike]
-    ) -> "ArrayPolynomial":
+    def __radd__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for right-addition of two ArrayPolynomials."""
         return self.add(other)
 
@@ -468,25 +464,17 @@ class ArrayPolynomial:
             array_coefficients=array_coefficients,
         )
 
-    def __sub__(
-        self, other: Union["ArrayPolynomial", ArrayLike]
-    ) -> "ArrayPolynomial":
+    def __sub__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         return self + (-other)
 
-    def __rsub__(
-        self, other: Union["ArrayPolynomial", ArrayLike]
-    ) -> "ArrayPolynomial":
+    def __rsub__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         return other + (-self)
 
-    def __mul__(
-        self, other: Union["ArrayPolynomial", ArrayLike]
-    ) -> "ArrayPolynomial":
+    def __mul__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for entry-wise multiplication."""
         return self.mul(other)
 
-    def __rmul__(
-        self, other: Union["ArrayPolynomial", ArrayLike]
-    ) -> "ArrayPolynomial":
+    def __rmul__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for right-multiplication."""
         return self.mul(other)
 
@@ -543,10 +531,14 @@ class ArrayPolynomial:
 
         if self._array_coefficients is not None and self._constant_term is not None:
             monomials = self.compute_monomials(c)
-            return self._constant_term + _numpy_multi_dispatch(self._array_coefficients, monomials, path="tensordot", axes=(0, 0))
+            return self._constant_term + _numpy_multi_dispatch(
+                self._array_coefficients, monomials, path="tensordot", axes=(0, 0)
+            )
         elif self._array_coefficients is not None:
             monomials = self._compute_monomials(c)
-            return _numpy_multi_dispatch(self._array_coefficients, monomials, path="tensordot", axes=(0, 0))
+            return _numpy_multi_dispatch(
+                self._array_coefficients, monomials, path="tensordot", axes=(0, 0)
+            )
         else:
             return self._constant_term
 
