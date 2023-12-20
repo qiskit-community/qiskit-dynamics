@@ -9,9 +9,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """Tests for custom_binary_op.py"""
+
+from functools import partial
 
 import numpy as np
 from ddt import ddt, data, unpack
@@ -23,11 +25,12 @@ from qiskit_dynamics.perturbation.custom_binary_op import (
     _CustomMul,
 )
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, test_array_backends
 
 
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
 @ddt
-class Test_CustomBinaryOp(QiskitDynamicsTestCase):
+class Test_CustomBinaryOp:
     """Test _CustomBinaryOp in the cases of matmul and mul."""
 
     def setUp(self):
@@ -44,8 +47,8 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
     def test_rule1(self, binary_op):
         """Test correct evaluation of rule1."""
         rng = np.random.default_rng(9381)
-        A = rng.uniform(size=(3, 5, 5))
-        B = rng.uniform(size=(3, 5, 5))
+        A = self.asarray(rng.uniform(size=(3, 5, 5)))
+        B = self.asarray(rng.uniform(size=(3, 5, 5)))
 
         prod02 = binary_op(A[0], B[2])
         prod11 = binary_op(A[1], B[1])
@@ -55,6 +58,7 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
         custom_op = _CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
+        self.assertArrayType(output)
         self.assertAllClose(expected, output)
 
     @unpack
@@ -62,8 +66,8 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
     def test_rule2(self, binary_op):
         """Test correct evaluation of rule 2."""
         rng = np.random.default_rng(9381)
-        A = rng.uniform(size=(1, 10, 10))
-        B = rng.uniform(size=(3, 10, 10))
+        A = self.asarray(rng.uniform(size=(1, 10, 10)))
+        B = self.asarray(rng.uniform(size=(3, 10, 10)))
 
         prod02 = binary_op(A[0], B[2])
         prod00 = binary_op(A[0], B[0])
@@ -72,6 +76,7 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
         custom_op = _CustomBinaryOp(operation_rule=self.mult_rule2, binary_op=binary_op)
         output = custom_op(A, B)
 
+        self.assertArrayType(output)
         self.assertAllClose(expected, output)
 
     @unpack
@@ -80,8 +85,8 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
         """Test works for lists of matrices as well."""
 
         rng = np.random.default_rng(21319)
-        A = rng.uniform(size=(3, 4, 5, 5))
-        B = rng.uniform(size=(3, 4, 5, 5))
+        A = self.asarray(rng.uniform(size=(3, 4, 5, 5)))
+        B = self.asarray(rng.uniform(size=(3, 4, 5, 5)))
 
         prod02 = binary_op(A[0], B[2])
         prod11 = binary_op(A[1], B[1])
@@ -91,6 +96,7 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
         custom_op = _CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
+        self.assertArrayType(output)
         self.assertAllClose(expected, output)
 
     def test_matmul_unequal_shapes(self):
@@ -98,8 +104,8 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
         binary_op = lambda A, B: A @ B
 
         rng = np.random.default_rng(21319)
-        A = rng.uniform(size=(3, 2, 5))
-        B = rng.uniform(size=(3, 5, 3))
+        A = self.asarray(rng.uniform(size=(3, 2, 5)))
+        B = self.asarray(rng.uniform(size=(3, 5, 3)))
 
         prod02 = binary_op(A[0], B[2])
         prod11 = binary_op(A[1], B[1])
@@ -109,6 +115,7 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
         custom_op = _CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
+        self.assertArrayType(output)
         self.assertAllClose(expected, output)
 
     def test_mul_unequal_shapes(self):
@@ -116,8 +123,8 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
         binary_op = lambda A, B: A * B
 
         rng = np.random.default_rng(21319)
-        A = rng.uniform(size=(3, 2, 5))
-        B = rng.uniform(size=(3, 1))
+        A = self.asarray(rng.uniform(size=(3, 2, 5)))
+        B = self.asarray(rng.uniform(size=(3, 1)))
 
         prod02 = binary_op(A[0], B[2])
         prod11 = binary_op(A[1], B[1])
@@ -127,43 +134,46 @@ class Test_CustomBinaryOp(QiskitDynamicsTestCase):
         custom_op = _CustomBinaryOp(operation_rule=self.mult_rule1, binary_op=binary_op)
         output = custom_op(A, B)
 
+        self.assertArrayType(output)
         self.assertAllClose(expected, output)
 
 
-class Test_CustomBinaryOpJAX(Test_CustomBinaryOp, TestJaxBase):
+@partial(test_array_backends, array_libraries=["jax"])
+class Test_CustomBinaryOpJAXTransformations:
     """JAX version of Test_CustomBinaryOp."""
+
+    def setUp(self):
+        self.mult_rule1 = [
+            (np.array([1.0, 2.0, 3.0]), np.array([[0, 2], [1, 1], [2, 0]])),
+            (np.array([1.0]), np.array([[0, 2]])),
+            (np.array([3.0]), np.array([[1, 1]])),
+        ]
 
     def test_jit_grad_matmul(self):
         """Verify jitting and gradding works through _CustomMatmul."""
-
-        from jax import jit, grad
 
         def func(A, B):
             custom_matmul = _CustomMatmul(self.mult_rule1)
             return custom_matmul(A, B).real.sum()
 
-        jit_grad_func = jit(grad(func))
+        rng = np.random.default_rng(432523)
+        A = rng.uniform(size=(3, 5, 5))
+        B = rng.uniform(size=(3, 5, 5))
 
-        A = np.random.rand(3, 5, 5)
-        B = np.random.rand(3, 5, 5)
-
-        jit_grad_func(A, B)
+        self.jit_grad(func)(A, B)
 
     def test_jit_grad_mul(self):
         """Verify jitting and gradding works through _CustomMul."""
-
-        from jax import jit, grad
 
         def func(A, B):
             custom_mul = _CustomMul(self.mult_rule1)
             return custom_mul(A, B).real.sum()
 
-        jit_grad_func = jit(grad(func))
+        rng = np.random.default_rng(213232)
+        A = rng.uniform(size=(3, 5, 5))
+        B = rng.uniform(size=(3, 5, 5))
 
-        A = np.random.rand(3, 5, 5)
-        B = np.random.rand(3, 5, 5)
-
-        jit_grad_func(A, B)
+        self.jit_grad(func)(A, B)
 
 
 class Test_compile_custom_operation_rule(QiskitDynamicsTestCase):
