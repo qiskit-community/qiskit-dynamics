@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name,invalid-unary-operand-type
+# pylint: disable=invalid-name,invalid-unary-operand-type,no-member
 
 """Tests for array_polynomial.py."""
 
@@ -24,7 +24,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics.perturbation import ArrayPolynomial
 
-from ..common import QiskitDynamicsTestCase, test_array_backends
+from ..common import test_array_backends
 
 try:
     from jax import jit, grad
