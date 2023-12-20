@@ -367,7 +367,6 @@ class ArrayPolynomial:
         """
 
         if isinstance(other, ArrayLike):
-        #if isinstance(other, (int, float, complex, np.ndarray, Array)):##############################
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -379,7 +378,7 @@ class ArrayPolynomial:
 
     def matmul(
         self,
-        other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
+        other: Union["ArrayPolynomial", ArrayLike],
         monomial_filter: Optional[Callable] = None,
     ) -> "ArrayPolynomial":
         """Matmul self @ other with bounds on which terms to keep.
@@ -399,7 +398,6 @@ class ArrayPolynomial:
             QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
         if isinstance(other, ArrayLike):
-        #if isinstance(other, (int, float, complex, np.ndarray, Array)):###################################
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -534,7 +532,7 @@ class ArrayPolynomial:
 
         return num_terms
 
-    def __call__(self, c: Optional[Array] = None) -> Array:
+    def __call__(self, c: Optional[ArrayLike] = None) -> ArrayLike:
         """Evaluate the polynomial.
 
         Args:
@@ -544,13 +542,11 @@ class ArrayPolynomial:
         """
 
         if self._array_coefficients is not None and self._constant_term is not None:
-            monomials = self._compute_monomials(c)
-            return self._constant_term + np.tensordot(
-                self._array_coefficients, monomials, axes=(0, 0)
-            )
+            monomials = self.compute_monomials(c)
+            return self._constant_term + _numpy_multi_dispatch(self._array_coefficients, monomials, path="tensordot", axes=(0, 0))
         elif self._array_coefficients is not None:
             monomials = self._compute_monomials(c)
-            return np.tensordot(self._array_coefficients, monomials, axes=(0, 0))
+            return _numpy_multi_dispatch(self._array_coefficients, monomials, path="tensordot", axes=(0, 0))
         else:
             return self._constant_term
 
@@ -813,21 +809,21 @@ def _array_polynomial_distributive_binary_op(
 
     lmats = None
     if ap1.constant_term is not None:
-        lmats = np.expand_dims(ap1.constant_term, 0)
+        lmats = unp.expand_dims(ap1.constant_term, 0)
     else:
-        lmats = np.expand_dims(np.zeros_like(Array(ap1.array_coefficients[0])), 0)
+        lmats = unp.expand_dims(unp.zeros_like(ap1.array_coefficients[0]), 0)
 
     if ap1.array_coefficients is not None:
-        lmats = np.append(lmats, ap1.array_coefficients, axis=0)
+        lmats = _numpy_multi_dispatch(lmats, ap1.array_coefficients, path="append", axis=0)
 
     rmats = None
     if ap2.constant_term is not None:
-        rmats = np.expand_dims(ap2.constant_term, 0)
+        rmats = unp.expand_dims(ap2.constant_term, 0)
     else:
-        rmats = np.expand_dims(np.zeros_like(Array(ap2.array_coefficients[0])), 0)
+        rmats = unp.expand_dims(unp.zeros_like(ap2.array_coefficients[0]), 0)
 
     if ap2.array_coefficients is not None:
-        rmats = np.append(rmats, ap2.array_coefficients, axis=0)
+        rmats = _numpy_multi_dispatch(rmats, ap2.array_coefficients, path="append", axis=0)
 
     custom_binary_op = _CustomBinaryOp(
         operation_rule=operation_rule,
@@ -906,9 +902,9 @@ def _array_polynomial_addition(
     array_coefficients1 = np.zeros((1,) + ap1.shape, dtype=complex)
     array_coefficients2 = np.zeros((1,) + ap1.shape, dtype=complex)
     if ap1.array_coefficients is not None:
-        array_coefficients1 = np.append(ap1.array_coefficients, array_coefficients1, axis=0)
+        array_coefficients1 = unp.append(ap1.array_coefficients, array_coefficients1, axis=0)
     if ap2.array_coefficients is not None:
-        array_coefficients2 = np.append(ap2.array_coefficients, array_coefficients2, axis=0)
+        array_coefficients2 = unp.append(ap2.array_coefficients, array_coefficients2, axis=0)
 
     new_coefficients = array_coefficients1[idx1] + array_coefficients2[idx2]
 

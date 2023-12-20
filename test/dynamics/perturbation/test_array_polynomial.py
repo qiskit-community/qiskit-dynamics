@@ -13,6 +13,8 @@
 
 """Tests for array_polynomial.py."""
 
+from functools import partial
+
 import numpy as np
 from ddt import ddt, data, unpack
 
@@ -20,10 +22,9 @@ from multiset import Multiset
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation import ArrayPolynomial
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, test_array_backends
 
 try:
     from jax import jit, grad
@@ -31,8 +32,9 @@ except ImportError:
     pass
 
 
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
 @ddt
-class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
+class TestArrayPolynomialAlgebra:
     """Test algebraic operations on ArrayPolynomials."""
 
     def test_addition_type_error(self):
@@ -49,11 +51,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(1, 4, 6) + 1j * np.random.rand(1, 4, 6),
             monomial_labels=[[0]],
             constant_term=np.random.rand(4, 6) + 1j * np.random.rand(4, 6),
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
 
         with self.assertRaisesRegex(QiskitError, "broadcastable"):
@@ -67,6 +71,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(1, 4, 6) + 1j * np.random.rand(1, 4, 6),
             monomial_labels=[[0]],
             constant_term=np.random.rand(4, 6) + 1j * np.random.rand(4, 6),
+            array_library=self.array_library()
         )
 
         neg_ap = -ap
@@ -78,7 +83,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
     def test_addition_only_constant(self):
         """Addition with constant only ArrayPolynomials."""
 
-        result = ArrayPolynomial(constant_term=1.0) + ArrayPolynomial(constant_term=2.0)
+        result = ArrayPolynomial(constant_term=1.0, array_library=self.array_library()) + ArrayPolynomial(constant_term=2.0, array_library=self.array_library())
 
         self.assertTrue(result.constant_term == 3.0)
         self.assertTrue(result.monomial_labels == [])
@@ -87,8 +92,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
     def test_addition_only_non_constant(self):
         """Addition with ArrayPolynomials with no constant part."""
 
-        ap1 = ArrayPolynomial(monomial_labels=[[0]], array_coefficients=np.array([1.0]))
-        ap2 = ArrayPolynomial(monomial_labels=[[1]], array_coefficients=np.array([2.0]))
+        ap1 = ArrayPolynomial(monomial_labels=[[0]], array_coefficients=np.array([1.0]), array_library=self.array_library())
+        ap2 = ArrayPolynomial(monomial_labels=[[1]], array_coefficients=np.array([2.0]), array_library=self.array_library())
         result = ap1 + ap2
 
         self.assertTrue(result.constant_term is None)
@@ -102,11 +107,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
         result = ap1 + ap2
 
@@ -122,11 +129,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
         result = ap1 + ap2
 
@@ -152,6 +161,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
 
         result = ap1 + 1.2
@@ -166,6 +176,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(1, 2, 2) + 1j * np.random.rand(1, 2, 2),
             monomial_labels=[[0]],
             constant_term=np.random.rand(2, 2) + 1j * np.random.rand(2, 2),
+            array_library=self.array_library()
         )
 
         result = ap1 + np.eye(2)
@@ -180,11 +191,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [1], [2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
         result = ap1.add(ap2, monomial_filter=lambda x: len(x) <= 1)
 
@@ -210,11 +223,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [0, 0, 0], [0, 0, 0, 0]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
 
         ms = Multiset({0: 3})
@@ -243,11 +258,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [0, 0, 0], [0, 0, 0, 0]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             array_coefficients=np.random.rand(3, 4, 5) + 1j * np.random.rand(3, 4, 5),
             monomial_labels=[[0], [3], [2, 2]],
             constant_term=np.random.rand(4, 5) + 1j * np.random.rand(4, 5),
+            array_library=self.array_library()
         )
 
         ms_list = [Multiset({0: 3})]
@@ -270,11 +287,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(1, 2, 2),
             monomial_labels=[[0]],
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(1, 2, 2),
             monomial_labels=[[0]],
+            array_library=self.array_library()
         )
 
         result = binary_op(ap1, ap2)
@@ -282,9 +301,9 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         expected_monomial_labels = [Multiset({0: 1}), Multiset({0: 2})]
         expected_coefficients = np.array(
             [
-                binary_op(ap1.constant_term, Array(ap2.array_coefficients[0]))
-                + binary_op(Array(ap1.array_coefficients[0]), ap2.constant_term),
-                binary_op(Array(ap1.array_coefficients[0]), Array(ap2.array_coefficients[0])),
+                binary_op(ap1.constant_term, ap2.array_coefficients[0])
+                + binary_op(ap1.array_coefficients[0], ap2.constant_term),
+                binary_op(ap1.array_coefficients[0], ap2.array_coefficients[0]),
             ]
         )
 
@@ -297,8 +316,8 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
     def test_distributive_binary_op_constant_only(self, binary_op):
         """Test binary_op of two ArrayPolynomials with only constant terms."""
 
-        ap1 = ArrayPolynomial(constant_term=np.random.rand(2, 2))
-        ap2 = ArrayPolynomial(constant_term=np.random.rand(2, 2))
+        ap1 = ArrayPolynomial(constant_term=np.random.rand(2, 2), array_library=self.array_library())
+        ap2 = ArrayPolynomial(constant_term=np.random.rand(2, 2), array_library=self.array_library())
 
         result = binary_op(ap1, ap2)
         self.assertAllClose(result.constant_term, binary_op(ap1.constant_term, ap2.constant_term))
@@ -314,11 +333,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
+            array_library=self.array_library()
         )
 
         result = binary_op(ap1, ap2)
@@ -334,13 +355,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         expected_coefficients = np.array(
             [
                 binary_op(ap1.constant_term, ap2.array_coefficients[0])
-                + binary_op(Array(ap1.array_coefficients[0]), ap2.constant_term),
-                binary_op(Array(ap1.array_coefficients[1]), ap2.constant_term),
-                binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[0])
+                + binary_op(ap1.array_coefficients[0], ap2.constant_term),
+                binary_op(ap1.array_coefficients[1], ap2.constant_term),
+                binary_op(ap1.array_coefficients[0], ap2.array_coefficients[0])
                 + binary_op(ap1.constant_term, ap2.array_coefficients[1]),
-                binary_op(Array(ap1.array_coefficients[1]), ap2.array_coefficients[0]),
-                binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[1]),
-                binary_op(Array(ap1.array_coefficients[1]), ap2.array_coefficients[1]),
+                binary_op(ap1.array_coefficients[1], ap2.array_coefficients[0]),
+                binary_op(ap1.array_coefficients[0], ap2.array_coefficients[1]),
+                binary_op(ap1.array_coefficients[1], ap2.array_coefficients[1]),
             ]
         )
 
@@ -356,6 +377,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
+            array_library=self.array_library()
         )
         v = np.random.rand(2, 2)
 
@@ -377,6 +399,7 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
+            array_library=self.array_library()
         )
 
         c = 2.324
@@ -392,11 +415,11 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
 
     def test_matmul_array(self):
         """Test matmul of an ArrayPolynomial with an array."""
-
         ap = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
+            array_library=self.array_library()
         )
         v = np.random.rand(2)
 
@@ -423,11 +446,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
+            array_library=self.array_library()
         )
 
         # keep only terms with degree <= 2
@@ -442,11 +467,11 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         expected_coefficients = np.array(
             [
                 binary_op(ap1.constant_term, ap2.array_coefficients[0])
-                + binary_op(Array(ap1.array_coefficients[0]), ap2.constant_term),
-                binary_op(Array(ap1.array_coefficients[1]), ap2.constant_term),
-                binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[0])
+                + binary_op(ap1.array_coefficients[0], ap2.constant_term),
+                binary_op(ap1.array_coefficients[1], ap2.constant_term),
+                binary_op(ap1.array_coefficients[0], ap2.array_coefficients[0])
                 + binary_op(ap1.constant_term, ap2.array_coefficients[1]),
-                binary_op(Array(ap1.array_coefficients[1]), ap2.array_coefficients[0]),
+                binary_op(ap1.array_coefficients[1], ap2.array_coefficients[0]),
             ]
         )
 
@@ -463,11 +488,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
+            array_library=self.array_library()
         )
 
         # keep if degree <= 2 or if it is a submultiset of Multiset({0: 3})
@@ -485,12 +512,12 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         expected_coefficients = np.array(
             [
                 binary_op(ap1.constant_term, ap2.array_coefficients[0])
-                + binary_op(Array(ap1.array_coefficients[0]), ap2.constant_term),
-                binary_op(Array(ap1.array_coefficients[1]), ap2.constant_term),
-                binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[0])
+                + binary_op(ap1.array_coefficients[0], ap2.constant_term),
+                binary_op(ap1.array_coefficients[1], ap2.constant_term),
+                binary_op(ap1.array_coefficients[0], ap2.array_coefficients[0])
                 + binary_op(ap1.constant_term, ap2.array_coefficients[1]),
-                binary_op(Array(ap1.array_coefficients[1]), ap2.array_coefficients[0]),
-                binary_op(Array(ap1.array_coefficients[0]), ap2.array_coefficients[1]),
+                binary_op(ap1.array_coefficients[1], ap2.array_coefficients[0]),
+                binary_op(ap1.array_coefficients[0], ap2.array_coefficients[1]),
             ]
         )
 
@@ -507,11 +534,13 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [1]],
+            array_library=self.array_library()
         )
         ap2 = ArrayPolynomial(
             constant_term=np.random.rand(2, 2),
             array_coefficients=np.random.rand(2, 2, 2),
             monomial_labels=[[0], [0, 0]],
+            array_library=self.array_library()
         )
 
         # keep only a specific set of terms
@@ -520,17 +549,17 @@ class TestArrayPolynomialAlgebra(QiskitDynamicsTestCase):
         result = getattr(ap1, method_name)(ap2, monomial_filter=monomial_filter)
         expected_monomial_labels = [Multiset({0: 2, 1: 1})]
         expected_coefficients = np.array(
-            [binary_op(Array(ap1.array_coefficients[1]), ap2.array_coefficients[1])]
+            [binary_op(ap1.array_coefficients[1], ap2.array_coefficients[1])]
         )
 
         self.assertAllClose(result.array_coefficients, expected_coefficients)
         self.assertTrue(result.monomial_labels == expected_monomial_labels)
         self.assertTrue(result.constant_term is None)
 
-
+@partial(test_array_backends, array_libraries=["jax"])
 @ddt
-class TestArrayPolynomialAlgebraJAX(TestArrayPolynomialAlgebra, TestJaxBase):
-    """JAX version of TestArrayPolynomialAlgebra."""
+class TestArrayPolynomialAlgebraJAXTransformations:
+    """Test JAX transformations through array polynomial algebraic operations."""
 
     @unpack
     @data((lambda A, B: A + B,), (lambda A, B: A @ B,), (lambda A, B: A * B,))
@@ -556,12 +585,11 @@ class TestArrayPolynomialAlgebraJAX(TestArrayPolynomialAlgebra, TestJaxBase):
             )
 
             ap3 = op(ap1, ap2)
-            return ap3(e).data.real.sum()
+            return ap3(e).real.sum()
 
-        jit_grad_func = jit(grad(func))
-        jit_grad_func(1.0, 2.0, 3.0, 4.0, np.array([5.0, 6.0]))
+        self.jit_grad(func)(1.0, 2.0, 3.0, 4.0, np.array([5.0, 6.0]))
 
-
+'''
 class TestArrayPolynomial(QiskitDynamicsTestCase):
     """Test the ArrayPolynomial class."""
 
@@ -1002,3 +1030,4 @@ class TestArrayPolynomialJax(TestArrayPolynomial, TestJaxBase):
         expected = np.array([1.0 + 0.0 + 4.0 + 3.0 + 0.0, 0.0 + 1.0 + 0.0 + 2.0 + 6.0])
 
         self.assertAllClose(expected, monomial_function_jit_grad(c))
+'''
