@@ -39,6 +39,357 @@ except ImportError:
     pass
 
 
+@ddt
+class Test_DysonMagnusSolver_Validation(QiskitDynamicsTestCase):
+    """Validation tests for DysonSolver and MagnusSolver."""
+
+    @unpack
+    @data((DysonSolver,), (MagnusSolver,))
+    def test_invalid_carrier_freqs(self, SolverClass):
+        """Test error is raised if carrier_freqs length doesn't match operators length."""
+        with self.assertRaisesRegex(QiskitError, "carrier_freqs must have the same length"):
+            SolverClass(
+                operators=np.array([[[1.0]], [[2.0]]]),
+                rotating_frame=np.array([[1.0]]),
+                dt=1.0,
+                carrier_freqs=np.array([1.0]),
+                chebyshev_orders=np.array([1, 1]),
+            )
+
+    @unpack
+    @data((DysonSolver,), (MagnusSolver,))
+    def test_invalid_chebyshev_orders(self, SolverClass):
+        """Test error is raised if chebyshev_orders length doesn't match operators length."""
+        with self.assertRaisesRegex(QiskitError, "chebyshev_orders must have the same length"):
+            SolverClass(
+                operators=np.array([[[1.0]], [[2.0]]]),
+                rotating_frame=np.array([[1.0]]),
+                dt=1.0,
+                carrier_freqs=np.array([1.0, 1.0]),
+                chebyshev_orders=np.array([1, 1, 1]),
+            )
+
+
+class Test_PerturbativeSolver(QiskitDynamicsTestCase):
+    """Tests for perturbative solver."""
+
+    def setUp(self):
+        self.jax_control_flow = False
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up class."""
+        cls.build_testing_objects(cls)
+
+    @staticmethod
+    def build_testing_objects(obj, integration_method="DOP853"):
+        """Set up simple model parameters and solution to be used in multiple tests."""
+
+        r = 0.2
+
+        def gaussian(amp, sig, t0, t):
+            return amp * unp.exp(-((t - t0) ** 2) / (2 * sig**2))
+
+        # specifications for generating envelope
+        amp = 1.0  # amplitude
+        sig = 0.399128 / r  # sigma
+        t0 = 3.5 * sig  # center of Gaussian
+        T = 7 * sig  # end of signal
+
+        # Function to define gaussian envelope, using gaussian wave function
+        gaussian_envelope = lambda t: gaussian(amp, sig, t0, t)
+
+        obj.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.0)
+
+        dt = 0.0125
+        obj.n_steps = int(T // dt) // 3
+        hamiltonian_operators = 2 * np.pi * r * np.array([[[0.0, 1.0], [1.0, 0.0]]]) / 2
+        static_hamiltonian = 2 * np.pi * 5.0 * np.array([[1.0, 0.0], [0.0, -1.0]]) / 2
+
+        reg_solver = Solver(
+            static_hamiltonian=static_hamiltonian,
+            hamiltonian_operators=hamiltonian_operators,
+            rotating_frame=static_hamiltonian,
+        )
+
+        obj.simple_yf = reg_solver.solve(
+            t_span=[0.0, dt * obj.n_steps],
+            y0=np.eye(2, dtype=complex),
+            signals=[obj.gauss_signal],
+            method=integration_method,
+            atol=1e-12,
+            rtol=1e-12,
+        ).y[-1]
+
+        obj.simple_dyson_solver = DysonSolver(
+            operators=-1j * hamiltonian_operators,
+            rotating_frame=-1j * static_hamiltonian,
+            dt=dt,
+            carrier_freqs=[5.0],
+            chebyshev_orders=[1],
+            expansion_order=6,
+            integration_method=integration_method,
+            atol=1e-10,
+            rtol=1e-10,
+        )
+        obj.simple_magnus_solver = MagnusSolver(
+            operators=-1j * hamiltonian_operators,
+            rotating_frame=-1j * static_hamiltonian,
+            dt=dt,
+            carrier_freqs=[5.0],
+            chebyshev_orders=[1],
+            expansion_order=3,
+            integration_method=integration_method,
+            atol=1e-10,
+            rtol=1e-10,
+        )
+
+        # set up more complicated two transmon example
+        w_c = 2 * np.pi * 5.033
+        w_t = 2 * np.pi * 4.067
+        alpha_c = 2 * np.pi * (-0.33534)
+        alpha_t = 2 * np.pi * (-0.33834)
+        J = 2 * np.pi * 0.002
+
+        dim = 5
+        obj.dim_2q = dim
+
+        a = np.diag(np.sqrt(np.arange(1, dim)), 1)
+        adag = a.transpose()
+        N = np.diag(np.arange(dim))
+        ident = np.eye(dim)
+        ident2 = np.eye(dim**2)
+
+        # operators on the control qubit (first tensor factor)
+        a0 = np.kron(a, ident)
+        adag0 = np.kron(adag, ident)
+        N0 = np.kron(N, ident)
+
+        # operators on the target qubit (first tensor factor)
+        a1 = np.kron(ident, a)
+        adag1 = np.kron(ident, adag)
+        N1 = np.kron(ident, N)
+
+        H0 = (
+            w_c * N0
+            + 0.5 * alpha_c * N0 @ (N0 - ident2)
+            + w_t * N1
+            + 0.5 * alpha_t * N1 @ (N1 - ident2)
+            + J * (a0 @ adag1 + adag0 @ a1)
+        )
+        Hdc = 2 * np.pi * (a0 + adag0)
+        Hdt = 2 * np.pi * (a1 + adag1)
+
+        dense_solver = Solver(
+            static_hamiltonian=H0,
+            hamiltonian_operators=[Hdc, Hdt],
+            rotating_frame=H0,
+        )
+
+        T = 10.0
+        dt = 0.01
+        obj.n_steps_2q = int(T // dt)
+
+        obj.yf_2q = dense_solver.solve(
+            t_span=[0.0, dt * obj.n_steps_2q],
+            y0=np.eye(dim**2, dtype=complex),
+            signals=[obj.gauss_signal, obj.gauss_signal],
+            method=integration_method,
+            atol=1e-12,
+            rtol=1e-12,
+        ).y[-1]
+
+        obj.dyson_solver_2q = DysonSolver(
+            operators=[-1j * Hdc, -1j * Hdt],
+            rotating_frame=-1j * H0,
+            dt=dt,
+            carrier_freqs=[5.0, 5.0],
+            chebyshev_orders=[1, 1],
+            expansion_order=6,
+            integration_method=integration_method,
+            atol=1e-10,
+            rtol=1e-10,
+        )
+        obj.dyson_solver_2q_0_carrier = DysonSolver(
+            operators=[-1j * Hdc, -1j * Hdt],
+            rotating_frame=-1j * H0,
+            dt=dt,
+            carrier_freqs=[0.0, 0.0],
+            chebyshev_orders=[3, 3],
+            expansion_order=6,
+            integration_method=integration_method,
+            include_imag=[False, False],
+            atol=1e-10,
+            rtol=1e-10,
+        )
+        obj.magnus_solver_2q = MagnusSolver(
+            operators=[-1j * Hdc, -1j * Hdt],
+            rotating_frame=-1j * H0,
+            dt=dt,
+            carrier_freqs=[5.0, 5.0],
+            chebyshev_orders=[1, 1],
+            expansion_order=3,
+            integration_method=integration_method,
+            atol=1e-10,
+            rtol=1e-10,
+        )
+
+    def test_signal_length_validation(self):
+        """Test correct validation of signal length."""
+        with self.assertRaisesRegex(QiskitError, "must be the same length"):
+            # pylint: disable=expression-not-assigned
+            self.simple_dyson_solver.solve(
+                t0=0.0,
+                n_steps=self.n_steps,
+                y0=np.eye(2, dtype=complex),
+                signals=[self.gauss_signal, self.gauss_signal],
+                jax_control_flow=self.jax_control_flow,
+            )
+
+    def test_simple_dyson_solver(self):
+        """Test dyson solver on a simple qubit model."""
+
+        dyson_yf = self.simple_dyson_solver.solve(
+            t0=0.0,
+            n_steps=self.n_steps,
+            y0=np.eye(2, dtype=complex),
+            signals=[self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
+        ).y[-1]
+
+        self.assertAllClose(dyson_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
+
+    def test_simple_magnus_solver(self):
+        """Test magnus solver on a simple qubit model."""
+
+        magnus_yf = self.simple_magnus_solver.solve(
+            t0=0.0,
+            n_steps=self.n_steps,
+            y0=np.eye(2, dtype=complex),
+            signals=[self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
+        ).y[-1]
+
+        self.assertAllClose(magnus_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
+
+    def test_dyson_solver_2q(self):
+        """Test dyson solver on a two transmon model."""
+
+        dyson_yf = self.dyson_solver_2q.solve(
+            t0=0.0,
+            n_steps=self.n_steps_2q,
+            y0=np.eye(self.dim_2q**2, dtype=complex),
+            signals=[self.gauss_signal, self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
+        ).y[-1]
+        # measure similarity with fidelity
+        self.assertTrue(
+            np.abs(1.0 - np.abs((dyson_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
+            < 1e-6
+        )
+
+    def test_dyson_solver_2q_0_carrier(self):
+        """Test dyson solver on a two transmon model."""
+
+        dyson_yf = self.dyson_solver_2q_0_carrier.solve(
+            t0=0.0,
+            n_steps=self.n_steps_2q,
+            y0=np.eye(self.dim_2q**2, dtype=complex),
+            signals=[self.gauss_signal, self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
+        ).y[-1]
+
+        # measure similarity with fidelity
+        self.assertTrue(
+            np.abs(1.0 - np.abs((dyson_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
+            < 1e-6
+        )
+
+    def test_magnus_solver_2q(self):
+        """Test magnus solver on a two transmon model."""
+
+        magnus_yf = self.magnus_solver_2q.solve(
+            t0=0.0,
+            n_steps=self.n_steps_2q,
+            y0=np.eye(self.dim_2q**2, dtype=complex),
+            signals=[self.gauss_signal, self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
+        ).y[-1]
+        # measure similarity with fidelity
+        self.assertTrue(
+            np.abs(1.0 - np.abs((magnus_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
+            < 1e-6
+        )
+
+    def test_list_simulation(self):
+        """Test running lists of simulations."""
+
+        rng = np.random.default_rng(21342)
+        y00 = rng.uniform(low=-1, high=1, size=(2, 2)) + 1j * rng.uniform(
+            low=-1, high=1, size=(2, 2)
+        )
+        y01 = rng.uniform(low=-1, high=1, size=(2, 2)) + 1j * rng.uniform(
+            low=-1, high=1, size=(2, 2)
+        )
+
+        dyson_results = self.simple_dyson_solver.solve(
+            t0=0.0,
+            n_steps=self.n_steps,
+            y0=[y00, y01],
+            signals=[self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
+        )
+
+        self.assertAllClose(dyson_results[0].y[-1], self.simple_yf @ y00, rtol=1e-6, atol=1e-6)
+        self.assertAllClose(dyson_results[1].y[-1], self.simple_yf @ y01, rtol=1e-6, atol=1e-6)
+
+
+class Test_PerturbativeSolverJAX(JAXTestBase, Test_PerturbativeSolver):
+    """Tests for perturbative solver operating in JAX mode. Note that jax_control_flow is not
+    used in the transformation tests to confirm the JAX control flow is automatically used.
+    """
+
+    def setUp(self):
+        self.jax_control_flow = True
+
+    @classmethod
+    def setUpClass(cls):
+        # calls TestJaxBase setUpClass
+        super().setUpClass()
+        # builds common objects
+        Test_PerturbativeSolver.build_testing_objects(cls, integration_method="jax_odeint")
+
+    def test_simple_dyson_solve_grad_jit(self):
+        """Test jitting and gradding of dyson solve."""
+
+        def func(c):
+            dyson_yf = self.simple_dyson_solver.solve(
+                t0=0.0,
+                n_steps=self.n_steps,
+                y0=np.eye(2, dtype=complex),
+                signals=[Signal(c, carrier_freq=5.0)],
+            ).y[-1]
+            return dyson_yf
+
+        self.assertAllClose(jit(func)(1.0), func(1.0))
+        self.jit_grad(1.0)
+
+    def test_simple_magnus_solve_jit_grad(self):
+        """Test jitting of and gradding of magnus solve."""
+
+        def func(c):
+            magnus_yf = self.simple_magnus_solver.solve(
+                t0=0.0,
+                n_steps=self.n_steps,
+                y0=np.eye(2, dtype=complex),
+                signals=[Signal(c, carrier_freq=5.0)],
+            ).y[-1]
+            return magnus_yf
+
+        self.assertAllClose(jit(func)(1.0), func(1.0))
+        self.jit_grad(1.0)
+
+
 class TestChebyshevFunctions(QiskitDynamicsTestCase):
     """Test cases for Chebyshev polynomial-related functions."""
 
@@ -441,340 +792,3 @@ class TestChebyshevFunctionsJax(TestChebyshevFunctions, JAXTestBase):
             return func(a).sum()
 
         jit(grad(func2))(1.0)
-
-'''
-@ddt
-class Test_DysonMagnusSolver_Validation(QiskitDynamicsTestCase):
-    """Validation tests for DysonSolver and MagnusSolver."""
-
-    @unpack
-    @data((DysonSolver,), (MagnusSolver,))
-    def test_invalid_carrier_freqs(self, SolverClass):
-        """Test error is raised if carrier_freqs length doesn't match operators length."""
-        with self.assertRaisesRegex(QiskitError, "carrier_freqs must have the same length"):
-            SolverClass(
-                operators=np.array([[[1.0]], [[2.0]]]),
-                rotating_frame=np.array([[1.0]]),
-                dt=1.0,
-                carrier_freqs=np.array([1.0]),
-                chebyshev_orders=np.array([1, 1]),
-            )
-
-    @unpack
-    @data((DysonSolver,), (MagnusSolver,))
-    def test_invalid_chebyshev_orders(self, SolverClass):
-        """Test error is raised if chebyshev_orders length doesn't match operators length."""
-        with self.assertRaisesRegex(QiskitError, "chebyshev_orders must have the same length"):
-            SolverClass(
-                operators=np.array([[[1.0]], [[2.0]]]),
-                rotating_frame=np.array([[1.0]]),
-                dt=1.0,
-                carrier_freqs=np.array([1.0, 1.0]),
-                chebyshev_orders=np.array([1, 1, 1]),
-            )
-
-
-class Test_PerturbativeSolver(QiskitDynamicsTestCase):
-    """Tests for perturbative solver."""
-
-    @classmethod
-    def setUpClass(cls):
-        """Set up class."""
-        cls.build_testing_objects(cls)
-
-    @staticmethod
-    def build_testing_objects(obj, integration_method="DOP853"):
-        """Set up simple model parameters and solution to be used in multiple tests."""
-
-        r = 0.2
-
-        def gaussian(amp, sig, t0, t):
-            return amp * unp.exp(-((t - t0) ** 2) / (2 * sig**2))
-
-        # specifications for generating envelope
-        amp = 1.0  # amplitude
-        sig = 0.399128 / r  # sigma
-        t0 = 3.5 * sig  # center of Gaussian
-        T = 7 * sig  # end of signal
-
-        # Function to define gaussian envelope, using gaussian wave function
-        gaussian_envelope = lambda t: gaussian(amp, sig, t0, t)
-
-        obj.gauss_signal = Signal(gaussian_envelope, carrier_freq=5.0)
-
-        dt = 0.0125
-        obj.n_steps = int(T // dt) // 3
-        hamiltonian_operators = 2 * np.pi * r * np.array([[[0.0, 1.0], [1.0, 0.0]]]) / 2
-        static_hamiltonian = 2 * np.pi * 5.0 * np.array([[1.0, 0.0], [0.0, -1.0]]) / 2
-
-        reg_solver = Solver(
-            static_hamiltonian=static_hamiltonian,
-            hamiltonian_operators=hamiltonian_operators,
-            rotating_frame=static_hamiltonian,
-        )
-
-        obj.simple_yf = reg_solver.solve(
-            t_span=[0.0, dt * obj.n_steps],
-            y0=np.eye(2, dtype=complex),
-            signals=[obj.gauss_signal],
-            method=integration_method,
-            atol=1e-12,
-            rtol=1e-12,
-        ).y[-1]
-
-        obj.simple_dyson_solver = DysonSolver(
-            operators=-1j * hamiltonian_operators,
-            rotating_frame=-1j * static_hamiltonian,
-            dt=dt,
-            carrier_freqs=[5.0],
-            chebyshev_orders=[1],
-            expansion_order=6,
-            integration_method=integration_method,
-            atol=1e-10,
-            rtol=1e-10,
-        )
-        obj.simple_magnus_solver = MagnusSolver(
-            operators=-1j * hamiltonian_operators,
-            rotating_frame=-1j * static_hamiltonian,
-            dt=dt,
-            carrier_freqs=[5.0],
-            chebyshev_orders=[1],
-            expansion_order=3,
-            integration_method=integration_method,
-            atol=1e-10,
-            rtol=1e-10,
-        )
-
-        # set up more complicated two transmon example
-        w_c = 2 * np.pi * 5.033
-        w_t = 2 * np.pi * 4.067
-        alpha_c = 2 * np.pi * (-0.33534)
-        alpha_t = 2 * np.pi * (-0.33834)
-        J = 2 * np.pi * 0.002
-
-        dim = 5
-        obj.dim_2q = dim
-
-        a = np.diag(np.sqrt(np.arange(1, dim)), 1)
-        adag = a.transpose()
-        N = np.diag(np.arange(dim))
-        ident = np.eye(dim)
-        ident2 = np.eye(dim**2)
-
-        # operators on the control qubit (first tensor factor)
-        a0 = np.kron(a, ident)
-        adag0 = np.kron(adag, ident)
-        N0 = np.kron(N, ident)
-
-        # operators on the target qubit (first tensor factor)
-        a1 = np.kron(ident, a)
-        adag1 = np.kron(ident, adag)
-        N1 = np.kron(ident, N)
-
-        H0 = (
-            w_c * N0
-            + 0.5 * alpha_c * N0 @ (N0 - ident2)
-            + w_t * N1
-            + 0.5 * alpha_t * N1 @ (N1 - ident2)
-            + J * (a0 @ adag1 + adag0 @ a1)
-        )
-        Hdc = 2 * np.pi * (a0 + adag0)
-        Hdt = 2 * np.pi * (a1 + adag1)
-
-        dense_solver = Solver(
-            static_hamiltonian=H0,
-            hamiltonian_operators=[Hdc, Hdt],
-            rotating_frame=H0,
-        )
-
-        T = 10.0
-        dt = 0.01
-        obj.n_steps_2q = int(T // dt)
-
-        obj.yf_2q = dense_solver.solve(
-            t_span=[0.0, dt * obj.n_steps_2q],
-            y0=np.eye(dim**2, dtype=complex),
-            signals=[obj.gauss_signal, obj.gauss_signal],
-            method=integration_method,
-            atol=1e-12,
-            rtol=1e-12,
-        ).y[-1]
-
-        obj.dyson_solver_2q = DysonSolver(
-            operators=[-1j * Hdc, -1j * Hdt],
-            rotating_frame=-1j * H0,
-            dt=dt,
-            carrier_freqs=[5.0, 5.0],
-            chebyshev_orders=[1, 1],
-            expansion_order=6,
-            integration_method=integration_method,
-            atol=1e-10,
-            rtol=1e-10,
-        )
-        obj.dyson_solver_2q_0_carrier = DysonSolver(
-            operators=[-1j * Hdc, -1j * Hdt],
-            rotating_frame=-1j * H0,
-            dt=dt,
-            carrier_freqs=[0.0, 0.0],
-            chebyshev_orders=[3, 3],
-            expansion_order=6,
-            integration_method=integration_method,
-            include_imag=[False, False],
-            atol=1e-10,
-            rtol=1e-10,
-        )
-        obj.magnus_solver_2q = MagnusSolver(
-            operators=[-1j * Hdc, -1j * Hdt],
-            rotating_frame=-1j * H0,
-            dt=dt,
-            carrier_freqs=[5.0, 5.0],
-            chebyshev_orders=[1, 1],
-            expansion_order=3,
-            integration_method=integration_method,
-            atol=1e-10,
-            rtol=1e-10,
-        )
-
-    def test_signal_length_validation(self):
-        """Test correct validation of signal length."""
-        with self.assertRaisesRegex(QiskitError, "must be the same length"):
-            # pylint: disable=expression-not-assigned
-            self.simple_dyson_solver.solve(
-                t0=0.0,
-                n_steps=self.n_steps,
-                y0=np.eye(2, dtype=complex),
-                signals=[self.gauss_signal, self.gauss_signal],
-            )
-
-    def test_simple_dyson_solver(self):
-        """Test dyson solver on a simple qubit model."""
-
-        dyson_yf = self.simple_dyson_solver.solve(
-            t0=0.0, n_steps=self.n_steps, y0=np.eye(2, dtype=complex), signals=[self.gauss_signal]
-        ).y[-1]
-
-        self.assertAllClose(dyson_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
-
-    def test_simple_magnus_solver(self):
-        """Test magnus solver on a simple qubit model."""
-
-        magnus_yf = self.simple_magnus_solver.solve(
-            t0=0.0, n_steps=self.n_steps, y0=np.eye(2, dtype=complex), signals=[self.gauss_signal]
-        ).y[-1]
-
-        self.assertAllClose(magnus_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
-
-    def test_dyson_solver_2q(self):
-        """Test dyson solver on a two transmon model."""
-
-        dyson_yf = self.dyson_solver_2q.solve(
-            t0=0.0,
-            n_steps=self.n_steps_2q,
-            y0=np.eye(self.dim_2q**2, dtype=complex),
-            signals=[self.gauss_signal, self.gauss_signal],
-        ).y[-1]
-        # measure similarity with fidelity
-        self.assertTrue(
-            np.abs(1.0 - np.abs((dyson_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
-            < 1e-6
-        )
-
-    def test_dyson_solver_2q_0_carrier(self):
-        """Test dyson solver on a two transmon model."""
-
-        dyson_yf = self.dyson_solver_2q_0_carrier.solve(
-            t0=0.0,
-            n_steps=self.n_steps_2q,
-            y0=np.eye(self.dim_2q**2, dtype=complex),
-            signals=[self.gauss_signal, self.gauss_signal],
-        ).y[-1]
-
-        # measure similarity with fidelity
-        self.assertTrue(
-            np.abs(1.0 - np.abs((dyson_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
-            < 1e-6
-        )
-
-    def test_magnus_solver_2q(self):
-        """Test magnus solver on a two transmon model."""
-
-        magnus_yf = self.magnus_solver_2q.solve(
-            t0=0.0,
-            n_steps=self.n_steps_2q,
-            y0=np.eye(self.dim_2q**2, dtype=complex),
-            signals=[self.gauss_signal, self.gauss_signal],
-        ).y[-1]
-        # measure similarity with fidelity
-        self.assertTrue(
-            np.abs(1.0 - np.abs((magnus_yf.conj() * self.yf_2q).sum()) ** 2 / (self.dim_2q**4))
-            < 1e-6
-        )
-
-    def test_list_simulation(self):
-        """Test running lists of simulations."""
-
-        rng = np.random.default_rng(21342)
-        y00 = rng.uniform(low=-1, high=1, size=(2, 2)) + 1j * rng.uniform(
-            low=-1, high=1, size=(2, 2)
-        )
-        y01 = rng.uniform(low=-1, high=1, size=(2, 2)) + 1j * rng.uniform(
-            low=-1, high=1, size=(2, 2)
-        )
-
-        dyson_results = self.simple_dyson_solver.solve(
-            t0=0.0, n_steps=self.n_steps, y0=[y00, y01], signals=[self.gauss_signal]
-        )
-
-        self.assertAllClose(dyson_results[0].y[-1], self.simple_yf @ y00, rtol=1e-6, atol=1e-6)
-        self.assertAllClose(dyson_results[1].y[-1], self.simple_yf @ y01, rtol=1e-6, atol=1e-6)
-
-
-class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
-    """Tests for perturbative solver operating in JAX mode."""
-
-    @classmethod
-    def setUpClass(cls):
-        # calls TestJaxBase setUpClass
-        super().setUpClass()
-        # builds common objects
-        Test_PerturbativeSolver.build_testing_objects(cls, integration_method="jax_odeint")
-
-    def test_simple_dyson_solve_grad_jit(self):
-        """Test jitting and gradding of dyson solve."""
-
-        def func(c):
-            dyson_yf = self.simple_dyson_solver.solve(
-                t0=0.0,
-                n_steps=self.n_steps,
-                y0=np.eye(2, dtype=complex),
-                signals=[Signal(c, carrier_freq=5.0)],
-            ).y[-1]
-            return dyson_yf
-
-        jitted_func = self.jit_wrap(func)
-        self.assertAllClose(func(1.0), jitted_func(1.0))
-
-        jit_grad_func = self.jit_grad_wrap(func)
-        jit_grad_func(1.0)
-
-    def test_simple_magnus_solve_jit_grad(self):
-        """Test jitting of and gradding of magnus solve."""
-
-        def func(c):
-            magnus_yf = self.simple_magnus_solver.solve(
-                t0=0.0,
-                n_steps=self.n_steps,
-                y0=np.eye(2, dtype=complex),
-                signals=[Signal(c, carrier_freq=5.0)],
-            ).y[-1]
-            return magnus_yf
-
-        jitted_func = self.jit_wrap(func)
-        self.assertAllClose(func(1.0), jitted_func(1.0))
-
-        jit_grad_func = self.jit_grad_wrap(func)
-        jit_grad_func(1.0)
-
-
-
-'''

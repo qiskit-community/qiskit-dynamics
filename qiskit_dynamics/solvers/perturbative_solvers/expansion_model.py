@@ -118,8 +118,8 @@ class ExpansionModel:
         self._rotating_frame = RotatingFrame(rotating_frame)
         operators = unp.asarray(operators)
         self._operators = operators
-        self._Udt = (
-            self.rotating_frame.state_out_of_frame(dt, np.eye(operators[0].shape[0], dtype=complex))
+        self._Udt = self.rotating_frame.state_out_of_frame(
+            dt, np.eye(operators[0].shape[0], dtype=complex)
         )
 
         perturbations = None
@@ -313,7 +313,7 @@ def _construct_cheb_perturbations_jax(
         cheb_func = get_cheb_func(deg)
 
         def cheb_func_op(t):
-            op_in_frame = rotating_frame.operator_into_frame(t, op).data
+            op_in_frame = rotating_frame.operator_into_frame(t, op)
             return cheb_func(t) * jnp.cos(rad_freq * t) * op_in_frame
 
         return cheb_func_op
@@ -323,7 +323,7 @@ def _construct_cheb_perturbations_jax(
         cheb_func = get_cheb_func(deg)
 
         def cheb_func_op(t):
-            op_in_frame = rotating_frame.operator_into_frame(t, op).data
+            op_in_frame = rotating_frame.operator_into_frame(t, op)
             return cheb_func(t) * jnp.sin(-rad_freq * t) * op_in_frame
 
         return cheb_func_op
@@ -490,7 +490,9 @@ def _signal_envelope_DCT(
     )
 
 
-def _multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_intervals: int) -> ArrayLike:
+def _multi_interval_DCT(
+    f: Callable, degree: int, t0: float, dt: float, n_intervals: int
+) -> ArrayLike:
     """Evaluate the multi-interval DCT of a function f over contiguous intervals of size dt
     starting at t0.
 

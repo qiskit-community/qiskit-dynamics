@@ -535,7 +535,7 @@ class ArrayPolynomial:
                 self._array_coefficients, monomials, path="tensordot", axes=(0, 0)
             )
         elif self._array_coefficients is not None:
-            monomials = self._compute_monomials(c)
+            monomials = self.compute_monomials(c)
             return _numpy_multi_dispatch(
                 self._array_coefficients, monomials, path="tensordot", axes=(0, 0)
             )
