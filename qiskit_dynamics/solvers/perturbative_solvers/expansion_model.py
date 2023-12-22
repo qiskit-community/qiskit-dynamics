@@ -27,10 +27,11 @@ from multiset import Multiset
 from qiskit import QiskitError
 from qiskit.quantum_info import Operator
 
+from qiskit_dynamics import ArrayLike
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import Signal, RotatingFrame
 from qiskit_dynamics.perturbation import solve_lmde_perturbation, ArrayPolynomial
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_array
+from qiskit_dynamics.solvers.solver_functions import _is_diffrax_method, _is_jax_method
 
 try:
     import jax.numpy as jnp
@@ -45,9 +46,9 @@ class ExpansionModel:
     def __init__(
         self,
         operators: List[Operator],
-        rotating_frame: Union[Array, Operator, RotatingFrame, None],
+        rotating_frame: Union[ArrayLike, RotatingFrame, None],
         dt: float,
-        carrier_freqs: Array,
+        carrier_freqs: ArrayLike,
         chebyshev_orders: List[int],
         expansion_method: Optional[str] = "dyson",
         expansion_order: Optional[int] = None,
@@ -115,25 +116,24 @@ class ExpansionModel:
 
         # setup rotating frame and single time-step frame change operator
         self._rotating_frame = RotatingFrame(rotating_frame)
-        operators = to_array(operators)
+        operators = unp.asarray(operators)
         self._operators = operators
-        self._Udt = Array(
+        self._Udt = (
             self.rotating_frame.state_out_of_frame(dt, np.eye(operators[0].shape[0], dtype=complex))
-        ).data
+        )
 
         perturbations = None
+
         # set jax-logic dependent components
-        if Array.default_backend() == "jax":
+        if _is_jax_method(integration_method) or _is_diffrax_method(integration_method):
             # compute perturbative terms
             perturbations = _construct_cheb_perturbations_jax(
                 operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame, include_imag
             )
-            integration_method = integration_method or "jax_odeint"
         else:
             perturbations = _construct_cheb_perturbations(
                 operators, chebyshev_orders, carrier_freqs, dt, self.rotating_frame, include_imag
             )
-            integration_method = integration_method or "DOP853"
 
         self._dt = dt
 
@@ -150,7 +150,7 @@ class ExpansionModel:
 
         if self.expansion_method == "dyson":
             # if Dyson multiply by single step frame transformation
-            results.perturbation_data.data = Array(self.Udt) @ results.perturbation_data.data
+            results.perturbation_data.data = self.Udt @ results.perturbation_data.data
             new_coeffs = results.perturbation_data.data[:, -1]
             self._expansion_polynomial = ArrayPolynomial(
                 array_coefficients=new_coeffs,
@@ -208,7 +208,7 @@ class ExpansionModel:
         """
         return self._approximate_signals(signals, t0, n_steps)
 
-    def evaluate(self, coeffs: Array) -> Array:
+    def evaluate(self, coeffs: ArrayLike) -> ArrayLike:
         """Evaluate the expansion polynomial for a given list of coefficients."""
         return self.expansion_polynomial(coeffs)
 
@@ -409,13 +409,13 @@ def _evaluate_cheb_series_jax(
 
 def _signal_list_envelope_DCT(
     signal_list: List[Signal],
-    reference_freqs: Array,
+    reference_freqs: ArrayLike,
     degrees: List[int],
     t0: float,
     dt: float,
     n_intervals: int,
     include_imag: Optional[List] = None,
-) -> Array:
+) -> ArrayLike:
     """Compute envelope DCT on a list of signals, and compile results into a single list,
     separating real and imaginary.
 
@@ -441,27 +441,27 @@ def _signal_list_envelope_DCT(
     )
 
     # initialize coefficient array with first signal
-    coeffs = Array(envelope_DCT(signal_list[0], reference_freqs[0], degrees[0]))
+    coeffs = envelope_DCT(signal_list[0], reference_freqs[0], degrees[0])
     if include_imag[0]:
-        coeffs = np.append(coeffs.real, coeffs.imag, axis=0)
+        coeffs = unp.append(coeffs.real, coeffs.imag, axis=0)
     else:
         coeffs = coeffs.real
 
     for sig, freq, deg, inc_imag in zip(
         signal_list[1:], reference_freqs[1:], degrees[1:], include_imag[1:]
     ):
-        new_coeffs = Array(envelope_DCT(sig, freq, deg))
+        new_coeffs = envelope_DCT(sig, freq, deg)
 
-        coeffs = np.append(coeffs, new_coeffs.real, axis=0)
+        coeffs = unp.append(coeffs, new_coeffs.real, axis=0)
         if inc_imag:
-            coeffs = np.append(coeffs, new_coeffs.imag, axis=0)
+            coeffs = unp.append(coeffs, new_coeffs.imag, axis=0)
 
     return coeffs
 
 
 def _signal_envelope_DCT(
     signal: Signal, reference_freq: float, degree: int, t0: float, dt: float, n_intervals: int
-) -> Array:
+) -> ArrayLike:
     """Perform multi-interval DCT on the envelope of a Signal relative to a reference frequency.
     I.e. This is equivalent to shifting the frequency of the signal to the reference frequency,
     and performing the multi-interval DCT on the resultant envelope.
@@ -475,22 +475,22 @@ def _signal_envelope_DCT(
         n_intervals: Number of intervals to perform DCT over.
 
     Returns:
-        Array: Multi-interval DCT stored as a 2d array.
+        ArrayLike: Multi-interval DCT stored as a 2d array.
     """
 
     t_vals = t0 + np.arange(n_intervals) * dt
-    phase_arg = -1j * 2 * np.pi * Array(reference_freq)
-    final_phase_shift = np.exp(-phase_arg * t_vals)
+    phase_arg = -1j * 2 * np.pi * reference_freq
+    final_phase_shift = unp.exp(-phase_arg * t_vals)
 
     def shifted_env(t):
         return signal.complex_value(t) * np.exp(phase_arg * t)
 
-    return _multi_interval_DCT(shifted_env, degree, t0, dt, n_intervals) * np.expand_dims(
+    return _multi_interval_DCT(shifted_env, degree, t0, dt, n_intervals) * unp.expand_dims(
         final_phase_shift, axis=0
     )
 
 
-def _multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_intervals: int) -> Array:
+def _multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_intervals: int) -> ArrayLike:
     """Evaluate the multi-interval DCT of a function f over contiguous intervals of size dt
     starting at t0.
 
@@ -506,7 +506,7 @@ def _multi_interval_DCT(f: Callable, degree: int, t0: float, dt: float, n_interv
         n_intervals: Number of intervals to perform DCT over.
 
     Returns:
-        Array: Multi-interval DCT stored as a 2d array.
+        ArrayLike: Multi-interval DCT stored as a 2d array.
     """
 
     dct_mat, xcheb = _construct_DCT(degree, domain=[0, dt])
