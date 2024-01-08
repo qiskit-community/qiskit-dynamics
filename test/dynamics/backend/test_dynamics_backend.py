@@ -23,9 +23,9 @@ from scipy.integrate._ivp.ivp import OdeResult
 from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError, pulse, QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.circuit.library import XGate, Measure
+from qiskit.circuit.library import XGate, UnitaryGate, Measure
 from qiskit.transpiler import Target, InstructionProperties
-from qiskit.quantum_info import Statevector, DensityMatrix, Operator, Choi
+from qiskit.quantum_info import Statevector, DensityMatrix, Operator, SuperOp
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.providers.models.backendconfiguration import UchannelLO
 from qiskit.providers.backend import QubitProperties
@@ -303,30 +303,40 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         self.assertDictEqual(counts, {"1": 1024})
 
     def test_solve(self):
-        """Test the ODE simulation with different input and y0 types."""
+        """Test the ODE simulation with different input and y0 types using a X pulse."""
+        # create the circuit, pulse schedule and calibrate the gate
+        x_circ0 = QuantumCircuit(1)
+        x_circ0.x(0)
         n_samples = 100
         with pulse.build() as x_sched0:
             pulse.play(pulse.Waveform([1.0] * n_samples), pulse.DriveChannel(0))
-        x_circ0 = QuantumCircuit(1)
-        x_circ0.x(0)
         x_circ0.add_calibration("x", [0], x_sched0)
 
-        y0_variety = [
-            Statevector(np.array([[1.0], [0.0]])),
-            Operator(np.eye(2)),
-            DensityMatrix(QuantumCircuit(1)),
-            Choi(QuantumCircuit(1)),
-            None,
-        ]
+        # create the initial states and expected simulation results
+        expected_unitary = -1.0j * np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        y0_and_expected_results = []
+        for y0_type in [Statevector, Operator, DensityMatrix, SuperOp]:
+            y0 = y0_type(QuantumCircuit(1))
+            expected_result = y0_type(UnitaryGate(expected_unitary))
+            y0_and_expected_results.append((y0, expected_result))
+        # y0=None defaults to Statevector
+        y0_and_expected_results.append(
+            (None, Statevector(QuantumCircuit(1)).evolve(expected_unitary))
+        )
         input_variety = [x_sched0, x_circ0]
-        for solve_input, y0 in product(input_variety, y0_variety):
+
+        # solve for all combinations of input types and initial states
+        for solve_input, (y0, expected_result) in product(input_variety, y0_and_expected_results):
             solver_results = self.simple_backend.solve(
                 t_span=[0, n_samples * self.simple_backend.dt], y0=y0, solve_input=[solve_input]
             )
             if isinstance(solver_results, list):
-                assert all(result.success for result in solver_results)
+                for solver_result in solver_results:
+                    assert solver_result.success
+                    self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-2)
             else:
                 assert solver_results.success
+                self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-2)
 
     def test_pi_pulse_initial_state(self):
         """Test simulation of a pi pulse with a different initial state."""
