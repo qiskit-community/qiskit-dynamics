@@ -21,6 +21,7 @@ from itertools import product
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 from scipy.sparse import csr_matrix
+from scipy.linalg import expm
 
 from qiskit import QiskitError, pulse, QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import XGate, UnitaryGate, Measure
@@ -307,13 +308,15 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         # create the circuit, pulse schedule and calibrate the gate
         x_circ0 = QuantumCircuit(1)
         x_circ0.x(0)
-        n_samples = 100
+        n_samples = 5
         with pulse.build() as x_sched0:
             pulse.play(pulse.Waveform([1.0] * n_samples), pulse.DriveChannel(0))
         x_circ0.add_calibration("x", [0], x_sched0)
 
         # create the initial states and expected simulation results
-        expected_unitary = -1.0j * np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        generator = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        rotation_strength = n_samples / 100
+        expected_unitary = expm(-1.0j * 0.5 * np.pi * rotation_strength * generator)
         y0_and_expected_results = []
         for y0_type in [Statevector, Operator, DensityMatrix, SuperOp]:
             y0 = y0_type(QuantumCircuit(1))
@@ -326,17 +329,20 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         input_variety = [x_sched0, x_circ0]
 
         # solve for all combinations of input types and initial states
+        self.simple_backend.set_options(solver_options={"atol": 1e-8, "rtol": 1e-8})
         for solve_input, (y0, expected_result) in product(input_variety, y0_and_expected_results):
             solver_results = self.simple_backend.solve(
-                t_span=[0, n_samples * self.simple_backend.dt], y0=y0, solve_input=[solve_input]
+                t_span=[0, n_samples * self.simple_backend.dt],
+                y0=y0,
+                solve_input=[solve_input],
             )
             if isinstance(solver_results, list):
                 for solver_result in solver_results:
-                    assert solver_result.success
-                    self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-2)
+                    self.assertTrue(solver_result.success)
+                    self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-4)
             else:
-                assert solver_results.success
-                self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-2)
+                self.assertTrue(solver_results.success)
+                self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-4)
 
     def test_pi_pulse_initial_state(self):
         """Test simulation of a pi pulse with a different initial state."""
