@@ -305,6 +305,23 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
 
     def test_solve(self):
         """Test the ODE simulation with different input and y0 types using a X pulse."""
+
+        # build solver to use in the test
+        static_ham = 2 * np.pi * 5 * np.array([[-1.0, 0.0], [0.0, 1.0]]) / 2
+        drive_op = 2 * np.pi * 0.1 * np.array([[0.0, 1.0], [1.0, 0.0]]) / 2
+
+        solver = Solver(
+            static_hamiltonian=static_ham,
+            hamiltonian_operators=[drive_op],
+            hamiltonian_channels=["d0"],
+            channel_carrier_freqs={"d0": 5.0},
+            dt=0.1,
+            rotating_frame=static_ham,
+            rwa_cutoff_freq=5.0,
+        )
+
+        backend = DynamicsBackend(solver=solver, solver_options={"atol": 1e-10, "rtol": 1e-10})
+
         # create the circuit, pulse schedule and calibrate the gate
         x_circ0 = QuantumCircuit(1)
         x_circ0.x(0)
@@ -329,20 +346,17 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         input_variety = [x_sched0, x_circ0]
 
         # solve for all combinations of input types and initial states
-        self.simple_backend.set_options(solver_options={"atol": 1e-8, "rtol": 1e-8})
         for solve_input, (y0, expected_result) in product(input_variety, y0_and_expected_results):
-            solver_results = self.simple_backend.solve(
-                t_span=[0, n_samples * self.simple_backend.dt],
+            solver_results = backend.solve(
+                t_span=[0, n_samples * backend.dt],
                 y0=y0,
                 solve_input=[solve_input],
             )
-            if isinstance(solver_results, list):
-                for solver_result in solver_results:
-                    self.assertTrue(solver_result.success)
-                    self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-4)
-            else:
-                self.assertTrue(solver_results.success)
-                self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-4)
+
+            # results are always a list
+            for solver_result in solver_results:
+                self.assertTrue(solver_result.success)
+                self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-8, rtol=1e-8)
 
     def test_pi_pulse_initial_state(self):
         """Test simulation of a pi pulse with a different initial state."""
