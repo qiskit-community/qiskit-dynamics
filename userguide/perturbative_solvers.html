@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>How-to use Dyson and Magnus based solvers &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Qiskit Dynamics User Guide</a> &gt;</li>
+        
+      <li>How-to use Dyson and Magnus based solvers</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="how-to-use-dyson-and-magnus-based-solvers">
+<h1>How-to use Dyson and Magnus based solvers<a class="headerlink" href="#how-to-use-dyson-and-magnus-based-solvers" title="Permalink to this heading">¶</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is an advanced topic — utilizing perturbation-theory based solvers
+requires detailed knowledge of the structure of the differential equations
+involved, as well as manual tuning of the solver parameters.
+See the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> and <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.MagnusSolver.html#qiskit_dynamics.solvers.MagnusSolver" title="qiskit_dynamics.solvers.MagnusSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagnusSolver</span></code></a> documentation for API details.
+Also, see <a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> for a detailed explanation of the solvers,
+which varies and builds on the core idea introduced in <a class="footnote-reference brackets" href="#footcite-shillito-fast-2020" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The circumstances under which perturbative solvers outperform
+traditional solvers, and which parameter sets to use, is nuanced.
+Perturbative solvers executed with JAX are setup to use more parallelization within a
+single solver run than typical solvers, and thus it is circumstance-specific whether
+the trade-off between speed of a single run and resource consumption is advantageous.
+Due to the parallelized nature, the comparison of execution times demonstrated in this
+userguide are highly hardware-dependent.</p>
+</div>
+<p>In this tutorial we walk through how to use perturbation-theory based solvers. For
+information on how these solvers work, see the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> and <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.MagnusSolver.html#qiskit_dynamics.solvers.MagnusSolver" title="qiskit_dynamics.solvers.MagnusSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagnusSolver</span></code></a>
+class documentation, as well as the perturbative expansion background information provided in
+<a class="reference internal" href="../discussions/dyson_magnus.html#perturbation-review"><span class="std std-ref">Time-dependent perturbation theory and multi-variable
+series expansions review</span></a>.</p>
+<p>We use a simple transmon model:</p>
+<div class="math notranslate nohighlight">
+\[H(t) = 2 \pi \nu N + \pi \alpha N(N-I) + s(t) \times 2 \pi r (a + a^\dagger)\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(N\)</span>, <span class="math notranslate nohighlight">\(a\)</span>, and <span class="math notranslate nohighlight">\(a^\dagger\)</span> are, respectively, the
+number, annihilation, and creation operators.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\nu\)</span> is the qubit frequency and <span class="math notranslate nohighlight">\(r\)</span> is the drive
+strength.</p></li>
+<li><p><span class="math notranslate nohighlight">\(s(t)\)</span> is the drive signal, which we will take to be on
+resonance with envelope <span class="math notranslate nohighlight">\(f(t) = A \frac{4t (T - t)}{T^2}\)</span>
+for a given amplitude <span class="math notranslate nohighlight">\(A\)</span> and total time <span class="math notranslate nohighlight">\(T\)</span>.</p></li>
+</ul>
+<p>We will walk through the following steps:</p>
+<ol class="arabic simple">
+<li><p>Configure <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code> to work with JAX.</p></li>
+<li><p>Construct the model.</p></li>
+<li><p>How-to construct and simulate using the Dyson-based perturbative solver.</p></li>
+<li><p>Simulate using a traditional ODE solver, comparing speed.</p></li>
+<li><p>How-to construct and simulate using the Magnus-based perturbative solver.</p></li>
+</ol>
+<section id="configure-to-use-jax">
+<h2>1. Configure to use JAX<a class="headerlink" href="#configure-to-use-jax" title="Permalink to this heading">¶</a></h2>
+<p>These simulations will be done with JAX array backend to enable
+compilation. See the <a class="reference internal" href="how_to_use_jax.html#how-to-use-jax"><span class="std std-ref">userguide on using JAX</span></a> for a more detailed
+explanation of how to work with JAX in Qiskit Dynamics.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+
+<span class="c1"># configure jax to use 64 bit mode</span>
+<span class="kn">import</span> <span class="nn">jax</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># tell JAX we are using CPU if using a system without a GPU</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s1">&#39;jax_platform_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+
+<span class="c1"># set default backend</span>
+<span class="n">Array</span><span class="o">.</span><span class="n">set_default_backend</span><span class="p">(</span><span class="s1">&#39;jax&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="construct-the-model">
+<h2>2. Construct the model<a class="headerlink" href="#construct-the-model" title="Permalink to this heading">¶</a></h2>
+<p>First, we construct the model described in the introduction. We use a relatively
+high dimension for the oscillator system state space to accentuate the speed
+difference between the perturbative solvers and the traditional ODE solver. The higher
+dimensionality introduces higher frequencies into the model, which will
+slow down both the ODE solver and the initial construction of the perturbative solver. However
+after the initial construction, the higher frequencies in the model have no impact
+on the perturbative solver speed.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">dim</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Oscillator dimension</span>
+
+<span class="n">v</span> <span class="o">=</span> <span class="mf">5.</span>  <span class="c1"># Transmon frequency in GHz</span>
+<span class="n">anharm</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.33</span>  <span class="c1"># Transmon anharmonicity in GHz</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">0.02</span>  <span class="c1"># Transmon drive coupling in GHz</span>
+
+<span class="c1"># Construct cavity operators</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">adag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="p">)),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+
+<span class="c1"># Static part of Hamiltonian</span>
+<span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">v</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">anharm</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+<span class="c1"># Drive term of Hamiltonian</span>
+<span class="n">drive_hamiltonian</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">adag</span><span class="p">)</span>
+
+<span class="c1"># total simulation time</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">r</span>
+
+<span class="c1"># Drive envelope function</span>
+<span class="n">envelope_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">T</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="how-to-construct-and-simulate-using-the-dyson-based-perturbative-solver">
+<h2>3. How-to construct and simulate using the Dyson-based perturbative solver<a class="headerlink" href="#how-to-construct-and-simulate-using-the-dyson-based-perturbative-solver" title="Permalink to this heading">¶</a></h2>
+<p>Setting up a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> requires more setup than the standard
+<a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a>, as the user must specify several configuration parameters,
+along with the structure of the differential equation:</p>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> requires direct specification of the LMDE to the
+solver. If we are simulating the Schrodinger equation, we need to
+multiply the Hamiltonian terms by <code class="docutils literal notranslate"><span class="pre">-1j</span></code> when describing the LMDE operators.</p></li>
+<li><p>The <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> is a fixed step solver, with the step size
+being fixed at instantiation. This step size must be chosen in conjunction
+with the <code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> to ensure that a suitable accuracy is attained.</p></li>
+<li><p>Over each fixed time-step the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> solves by computing a
+truncated perturbative expansion.</p>
+<ul>
+<li><p>To compute the truncated perturbative expansion, the signal envelopes are
+approximated as a linear combination of Chebyshev polynomials.</p></li>
+<li><p>The order of the Chebyshev approximations, along with central carrier frequencies
+for defining the “envelope” of each <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>, must be provided at instantiation.</p></li>
+</ul>
+</li>
+</ul>
+<p>See the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> API docs for more details.</p>
+<p>For our example Hamiltonian we configure the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> as follows:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%time</span>
+
+<span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">DysonSolver</span>
+
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">dyson_solver</span> <span class="o">=</span> <span class="n">DysonSolver</span><span class="p">(</span>
+    <span class="n">operators</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">drive_hamiltonian</span><span class="p">],</span>
+    <span class="n">rotating_frame</span><span class="o">=-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+    <span class="n">carrier_freqs</span><span class="o">=</span><span class="p">[</span><span class="n">v</span><span class="p">],</span>
+    <span class="n">chebyshev_orders</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="n">expansion_order</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+    <span class="n">integration_method</span><span class="o">=</span><span class="s1">&#39;jax_odeint&#39;</span><span class="p">,</span>
+    <span class="n">atol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span>
+    <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-12</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 3.41 s, sys: 75.5 ms, total: 3.48 s
+Wall time: 3.34 s
+</pre></div>
+</div>
+</div>
+</div>
+<p>The above parameters are chosen so that the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> is fast and produces
+high accuracy solutions (measured and confirmed after the fact). The relatively large
+step size <code class="docutils literal notranslate"><span class="pre">dt</span> <span class="pre">=</span> <span class="pre">0.1</span></code> is chosen for speed: the larger the step size, the fewer steps required.
+To ensure high accuracy given the large step size, we choose a high expansion order,
+and utilize a linear envelope approximation scheme by setting the <code class="docutils literal notranslate"><span class="pre">chebyshev_order</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code>
+for the single drive signal.</p>
+<p>Similar to the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> interface, the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.solve.html#qiskit_dynamics.solvers.DysonSolver.solve" title="qiskit_dynamics.solvers.DysonSolver.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DysonSolver.solve()</span></code></a> method can be
+called to simulate the system for a given list of signals, initial state, start time,
+and number of time steps of length <code class="docutils literal notranslate"><span class="pre">dt</span></code>.</p>
+<p>To properly compare the speed of <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> to a traditional ODE solver,
+we write JAX-compilable functions wrapping each that, given an amplitude value,
+returns the final unitary over the interval <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">(T</span> <span class="pre">//</span> <span class="pre">dt)</span> <span class="pre">*</span> <span class="pre">dt]</span></code> for an on-resonance
+drive with envelope shape given by <code class="docutils literal notranslate"><span class="pre">envelope_func</span></code> above. Running compiled versions of
+these functions gives a sense of the speeds attainable by these solvers.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">jit</span>
+
+<span class="c1"># Jit the function to improve performance for repeated calls</span>
+<span class="nd">@jit</span>
+<span class="k">def</span> <span class="nf">dyson_sim</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;For a given envelope amplitude, simulate the final unitary using the</span>
+<span class="sd">    Dyson solver.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">drive_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">Array</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span> <span class="o">*</span> <span class="n">envelope_func</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dyson_solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+        <span class="n">signals</span><span class="o">=</span><span class="p">[</span><span class="n">drive_signal</span><span class="p">],</span>
+        <span class="n">y0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+        <span class="n">t0</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+        <span class="n">n_steps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">//</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>First run includes compile time.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> yf_dyson = dyson_sim(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 808 ms, sys: 7.33 ms, total: 816 ms
+Wall time: 799 ms
+</pre></div>
+</div>
+</div>
+</div>
+<p>Once JIT compilation has been performance we can benchmark the performance of the
+JIT-compiled solver:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> yf_dyson = dyson_sim(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 12 ms, sys: 0 ns, total: 12 ms
+Wall time: 4.99 ms
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="comparison-to-traditional-ode-solver">
+<h2>4. Comparison to traditional ODE solver<a class="headerlink" href="#comparison-to-traditional-ode-solver" title="Permalink to this heading">¶</a></h2>
+<p>We now construct the same simulation using a standard solver to compare
+accuracy and simulation speed.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">Solver</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
+    <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="p">[</span><span class="n">drive_hamiltonian</span><span class="p">],</span>
+    <span class="n">rotating_frame</span><span class="o">=</span><span class="n">static_hamiltonian</span>
+<span class="p">)</span>
+
+<span class="c1"># specify tolerance as an argument to run the simulation at different tolerances</span>
+<span class="k">def</span> <span class="nf">ode_sim</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">tol</span><span class="p">):</span>
+    <span class="n">drive_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">Array</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span> <span class="o">*</span> <span class="n">envelope_func</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+        <span class="n">t_span</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">//</span> <span class="n">dt</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span><span class="p">],</span>
+        <span class="n">y0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+        <span class="n">signals</span><span class="o">=</span><span class="p">[</span><span class="n">drive_signal</span><span class="p">],</span>
+        <span class="n">method</span><span class="o">=</span><span class="s1">&#39;jax_odeint&#39;</span><span class="p">,</span>
+        <span class="n">atol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+        <span class="n">rtol</span><span class="o">=</span><span class="n">tol</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Simulate with low tolerance for comparison to high accuracy solution.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">yf_low_tol</span> <span class="o">=</span> <span class="n">ode_sim</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1e-13</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">yf_low_tol</span> <span class="o">-</span> <span class="n">yf_dyson</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>6.5295327976403e-07
+</pre></div>
+</div>
+</div>
+</div>
+<p>For speed comparison, compile at a tolerance with similar accuracy.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">jit_ode_sim</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="k">lambda</span> <span class="n">amp</span><span class="p">:</span> <span class="n">ode_sim</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">))</span>
+
+<span class="o">%</span><span class="k">time</span> yf_ode = jit_ode_sim(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 688 ms, sys: 638 µs, total: 689 ms
+Wall time: 680 ms
+</pre></div>
+</div>
+</div>
+</div>
+<p>Measure compiled time.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> yf_ode = jit_ode_sim(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 53.9 ms, sys: 0 ns, total: 53.9 ms
+Wall time: 53.6 ms
+</pre></div>
+</div>
+</div>
+</div>
+<p>Confirm similar accuracy solution.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">yf_low_tol</span> <span class="o">-</span> <span class="n">yf_ode</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>8.672111034415247e-07
+</pre></div>
+</div>
+</div>
+</div>
+<p>Here we see that, once compiled, the Dyson-based solver has a
+significant speed advantage over the traditional solver, at the expense
+of the initial compilation time and the technical aspect of using the solver.</p>
+</section>
+<section id="how-to-construct-and-simulate-using-the-magnus-based-perturbation-solver">
+<h2>5. How-to construct and simulate using the Magnus-based perturbation solver<a class="headerlink" href="#how-to-construct-and-simulate-using-the-magnus-based-perturbation-solver" title="Permalink to this heading">¶</a></h2>
+<p>Next, we repeat our example using the Magnus-based perturbative solver.
+Setup of the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.MagnusSolver.html#qiskit_dynamics.solvers.MagnusSolver" title="qiskit_dynamics.solvers.MagnusSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagnusSolver</span></code></a> is similar to the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a>,
+but it uses the Magnus expansion and matrix exponentiation to simulate over
+each fixed time step.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%time</span>
+
+<span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">MagnusSolver</span>
+
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">magnus_solver</span> <span class="o">=</span> <span class="n">MagnusSolver</span><span class="p">(</span>
+    <span class="n">operators</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">drive_hamiltonian</span><span class="p">],</span>
+    <span class="n">rotating_frame</span><span class="o">=-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+    <span class="n">carrier_freqs</span><span class="o">=</span><span class="p">[</span><span class="n">v</span><span class="p">],</span>
+    <span class="n">chebyshev_orders</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="n">expansion_order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">integration_method</span><span class="o">=</span><span class="s1">&#39;jax_odeint&#39;</span><span class="p">,</span>
+    <span class="n">atol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span>
+    <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-12</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 2.57 s, sys: 19.4 ms, total: 2.59 s
+Wall time: 2.57 s
+</pre></div>
+</div>
+</div>
+</div>
+<p>Setup simulation function.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@jit</span>
+<span class="k">def</span> <span class="nf">magnus_sim</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+    <span class="n">drive_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">Array</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span> <span class="o">*</span> <span class="n">envelope_func</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">magnus_solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+        <span class="n">signals</span><span class="o">=</span><span class="p">[</span><span class="n">drive_signal</span><span class="p">],</span>
+        <span class="n">y0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+        <span class="n">t0</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+        <span class="n">n_steps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">//</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>First run includes compile time.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> yf_magnus = magnus_sim(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.73 s, sys: 9.09 ms, total: 1.74 s
+Wall time: 1.72 s
+</pre></div>
+</div>
+</div>
+</div>
+<p>Second run demonstrates speed of the simulation.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> yf_magnus = magnus_sim(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 24.6 ms, sys: 0 ns, total: 24.6 ms
+Wall time: 19.8 ms
+</pre></div>
+</div>
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">yf_magnus</span> <span class="o">-</span> <span class="n">yf_low_tol</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>6.678884436664544e-07
+</pre></div>
+</div>
+</div>
+</div>
+<p>Observe comparable accuracy at a lower order in the expansion, albeit
+with a modest speed up as compared to the Dyson-based solver.</p>
+<div class="docutils container" id="id3">
+<p class="rubric">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-puzzuoli-sensitivity-2022" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, and C. J. Wood. Algorithms for perturbative analysis and simulation of quantum dynamics. <em>arXiv:2210.11595</em>, 2022. <a class="reference external" href="https://doi.org/10.48550/arXiv.2210.11595">doi:10.48550/arXiv.2210.11595</a>.</p>
+</aside>
+<aside class="footnote brackets" id="footcite-shillito-fast-2020" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>R. Shillito, J. A. Gross, A. Di Paolo, É. Genois, and A. Blais. Fast and differentiable simulation of driven quantum systems. <em>Physical Review Research</em>, 3(3):033266, 2021. Publisher: American Physical Society. <a class="reference external" href="https://doi.org/10.1103/PhysRevResearch.3.033266">doi:10.1103/PhysRevResearch.3.033266</a>.</p>
+</aside>
+</aside>
+</div>
+</section>
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="how_to_use_pulse_schedule_for_jax_jit.html" class="btn btn-neutral float-right" title="How-to use pulse schedules generated by qiskit-pulse with JAX transformations" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="how_to_configure_simulations.html" class="btn btn-neutral" title="How-to customize simulations using model transformations and evaluation modes" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">How-to use Dyson and Magnus based solvers</a><ul>
+<li><a class="reference internal" href="#configure-to-use-jax">1. Configure to use JAX</a></li>
+<li><a class="reference internal" href="#construct-the-model">2. Construct the model</a></li>
+<li><a class="reference internal" href="#how-to-construct-and-simulate-using-the-dyson-based-perturbative-solver">3. How-to construct and simulate using the Dyson-based perturbative solver</a></li>
+<li><a class="reference internal" href="#comparison-to-traditional-ode-solver">4. Comparison to traditional ODE solver</a></li>
+<li><a class="reference internal" href="#how-to-construct-and-simulate-using-the-magnus-based-perturbation-solver">5. How-to construct and simulate using the Magnus-based perturbation solver</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

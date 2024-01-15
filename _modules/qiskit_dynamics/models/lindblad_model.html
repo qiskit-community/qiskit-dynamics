@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.models.lindblad_model &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.models.lindblad_model</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.models.lindblad_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Lindblad model module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">csr_matrix</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators</span> <span class="kn">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.type_utils</span> <span class="kn">import</span> <span class="n">to_numeric_matrix_type</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.signals</span> <span class="kn">import</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">SignalList</span>
+<span class="kn">from</span> <span class="nn">.generator_model</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseGeneratorModel</span><span class="p">,</span>
+    <span class="n">transfer_static_operator_between_frames</span><span class="p">,</span>
+    <span class="n">transfer_operators_between_frames</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.hamiltonian_model</span> <span class="kn">import</span> <span class="n">HamiltonianModel</span><span class="p">,</span> <span class="n">is_hermitian</span>
+<span class="kn">from</span> <span class="nn">.operator_collections</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseLindbladOperatorCollection</span><span class="p">,</span>
+    <span class="n">DenseLindbladCollection</span><span class="p">,</span>
+    <span class="n">DenseVectorizedLindbladCollection</span><span class="p">,</span>
+    <span class="n">SparseLindbladCollection</span><span class="p">,</span>
+    <span class="n">JAXSparseLindbladCollection</span><span class="p">,</span>
+    <span class="n">SparseVectorizedLindbladCollection</span><span class="p">,</span>
+    <span class="n">JAXSparseVectorizedLindbladCollection</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.rotating_frame</span> <span class="kn">import</span> <span class="n">RotatingFrame</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">jax</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="LindbladModel"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel">[docs]</a><span class="k">class</span> <span class="nc">LindbladModel</span><span class="p">(</span><span class="n">BaseGeneratorModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A model of a quantum system in terms of the Lindblad master equation.</span>
+
+<span class="sd">    The Lindblad master equation models the evolution of a density matrix according to:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \dot{\rho}(t) = -i[H(t), \rho(t)] + \mathcal{D}_0(\rho(t)) + \mathcal{D}(t)(\rho(t)),</span>
+
+<span class="sd">    where :math:`\mathcal{D}_0` is the static dissipator portion, and :math:`\mathcal{D}(t)` is the</span>
+<span class="sd">    time-dependent dissipator portion of the equation, given by</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \mathcal{D}_0(\rho(t)) = \sum_j N_j \rho N_j^\dagger</span>
+<span class="sd">                                      - \frac{1}{2} \{N_j^\dagger N_j, \rho\},</span>
+
+<span class="sd">    and</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \mathcal{D}(t)(\rho(t)) = \sum_j \gamma_j(t) L_j \rho L_j^\dagger</span>
+<span class="sd">                                  - \frac{1}{2} \{L_j^\dagger L_j, \rho\},</span>
+
+<span class="sd">    respectively. In the above:</span>
+
+<span class="sd">        - :math:`[\cdot, \cdot]` and :math:`\{\cdot, \cdot\}` respectively denote the matrix</span>
+<span class="sd">          commutator and anti-commutator,</span>
+<span class="sd">        - :math:`H(t)` denotes the Hamiltonian,</span>
+<span class="sd">        - :math:`N_j` denotes the operators appearing in the static dissipator,</span>
+<span class="sd">        - :math:`L_j` denotes the operators appearing in the time-dpendent portion of the</span>
+<span class="sd">          dissipator, and</span>
+<span class="sd">        - :math:`\gamma_j(t)` denotes the signal corresponding to the</span>
+<span class="sd">          :math:`j^{th}` time-dependent dissipator operator.</span>
+
+<span class="sd">    Instantiating an instance of :class:`~qiskit_dynamics.models.LindbladModel` requires specifying</span>
+<span class="sd">    the above decomposition:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        lindblad_model = LindbladModel(</span>
+<span class="sd">            static_hamiltonian=static_hamiltonian,</span>
+<span class="sd">            hamiltonian_operators=hamiltonian_operators,</span>
+<span class="sd">            hamiltonian_signals=hamiltonian_signals,</span>
+<span class="sd">            static_dissipators=static_dissipators,</span>
+<span class="sd">            dissipator_operators=dissipator_operators,</span>
+<span class="sd">            dissipator_signals=dissipator_signals</span>
+<span class="sd">        )</span>
+
+<span class="sd">    where the arguments ``hamiltonian_operators``, ``hamiltonian_signals``, and</span>
+<span class="sd">    ``static_hamiltonian`` are for the Hamiltonian decomposition as in</span>
+<span class="sd">    :class:`~qiskit_dynamics.models.HamiltonianModel`,</span>
+<span class="sd">    and the ``static_dissipators`` correspond to the :math:`N_j`, the ``dissipator_operators``</span>
+<span class="sd">    to the :math:`L_j`, and the ``dissipator_signals`` the :math:`\gamma_j(t)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">static_hamiltonian</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hamiltonian_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">csr_matrix</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hamiltonian_signals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">],</span> <span class="n">SignalList</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">static_dissipators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dissipator_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">csr_matrix</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dissipator_signals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">],</span> <span class="n">SignalList</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rotating_frame</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">RotatingFrame</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">in_frame_basis</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">evaluation_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;dense&quot;</span><span class="p">,</span>
+        <span class="n">validate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            static_hamiltonian: Constant term in Hamiltonian.</span>
+<span class="sd">            hamiltonian_operators: List of operators in Hamiltonian with time-dependent</span>
+<span class="sd">                coefficients.</span>
+<span class="sd">            hamiltonian_signals: Time-dependent coefficients for hamiltonian_operators.</span>
+<span class="sd">            static_dissipators: List of dissipators with coefficient 1.</span>
+<span class="sd">            dissipator_operators: List of dissipator operators with time-dependent coefficients.</span>
+<span class="sd">            dissipator_signals: Time-dependent coefficients for dissipator_operators.</span>
+<span class="sd">            rotating_frame: Rotating frame in which calcualtions are to be done. If provided, it is</span>
+<span class="sd">                assumed that all operators were already in the frame basis.</span>
+<span class="sd">            in_frame_basis: Whether to represent the model in the basis in which the rotating</span>
+<span class="sd">                frame operator is diagonalized.</span>
+<span class="sd">            evaluation_mode: Evaluation mode to use. Call ``help(LindbladModel.evaluation_mode)``</span>
+<span class="sd">                for more details.</span>
+<span class="sd">            validate: If True check input hamiltonian_operators and static_hamiltonian are</span>
+<span class="sd">                Hermitian.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If model insufficiently or incorrectly specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">static_hamiltonian</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">hamiltonian_operators</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">static_dissipators</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">dissipator_operators</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> requires at least one of static_hamiltonian &quot;</span>
+                <span class="s2">&quot;hamiltonian_operators, static_dissipators, or dissipator_operators &quot;</span>
+                <span class="s2">&quot;to be specified at construction.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">static_hamiltonian</span><span class="p">)</span>
+        <span class="n">hamiltonian_operators</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">hamiltonian_operators</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">hamiltonian_operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_hermitian</span><span class="p">(</span><span class="n">hamiltonian_operators</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;LinbladModel hamiltonian_operators must be Hermitian.&quot;&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">static_hamiltonian</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_hermitian</span><span class="p">(</span><span class="n">static_hamiltonian</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;LinbladModel static_hamiltonian must be Hermitian.&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span> <span class="o">=</span> <span class="n">construct_lindblad_operator_collection</span><span class="p">(</span>
+            <span class="n">evaluation_mode</span><span class="o">=</span><span class="n">evaluation_mode</span><span class="p">,</span>
+            <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+            <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">hamiltonian_operators</span><span class="p">,</span>
+            <span class="n">static_dissipators</span><span class="o">=</span><span class="n">static_dissipators</span><span class="p">,</span>
+            <span class="n">dissipator_operators</span><span class="o">=</span><span class="n">dissipator_operators</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_evaluation_mode</span> <span class="o">=</span> <span class="n">evaluation_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vectorized_operators</span> <span class="o">=</span> <span class="s2">&quot;vectorized&quot;</span> <span class="ow">in</span> <span class="n">evaluation_mode</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rotating_frame</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span> <span class="o">=</span> <span class="n">rotating_frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_frame_basis</span> <span class="o">=</span> <span class="n">in_frame_basis</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span> <span class="o">=</span> <span class="p">(</span><span class="n">hamiltonian_signals</span><span class="p">,</span> <span class="n">dissipator_signals</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LindbladModel.from_hamiltonian"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.LindbladModel.from_hamiltonian.html#qiskit_dynamics.models.LindbladModel.from_hamiltonian">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_hamiltonian</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">hamiltonian</span><span class="p">:</span> <span class="n">HamiltonianModel</span><span class="p">,</span>
+        <span class="n">static_dissipators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dissipator_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">csr_matrix</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dissipator_signals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">],</span> <span class="n">SignalList</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">evaluation_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct from a :class:`HamiltonianModel`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hamiltonian: The :class:`HamiltonianModel`.</span>
+<span class="sd">            static_dissipators: List of dissipators with coefficient 1.</span>
+<span class="sd">            dissipator_operators: List of dissipators with time-dependent coefficients.</span>
+<span class="sd">            dissipator_signals: List time-dependent coefficients for dissipator_operators.</span>
+<span class="sd">            evaluation_mode: Evaluation mode. Call ``help(LindbladModel.evaluation_mode)`` for more</span>
+<span class="sd">                information.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LindbladModel: Linblad model from parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">evaluation_mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">evaluation_mode</span> <span class="o">=</span> <span class="n">hamiltonian</span><span class="o">.</span><span class="n">evaluation_mode</span>
+
+        <span class="n">ham_copy</span> <span class="o">=</span> <span class="n">hamiltonian</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ham_copy</span><span class="o">.</span><span class="n">rotating_frame</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">ham_copy</span><span class="o">.</span><span class="n">_get_static_operator</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">ham_copy</span><span class="o">.</span><span class="n">_get_operators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">hamiltonian_signals</span><span class="o">=</span><span class="n">ham_copy</span><span class="o">.</span><span class="n">signals</span><span class="p">,</span>
+            <span class="n">static_dissipators</span><span class="o">=</span><span class="n">static_dissipators</span><span class="p">,</span>
+            <span class="n">dissipator_operators</span><span class="o">=</span><span class="n">dissipator_operators</span><span class="p">,</span>
+            <span class="n">dissipator_signals</span><span class="o">=</span><span class="n">dissipator_signals</span><span class="p">,</span>
+            <span class="n">rotating_frame</span><span class="o">=</span><span class="n">hamiltonian</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+            <span class="n">in_frame_basis</span><span class="o">=</span><span class="n">hamiltonian</span><span class="o">.</span><span class="n">in_frame_basis</span><span class="p">,</span>
+            <span class="n">evaluation_mode</span><span class="o">=</span><span class="n">evaluation_mode</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The matrix dimension.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_hamiltonian</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_hamiltonian</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">hamiltonian_operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">hamiltonian_operators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_dissipators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_dissipators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">dissipator_operators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">signals</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">SignalList</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The model&#39;s signals as tuple with the 0th entry storing the Hamiltonian signals and the</span>
+<span class="sd">        1st entry storing the dissipator signals.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If, when setting this property, the given signals are incompatible with</span>
+<span class="sd">                operator structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dissipator_signals</span><span class="p">)</span>
+
+    <span class="nd">@signals</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">signals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_signals</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">]]):</span>
+        <span class="n">hamiltonian_signals</span><span class="p">,</span> <span class="n">dissipator_signals</span> <span class="o">=</span> <span class="n">new_signals</span>
+
+        <span class="c1"># set Hamiltonian signals</span>
+        <span class="k">if</span> <span class="n">hamiltonian_signals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">hamiltonian_signals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hamiltonian_operators</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Hamiltonian signals must be None if hamiltonian_operators is None.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># if signals is a list, instantiate a SignalList</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hamiltonian_signals</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">hamiltonian_signals</span> <span class="o">=</span> <span class="n">SignalList</span><span class="p">(</span><span class="n">hamiltonian_signals</span><span class="p">)</span>
+
+            <span class="c1"># if it isn&#39;t a SignalList by now, raise an error</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hamiltonian_signals</span><span class="p">,</span> <span class="n">SignalList</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Hamiltonian signals specified in unaccepted format.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># verify signal length is same as operators</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hamiltonian_operators</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">len_hamiltonian_operators</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hamiltonian_operators</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">len_hamiltonian_operators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hamiltonian_operators</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hamiltonian_signals</span><span class="p">)</span> <span class="o">!=</span> <span class="n">len_hamiltonian_operators</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                    <span class="s2">&quot;Hamiltonian signals need to have the same length as Hamiltonian operators.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span> <span class="o">=</span> <span class="n">hamiltonian_signals</span>
+
+        <span class="c1"># set dissipator signals</span>
+        <span class="k">if</span> <span class="n">dissipator_signals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dissipator_signals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">dissipator_signals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dissipator_operators</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Dissipator signals must be None if dissipator_operators is None.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># if signals is a list, instantiate a SignalList</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dissipator_signals</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">dissipator_signals</span> <span class="o">=</span> <span class="n">SignalList</span><span class="p">(</span><span class="n">dissipator_signals</span><span class="p">)</span>
+
+            <span class="c1"># if it isn&#39;t a SignalList by now, raise an error</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dissipator_signals</span><span class="p">,</span> <span class="n">SignalList</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Dissipator signals specified in unaccepted format.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># verify signal length is same as operators</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dissipator_operators</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">len_dissipator_operators</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dissipator_operators</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">len_dissipator_operators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dissipator_operators</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dissipator_signals</span><span class="p">)</span> <span class="o">!=</span> <span class="n">len_dissipator_operators</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                    <span class="s2">&quot;Dissipator signals need to have the same length as dissipator operators.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dissipator_signals</span> <span class="o">=</span> <span class="n">dissipator_signals</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">in_frame_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Whether to represent the model in the basis in which the frame operator is</span>
+<span class="sd">        diagonalized.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span>
+
+    <span class="nd">@in_frame_basis</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">in_frame_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_frame_basis</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span> <span class="o">=</span> <span class="n">in_frame_basis</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">static_hamiltonian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The static Hamiltonian term.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_static_hamiltonian</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span><span class="p">)</span>
+
+    <span class="nd">@static_hamiltonian</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">static_hamiltonian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static_hamiltonian</span><span class="p">:</span> <span class="n">Array</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_static_hamiltonian</span><span class="p">(</span>
+            <span class="n">new_static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span> <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hamiltonian_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The Hamiltonian operators.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_hamiltonian_operators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">static_dissipators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The static dissipator operators.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_static_dissipators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dissipator_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The dissipator operators.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dissipator_operators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_static_hamiltonian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the constant Hamiltonian term.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            in_frame_basis: Flag for whether the returned ``static_operator`` should be in the basis</span>
+<span class="sd">                in which the frame is diagonal.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The static operator term.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_hamiltonian</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">in_frame_basis</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">op</span>
+
+    <span class="k">def</span> <span class="nf">_set_static_hamiltonian</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_static_hamiltonian</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+        <span class="n">operator_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the constant Hamiltonian term.</span>
+
+<span class="sd">        Note that if the model has a rotating frame this will override any contributions to the</span>
+<span class="sd">        static term due to the frame transformation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            new_static_hamiltonian: The static operator operator.</span>
+<span class="sd">            operator_in_frame_basis: Whether ``new_static_operator`` is already in the rotating</span>
+<span class="sd">                frame basis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">new_static_hamiltonian</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">operator_in_frame_basis</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_static_hamiltonian</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_into_frame_basis</span><span class="p">(</span>
+                    <span class="n">new_static_hamiltonian</span>
+                <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="n">new_static_hamiltonian</span>
+
+    <span class="k">def</span> <span class="nf">_get_hamiltonian_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the Hamiltonian operators, either in the frame basis or not.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            in_frame_basis: Whether to return in frame basis or not.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Hamiltonian operators.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ham_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">hamiltonian_operators</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">in_frame_basis</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ham_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">ham_ops</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ham_ops</span>
+
+    <span class="k">def</span> <span class="nf">_get_static_dissipators</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the static dissipators, either in the frame basis or not.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            in_frame_basis: Whether to return in frame basis or not.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dissipator operators.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">diss_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_dissipators</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">in_frame_basis</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">diss_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">diss_ops</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">diss_ops</span>
+
+    <span class="k">def</span> <span class="nf">_get_dissipator_operators</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the dissipator operators, either in the frame basis or not.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            in_frame_basis: Whether to return in frame basis or not.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dissipator operators.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">diss_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">dissipator_operators</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">in_frame_basis</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">diss_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">diss_ops</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">diss_ops</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">evaluation_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Numerical evaluation mode of the model.</span>
+
+<span class="sd">        Available options:</span>
+
+<span class="sd">         * ``&#39;dense&#39;``: Stores Hamiltonian and dissipator terms as dense Array types.</span>
+<span class="sd">         * ``&#39;dense_vectorized&#39;``: Stores the Hamiltonian and dissipator terms as</span>
+<span class="sd">           :math:`(dim^2,dim^2)` matrices that acts on a vectorized density matrix by</span>
+<span class="sd">           left-multiplication. Allows for direct evaluate generator.</span>
+<span class="sd">         * ``&#39;sparse&#39;``: Like dense, but matrices stored in sparse format. If the default Array</span>
+<span class="sd">           backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy :class:`csr_matrix`</span>
+<span class="sd">           sparse type.</span>
+<span class="sd">         * ```sparse_vectorized```: Like dense_vectorized, but matrices stored in sparse format. If</span>
+<span class="sd">           the default Array backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy</span>
+<span class="sd">           :class:`csr_matrix` sparse type. Note that JAX sparse mode is only recommended for use</span>
+<span class="sd">           on CPU.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If this property is set to something other than one of the above</span>
+<span class="sd">                modes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluation_mode</span>
+
+    <span class="nd">@evaluation_mode</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">evaluation_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">new_mode</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluation_mode</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span> <span class="o">=</span> <span class="n">construct_lindblad_operator_collection</span><span class="p">(</span>
+                <span class="n">evaluation_mode</span><span class="o">=</span><span class="n">new_mode</span><span class="p">,</span>
+                <span class="n">static_hamiltonian</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+                <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">hamiltonian_operators</span><span class="p">,</span>
+                <span class="n">static_dissipators</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">static_dissipators</span><span class="p">,</span>
+                <span class="n">dissipator_operators</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">dissipator_operators</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">vectorized_operators</span> <span class="o">=</span> <span class="s2">&quot;vectorized&quot;</span> <span class="ow">in</span> <span class="n">new_mode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_evaluation_mode</span> <span class="o">=</span> <span class="n">new_mode</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rotating_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The rotating frame.</span>
+
+<span class="sd">        This property can be set with a :class:`RotatingFrame` instance, or any valid constructor</span>
+<span class="sd">        argument to this class.</span>
+
+<span class="sd">        Setting this property updates the internal operator to use the new frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rotating_frame</span>
+
+    <span class="nd">@rotating_frame</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">rotating_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotating_frame</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">RotatingFrame</span><span class="p">]):</span>
+        <span class="n">new_frame</span> <span class="o">=</span> <span class="n">RotatingFrame</span><span class="p">(</span><span class="n">rotating_frame</span><span class="p">)</span>
+
+        <span class="c1"># convert static hamiltonian to new frame setup</span>
+        <span class="n">static_ham</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_static_hamiltonian</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">static_ham</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">static_ham</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">static_ham</span>
+
+        <span class="n">new_static_hamiltonian</span> <span class="o">=</span> <span class="n">transfer_static_operator_between_frames</span><span class="p">(</span>
+            <span class="n">static_ham</span><span class="p">,</span>
+            <span class="n">new_frame</span><span class="o">=</span><span class="n">new_frame</span><span class="p">,</span>
+            <span class="n">old_frame</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">new_static_hamiltonian</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_static_hamiltonian</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">new_static_hamiltonian</span>
+
+        <span class="c1"># convert hamiltonian operators and dissipator operators</span>
+        <span class="n">ham_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_hamiltonian_operators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">static_diss_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_static_dissipators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">diss_ops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dissipator_operators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">new_hamiltonian_operators</span> <span class="o">=</span> <span class="n">transfer_operators_between_frames</span><span class="p">(</span>
+            <span class="n">ham_ops</span><span class="p">,</span>
+            <span class="n">new_frame</span><span class="o">=</span><span class="n">new_frame</span><span class="p">,</span>
+            <span class="n">old_frame</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">new_static_dissipators</span> <span class="o">=</span> <span class="n">transfer_operators_between_frames</span><span class="p">(</span>
+            <span class="n">static_diss_ops</span><span class="p">,</span>
+            <span class="n">new_frame</span><span class="o">=</span><span class="n">new_frame</span><span class="p">,</span>
+            <span class="n">old_frame</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">new_dissipator_operators</span> <span class="o">=</span> <span class="n">transfer_operators_between_frames</span><span class="p">(</span>
+            <span class="n">diss_ops</span><span class="p">,</span>
+            <span class="n">new_frame</span><span class="o">=</span><span class="n">new_frame</span><span class="p">,</span>
+            <span class="n">old_frame</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rotating_frame</span> <span class="o">=</span> <span class="n">new_frame</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span> <span class="o">=</span> <span class="n">construct_lindblad_operator_collection</span><span class="p">(</span>
+            <span class="n">evaluation_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluation_mode</span><span class="p">,</span>
+            <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">new_static_hamiltonian</span><span class="p">,</span>
+            <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">new_hamiltonian_operators</span><span class="p">,</span>
+            <span class="n">static_dissipators</span><span class="o">=</span><span class="n">new_static_dissipators</span><span class="p">,</span>
+            <span class="n">dissipator_operators</span><span class="o">=</span><span class="n">new_dissipator_operators</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="LindbladModel.evaluate_hamiltonian"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.LindbladModel.evaluate_hamiltonian.html#qiskit_dynamics.models.LindbladModel.evaluate_hamiltonian">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_hamiltonian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates Hamiltonian matrix at a given time.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time: The time at which to evaluate the Hamiltonian.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: Hamiltonian matrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">hamiltonian_sig_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">hamiltonian_sig_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+        <span class="n">ham</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">evaluate_hamiltonian</span><span class="p">(</span><span class="n">hamiltonian_sig_vals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">frame_diag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ham</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_into_frame</span><span class="p">(</span>
+                <span class="n">time</span><span class="p">,</span>
+                <span class="n">ham</span><span class="p">,</span>
+                <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">return_in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span><span class="p">,</span>
+                <span class="n">vectorized_operators</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vectorized_operators</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ham</span></div>
+
+<div class="viewcode-block" id="LindbladModel.evaluate"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.LindbladModel.evaluate.html#qiskit_dynamics.models.LindbladModel.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the model in array format as a matrix, independent of state.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time: The time to evaluate the model at.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The evaluated model as an anti-Hermitian matrix.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If model cannot be evaluated.</span>
+<span class="sd">            NotImplementedError: If the model is currently unvectorized.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hamiltonian_sig_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">hamiltonian_sig_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">hamiltonian_operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> with non-empty hamiltonian operators cannot be evaluated &quot;</span>
+                <span class="s2">&quot;without hamiltonian signals.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">dissipator_sig_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dissipator_signals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dissipator_sig_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dissipator_signals</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">dissipator_operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> with non-empty dissipator operators cannot be evaluated &quot;</span>
+                <span class="s2">&quot;without dissipator signals.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vectorized_operators</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">hamiltonian_sig_vals</span><span class="p">,</span> <span class="n">dissipator_sig_vals</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">vectorized_map_into_frame</span><span class="p">(</span>
+                <span class="n">time</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Non-vectorized Lindblad models cannot be represented without a given state.&quot;</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="LindbladModel.evaluate_rhs"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.LindbladModel.evaluate_rhs.html#qiskit_dynamics.models.LindbladModel.evaluate_rhs">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_rhs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">y</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates the Lindblad model at a given time.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time: The time at which the model should be evaluated.</span>
+<span class="sd">            y: Density matrix as an (n,n) Array if not using a vectorized evaluation_mode, or an</span>
+<span class="sd">               (n^2) Array if using vectorized evaluation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: Either the evaluated generator or the state.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If signals not sufficiently specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">hamiltonian_sig_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">hamiltonian_sig_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hamiltonian_signals</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">hamiltonian_operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> with non-empty hamiltonian operators cannot be evaluated &quot;</span>
+                <span class="s2">&quot;without hamiltonian signals.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">dissipator_sig_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dissipator_signals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dissipator_sig_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dissipator_signals</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">dissipator_operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> with non-empty dissipator operators cannot be evaluated &quot;</span>
+                <span class="s2">&quot;without dissipator signals.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">frame_diag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Take y out of the frame, but keep in the frame basis</span>
+            <span class="n">rhs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame</span><span class="p">(</span>
+                <span class="n">time</span><span class="p">,</span>
+                <span class="n">y</span><span class="p">,</span>
+                <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span><span class="p">,</span>
+                <span class="n">return_in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">vectorized_operators</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vectorized_operators</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">rhs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">evaluate_rhs</span><span class="p">(</span>
+                <span class="n">hamiltonian_sig_vals</span><span class="p">,</span> <span class="n">dissipator_sig_vals</span><span class="p">,</span> <span class="n">rhs</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Put rhs back into the frame, potentially converting its basis.</span>
+            <span class="n">rhs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_into_frame</span><span class="p">(</span>
+                <span class="n">time</span><span class="p">,</span>
+                <span class="n">rhs</span><span class="p">,</span>
+                <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">return_in_frame_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_frame_basis</span><span class="p">,</span>
+                <span class="n">vectorized_operators</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vectorized_operators</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rhs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span><span class="o">.</span><span class="n">evaluate_rhs</span><span class="p">(</span>
+                <span class="n">hamiltonian_sig_vals</span><span class="p">,</span> <span class="n">dissipator_sig_vals</span><span class="p">,</span> <span class="n">y</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rhs</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">construct_lindblad_operator_collection</span><span class="p">(</span>
+    <span class="n">evaluation_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">static_hamiltonian</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">],</span>
+    <span class="n">hamiltonian_operators</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">csr_matrix</span><span class="p">]],</span>
+    <span class="n">static_dissipators</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">],</span>
+    <span class="n">dissipator_operators</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">csr_matrix</span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseLindbladOperatorCollection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct a Lindblad operator collection.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        evaluation_mode: String specifying new mode. Available options are ``&#39;dense&#39;``,</span>
+<span class="sd">            ``&#39;sparse&#39;``, ``&#39;dense_vectorized&#39;``, and ``&#39;sparse_vectorized&#39;``.</span>
+<span class="sd">        static_hamiltonian: Constant part of the Hamiltonian.</span>
+<span class="sd">        hamiltonian_operators: Operators in Hamiltonian with time-dependent coefficients.</span>
+<span class="sd">        static_dissipators: Dissipation operators with coefficient 1.</span>
+<span class="sd">        dissipator_operators: Dissipation operators with variable coefficients.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        BaseLindbladOperatorCollection: Right-hand side evaluation object.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        NotImplementedError: If ``evaluation_mode`` is not one of the above supported evaluation</span>
+<span class="sd">            modes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># raise warning if sparse mode set with JAX not on cpu</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span>
+        <span class="ow">and</span> <span class="s2">&quot;sparse&quot;</span> <span class="ow">in</span> <span class="n">evaluation_mode</span>
+        <span class="ow">and</span> <span class="n">jax</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="p">):</span>
+        <span class="n">warn</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Using sparse mode with JAX is primarily recommended for use on CPU.&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">evaluation_mode</span> <span class="o">==</span> <span class="s2">&quot;dense&quot;</span><span class="p">:</span>
+        <span class="n">CollectionClass</span> <span class="o">=</span> <span class="n">DenseLindbladCollection</span>
+    <span class="k">elif</span> <span class="n">evaluation_mode</span> <span class="o">==</span> <span class="s2">&quot;sparse&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+            <span class="n">CollectionClass</span> <span class="o">=</span> <span class="n">JAXSparseLindbladCollection</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">CollectionClass</span> <span class="o">=</span> <span class="n">SparseLindbladCollection</span>
+    <span class="k">elif</span> <span class="n">evaluation_mode</span> <span class="o">==</span> <span class="s2">&quot;dense_vectorized&quot;</span><span class="p">:</span>
+        <span class="n">CollectionClass</span> <span class="o">=</span> <span class="n">DenseVectorizedLindbladCollection</span>
+    <span class="k">elif</span> <span class="n">evaluation_mode</span> <span class="o">==</span> <span class="s2">&quot;sparse_vectorized&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+            <span class="n">CollectionClass</span> <span class="o">=</span> <span class="n">JAXSparseVectorizedLindbladCollection</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">CollectionClass</span> <span class="o">=</span> <span class="n">SparseVectorizedLindbladCollection</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Evaluation mode &#39;</span><span class="si">{</span><span class="n">evaluation_mode</span><span class="si">}</span><span class="s2">&#39; is not supported. See &quot;</span>
+            <span class="s2">&quot;help(LindbladModel.evaluation_mode) for available options.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">CollectionClass</span><span class="p">(</span>
+        <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+        <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">hamiltonian_operators</span><span class="p">,</span>
+        <span class="n">static_dissipators</span><span class="o">=</span><span class="n">static_dissipators</span><span class="p">,</span>
+        <span class="n">dissipator_operators</span><span class="o">=</span><span class="n">dissipator_operators</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

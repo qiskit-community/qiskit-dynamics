@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>How-to customize simulations using model transformations and evaluation modes &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Qiskit Dynamics User Guide</a> &gt;</li>
+        
+      <li>How-to customize simulations using model transformations and evaluation modes</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="how-to-customize-simulations-using-model-transformations-and-evaluation-modes">
+<span id="configuring-simulations"></span><h1>How-to customize simulations using model transformations and evaluation modes<a class="headerlink" href="#how-to-customize-simulations-using-model-transformations-and-evaluation-modes" title="Permalink to this heading">¶</a></h1>
+<p>Qiskit Dynamics provides various options for configuring simulations
+that can impact solver performance. These options include choosing between
+dense and sparse array representations, different differential equation
+solvers, and model transformations that modify the definition of the problem.
+Depending on the specifics of the problem, different configurations can
+yield better performance.</p>
+<p>Here we walk through some of these options, covering:</p>
+<ol class="arabic simple">
+<li><p>How-to set up a simulation in a rotating frame, and its potential
+benefits</p></li>
+<li><p>How-to perform a rotating wave approximation, and its potential
+benefits</p></li>
+<li><p>How-to use a sparse evaluation mode, and how-to appropriately set a
+rotating frame to preserve sparsity</p></li>
+</ol>
+<p>Throughout this guide we work at the level of the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> interface,
+and consider Hamiltonian dynamics for simplicity, however all of the
+considerations have their analogs for Lindblad dynamics.</p>
+<section id="how-to-set-up-a-simulation-in-a-rotating-frame-and-its-potential-benefits">
+<h2>1. How-to set up a simulation in a rotating frame, and its potential benefits<a class="headerlink" href="#how-to-set-up-a-simulation-in-a-rotating-frame-and-its-potential-benefits" title="Permalink to this heading">¶</a></h2>
+<p>Here we show how to perform a simulation in a rotating frame by setting the
+optional <code class="docutils literal notranslate"><span class="pre">rotating_frame</span></code> argument when instantiating a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a>, and demonstrate how a
+well-chosen frame operator <span class="math notranslate nohighlight">\(F = -iH_0\)</span> can reduce solving time.
+See the <a class="reference internal" href="../apidocs/models.html#rotating-frames"><span class="std std-ref">Rotating frames section of the Models API documentation</span></a>
+for details on rotating frames.</p>
+<p>We will simulate the unitary generated by a transmon model with
+Hamiltonian:</p>
+<div class="math notranslate nohighlight">
+\[H(t) = 2 \pi \nu N + \pi \alpha N(N-I) + s(t) \times 2 \pi r (a + a^\dagger)\]</div>
+<p>where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(N\)</span>, <span class="math notranslate nohighlight">\(a\)</span>, and <span class="math notranslate nohighlight">\(a^\dagger\)</span> are, respectively,
+the number, annihilation, and creation operators.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\nu\)</span> is the qubit frequency and <span class="math notranslate nohighlight">\(r\)</span> is the drive strength.</p></li>
+<li><p><span class="math notranslate nohighlight">\(s(t)\)</span> is the drive signal, which we will take to be on resonance with constant
+envelope <span class="math notranslate nohighlight">\(1\)</span>.</p></li>
+</ul>
+</div></blockquote>
+<p>First, construct the components of the model:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">Signal</span>
+
+<span class="n">dim</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">v</span> <span class="o">=</span> <span class="mf">5.</span>
+<span class="n">anharm</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.33</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">adag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="p">)),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+
+<span class="c1"># static part</span>
+<span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">v</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">anharm</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+<span class="c1"># drive term</span>
+<span class="n">drive_hamiltonian</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">adag</span><span class="p">)</span>
+<span class="c1"># drive signal</span>
+<span class="n">drive_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+
+<span class="c1"># total simulation time</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">r</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Construct a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> for the model as stated, without entering a rotating frame, and solve,
+timing the solver.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
+    <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="p">[</span><span class="n">drive_hamiltonian</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+<span class="o">%</span><span class="k">time</span> results = solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 6.77 s, sys: 9.86 ms, total: 6.78 s
+Wall time: 6.78 s
+</pre></div>
+</div>
+</div>
+</div>
+<p>Next, define a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> in the rotating frame of the static
+Hamiltonian by setting the <code class="docutils literal notranslate"><span class="pre">rotating_frame</span></code> kwarg, and solve, again timing the solver.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rf_solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
+    <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="p">[</span><span class="n">drive_hamiltonian</span><span class="p">],</span>
+    <span class="n">rotating_frame</span><span class="o">=</span><span class="n">static_hamiltonian</span>
+<span class="p">)</span>
+
+<span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+<span class="o">%</span><span class="k">time</span> rf_results = rf_solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 2.7 s, sys: 0 ns, total: 2.7 s
+Wall time: 2.7 s
+</pre></div>
+</div>
+</div>
+</div>
+<p>Observe that despite the two simulation problems being mathematically equivalent, it takes
+less time to solve in the rotating frame.</p>
+<p>Next, verify that the results are numerically equivalent. This requires
+transforming the results to a common frame, which may be done via utility
+functions in the <code class="docutils literal notranslate"><span class="pre">RotatingFrame</span></code> instance stored within <code class="docutils literal notranslate"><span class="pre">Solver.model.rotating_frame</span></code>.</p>
+<p>To compare the results, we use the fidelity function for unitary matrices:</p>
+<div class="math notranslate nohighlight">
+\[f(U, V) = \frac{|Tr(U^\dagger V)|^2}{d^2},\]</div>
+<p>where <span class="math notranslate nohighlight">\(d\)</span> is the dimension. A value of <span class="math notranslate nohighlight">\(1\)</span> indicates equality of the unitaries.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fidelity</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+    <span class="c1"># the fidelity function</span>
+    <span class="n">inner_product</span> <span class="o">=</span> <span class="p">(</span><span class="n">U</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span> <span class="o">*</span> <span class="n">V</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">inner_product</span><span class="p">)</span> <span class="o">/</span> <span class="n">dim</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+<span class="n">U</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="c1"># transform the results of the solver in the rotating frame out of the rotating frame</span>
+<span class="n">U_rf</span> <span class="o">=</span> <span class="n">rf_solver</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">state_out_of_frame</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">rf_results</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="n">fidelity</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">U_rf</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>0.9999999944421252
+</pre></div>
+</div>
+</div>
+</div>
+<p>Based on the fidelity, we see that the two simulations are numerically equivalent
+with reasonable accuracy based on our specified tolerances.</p>
+<p>The discrepancy in solving times can be understood by examining the number of
+right-hand side (RHS) evaluations when solving the differential equation in each instance.
+The number of RHS evaluations for the first simulation (not in the rotating frame) was:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span><span class="o">.</span><span class="n">nfev</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>32366
+</pre></div>
+</div>
+</div>
+</div>
+<p>Whereas the number of evaluations for the second simulation in the rotating frame was:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rf_results</span><span class="o">.</span><span class="n">nfev</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>8246
+</pre></div>
+</div>
+</div>
+</div>
+<p>This demonstrates that the speedup from entering the rotating frame is a result of
+reducing the number of RHS calls required to solve with a given accuracy.</p>
+</section>
+<section id="how-to-perform-a-rotating-wave-approximation-and-its-potential-benefits">
+<h2>2. How-to perform a rotating wave approximation, and its potential benefits<a class="headerlink" href="#how-to-perform-a-rotating-wave-approximation-and-its-potential-benefits" title="Permalink to this heading">¶</a></h2>
+<p>Next we show how to perform a simulation with the rotating wave approximation (RWA)
+by setting the <code class="docutils literal notranslate"><span class="pre">rwa_cutoff_freq</span></code> argument at <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instantiation, and show
+how it results in further speed ups at the expense of solution accuracy. See the API
+documentation for the <a class="reference internal" href="../stubs/qiskit_dynamics.models.rotating_wave_approximation.html#qiskit_dynamics.models.rotating_wave_approximation" title="qiskit_dynamics.models.rotating_wave_approximation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotating_wave_approximation()</span></code></a> function
+for specific details about the RWA.</p>
+<p>Construct a solver for the same problem, now specifying an RWA cutoff frequency and
+the carrier frequencies relative to which the cutoff should be applied:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rwa_solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
+    <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="p">[</span><span class="n">drive_hamiltonian</span><span class="p">],</span>
+    <span class="n">rotating_frame</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">rwa_cutoff_freq</span><span class="o">=</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">v</span><span class="p">,</span>
+    <span class="n">rwa_carrier_freqs</span><span class="o">=</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+<span class="o">%</span><span class="k">time</span> rwa_results = rwa_solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 516 ms, sys: 3.99 ms, total: 520 ms
+Wall time: 519 ms
+</pre></div>
+</div>
+</div>
+</div>
+<p>We observe a further reduction in time, which is a result of the solver requiring even fewer RHS
+evaluations with the RWA:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rwa_results</span><span class="o">.</span><span class="n">nfev</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>1274
+</pre></div>
+</div>
+</div>
+</div>
+<p>This speed comes at the cost of lower accuracy, owing to the fact that RWA is a
+legitimate <em>approximation</em>, which modifies the structure of the solution:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">U_rwa</span> <span class="o">=</span> <span class="n">rwa_solver</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">state_out_of_frame</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">rwa_results</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="n">fidelity</span><span class="p">(</span><span class="n">U_rwa</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>0.998675050842241
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="how-to-use-a-sparse-evaluation-mode-and-how-to-appropriately-set-a-rotating-frame-to-preserve-sparsity">
+<h2>3. How-to use a sparse evaluation mode, and how-to appropriately set a rotating frame to preserve sparsity<a class="headerlink" href="#how-to-use-a-sparse-evaluation-mode-and-how-to-appropriately-set-a-rotating-frame-to-preserve-sparsity" title="Permalink to this heading">¶</a></h2>
+<p>Here we show how to perform a simulation using sparse arrays for evaluating the RHS
+via the <code class="docutils literal notranslate"><span class="pre">evaluation_mode</span></code> initialization kwarg,
+with extra emphasis on the following:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As stated in the
+<a class="reference internal" href="../apidocs/models.html#evaluation-modes"><span class="std std-ref">evaluation modes section of the Models API documentation</span></a>,
+when using a sparse evaluation mode, to preserve sparsity, it is recommended to
+only use <em>diagonal</em> rotating frames, which can be specified as a 1d array to the
+<code class="docutils literal notranslate"><span class="pre">rotating_frame</span></code> kwarg of <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instantiation.</p>
+</div>
+<p>For this section we use JAX as it is more performant. See the
+<a class="reference internal" href="how_to_use_jax.html#how-to-use-jax"><span class="std std-ref">userguide on using JAX</span></a> for a more detailed
+explanation of how to work with JAX in Qiskit Dynamics.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>JAX sparse arrays are only recommended for use on CPU.</p>
+</div>
+<p>Start off by configuring to use JAX.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+
+<span class="c1"># configure jax to use 64 bit mode</span>
+<span class="kn">import</span> <span class="nn">jax</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># tell JAX we are using CPU</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s1">&#39;jax_platform_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+
+<span class="c1"># set default backend</span>
+<span class="n">Array</span><span class="o">.</span><span class="n">set_default_backend</span><span class="p">(</span><span class="s1">&#39;jax&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Reconstruct the model pieces at a much larger dimension, to observe the
+benefits of using sparse arrays. Furthermore, set up the initial state to
+be a single column vector, to
+further highlight the benefits of the sparse representation.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dim</span> <span class="o">=</span> <span class="mi">300</span>
+
+<span class="n">v</span> <span class="o">=</span> <span class="mf">5.</span>
+<span class="n">anharm</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.33</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">0.02</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">adag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">))</span>
+
+<span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">v</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">anharm</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+<span class="n">drive_hamiltonian</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">adag</span><span class="p">)</span>
+<span class="n">drive_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+
+<span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+<span class="n">y0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">r</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Construct standard dense solver in the rotating frame of the static
+Hamiltonian, define a function to solve the system for a given
+amplitude, and just-in-time compile it using JAX.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
+    <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="p">[</span><span class="n">drive_hamiltonian</span><span class="p">],</span>
+    <span class="n">rotating_frame</span><span class="o">=</span><span class="n">static_hamiltonian</span>
+<span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">dense_func</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+    <span class="n">drive_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">amp</span><span class="p">),</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+        <span class="n">t_span</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="n">T</span><span class="p">],</span>
+        <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span>
+        <span class="n">signals</span><span class="o">=</span><span class="p">[</span><span class="n">drive_signal</span><span class="p">],</span>
+        <span class="n">method</span><span class="o">=</span><span class="s1">&#39;jax_odeint&#39;</span><span class="p">,</span>
+        <span class="n">atol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span>
+        <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-10</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">jitted_dense_func</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">dense_func</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Construct sparse solver <strong>in the frame of the diagonal of the static
+Hamiltonian</strong>, define a function to solve the system for a given amplitude,
+and just-in-time compile it. Note that in this case the static Hamiltonian is already
+diagonal, but we explicitly highlight the need for this.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sparse_solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span><span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+                       <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="p">[</span><span class="n">drive_hamiltonian</span><span class="p">],</span>
+                       <span class="n">rotating_frame</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">static_hamiltonian</span><span class="p">),</span>
+                       <span class="n">evaluation_mode</span><span class="o">=</span><span class="s1">&#39;sparse&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">sparse_func</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+    <span class="n">drive_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">amp</span><span class="p">),</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">sparse_solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+        <span class="n">t_span</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="n">T</span><span class="p">],</span>
+        <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span>
+        <span class="n">signals</span> <span class="o">=</span> <span class="p">[</span><span class="n">drive_signal</span><span class="p">],</span>
+        <span class="n">method</span><span class="o">=</span><span class="s1">&#39;jax_odeint&#39;</span><span class="p">,</span>
+        <span class="n">atol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span>
+        <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-10</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">jitted_sparse_func</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">sparse_func</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Run the dense simulation (twice to see the true compiled speed).</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">yf</span> <span class="o">=</span> <span class="n">jitted_dense_func</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">block_until_ready</span><span class="p">()</span>
+<span class="o">%</span><span class="k">time</span> yf = jitted_dense_func(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 3.43 s, sys: 3.83 ms, total: 3.43 s
+Wall time: 3.43 s
+</pre></div>
+</div>
+</div>
+</div>
+<p>Run the sparse solver (twice to see the true compiled speed).</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">yf_sparse</span> <span class="o">=</span> <span class="n">jitted_sparse_func</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">block_until_ready</span><span class="p">()</span>
+<span class="o">%</span><span class="k">time</span> yf_sparse = jitted_sparse_func(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.45 s, sys: 0 ns, total: 1.45 s
+Wall time: 1.45 s
+</pre></div>
+</div>
+</div>
+</div>
+<p>Verify equality of the results in a common frame.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">yf</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">state_out_of_frame</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">yf</span><span class="p">)</span>
+<span class="n">yf_sparse</span> <span class="o">=</span> <span class="n">sparse_solver</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">state_out_of_frame</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">yf_sparse</span><span class="p">)</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">yf</span> <span class="o">-</span> <span class="n">yf_sparse</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Array(3.05621703e-13)
+</pre></div>
+</div>
+</div>
+</div>
+<p>We observe that the final states are extremely close, and that the
+sparse representation provides a speed advantage for this problem.</p>
+</section>
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="perturbative_solvers.html" class="btn btn-neutral float-right" title="How-to use Dyson and Magnus based solvers" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="how_to_use_jax.html" class="btn btn-neutral" title="How-to use JAX with qiskit-dynamics" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">How-to customize simulations using model transformations and evaluation modes</a><ul>
+<li><a class="reference internal" href="#how-to-set-up-a-simulation-in-a-rotating-frame-and-its-potential-benefits">1. How-to set up a simulation in a rotating frame, and its potential benefits</a></li>
+<li><a class="reference internal" href="#how-to-perform-a-rotating-wave-approximation-and-its-potential-benefits">2. How-to perform a rotating wave approximation, and its potential benefits</a></li>
+<li><a class="reference internal" href="#how-to-use-a-sparse-evaluation-mode-and-how-to-appropriately-set-a-rotating-frame-to-preserve-sparsity">3. How-to use a sparse evaluation mode, and how-to appropriately set a rotating frame to preserve sparsity</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+qiskit\_dynamics.backend.DynamicsBackend.set\_options
+=====================================================
+
+.. currentmodule:: qiskit_dynamics.backend
+
+.. automethod:: DynamicsBackend.set_options

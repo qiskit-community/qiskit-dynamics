@@ -1,0 +1,6 @@
+qiskit\_dynamics.signals.DiscreteSignalSum.conjugate
+====================================================
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. automethod:: DiscreteSignalSum.conjugate

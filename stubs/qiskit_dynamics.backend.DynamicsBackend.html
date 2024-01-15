@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>DynamicsBackend &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../apidocs/index.html">Qiskit Dynamics API Reference</a> &gt;</li>
+        
+          <li><a href="../apidocs/backend.html">Backend (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.backend</span></code>)</a> &gt;</li>
+        
+      <li>DynamicsBackend</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="dynamicsbackend">
+<h1>DynamicsBackend<a class="headerlink" href="#dynamicsbackend" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DynamicsBackend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/backend/dynamics_backend.html#DynamicsBackend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.providers.BackendV2.html#qiskit.providers.BackendV2" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">BackendV2</span></code></a></p>
+<p>Pulse-level simulator backend.</p>
+<p>This class provides a <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.providers.BackendV2.html#qiskit.providers.BackendV2" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">BackendV2</span></code></a> interface wrapper around a
+<a class="reference internal" href="qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance setup to simulate pulse schedules. The backend can be configured to
+take advantage of standard transpilation infrastructure to describe pulse-level simulations in
+terms of <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.circuit.QuantumCircuit.html#qiskit.circuit.QuantumCircuit" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></a>s. Results are returned as
+<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.result.Result.html#qiskit.result.Result" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Result</span></code></a> instances.</p>
+<p>A minimal <a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> requires specifying only a <a class="reference internal" href="qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance and a
+list of subsystem dimensions, indicating the subsystem decomposition of the model in
+<a class="reference internal" href="qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a>. For example, the following code builds a <a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> around a
+<a class="reference internal" href="qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> and indicates that the system specified by the <a class="reference internal" href="qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> decomposes as
+two <code class="docutils literal notranslate"><span class="pre">3</span></code> dimensional subsystems.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">backend</span> <span class="o">=</span> <span class="n">DynamicsBackend</span><span class="p">(</span>
+    <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">subsystem_dims</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Without further configuration, the above <code class="docutils literal notranslate"><span class="pre">backend</span></code> can be used to simulate either
+<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.pulse.Schedule.html#qiskit.pulse.Schedule" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Schedule</span></code></a> or <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.pulse.ScheduleBlock.html#qiskit.pulse.ScheduleBlock" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduleBlock</span></code></a> instances.</p>
+<p>Pulse-level simulations defined in terms of <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.circuit.QuantumCircuit.html#qiskit.circuit.QuantumCircuit" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></a> instances
+can also be performed if each gate in the circuit has a corresponding pulse-level definition,
+either as an attached calibration, or as an instruction contained in <code class="docutils literal notranslate"><span class="pre">backend.target</span></code>.</p>
+<p>Additionally, a <a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> can be instantiated from an existing backend using the
+<a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.from_backend.html#qiskit_dynamics.backend.DynamicsBackend.from_backend" title="qiskit_dynamics.backend.DynamicsBackend.from_backend"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DynamicsBackend.from_backend()</span></code></a> method, utilizing the additional <code class="docutils literal notranslate"><span class="pre">subsystem_list</span></code>
+argument to specify which qubits to include in the model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">backend</span> <span class="o">=</span> <span class="n">DynamicsBackend</span><span class="o">.</span><span class="n">from_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">subsystem_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Supported options</strong></p>
+<p>The behaviour of the backend can be configured via the following options. These can either be
+passed as optional keyword arguments at construction, set with the
+<a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.set_options.html#qiskit_dynamics.backend.DynamicsBackend.set_options" title="qiskit_dynamics.backend.DynamicsBackend.set_options"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DynamicsBackend.set_options()</span></code></a> method after construction, or passed as runtime arguments
+to <a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.run.html#qiskit_dynamics.backend.DynamicsBackend.run" title="qiskit_dynamics.backend.DynamicsBackend.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DynamicsBackend.run()</span></code></a>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">shots</span></code>: Number of shots per experiment. Defaults to <code class="docutils literal notranslate"><span class="pre">1024</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">solver</span></code>: The Qiskit Dynamics <a class="reference internal" href="qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance used for simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">solver_options</span></code>: Dictionary containing optional kwargs for passing to <code class="xref py py-meth docutils literal notranslate"><span class="pre">Solver.solve()</span></code>,
+indicating solver methods and options. Defaults to the empty dictionary <code class="docutils literal notranslate"><span class="pre">{}</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subsystem_dims</span></code>: Dimensions of subsystems making up the system in <code class="docutils literal notranslate"><span class="pre">solver</span></code>. Defaults to
+<code class="docutils literal notranslate"><span class="pre">[solver.model.dim]</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meas_map</span></code>: Measurement map. Defaults to <code class="docutils literal notranslate"><span class="pre">[[idx]</span> <span class="pre">for</span> <span class="pre">idx</span> <span class="pre">in</span> <span class="pre">range(len(subsystem_dims))]</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control_channel_map</span></code>: A dictionary mapping control channel labels to indices, to be used
+for control channel index lookup in the <a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.control_channel.html#qiskit_dynamics.backend.DynamicsBackend.control_channel" title="qiskit_dynamics.backend.DynamicsBackend.control_channel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DynamicsBackend.control_channel()</span></code></a> method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_state</span></code>: Initial state for simulation, either the string <code class="docutils literal notranslate"><span class="pre">&quot;ground_state&quot;</span></code>,
+indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
+<code class="docutils literal notranslate"><span class="pre">Statevector</span></code> or <code class="docutils literal notranslate"><span class="pre">DensityMatrix</span></code>. Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;ground_state&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalize_states</span></code>: Boolean indicating whether to normalize states before computing outcome
+probabilities, and normalize probablities before sampling. Defaults to <code class="docutils literal notranslate"><span class="pre">True</span></code>. Setting to
+<code class="docutils literal notranslate"><span class="pre">False</span></code> can result in errors if the solution tolerance results in probabilities with
+significant numerical deviation from a proper probability distribution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meas_level</span></code>: Form of measurement output. Supported values are <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">2</span></code>. <code class="docutils literal notranslate"><span class="pre">1</span></code>
+returns IQ points and <code class="docutils literal notranslate"><span class="pre">2</span></code> returns counts. Defaults to <code class="docutils literal notranslate"><span class="pre">meas_level</span> <span class="pre">==</span> <span class="pre">2</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meas_return</span></code>: Level of measurement data to return. For <code class="docutils literal notranslate"><span class="pre">meas_level</span> <span class="pre">=</span> <span class="pre">1</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;single&quot;</span></code>
+returns output from every shot. <code class="docutils literal notranslate"><span class="pre">&quot;avg&quot;</span></code> returns average over shots of measurement output.
+Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;avg&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iq_centers</span></code>: Centers for IQ distribution when using <code class="docutils literal notranslate"><span class="pre">meas_level==1</span></code> results. Must have
+type <code class="docutils literal notranslate"><span class="pre">List[List[List[float,</span> <span class="pre">float]]]</span></code> formatted as <code class="docutils literal notranslate"><span class="pre">iq_centers[subsystem][level]</span> <span class="pre">=</span> <span class="pre">[I,</span>
+<span class="pre">Q]</span></code>. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the <code class="docutils literal notranslate"><span class="pre">iq_centers</span></code> are dynamically generated to be equally spaced points on
+a unit circle with ground-state at <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0)</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iq_width</span></code>: Standard deviation of IQ distribution around the centers for <code class="docutils literal notranslate"><span class="pre">meas_level==1</span></code>.
+Must be a positive float. Defaults to <code class="docutils literal notranslate"><span class="pre">0.2</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_outcome_level</span></code>: For <code class="docutils literal notranslate"><span class="pre">meas_level</span> <span class="pre">==</span> <span class="pre">2</span></code>, the maximum outcome for each subsystem. Values
+will be rounded down to be no larger than <code class="docutils literal notranslate"><span class="pre">max_outcome_level</span></code>. Must be a positive integer or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, no rounding occurs. Defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">memory</span></code>: Boolean indicating whether to return a list of explicit measurement outcomes for
+every experimental shot. Defaults to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed_simulator</span></code>: Seed to use in random sampling. Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">experiment_result_function</span></code>: Function for computing the <code class="docutils literal notranslate"><span class="pre">ExperimentResult</span></code> for each
+simulated experiment. This option defaults to <a class="reference internal" href="qiskit_dynamics.backend.default_experiment_result_function.html#qiskit_dynamics.backend.default_experiment_result_function" title="qiskit_dynamics.backend.default_experiment_result_function"><code class="xref py py-func docutils literal notranslate"><span class="pre">default_experiment_result_function()</span></code></a>, and
+any other function set to this option must have the same signature. Note that the default
+utilizes various other options that control results computation, and hence changing it will
+impact the meaning of other options.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">configuration</span></code>: A <code class="xref py py-class docutils literal notranslate"><span class="pre">PulseBackendConfiguration</span></code> instance or <code class="docutils literal notranslate"><span class="pre">None</span></code>. This option
+defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, and is not required for the functioning of this class, but is provided
+for compatibility. A set configuration will be returned by
+<a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.configuration.html#qiskit_dynamics.backend.DynamicsBackend.configuration" title="qiskit_dynamics.backend.DynamicsBackend.configuration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DynamicsBackend.configuration()</span></code></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">defaults</span></code>: A <code class="xref py py-class docutils literal notranslate"><span class="pre">PulseDefaults</span></code> instance or <code class="docutils literal notranslate"><span class="pre">None</span></code>. This option defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>,
+and is not required for the functioning of this class, but is provided for compatibility. A
+set defaults will be returned by <a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.defaults.html#qiskit_dynamics.backend.DynamicsBackend.defaults" title="qiskit_dynamics.backend.DynamicsBackend.defaults"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DynamicsBackend.defaults()</span></code></a>.</p></li>
+</ul>
+<p>Instantiate with a <a class="reference internal" href="qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance and additional options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.solver_classes.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a></span>) – Solver instance configured for pulse simulation.</p></li>
+<li><p><strong>target</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.transpiler.Target.html#qiskit.transpiler.Target" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a>]</span>) – Target object.</p></li>
+<li><p><strong>options</strong> – Additional configuration options for the simulator.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>QiskitError</strong> – If any instantiation arguments fail validation checks.</p>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.acquire_channel.html#qiskit_dynamics.backend.DynamicsBackend.acquire_channel" title="qiskit_dynamics.backend.DynamicsBackend.acquire_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire_channel</span></code></a></p></td>
+<td><p>Return the measure channel for a given qubit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.configuration.html#qiskit_dynamics.backend.DynamicsBackend.configuration" title="qiskit_dynamics.backend.DynamicsBackend.configuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configuration</span></code></a></p></td>
+<td><p>Get the backend configuration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.control_channel.html#qiskit_dynamics.backend.DynamicsBackend.control_channel" title="qiskit_dynamics.backend.DynamicsBackend.control_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">control_channel</span></code></a></p></td>
+<td><p>Return the control channel with a given label specified by qubits.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.defaults.html#qiskit_dynamics.backend.DynamicsBackend.defaults" title="qiskit_dynamics.backend.DynamicsBackend.defaults"><code class="xref py py-obj docutils literal notranslate"><span class="pre">defaults</span></code></a></p></td>
+<td><p>Get the backend defaults.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.drive_channel.html#qiskit_dynamics.backend.DynamicsBackend.drive_channel" title="qiskit_dynamics.backend.DynamicsBackend.drive_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drive_channel</span></code></a></p></td>
+<td><p>Return the drive channel for a given qubit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.from_backend.html#qiskit_dynamics.backend.DynamicsBackend.from_backend" title="qiskit_dynamics.backend.DynamicsBackend.from_backend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_backend</span></code></a></p></td>
+<td><p>Construct a DynamicsBackend instance from an existing Backend instance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.measure_channel.html#qiskit_dynamics.backend.DynamicsBackend.measure_channel" title="qiskit_dynamics.backend.DynamicsBackend.measure_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_channel</span></code></a></p></td>
+<td><p>Return the measure channel for a given qubit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.qubit_properties.html#qiskit_dynamics.backend.DynamicsBackend.qubit_properties" title="qiskit_dynamics.backend.DynamicsBackend.qubit_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">qubit_properties</span></code></a></p></td>
+<td><p>Return QubitProperties for a given qubit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.run.html#qiskit_dynamics.backend.DynamicsBackend.run" title="qiskit_dynamics.backend.DynamicsBackend.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a></p></td>
+<td><p>Run a list of simulations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.set_options.html#qiskit_dynamics.backend.DynamicsBackend.set_options" title="qiskit_dynamics.backend.DynamicsBackend.set_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_options</span></code></a></p></td>
+<td><p>Set options for DynamicsBackend.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.coupling_map">
+<span class="sig-name descname"><span class="pre">coupling_map</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.coupling_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.transpiler.CouplingMap.html#qiskit.transpiler.CouplingMap" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CouplingMap</span></code></a> object</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.dt">
+<span class="sig-name descname"><span class="pre">dt</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.dt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the system time resolution of input signals</p>
+<p>This is required to be implemented if the backend supports Pulse
+scheduling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The input signal timestep in seconds. If the backend doesn’t define <code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code> will
+be returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.dtm">
+<span class="sig-name descname"><span class="pre">dtm</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.dtm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the system time resolution of output signals</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The output signal timestep in seconds.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – if the backend doesn’t support querying the
+    output signal timestep</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.instruction_durations">
+<span class="sig-name descname"><span class="pre">instruction_durations</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.instruction_durations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.transpiler.InstructionDurations.html#qiskit.transpiler.InstructionDurations" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">InstructionDurations</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.instruction_schedule_map">
+<span class="sig-name descname"><span class="pre">instruction_schedule_map</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.instruction_schedule_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.pulse.InstructionScheduleMap.html#qiskit.pulse.InstructionScheduleMap" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">InstructionScheduleMap</span></code></a> for the
+instructions defined in this backend’s target.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.instructions">
+<span class="sig-name descname"><span class="pre">instructions</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.instructions" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of Instruction tuples on the backend of the form <code class="docutils literal notranslate"><span class="pre">(instruction,</span> <span class="pre">(qubits)</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.max_circuits">
+<span class="sig-name descname"><span class="pre">max_circuits</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.max_circuits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.meas_map">
+<span class="sig-name descname"><span class="pre">meas_map</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.meas_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.num_qubits">
+<span class="sig-name descname"><span class="pre">num_qubits</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of qubits the backend has.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.operation_names">
+<span class="sig-name descname"><span class="pre">operation_names</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.operation_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of instruction names that the backend supports.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.operations">
+<span class="sig-name descname"><span class="pre">operations</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.operations" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.circuit.Instruction.html#qiskit.circuit.Instruction" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instruction</span></code></a> instances that the backend supports.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.options">
+<span class="sig-name descname"><span class="pre">options</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the options for the backend</p>
+<p>The options of a backend are the dynamic parameters defining
+how the backend is used. These are used to control the <a class="reference internal" href="qiskit_dynamics.backend.DynamicsBackend.run.html#qiskit_dynamics.backend.DynamicsBackend.run" title="qiskit_dynamics.backend.DynamicsBackend.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a>
+method.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.provider">
+<span class="sig-name descname"><span class="pre">provider</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.provider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the backend Provider.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the Provider responsible for the backend.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Provider</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.target">
+<span class="sig-name descname"><span class="pre">target</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.target" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.version">
+<span class="sig-name descname"><span class="pre">version</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the backend.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.description">
+<span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optional human-readable description.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.online_date">
+<span class="sig-name descname"><span class="pre">online_date</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.online_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Date that the backend came online.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.DynamicsBackend.backend_version">
+<span class="sig-name descname"><span class="pre">backend_version</span></span><a class="headerlink" href="#qiskit_dynamics.backend.DynamicsBackend.backend_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Version of the backend being provided.  This is not the same as
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">BackendV2.version</span></code>, which is the version of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Backend</span></code>
+abstract interface.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="qiskit_dynamics.backend.DynamicsBackend.acquire_channel.html" class="btn btn-neutral float-right" title="qiskit_dynamics.backend.DynamicsBackend.acquire_channel" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="../apidocs/backend.html" class="btn btn-neutral" title="Backend (qiskit_dynamics.backend)" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">DynamicsBackend</a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.coupling_map"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.coupling_map</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.dt"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.dt</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.dtm"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.dtm</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.instruction_durations"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.instruction_durations</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.instruction_schedule_map"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.instruction_schedule_map</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.instructions"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.instructions</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.max_circuits"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.max_circuits</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.meas_map"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.meas_map</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.num_qubits"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.num_qubits</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.operation_names"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.operation_names</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.operations"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.operations</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.options"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.options</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.provider"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.provider</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.target"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.target</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.version"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.version</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.name"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.name</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.description"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.description</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.online_date"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.online_date</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.DynamicsBackend.backend_version"><code class="docutils literal notranslate"><span class="pre">DynamicsBackend.backend_version</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

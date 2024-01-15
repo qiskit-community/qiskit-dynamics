@@ -1,0 +1,24 @@
+﻿PowerSeriesData
+===============
+
+.. currentmodule:: qiskit_dynamics.perturbation
+
+.. autoclass:: PowerSeriesData
+   :no-members:
+   :show-inheritance:
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      :toctree: ../stubs/
+
+      ~PowerSeriesData.get_item
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: metadata
+   .. autoattribute:: data
+   .. autoattribute:: labels

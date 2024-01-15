@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>qiskit_dynamics.perturbation.solve_lmde_perturbation &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../apidocs/index.html">Qiskit Dynamics API Reference</a> &gt;</li>
+        
+          <li><a href="../apidocs/perturbation.html">Perturbation Theory (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.perturbation</span></code>)</a> &gt;</li>
+        
+      <li>qiskit_dynamics.perturbation.solve_lmde_perturbation</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="qiskit-dynamics-perturbation-solve-lmde-perturbation">
+<h1>qiskit_dynamics.perturbation.solve_lmde_perturbation<a class="headerlink" href="#qiskit-dynamics-perturbation-solve-lmde-perturbation" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="qiskit_dynamics.perturbation.solve_lmde_perturbation">
+<span class="sig-name descname"><span class="pre">solve_lmde_perturbation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">perturbations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expansion_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expansion_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expansion_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturbation_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyson_in_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DOP853'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_eval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/perturbation/solve_lmde_perturbation.html#solve_lmde_perturbation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.perturbation.solve_lmde_perturbation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute time-dependent perturbation theory terms for an LMDE.</p>
+<p>This function computes multi-variable Dyson or Magnus expansion terms via the algorithm in
+<a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, or Dyson-like terms via the algorithm in
+<a class="footnote-reference brackets" href="#footcite-haas-engineering-2019" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>. See the
+<a class="reference internal" href="../discussions/dyson_magnus.html#perturbation-review"><span class="std std-ref">review on time-dependent perturbation theory</span></a>
+to understand the details and notation used in this documentation.</p>
+<p>Which expansion is used is specified by the <code class="docutils literal notranslate"><span class="pre">expansion_method</span></code> argument, which impacts the
+interpretation of several of the function arguments (described below). Regardless of
+<code class="docutils literal notranslate"><span class="pre">expansion_method</span></code>, the main computation is performed by solving a differential equation,
+utilizing <a class="reference internal" href="qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode" title="qiskit_dynamics.solvers.solve_ode"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_ode()</span></code></a>, and as such several of the function arguments are direct inputs
+into this function:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">integration_method</span></code> is the ODE method used (passed as <code class="docutils literal notranslate"><span class="pre">method</span></code> to
+<a class="reference internal" href="qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode" title="qiskit_dynamics.solvers.solve_ode"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_ode()</span></code></a>), <code class="docutils literal notranslate"><span class="pre">t_span</span></code> is the integration interval, and <code class="docutils literal notranslate"><span class="pre">t_eval</span></code> is an optional
+set of points to evaluate the perturbation terms at.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kwargs</span></code> are passed directly to <a class="reference internal" href="qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode" title="qiskit_dynamics.solvers.solve_ode"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_ode()</span></code></a>, enabling passing through of
+tolerance or step size arguments.</p></li>
+</ul>
+</div></blockquote>
+<p>Other arguments which are treated the same regardless off <code class="docutils literal notranslate"><span class="pre">expansion_method</span></code> are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">generator</span></code> is the unperturbed generator, and the computation is performed in the
+toggling frame of this generator.</p></li>
+</ul>
+</div></blockquote>
+<p>If <code class="docutils literal notranslate"><span class="pre">expansion_method</span> <span class="pre">in</span> <span class="pre">['dyson',</span> <span class="pre">'magnus']</span></code>, this function computes either multivariable
+Dyson series or Magnus expansion terms. That is, given a (finitely truncated) power series for
+the generator:</p>
+<div class="math notranslate nohighlight">
+\[G(t, c_0, \dots, c_{r-1}) = G_\emptyset(t)
+    + \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I G_I(t),\]</div>
+<p>this function computes, in the toggling frame of <span class="math notranslate nohighlight">\(G_\emptyset(t)\)</span> given by <code class="docutils literal notranslate"><span class="pre">generator</span></code>,
+either a collection of multivariable Dyson terms <span class="math notranslate nohighlight">\(\mathcal{D}_I(t)\)</span> or multivariable
+Magnus terms <span class="math notranslate nohighlight">\(\mathcal{O}_I(t)\)</span>, whose definitions are given in the
+<a class="reference internal" href="../discussions/dyson_magnus.html#perturbation-review"><span class="std std-ref">perturbation theory review</span></a>. In this case, the arguments to the
+function are interpreted as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">perturbations</span></code> and <code class="docutils literal notranslate"><span class="pre">perturbation_labels</span></code> specify the truncated generator power
+series. <code class="docutils literal notranslate"><span class="pre">perturbations</span></code> provides a list of python callable functions for the non-zero
+<span class="math notranslate nohighlight">\(G_I(t)\)</span>, and the <code class="docutils literal notranslate"><span class="pre">perturbation_labels</span></code> is a list of the corresponding multiset
+labels <span class="math notranslate nohighlight">\(I\)</span>, in the form of <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> instances. If not specified, the labels are
+assumed to be <code class="docutils literal notranslate"><span class="pre">[Multiset({0:</span> <span class="pre">1}),</span> <span class="pre">...,</span> <span class="pre">Multiset({len(perturbations)</span> <span class="pre">-</span> <span class="pre">1:</span> <span class="pre">1})]</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> and <code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code> specify which terms in the chosen expansion
+are to be computed. <code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> specifies that all expansion terms up to a given
+order are to be computed, and <code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code> specifies individual terms to be
+computed, specified as <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> instances. At least one of <code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> and
+<code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code> must be specified. If both are specified, then all terms up to
+<code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> will be computed, along with any additional specific terms given by
+<code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<p>Note that in the above, this function requires that the Multisets consist of non-negative
+integers. Arguments requiring lists of <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> instances also accept lists of any valid
+format acceptable to the <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> constructor (modulo the non-negative integer constraint).</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">expansion_method</span> <span class="pre">==</span> <span class="pre">'dyson_like'</span></code>, the setup is different. In this case, for a list of
+matrix-valued functions <span class="math notranslate nohighlight">\(G_0(t), \dots, G_{r-1}(t)\)</span>, this function computes integrals of
+the form</p>
+<div class="math notranslate nohighlight">
+\[\int_{t_0}^{t_F} dt_1 \int_{t_0}^{t_1} dt_2 \dots \int_{t_0}^{t_{k-1}}dt_k
+        \tilde{G}_{i_1}(t_1) \dots \tilde{G}_{i_k}(t_k),\]</div>
+<p>for lists of integers <span class="math notranslate nohighlight">\([i_1, \dots, i_k]\)</span>, and similar to the other cases,
+<span class="math notranslate nohighlight">\(\tilde{G}_j(t) = V(t)^\dagger G_j(t)V(t)\)</span>, i.e. the computation is performed in the
+toggling frame specified by <code class="docutils literal notranslate"><span class="pre">generator</span></code>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">perturbations</span></code> gives the list of matrix functions as callables
+<span class="math notranslate nohighlight">\(G_0(t), \dots, G_{r-1}(t)\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">perturbation_labels</span></code> is not used in this mode.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> specifies that all possible integrals of the above form should be
+computed up to a given order (i.e. integrals up to a given order with all possible
+orderings of the <span class="math notranslate nohighlight">\(G_0(t), \dots, G_{r-1}(t)\)</span>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code> allows for specification of specific terms to be computed. In this
+case, a term is specified by a list of <code class="docutils literal notranslate"><span class="pre">int</span></code>s, where the length of the list is the
+order of the integral, and the <span class="math notranslate nohighlight">\(G_0(t), \dots, G_{r-1}(t)\)</span> appear in the integral in
+the order given by the list.</p></li>
+</ul>
+</div></blockquote>
+<p>Finally, additional optional arguments which can be used in the <code class="docutils literal notranslate"><span class="pre">'dyson'</span></code> and <code class="docutils literal notranslate"><span class="pre">'dyson_like'</span></code>
+cases are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dyson_in_frame</span></code> controls which frame the results are returned in. The default is
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, in which case the results are returned as described above. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, the
+returned results include a pre-factor of <span class="math notranslate nohighlight">\(V(t)\)</span>, the solution of the unperturbed
+generator, e.g. <span class="math notranslate nohighlight">\(V(t)\mathcal{D}_I(t)\)</span>. If <code class="docutils literal notranslate"><span class="pre">expansion_method=='magnus'</span></code>, this
+argument has no effect on the computation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">y0</span></code> is the initial state for the LMDE given by the unperturbed generator. The effect of
+this argument on the output is to multiply all outputs by <code class="docutils literal notranslate"><span class="pre">y0</span></code> on the right. If <code class="docutils literal notranslate"><span class="pre">y0</span></code>
+is supplied, the argument <code class="docutils literal notranslate"><span class="pre">dyson_in_frame</span></code> must be <code class="docutils literal notranslate"><span class="pre">False</span></code>, as the operator
+<span class="math notranslate nohighlight">\(V(t)\)</span> is never explicitly computed, and therefore it cannot be removed from the
+results. If <code class="docutils literal notranslate"><span class="pre">y0</span></code> is 1d, it will first be transformed into a 2d column vector to ensure
+consistent usage of matrix multiplication.</p></li>
+</ul>
+</div></blockquote>
+<p>Regardless of the value of <code class="docutils literal notranslate"><span class="pre">expansion_method</span></code>, results are returned in an <code class="docutils literal notranslate"><span class="pre">OdeResult</span></code>
+instance in the same manner as <a class="reference internal" href="qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode" title="qiskit_dynamics.solvers.solve_ode"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_ode()</span></code></a>. The result object stores the solution of the
+LMDE for <code class="docutils literal notranslate"><span class="pre">generator</span></code> and <code class="docutils literal notranslate"><span class="pre">y0</span></code> as if these were passed directly to <a class="reference internal" href="qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode" title="qiskit_dynamics.solvers.solve_ode"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_ode()</span></code></a> before,
+as well as the computed perturbation theory terms in the additional attribute
+<code class="docutils literal notranslate"><span class="pre">perturbation_data</span></code>. If <code class="docutils literal notranslate"><span class="pre">expansion_method</span> <span class="pre">in</span> <span class="pre">['dyson',</span> <span class="pre">'magnus']</span></code>, the <code class="docutils literal notranslate"><span class="pre">perturbation_data</span></code>
+attribute stores a <a class="reference internal" href="qiskit_dynamics.perturbation.PowerSeriesData.html#qiskit_dynamics.perturbation.PowerSeriesData" title="qiskit_dynamics.perturbation.PowerSeriesData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PowerSeriesData</span></code></a> instance, and if
+<code class="docutils literal notranslate"><span class="pre">expansion_method</span> <span class="pre">==</span> <span class="pre">'dyson_like'</span></code>, it stores a <a class="reference internal" href="qiskit_dynamics.perturbation.DysonLikeData.html#qiskit_dynamics.perturbation.DysonLikeData" title="qiskit_dynamics.perturbation.DysonLikeData"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonLikeData</span></code></a> instance. In either
+case, these are data container classes with the following attributes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code>: Containing expansion information.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labels</span></code>: Index labels for all computed perturbation terms. In the case of the Dyson or
+Magnus expansion, the labels are <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> instances, and in the <cite>‘dyson_like’</cite> case,
+they are lists of <code class="docutils literal notranslate"><span class="pre">int</span></code>s.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>: A 4d array storing all computed terms. The first axis indexes the expansion
+terms in the same ordering as <code class="docutils literal notranslate"><span class="pre">labels</span></code>, and the second axis indexes the perturbation
+terms evaluated at the times in <code class="docutils literal notranslate"><span class="pre">results.t</span></code> in the same manner as <code class="docutils literal notranslate"><span class="pre">results.y</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<p>Additionally, both the <a class="reference internal" href="qiskit_dynamics.perturbation.PowerSeriesData.get_item.html#qiskit_dynamics.perturbation.PowerSeriesData.get_item" title="qiskit_dynamics.perturbation.PowerSeriesData.get_item"><code class="xref py py-meth docutils literal notranslate"><span class="pre">PowerSeriesData.get_item()</span></code></a> and <a class="reference internal" href="qiskit_dynamics.perturbation.DysonLikeData.get_item.html#qiskit_dynamics.perturbation.DysonLikeData.get_item" title="qiskit_dynamics.perturbation.DysonLikeData.get_item"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DysonLikeData.get_item()</span></code></a>
+methods can be used to retrieve the results for a given perturbation term according to its
+label. E.g. the results for the term with label <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code> is retrievable via
+<code class="docutils literal notranslate"><span class="pre">results.perturbation_data.get_term([0,</span> <span class="pre">1])</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>perturbations</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>]</span>) – List of matrix-valued callables.</p></li>
+<li><p><strong>t_span</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – Integration bounds.</p></li>
+<li><p><strong>expansion_method</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Either <code class="docutils literal notranslate"><span class="pre">'dyson'</span></code>, <code class="docutils literal notranslate"><span class="pre">'magnus'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'dyson_like'</span></code>.</p></li>
+<li><p><strong>expansion_order</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Order of perturbation terms to compute up to. Specifying this argument
+results in computation of all terms up to the given order. Can be used in conjunction
+with <code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code>.</p></li>
+<li><p><strong>expansion_labels</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Multiset</span></code>]]</span>) – Specific perturbation terms to compute. If both <code class="docutils literal notranslate"><span class="pre">expansion_order</span></code>
+and <code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code> are specified, then all terms up to <code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> are
+computed, along with the additional terms specified in <code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code>.</p></li>
+<li><p><strong>perturbation_labels</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Multiset</span></code>]]</span>) – Optional description of power series terms specified by
+<code class="docutils literal notranslate"><span class="pre">perturbations</span></code>. To only be used with <code class="docutils literal notranslate"><span class="pre">'dyson'</span></code> and <code class="docutils literal notranslate"><span class="pre">'magnus'</span></code> methods.</p></li>
+<li><p><strong>generator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>]</span>) – Optional frame generator. Defaults to <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+<li><p><strong>y0</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>]</span>) – Optional initial state for frame generator LMDE. Defaults to the identity matrix.</p></li>
+<li><p><strong>dyson_in_frame</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – For <code class="docutils literal notranslate"><span class="pre">expansion_method</span></code> <code class="docutils literal notranslate"><span class="pre">'dyson'</span></code> or <code class="docutils literal notranslate"><span class="pre">'dyson_like'</span></code>, whether or not
+to remove the frame transformation pre-factor from the Dyson terms.</p></li>
+<li><p><strong>integration_method</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Integration method to use.</p></li>
+<li><p><strong>t_eval</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>]</span>) – Points at which to evaluate the system.</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments to pass to ode integration method used to compute terms.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Results object containing standard ODE results for LMDE given by <code class="docutils literal notranslate"><span class="pre">generator</span></code>
+and <code class="docutils literal notranslate"><span class="pre">y0</span></code>, with additional <code class="docutils literal notranslate"><span class="pre">perturbation_data</span></code> attribute containing the requested
+perturbation theory terms.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>OdeResult</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>QiskitError</strong> – If problem with inputs, either <code class="docutils literal notranslate"><span class="pre">expansion_method</span></code> is unsupported,
+    or both of <code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> and <code class="docutils literal notranslate"><span class="pre">expansion_labels</span></code> unspecified.</p>
+</dd>
+</dl>
+<div class="docutils container" id="id3">
+<p class="rubric">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-puzzuoli-sensitivity-2022" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, and C. J. Wood. Algorithms for perturbative analysis and simulation of quantum dynamics. <em>arXiv:2210.11595</em>, 2022. <a class="reference external" href="https://doi.org/10.48550/arXiv.2210.11595">doi:10.48550/arXiv.2210.11595</a>.</p>
+</aside>
+<aside class="footnote brackets" id="footcite-haas-engineering-2019" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>H. Haas, D. Puzzuoli, F. Zhang, and D. G. Cory. Engineering effective Hamiltonians. <em>New Journal of Physics</em>, 21(10):103011, 2019. <a class="reference external" href="https://doi.org/10.1088/1367-2630/ab4525">doi:10.1088/1367-2630/ab4525</a>.</p>
+</aside>
+</aside>
+</div>
+</dd></dl>
+
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="qiskit_dynamics.perturbation.ArrayPolynomial.html" class="btn btn-neutral float-right" title="ArrayPolynomial" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="../apidocs/perturbation.html" class="btn btn-neutral" title="Perturbation Theory (qiskit_dynamics.perturbation)" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">qiskit_dynamics.perturbation.solve_lmde_perturbation</a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.perturbation.solve_lmde_perturbation"><code class="docutils literal notranslate"><span class="pre">solve_lmde_perturbation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

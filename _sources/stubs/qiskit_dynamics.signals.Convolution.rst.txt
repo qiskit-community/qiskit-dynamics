@@ -1,0 +1,14 @@
+﻿Convolution
+===========
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. autoclass:: Convolution
+   :no-members:
+   :show-inheritance:
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: n_inputs

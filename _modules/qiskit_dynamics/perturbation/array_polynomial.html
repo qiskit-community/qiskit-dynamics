@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.perturbation.array_polynomial &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.perturbation.array_polynomial</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.perturbation.array_polynomial</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2022.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Array polynomial.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+
+<span class="kn">from</span> <span class="nn">multiset</span> <span class="kn">import</span> <span class="n">Multiset</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">DTypeLike</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.perturbation.multiset_utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_validate_non_negative_ints</span><span class="p">,</span>
+    <span class="n">_get_all_submultisets</span><span class="p">,</span>
+    <span class="n">_sorted_multisets</span><span class="p">,</span>
+    <span class="n">_submultisets_and_complements</span><span class="p">,</span>
+    <span class="n">_multiset_to_sorted_list</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.perturbation.custom_binary_op</span> <span class="kn">import</span> <span class="n">_CustomBinaryOp</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="ArrayPolynomial"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial">[docs]</a><span class="k">class</span> <span class="nc">ArrayPolynomial</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A polynomial with array-valued coefficients.</span>
+
+<span class="sd">    This class represents a multi-variable function of the form:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        f(c_1, \dots, c_r) = A_\emptyset + \sum_{I \in S} c_I A_I,</span>
+
+<span class="sd">    where in the above:</span>
+
+<span class="sd">        - :math:`S` is a finite set of multisets</span>
+<span class="sd">          indicating non-zero monomial terms,</span>
+<span class="sd">        - For a given multiset of non-negative integers :math:`I=(i_1, \dots, i_k)`,</span>
+<span class="sd">          :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, and</span>
+<span class="sd">        - The :math:`A_I` are arrays of the same shape, indexed by the first dimension.</span>
+
+<span class="sd">    See the :ref:`multiset and power series notation section &lt;multiset power series&gt;`</span>
+<span class="sd">    of the perturbation review for an explanation of the multiset notation.</span>
+
+<span class="sd">    An :class:`.ArrayPolynomial` is instantiated with the arguments:</span>
+
+<span class="sd">        - ``constant_term`` specifying the array :math:`A_\emptyset`.</span>
+<span class="sd">        - ``array_coefficients`` specifying a list of the arrays :math:`A_I`, or as a single array</span>
+<span class="sd">          whose first index lists the :math:`A_I`,</span>
+<span class="sd">        - ``monomial_labels`` specifying the set :math:`S` as a list of</span>
+<span class="sd">          ``Multiset`` instances ordered in</span>
+<span class="sd">          correspondence with ``array_coefficients``.</span>
+
+<span class="sd">    For example, the :class:`.ArrayPolynomial` corresponding to the mathematical polynomial</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        f(c_0, c_1) = A_\emptyset</span>
+<span class="sd">            + c_{(0)} A_{(0)} + c_{(0, 1)}A_{(0, 1)} + c_{(1, 1)}A_{(1, 1)}</span>
+
+<span class="sd">    for arrays :math:`A_\emptyset, A_{(0)}, A_{(0, 1)}, A_{(1, 1)}` stored in variables</span>
+<span class="sd">    ``A_c``, ``A0``, ``A01``, and ``A11`` can be instantiated with</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        ap = ArrayPolynomial(</span>
+<span class="sd">            constant_term = A_c</span>
+<span class="sd">            array_coefficients=[A0, A01, A11],</span>
+<span class="sd">            monomial_labels=[Multiset({0: 1}), Multiset({0: 1, 1: 1}), Multiset({1: 2})]</span>
+<span class="sd">        )</span>
+
+<span class="sd">    Once instantiated, the polynomial can be evaluated on an array of variable values, e.g.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        c = np.array([c0, c1])</span>
+<span class="sd">        ap(c) # polynomial evaluated on variables</span>
+
+<span class="sd">    :class:`.ArrayPolynomial` supports some array properties, e.g. ``ap.shape`` and ``ap.ndim``</span>
+<span class="sd">    return the shape and number of dimensions of the output of the polynomial. Some array</span>
+<span class="sd">    methods are also supported, such as ``transpose`` and ``trace``, and their output produces</span>
+<span class="sd">    a new :class:`.ArrayPolynomial` which evaluates to the array one would obtain by first</span>
+<span class="sd">    evaluating the original, then calling the array method. E.g.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        ap2 = ap1.transpose()</span>
+<span class="sd">        ap2(c) == ap1(c).transpose()</span>
+
+<span class="sd">    Finally, :class:`.ArrayPolynomial` supports algebraic operations, e.g.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        ap3 = ap1 @ ap2</span>
+<span class="sd">        ap3(c) == ap1(c) @ ap2(c)</span>
+
+<span class="sd">    It also has specialized algebraic methods that perform algebraic operations while</span>
+<span class="sd">    &quot;ignoring&quot; terms. E.g., for two instances ``ap1`` and ``ap2``, the call</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        ap1.matmul(ap2, monomial_filter=lambda x: len(x) &lt;= 3)</span>
+
+<span class="sd">    is similar to ``ap1 @ ap2``, but will result in an :class:`.ArrayPolynomial` in which all</span>
+<span class="sd">    terms of degree larger than ``3`` will not be included in the results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mi">20</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">constant_term</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">array_coefficients</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">monomial_labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Multiset</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a multivariable matrix polynomial.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            constant_term: An array representing the constant term of the polynomial.</span>
+<span class="sd">            array_coefficients: A 3d array representing a list of array coefficients.</span>
+<span class="sd">            monomial_labels: A list of multisets with non-negative integer entries of the same</span>
+<span class="sd">                             length as ``array_coefficients`` indicating the monomial coefficient</span>
+<span class="sd">                             for each corresponding ``array_coefficients``.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If insufficient information is supplied to define an ArrayPolynomial,</span>
+<span class="sd">                         or if monomial labels contain anything other than non-negative integers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">array_coefficients</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">constant_term</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s2">&quot;At least one of array_coefficients and constant_term must be specified.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">monomial_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Multiset</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">monomial_labels</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">:</span>
+                <span class="n">_validate_non_negative_ints</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># If operating in jax mode, wrap in Arrays</span>
+        <span class="k">if</span> <span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">array_coefficients</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">constant_term</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compute_monomials</span> <span class="o">=</span> <span class="n">_get_monomial_compute_function_jax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">constant_term</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">array_coefficients</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compute_monomials</span> <span class="o">=</span> <span class="n">_get_monomial_compute_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">monomial_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The monomial labels corresponding to non-constant terms.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">array_coefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The array coefficients for non-constant terms.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">constant_term</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The constant term.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span>
+
+<div class="viewcode-block" id="ArrayPolynomial.compute_monomials"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.compute_monomials.html#qiskit_dynamics.perturbation.ArrayPolynomial.compute_monomials">[docs]</a>    <span class="k">def</span> <span class="nf">compute_monomials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized computation of all scalar monomial terms in the polynomial as specified by</span>
+<span class="sd">        ``self.monomial_labels``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            c: Array of variables.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Array of all monomial terms ordered according to ``self.monomial_labels``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_monomials</span><span class="p">(</span><span class="n">c</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shape of the arrays in the polynomial.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of dimensions of the coefficients of the polynomial.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span><span class="o">.</span><span class="n">ndim</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="ArrayPolynomial.conj"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.conj.html#qiskit_dynamics.perturbation.ArrayPolynomial.conj">[docs]</a>    <span class="k">def</span> <span class="nf">conj</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an ArrayPolynomial that is the conjugate of self.&quot;&quot;&quot;</span>
+
+        <span class="n">constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">constant_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+            <span class="n">array_coefficients</span><span class="o">=</span><span class="n">coefficients</span><span class="p">,</span>
+            <span class="n">monomial_labels</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">),</span>
+            <span class="n">constant_term</span><span class="o">=</span><span class="n">constant_term</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ArrayPolynomial.transpose"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.transpose.html#qiskit_dynamics.perturbation.ArrayPolynomial.transpose">[docs]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the ArrayPolynomial when transposing all coefficients.&quot;&quot;&quot;</span>
+
+        <span class="n">constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">constant_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span><span class="p">,</span> <span class="n">axes</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">axes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">axes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">axes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ax</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">)</span>
+            <span class="n">axes</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)</span> <span class="o">+</span> <span class="n">axes</span>
+            <span class="n">coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span><span class="p">,</span> <span class="n">axes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+            <span class="n">array_coefficients</span><span class="o">=</span><span class="n">coefficients</span><span class="p">,</span>
+            <span class="n">monomial_labels</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">),</span>
+            <span class="n">constant_term</span><span class="o">=</span><span class="n">constant_term</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ArrayPolynomial.trace"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.trace.html#qiskit_dynamics.perturbation.ArrayPolynomial.trace">[docs]</a>    <span class="k">def</span> <span class="nf">trace</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">offset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">axis1</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">axis2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DTypeLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Take the trace of the coefficients.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;ArrayPolynomial.trace() requires ArrayPolynomial.ndim at least 2.&quot;</span><span class="p">)</span>
+
+        <span class="n">constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">constant_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">axis1</span><span class="o">=</span><span class="n">axis1</span><span class="p">,</span> <span class="n">axis2</span><span class="o">=</span><span class="n">axis2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span><span class="p">,</span>
+                <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span>
+                <span class="n">axis1</span><span class="o">=</span><span class="n">axis1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="n">axis2</span><span class="o">=</span><span class="n">axis2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+            <span class="n">array_coefficients</span><span class="o">=</span><span class="n">coefficients</span><span class="p">,</span>
+            <span class="n">monomial_labels</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">),</span>
+            <span class="n">constant_term</span><span class="o">=</span><span class="n">constant_term</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ArrayPolynomial.sum"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.sum.html#qiskit_dynamics.perturbation.ArrayPolynomial.sum">[docs]</a>    <span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DTypeLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform a sum on the coefficients.&quot;&quot;&quot;</span>
+
+        <span class="n">constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># constant term can be handled normally</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">constant_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="c1"># axis must be shifted for array coefficients</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">axis</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="n">axis</span> <span class="o">=</span> <span class="n">axis</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="n">axis</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">axis</span><span class="p">)</span>
+
+                <span class="n">coefficients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+            <span class="n">array_coefficients</span><span class="o">=</span><span class="n">coefficients</span><span class="p">,</span>
+            <span class="n">monomial_labels</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">),</span>
+            <span class="n">constant_term</span><span class="o">=</span><span class="n">constant_term</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">real</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the real part of self.&quot;&quot;&quot;</span>
+
+        <span class="n">constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">array_coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">constant_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span><span class="o">.</span><span class="n">real</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">array_coefficients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span><span class="o">.</span><span class="n">real</span>
+
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+            <span class="n">array_coefficients</span><span class="o">=</span><span class="n">array_coefficients</span><span class="p">,</span>
+            <span class="n">monomial_labels</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">),</span>
+            <span class="n">constant_term</span><span class="o">=</span><span class="n">constant_term</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="ArrayPolynomial.add"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.add.html#qiskit_dynamics.perturbation.ArrayPolynomial.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">Array</span><span class="p">],</span>
+        <span class="n">monomial_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add two polynomials with bounds on which terms to keep.</span>
+
+<span class="sd">        Optionally, a function ``monomial_filter`` can be provided to limit which monomials</span>
+<span class="sd">        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,</span>
+<span class="sd">        and a term with label given by ``multiset`` will be included only if</span>
+<span class="sd">        ``monomial_filter(multiset) == True``, and will not be computed if</span>
+<span class="sd">        ``monomial_filter(multiset) == False``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: Other to add to self.</span>
+<span class="sd">            monomial_filter: Function determining which terms to compute and keep.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ArrayPolynomial achieved by adding both self and other.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: if other cannot be cast as an ArrayPolynomial.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Array</span><span class="p">)):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">ArrayPolynomial</span><span class="p">(</span><span class="n">constant_term</span><span class="o">=</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ArrayPolynomial</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_array_polynomial_addition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">monomial_filter</span><span class="o">=</span><span class="n">monomial_filter</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+            <span class="s2">&quot;Only types castable as an ArrayPolynomial can be added to an ArrayPolynomial.&quot;</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ArrayPolynomial.matmul"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.matmul.html#qiskit_dynamics.perturbation.ArrayPolynomial.matmul">[docs]</a>    <span class="k">def</span> <span class="nf">matmul</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Array</span><span class="p">],</span>
+        <span class="n">monomial_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Matmul self @ other with bounds on which terms to keep.</span>
+
+<span class="sd">        Optionally, a function ``monomial_filter`` can be provided to limit which monomials</span>
+<span class="sd">        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,</span>
+<span class="sd">        and a term with label given by ``multiset`` will be included only if</span>
+<span class="sd">        ``monomial_filter(multiset) == True``, and will not be computed if</span>
+<span class="sd">        ``monomial_filter(multiset) == False``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: Other to add to self.</span>
+<span class="sd">            monomial_filter: Function determining which terms to compute and keep.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ArrayPolynomial achieved by matmul of self and other.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: if other cannot be cast as an ArrayPolynomial.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Array</span><span class="p">)):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">ArrayPolynomial</span><span class="p">(</span><span class="n">constant_term</span><span class="o">=</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ArrayPolynomial</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_array_polynomial_distributive_binary_op</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="n">A</span> <span class="o">@</span> <span class="n">B</span><span class="p">,</span> <span class="n">monomial_filter</span><span class="o">=</span><span class="n">monomial_filter</span>
+            <span class="p">)</span>
+
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2"> not supported by ArrayPolynomial.matmul.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ArrayPolynomial.mul"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.mul.html#qiskit_dynamics.perturbation.ArrayPolynomial.mul">[docs]</a>    <span class="k">def</span> <span class="nf">mul</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Array</span><span class="p">],</span>
+        <span class="n">monomial_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Entrywise multiplication of two ArrayPolynomials with bounds on which terms to keep.</span>
+
+<span class="sd">        Optionally, a function ``monomial_filter`` can be provided to limit which monomials</span>
+<span class="sd">        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,</span>
+<span class="sd">        and a term with label given by ``multiset`` will be included only if</span>
+<span class="sd">        ``monomial_filter(multiset) == True``, and will not be computed if</span>
+<span class="sd">        ``monomial_filter(multiset) == False``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: Other to add to self.</span>
+<span class="sd">            monomial_filter: Function determining which terms to compute and keep.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ArrayPolynomial achieved by matmul of self and other.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: if other cannot be cast as an ArrayPolynomial.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Array</span><span class="p">)):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">ArrayPolynomial</span><span class="p">(</span><span class="n">constant_term</span><span class="o">=</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ArrayPolynomial</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_array_polynomial_distributive_binary_op</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="n">A</span> <span class="o">*</span> <span class="n">B</span><span class="p">,</span> <span class="n">monomial_filter</span><span class="o">=</span><span class="n">monomial_filter</span>
+            <span class="p">)</span>
+
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2"> not supported by ArrayPolynomial.mul.&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dunder method for addition of two ArrayPolynomials.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dunder method for right-addition of two ArrayPolynomials.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+        <span class="n">constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># pylint: disable=invalid-unary-operand-type</span>
+            <span class="n">constant_term</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span>
+
+        <span class="n">array_coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># pylint: disable=invalid-unary-operand-type</span>
+            <span class="n">array_coefficients</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span>
+
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+            <span class="n">constant_term</span><span class="o">=</span><span class="n">constant_term</span><span class="p">,</span>
+            <span class="n">monomial_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">,</span>
+            <span class="n">array_coefficients</span><span class="o">=</span><span class="n">array_coefficients</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">other</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dunder method for entry-wise multiplication.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dunder method for right-multiplication.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__matmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dunder method for matmul.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__rmatmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">,</span> <span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dunder method for rmatmul.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Array</span><span class="p">)):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">ArrayPolynomial</span><span class="p">(</span><span class="n">constant_term</span><span class="o">=</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ArrayPolynomial</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2"> not supported by ArrayPolynomial.__rmatmul__.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ArrayPolynomial&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Index the ArrayPolynomial similarly to an array.&quot;&quot;&quot;</span>
+        <span class="n">constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">array_coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">constant_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">array_coefficients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">[(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span> <span class="o">+</span> <span class="n">idx</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+            <span class="n">array_coefficients</span><span class="o">=</span><span class="n">array_coefficients</span><span class="p">,</span>
+            <span class="n">monomial_labels</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monomial_labels</span><span class="p">),</span>
+            <span class="n">constant_term</span><span class="o">=</span><span class="n">constant_term</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of terms in the polynomial.&quot;&quot;&quot;</span>
+        <span class="n">num_terms</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">num_terms</span> <span class="o">=</span> <span class="n">num_terms</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">num_terms</span> <span class="o">=</span> <span class="n">num_terms</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">num_terms</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the polynomial.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            c: Array of variables.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Value of the polynomial at c.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">monomials</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_monomials</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">tensordot</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span><span class="p">,</span> <span class="n">monomials</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">monomials</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_monomials</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tensordot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_coefficients</span><span class="p">,</span> <span class="n">monomials</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_term</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_monomial_compute_function</span><span class="p">(</span><span class="n">multisets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Multiset</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct a vectorized function for computing multivariable monomial terms indicated by</span>
+<span class="sd">    multisets.</span>
+
+<span class="sd">    The returned function takes in the individual variables as an array, and returns an array</span>
+<span class="sd">    of computed monomial terms in the order indicated by multisets.</span>
+
+<span class="sd">    The returned function is vectorized in the sense that the supplied first order terms can be</span>
+<span class="sd">    arrays.</span>
+
+<span class="sd">    The algorithm computes monomial terms of increasing order, recursively utilizing lower</span>
+<span class="sd">    order terms.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        multisets: list of multisets.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Callable: Vectorized function for computing monomials.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">multisets</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">multisets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="kc">None</span>
+
+    <span class="n">complete_multiset_list</span> <span class="o">=</span> <span class="n">_get_all_submultisets</span><span class="p">(</span><span class="n">multisets</span><span class="p">)</span>
+
+    <span class="p">(</span>
+        <span class="n">first_order_terms</span><span class="p">,</span>
+        <span class="n">first_order_range</span><span class="p">,</span>
+        <span class="n">left_indices</span><span class="p">,</span>
+        <span class="n">right_indices</span><span class="p">,</span>
+        <span class="n">update_ranges</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">_get_recursive_monomial_rule</span><span class="p">(</span><span class="n">complete_multiset_list</span><span class="p">)</span>
+
+    <span class="n">multiset_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">complete_multiset_list</span><span class="p">)</span>
+
+    <span class="n">location_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">complete_multiset_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">multisets</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">monomial_function</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="n">multiset_len</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">mono_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="n">mono_vec</span><span class="p">[</span><span class="n">first_order_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">first_order_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">first_order_terms</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">left_index</span><span class="p">,</span> <span class="n">right_index</span><span class="p">,</span> <span class="n">update_range</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">left_indices</span><span class="p">,</span> <span class="n">right_indices</span><span class="p">,</span> <span class="n">update_ranges</span>
+        <span class="p">):</span>
+            <span class="n">mono_vec</span><span class="p">[</span><span class="n">update_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">update_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">mono_vec</span><span class="p">[</span><span class="n">left_index</span><span class="p">]</span> <span class="o">*</span> <span class="n">mono_vec</span><span class="p">[</span><span class="n">right_index</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">mono_vec</span><span class="p">[</span><span class="n">location_list</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">monomial_function</span>
+
+
+<span class="c1"># pylint: disable=invalid-name</span>
+<span class="k">def</span> <span class="nf">_get_monomial_compute_function_jax</span><span class="p">(</span><span class="n">multisets</span><span class="p">:</span> <span class="n">List</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;JAX version of _get_monomial_compute_function.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">multisets</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">multisets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="kc">None</span>
+
+    <span class="n">complete_multiset_list</span> <span class="o">=</span> <span class="n">_get_all_submultisets</span><span class="p">(</span><span class="n">multisets</span><span class="p">)</span>
+
+    <span class="n">first_order_terms</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">left_indices</span><span class="p">,</span> <span class="n">right_indices</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_get_recursive_monomial_rule</span><span class="p">(</span>
+        <span class="n">complete_multiset_list</span>
+    <span class="p">)</span>
+    <span class="n">location_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">complete_multiset_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">multisets</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span>
+    <span class="p">)</span>
+
+    <span class="c1"># initial function sets up required first order terms</span>
+    <span class="k">def</span> <span class="nf">monomial_function_init</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">c</span><span class="p">[</span><span class="n">first_order_terms</span><span class="p">]</span>
+
+    <span class="n">monomial_function</span> <span class="o">=</span> <span class="n">monomial_function_init</span>
+
+    <span class="c1"># function for generating next update and compositions to avoid looping reference issues</span>
+    <span class="k">def</span> <span class="nf">get_next_update_func</span><span class="p">(</span><span class="n">left_index</span><span class="p">,</span> <span class="n">right_index</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">update_next</span><span class="p">(</span><span class="n">mono_vec</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mono_vec</span><span class="p">,</span> <span class="n">mono_vec</span><span class="p">[</span><span class="n">left_index</span><span class="p">]</span> <span class="o">*</span> <span class="n">mono_vec</span><span class="p">[</span><span class="n">right_index</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">update_next</span>
+
+    <span class="k">def</span> <span class="nf">compose_functions</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">new_func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">g</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">new_func</span>
+
+    <span class="c1"># recursively compose updates with monomial_function</span>
+    <span class="k">for</span> <span class="n">left_index</span><span class="p">,</span> <span class="n">right_index</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">left_indices</span><span class="p">,</span> <span class="n">right_indices</span><span class="p">):</span>
+        <span class="n">next_update</span> <span class="o">=</span> <span class="n">get_next_update_func</span><span class="p">(</span><span class="n">left_index</span><span class="p">,</span> <span class="n">right_index</span><span class="p">)</span>
+        <span class="n">monomial_function</span> <span class="o">=</span> <span class="n">compose_functions</span><span class="p">(</span><span class="n">monomial_function</span><span class="p">,</span> <span class="n">next_update</span><span class="p">)</span>
+
+    <span class="c1"># return only the requested terms</span>
+    <span class="k">def</span> <span class="nf">trimmed_output_function</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">monomial_function</span><span class="p">(</span><span class="n">c</span><span class="p">)[</span><span class="n">location_list</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">trimmed_output_function</span>
+
+
+<span class="k">def</span> <span class="nf">_get_recursive_monomial_rule</span><span class="p">(</span><span class="n">complete_multisets</span><span class="p">:</span> <span class="n">List</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function for _get_monomial_compute_function and _get_monomial_compute_function_jax;</span>
+<span class="sd">    computes a representation of the algorithm for computing monomials that is used by both</span>
+<span class="sd">    functions.</span>
+
+<span class="sd">    complete_multisets is assumed to be closed under taking submultisets and in canonical order.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        complete_multisets: Description of monomial terms.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple: Collection of lists organizing computation for both</span>
+<span class="sd">        _get_monomial_compute_function and _get_monomial_compute_function_jax.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># first, construct representation of recursive rule explicitly in terms of multisets</span>
+    <span class="n">first_order_terms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">left_terms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">right_terms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_left</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">current_right_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_len</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="c1"># convert multisets to list representation</span>
+    <span class="n">complete_multisets</span> <span class="o">=</span> <span class="p">[</span><span class="n">_multiset_to_sorted_list</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">complete_multisets</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">complete_multisets</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">first_order_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiset</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">multiset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">current_left</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="o">!=</span> <span class="n">current_len</span><span class="p">:</span>
+                <span class="n">current_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">current_left</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">left_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_left</span><span class="p">)</span>
+                    <span class="n">right_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_right_list</span><span class="p">)</span>
+
+                <span class="n">current_left</span> <span class="o">=</span> <span class="n">multiset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">current_right_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">multiset</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">current_right_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiset</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="c1"># if current_left is still -1, then only first order terms exist</span>
+    <span class="k">if</span> <span class="n">current_left</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_order_terms</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">first_order_terms</span><span class="p">)],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+    <span class="c1"># proceed assuming at least one term above first order exists</span>
+    <span class="c1"># append the last one</span>
+    <span class="n">left_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_left</span><span class="p">)</span>
+    <span class="n">right_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_right_list</span><span class="p">)</span>
+
+    <span class="c1"># convert representation of rule in terms of multisets into one in terms of</span>
+    <span class="c1"># array indices</span>
+
+    <span class="c1"># set up arrays</span>
+    <span class="n">first_order_terms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_order_terms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">left_indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">right_indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">left_term</span><span class="p">,</span> <span class="n">right_term</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">left_terms</span><span class="p">,</span> <span class="n">right_terms</span><span class="p">):</span>
+        <span class="n">left_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">complete_multisets</span><span class="o">.</span><span class="n">index</span><span class="p">([</span><span class="n">left_term</span><span class="p">]))</span>
+
+        <span class="n">right_index_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">right_term</span><span class="p">:</span>
+            <span class="n">right_index_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">complete_multisets</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">term</span><span class="p">))</span>
+
+        <span class="n">right_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">right_index_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+
+    <span class="c1"># set up index updating ranges</span>
+    <span class="n">first_order_range</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">first_order_terms</span><span class="p">)]</span>
+    <span class="n">update_ranges</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_idx</span> <span class="o">=</span> <span class="n">first_order_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">right_index</span> <span class="ow">in</span> <span class="n">right_indices</span><span class="p">:</span>
+        <span class="n">next_idx</span> <span class="o">=</span> <span class="n">current_idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">right_index</span><span class="p">)</span>
+        <span class="n">update_ranges</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">current_idx</span><span class="p">,</span> <span class="n">next_idx</span><span class="p">])</span>
+        <span class="n">current_idx</span> <span class="o">=</span> <span class="n">next_idx</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_order_terms</span><span class="p">),</span>
+        <span class="n">first_order_range</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">left_indices</span><span class="p">),</span>
+        <span class="n">right_indices</span><span class="p">,</span>
+        <span class="n">update_ranges</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_array_polynomial_distributive_binary_op</span><span class="p">(</span>
+    <span class="n">ap1</span><span class="p">:</span> <span class="n">ArrayPolynomial</span><span class="p">,</span>
+    <span class="n">ap2</span><span class="p">:</span> <span class="n">ArrayPolynomial</span><span class="p">,</span>
+    <span class="n">binary_op</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">monomial_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArrayPolynomial</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply a distributive binary op on two array polynomials.&quot;&quot;&quot;</span>
+
+    <span class="c1"># determine list of Multisets required for monomial labels, including filtering</span>
+    <span class="n">all_multisets</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># if no filter is provided, set to always return True</span>
+    <span class="k">if</span> <span class="n">monomial_filter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">monomial_filter</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">monomial_filter</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="ow">and</span> <span class="n">multiset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_multisets</span><span class="p">:</span>
+                <span class="n">all_multisets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">monomial_filter</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="ow">and</span> <span class="n">multiset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_multisets</span><span class="p">:</span>
+                <span class="n">all_multisets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">I</span><span class="p">,</span> <span class="n">J</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">,</span> <span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">):</span>
+        <span class="n">IuJ</span> <span class="o">=</span> <span class="n">I</span> <span class="o">+</span> <span class="n">J</span>
+        <span class="k">if</span> <span class="n">monomial_filter</span><span class="p">(</span><span class="n">IuJ</span><span class="p">)</span> <span class="ow">and</span> <span class="n">IuJ</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_multisets</span><span class="p">:</span>
+            <span class="n">all_multisets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">IuJ</span><span class="p">)</span>
+
+    <span class="n">all_multisets</span> <span class="o">=</span> <span class="n">_sorted_multisets</span><span class="p">(</span><span class="n">all_multisets</span><span class="p">)</span>
+
+    <span class="c1"># setup constant term</span>
+    <span class="n">new_constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">monomial_filter</span><span class="p">(</span><span class="n">Multiset</span><span class="p">({}))</span>
+    <span class="p">):</span>
+        <span class="n">new_constant_term</span> <span class="o">=</span> <span class="n">binary_op</span><span class="p">(</span><span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span><span class="p">,</span> <span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span><span class="p">)</span>
+
+    <span class="c1"># return constant case</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">all_multisets</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span><span class="n">constant_term</span><span class="o">=</span><span class="n">new_constant_term</span><span class="p">)</span>
+
+    <span class="c1"># iteratively construct custom multiplication rule,</span>
+    <span class="c1"># temporarily treating the constant terms as index -1</span>
+    <span class="n">operation_rule</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">all_multisets</span><span class="p">:</span>
+        <span class="n">rule_indices</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span>
+            <span class="n">rule_indices</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">idx</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span>
+            <span class="n">rule_indices</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">idx</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">I</span><span class="p">,</span> <span class="n">J</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">_submultisets_and_complements</span><span class="p">(</span><span class="n">multiset</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span> <span class="ow">and</span> <span class="n">J</span> <span class="ow">in</span> <span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">:</span>
+                    <span class="n">rule_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">I</span><span class="p">),</span> <span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">J</span><span class="p">)]</span>
+                    <span class="p">)</span>
+
+        <span class="c1"># if non-empty,</span>
+        <span class="k">if</span> <span class="n">rule_indices</span><span class="p">:</span>
+            <span class="n">operation_rule</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rule_indices</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rule_indices</span><span class="p">)))</span>
+
+    <span class="n">lmats</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lmats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lmats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">ap1</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ap1</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lmats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lmats</span><span class="p">,</span> <span class="n">ap1</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">rmats</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rmats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rmats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">ap2</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ap2</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rmats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rmats</span><span class="p">,</span> <span class="n">ap2</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">custom_binary_op</span> <span class="o">=</span> <span class="n">_CustomBinaryOp</span><span class="p">(</span>
+        <span class="n">operation_rule</span><span class="o">=</span><span class="n">operation_rule</span><span class="p">,</span>
+        <span class="n">binary_op</span><span class="o">=</span><span class="n">binary_op</span><span class="p">,</span>
+        <span class="n">index_offset</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">new_array_coefficients</span> <span class="o">=</span> <span class="n">custom_binary_op</span><span class="p">(</span><span class="n">lmats</span><span class="p">,</span> <span class="n">rmats</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+        <span class="n">array_coefficients</span><span class="o">=</span><span class="n">new_array_coefficients</span><span class="p">,</span>
+        <span class="n">monomial_labels</span><span class="o">=</span><span class="n">all_multisets</span><span class="p">,</span>
+        <span class="n">constant_term</span><span class="o">=</span><span class="n">new_constant_term</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_array_polynomial_addition</span><span class="p">(</span>
+    <span class="n">ap1</span><span class="p">:</span> <span class="n">ArrayPolynomial</span><span class="p">,</span>
+    <span class="n">ap2</span><span class="p">:</span> <span class="n">ArrayPolynomial</span><span class="p">,</span>
+    <span class="n">monomial_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArrayPolynomial</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add two ArrayPolynomials.&quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ap1</span><span class="o">.</span><span class="n">shape</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ap2</span><span class="o">.</span><span class="n">shape</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s2">&quot;ArrayPolynomial addition requires shapes be broadcastable to eachother.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">monomial_filter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">monomial_filter</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span>
+
+    <span class="c1"># construct constant term</span>
+    <span class="n">new_constant_term</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># if constant term is to be included, determine what it is</span>
+    <span class="k">if</span> <span class="n">monomial_filter</span><span class="p">(</span><span class="n">Multiset</span><span class="p">({})):</span>
+        <span class="k">if</span> <span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_constant_term</span> <span class="o">=</span> <span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span> <span class="o">+</span> <span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span>
+        <span class="k">elif</span> <span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_constant_term</span> <span class="o">=</span> <span class="n">ap1</span><span class="o">.</span><span class="n">constant_term</span>
+        <span class="k">elif</span> <span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_constant_term</span> <span class="o">=</span> <span class="n">ap2</span><span class="o">.</span><span class="n">constant_term</span>
+
+    <span class="c1"># exit early if both polynomials are constant</span>
+    <span class="k">if</span> <span class="n">ap1</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ap2</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span><span class="n">constant_term</span><span class="o">=</span><span class="n">new_constant_term</span><span class="p">)</span>
+
+    <span class="c1"># construct list of admissable multisets and sort into canonical order</span>
+    <span class="n">new_multisets</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span> <span class="o">+</span> <span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">monomial_filter</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span> <span class="ow">and</span> <span class="n">multiset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_multisets</span><span class="p">:</span>
+            <span class="n">new_multisets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">multiset</span><span class="p">)</span>
+    <span class="n">new_multisets</span> <span class="o">=</span> <span class="n">_sorted_multisets</span><span class="p">(</span><span class="n">new_multisets</span><span class="p">)</span>
+
+    <span class="c1"># construct index order mapping for each polynomial</span>
+    <span class="n">idx1</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">idx2</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">new_multisets</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">:</span>
+            <span class="n">idx1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ap1</span><span class="o">.</span><span class="n">monomial_labels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">multiset</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">idx1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">multiset</span> <span class="ow">in</span> <span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="p">:</span>
+            <span class="n">idx2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ap2</span><span class="o">.</span><span class="n">monomial_labels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">multiset</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">idx2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># if either is empty, pad with single -1, then convert to array</span>
+    <span class="n">idx1</span> <span class="o">=</span> <span class="n">idx1</span> <span class="ow">or</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">idx2</span> <span class="o">=</span> <span class="n">idx2</span> <span class="ow">or</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">idx1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">idx1</span><span class="p">)</span>
+    <span class="n">idx2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">idx2</span><span class="p">)</span>
+
+    <span class="c1"># append zero to the coefficient arrays</span>
+    <span class="n">array_coefficients1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">ap1</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">array_coefficients2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">ap1</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ap1</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">array_coefficients1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ap1</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">,</span> <span class="n">array_coefficients1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ap2</span><span class="o">.</span><span class="n">array_coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">array_coefficients2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ap2</span><span class="o">.</span><span class="n">array_coefficients</span><span class="p">,</span> <span class="n">array_coefficients2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">new_coefficients</span> <span class="o">=</span> <span class="n">array_coefficients1</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span> <span class="o">+</span> <span class="n">array_coefficients2</span><span class="p">[</span><span class="n">idx2</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+        <span class="n">array_coefficients</span><span class="o">=</span><span class="n">new_coefficients</span><span class="p">,</span>
+        <span class="n">monomial_labels</span><span class="o">=</span><span class="n">new_multisets</span><span class="p">,</span>
+        <span class="n">constant_term</span><span class="o">=</span><span class="n">new_constant_term</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

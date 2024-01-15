@@ -1,0 +1,6 @@
+qiskit\_dynamics.signals.SignalSum.flatten
+==========================================
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. automethod:: SignalSum.flatten

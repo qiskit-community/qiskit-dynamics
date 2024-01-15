@@ -1,0 +1,22 @@
+﻿DysonSolver
+===========
+
+.. currentmodule:: qiskit_dynamics.solvers
+
+.. autoclass:: DysonSolver
+   :no-members:
+   :show-inheritance:
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      :toctree: ../stubs/
+
+      ~DysonSolver.solve
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: model

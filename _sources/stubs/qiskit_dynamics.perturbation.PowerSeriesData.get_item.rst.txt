@@ -1,0 +1,6 @@
+qiskit\_dynamics.perturbation.PowerSeriesData.get\_item
+=======================================================
+
+.. currentmodule:: qiskit_dynamics.perturbation
+
+.. automethod:: PowerSeriesData.get_item

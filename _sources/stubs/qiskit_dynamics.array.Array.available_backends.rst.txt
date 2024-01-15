@@ -1,0 +1,6 @@
+qiskit\_dynamics.array.Array.available\_backends
+================================================
+
+.. currentmodule:: qiskit_dynamics.array
+
+.. automethod:: Array.available_backends

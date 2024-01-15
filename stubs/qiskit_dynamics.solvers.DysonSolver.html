@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>DysonSolver &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../apidocs/index.html">Qiskit Dynamics API Reference</a> &gt;</li>
+        
+          <li><a href="../apidocs/solvers.html">Solvers (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.solvers</span></code>)</a> &gt;</li>
+        
+      <li>DysonSolver</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="dysonsolver">
+<h1>DysonSolver<a class="headerlink" href="#dysonsolver" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_dynamics.solvers.DysonSolver">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DysonSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotating_frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carrier_freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chebyshev_orders</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expansion_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expansion_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_imag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/solvers/perturbative_solvers/dyson_solver.html#DysonSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.solvers.DysonSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_PerturbativeSolver</span></code></p>
+<p>Solver for linear matrix differential equations based on the Dyson series.</p>
+<p>This class implements the Dyson-series based solver presented in
+[<a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>], which is a variant of the <em>Dysolve</em> algorithm
+originally introduced in [<a class="footnote-reference brackets" href="#footcite-shillito-fast-2020" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>].
+This solver applies to linear matrix differential equations with generators of the form:</p>
+<div class="math notranslate nohighlight">
+\[G(t) = G_0 + \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]G_j,\]</div>
+<p>and solves the LMDE in the rotating frame of <span class="math notranslate nohighlight">\(G_0\)</span>, which is assumed to be
+anti-Hermitian. I.e. it solves the LMDE with generator:</p>
+<div class="math notranslate nohighlight">
+\[\tilde{G}(t) = \sum_{j=1}^s \textnormal{Re}[f_j(t) e^{i 2 \pi \nu_j t}]\tilde{G}_j(t),\]</div>
+<p>with <span class="math notranslate nohighlight">\(\tilde{G}_i(t) = e^{-t G_0} G_i e^{tG_0}\)</span>. The solver is <em>fixed-step</em>,
+with step size <span class="math notranslate nohighlight">\(\Delta t\)</span> being defined at instantiation,
+and solves over each step by computing a truncated Dyson series. See the
+<a class="reference internal" href="../discussions/dyson_magnus.html#perturbation-review"><span class="std std-ref">Time-dependent perturbation theory and multi-variable
+series expansions review</span></a> for a description of the Dyson series.</p>
+<p>At instantiation, the following parameters, which define the structure of the Dyson series
+used, are fixed:</p>
+<ul class="simple">
+<li><p>The step size <span class="math notranslate nohighlight">\(\Delta t\)</span>,</p></li>
+<li><p>The operator structure <span class="math notranslate nohighlight">\(G_0\)</span>, <span class="math notranslate nohighlight">\(G_i\)</span>,</p></li>
+<li><p>The reference frequencies <span class="math notranslate nohighlight">\(\nu_j\)</span>,</p></li>
+<li><p>Approximation schemes for the envelopes <span class="math notranslate nohighlight">\(f_j\)</span> over each time step (see below), and</p></li>
+<li><p>The Dyson series terms to keep in the truncation.</p></li>
+</ul>
+<p>A ‘compilation’ or ‘pre-computation’ step computing the truncated expansion occurs
+at instantiation. Once instantiated, the LMDE can be solved repeatedly for different lists of
+envelopes <span class="math notranslate nohighlight">\(f_1(t), \dots, f_s(t)\)</span> by calling the <a class="reference internal" href="qiskit_dynamics.solvers.DysonSolver.solve.html#qiskit_dynamics.solvers.DysonSolver.solve" title="qiskit_dynamics.solvers.DysonSolver.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> method with the
+initial time <code class="docutils literal notranslate"><span class="pre">t0</span></code> and number of time-steps <code class="docutils literal notranslate"><span class="pre">n_steps</span></code> of size <span class="math notranslate nohighlight">\(\Delta t\)</span>.
+The list of envelopes are specified as <a class="reference internal" href="qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a> objects,
+whose carrier frequencies are automatically shifted to the reference frequencies <span class="math notranslate nohighlight">\(\nu_j\)</span>,
+with the frequency difference, and any phase, being absorbed into the envelope.</p>
+<p>More explicitly, the process of solving over an interval <span class="math notranslate nohighlight">\([t_0, t_0 + \Delta t]\)</span>
+is as follows. After shifting the carrier frequencies, the resulting envelopes are approximated
+using a discrete Chebyshev transform, whose orders for each signal is given by
+<code class="docutils literal notranslate"><span class="pre">chebyshev_orders</span></code>. That is, for <span class="math notranslate nohighlight">\(t \in [t_0, t_0 + \Delta t]\)</span>, each envelope is
+approximated as:</p>
+<div class="math notranslate nohighlight">
+\[f_j(t) \approx \sum_{m=0}^{d_j} f_{j,m}T_m(t-t_0)\]</div>
+<p>where <span class="math notranslate nohighlight">\(T_m(\cdot)\)</span> are the Chebyshev polynomials over the interval,
+<span class="math notranslate nohighlight">\(f_{j,m}\)</span> are the approximation coefficients attained via Discrete Chebyshev Transform,
+and <span class="math notranslate nohighlight">\(d_j\)</span> is the order of approximation used for the given envelope.
+Using:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\textnormal{Re}[f_{j,m}T_m(t-t_0)e^{i2 \pi \nu_j t}] =
+\textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}] \cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) \\
++ \textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}] \sin(-2 \pi \nu_j (t-t_0))T_m(t-t_0)\end{split}\]</div>
+<p>The generator is approximately decomposed as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\tilde{G}(t) \approx \sum_{j=1}^s \sum_{m=0}^{d_j}
+\textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
+\cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j \\
++ \sum_{j=1}^s \sum_{m=0}^{d_j}
+\textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
+\sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j\end{split}\]</div>
+<p>The multivariable Dyson series is then computed relative to the
+above decomposition, with the variables being the
+<span class="math notranslate nohighlight">\(\textnormal{Re}[f_{j,m}e^{i 2 \pi \nu_j t_0}]\)</span> and
+<span class="math notranslate nohighlight">\(\textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]\)</span>, and the operators being
+<span class="math notranslate nohighlight">\(\cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) G_j\)</span> and
+<span class="math notranslate nohighlight">\(\sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) G_j\)</span>. As shown in
+[<a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, <a class="footnote-reference brackets" href="#footcite-shillito-fast-2020" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>],
+the multivariable Dyson series for intervals of length <span class="math notranslate nohighlight">\(\Delta t\)</span>
+with different starting times are related via a simple frame change, and as such
+these need only be computed once, and this makes up the ‘pre-computation’ step of this
+object.</p>
+<p>The optional argument <code class="docutils literal notranslate"><span class="pre">include_imag</span></code> can be used to control, on a signal by signal basis,
+whether or not the imaginary terms</p>
+<div class="math notranslate nohighlight">
+\[\textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]
+\sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) \tilde{G}_j\]</div>
+<p>are included in the scheme. In generality they are required, but in special cases they are not
+necessary, such as when <span class="math notranslate nohighlight">\(\nu_j = 0\)</span>, or if <span class="math notranslate nohighlight">\(f_j(t)\)</span>, including phase, is purely
+real. By default all such terms are included.</p>
+<div class="docutils container" id="id5">
+<p class="rubric">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-puzzuoli-sensitivity-2022" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id3">2</a>)</span>
+<p>D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, and C. J. Wood. Algorithms for perturbative analysis and simulation of quantum dynamics. <em>arXiv:2210.11595</em>, 2022. <a class="reference external" href="https://doi.org/10.48550/arXiv.2210.11595">doi:10.48550/arXiv.2210.11595</a>.</p>
+</aside>
+<aside class="footnote brackets" id="footcite-shillito-fast-2020" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id4">2</a>)</span>
+<p>R. Shillito, J. A. Gross, A. Di Paolo, É. Genois, and A. Blais. Fast and differentiable simulation of driven quantum systems. <em>Physical Review Research</em>, 3(3):033266, 2021. Publisher: American Physical Society. <a class="reference external" href="https://doi.org/10.1103/PhysRevResearch.3.033266">doi:10.1103/PhysRevResearch.3.033266</a>.</p>
+</aside>
+</aside>
+</div>
+<p>Initialize.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>]</span>) – List of constant operators specifying the operators with signal coefficients.</p></li>
+<li><p><strong>rotating_frame</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <a class="reference internal" href="qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame" title="qiskit_dynamics.models.rotating_frame.RotatingFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">RotatingFrame</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Rotating frame to setup the solver in.
+Must be Hermitian or anti-Hermitian.</p></li>
+<li><p><strong>dt</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Fixed step size to compile to.</p></li>
+<li><p><strong>carrier_freqs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – Carrier frequencies of the signals in the generator decomposition.</p></li>
+<li><p><strong>chebyshev_orders</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Approximation degrees for each signal over the interval [0, dt].</p></li>
+<li><p><strong>expansion_order</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Order of perturbation terms to compute up to. Specifying this
+argument results in computation of all terms up to the given order.
+Can be used in conjunction with <code class="docutils literal notranslate"><span class="pre">expansion_terms</span></code>.</p></li>
+<li><p><strong>expansion_labels</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Multiset</span></code>]]</span>) – Specific perturbation terms to compute. If both <code class="docutils literal notranslate"><span class="pre">expansion_order</span></code>
+and <code class="docutils literal notranslate"><span class="pre">expansion_terms</span></code> are specified, then all terms up to
+<code class="docutils literal notranslate"><span class="pre">expansion_order</span></code> are computed, along with the additional terms
+specified in <code class="docutils literal notranslate"><span class="pre">expansion_terms</span></code>. Labels are specified either as
+<code class="docutils literal notranslate"><span class="pre">Multiset</span></code> or as valid arguments to the <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> constructor.
+This function further requires that <code class="docutils literal notranslate"><span class="pre">Multiset</span></code>s consist only of
+non-negative integers.</p></li>
+<li><p><strong>integration_method</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – ODE solver method to use when computing perturbation terms.</p></li>
+<li><p><strong>include_imag</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]]</span>) – List of bools determining whether to keep imaginary components in
+the signal approximation. Defaults to True for all signals.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments to pass to the solver when computing perturbation terms.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.solvers.DysonSolver.solve.html#qiskit_dynamics.solvers.DysonSolver.solve" title="qiskit_dynamics.solvers.DysonSolver.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a></p></td>
+<td><p>Solve given an initial time, number of steps, signals, and initial state.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.solvers.DysonSolver.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#qiskit_dynamics.solvers.DysonSolver.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model object storing expansion details.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="qiskit_dynamics.solvers.DysonSolver.solve.html" class="btn btn-neutral float-right" title="qiskit_dynamics.solvers.DysonSolver.solve" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="qiskit_dynamics.solvers.Solver.solve.html" class="btn btn-neutral" title="qiskit_dynamics.solvers.Solver.solve" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">DysonSolver</a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.solvers.DysonSolver"><code class="docutils literal notranslate"><span class="pre">DysonSolver</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.solvers.DysonSolver.model"><code class="docutils literal notranslate"><span class="pre">DysonSolver.model</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

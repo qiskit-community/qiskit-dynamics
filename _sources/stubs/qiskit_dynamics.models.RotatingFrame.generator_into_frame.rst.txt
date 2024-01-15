@@ -1,0 +1,6 @@
+qiskit\_dynamics.models.RotatingFrame.generator\_into\_frame
+============================================================
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. automethod:: RotatingFrame.generator_into_frame

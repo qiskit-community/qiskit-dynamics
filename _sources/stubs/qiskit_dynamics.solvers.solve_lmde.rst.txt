@@ -1,0 +1,6 @@
+﻿qiskit\_dynamics.solvers.solve\_lmde
+====================================
+
+.. currentmodule:: qiskit_dynamics.solvers
+
+.. autofunction:: solve_lmde

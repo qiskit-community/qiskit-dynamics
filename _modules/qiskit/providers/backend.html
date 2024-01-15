@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit.providers.backend &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit.providers.backend</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit.providers.backend</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+
+<span class="c1"># pylint: disable=invalid-name</span>
+
+<span class="sd">&quot;&quot;&quot;Backend abstract interface for providers.&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">qiskit.providers.provider</span> <span class="kn">import</span> <span class="n">Provider</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.models.backendstatus</span> <span class="kn">import</span> <span class="n">BackendStatus</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.gate</span> <span class="kn">import</span> <span class="n">Instruction</span>
+
+
+<span class="k">class</span> <span class="nc">Backend</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base common type for all versioned Backend abstract classes.</span>
+
+<span class="sd">    Note this class should not be inherited from directly, it is intended</span>
+<span class="sd">    to be used for type checking. When implementing a provider you should use</span>
+<span class="sd">    the versioned abstract classes as the parent class and not this class</span>
+<span class="sd">    directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">version</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+<span class="k">class</span> <span class="nc">BackendV1</span><span class="p">(</span><span class="n">Backend</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract class for Backends</span>
+
+<span class="sd">    This abstract class is to be used for all Backend objects created by a</span>
+<span class="sd">    provider. There are several classes of information contained in a Backend.</span>
+<span class="sd">    The first are the attributes of the class itself. These should be used to</span>
+<span class="sd">    defined the immutable characteristics of the backend. The ``options``</span>
+<span class="sd">    attribute of the backend is used to contain the dynamic user configurable</span>
+<span class="sd">    options of the backend. It should be used more for runtime options</span>
+<span class="sd">    that configure how the backend is used. For example, something like a</span>
+<span class="sd">    ``shots`` field for a backend that runs experiments which would contain an</span>
+<span class="sd">    int for how many shots to execute. The ``properties`` attribute is</span>
+<span class="sd">    optionally defined :class:`~qiskit.providers.models.BackendProperties`</span>
+<span class="sd">    object and is used to return measured properties, or properties</span>
+<span class="sd">    of a backend that may change over time. The simplest example of this would</span>
+<span class="sd">    be a version string, which will change as a backend is updated, but also</span>
+<span class="sd">    could be something like noise parameters for backends that run experiments.</span>
+
+<span class="sd">    This first version of the Backend abstract class is written to be mostly</span>
+<span class="sd">    backwards compatible with the legacy providers interface. This includes reusing</span>
+<span class="sd">    the model objects :class:`~qiskit.providers.models.BackendProperties` and</span>
+<span class="sd">    :class:`~qiskit.providers.models.BackendConfiguration`. This was done to</span>
+<span class="sd">    ease the transition for users and provider maintainers to the new versioned providers.</span>
+<span class="sd">    Expect, future versions of this abstract class to change the data model and</span>
+<span class="sd">    interface.</span>
+
+<span class="sd">    Subclasses of this should override the public method :meth:`run` and the internal</span>
+<span class="sd">    :meth:`_default_options`:</span>
+
+<span class="sd">    .. automethod:: _default_options</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">version</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">fields</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a backend class</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            configuration (BackendConfiguration): A backend configuration</span>
+<span class="sd">                object for the backend object.</span>
+<span class="sd">            provider (qiskit.providers.Provider): Optionally, the provider</span>
+<span class="sd">                object that this Backend comes from.</span>
+<span class="sd">            fields: kwargs for the values to use to override the default</span>
+<span class="sd">                options.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            AttributeError: if input field not a valid options</span>
+
+<span class="sd">        ..</span>
+<span class="sd">            This next bit is necessary just because autosummary generally won&#39;t summarise private</span>
+<span class="sd">            methods; changing that behaviour would have annoying knock-on effects through all the</span>
+<span class="sd">            rest of the documentation, so instead we just hard-code the automethod directive.</span>
+
+<span class="sd">        In addition to the public abstract methods, subclasses should also implement the following</span>
+<span class="sd">        private methods:</span>
+
+<span class="sd">        .. automethod:: _default_options</span>
+<span class="sd">           :noindex:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span> <span class="o">=</span> <span class="n">configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_options</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="n">provider</span>
+        <span class="k">if</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Options field </span><span class="si">%s</span><span class="s2"> is not valid for this backend&quot;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">update_config</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_default_options</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the default options</span>
+
+<span class="sd">        This method will return a :class:`qiskit.providers.Options`</span>
+<span class="sd">        subclass object that will be used for the default options. These</span>
+<span class="sd">        should be the default parameters to use for the options of the</span>
+<span class="sd">        backend.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qiskit.providers.Options: A options object with</span>
+<span class="sd">                default values set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">fields</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the options fields for the backend</span>
+
+<span class="sd">        This method is used to update the options of a backend. If</span>
+<span class="sd">        you need to change any of the options prior to running just</span>
+<span class="sd">        pass in the kwarg with the new value for the options.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fields: The fields to update the options</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AttributeError: If the field passed in is not part of the</span>
+<span class="sd">                options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Options field </span><span class="si">%s</span><span class="s2"> is not valid for this backend&quot;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">update_options</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the backend configuration.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            BackendConfiguration: the configuration for the backend.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span>
+
+    <span class="k">def</span> <span class="nf">properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the backend properties.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            BackendProperties: the configuration for the backend. If the backend</span>
+<span class="sd">            does not support properties, it returns ``None``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">provider</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the backend Provider.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Provider: the Provider responsible for the backend.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span>
+
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the backend status.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            BackendStatus: the status of the backend.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">BackendStatus</span><span class="p">(</span>
+            <span class="n">backend_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
+            <span class="n">backend_version</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
+            <span class="n">operational</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">pending_jobs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">status_msg</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the backend name.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: the name of the backend.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span><span class="o">.</span><span class="n">backend_name</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Official string representation of a Backend.</span>
+
+<span class="sd">        Note that, by Qiskit convention, it is consciously *not* a fully valid</span>
+<span class="sd">        Python expression. Subclasses should provide &#39;a string of the form</span>
+<span class="sd">        &lt;...some useful description...&gt;&#39;. [0]</span>
+
+<span class="sd">        [0] https://docs.python.org/3/reference/datamodel.html#object.__repr__</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="si">}</span><span class="s2">&#39;)&gt;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the options for the backend</span>
+
+<span class="sd">        The options of a backend are the dynamic parameters defining</span>
+<span class="sd">        how the backend is used. These are used to control the :meth:`run`</span>
+<span class="sd">        method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_input</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run on the backend.</span>
+
+<span class="sd">        This method returns a :class:`~qiskit.providers.Job` object</span>
+<span class="sd">        that runs circuits. Depending on the backend this may be either an async</span>
+<span class="sd">        or sync call. It is at the discretion of the provider to decide whether</span>
+<span class="sd">        running should block until the execution is finished or not: the Job</span>
+<span class="sd">        class can handle either situation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            run_input (QuantumCircuit or Schedule or list): An individual or a</span>
+<span class="sd">                list of :class:`~qiskit.circuit.QuantumCircuit` or</span>
+<span class="sd">                :class:`~qiskit.pulse.Schedule` objects to run on the backend.</span>
+<span class="sd">                For legacy providers migrating to the new versioned providers,</span>
+<span class="sd">                provider interface a :class:`~qiskit.qobj.QasmQobj` or</span>
+<span class="sd">                :class:`~qiskit.qobj.PulseQobj` objects should probably be</span>
+<span class="sd">                supported too (but deprecated) for backwards compatibility. Be</span>
+<span class="sd">                sure to update the docstrings of subclasses implementing this</span>
+<span class="sd">                method to document that. New provider implementations should not</span>
+<span class="sd">                do this though as :mod:`qiskit.qobj` will be deprecated and</span>
+<span class="sd">                removed along with the legacy providers interface.</span>
+<span class="sd">            options: Any kwarg options to pass to the backend for running the</span>
+<span class="sd">                config. If a key is also present in the options</span>
+<span class="sd">                attribute/object then the expectation is that the value</span>
+<span class="sd">                specified will be used instead of what&#39;s set in the options</span>
+<span class="sd">                object.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Job: The job object for the run</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">QubitProperties</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A representation of the properties of a qubit on a backend.</span>
+
+<span class="sd">    This class provides the optional properties that a backend can provide for</span>
+<span class="sd">    a qubit. These represent the set of qubit properties that Qiskit can</span>
+<span class="sd">    currently work with if present. However if your backend provides additional</span>
+<span class="sd">    properties of qubits you should subclass this to add additional custom</span>
+<span class="sd">    attributes for those custom/additional properties provided by the backend.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;t1&quot;</span><span class="p">,</span> <span class="s2">&quot;t2&quot;</span><span class="p">,</span> <span class="s2">&quot;frequency&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new :class:`QubitProperties` object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t1: The T1 time for a qubit in seconds</span>
+<span class="sd">            t2: The T2 time for a qubit in seconds</span>
+<span class="sd">            frequency: The frequency of a qubit in Hz</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t1</span> <span class="o">=</span> <span class="n">t1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t2</span> <span class="o">=</span> <span class="n">t2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frequency</span> <span class="o">=</span> <span class="n">frequency</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;QubitProperties(t1=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">t1</span><span class="si">}</span><span class="s2">, t2=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">t2</span><span class="si">}</span><span class="s2">, &quot;</span> <span class="sa">f</span><span class="s2">&quot;frequency=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">frequency</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">BackendV2</span><span class="p">(</span><span class="n">Backend</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract class for Backends</span>
+
+<span class="sd">    This abstract class is to be used for all Backend objects created by a</span>
+<span class="sd">    provider. This version differs from earlier abstract Backend classes in</span>
+<span class="sd">    that the configuration attribute no longer exists. Instead, attributes</span>
+<span class="sd">    exposing equivalent required immutable properties of the backend device</span>
+<span class="sd">    are added. For example ``backend.configuration().n_qubits`` is accessible</span>
+<span class="sd">    from ``backend.num_qubits`` now.</span>
+
+<span class="sd">    The ``options`` attribute of the backend is used to contain the dynamic</span>
+<span class="sd">    user configurable options of the backend. It should be used more for</span>
+<span class="sd">    runtime options that configure how the backend is used. For example,</span>
+<span class="sd">    something like a ``shots`` field for a backend that runs experiments which</span>
+<span class="sd">    would contain an int for how many shots to execute.</span>
+
+<span class="sd">    If migrating a provider from :class:`~qiskit.providers.BackendV1`</span>
+<span class="sd">    one thing to keep in mind is for</span>
+<span class="sd">    backwards compatibility you might need to add a configuration method that</span>
+<span class="sd">    will build a :class:`~qiskit.providers.models.BackendConfiguration` object</span>
+<span class="sd">    and :class:`~qiskit.providers.models.BackendProperties` from the attributes</span>
+<span class="sd">    defined in this class for backwards compatibility.</span>
+
+<span class="sd">    A backend object can optionally contain methods named</span>
+<span class="sd">    ``get_translation_stage_plugin`` and ``get_scheduling_stage_plugin``. If these</span>
+<span class="sd">    methods are present on a backend object and this object is used for</span>
+<span class="sd">    :func:`~.transpile` or :func:`~.generate_preset_pass_manager` the</span>
+<span class="sd">    transpilation process will default to using the output from those methods</span>
+<span class="sd">    as the scheduling stage and the translation compilation stage. This</span>
+<span class="sd">    enables a backend which has custom requirements for compilation to specify a</span>
+<span class="sd">    stage plugin for these stages to enable custom transformation of</span>
+<span class="sd">    the circuit to ensure it is runnable on the backend. These hooks are enabled</span>
+<span class="sd">    by default and should only be used to enable extra compilation steps</span>
+<span class="sd">    if they are **required** to ensure a circuit is executable on the backend or</span>
+<span class="sd">    have the expected level of performance. These methods are passed no input</span>
+<span class="sd">    arguments and are expected to return a ``str`` representing the method name</span>
+<span class="sd">    which should be a stage plugin (see: :mod:`qiskit.transpiler.preset_passmanagers.plugin`</span>
+<span class="sd">    for more details on plugins). The typical expected use case is for a backend</span>
+<span class="sd">    provider to implement a stage plugin for ``translation`` or ``scheduling``</span>
+<span class="sd">    that contains the custom compilation passes and then for the hook methods on</span>
+<span class="sd">    the backend object to return the plugin name so that :func:`~.transpile` will</span>
+<span class="sd">    use it by default when targetting the backend.</span>
+
+<span class="sd">    Subclasses of this should override the public method :meth:`run` and the internal</span>
+<span class="sd">    :meth:`_default_options`:</span>
+
+<span class="sd">    .. automethod:: _default_options</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">version</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">provider</span><span class="p">:</span> <span class="n">Provider</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">online_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">backend_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">fields</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a BackendV2 based backend</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            provider: An optional backwards reference to the</span>
+<span class="sd">                :class:`~qiskit.providers.Provider` object that the backend</span>
+<span class="sd">                is from</span>
+<span class="sd">            name: An optional name for the backend</span>
+<span class="sd">            description: An optional description of the backend</span>
+<span class="sd">            online_date: An optional datetime the backend was brought online</span>
+<span class="sd">            backend_version: An optional backend version string. This differs</span>
+<span class="sd">                from the :attr:`~qiskit.providers.BackendV2.version` attribute</span>
+<span class="sd">                as :attr:`~qiskit.providers.BackendV2.version` is for the</span>
+<span class="sd">                abstract :attr:`~qiskit.providers.Backend` abstract interface</span>
+<span class="sd">                version of the object while ``backend_version`` is for</span>
+<span class="sd">                versioning the backend itself.</span>
+<span class="sd">            fields: kwargs for the values to use to override the default</span>
+<span class="sd">                options.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AttributeError: If a field is specified that&#39;s outside the backend&#39;s</span>
+<span class="sd">                options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_options</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="n">provider</span>
+        <span class="k">if</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Options field </span><span class="si">%s</span><span class="s2"> is not valid for this backend&quot;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">update_config</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Name of the backend.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Optional human-readable description.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">online_date</span> <span class="o">=</span> <span class="n">online_date</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Date that the backend came online.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_version</span> <span class="o">=</span> <span class="n">backend_version</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Version of the backend being provided.  This is not the same as</span>
+<span class="sd">        :attr:`.BackendV2.version`, which is the version of the :class:`~.providers.Backend`</span>
+<span class="sd">        abstract interface.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coupling_map</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">instructions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Instruction</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of Instruction tuples on the backend of the form ``(instruction, (qubits)``&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">instructions</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">operations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Instruction</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of :class:`~qiskit.circuit.Instruction` instances that the backend supports.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">operations</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">operation_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of instruction names that the backend supports.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">operation_names</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">target</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A :class:`qiskit.transpiler.Target` object for the backend.</span>
+
+<span class="sd">        :rtype: Target</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the number of qubits the backend has.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">num_qubits</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coupling_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the :class:`~qiskit.transpiler.CouplingMap` object&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coupling_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_coupling_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">build_coupling_map</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coupling_map</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">instruction_durations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the :class:`~qiskit.transpiler.InstructionDurations` object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">durations</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">max_circuits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The maximum number of circuits (or Pulse schedules) that can be</span>
+<span class="sd">        run in a single job.</span>
+
+<span class="sd">        If there is no limit this will return None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_default_options</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the default options</span>
+
+<span class="sd">        This method will return a :class:`qiskit.providers.Options`</span>
+<span class="sd">        subclass object that will be used for the default options. These</span>
+<span class="sd">        should be the default parameters to use for the options of the</span>
+<span class="sd">        backend.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            qiskit.providers.Options: A options object with</span>
+<span class="sd">                default values set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the system time resolution of input signals</span>
+
+<span class="sd">        This is required to be implemented if the backend supports Pulse</span>
+<span class="sd">        scheduling.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The input signal timestep in seconds. If the backend doesn&#39;t define ``dt``, ``None`` will</span>
+<span class="sd">            be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">dt</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dtm</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the system time resolution of output signals</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The output signal timestep in seconds.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: if the backend doesn&#39;t support querying the</span>
+<span class="sd">                output signal timestep</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">meas_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the grouping of measurements which are multiplexed</span>
+
+<span class="sd">        This is required to be implemented if the backend supports Pulse</span>
+<span class="sd">        scheduling.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The grouping of measurements which are multiplexed</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: if the backend doesn&#39;t support querying the</span>
+<span class="sd">                measurement mapping</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">instruction_schedule_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the :class:`~qiskit.pulse.InstructionScheduleMap` for the</span>
+<span class="sd">        instructions defined in this backend&#39;s target.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">instruction_schedule_map</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">qubit_properties</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">QubitProperties</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">QubitProperties</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return QubitProperties for a given qubit.</span>
+
+<span class="sd">        If there are no defined or the backend doesn&#39;t support querying these</span>
+<span class="sd">        details this method does not need to be implemented.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qubit: The qubit to get the</span>
+<span class="sd">                :class:`.QubitProperties` object for. This can</span>
+<span class="sd">                be a single integer for 1 qubit or a list of qubits and a list</span>
+<span class="sd">                of :class:`.QubitProperties` objects will be</span>
+<span class="sd">                returned in the same order</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            The :class:`~.QubitProperties` object for the</span>
+<span class="sd">            specified qubit. If a list of qubits is provided a list will be</span>
+<span class="sd">            returned. If properties are missing for a qubit this can be</span>
+<span class="sd">            ``None``.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: if the backend doesn&#39;t support querying the</span>
+<span class="sd">                qubit properties</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Since the target didn&#39;t always have a qubit properties attribute</span>
+        <span class="c1"># to ensure the behavior here is backwards compatible with earlier</span>
+        <span class="c1"># BacekendV2 implementations where this would raise a NotImplemented</span>
+        <span class="c1"># error.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">qubit_properties</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">qubit_properties</span><span class="p">[</span><span class="n">qubit</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">qubit_properties</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubit</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">drive_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the drive channel for the given qubit.</span>
+
+<span class="sd">        This is required to be implemented if the backend supports Pulse</span>
+<span class="sd">        scheduling.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DriveChannel: The Qubit drive channel</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: if the backend doesn&#39;t support querying the</span>
+<span class="sd">                measurement mapping</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">measure_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the measure stimulus channel for the given qubit.</span>
+
+<span class="sd">        This is required to be implemented if the backend supports Pulse</span>
+<span class="sd">        scheduling.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            MeasureChannel: The Qubit measurement stimulus line</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: if the backend doesn&#39;t support querying the</span>
+<span class="sd">                measurement mapping</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">acquire_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the acquisition channel for the given qubit.</span>
+
+<span class="sd">        This is required to be implemented if the backend supports Pulse</span>
+<span class="sd">        scheduling.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            AcquireChannel: The Qubit measurement acquisition line.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: if the backend doesn&#39;t support querying the</span>
+<span class="sd">                measurement mapping</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">control_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubits</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the secondary drive channel for the given qubit</span>
+
+<span class="sd">        This is typically utilized for controlling multiqubit interactions.</span>
+<span class="sd">        This channel is derived from other channels.</span>
+
+<span class="sd">        This is required to be implemented if the backend supports Pulse</span>
+<span class="sd">        scheduling.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qubits: Tuple or list of qubits of the form</span>
+<span class="sd">                ``(control_qubit, target_qubit)``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[ControlChannel]: The multi qubit control line.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: if the backend doesn&#39;t support querying the</span>
+<span class="sd">                measurement mapping</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">fields</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the options fields for the backend</span>
+
+<span class="sd">        This method is used to update the options of a backend. If</span>
+<span class="sd">        you need to change any of the options prior to running just</span>
+<span class="sd">        pass in the kwarg with the new value for the options.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fields: The fields to update the options</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AttributeError: If the field passed in is not part of the</span>
+<span class="sd">                options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Options field </span><span class="si">%s</span><span class="s2"> is not valid for this backend&quot;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">update_options</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the options for the backend</span>
+
+<span class="sd">        The options of a backend are the dynamic parameters defining</span>
+<span class="sd">        how the backend is used. These are used to control the :meth:`run`</span>
+<span class="sd">        method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">provider</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the backend Provider.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Provider: the Provider responsible for the backend.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_input</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run on the backend.</span>
+
+<span class="sd">        This method returns a :class:`~qiskit.providers.Job` object</span>
+<span class="sd">        that runs circuits. Depending on the backend this may be either an async</span>
+<span class="sd">        or sync call. It is at the discretion of the provider to decide whether</span>
+<span class="sd">        running should block until the execution is finished or not: the Job</span>
+<span class="sd">        class can handle either situation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            run_input (QuantumCircuit or Schedule or ScheduleBlock or list): An</span>
+<span class="sd">                individual or a list of :class:`.QuantumCircuit`,</span>
+<span class="sd">                :class:`~qiskit.pulse.ScheduleBlock`, or :class:`~qiskit.pulse.Schedule` objects to</span>
+<span class="sd">                run on the backend.</span>
+<span class="sd">            options: Any kwarg options to pass to the backend for running the</span>
+<span class="sd">                config. If a key is also present in the options</span>
+<span class="sd">                attribute/object then the expectation is that the value</span>
+<span class="sd">                specified will be used instead of what&#39;s set in the options</span>
+<span class="sd">                object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Job: The job object for the run</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

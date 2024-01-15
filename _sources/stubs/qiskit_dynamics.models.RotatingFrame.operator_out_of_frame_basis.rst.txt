@@ -1,0 +1,6 @@
+qiskit\_dynamics.models.RotatingFrame.operator\_out\_of\_frame\_basis
+=====================================================================
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. automethod:: RotatingFrame.operator_out_of_frame_basis

@@ -1,0 +1,6 @@
+qiskit\_dynamics.perturbation.ArrayPolynomial.compute\_monomials
+================================================================
+
+.. currentmodule:: qiskit_dynamics.perturbation
+
+.. automethod:: ArrayPolynomial.compute_monomials

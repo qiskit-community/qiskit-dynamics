@@ -1,0 +1,6 @@
+qiskit\_dynamics.models.LindbladModel.evaluate\_hamiltonian
+===========================================================
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. automethod:: LindbladModel.evaluate_hamiltonian

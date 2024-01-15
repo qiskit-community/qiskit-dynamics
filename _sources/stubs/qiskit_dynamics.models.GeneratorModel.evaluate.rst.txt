@@ -1,0 +1,6 @@
+qiskit\_dynamics.models.GeneratorModel.evaluate
+===============================================
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. automethod:: GeneratorModel.evaluate

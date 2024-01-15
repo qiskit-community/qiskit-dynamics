@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Solvers (qiskit_dynamics.solvers) &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Qiskit Dynamics API Reference</a> &gt;</li>
+        
+      <li>Solvers (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.solvers</span></code>)</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <span class="target" id="module-qiskit_dynamics.solvers"><span id="qiskit-dynamics-solvers"></span></span><section id="solvers-qiskit-dynamics-solvers">
+<h1>Solvers (<a class="reference internal" href="#module-qiskit_dynamics.solvers" title="qiskit_dynamics.solvers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.solvers</span></code></a>)<a class="headerlink" href="#solvers-qiskit-dynamics-solvers" title="Permalink to this heading">¶</a></h1>
+<p>This module provides classes and functions for solving differential equations.</p>
+<p>Table <a class="reference internal" href="#standard-solver-table"><span class="std std-ref">1</span></a> summarizes the standard solver interfaces exposed in
+this module. It includes a high level class <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a>
+for solving models of quantum systems, as well as low-level functions for solving both
+ordinary differential equations <span class="math notranslate nohighlight">\(\dot{y}(t) = f(t, y(t))\)</span> and linear matrix differential
+equations <span class="math notranslate nohighlight">\(\dot{y}(t) = G(t)y(t)\)</span>.</p>
+<p>Additionally, this module contains more specialized solvers for linear matrix differential
+equations based on perturbative expansions, described <a class="reference internal" href="#perturbative-solvers"><span class="std std-ref">below</span></a>.</p>
+<span id="standard-solver-table"></span><table class="docutils align-default" id="id5">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">Solver interfaces</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 16.7%" />
+<col style="width: 83.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a></p></td>
+<td><p>High level solver class for both Hamiltonian and Lindblad dynamics.
+Automatically constructs the relevant model type based on system details, and
+the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.solve.html#qiskit_dynamics.solvers.Solver.solve" title="qiskit_dynamics.solvers.Solver.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> method automatically handles
+<code class="docutils literal notranslate"><span class="pre">qiskit.quantum_info</span></code> input types.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode" title="qiskit_dynamics.solvers.solve_ode"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_ode()</span></code></a></p></td>
+<td><p>Low level solver function for ordinary differential equations:</p>
+<div class="math notranslate nohighlight">
+\[\dot{y}(t) = f(t, y(t)),\]</div>
+<p>for <span class="math notranslate nohighlight">\(y(t)\)</span> arrays of arbitrary shape and <span class="math notranslate nohighlight">\(f\)</span> specified as an arbitrary callable.</p>
+</td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.solve_lmde.html#qiskit_dynamics.solvers.solve_lmde" title="qiskit_dynamics.solvers.solve_lmde"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_lmde()</span></code></a></p></td>
+<td><p>Low level solver function for linear matrix differential equations in <em>standard form</em>:</p>
+<div class="math notranslate nohighlight">
+\[\dot{y}(t) = G(t)y(t),\]</div>
+<p>where <span class="math notranslate nohighlight">\(G(t)\)</span> is either a callable or a <code class="docutils literal notranslate"><span class="pre">qiskit_dynamics</span></code>
+model type, and <span class="math notranslate nohighlight">\(y(t)\)</span> arrays of suitable shape for the matrix multiplication above.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<section id="perturbative-solvers">
+<span id="id1"></span><h2>Perturbative Solvers<a class="headerlink" href="#perturbative-solvers" title="Permalink to this heading">¶</a></h2>
+<p>The classes <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a> and
+<a class="reference internal" href="../stubs/qiskit_dynamics.solvers.MagnusSolver.html#qiskit_dynamics.solvers.MagnusSolver" title="qiskit_dynamics.solvers.MagnusSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagnusSolver</span></code></a> implement advanced solvers detailed in
+<a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, with the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonSolver</span></code></a>
+implementing a variant of the <em>Dysolve</em> algorithm originally introduced in
+<a class="footnote-reference brackets" href="#footcite-shillito-fast-2020" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<p>The solvers are specialized to linear matrix differential equations with <span class="math notranslate nohighlight">\(G(t)\)</span>
+decomposed as:</p>
+<div class="math notranslate nohighlight">
+\[G(t) = G_0 + \sum_j Re[f_j(t)e^{i2\pi\nu_jt}]G_j,\]</div>
+<p>and are fixed step with a pre-defined step size <span class="math notranslate nohighlight">\(\Delta t\)</span>. The differential equation is
+solved by either computing a truncated Dyson series, or taking the exponential of a truncated
+Magnus expansion.</p>
+<p>Add reference to both userguide and perturbation theory module documentation.</p>
+</section>
+<section id="solver-classes">
+<h2>Solver classes<a class="headerlink" href="#solver-classes" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Solver</span></code></a>([static_hamiltonian, ...])</p></td>
+<td><p>Solver class for simulating both Hamiltonian and Lindblad dynamics, with high level type-handling of input states.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver" title="qiskit_dynamics.solvers.DysonSolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DysonSolver</span></code></a>(operators, rotating_frame, dt, ...)</p></td>
+<td><p>Solver for linear matrix differential equations based on the Dyson series.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.MagnusSolver.html#qiskit_dynamics.solvers.MagnusSolver" title="qiskit_dynamics.solvers.MagnusSolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MagnusSolver</span></code></a>(operators, rotating_frame, dt, ...)</p></td>
+<td><p>Solver for linear matrix differential equations based on the Magnus expansion.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="solver-functions">
+<h2>Solver functions<a class="headerlink" href="#solver-functions" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode" title="qiskit_dynamics.solvers.solve_ode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_ode</span></code></a>(rhs, t_span, y0[, method, t_eval])</p></td>
+<td><p>General interface for solving Ordinary Differential Equations (ODEs).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.solve_lmde.html#qiskit_dynamics.solvers.solve_lmde" title="qiskit_dynamics.solvers.solve_lmde"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_lmde</span></code></a>(generator, t_span, y0[, method, ...])</p></td>
+<td><p>General interface for solving Linear Matrix Differential Equations (LMDEs) in standard form.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="docutils container" id="id4">
+<p class="rubric">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-puzzuoli-sensitivity-2022" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
+<p>D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, and C. J. Wood. Algorithms for perturbative analysis and simulation of quantum dynamics. <em>arXiv:2210.11595</em>, 2022. <a class="reference external" href="https://doi.org/10.48550/arXiv.2210.11595">doi:10.48550/arXiv.2210.11595</a>.</p>
+</aside>
+<aside class="footnote brackets" id="footcite-shillito-fast-2020" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
+<p>R. Shillito, J. A. Gross, A. Di Paolo, É. Genois, and A. Blais. Fast and differentiable simulation of driven quantum systems. <em>Physical Review Research</em>, 3(3):033266, 2021. Publisher: American Physical Society. <a class="reference external" href="https://doi.org/10.1103/PhysRevResearch.3.033266">doi:10.1103/PhysRevResearch.3.033266</a>.</p>
+</aside>
+</aside>
+</div>
+</section>
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="../stubs/qiskit_dynamics.solvers.Solver.html" class="btn btn-neutral float-right" title="Solver" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="index.html" class="btn btn-neutral" title="Qiskit Dynamics API Reference" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Solvers (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.solvers</span></code>)</a><ul>
+<li><a class="reference internal" href="#perturbative-solvers">Perturbative Solvers</a></li>
+<li><a class="reference internal" href="#solver-classes">Solver classes</a></li>
+<li><a class="reference internal" href="#solver-functions">Solver functions</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+qiskit\_dynamics.solvers.DysonSolver.solve
+==========================================
+
+.. currentmodule:: qiskit_dynamics.solvers
+
+.. automethod:: DysonSolver.solve

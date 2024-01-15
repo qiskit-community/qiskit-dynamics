@@ -1,0 +1,6 @@
+qiskit\_dynamics.models.RotatingFrame.state\_into\_frame\_basis
+===============================================================
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. automethod:: RotatingFrame.state_into_frame_basis

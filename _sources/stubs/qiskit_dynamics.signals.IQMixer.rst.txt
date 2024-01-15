@@ -1,0 +1,14 @@
+﻿IQMixer
+=======
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. autoclass:: IQMixer
+   :no-members:
+   :show-inheritance:
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: n_inputs

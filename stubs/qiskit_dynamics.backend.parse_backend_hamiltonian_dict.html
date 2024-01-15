@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>qiskit_dynamics.backend.parse_backend_hamiltonian_dict &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../apidocs/index.html">Qiskit Dynamics API Reference</a> &gt;</li>
+        
+          <li><a href="../apidocs/backend.html">Backend (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.backend</span></code>)</a> &gt;</li>
+        
+      <li>qiskit_dynamics.backend.parse_backend_hamiltonian_dict</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="qiskit-dynamics-backend-parse-backend-hamiltonian-dict">
+<h1>qiskit_dynamics.backend.parse_backend_hamiltonian_dict<a class="headerlink" href="#qiskit-dynamics-backend-parse-backend-hamiltonian-dict" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="qiskit_dynamics.backend.parse_backend_hamiltonian_dict">
+<span class="sig-name descname"><span class="pre">parse_backend_hamiltonian_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hamiltonian_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsystem_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/backend/backend_string_parser/hamiltonian_string_parser.html#parse_backend_hamiltonian_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.backend.parse_backend_hamiltonian_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert Pulse backend Hamiltonian dictionary into concrete array format
+with an ordered list of corresponding channels.</p>
+<p>The Pulse backend Hamiltonian dictionary, <code class="docutils literal notranslate"><span class="pre">hamiltonian_dict</span></code>, must have the
+following keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'h_str'</span></code>: List of Hamiltonian terms in string format (see below).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'qub'</span></code>: Dictionary giving subsystem dimensions. Keys are subsystem labels,
+values are their dimensions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'vars'</span></code>: Dictionary whose keys are the variables appearing in the terms in
+the <code class="docutils literal notranslate"><span class="pre">h_str</span></code> list, and values being the numerical values of the variables.</p></li>
+</ul>
+<p>The optional argument <code class="docutils literal notranslate"><span class="pre">subsystem_list</span></code> specifies a subset of subsystems to keep when parsing.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code>, all subsystems are kept. If <code class="docutils literal notranslate"><span class="pre">subsystem_list</span></code> is specified, then terms
+including subsystems not in the list will be ignored.</p>
+<p>Entries in the list <code class="docutils literal notranslate"><span class="pre">hamiltonian_dict['h_str']</span></code> must be formatted as a product of
+constants (either numerical constants or variables in <code class="docutils literal notranslate"><span class="pre">hamiltonian_dict['vars'].keys()</span></code>)
+with operators. Operators are indicated with a capital letters followed by an integer
+indicating the subsystem the operator acts on. Accepted operator strings are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'X'</span></code>: If the target subsystem is two dimensional, the
+Pauli <span class="math notranslate nohighlight">\(X\)</span> operator, and if greater than two dimensional, returns
+<span class="math notranslate nohighlight">\(a + a^\dagger\)</span>, where <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(a^\dagger\)</span> are the
+annihiliation and creation operators, respectively.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'Y'</span></code>: If the target subsystem is two dimensional, the
+Pauli <span class="math notranslate nohighlight">\(Y\)</span> operator, and if greater than two dimensional, returns
+<span class="math notranslate nohighlight">\(-i(a - a^\dagger)\)</span>, where <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(a^\dagger\)</span> are the
+annihiliation and creation operators, respectively.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'Z'</span></code>: If the target subsystem is two dimensional, the
+Pauli <span class="math notranslate nohighlight">\(Z\)</span> operator, and if greater than two dimensional, returns
+<span class="math notranslate nohighlight">\(I - 2 * N\)</span>, where <span class="math notranslate nohighlight">\(N\)</span> is the number operator.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'a'</span></code>, <code class="docutils literal notranslate"><span class="pre">'A'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'Sm'</span></code>: If two dimensional, the sigma minus operator, and if greater,
+generalizes to the operator.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'C'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'Sp'</span></code>: If two dimensional, sigma plus operator, and if greater,
+generalizes to the creation operator.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'N'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'O'</span></code>: The number operator.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'I'</span></code>: The identity operator.</p></li>
+</ul>
+<p>In addition to the above, a term in <code class="docutils literal notranslate"><span class="pre">hamiltonian_dict['h_str']</span></code> can be associated with
+a channel by ending it with a string of the form <code class="docutils literal notranslate"><span class="pre">'||Sxx'</span></code>, where <code class="docutils literal notranslate"><span class="pre">S</span></code> is a valid channel
+label, and <code class="docutils literal notranslate"><span class="pre">'xx'</span></code> is an integer. Accepted channel labels are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'D'</span></code> or <code class="docutils literal notranslate"><span class="pre">'d'</span></code> for drive channels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'U'</span></code> or <code class="docutils literal notranslate"><span class="pre">'u'</span></code> for control channels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'M'</span></code> or <code class="docutils literal notranslate"><span class="pre">'m'</span></code> for measurement channels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'A'</span></code> or <code class="docutils literal notranslate"><span class="pre">'a'</span></code> for acquire channels.</p></li>
+</ul>
+<p>Finally, summations of terms of the above form can be indicated in
+<code class="docutils literal notranslate"><span class="pre">hamiltonian_dict['h_str']</span></code> via strings with syntax <code class="docutils literal notranslate"><span class="pre">'_SUM[i,</span> <span class="pre">lb,</span> <span class="pre">ub,</span> <span class="pre">aa||S{i}]'</span></code>,
+where:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code> is the summation variable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lb</span></code> and <code class="docutils literal notranslate"><span class="pre">ub</span></code> are the summation endpoints (inclusive).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aa</span></code> is a valid operator string, possibly including the string <code class="docutils literal notranslate"><span class="pre">{i}</span></code> to indicate
+operators acting on subsystem <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">S{i}</span></code> is the specification of a channel indexed by <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p></li>
+</ul>
+<p>For example, the following <code class="docutils literal notranslate"><span class="pre">hamiltonian_dict</span></code> specifies a single
+transmon with 4 levels:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hamiltonian_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;h_str&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;v*np.pi*O0&quot;</span><span class="p">,</span> <span class="s2">&quot;alpha*np.pi*O0*O0&quot;</span><span class="p">,</span> <span class="s2">&quot;r*np.pi*X0||D0&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;qub&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+    <span class="s2">&quot;vars&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="mf">2.1</span><span class="p">,</span> <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.33</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The following example specifies a two transmon system, with single system terms specified
+using the summation format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hamiltonian_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;h_str&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;_SUM[i,0,1,wq</span><span class="si">{i}</span><span class="s2">/2*(I</span><span class="si">{i}</span><span class="s2">-Z</span><span class="si">{i}</span><span class="s2">)]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_SUM[i,0,1,delta</span><span class="si">{i}</span><span class="s2">/2*O</span><span class="si">{i}</span><span class="s2">*O</span><span class="si">{i}</span><span class="s2">]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_SUM[i,0,1,-delta</span><span class="si">{i}</span><span class="s2">/2*O</span><span class="si">{i}</span><span class="s2">]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_SUM[i,0,1,omegad</span><span class="si">{i}</span><span class="s2">*X</span><span class="si">{i}</span><span class="s2">||D</span><span class="si">{i}</span><span class="s2">]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jq0q1*Sp0*Sm1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jq0q1*Sm0*Sp1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;omegad1*X0||U0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;omegad0*X1||U1&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;qub&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+    <span class="s2">&quot;vars&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;delta0&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.111793476400394</span><span class="p">,</span>
+        <span class="s2">&quot;delta1&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.0894421352015744</span><span class="p">,</span>
+        <span class="s2">&quot;jq0q1&quot;</span><span class="p">:</span> <span class="mf">0.010495754104003914</span><span class="p">,</span>
+        <span class="s2">&quot;omegad0&quot;</span><span class="p">:</span> <span class="mf">0.9715458990879812</span><span class="p">,</span>
+        <span class="s2">&quot;omegad1&quot;</span><span class="p">:</span> <span class="mf">0.9803812537440838</span><span class="p">,</span>
+        <span class="s2">&quot;wq0&quot;</span><span class="p">:</span> <span class="mf">32.517894442809514</span><span class="p">,</span>
+        <span class="s2">&quot;wq1&quot;</span><span class="p">:</span> <span class="mf">33.0948996120196</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hamiltonian_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Pulse backend Hamiltonian dictionary.</p></li>
+<li><p><strong>subsystem_list</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]</span>) – List of subsystems to include in the model. If <code class="docutils literal notranslate"><span class="pre">None</span></code> all are kept.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Model converted into concrete arrays - the static Hamiltonian,
+a list of Hamiltonians corresponding to different channels, a list of
+channel labels corresponding to the list of time-dependent Hamiltonians,
+and a dictionary with subsystem dimensions whose keys are the subsystem labels.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="../apidocs/models.html" class="btn btn-neutral float-right" title="Models (qiskit_dynamics.models)" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="qiskit_dynamics.backend.default_experiment_result_function.html" class="btn btn-neutral" title="qiskit_dynamics.backend.default_experiment_result_function" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">qiskit_dynamics.backend.parse_backend_hamiltonian_dict</a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.backend.parse_backend_hamiltonian_dict"><code class="docutils literal notranslate"><span class="pre">parse_backend_hamiltonian_dict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

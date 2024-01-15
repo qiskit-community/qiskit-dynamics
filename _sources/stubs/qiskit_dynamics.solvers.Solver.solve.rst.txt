@@ -1,0 +1,6 @@
+qiskit\_dynamics.solvers.Solver.solve
+=====================================
+
+.. currentmodule:: qiskit_dynamics.solvers
+
+.. automethod:: Solver.solve

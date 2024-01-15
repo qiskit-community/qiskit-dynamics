@@ -1,0 +1,6 @@
+qiskit\_dynamics.signals.DiscreteSignalSum.complex\_value
+=========================================================
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. automethod:: DiscreteSignalSum.complex_value

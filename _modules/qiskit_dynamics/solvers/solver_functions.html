@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.solvers.solver_functions &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.solvers.solver_functions</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.solvers.solver_functions</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name,no-member,attribute-defined-outside-init</span>
+
+<span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Solver functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">OdeSolver</span>
+
+<span class="kn">from</span> <span class="nn">scipy.integrate._ivp.ivp</span> <span class="kn">import</span> <span class="n">OdeResult</span>  <span class="c1"># pylint: disable=unused-import</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.models</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseGeneratorModel</span><span class="p">,</span>
+    <span class="n">GeneratorModel</span><span class="p">,</span>
+    <span class="n">LindbladModel</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.models.hamiltonian_model</span> <span class="kn">import</span> <span class="n">HamiltonianModel</span>
+
+<span class="kn">from</span> <span class="nn">.solver_utils</span> <span class="kn">import</span> <span class="n">is_lindblad_model_not_vectorized</span>
+<span class="kn">from</span> <span class="nn">.fixed_step_solvers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">RK4_solver</span><span class="p">,</span>
+    <span class="n">jax_RK4_solver</span><span class="p">,</span>
+    <span class="n">scipy_expm_solver</span><span class="p">,</span>
+    <span class="n">lanczos_diag_solver</span><span class="p">,</span>
+    <span class="n">jax_lanczos_diag_solver</span><span class="p">,</span>
+    <span class="n">jax_expm_solver</span><span class="p">,</span>
+    <span class="n">jax_RK4_parallel_solver</span><span class="p">,</span>
+    <span class="n">jax_expm_parallel_solver</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.scipy_solve_ivp</span> <span class="kn">import</span> <span class="n">scipy_solve_ivp</span><span class="p">,</span> <span class="n">SOLVE_IVP_METHODS</span>
+<span class="kn">from</span> <span class="nn">.jax_odeint</span> <span class="kn">import</span> <span class="n">jax_odeint</span>
+<span class="kn">from</span> <span class="nn">.diffrax_solver</span> <span class="kn">import</span> <span class="n">diffrax_solver</span>
+
+<span class="n">ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">[</span><span class="s2">&quot;RK45&quot;</span><span class="p">,</span> <span class="s2">&quot;RK23&quot;</span><span class="p">,</span> <span class="s2">&quot;BDF&quot;</span><span class="p">,</span> <span class="s2">&quot;DOP853&quot;</span><span class="p">,</span> <span class="s2">&quot;Radau&quot;</span><span class="p">,</span> <span class="s2">&quot;LSODA&quot;</span><span class="p">]</span>  <span class="c1"># scipy solvers</span>
+    <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;RK4&quot;</span><span class="p">]</span>  <span class="c1"># fixed step solvers</span>
+    <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;jax_odeint&quot;</span><span class="p">,</span> <span class="s2">&quot;jax_RK4&quot;</span><span class="p">]</span>  <span class="c1"># jax solvers</span>
+<span class="p">)</span>
+<span class="n">LMDE_METHODS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;scipy_expm&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lanczos_diag&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;jax_lanczos_diag&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;jax_expm&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;jax_expm_parallel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;jax_RK4_parallel&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># diffrax solver type placeholder</span>
+<span class="n">DiffraxAbstractSolver</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;AbstractSolver&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_is_jax_method</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="nb">any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if method is a jax solver method.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;jax_odeint&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jax_RK4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jax_expm&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jax_expm_parallel&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jax_RK4_parallel&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jax_lanczos_diag&quot;</span><span class="p">,</span>
+    <span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># only other jax methods are diffrax methods</span>
+    <span class="k">return</span> <span class="n">_is_diffrax_method</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_is_diffrax_method</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="nb">any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if method is a diffrax method.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">diffrax.solver</span> <span class="kn">import</span> <span class="n">AbstractSolver</span>
+
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">AbstractSolver</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">_lanczos_validation</span><span class="p">(</span>
+    <span class="n">rhs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">],</span>
+    <span class="n">t_span</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">y0</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">k_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validation checks to run lanczos based solvers.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">HamiltonianModel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Lanczos solver can only be used for HamiltonianModel or function-based</span>
+<span class="sd">                    anti-Hermitian generators.&quot;&quot;&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;sparse&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rhs</span><span class="o">.</span><span class="n">evaluation_mode</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;lanczos_diag should be used with a generator in sparse mode</span>
+<span class="sd">                for better performance.&quot;&quot;&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="ne">Warning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">rhs</span><span class="p">(</span><span class="n">t_span</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">k_dim</span> <span class="o">&gt;</span> <span class="n">dim</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;k_dim can be no larger than the dimension of the generator.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">y0</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;y0 must be 1d or 2d.&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="solve_ode"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode">[docs]</a><span class="k">def</span> <span class="nf">solve_ode</span><span class="p">(</span>
+    <span class="n">rhs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">],</span>
+    <span class="n">t_span</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">y0</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">OdeSolver</span><span class="p">,</span> <span class="n">DiffraxAbstractSolver</span><span class="p">]]</span> <span class="o">=</span> <span class="s2">&quot;DOP853&quot;</span><span class="p">,</span>
+    <span class="n">t_eval</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Array</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;General interface for solving Ordinary Differential Equations (ODEs).</span>
+
+<span class="sd">    ODEs are differential equations of the form</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \dot{y}(t) = f(t, y(t)),</span>
+
+<span class="sd">    where :math:`f` is a callable function and the state :math:`y(t)` is an</span>
+<span class="sd">    arbitrarily-shaped complex :class:`Array`.</span>
+
+<span class="sd">    The ``method`` argument exposes a variety of underlying ODE solvers. Optional</span>
+<span class="sd">    arguments for any of the solver routines can be passed via ``kwargs``.</span>
+<span class="sd">    Available methods are:</span>
+
+<span class="sd">    - ``scipy.integrate.solve_ivp`` - supports methods</span>
+<span class="sd">      ``[&#39;RK45&#39;, &#39;RK23&#39;, &#39;BDF&#39;, &#39;DOP853&#39;, &#39;Radau&#39;, &#39;LSODA&#39;]`` or by passing a valid</span>
+<span class="sd">      ``scipy`` :class:`OdeSolver` instance.</span>
+<span class="sd">    - ``&#39;RK4&#39;``: A fixed-step 4th order Runge-Kutta solver.</span>
+<span class="sd">      Requires additional kwarg ``max_dt``, indicating the maximum step</span>
+<span class="sd">      size to take. This solver will break integration periods into even</span>
+<span class="sd">      sub-intervals no larger than ``max_dt``, and step over each sub-interval</span>
+<span class="sd">      using the standard 4th order Runge-Kutta integration rule.</span>
+<span class="sd">    - ``&#39;jax_RK4&#39;``: JAX backend implementation of ``&#39;RK4&#39;`` method.</span>
+<span class="sd">    - ``&#39;jax_odeint&#39;``: Calls ``jax.experimental.ode.odeint`` variable step solver.</span>
+<span class="sd">    - ``diffrax.diffeqsolve`` - a JAX solver function, called by passing ``method``</span>
+<span class="sd">      as a valid ``diffrax.solver.AbstractSolver`` instance. Requires the ``diffrax`` library.</span>
+
+<span class="sd">    Results are returned as a :class:`OdeResult` object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        rhs: RHS function :math:`f(t, y)`.</span>
+<span class="sd">        t_span: ``Tuple`` or ``list`` of initial and final time.</span>
+<span class="sd">        y0: State at initial time.</span>
+<span class="sd">        method: Solving method to use.</span>
+<span class="sd">        t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,</span>
+<span class="sd">                the solution will be returned at the points in ``t_span``.</span>
+<span class="sd">        **kwargs: Additional arguments to pass to the solver.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        OdeResult: Results object.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: If specified method does not exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ODE_METHODS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
+        <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">issubclass</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">OdeSolver</span><span class="p">)))</span> <span class="ow">or</span> <span class="n">_is_diffrax_method</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Method &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; not supported by solve_ode.&quot;</span><span class="p">)</span>
+
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">y0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">solver_rhs</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">model_in_frame_basis</span> <span class="o">=</span> <span class="n">setup_generator_model_rhs_y0_in_frame_basis</span><span class="p">(</span>
+            <span class="n">rhs</span><span class="p">,</span> <span class="n">y0</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">solver_rhs</span> <span class="o">=</span> <span class="n">rhs</span>
+
+    <span class="c1"># solve the problem using specified method</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">SOLVE_IVP_METHODS</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">OdeSolver</span><span class="p">)):</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">scipy_solve_ivp</span><span class="p">(</span><span class="n">solver_rhs</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;RK4&quot;</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">RK4_solver</span><span class="p">(</span><span class="n">solver_rhs</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;jax_RK4&quot;</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">jax_RK4_solver</span><span class="p">(</span><span class="n">solver_rhs</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;jax_odeint&quot;</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">jax_odeint</span><span class="p">(</span><span class="n">solver_rhs</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">_is_diffrax_method</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">diffrax_solver</span><span class="p">(</span><span class="n">solver_rhs</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># convert results out of frame basis if necessary</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_in_frame_basis</span><span class="p">:</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">results_y_out_of_frame_basis</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">Array</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">y0</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+
+        <span class="c1"># convert model back to original basis</span>
+        <span class="n">rhs</span><span class="o">.</span><span class="n">in_frame_basis</span> <span class="o">=</span> <span class="n">model_in_frame_basis</span>
+
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="solve_lmde"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.solvers.solve_lmde.html#qiskit_dynamics.solvers.solve_lmde">[docs]</a><span class="k">def</span> <span class="nf">solve_lmde</span><span class="p">(</span>
+    <span class="n">generator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">],</span>
+    <span class="n">t_span</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">y0</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">OdeSolver</span><span class="p">,</span> <span class="n">DiffraxAbstractSolver</span><span class="p">]]</span> <span class="o">=</span> <span class="s2">&quot;DOP853&quot;</span><span class="p">,</span>
+    <span class="n">t_eval</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Array</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;General interface for solving Linear Matrix Differential Equations (LMDEs)</span>
+<span class="sd">    in standard form.</span>
+
+<span class="sd">    LMDEs in standard form are differential equations of the form:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \dot{y}(t) = G(t)y(t).</span>
+
+<span class="sd">    where :math:`G(t)` is a square matrix valued-function called the *generator*, and :math:`y(t)`</span>
+<span class="sd">    is an :class:`Array` of appropriate shape.</span>
+
+<span class="sd">    Thus function accepts :math:`G(t)` as a ``qiskit_dynamics`` model class, or as an arbitrary</span>
+<span class="sd">    callable.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Not all model classes are by-default in standard form. E.g.</span>
+<span class="sd">        :class:`~qiskit_dynamics.models.LindbladModel` represents an LMDE which is not typically</span>
+<span class="sd">        written in standard form. As such, using LMDE-specific methods with this generator requires</span>
+<span class="sd">        setting a vectorized evaluation mode.</span>
+
+<span class="sd">    The ``method`` argument exposes solvers specialized to both LMDEs, as well as general ODE</span>
+<span class="sd">    solvers. If the method is not specific to LMDEs, the problem will be passed to</span>
+<span class="sd">    :meth:`~qiskit_dynamics.solve_ode` by automatically setting up the RHS function :math:`f(t, y) =</span>
+<span class="sd">    G(t)y`.</span>
+
+<span class="sd">    Optional arguments for any of the solver routines can be passed via ``kwargs``. Available</span>
+<span class="sd">    LMDE-specific methods are:</span>
+
+<span class="sd">    - ``&#39;scipy_expm&#39;``: A fixed-step matrix-exponential solver using ``scipy.linalg.expm``. Requires</span>
+<span class="sd">      additional kwarg ``max_dt`` indicating the maximum step size to take. This solver will break</span>
+<span class="sd">      integration periods into even sub-intervals no larger than ``max_dt`` and solve over each</span>
+<span class="sd">      sub-interval. The optional kwarg ``magnus_order`` controls the integration rule: if</span>
+<span class="sd">      ``magnus_order==1``, the generator is sampled at the interval midpoint and exponentiated, and</span>
+<span class="sd">      if ``magnus_order==2`` or ``magnus_order==3``, higher-order exponentiation rules are adopted</span>
+<span class="sd">      from :footcite:`blanes_magnus_2009`. The ``magnus_order`` parameter defaults to ``1``.</span>
+<span class="sd">    - ``&#39;lanczos_diag&#39;``: A fixed-step matrix-exponential solver, similar to ``&#39;scipy_expm&#39;`` but</span>
+<span class="sd">      restricted to anti-Hermitian generators. The matrix exponential is performed by diagonalizing</span>
+<span class="sd">      an approximate projection of the generator to a small subspace (the Krylov Subspace), obtained</span>
+<span class="sd">      via the Lanczos algorithm, and then exponentiating the eigenvalues. Requires additional kwargs</span>
+<span class="sd">      ``max_dt`` and ``k_dim`` indicating the maximum step size to take and Krylov subspace</span>
+<span class="sd">      dimension, respectively. ``k_dim`` acts as an adjustable accuracy parameter and can be no</span>
+<span class="sd">      larger than the dimension of the generator. The method is recommended for sparse systems with</span>
+<span class="sd">      large dimension.</span>
+<span class="sd">    - ``&#39;jax_lanczos_diag&#39;``: JAX implementation of ``&#39;lanczos_diag&#39;``, with the same arguments and</span>
+<span class="sd">      behaviour. Note that this method contains calls to ``jax.numpy.eigh``, which may have limited</span>
+<span class="sd">      validity when automatically differentiated.</span>
+<span class="sd">    - ``&#39;jax_expm&#39;``: JAX-implemented version of ``&#39;scipy_expm&#39;``, with the same arguments and</span>
+<span class="sd">      behaviour. Note that this method cannot be used for a model in sparse evaluation mode.</span>
+<span class="sd">    - ``&#39;jax_expm_parallel&#39;``: Same as ``&#39;jax_expm&#39;``, however all loops are implemented using</span>
+<span class="sd">      parallel operations. I.e. all matrix-exponentials for taking a single step are computed in</span>
+<span class="sd">      parallel using ``jax.vmap``, and are subsequently multiplied together in parallel using</span>
+<span class="sd">      ``jax.lax.associative_scan``. This method is only recommended for use with GPU execution. Note</span>
+<span class="sd">      that this method cannot be used for a model in sparse evaluation mode.</span>
+<span class="sd">    - ``&#39;jax_RK4_parallel&#39;``: 4th order Runge-Kutta fixed step solver. Under the assumption of the</span>
+<span class="sd">      structure of an LMDE, utilizes the same parallelization approach as ``&#39;jax_expm_parallel&#39;``,</span>
+<span class="sd">      however the single step rule is the standard 4th order Runge-Kutta rule, rather than</span>
+<span class="sd">      matrix-exponentiation. Requires and utilizes the ``max_dt`` kwarg in the same manner as</span>
+<span class="sd">      ``method=&#39;scipy_expm&#39;``. This method is only recommended for use with GPU execution.</span>
+
+<span class="sd">    Results are returned as a :class:`OdeResult` object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        generator: Representation of generator function :math:`G(t)`.</span>
+<span class="sd">        t_span: ``Tuple`` or `list` of initial and final time.</span>
+<span class="sd">        y0: State at initial time.</span>
+<span class="sd">        method: Solving method to use.</span>
+<span class="sd">        t_eval: Times at which to return the solution. Must lie within ``t_span``. If unspecified,</span>
+<span class="sd">            the solution will be returned at the points in ``t_span``.</span>
+<span class="sd">        **kwargs: Additional arguments to pass to the solver.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        OdeResult: Results object.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: If specified method does not exist,</span>
+<span class="sd">                     if dimension of ``y0`` is incompatible with generator dimension, or if an</span>
+<span class="sd">                     LMDE-specific method is passed with a LindbladModel.</span>
+<span class="sd">    Additional Information:</span>
+<span class="sd">        While all :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses represent LMDEs,</span>
+<span class="sd">        they are not all in standard form by defualt. Using an LMDE-specific models like</span>
+<span class="sd">        :class:`~qiskit_dynamics.models.LindbladModel` requires first setting a vectorized</span>
+<span class="sd">        evaluation mode.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># delegate to solve_ode if necessary</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">method</span> <span class="ow">in</span> <span class="n">ODE_METHODS</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">issubclass</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">OdeSolver</span><span class="p">)))</span>
+        <span class="ow">or</span> <span class="n">_is_diffrax_method</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">):</span>
+            <span class="n">rhs</span> <span class="o">=</span> <span class="n">generator</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># treat generator as a function</span>
+            <span class="k">def</span> <span class="nf">rhs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">generator</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">@</span> <span class="n">y</span>
+
+        <span class="k">return</span> <span class="n">solve_ode</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># raise error if neither an ODE_METHOD or an LMDE_METHOD</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">LMDE_METHODS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Method </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> not supported by solve_lmde.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># lmde-specific methods can&#39;t be used with LindbladModel unless vectorized</span>
+    <span class="k">if</span> <span class="n">is_lindblad_model_not_vectorized</span><span class="p">(</span><span class="n">generator</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;LMDE-specific methods with LindbladModel requires setting a</span>
+<span class="sd">               vectorized evaluation mode.&quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">y0</span><span class="p">)</span>
+
+    <span class="c1"># setup generator and rhs functions to pass to numerical methods</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">):</span>
+        <span class="n">solver_generator</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">model_in_frame_basis</span> <span class="o">=</span> <span class="n">setup_generator_model_rhs_y0_in_frame_basis</span><span class="p">(</span>
+            <span class="n">generator</span><span class="p">,</span> <span class="n">y0</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">solver_generator</span> <span class="o">=</span> <span class="n">generator</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;scipy_expm&quot;</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">scipy_expm_solver</span><span class="p">(</span><span class="n">solver_generator</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;lanczos_diag&quot;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+        <span class="n">_lanczos_validation</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;k_dim&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;lanczos_diag&quot;</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">lanczos_diag_solver</span><span class="p">(</span><span class="n">solver_generator</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;jax_lanczos_diag&quot;</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">jax_lanczos_diag_solver</span><span class="p">(</span><span class="n">solver_generator</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;jax_expm&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;sparse&quot;</span> <span class="ow">in</span> <span class="n">generator</span><span class="o">.</span><span class="n">evaluation_mode</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;jax_expm cannot be used with a generator in sparse mode.&quot;</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">jax_expm_solver</span><span class="p">(</span><span class="n">solver_generator</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;jax_expm_parallel&quot;</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">jax_expm_parallel_solver</span><span class="p">(</span><span class="n">solver_generator</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;jax_RK4_parallel&quot;</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">jax_RK4_parallel_solver</span><span class="p">(</span><span class="n">solver_generator</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># convert results to correct basis if necessary</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">BaseGeneratorModel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_in_frame_basis</span><span class="p">:</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">results_y_out_of_frame_basis</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">Array</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">y0</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+
+        <span class="n">generator</span><span class="o">.</span><span class="n">in_frame_basis</span> <span class="o">=</span> <span class="n">model_in_frame_basis</span>
+
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+<span class="k">def</span> <span class="nf">setup_generator_model_rhs_y0_in_frame_basis</span><span class="p">(</span>
+    <span class="n">generator_model</span><span class="p">:</span> <span class="n">BaseGeneratorModel</span><span class="p">,</span> <span class="n">y0</span><span class="p">:</span> <span class="n">Array</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function for setting up a subclass of</span>
+<span class="sd">    :class:`~qiskit_dynamics.models.BaseGeneratorModel` to be solved in the frame basis.</span>
+
+<span class="sd">    Note: this function modifies ``generator_model`` to function in the frame basis.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        generator_model: Subclass of :class:`~qiskit_dynamics.models.BaseGeneratorModel`.</span>
+<span class="sd">        y0: Initial state.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Callable for generator in frame basis, callable for RHS in frame basis, y0</span>
+<span class="sd">        in frame basis, and boolean indicating whether model was already specified in frame basis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_in_frame_basis</span> <span class="o">=</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">in_frame_basis</span>
+
+    <span class="c1"># if model not specified in frame basis, transform initial state into frame basis</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">model_in_frame_basis</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator_model</span><span class="p">,</span> <span class="n">LindbladModel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="s2">&quot;vectorized&quot;</span> <span class="ow">in</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">evaluation_mode</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">y0</span> <span class="o">=</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">vectorized_frame_basis_adjoint</span> <span class="o">@</span> <span class="n">y0</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator_model</span><span class="p">,</span> <span class="n">LindbladModel</span><span class="p">):</span>
+            <span class="n">y0</span> <span class="o">=</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_into_frame_basis</span><span class="p">(</span><span class="n">y0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator_model</span><span class="p">,</span> <span class="n">GeneratorModel</span><span class="p">):</span>
+            <span class="n">y0</span> <span class="o">=</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">state_into_frame_basis</span><span class="p">(</span><span class="n">y0</span><span class="p">)</span>
+
+    <span class="c1"># set model to operator in frame basis</span>
+    <span class="n">generator_model</span><span class="o">.</span><span class="n">in_frame_basis</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># define rhs functions in frame basis</span>
+    <span class="k">def</span> <span class="nf">generator</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">generator_model</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">rhs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">generator_model</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">generator</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">model_in_frame_basis</span>
+
+
+<span class="k">def</span> <span class="nf">results_y_out_of_frame_basis</span><span class="p">(</span>
+    <span class="n">generator_model</span><span class="p">:</span> <span class="n">BaseGeneratorModel</span><span class="p">,</span> <span class="n">results_y</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span> <span class="n">y0_ndim</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert the results of a simulation for :class:`~qiskit_dynamics.models.BaseGeneratorModel`</span>
+<span class="sd">    out of the frame basis.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        generator_model: Subclass of :class:`~qiskit_dynamics.models.BaseGeneratorModel`.</span>
+<span class="sd">        results_y: Array whose first index corresponds to the evaluation points of the state</span>
+<span class="sd">                   for the results of ``solve_lmde`` or ``solve_ode``.</span>
+<span class="sd">        y0_ndim: Number of dimensions of initial state.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Callable for generator in frame basis, Callable for RHS in frame basis, and y0</span>
+<span class="sd">        transformed to frame basis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># for left multiplication cases, if number of input dimensions is 1</span>
+    <span class="c1"># vectorized basis transformation requires transposing before and after</span>
+    <span class="k">if</span> <span class="n">y0_ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">results_y</span> <span class="o">=</span> <span class="n">results_y</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator_model</span><span class="p">,</span> <span class="n">LindbladModel</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="s2">&quot;vectorized&quot;</span> <span class="ow">in</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">evaluation_mode</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">results_y</span> <span class="o">=</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">vectorized_frame_basis</span> <span class="o">@</span> <span class="n">results_y</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator_model</span><span class="p">,</span> <span class="n">LindbladModel</span><span class="p">):</span>
+        <span class="n">results_y</span> <span class="o">=</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">results_y</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">results_y</span> <span class="o">=</span> <span class="n">generator_model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">state_out_of_frame_basis</span><span class="p">(</span><span class="n">results_y</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">y0_ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">results_y</span> <span class="o">=</span> <span class="n">results_y</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">return</span> <span class="n">results_y</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

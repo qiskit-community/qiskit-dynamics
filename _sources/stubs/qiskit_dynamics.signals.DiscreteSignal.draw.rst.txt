@@ -1,0 +1,6 @@
+qiskit\_dynamics.signals.DiscreteSignal.draw
+============================================
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. automethod:: DiscreteSignal.draw

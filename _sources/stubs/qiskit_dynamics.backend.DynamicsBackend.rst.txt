@@ -1,0 +1,49 @@
+﻿DynamicsBackend
+===============
+
+.. currentmodule:: qiskit_dynamics.backend
+
+.. autoclass:: DynamicsBackend
+   :no-members:
+   :show-inheritance:
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      :toctree: ../stubs/
+
+      ~DynamicsBackend.acquire_channel
+      ~DynamicsBackend.configuration
+      ~DynamicsBackend.control_channel
+      ~DynamicsBackend.defaults
+      ~DynamicsBackend.drive_channel
+      ~DynamicsBackend.from_backend
+      ~DynamicsBackend.measure_channel
+      ~DynamicsBackend.qubit_properties
+      ~DynamicsBackend.run
+      ~DynamicsBackend.set_options
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: coupling_map
+   .. autoattribute:: dt
+   .. autoattribute:: dtm
+   .. autoattribute:: instruction_durations
+   .. autoattribute:: instruction_schedule_map
+   .. autoattribute:: instructions
+   .. autoattribute:: max_circuits
+   .. autoattribute:: meas_map
+   .. autoattribute:: num_qubits
+   .. autoattribute:: operation_names
+   .. autoattribute:: operations
+   .. autoattribute:: options
+   .. autoattribute:: provider
+   .. autoattribute:: target
+   .. autoattribute:: version
+   .. autoattribute:: name
+   .. autoattribute:: description
+   .. autoattribute:: online_date
+   .. autoattribute:: backend_version

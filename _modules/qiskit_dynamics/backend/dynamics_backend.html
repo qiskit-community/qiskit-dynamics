@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.backend.dynamics_backend &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.backend.dynamics_backend</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.backend.dynamics_backend</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2022.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Pulse-enabled simulator backend.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate._ivp.ivp</span> <span class="kn">import</span> <span class="n">OdeResult</span>  <span class="c1"># pylint: disable=unused-import</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">pulse</span>
+<span class="kn">from</span> <span class="nn">qiskit.qobj.utils</span> <span class="kn">import</span> <span class="n">MeasLevel</span><span class="p">,</span> <span class="n">MeasReturnType</span>
+<span class="kn">from</span> <span class="nn">qiskit.qobj.common</span> <span class="kn">import</span> <span class="n">QobjHeader</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="kn">import</span> <span class="n">Target</span><span class="p">,</span> <span class="n">InstructionProperties</span>
+<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">Measure</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span>
+<span class="kn">from</span> <span class="nn">qiskit.pulse.transforms.canonicalization</span> <span class="kn">import</span> <span class="n">block_to_schedule</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.options</span> <span class="kn">import</span> <span class="n">Options</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.backend</span> <span class="kn">import</span> <span class="n">BackendV1</span><span class="p">,</span> <span class="n">BackendV2</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.models.pulsedefaults</span> <span class="kn">import</span> <span class="n">PulseDefaults</span>
+<span class="kn">from</span> <span class="nn">qiskit.providers.models.backendconfiguration</span> <span class="kn">import</span> <span class="n">PulseBackendConfiguration</span>
+<span class="kn">from</span> <span class="nn">qiskit.result</span> <span class="kn">import</span> <span class="n">Result</span>
+<span class="kn">from</span> <span class="nn">qiskit.result.models</span> <span class="kn">import</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">ExperimentResultData</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">schedule</span> <span class="k">as</span> <span class="n">build_schedule</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Statevector</span><span class="p">,</span> <span class="n">DensityMatrix</span>
+
+<span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">RotatingFrame</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.solvers.solver_classes</span> <span class="kn">import</span> <span class="n">Solver</span>
+
+<span class="kn">from</span> <span class="nn">.dynamics_job</span> <span class="kn">import</span> <span class="n">DynamicsJob</span>
+<span class="kn">from</span> <span class="nn">.backend_utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_get_dressed_state_decomposition</span><span class="p">,</span>
+    <span class="n">_get_lab_frame_static_hamiltonian</span><span class="p">,</span>
+    <span class="n">_get_memory_slot_probabilities</span><span class="p">,</span>
+    <span class="n">_sample_probability_dict</span><span class="p">,</span>
+    <span class="n">_get_counts_from_samples</span><span class="p">,</span>
+    <span class="n">_get_iq_data</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.backend_string_parser</span> <span class="kn">import</span> <span class="n">parse_backend_hamiltonian_dict</span>
+
+
+<div class="viewcode-block" id="DynamicsBackend"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend">[docs]</a><span class="k">class</span> <span class="nc">DynamicsBackend</span><span class="p">(</span><span class="n">BackendV2</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Pulse-level simulator backend.</span>
+
+<span class="sd">    This class provides a :class:`~qiskit.providers.backend.BackendV2` interface wrapper around a</span>
+<span class="sd">    :class:`.Solver` instance setup to simulate pulse schedules. The backend can be configured to</span>
+<span class="sd">    take advantage of standard transpilation infrastructure to describe pulse-level simulations in</span>
+<span class="sd">    terms of :class:`~qiskit.circuit.QuantumCircuit`\s. Results are returned as</span>
+<span class="sd">    :class:`~qiskit.result.Result` instances.</span>
+
+<span class="sd">    A minimal :class:`.DynamicsBackend` requires specifying only a :class:`.Solver` instance and a</span>
+<span class="sd">    list of subsystem dimensions, indicating the subsystem decomposition of the model in</span>
+<span class="sd">    :class:`.Solver`. For example, the following code builds a :class:`.DynamicsBackend` around a</span>
+<span class="sd">    :class:`.Solver` and indicates that the system specified by the :class:`.Solver` decomposes as</span>
+<span class="sd">    two ``3`` dimensional subsystems.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        backend = DynamicsBackend(</span>
+<span class="sd">            solver=solver, subsystem_dims=[3, 3]</span>
+<span class="sd">        )</span>
+
+<span class="sd">    Without further configuration, the above ``backend`` can be used to simulate either</span>
+<span class="sd">    :class:`~qiskit.pulse.Schedule` or :class:`~qiskit.pulse.ScheduleBlock` instances.</span>
+
+<span class="sd">    Pulse-level simulations defined in terms of :class:`~qiskit.circuit.QuantumCircuit` instances</span>
+<span class="sd">    can also be performed if each gate in the circuit has a corresponding pulse-level definition,</span>
+<span class="sd">    either as an attached calibration, or as an instruction contained in ``backend.target``.</span>
+
+<span class="sd">    Additionally, a :class:`.DynamicsBackend` can be instantiated from an existing backend using the</span>
+<span class="sd">    :meth:`.DynamicsBackend.from_backend` method, utilizing the additional ``subsystem_list``</span>
+<span class="sd">    argument to specify which qubits to include in the model:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        backend = DynamicsBackend.from_backend(backend, subsystem_list=[0, 1])</span>
+
+
+<span class="sd">    **Supported options**</span>
+
+<span class="sd">    The behaviour of the backend can be configured via the following options. These can either be</span>
+<span class="sd">    passed as optional keyword arguments at construction, set with the</span>
+<span class="sd">    :meth:`.DynamicsBackend.set_options` method after construction, or passed as runtime arguments</span>
+<span class="sd">    to :meth:`.DynamicsBackend.run`.</span>
+
+<span class="sd">    * ``shots``: Number of shots per experiment. Defaults to ``1024``.</span>
+<span class="sd">    * ``solver``: The Qiskit Dynamics :class:`.Solver` instance used for simulation.</span>
+<span class="sd">    * ``solver_options``: Dictionary containing optional kwargs for passing to :meth:`Solver.solve`,</span>
+<span class="sd">      indicating solver methods and options. Defaults to the empty dictionary ``{}``.</span>
+<span class="sd">    * ``subsystem_dims``: Dimensions of subsystems making up the system in ``solver``. Defaults to</span>
+<span class="sd">      ``[solver.model.dim]``.</span>
+<span class="sd">    * ``meas_map``: Measurement map. Defaults to ``[[idx] for idx in range(len(subsystem_dims))]``.</span>
+<span class="sd">    * ``control_channel_map``: A dictionary mapping control channel labels to indices, to be used</span>
+<span class="sd">      for control channel index lookup in the :meth:`DynamicsBackend.control_channel` method.</span>
+<span class="sd">    * ``initial_state``: Initial state for simulation, either the string ``&quot;ground_state&quot;``,</span>
+<span class="sd">      indicating that the ground state for the system Hamiltonian should be used, or an arbitrary</span>
+<span class="sd">      ``Statevector`` or ``DensityMatrix``. Defaults to ``&quot;ground_state&quot;``.</span>
+<span class="sd">    * ``normalize_states``: Boolean indicating whether to normalize states before computing outcome</span>
+<span class="sd">      probabilities, and normalize probablities before sampling. Defaults to ``True``. Setting to</span>
+<span class="sd">      ``False`` can result in errors if the solution tolerance results in probabilities with</span>
+<span class="sd">      significant numerical deviation from a proper probability distribution.</span>
+<span class="sd">    * ``meas_level``: Form of measurement output. Supported values are ``1`` and ``2``. ``1``</span>
+<span class="sd">      returns IQ points and ``2`` returns counts. Defaults to ``meas_level == 2``.</span>
+<span class="sd">    * ``meas_return``: Level of measurement data to return. For ``meas_level = 1`` ``&quot;single&quot;``</span>
+<span class="sd">      returns output from every shot. ``&quot;avg&quot;`` returns average over shots of measurement output.</span>
+<span class="sd">      Defaults to ``&quot;avg&quot;``.</span>
+<span class="sd">    * ``iq_centers``: Centers for IQ distribution when using ``meas_level==1`` results. Must have</span>
+<span class="sd">      type ``List[List[List[float, float]]]`` formatted as ``iq_centers[subsystem][level] = [I,</span>
+<span class="sd">      Q]``. If ``None``, the ``iq_centers`` are dynamically generated to be equally spaced points on</span>
+<span class="sd">      a unit circle with ground-state at ``(1, 0)``. The default is ``None``.</span>
+<span class="sd">    * ``iq_width``: Standard deviation of IQ distribution around the centers for ``meas_level==1``.</span>
+<span class="sd">      Must be a positive float. Defaults to ``0.2``.</span>
+<span class="sd">    * ``max_outcome_level``: For ``meas_level == 2``, the maximum outcome for each subsystem. Values</span>
+<span class="sd">      will be rounded down to be no larger than ``max_outcome_level``. Must be a positive integer or</span>
+<span class="sd">      ``None``. If ``None``, no rounding occurs. Defaults to ``1``.</span>
+<span class="sd">    * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for</span>
+<span class="sd">      every experimental shot. Defaults to ``True``.</span>
+<span class="sd">    * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.</span>
+<span class="sd">    * ``experiment_result_function``: Function for computing the ``ExperimentResult`` for each</span>
+<span class="sd">      simulated experiment. This option defaults to :func:`default_experiment_result_function`, and</span>
+<span class="sd">      any other function set to this option must have the same signature. Note that the default</span>
+<span class="sd">      utilizes various other options that control results computation, and hence changing it will</span>
+<span class="sd">      impact the meaning of other options.</span>
+<span class="sd">    * ``configuration``: A :class:`PulseBackendConfiguration` instance or ``None``. This option</span>
+<span class="sd">      defaults to ``None``, and is not required for the functioning of this class, but is provided</span>
+<span class="sd">      for compatibility. A set configuration will be returned by</span>
+<span class="sd">      :meth:`DynamicsBackend.configuration()`.</span>
+<span class="sd">    * ``defaults``: A :class:`PulseDefaults` instance or ``None``. This option defaults to ``None``,</span>
+<span class="sd">      and is not required for the functioning of this class, but is provided for compatibility. A</span>
+<span class="sd">      set defaults will be returned by :meth:`DynamicsBackend.defaults()`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">solver</span><span class="p">:</span> <span class="n">Solver</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Target</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate with a :class:`.Solver` instance and additional options.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            solver: Solver instance configured for pulse simulation.</span>
+<span class="sd">            target: Target object.</span>
+<span class="sd">            options: Additional configuration options for the simulator.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If any instantiation arguments fail validation checks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;DynamicsBackend&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Pulse enabled simulator backend.&quot;</span><span class="p">,</span>
+            <span class="n">backend_version</span><span class="o">=</span><span class="s2">&quot;0.1&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Dressed states of solver, will be calculated when solver option is set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dressed_evals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dressed_states</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dressed_states_adjoint</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># add subsystem_dims to options so set_options validation works</span>
+        <span class="k">if</span> <span class="s2">&quot;subsystem_dims&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;subsystem_dims&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dim</span><span class="p">]</span>
+
+        <span class="c1"># Set simulator options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">meas_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">meas_map</span> <span class="o">=</span> <span class="p">[[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">))]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="n">meas_map</span><span class="o">=</span><span class="n">meas_map</span><span class="p">)</span>
+
+        <span class="c1"># self._target = target or Target() doesn&#39;t work as bool(target) can be False</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">Target</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+        <span class="c1"># add default simulator measure instructions</span>
+        <span class="n">measure_properties</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">instruction_schedule_map</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">instruction_schedule_map</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">instruction_schedule_map</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">instruction</span><span class="o">=</span><span class="s2">&quot;measure&quot;</span><span class="p">,</span> <span class="n">qubits</span><span class="o">=</span><span class="n">qubit</span><span class="p">):</span>
+                <span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">meas_sched</span><span class="p">:</span>
+                    <span class="n">pulse</span><span class="o">.</span><span class="n">acquire</span><span class="p">(</span>
+                        <span class="n">duration</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qubit_or_channel</span><span class="o">=</span><span class="n">qubit</span><span class="p">,</span> <span class="n">register</span><span class="o">=</span><span class="n">pulse</span><span class="o">.</span><span class="n">MemorySlot</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+                <span class="n">measure_properties</span><span class="p">[(</span><span class="n">qubit</span><span class="p">,)]</span> <span class="o">=</span> <span class="n">InstructionProperties</span><span class="p">(</span><span class="n">calibration</span><span class="o">=</span><span class="n">meas_sched</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">measure_properties</span><span class="p">):</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">add_instruction</span><span class="p">(</span><span class="n">Measure</span><span class="p">(),</span> <span class="n">measure_properties</span><span class="p">)</span>
+
+        <span class="n">target</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">_dt</span>
+        <span class="n">target</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target</span> <span class="o">=</span> <span class="n">target</span>
+
+    <span class="k">def</span> <span class="nf">_default_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Options</span><span class="p">(</span>
+            <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+            <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">solver_options</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">subsystem_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">meas_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">control_channel_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">normalize_states</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">initial_state</span><span class="o">=</span><span class="s2">&quot;ground_state&quot;</span><span class="p">,</span>
+            <span class="n">meas_level</span><span class="o">=</span><span class="n">MeasLevel</span><span class="o">.</span><span class="n">CLASSIFIED</span><span class="p">,</span>
+            <span class="n">meas_return</span><span class="o">=</span><span class="n">MeasReturnType</span><span class="o">.</span><span class="n">AVERAGE</span><span class="p">,</span>
+            <span class="n">iq_centers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">iq_width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="n">max_outcome_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">seed_simulator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">experiment_result_function</span><span class="o">=</span><span class="n">default_experiment_result_function</span><span class="p">,</span>
+            <span class="n">configuration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">defaults</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="DynamicsBackend.set_options"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.set_options.html#qiskit_dynamics.backend.DynamicsBackend.set_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">fields</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set options for DynamicsBackend.&quot;&quot;&quot;</span>
+
+        <span class="n">validate_subsystem_dims</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">validate_iq_centers</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid option </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># validation checks</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;initial_state&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="s2">&quot;ground_state&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">Statevector</span><span class="p">,</span> <span class="n">DensityMatrix</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                        <span class="s1">&#39;initial_state must be either &quot;ground_state&quot;, or a Statevector or &#39;</span>
+                        <span class="s2">&quot;DensityMatrix instance.&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;meas_level&quot;</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Only meas_level 1 and 2 are supported by DynamicsBackend.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;meas_return&quot;</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;single&quot;</span><span class="p">,</span> <span class="s2">&quot;avg&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;meas_return must be either &#39;single&#39; or &#39;avg&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;max_outcome_level&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;max_outcome_level must be a positive integer or None.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;experiment_result_function&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;experiment_result_function must be callable.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;configuration&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">PulseBackendConfiguration</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                    <span class="s2">&quot;configuration option must be an instance of PulseBackendConfiguration.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;defaults&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">PulseDefaults</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;defaults option must be an instance of PulseDefaults.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;iq_width&quot;</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;iq_width must be a positive float.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;iq_centers&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span>
+                    <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">List</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">level</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">sub_system</span> <span class="ow">in</span> <span class="n">value</span>
+                    <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">sub_system</span>
+                <span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                        <span class="s2">&quot;The iq_centers option must be either None or of type &quot;</span>
+                        <span class="s2">&quot;List[List[List[int, int]]], where the innermost list is the (I, Q) pair.&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">validate_iq_centers</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;subsystem_dims&quot;</span><span class="p">:</span>
+                <span class="n">validate_subsystem_dims</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">validate_iq_centers</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;solver&quot;</span><span class="p">:</span>
+                <span class="n">validate_subsystem_dims</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;control_channel_map&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                            <span class="s2">&quot;The control_channel_map option must either be None or a dictionary.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;The control_channel_map values must be of type int.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># special setting routines</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;solver&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_solver</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">update_options</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+
+        <span class="c1"># perform additional consistency validations if certain options were modified</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">validate_subsystem_dims</span>
+            <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dim</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s2">&quot;DynamicsBackend options subsystem_dims and solver.model.dim are inconsistent.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">validate_iq_centers</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">iq_centers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">[</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">sub_system</span><span class="p">)</span> <span class="k">for</span> <span class="n">sub_system</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">iq_centers</span>
+            <span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;iq_centers option is not consistent with subsystem_dims. Must be None</span>
+<span class="sd">                or of type List[List[List[int, int]]], where the outermost list is of length equal</span>
+<span class="sd">                to the number of subsystems, and each inner list of length equal to the</span>
+<span class="sd">                corresponding subsystem dimension.&quot;&quot;&quot;</span>
+                <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure simulator based on provided solver.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">_dt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s2">&quot;Solver passed to DynamicsBackend is not configured for Pulse simulation.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="o">.</span><span class="n">update_options</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">)</span>
+        <span class="c1"># Get dressed states</span>
+        <span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="n">_get_lab_frame_static_hamiltonian</span><span class="p">(</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">dressed_evals</span><span class="p">,</span> <span class="n">dressed_states</span> <span class="o">=</span> <span class="n">_get_dressed_state_decomposition</span><span class="p">(</span><span class="n">static_hamiltonian</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dressed_evals</span> <span class="o">=</span> <span class="n">dressed_evals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dressed_states</span> <span class="o">=</span> <span class="n">dressed_states</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dressed_states_adjoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dressed_states</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+    <span class="c1"># pylint: disable=arguments-differ</span>
+<div class="viewcode-block" id="DynamicsBackend.run"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.run.html#qiskit_dynamics.backend.DynamicsBackend.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">run_input</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span><span class="p">]],</span>
+        <span class="n">validate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DynamicsJob</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run a list of simulations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            run_input: A list of simulations, specified by ``QuantumCircuit``, ``Schedule``, or</span>
+<span class="sd">                ``ScheduleBlock`` instances.</span>
+<span class="sd">            validate: Whether or not to run validation checks on the input.</span>
+<span class="sd">            **options: Additional run options to temporarily override current backend options.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DynamicsJob object containing results and status.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If invalid options are set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+            <span class="n">_validate_run_input</span><span class="p">(</span><span class="n">run_input</span><span class="p">)</span>
+
+        <span class="c1"># Configure run options for simulation</span>
+        <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">backend</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="n">schedules</span><span class="p">,</span> <span class="n">num_memory_slots_list</span> <span class="o">=</span> <span class="n">_to_schedule_list</span><span class="p">(</span><span class="n">run_input</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span>
+
+        <span class="c1"># get the acquires sample times and subsystem measurement information</span>
+        <span class="p">(</span>
+            <span class="n">t_span</span><span class="p">,</span>
+            <span class="n">measurement_subsystems_list</span><span class="p">,</span>
+            <span class="n">memory_slot_indices_list</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">_get_acquire_instruction_timings</span><span class="p">(</span>
+            <span class="n">schedules</span><span class="p">,</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">,</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">_dt</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Build and submit job</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+        <span class="n">dynamics_job</span> <span class="o">=</span> <span class="n">DynamicsJob</span><span class="p">(</span>
+            <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+            <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span>
+            <span class="n">fn</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">_run</span><span class="p">,</span>
+            <span class="n">fn_kwargs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;t_span&quot;</span><span class="p">:</span> <span class="n">t_span</span><span class="p">,</span>
+                <span class="s2">&quot;schedules&quot;</span><span class="p">:</span> <span class="n">schedules</span><span class="p">,</span>
+                <span class="s2">&quot;measurement_subsystems_list&quot;</span><span class="p">:</span> <span class="n">measurement_subsystems_list</span><span class="p">,</span>
+                <span class="s2">&quot;memory_slot_indices_list&quot;</span><span class="p">:</span> <span class="n">memory_slot_indices_list</span><span class="p">,</span>
+                <span class="s2">&quot;num_memory_slots_list&quot;</span><span class="p">:</span> <span class="n">num_memory_slots_list</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">dynamics_job</span><span class="o">.</span><span class="n">submit</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">dynamics_job</span></div>
+
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">job_id</span><span class="p">,</span>
+        <span class="n">t_span</span><span class="p">,</span>
+        <span class="n">schedules</span><span class="p">,</span>
+        <span class="n">measurement_subsystems_list</span><span class="p">,</span>
+        <span class="n">memory_slot_indices_list</span><span class="p">,</span>
+        <span class="n">num_memory_slots_list</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Simulate a list of schedules.&quot;&quot;&quot;</span>
+
+        <span class="c1"># simulate all schedules</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">initial_state</span>
+        <span class="k">if</span> <span class="n">y0</span> <span class="o">==</span> <span class="s2">&quot;ground_state&quot;</span><span class="p">:</span>
+            <span class="n">y0</span> <span class="o">=</span> <span class="n">Statevector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dressed_states</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">solver_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+            <span class="n">t_span</span><span class="o">=</span><span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span> <span class="n">signals</span><span class="o">=</span><span class="n">schedules</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">solver_options</span>
+        <span class="p">)</span>
+
+        <span class="c1"># compute results for each experiment</span>
+        <span class="n">experiment_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">schedule</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">schedule</span> <span class="ow">in</span> <span class="n">schedules</span><span class="p">]</span>
+        <span class="n">experiment_metadatas</span> <span class="o">=</span> <span class="p">[</span><span class="n">schedule</span><span class="o">.</span><span class="n">metadata</span> <span class="k">for</span> <span class="n">schedule</span> <span class="ow">in</span> <span class="n">schedules</span><span class="p">]</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">seed_simulator</span><span class="p">)</span>
+        <span class="n">experiment_results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">experiment_name</span><span class="p">,</span>
+            <span class="n">solver_result</span><span class="p">,</span>
+            <span class="n">measurement_subsystems</span><span class="p">,</span>
+            <span class="n">memory_slot_indices</span><span class="p">,</span>
+            <span class="n">num_memory_slots</span><span class="p">,</span>
+            <span class="n">experiment_metadata</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">experiment_names</span><span class="p">,</span>
+            <span class="n">solver_results</span><span class="p">,</span>
+            <span class="n">measurement_subsystems_list</span><span class="p">,</span>
+            <span class="n">memory_slot_indices_list</span><span class="p">,</span>
+            <span class="n">num_memory_slots_list</span><span class="p">,</span>
+            <span class="n">experiment_metadatas</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">experiment_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">experiment_result_function</span><span class="p">(</span>
+                    <span class="n">experiment_name</span><span class="p">,</span>
+                    <span class="n">solver_result</span><span class="p">,</span>
+                    <span class="n">measurement_subsystems</span><span class="p">,</span>
+                    <span class="n">memory_slot_indices</span><span class="p">,</span>
+                    <span class="n">num_memory_slots</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="n">seed</span><span class="o">=</span><span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">9223372036854775807</span><span class="p">),</span>
+                    <span class="n">metadata</span><span class="o">=</span><span class="n">experiment_metadata</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Construct full result object</span>
+        <span class="k">return</span> <span class="n">Result</span><span class="p">(</span>
+            <span class="n">backend_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">backend_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend_version</span><span class="p">,</span>
+            <span class="n">qobj_id</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span>
+            <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">results</span><span class="o">=</span><span class="n">experiment_results</span><span class="p">,</span>
+            <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">max_circuits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Target</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">meas_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">meas_map</span>
+
+    <span class="k">def</span> <span class="nf">_get_qubit_channel</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ChannelClass</span><span class="p">:</span> <span class="n">pulse</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">Channel</span><span class="p">,</span> <span class="n">method_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a channel instance for a given qubit.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qubit</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ChannelClass</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">method_name</span><span class="si">}</span><span class="s2"> requested for qubit </span><span class="si">{</span><span class="n">qubit</span><span class="si">}</span><span class="s2">, which is out of bounds.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DynamicsBackend.drive_channel"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.drive_channel.html#qiskit_dynamics.backend.DynamicsBackend.drive_channel">[docs]</a>    <span class="k">def</span> <span class="nf">drive_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the drive channel for a given qubit.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qubit_channel</span><span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">,</span> <span class="s2">&quot;drive_channel&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynamicsBackend.measure_channel"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.measure_channel.html#qiskit_dynamics.backend.DynamicsBackend.measure_channel">[docs]</a>    <span class="k">def</span> <span class="nf">measure_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">MeasureChannel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the measure channel for a given qubit.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qubit_channel</span><span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">MeasureChannel</span><span class="p">,</span> <span class="s2">&quot;measure_channel&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynamicsBackend.acquire_channel"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.acquire_channel.html#qiskit_dynamics.backend.DynamicsBackend.acquire_channel">[docs]</a>    <span class="k">def</span> <span class="nf">acquire_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">AcquireChannel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the measure channel for a given qubit.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qubit_channel</span><span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">AcquireChannel</span><span class="p">,</span> <span class="s2">&quot;acquire_channel&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynamicsBackend.control_channel"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.control_channel.html#qiskit_dynamics.backend.DynamicsBackend.control_channel">[docs]</a>    <span class="k">def</span> <span class="nf">control_channel</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">pulse</span><span class="o">.</span><span class="n">ControlChannel</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the control channel with a given label specified by qubits.</span>
+
+<span class="sd">        This method requires the ``control_channel_map`` option is set, and otherwise will raise</span>
+<span class="sd">        a ``NotImplementedError``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qubits: The label for the control channel, or a list of labels.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            A list containing the control channels specified by qubits.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If the control_channel_map option is not set for this backend.</span>
+<span class="sd">            QiskitError: If a requested channel is not in the control_channel_map.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">control_channel_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qubits</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">qubits</span><span class="p">]</span>
+
+        <span class="n">control_channels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">control_channel_map</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Key </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2"> not in control_channel_map.&quot;</span><span class="p">)</span>
+            <span class="n">control_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pulse</span><span class="o">.</span><span class="n">ControlChannel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">control_channel_map</span><span class="p">[</span><span class="n">x</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">control_channels</span></div>
+
+<div class="viewcode-block" id="DynamicsBackend.configuration"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.configuration.html#qiskit_dynamics.backend.DynamicsBackend.configuration">[docs]</a>    <span class="k">def</span> <span class="nf">configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PulseBackendConfiguration</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the backend configuration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">configuration</span></div>
+
+<div class="viewcode-block" id="DynamicsBackend.defaults"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.defaults.html#qiskit_dynamics.backend.DynamicsBackend.defaults">[docs]</a>    <span class="k">def</span> <span class="nf">defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PulseDefaults</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the backend defaults.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">defaults</span></div>
+
+<div class="viewcode-block" id="DynamicsBackend.from_backend"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.from_backend.html#qiskit_dynamics.backend.DynamicsBackend.from_backend">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_backend</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="n">BackendV1</span><span class="p">,</span>
+        <span class="n">subsystem_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rotating_frame</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">RotatingFrame</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">evaluation_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dense&quot;</span><span class="p">,</span>
+        <span class="n">rwa_cutoff_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DynamicsBackend&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a DynamicsBackend instance from an existing Backend instance.</span>
+
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            Due to inevitable model inaccuracies, gates calibrated on a real backend will not have</span>
+<span class="sd">            the same performance on the :class:`.DynamicsBackend` instance returned by this method.</span>
+<span class="sd">            As such, gates and calibrations are not be copied into the constructed</span>
+<span class="sd">            :class:`.DynamicsBackend`.</span>
+
+<span class="sd">        The ``backend`` must contain sufficient information in the ``target``, ``configuration``,</span>
+<span class="sd">        and/or ``defaults`` attributes to be able to run simulations. The following table indicates</span>
+<span class="sd">        which parameters are required, along with their primary and secondary sources:</span>
+
+<span class="sd">        .. list-table:: Backend parameter locations</span>
+<span class="sd">            :widths: 10 25 25</span>
+<span class="sd">            :header-rows: 1</span>
+
+<span class="sd">            * - Parameter</span>
+<span class="sd">              - Primary source</span>
+<span class="sd">              - Secondary source</span>
+<span class="sd">            * - ``hamiltonian`` dictionary.</span>
+<span class="sd">              - ``configuration.hamiltonian``</span>
+<span class="sd">              - N/A</span>
+<span class="sd">            * - Control channel frequency specification.</span>
+<span class="sd">              - ``configuration.u_channel_lo``</span>
+<span class="sd">              - N/A</span>
+<span class="sd">            * - Number of qubits in the backend model.</span>
+<span class="sd">              - ``target.num_qubits``</span>
+<span class="sd">              - ``configuration.n_qubits``</span>
+<span class="sd">            * - Pulse schedule sample size ``dt``.</span>
+<span class="sd">              - ``target.dt``</span>
+<span class="sd">              - ``configuration.dt``</span>
+<span class="sd">            * - Drive channel frequencies.</span>
+<span class="sd">              - ``target.qubit_properties``</span>
+<span class="sd">              - ``defaults.qubit_freq_est``</span>
+<span class="sd">            * - Measurement channel frequencies, if measurement channels explicitly appear in the</span>
+<span class="sd">                model.</span>
+<span class="sd">              - ``defaults.meas_freq_est``</span>
+<span class="sd">              - N/A</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The ``target``, ``configuration``, and ``defaults`` attributes of the original backend</span>
+<span class="sd">            are not copied into the constructed :class:`DynamicsBackend` instance, only the required</span>
+<span class="sd">            data stored within these attributes will be extracted. If necessary, these attributes</span>
+<span class="sd">            can be set and configured by the user.</span>
+
+<span class="sd">        The optional argument ``subsystem_list`` specifies which subset of qubits to model in the</span>
+<span class="sd">        constructed :class:`DynamicsBackend`. All other qubits are dropped from the model.</span>
+
+<span class="sd">        Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``,</span>
+<span class="sd">        ``evaluation_mode``, and ``rwa_cutoff_freq`` options. In contrast to :class:`.Solver`</span>
+<span class="sd">        initialization, ``rotating_frame`` defaults to the string ``&quot;auto&quot;``, which allows this</span>
+<span class="sd">        method to choose the rotating frame based on ``evaluation_mode``:</span>
+
+<span class="sd">        * If a dense evaluation mode is chosen, the rotating frame will be set to the</span>
+<span class="sd">          ``static_hamiltonian`` indicated by the Hamiltonian in ``backend.configuration()``.</span>
+<span class="sd">        * If a sparse evaluation mode is chosen, the rotating frame will be set to the diagonal of</span>
+<span class="sd">          ``static_hamiltonian``.</span>
+
+<span class="sd">        Otherwise the ``rotating_frame``, ``evaluation_mode``, and ``rwa_cutoff_freq`` are passed</span>
+<span class="sd">        directly to the :class:`.Solver` initialization.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.</span>
+<span class="sd">                Note that while the type hint indicates that `backend` should be a</span>
+<span class="sd">                :class:`~qiskit.providers.backend.BackendV1` instance, this method also works for</span>
+<span class="sd">                :class:`~qiskit.providers.backend.BackendV2` instances that have been set up with</span>
+<span class="sd">                sufficiently populated ``configuration`` and ``defaults`` for backwards</span>
+<span class="sd">                compatibility.</span>
+<span class="sd">            subsystem_list: The list of qubits in the backend to include in the model.</span>
+<span class="sd">            rotating_frame: Rotating frame argument for the internal :class:`.Solver`. Defaults to</span>
+<span class="sd">                ``&quot;auto&quot;``, allowing this method to pick a rotating frame.</span>
+<span class="sd">            evaluation_mode: Evaluation mode argument for the internal :class:`.Solver`.</span>
+<span class="sd">            rwa_cutoff_freq: Rotating wave approximation argument for the internal :class:`.Solver`.</span>
+<span class="sd">            **options: Additional options to be applied in construction of the</span>
+<span class="sd">                :class:`.DynamicsBackend`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DynamicsBackend</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If any required parameters are missing from the passed backend.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># get available target, config, and defaults objects</span>
+        <span class="n">backend_target</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s2">&quot;configuration&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s2">&quot;DynamicsBackend.from_backend requires that the backend argument has a &quot;</span>
+                <span class="s2">&quot;configuration method.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">backend_config</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span>
+
+        <span class="n">backend_defaults</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s2">&quot;defaults&quot;</span><span class="p">):</span>
+            <span class="n">backend_defaults</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">defaults</span><span class="p">()</span>
+
+        <span class="c1"># get and parse Hamiltonian string dictionary</span>
+        <span class="k">if</span> <span class="n">backend_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">backend_num_qubits</span> <span class="o">=</span> <span class="n">backend_target</span><span class="o">.</span><span class="n">num_qubits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">backend_num_qubits</span> <span class="o">=</span> <span class="n">backend_config</span><span class="o">.</span><span class="n">n_qubits</span>
+
+        <span class="k">if</span> <span class="n">subsystem_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">subsystem_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">subsystem_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">subsystem_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">backend_num_qubits</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;subsystem_list contained </span><span class="si">{</span><span class="n">subsystem_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, which is out of bounds for &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;backend with </span><span class="si">{</span><span class="n">backend_num_qubits</span><span class="si">}</span><span class="s2"> qubits.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">subsystem_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">backend_num_qubits</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">backend_config</span><span class="o">.</span><span class="n">hamiltonian</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s2">&quot;DynamicsBackend.from_backend requires that backend.configuration() has a &quot;</span>
+                <span class="s2">&quot;hamiltonian.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="p">(</span>
+            <span class="n">static_hamiltonian</span><span class="p">,</span>
+            <span class="n">hamiltonian_operators</span><span class="p">,</span>
+            <span class="n">hamiltonian_channels</span><span class="p">,</span>
+            <span class="n">subsystem_dims_dict</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">parse_backend_hamiltonian_dict</span><span class="p">(</span><span class="n">backend_config</span><span class="o">.</span><span class="n">hamiltonian</span><span class="p">,</span> <span class="n">subsystem_list</span><span class="p">)</span>
+        <span class="n">subsystem_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">subsystem_dims_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">backend_num_qubits</span><span class="p">)]</span>
+
+        <span class="c1"># construct model frequencies dictionary from backend</span>
+        <span class="n">channel_freqs</span> <span class="o">=</span> <span class="n">_get_backend_channel_freqs</span><span class="p">(</span>
+            <span class="n">backend_target</span><span class="o">=</span><span class="n">backend_target</span><span class="p">,</span>
+            <span class="n">backend_config</span><span class="o">=</span><span class="n">backend_config</span><span class="p">,</span>
+            <span class="n">backend_defaults</span><span class="o">=</span><span class="n">backend_defaults</span><span class="p">,</span>
+            <span class="n">channels</span><span class="o">=</span><span class="n">hamiltonian_channels</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Add control_channel_map from backend (only if not specified before by user)</span>
+        <span class="k">if</span> <span class="s2">&quot;control_channel_map&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s2">&quot;control_channels&quot;</span><span class="p">):</span>
+                <span class="n">control_channel_map_backend</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">qubits</span><span class="p">:</span> <span class="n">backend</span><span class="o">.</span><span class="n">control_channels</span><span class="p">[</span><span class="n">qubits</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+                    <span class="k">for</span> <span class="n">qubits</span> <span class="ow">in</span> <span class="n">backend</span><span class="o">.</span><span class="n">control_channels</span>
+                <span class="p">}</span>
+
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">(),</span> <span class="s2">&quot;control_channels&quot;</span><span class="p">):</span>
+                <span class="n">control_channel_map_backend</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">qubits</span><span class="p">:</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">control_channels</span><span class="p">[</span><span class="n">qubits</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+                    <span class="k">for</span> <span class="n">qubits</span> <span class="ow">in</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">control_channels</span>
+                <span class="p">}</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">control_channel_map_backend</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="c1"># Reduce control_channel_map based on which channels are in the model</span>
+            <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">control_channel_map_backend</span><span class="p">):</span>
+                <span class="n">control_channel_map</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">control_channel_map_backend</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;u</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">hamiltonian_channels</span><span class="p">:</span>
+                        <span class="n">control_channel_map</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
+                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;control_channel_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">control_channel_map</span>
+
+        <span class="c1"># build the solver</span>
+        <span class="k">if</span> <span class="n">rotating_frame</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;dense&quot;</span> <span class="ow">in</span> <span class="n">evaluation_mode</span><span class="p">:</span>
+                <span class="n">rotating_frame</span> <span class="o">=</span> <span class="n">static_hamiltonian</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rotating_frame</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">static_hamiltonian</span><span class="p">)</span>
+
+        <span class="c1"># get time step size</span>
+        <span class="k">if</span> <span class="n">backend_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">backend_target</span><span class="o">.</span><span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">backend_target</span><span class="o">.</span><span class="n">dt</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># config is guaranteed to have a dt</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">backend_config</span><span class="o">.</span><span class="n">dt</span>
+
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
+            <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+            <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">hamiltonian_operators</span><span class="p">,</span>
+            <span class="n">hamiltonian_channels</span><span class="o">=</span><span class="n">hamiltonian_channels</span><span class="p">,</span>
+            <span class="n">channel_carrier_freqs</span><span class="o">=</span><span class="n">channel_freqs</span><span class="p">,</span>
+            <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">rotating_frame</span><span class="o">=</span><span class="n">rotating_frame</span><span class="p">,</span>
+            <span class="n">evaluation_mode</span><span class="o">=</span><span class="n">evaluation_mode</span><span class="p">,</span>
+            <span class="n">rwa_cutoff_freq</span><span class="o">=</span><span class="n">rwa_cutoff_freq</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">Target</span><span class="p">(</span><span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">),</span>
+            <span class="n">subsystem_dims</span><span class="o">=</span><span class="n">subsystem_dims</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="default_experiment_result_function"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.default_experiment_result_function.html#qiskit_dynamics.backend.default_experiment_result_function">[docs]</a><span class="k">def</span> <span class="nf">default_experiment_result_function</span><span class="p">(</span>
+    <span class="n">experiment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">solver_result</span><span class="p">:</span> <span class="n">OdeResult</span><span class="p">,</span>
+    <span class="n">measurement_subsystems</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">memory_slot_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">num_memory_slots</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="n">DynamicsBackend</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Default routine for generating ExperimentResult object.</span>
+
+<span class="sd">    To generate the results for a given experiment, this method takes the following steps:</span>
+
+<span class="sd">    * The final state is transformed out of the rotating frame and into the lab frame using</span>
+<span class="sd">      ``backend.options.solver``.</span>
+<span class="sd">    * If ``backend.options.normalize_states==True``, the final state is normalized.</span>
+<span class="sd">    * Measurement results are computed, in the dressed basis, based on both the measurement-related</span>
+<span class="sd">      options in ``backend.options`` and the measurement specification extracted from the specific</span>
+<span class="sd">      experiment.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        experiment_name: Name of experiment.</span>
+<span class="sd">        solver_result: Result object from :class:`Solver.solve`.</span>
+<span class="sd">        measurement_subsystems: Labels of subsystems in the model being measured.</span>
+<span class="sd">        memory_slot_indices: Indices of memory slots to store the results in for each subsystem.</span>
+<span class="sd">        num_memory_slots: Total number of memory slots in the returned output. If ``None``,</span>
+<span class="sd">            ``max(memory_slot_indices)`` will be used.</span>
+<span class="sd">        backend: The backend instance that ran the simulation. Various options and properties</span>
+<span class="sd">            are utilized.</span>
+<span class="sd">        seed: Seed for any random number generation involved (e.g. when computing outcome samples).</span>
+<span class="sd">        metadata: Metadata to add to the header of the</span>
+<span class="sd">            :class:`~qiskit.result.models.ExperimentResult` object.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        :class:`~qiskit.result.models.ExperimentResult` object containing results.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: If a specified option is unsupported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">yf</span> <span class="o">=</span> <span class="n">solver_result</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">tf</span> <span class="o">=</span> <span class="n">solver_result</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Take state out of frame, put in dressed basis, and normalize</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">yf</span><span class="p">,</span> <span class="n">Statevector</span><span class="p">):</span>
+        <span class="n">yf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">state_out_of_frame</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">tf</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yf</span><span class="p">))</span>
+        <span class="n">yf</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">_dressed_states_adjoint</span> <span class="o">@</span> <span class="n">yf</span>
+        <span class="n">yf</span> <span class="o">=</span> <span class="n">Statevector</span><span class="p">(</span><span class="n">yf</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">normalize_states</span><span class="p">:</span>
+            <span class="n">yf</span> <span class="o">=</span> <span class="n">yf</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">yf</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">yf</span><span class="p">,</span> <span class="n">DensityMatrix</span><span class="p">):</span>
+        <span class="n">yf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">tf</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="n">yf</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">yf</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">_dressed_states_adjoint</span> <span class="o">@</span> <span class="n">yf</span> <span class="o">@</span> <span class="n">backend</span><span class="o">.</span><span class="n">_dressed_states</span>
+        <span class="n">yf</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="p">(</span><span class="n">yf</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">normalize_states</span><span class="p">:</span>
+            <span class="n">yf</span> <span class="o">=</span> <span class="n">yf</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">yf</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">meas_level</span> <span class="o">==</span> <span class="n">MeasLevel</span><span class="o">.</span><span class="n">CLASSIFIED</span><span class="p">:</span>
+        <span class="n">memory_slot_probabilities</span> <span class="o">=</span> <span class="n">_get_memory_slot_probabilities</span><span class="p">(</span>
+            <span class="n">probability_dict</span><span class="o">=</span><span class="n">yf</span><span class="o">.</span><span class="n">probabilities_dict</span><span class="p">(</span><span class="n">qargs</span><span class="o">=</span><span class="n">measurement_subsystems</span><span class="p">),</span>
+            <span class="n">memory_slot_indices</span><span class="o">=</span><span class="n">memory_slot_indices</span><span class="p">,</span>
+            <span class="n">num_memory_slots</span><span class="o">=</span><span class="n">num_memory_slots</span><span class="p">,</span>
+            <span class="n">max_outcome_value</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">max_outcome_level</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># sample</span>
+        <span class="n">memory_samples</span> <span class="o">=</span> <span class="n">_sample_probability_dict</span><span class="p">(</span>
+            <span class="n">memory_slot_probabilities</span><span class="p">,</span>
+            <span class="n">shots</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">shots</span><span class="p">,</span>
+            <span class="n">normalize_probabilities</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">normalize_states</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">_get_counts_from_samples</span><span class="p">(</span><span class="n">memory_samples</span><span class="p">)</span>
+
+        <span class="c1"># construct results object</span>
+        <span class="n">exp_data</span> <span class="o">=</span> <span class="n">ExperimentResultData</span><span class="p">(</span>
+            <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="n">memory_samples</span> <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">memory</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ExperimentResult</span><span class="p">(</span>
+            <span class="n">shots</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">shots</span><span class="p">,</span>
+            <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">exp_data</span><span class="p">,</span>
+            <span class="n">meas_level</span><span class="o">=</span><span class="n">MeasLevel</span><span class="o">.</span><span class="n">CLASSIFIED</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">header</span><span class="o">=</span><span class="n">QobjHeader</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">experiment_name</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">meas_level</span> <span class="o">==</span> <span class="n">MeasLevel</span><span class="o">.</span><span class="n">KERNELED</span><span class="p">:</span>
+        <span class="n">iq_centers</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">iq_centers</span>
+        <span class="k">if</span> <span class="n">iq_centers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Default iq_centers</span>
+            <span class="n">iq_centers</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sub_dim</span> <span class="ow">in</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">:</span>
+                <span class="n">theta</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">sub_dim</span>
+                <span class="n">iq_centers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">idx</span> <span class="o">*</span> <span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">idx</span> <span class="o">*</span> <span class="n">theta</span><span class="p">))</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sub_dim</span><span class="p">)]</span>
+                <span class="p">)</span>
+
+        <span class="c1"># generate IQ</span>
+        <span class="n">measurement_data</span> <span class="o">=</span> <span class="n">_get_iq_data</span><span class="p">(</span>
+            <span class="n">yf</span><span class="p">,</span>
+            <span class="n">measurement_subsystems</span><span class="o">=</span><span class="n">measurement_subsystems</span><span class="p">,</span>
+            <span class="n">iq_centers</span><span class="o">=</span><span class="n">iq_centers</span><span class="p">,</span>
+            <span class="n">iq_width</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">iq_width</span><span class="p">,</span>
+            <span class="n">shots</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">shots</span><span class="p">,</span>
+            <span class="n">memory_slot_indices</span><span class="o">=</span><span class="n">memory_slot_indices</span><span class="p">,</span>
+            <span class="n">num_memory_slots</span><span class="o">=</span><span class="n">num_memory_slots</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">meas_return</span> <span class="o">==</span> <span class="n">MeasReturnType</span><span class="o">.</span><span class="n">AVERAGE</span><span class="p">:</span>
+            <span class="n">measurement_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">measurement_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># construct results object</span>
+        <span class="n">exp_data</span> <span class="o">=</span> <span class="n">ExperimentResultData</span><span class="p">(</span><span class="n">memory</span><span class="o">=</span><span class="n">measurement_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ExperimentResult</span><span class="p">(</span>
+            <span class="n">shots</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">shots</span><span class="p">,</span>
+            <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">exp_data</span><span class="p">,</span>
+            <span class="n">meas_level</span><span class="o">=</span><span class="n">MeasLevel</span><span class="o">.</span><span class="n">KERNELED</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">header</span><span class="o">=</span><span class="n">QobjHeader</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">experiment_name</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;meas_level==</span><span class="si">{</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">meas_level</span><span class="si">}</span><span class="s2"> not implemented.&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_validate_run_input</span><span class="p">(</span><span class="n">run_input</span><span class="p">,</span> <span class="n">accept_list</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise errors if the run_input is not one of QuantumCircuit, Schedule, ScheduleBlock, or</span>
+<span class="sd">    a list of these.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_input</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">accept_list</span><span class="p">:</span>
+        <span class="c1"># if list apply recursively, but no longer accept lists</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">run_input</span><span class="p">:</span>
+            <span class="n">_validate_run_input</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">accept_list</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_input</span><span class="p">,</span> <span class="p">(</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">run_input</span><span class="p">)</span><span class="si">}</span><span class="s2"> not supported by DynamicsBackend.run.&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_acquire_instruction_timings</span><span class="p">(</span>
+    <span class="n">schedules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Schedule</span><span class="p">],</span> <span class="n">subsystem_dims</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the required data from the acquire commands in each schedule.</span>
+
+<span class="sd">    Additionally validates that each schedule has Acquire instructions occurring at one time, at</span>
+<span class="sd">    least one memory slot is being listed, and all measured subsystem indices are less than</span>
+<span class="sd">    ``len(subsystem_dims)``. Additionally, a warning is raised if a &#39;trivial&#39; subsystem is measured,</span>
+<span class="sd">    i.e. one with dimension 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        schedules: A list of schedules.</span>
+<span class="sd">        subsystem_dims: List of subsystem dimensions.</span>
+<span class="sd">        dt: The sample size.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        A tuple of lists containing, for each schedule: the list of integration intervals required</span>
+<span class="sd">        for each schedule (in absolute time, from 0.0 to the beginning of the acquire instructions),</span>
+<span class="sd">        a list of the subsystems being measured, and a list of the memory slots indices in which to</span>
+<span class="sd">        store the results of each subsystem measurement.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: If a schedule contains no measurement, if a schedule contains measurements at</span>
+<span class="sd">            different times, or if a measurement has an invalid subsystem label.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t_span_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">measurement_subsystems_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">memory_slot_indices_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">schedule</span> <span class="ow">in</span> <span class="n">schedules</span><span class="p">:</span>
+        <span class="n">schedule_acquires</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">schedule_acquire_times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">inst</span> <span class="ow">in</span> <span class="n">schedule</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
+            <span class="c1"># only track acquires saving in a memory slot</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">Acquire</span><span class="p">)</span> <span class="ow">and</span> <span class="n">inst</span><span class="o">.</span><span class="n">mem_slot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">schedule_acquires</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inst</span><span class="p">)</span>
+                <span class="n">schedule_acquire_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">start_time</span><span class="p">)</span>
+
+        <span class="c1"># validate</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">schedule_acquire_times</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s2">&quot;At least one measurement saving a a result in a MemorySlot &quot;</span>
+                <span class="s2">&quot;must be present in each schedule.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">acquire_time</span> <span class="ow">in</span> <span class="n">schedule_acquire_times</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">if</span> <span class="n">acquire_time</span> <span class="o">!=</span> <span class="n">schedule_acquire_times</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;DynamicsBackend.run only supports measurements at one time.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># use dt to convert acquire start time from sample index to the integration interval</span>
+        <span class="n">t_span_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">schedule_acquire_times</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">measurement_subsystems</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">memory_slot_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">inst</span> <span class="ow">in</span> <span class="n">schedule_acquires</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">inst</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">subsystem_dims</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Attempted to measure out of bounds subsystem </span><span class="si">{</span><span class="n">inst</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">subsystem_dims</span><span class="p">[</span><span class="n">inst</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Measuring trivial subsystem </span><span class="si">{</span><span class="n">inst</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2"> with dimension 1.&quot;</span><span class="p">)</span>
+
+            <span class="n">measurement_subsystems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+            <span class="n">memory_slot_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">mem_slot</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="n">measurement_subsystems_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">measurement_subsystems</span><span class="p">)</span>
+        <span class="n">memory_slot_indices_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">memory_slot_indices</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">t_span_list</span><span class="p">,</span> <span class="n">measurement_subsystems_list</span><span class="p">,</span> <span class="n">memory_slot_indices_list</span>
+
+
+<span class="k">def</span> <span class="nf">_to_schedule_list</span><span class="p">(</span>
+    <span class="n">run_input</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span><span class="p">]],</span> <span class="n">backend</span><span class="p">:</span> <span class="n">BackendV2</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert all inputs to schedules, and store the number of classical registers present</span>
+<span class="sd">    in any circuits.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_input</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">run_input</span> <span class="o">=</span> <span class="p">[</span><span class="n">run_input</span><span class="p">]</span>
+
+    <span class="n">schedules</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">num_memslots</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sched</span> <span class="ow">in</span> <span class="n">run_input</span><span class="p">:</span>
+        <span class="n">num_memslots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sched</span><span class="p">,</span> <span class="n">ScheduleBlock</span><span class="p">):</span>
+            <span class="n">schedules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block_to_schedule</span><span class="p">(</span><span class="n">sched</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sched</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">):</span>
+            <span class="n">schedules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sched</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sched</span><span class="p">,</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+            <span class="n">num_memslots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">creg</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">creg</span> <span class="ow">in</span> <span class="n">sched</span><span class="o">.</span><span class="n">cregs</span><span class="p">)</span>
+            <span class="n">schedules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_schedule</span><span class="p">(</span><span class="n">sched</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">_dt</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">sched</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be converted to Schedule.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">schedules</span><span class="p">,</span> <span class="n">num_memslots</span>
+
+
+<span class="k">def</span> <span class="nf">_get_backend_channel_freqs</span><span class="p">(</span>
+    <span class="n">backend_target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Target</span><span class="p">],</span>
+    <span class="n">backend_config</span><span class="p">:</span> <span class="n">PulseBackendConfiguration</span><span class="p">,</span>
+    <span class="n">backend_defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PulseDefaults</span><span class="p">],</span>
+    <span class="n">channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract frequencies of channels from a backend configuration and defaults.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        backend_target: A backend target object or ``None``.</span>
+<span class="sd">        backend_config: A backend configuration object.</span>
+<span class="sd">        backend_defaults: A backend defaults object or ``None``.</span>
+<span class="sd">        channels: Channel labels given as strings, assumed to be unique.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict: Mapping of channel labels to frequencies.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: If the frequency for one of the channels cannot be found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># partition types of channels</span>
+    <span class="n">drive_channels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">meas_channels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">u_channels</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">channel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;d&quot;</span><span class="p">:</span>
+            <span class="n">drive_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">channel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span>
+            <span class="n">meas_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">channel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;u&quot;</span><span class="p">:</span>
+            <span class="n">u_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Unrecognized channel type requested.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># extract and validate channel frequency parameters</span>
+    <span class="k">if</span> <span class="n">drive_channels</span><span class="p">:</span>
+        <span class="c1"># get drive channel frequencies</span>
+        <span class="n">drive_frequencies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">backend_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">backend_target</span><span class="o">.</span><span class="n">qubit_properties</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">drive_frequencies</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">frequency</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">backend_target</span><span class="o">.</span><span class="n">qubit_properties</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">backend_defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">drive_frequencies</span> <span class="o">=</span> <span class="n">backend_defaults</span><span class="o">.</span><span class="n">qubit_freq_est</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="s2">&quot;DriveChannels in model but frequencies not available in target or defaults.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">meas_channels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">backend_defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">meas_frequencies</span> <span class="o">=</span> <span class="n">backend_defaults</span><span class="o">.</span><span class="n">meas_freq_est</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;MeasureChannels in model but defaults does not have meas_freq_est.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># backend_config.u_channel_lo is guaranteed to be a list</span>
+    <span class="n">u_channel_lo</span> <span class="o">=</span> <span class="n">backend_config</span><span class="o">.</span><span class="n">u_channel_lo</span>
+
+    <span class="c1"># populate frequencies</span>
+    <span class="n">channel_freqs</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">drive_channels</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">drive_frequencies</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DriveChannel index </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> is out of bounds.&quot;</span><span class="p">)</span>
+        <span class="n">channel_freqs</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">drive_frequencies</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">meas_channels</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meas_frequencies</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MeasureChannel index </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> is out of bounds.&quot;</span><span class="p">)</span>
+        <span class="n">channel_freqs</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">meas_frequencies</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">u_channels</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_channel_lo</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ControlChannel index </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> is out of bounds.&quot;</span><span class="p">)</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">channel_lo</span> <span class="ow">in</span> <span class="n">u_channel_lo</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span>
+            <span class="n">freq</span> <span class="o">+=</span> <span class="n">drive_frequencies</span><span class="p">[</span><span class="n">channel_lo</span><span class="o">.</span><span class="n">q</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_lo</span><span class="o">.</span><span class="n">scale</span>
+
+        <span class="n">channel_freqs</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">freq</span>
+
+    <span class="c1"># validate that all channels have frequencies</span>
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">channel</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channel_freqs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No carrier frequency found for channel </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">channel_freqs</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

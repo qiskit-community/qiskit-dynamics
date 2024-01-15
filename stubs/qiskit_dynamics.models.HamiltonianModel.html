@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>HamiltonianModel &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../apidocs/index.html">Qiskit Dynamics API Reference</a> &gt;</li>
+        
+          <li><a href="../apidocs/models.html">Models (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.models</span></code>)</a> &gt;</li>
+        
+      <li>HamiltonianModel</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="hamiltonianmodel">
+<h1>HamiltonianModel<a class="headerlink" href="#hamiltonianmodel" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.HamiltonianModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HamiltonianModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static_operator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotating_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluation_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dense'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/hamiltonian_model.html#HamiltonianModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.HamiltonianModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel" title="qiskit_dynamics.models.generator_model.GeneratorModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneratorModel</span></code></a></p>
+<p>A model of a Hamiltonian for the Schrodinger equation.</p>
+<p>This class represents a Hamiltonian as a time-dependent decomposition the form:</p>
+<div class="math notranslate nohighlight">
+\[H(t) = H_d + \sum_j s_j(t) H_j,\]</div>
+<p>where <span class="math notranslate nohighlight">\(H_j\)</span> are Hermitian operators, <span class="math notranslate nohighlight">\(H_d\)</span> is the static component, and the
+<span class="math notranslate nohighlight">\(s_j(t)\)</span> are either <a class="reference internal" href="qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a> objects or numerical
+constants. Constructing a <a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel" title="qiskit_dynamics.models.HamiltonianModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">HamiltonianModel</span></code></a> requires specifying
+the above decomposition, e.g.:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hamiltonian</span> <span class="o">=</span> <span class="n">HamiltonianModel</span><span class="p">(</span><span class="n">static_operator</span><span class="o">=</span><span class="n">static_operator</span><span class="p">,</span>
+                               <span class="n">operators</span><span class="o">=</span><span class="n">operators</span><span class="p">,</span>
+                               <span class="n">signals</span><span class="o">=</span><span class="n">signals</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This class inherits most functionality from <a class="reference internal" href="qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel" title="qiskit_dynamics.models.GeneratorModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneratorModel</span></code></a>, with the following
+modifications:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The operators <span class="math notranslate nohighlight">\(H_d\)</span> and <span class="math notranslate nohighlight">\(H_j\)</span> are assumed and verified to be Hermitian.</p></li>
+<li><p>Rotating frames are dealt with assuming the structure of the Schrodinger equation. I.e.
+Evaluating the Hamiltonian <span class="math notranslate nohighlight">\(H(t)\)</span> in a frame <span class="math notranslate nohighlight">\(F = -iH_0\)</span>, evaluates the
+expression <span class="math notranslate nohighlight">\(e^{-tF}H(t)e^{tF} - H_0\)</span>.</p></li>
+</ul>
+</div></blockquote>
+<p>Initialize, ensuring that the operators are Hermitian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>static_operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>]</span>) – Time-independent term in the Hamiltonian.</p></li>
+<li><p><strong>operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>]]</span>) – List of Operator objects.</p></li>
+<li><p><strong>signals</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.signals.SignalList.html#qiskit_dynamics.signals.SignalList" title="qiskit_dynamics.signals.signals.SignalList"><code class="xref py py-class docutils literal notranslate"><span class="pre">SignalList</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of coefficients <span class="math notranslate nohighlight">\(s_i(t)\)</span>. Not required at instantiation, but
+necessary for evaluation of the model.</p></li>
+<li><p><strong>rotating_frame</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <a class="reference internal" href="qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame" title="qiskit_dynamics.models.rotating_frame.RotatingFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">RotatingFrame</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Rotating frame operator.
+If specified with a 1d array, it is interpreted as the
+diagonal of a diagonal matrix. Assumed to store
+the antihermitian matrix F = -iH.</p></li>
+<li><p><strong>in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to represent the model in the basis in which the rotating
+frame operator is diagonalized.</p></li>
+<li><p><strong>evaluation_mode</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Evaluation mode to use. Supported options are <code class="docutils literal notranslate"><span class="pre">'dense'</span></code> and
+<code class="docutils literal notranslate"><span class="pre">'sparse'</span></code>. Call <code class="docutils literal notranslate"><span class="pre">help(HamiltonianModel.evaluation_mode)</span></code> for more
+details.</p></li>
+<li><p><strong>validate</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If True check input operators are Hermitian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>QiskitError</strong> – if operators are not Hermitian</p>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.models.HamiltonianModel.copy.html#qiskit_dynamics.models.HamiltonianModel.copy" title="qiskit_dynamics.models.HamiltonianModel.copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a></p></td>
+<td><p>Return a copy of self.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.models.HamiltonianModel.evaluate.html#qiskit_dynamics.models.HamiltonianModel.evaluate" title="qiskit_dynamics.models.HamiltonianModel.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a></p></td>
+<td><p>Evaluate the model in array format as a matrix, independent of state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.models.HamiltonianModel.evaluate_rhs.html#qiskit_dynamics.models.HamiltonianModel.evaluate_rhs" title="qiskit_dynamics.models.HamiltonianModel.evaluate_rhs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_rhs</span></code></a></p></td>
+<td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">-1j</span> <span class="pre">*</span> <span class="pre">H(t)</span> <span class="pre">&#64;</span> <span class="pre">y</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.HamiltonianModel.dim">
+<span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#qiskit_dynamics.models.HamiltonianModel.dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>The matrix dimension.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.HamiltonianModel.evaluation_mode">
+<span class="sig-name descname"><span class="pre">evaluation_mode</span></span><a class="headerlink" href="#qiskit_dynamics.models.HamiltonianModel.evaluation_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numerical evaluation mode of the model.</p>
+<p>Possible values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;dense&quot;</span></code>: Stores/evaluates operators using dense Arrays.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;sparse&quot;</span></code>: Stores/evaluates operators using sparse matrices. If the default Array
+backend is JAX, implemented with JAX BCOO arrays, otherwise uses scipy
+<code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code> sparse type. Note that JAX sparse mode is only recommended for use on
+CPU.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>NotImplementedError</strong> – If, when being set, <code class="docutils literal notranslate"><span class="pre">new_mode</span></code> is not one of the above supported</p></li>
+<li><p><strong>evaluation modes.</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.HamiltonianModel.in_frame_basis">
+<span class="sig-name descname"><span class="pre">in_frame_basis</span></span><a class="headerlink" href="#qiskit_dynamics.models.HamiltonianModel.in_frame_basis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether the model is represented in the basis that diagonalizes the frame operator.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.HamiltonianModel.operators">
+<span class="sig-name descname"><span class="pre">operators</span></span><a class="headerlink" href="#qiskit_dynamics.models.HamiltonianModel.operators" title="Permalink to this definition">¶</a></dt>
+<dd><p>The operators in the model.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.HamiltonianModel.rotating_frame">
+<span class="sig-name descname"><span class="pre">rotating_frame</span></span><a class="headerlink" href="#qiskit_dynamics.models.HamiltonianModel.rotating_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>The rotating frame.</p>
+<p>This property can be set with a <a class="reference internal" href="qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame" title="qiskit_dynamics.models.RotatingFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">RotatingFrame</span></code></a> instance, or any valid constructor
+argument to this class. It can either be Hermitian or anti-Hermitian, and in either case
+only the anti-Hermitian version <span class="math notranslate nohighlight">\(F=-iH\)</span> will be stored.</p>
+<p>Setting this property updates the internal operator list to use the new frame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.HamiltonianModel.signals">
+<span class="sig-name descname"><span class="pre">signals</span></span><a class="headerlink" href="#qiskit_dynamics.models.HamiltonianModel.signals" title="Permalink to this definition">¶</a></dt>
+<dd><p>The signals in the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>QiskitError</strong> – If set to <code class="docutils literal notranslate"><span class="pre">None</span></code> when operators exist, or when set to a number of signals
+    different then the number of operators.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.HamiltonianModel.static_operator">
+<span class="sig-name descname"><span class="pre">static_operator</span></span><a class="headerlink" href="#qiskit_dynamics.models.HamiltonianModel.static_operator" title="Permalink to this definition">¶</a></dt>
+<dd><p>The static operator.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="qiskit_dynamics.models.HamiltonianModel.copy.html" class="btn btn-neutral float-right" title="qiskit_dynamics.models.HamiltonianModel.copy" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="../apidocs/models.html" class="btn btn-neutral" title="Models (qiskit_dynamics.models)" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">HamiltonianModel</a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel"><code class="docutils literal notranslate"><span class="pre">HamiltonianModel</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel.dim"><code class="docutils literal notranslate"><span class="pre">HamiltonianModel.dim</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel.evaluation_mode"><code class="docutils literal notranslate"><span class="pre">HamiltonianModel.evaluation_mode</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel.in_frame_basis"><code class="docutils literal notranslate"><span class="pre">HamiltonianModel.in_frame_basis</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel.operators"><code class="docutils literal notranslate"><span class="pre">HamiltonianModel.operators</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel.rotating_frame"><code class="docutils literal notranslate"><span class="pre">HamiltonianModel.rotating_frame</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel.signals"><code class="docutils literal notranslate"><span class="pre">HamiltonianModel.signals</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.models.HamiltonianModel.static_operator"><code class="docutils literal notranslate"><span class="pre">HamiltonianModel.static_operator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Simulating Qiskit Pulse Schedules with Qiskit Dynamics &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Dynamics Tutorials</a> &gt;</li>
+        
+      <li>Simulating Qiskit Pulse Schedules with Qiskit Dynamics</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="simulating-qiskit-pulse-schedules-with-qiskit-dynamics">
+<h1>Simulating Qiskit Pulse Schedules with Qiskit Dynamics<a class="headerlink" href="#simulating-qiskit-pulse-schedules-with-qiskit-dynamics" title="Permalink to this heading">¶</a></h1>
+<p>This tutorial shows how to use Qiskit Dynamics to simulate a Pulse schedule
+with a simple model of a qubit. The
+qubit is modeled by the drift hamiltonian</p>
+<div class="math notranslate nohighlight">
+\[H_\text{drift} = \frac{\omega}{2} Z\]</div>
+<p>to which we apply the drive</p>
+<div class="math notranslate nohighlight">
+\[H_\text{drive}(t) = \frac{r\,\Omega(t)}{2} X\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\Omega(t)\)</span> is the drive signal which we will create using
+Qiskit pulse. The factor <span class="math notranslate nohighlight">\(r\)</span> is the strength with which the drive
+signal drives the qubit. We begin by creating a pulse schedule with a
+<code class="docutils literal notranslate"><span class="pre">sx</span></code> gate followed by a phase shift on the drive so that the following
+pulse creates a <code class="docutils literal notranslate"><span class="pre">sy</span></code> rotation. Therefore, if the qubit begins in the
+ground state we expect that this second pulse will not have any effect
+on the qubit. This situation is simulated with the following steps:</p>
+<ol class="arabic simple">
+<li><p>Create the pulse schedule</p></li>
+<li><p>Converting pulse schedules to a <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a></p></li>
+<li><p>Create the system model, configured to simulate pulse schedules</p></li>
+<li><p>Simulate the pulse schedule using the model</p></li>
+</ol>
+<section id="create-the-pulse-schedule">
+<h2>1. Create the pulse schedule<a class="headerlink" href="#create-the-pulse-schedule" title="Permalink to this heading">¶</a></h2>
+<p>First, we use the pulse module in Qiskit to create a pulse schedule.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">qiskit.pulse</span> <span class="k">as</span> <span class="nn">pulse</span>
+
+<span class="c1"># Strength of the Rabi-rate in GHz.</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="c1"># Frequency of the qubit transition in GHz.</span>
+<span class="n">w</span> <span class="o">=</span> <span class="mf">5.</span>
+
+<span class="c1"># Sample rate of the backend in ns.</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">4.5</span>
+
+<span class="c1"># Define gaussian envelope function to approximately implement an sx gate.</span>
+<span class="n">amp</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mf">1.75</span>
+<span class="n">sig</span> <span class="o">=</span> <span class="mf">0.6985</span><span class="o">/</span><span class="n">r</span><span class="o">/</span><span class="n">amp</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="n">sig</span>
+<span class="n">duration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>
+<span class="n">beta</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+<span class="k">with</span> <span class="n">pulse</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sx-sy schedule&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">sxp</span><span class="p">:</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">pulse</span><span class="o">.</span><span class="n">Drag</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">sig</span> <span class="o">/</span> <span class="n">dt</span><span class="p">,</span> <span class="n">beta</span><span class="p">),</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">shift_phase</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">pulse</span><span class="o">.</span><span class="n">Drag</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">sig</span> <span class="o">/</span> <span class="n">dt</span><span class="p">,</span> <span class="n">beta</span><span class="p">),</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+<span class="n">sxp</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/qiskit_pulse_0_0.png" src="../_images/qiskit_pulse_0_0.png" />
+</div>
+</div>
+</section>
+<section id="convert-the-pulse-schedule-to-a-signal">
+<h2>2. Convert the pulse schedule to a <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a><a class="headerlink" href="#convert-the-pulse-schedule-to-a-signal" title="Permalink to this heading">¶</a></h2>
+<p>Qiskit Dynamics has functionality for converting pulse schedule to instances
+of <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>. This is done using the pulse instruction to signal
+converter <a class="reference internal" href="../stubs/qiskit_dynamics.pulse.InstructionToSignals.html#qiskit_dynamics.pulse.InstructionToSignals" title="qiskit_dynamics.pulse.InstructionToSignals"><code class="xref py py-class docutils literal notranslate"><span class="pre">InstructionToSignals</span></code></a>. This converter needs to know the
+sample rate of the arbitrary waveform generators creating the signals,
+i.e. <code class="docutils literal notranslate"><span class="pre">dt</span></code>, as well as the carrier frequency of the signals,
+i.e. <code class="docutils literal notranslate"><span class="pre">w</span></code>. The plot below shows the envelopes and the signals resulting
+from this conversion. The dashed line shows the time at which the
+virtual <code class="docutils literal notranslate"><span class="pre">Z</span></code> gate is applied.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.pulse</span> <span class="kn">import</span> <span class="n">InstructionToSignals</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;font.size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">16</span>
+
+<span class="n">converter</span> <span class="o">=</span> <span class="n">InstructionToSignals</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">carriers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;d0&quot;</span><span class="p">:</span> <span class="n">w</span><span class="p">})</span>
+
+<span class="n">signals</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_signals</span><span class="p">(</span><span class="n">sxp</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">title</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;envelope&quot;</span><span class="p">,</span> <span class="s2">&quot;signal&quot;</span><span class="p">]):</span>
+    <span class="n">signals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (ns)&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Amplitude&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;dashed&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/qiskit_pulse_1_0.png" src="../_images/qiskit_pulse_1_0.png" />
+</div>
+</div>
+</section>
+<section id="create-the-system-model">
+<span id="pulse-solver"></span><h2>3. Create the system model<a class="headerlink" href="#create-the-system-model" title="Permalink to this heading">¶</a></h2>
+<p>We now setup a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance with the desired Hamiltonian information,
+and configure it to simulate pulse schedules. This requires specifying
+which channels act on which operators, channel carrier frequencies, and sample width <code class="docutils literal notranslate"><span class="pre">dt</span></code>.
+Additionally, we setup this solver in the rotating frame and perform the
+rotating wave approximation.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators</span> <span class="kn">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">Solver</span>
+
+<span class="c1"># construct operators</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">)</span>
+
+<span class="n">drift</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">w</span> <span class="o">*</span> <span class="n">Z</span><span class="o">/</span><span class="mi">2</span>
+<span class="n">operators</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">X</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="c1"># construct the solver</span>
+<span class="n">hamiltonian_solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
+    <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">drift</span><span class="p">,</span>
+    <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">operators</span><span class="p">,</span>
+    <span class="n">rotating_frame</span><span class="o">=</span><span class="n">drift</span><span class="p">,</span>
+    <span class="n">rwa_cutoff_freq</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">hamiltonian_channels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;d0&#39;</span><span class="p">],</span>
+    <span class="n">channel_carrier_freqs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;d0&#39;</span><span class="p">:</span> <span class="n">w</span><span class="p">},</span>
+    <span class="n">dt</span><span class="o">=</span><span class="n">dt</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="simulate-the-pulse-schedule-using-the-model">
+<h2>4. Simulate the pulse schedule using the model<a class="headerlink" href="#simulate-the-pulse-schedule-using-the-model" title="Permalink to this heading">¶</a></h2>
+<p>In the last step we perform the simulation and plot the results. Note that, as we have
+configured <code class="docutils literal notranslate"><span class="pre">hamiltonian_solver</span></code> to simulate pulse schedules, we pass the schedule <code class="docutils literal notranslate"><span class="pre">xp</span></code>
+directly to the <code class="docutils literal notranslate"><span class="pre">signals</span></code> argument of the <code class="docutils literal notranslate"><span class="pre">solve</span></code> method. Equivalently, <code class="docutils literal notranslate"><span class="pre">signals</span></code>
+generated by <code class="docutils literal notranslate"><span class="pre">converter.get_signals</span></code> above can also be passed to the <code class="docutils literal notranslate"><span class="pre">signals</span></code> argument
+and in this case should produce identical behavior.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.quantum_info.states</span> <span class="kn">import</span> <span class="n">Statevector</span>
+
+<span class="c1"># Start the qubit in its ground state.</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="n">Statevector</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+
+<span class="o">%</span><span class="k">time</span> sol = hamiltonian_solver.solve(t_span=[0., 2*T], y0=y0, signals=sxp, atol=1e-8, rtol=1e-8)
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 35 s, sys: 470 ms, total: 35.5 s
+Wall time: 35.5 s
+</pre></div>
+</div>
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_populations</span><span class="p">(</span><span class="n">sol</span><span class="p">):</span>
+    <span class="n">pop0</span> <span class="o">=</span> <span class="p">[</span><span class="n">psi</span><span class="o">.</span><span class="n">probabilities</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">psi</span> <span class="ow">in</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">]</span>
+    <span class="n">pop1</span> <span class="o">=</span> <span class="p">[</span><span class="n">psi</span><span class="o">.</span><span class="n">probabilities</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">psi</span> <span class="ow">in</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">]</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">pop0</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Population in |0&gt;&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">pop1</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Population in |1&gt;&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time (ns)&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Population&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">T</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;dashed&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>The plot below shows the population of the qubit as it evolves during
+the pulses. The vertical dashed line shows the time of the virtual Z
+rotation which was induced by the <code class="docutils literal notranslate"><span class="pre">shift_phase</span></code> instruction in the
+pulse schedule. As expected, the first pulse moves the qubit to an
+eigenstate of the <code class="docutils literal notranslate"><span class="pre">Y</span></code> operator. Therefore, the second pulse, which
+drives around the <code class="docutils literal notranslate"><span class="pre">Y</span></code>-axis due to the phase shift, has hardley any
+influence on the populations of the qubit.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_populations</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/qiskit_pulse_5_0.png" src="../_images/qiskit_pulse_5_0.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="optimizing_pulse_sequence.html" class="btn btn-neutral float-right" title="Gradient optimization of a pulse sequence" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="Lindblad_dynamics_simulation.html" class="btn btn-neutral" title="Solving the Lindblad dynamics of a qubit chain" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Simulating Qiskit Pulse Schedules with Qiskit Dynamics</a><ul>
+<li><a class="reference internal" href="#create-the-pulse-schedule">1. Create the pulse schedule</a></li>
+<li><a class="reference internal" href="#convert-the-pulse-schedule-to-a-signal">2. Convert the pulse schedule to a <code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a></li>
+<li><a class="reference internal" href="#create-the-system-model">3. Create the system model</a></li>
+<li><a class="reference internal" href="#simulate-the-pulse-schedule-using-the-model">4. Simulate the pulse schedule using the model</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

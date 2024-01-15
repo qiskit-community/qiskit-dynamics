@@ -1,0 +1,6 @@
+qiskit\_dynamics.backend.DynamicsBackend.acquire\_channel
+=========================================================
+
+.. currentmodule:: qiskit_dynamics.backend
+
+.. automethod:: DynamicsBackend.acquire_channel

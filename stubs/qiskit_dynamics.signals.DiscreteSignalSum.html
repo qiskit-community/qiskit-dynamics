@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>DiscreteSignalSum &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../apidocs/index.html">Qiskit Dynamics API Reference</a> &gt;</li>
+        
+          <li><a href="../apidocs/signals.html">Signals (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.signals</span></code>)</a> &gt;</li>
+        
+      <li>DiscreteSignalSum</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="discretesignalsum">
+<h1>DiscreteSignalSum<a class="headerlink" href="#discretesignalsum" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DiscreteSignalSum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carrier_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/signals/signals.html#DiscreteSignalSum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal" title="qiskit_dynamics.signals.signals.DiscreteSignal"><code class="xref py py-class docutils literal notranslate"><span class="pre">DiscreteSignal</span></code></a>, <a class="reference internal" href="qiskit_dynamics.signals.SignalSum.html#qiskit_dynamics.signals.SignalSum" title="qiskit_dynamics.signals.signals.SignalSum"><code class="xref py py-class docutils literal notranslate"><span class="pre">SignalSum</span></code></a></p>
+<p>Represents a sum of piecewise constant signals, all with the same
+time parameters: dt, number of samples, and start time.</p>
+<p>Directly initialize a <code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum</span></code>. Samples of all terms in the
+sum are specified as a 2d array, with 0th axis indicating time, and 1st axis
+indicating a term in the sum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The duration of each sample.</p></li>
+<li><p><strong>samples</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>]</span>) – The 2d array representing a list whose elements are all envelope values
+at a given time.</p></li>
+<li><p><strong>start_time</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time at which the signal starts.</p></li>
+<li><p><strong>carrier_freq</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Array with the carrier frequencies of each term in the sum.</p></li>
+<li><p><strong>phase</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Array with the phases of each term in the sum.</p></li>
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – name of the signal.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignalSum.add_samples.html#qiskit_dynamics.signals.DiscreteSignalSum.add_samples" title="qiskit_dynamics.signals.DiscreteSignalSum.add_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_samples</span></code></a></p></td>
+<td><p>Appends samples to the pulse starting at start_sample, filling any gap with zeros.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignalSum.complex_value.html#qiskit_dynamics.signals.DiscreteSignalSum.complex_value" title="qiskit_dynamics.signals.DiscreteSignalSum.complex_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">complex_value</span></code></a></p></td>
+<td><p>Return the sum of the complex values of each component.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignalSum.conjugate.html#qiskit_dynamics.signals.DiscreteSignalSum.conjugate" title="qiskit_dynamics.signals.DiscreteSignalSum.conjugate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conjugate</span></code></a></p></td>
+<td><p>Return the conjugation of this collection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignalSum.draw.html#qiskit_dynamics.signals.DiscreteSignalSum.draw" title="qiskit_dynamics.signals.DiscreteSignalSum.draw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw</span></code></a></p></td>
+<td><p>Plot the signal over an interval.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignalSum.envelope.html#qiskit_dynamics.signals.DiscreteSignalSum.envelope" title="qiskit_dynamics.signals.DiscreteSignalSum.envelope"><code class="xref py py-obj docutils literal notranslate"><span class="pre">envelope</span></code></a></p></td>
+<td><p>Vectorized evaluation of the envelope at time t.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignalSum.flatten.html#qiskit_dynamics.signals.DiscreteSignalSum.flatten" title="qiskit_dynamics.signals.DiscreteSignalSum.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a></p></td>
+<td><p>Merge into a single <code class="docutils literal notranslate"><span class="pre">Signal</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignalSum.from_Signal.html#qiskit_dynamics.signals.DiscreteSignalSum.from_Signal" title="qiskit_dynamics.signals.DiscreteSignalSum.from_Signal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_Signal</span></code></a></p></td>
+<td><p>Constructs a <code class="docutils literal notranslate"><span class="pre">DiscreteSignal</span></code> object by sampling a <code class="docutils literal notranslate"><span class="pre">Signal</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.signals.DiscreteSignalSum.from_SignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.from_SignalSum" title="qiskit_dynamics.signals.DiscreteSignalSum.from_SignalSum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_SignalSum</span></code></a></p></td>
+<td><p>Constructs a <code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum</span></code> object by sampling a <code class="docutils literal notranslate"><span class="pre">SignalSum</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.carrier_freq">
+<span class="sig-name descname"><span class="pre">carrier_freq</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.carrier_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>The carrier frequency of the signal.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.components">
+<span class="sig-name descname"><span class="pre">components</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.components" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of components.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.dt">
+<span class="sig-name descname"><span class="pre">dt</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.dt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns:
+dt: the duration of each sample.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.duration">
+<span class="sig-name descname"><span class="pre">duration</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns:
+duration: The duration of the signal in samples.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.is_constant">
+<span class="sig-name descname"><span class="pre">is_constant</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.is_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether or not the signal is constant.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the signal.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.phase">
+<span class="sig-name descname"><span class="pre">phase</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>The phase of the signal.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.samples">
+<span class="sig-name descname"><span class="pre">samples</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns:
+samples: the samples of the piecewise constant signal.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.signals.DiscreteSignalSum.start_time">
+<span class="sig-name descname"><span class="pre">start_time</span></span><a class="headerlink" href="#qiskit_dynamics.signals.DiscreteSignalSum.start_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns:
+start_time: The time at which the list of samples start.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="qiskit_dynamics.signals.DiscreteSignalSum.add_samples.html" class="btn btn-neutral float-right" title="qiskit_dynamics.signals.DiscreteSignalSum.add_samples" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="qiskit_dynamics.signals.SignalSum.flatten.html" class="btn btn-neutral" title="qiskit_dynamics.signals.SignalSum.flatten" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">DiscreteSignalSum</a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.carrier_freq"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.carrier_freq</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.components"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.components</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.dt"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.dt</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.duration"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.duration</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.is_constant"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.is_constant</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.name"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.name</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.phase"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.phase</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.samples"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.samples</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.signals.DiscreteSignalSum.start_time"><code class="docutils literal notranslate"><span class="pre">DiscreteSignalSum.start_time</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

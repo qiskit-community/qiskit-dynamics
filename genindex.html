@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Index &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery.css" type="text/css" /><script src="_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+      <li>Index</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ 
+</div>
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.acquire_channel.html#qiskit_dynamics.backend.DynamicsBackend.acquire_channel">acquire_channel() (DynamicsBackend method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.add.html#qiskit_dynamics.perturbation.ArrayPolynomial.add">add() (ArrayPolynomial method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.add_samples.html#qiskit_dynamics.signals.DiscreteSignal.add_samples">add_samples() (DiscreteSignal method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.add_samples.html#qiskit_dynamics.signals.DiscreteSignalSum.add_samples">(DiscreteSignalSum method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array">Array (class in qiskit_dynamics.array)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial.array_coefficients">array_coefficients (ArrayPolynomial attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial">ArrayPolynomial (class in qiskit_dynamics.perturbation)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.dispatch.asarray.html#qiskit_dynamics.dispatch.asarray">asarray() (in module qiskit_dynamics.dispatch)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.array.Array.available_backends.html#qiskit_dynamics.array.Array.available_backends">available_backends() (Array class method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array.backend">backend (Array attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.backend_version">backend_version (DynamicsBackend attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal.carrier_freq">carrier_freq (DiscreteSignal attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.carrier_freq">(DiscreteSignalSum attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal.carrier_freq">(Signal attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.html#qiskit_dynamics.signals.SignalSum.carrier_freq">(SignalSum attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.complex_value.html#qiskit_dynamics.signals.DiscreteSignal.complex_value">complex_value() (DiscreteSignal method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.complex_value.html#qiskit_dynamics.signals.DiscreteSignalSum.complex_value">(DiscreteSignalSum method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.Signal.complex_value.html#qiskit_dynamics.signals.Signal.complex_value">(Signal method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalList.complex_value.html#qiskit_dynamics.signals.SignalList.complex_value">(SignalList method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.complex_value.html#qiskit_dynamics.signals.SignalSum.complex_value">(SignalSum method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.components">components (DiscreteSignalSum attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalList.html#qiskit_dynamics.signals.SignalList.components">(SignalList attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.html#qiskit_dynamics.signals.SignalSum.components">(SignalSum attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.compute_monomials.html#qiskit_dynamics.perturbation.ArrayPolynomial.compute_monomials">compute_monomials() (ArrayPolynomial method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.configuration.html#qiskit_dynamics.backend.DynamicsBackend.configuration">configuration() (DynamicsBackend method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.conj.html#qiskit_dynamics.perturbation.ArrayPolynomial.conj">conj() (ArrayPolynomial method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.conjugate.html#qiskit_dynamics.signals.DiscreteSignal.conjugate">conjugate() (DiscreteSignal method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.conjugate.html#qiskit_dynamics.signals.DiscreteSignalSum.conjugate">(DiscreteSignalSum method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.Signal.conjugate.html#qiskit_dynamics.signals.Signal.conjugate">(Signal method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalList.conjugate.html#qiskit_dynamics.signals.SignalList.conjugate">(SignalList method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.conjugate.html#qiskit_dynamics.signals.SignalSum.conjugate">(SignalSum method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial.constant_term">constant_term (ArrayPolynomial attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.control_channel.html#qiskit_dynamics.backend.DynamicsBackend.control_channel">control_channel() (DynamicsBackend method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.Convolution.html#qiskit_dynamics.signals.Convolution">Convolution (class in qiskit_dynamics.signals)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.copy.html#qiskit_dynamics.models.GeneratorModel.copy">copy() (GeneratorModel method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.copy.html#qiskit_dynamics.models.HamiltonianModel.copy">(HamiltonianModel method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.LindbladModel.copy.html#qiskit_dynamics.models.LindbladModel.copy">(LindbladModel method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.coupling_map">coupling_map (DynamicsBackend attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array.data">data (Array attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.perturbation.DysonLikeData.html#qiskit_dynamics.perturbation.DysonLikeData.data">(DysonLikeData attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.perturbation.PowerSeriesData.html#qiskit_dynamics.perturbation.PowerSeriesData.data">(PowerSeriesData attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.array.Array.default_backend.html#qiskit_dynamics.array.Array.default_backend">default_backend() (Array class method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.default_experiment_result_function.html#qiskit_dynamics.backend.default_experiment_result_function">default_experiment_result_function() (in module qiskit_dynamics.backend)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.defaults.html#qiskit_dynamics.backend.DynamicsBackend.defaults">defaults() (DynamicsBackend method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.description">description (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel.dim">dim (GeneratorModel attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel.dim">(HamiltonianModel attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.dim">(LindbladModel attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame.dim">(RotatingFrame attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal">DiscreteSignal (class in qiskit_dynamics.signals)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum">DiscreteSignalSum (class in qiskit_dynamics.signals)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.dissipator_operators">dissipator_operators (LindbladModel attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.draw.html#qiskit_dynamics.signals.DiscreteSignal.draw">draw() (DiscreteSignal method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.draw.html#qiskit_dynamics.signals.DiscreteSignalSum.draw">(DiscreteSignalSum method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.Signal.draw.html#qiskit_dynamics.signals.Signal.draw">(Signal method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.draw.html#qiskit_dynamics.signals.SignalSum.draw">(SignalSum method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.signals.SignalList.html#qiskit_dynamics.signals.SignalList.drift">drift (SignalList attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.drive_channel.html#qiskit_dynamics.backend.DynamicsBackend.drive_channel">drive_channel() (DynamicsBackend method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal.dt">dt (DiscreteSignal attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.dt">(DiscreteSignalSum attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.dt">(DynamicsBackend attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.dtm">dtm (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal.duration">duration (DiscreteSignal attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.duration">(DiscreteSignalSum attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend">DynamicsBackend (class in qiskit_dynamics.backend)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.DysonLikeData.html#qiskit_dynamics.perturbation.DysonLikeData">DysonLikeData (class in qiskit_dynamics.perturbation)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver">DysonSolver (class in qiskit_dynamics.solvers)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.envelope.html#qiskit_dynamics.signals.DiscreteSignal.envelope">envelope() (DiscreteSignal method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.envelope.html#qiskit_dynamics.signals.DiscreteSignalSum.envelope">(DiscreteSignalSum method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.Signal.envelope.html#qiskit_dynamics.signals.Signal.envelope">(Signal method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.envelope.html#qiskit_dynamics.signals.SignalSum.envelope">(SignalSum method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.evaluate.html#qiskit_dynamics.models.GeneratorModel.evaluate">evaluate() (GeneratorModel method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.evaluate.html#qiskit_dynamics.models.HamiltonianModel.evaluate">(HamiltonianModel method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.LindbladModel.evaluate.html#qiskit_dynamics.models.LindbladModel.evaluate">(LindbladModel method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.LindbladModel.evaluate_hamiltonian.html#qiskit_dynamics.models.LindbladModel.evaluate_hamiltonian">evaluate_hamiltonian() (LindbladModel method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.evaluate_rhs.html#qiskit_dynamics.models.GeneratorModel.evaluate_rhs">evaluate_rhs() (GeneratorModel method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.evaluate_rhs.html#qiskit_dynamics.models.HamiltonianModel.evaluate_rhs">(HamiltonianModel method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.LindbladModel.evaluate_rhs.html#qiskit_dynamics.models.LindbladModel.evaluate_rhs">(LindbladModel method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel.evaluation_mode">evaluation_mode (GeneratorModel attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel.evaluation_mode">(HamiltonianModel attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.evaluation_mode">(LindbladModel attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.flatten.html#qiskit_dynamics.signals.DiscreteSignalSum.flatten">flatten() (DiscreteSignalSum method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalList.flatten.html#qiskit_dynamics.signals.SignalList.flatten">(SignalList method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.flatten.html#qiskit_dynamics.signals.SignalSum.flatten">(SignalSum method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame.frame_basis">frame_basis (RotatingFrame attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame.frame_basis_adjoint">frame_basis_adjoint (RotatingFrame attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame.frame_diag">frame_diag (RotatingFrame attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame.frame_operator">frame_operator (RotatingFrame attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.from_backend.html#qiskit_dynamics.backend.DynamicsBackend.from_backend">from_backend() (DynamicsBackend class method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.LindbladModel.from_hamiltonian.html#qiskit_dynamics.models.LindbladModel.from_hamiltonian">from_hamiltonian() (LindbladModel class method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.from_Signal.html#qiskit_dynamics.signals.DiscreteSignal.from_Signal">from_Signal() (DiscreteSignal class method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.from_Signal.html#qiskit_dynamics.signals.DiscreteSignalSum.from_Signal">(DiscreteSignalSum class method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.from_SignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.from_SignalSum">from_SignalSum() (DiscreteSignalSum class method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.generator_into_frame.html#qiskit_dynamics.models.RotatingFrame.generator_into_frame">generator_into_frame() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.generator_out_of_frame.html#qiskit_dynamics.models.RotatingFrame.generator_out_of_frame">generator_out_of_frame() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel">GeneratorModel (class in qiskit_dynamics.models)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.pulse.InstructionToSignals.get_awg_signals.html#qiskit_dynamics.pulse.InstructionToSignals.get_awg_signals">get_awg_signals() (InstructionToSignals static method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.DysonLikeData.get_item.html#qiskit_dynamics.perturbation.DysonLikeData.get_item">get_item() (DysonLikeData method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.perturbation.PowerSeriesData.get_item.html#qiskit_dynamics.perturbation.PowerSeriesData.get_item">(PowerSeriesData method)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.pulse.InstructionToSignals.get_signals.html#qiskit_dynamics.pulse.InstructionToSignals.get_signals">get_signals() (InstructionToSignals method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.hamiltonian_operators">hamiltonian_operators (LindbladModel attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel">HamiltonianModel (class in qiskit_dynamics.models)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel.in_frame_basis">in_frame_basis (GeneratorModel attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel.in_frame_basis">(HamiltonianModel attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.in_frame_basis">(LindbladModel attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.instruction_durations">instruction_durations (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.instruction_schedule_map">instruction_schedule_map (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.instructions">instructions (DynamicsBackend attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.pulse.InstructionToSignals.html#qiskit_dynamics.pulse.InstructionToSignals">InstructionToSignals (class in qiskit_dynamics.pulse)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.IQMixer.html#qiskit_dynamics.signals.IQMixer">IQMixer (class in qiskit_dynamics.signals)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal.is_constant">is_constant (DiscreteSignal attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.is_constant">(DiscreteSignalSum attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal.is_constant">(Signal attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.html#qiskit_dynamics.signals.SignalSum.is_constant">(SignalSum attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.perturbation.DysonLikeData.html#qiskit_dynamics.perturbation.DysonLikeData.labels">labels (DysonLikeData attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.perturbation.PowerSeriesData.html#qiskit_dynamics.perturbation.PowerSeriesData.labels">(PowerSeriesData attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel">LindbladModel (class in qiskit_dynamics.models)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.solvers.MagnusSolver.html#qiskit_dynamics.solvers.MagnusSolver">MagnusSolver (class in qiskit_dynamics.solvers)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.matmul.html#qiskit_dynamics.perturbation.ArrayPolynomial.matmul">matmul() (ArrayPolynomial method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.max_circuits">max_circuits (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.meas_map">meas_map (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.measure_channel.html#qiskit_dynamics.backend.DynamicsBackend.measure_channel">measure_channel() (DynamicsBackend method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.DysonLikeData.html#qiskit_dynamics.perturbation.DysonLikeData.metadata">metadata (DysonLikeData attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.perturbation.PowerSeriesData.html#qiskit_dynamics.perturbation.PowerSeriesData.metadata">(PowerSeriesData attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.solvers.DysonSolver.html#qiskit_dynamics.solvers.DysonSolver.model">model (DysonSolver attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.solvers.MagnusSolver.html#qiskit_dynamics.solvers.MagnusSolver.model">(MagnusSolver attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver.model">(Solver attribute)</a>
+</li>
+      </ul></li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="apidocs/index.html#module-qiskit_dynamics">qiskit_dynamics</a>
+</li>
+        <li><a href="apidocs/array.html#module-qiskit_dynamics.array">qiskit_dynamics.array</a>
+</li>
+        <li><a href="apidocs/backend.html#module-qiskit_dynamics.backend">qiskit_dynamics.backend</a>
+</li>
+        <li><a href="apidocs/dispatch.html#module-qiskit_dynamics.dispatch">qiskit_dynamics.dispatch</a>
+</li>
+        <li><a href="apidocs/models.html#module-qiskit_dynamics.models">qiskit_dynamics.models</a>
+</li>
+        <li><a href="apidocs/perturbation.html#module-qiskit_dynamics.perturbation">qiskit_dynamics.perturbation</a>
+</li>
+        <li><a href="apidocs/pulse.html#module-qiskit_dynamics.pulse">qiskit_dynamics.pulse</a>
+</li>
+        <li><a href="apidocs/signals.html#module-qiskit_dynamics.signals">qiskit_dynamics.signals</a>
+</li>
+        <li><a href="apidocs/solvers.html#module-qiskit_dynamics.solvers">qiskit_dynamics.solvers</a>
+</li>
+        <li><a href="userguide/index.html#module-qiskit_dynamics_userguide">qiskit_dynamics_userguide</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial.monomial_labels">monomial_labels (ArrayPolynomial attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.mul.html#qiskit_dynamics.perturbation.ArrayPolynomial.mul">mul() (ArrayPolynomial method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.signals.Convolution.html#qiskit_dynamics.signals.Convolution.n_inputs">n_inputs (Convolution attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.IQMixer.html#qiskit_dynamics.signals.IQMixer.n_inputs">(IQMixer attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal.name">name (DiscreteSignal attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.name">(DiscreteSignalSum attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.name">(DynamicsBackend attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal.name">(Signal attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.html#qiskit_dynamics.signals.SignalSum.name">(SignalSum attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial.ndim">ndim (ArrayPolynomial attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.num_qubits">num_qubits (DynamicsBackend attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.online_date">online_date (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.operation_names">operation_names (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.operations">operations (DynamicsBackend attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.operator_into_frame.html#qiskit_dynamics.models.RotatingFrame.operator_into_frame">operator_into_frame() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.operator_into_frame_basis.html#qiskit_dynamics.models.RotatingFrame.operator_into_frame_basis">operator_into_frame_basis() (RotatingFrame method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.operator_out_of_frame.html#qiskit_dynamics.models.RotatingFrame.operator_out_of_frame">operator_out_of_frame() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.operator_out_of_frame_basis.html#qiskit_dynamics.models.RotatingFrame.operator_out_of_frame_basis">operator_out_of_frame_basis() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel.operators">operators (GeneratorModel attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel.operators">(HamiltonianModel attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.options">options (DynamicsBackend attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.backend.parse_backend_hamiltonian_dict.html#qiskit_dynamics.backend.parse_backend_hamiltonian_dict">parse_backend_hamiltonian_dict() (in module qiskit_dynamics.backend)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal.phase">phase (DiscreteSignal attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.phase">(DiscreteSignalSum attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal.phase">(Signal attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.signals.SignalSum.html#qiskit_dynamics.signals.SignalSum.phase">(SignalSum attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.perturbation.PowerSeriesData.html#qiskit_dynamics.perturbation.PowerSeriesData">PowerSeriesData (class in qiskit_dynamics.perturbation)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.provider">provider (DynamicsBackend attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    qiskit_dynamics
+
+      <ul>
+        <li><a href="apidocs/index.html#module-qiskit_dynamics">module</a>
+</li>
+      </ul></li>
+      <li>
+    qiskit_dynamics.array
+
+      <ul>
+        <li><a href="apidocs/array.html#module-qiskit_dynamics.array">module</a>
+</li>
+      </ul></li>
+      <li>
+    qiskit_dynamics.backend
+
+      <ul>
+        <li><a href="apidocs/backend.html#module-qiskit_dynamics.backend">module</a>
+</li>
+      </ul></li>
+      <li>
+    qiskit_dynamics.dispatch
+
+      <ul>
+        <li><a href="apidocs/dispatch.html#module-qiskit_dynamics.dispatch">module</a>
+</li>
+      </ul></li>
+      <li>
+    qiskit_dynamics.models
+
+      <ul>
+        <li><a href="apidocs/models.html#module-qiskit_dynamics.models">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    qiskit_dynamics.perturbation
+
+      <ul>
+        <li><a href="apidocs/perturbation.html#module-qiskit_dynamics.perturbation">module</a>
+</li>
+      </ul></li>
+      <li>
+    qiskit_dynamics.pulse
+
+      <ul>
+        <li><a href="apidocs/pulse.html#module-qiskit_dynamics.pulse">module</a>
+</li>
+      </ul></li>
+      <li>
+    qiskit_dynamics.signals
+
+      <ul>
+        <li><a href="apidocs/signals.html#module-qiskit_dynamics.signals">module</a>
+</li>
+      </ul></li>
+      <li>
+    qiskit_dynamics.solvers
+
+      <ul>
+        <li><a href="apidocs/solvers.html#module-qiskit_dynamics.solvers">module</a>
+</li>
+      </ul></li>
+      <li>
+    qiskit_dynamics_userguide
+
+      <ul>
+        <li><a href="userguide/index.html#module-qiskit_dynamics_userguide">module</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.qubit_properties.html#qiskit_dynamics.backend.DynamicsBackend.qubit_properties">qubit_properties() (DynamicsBackend method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial.real">real (ArrayPolynomial attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.dispatch.requires_backend.html#qiskit_dynamics.dispatch.requires_backend">requires_backend() (in module qiskit_dynamics.dispatch)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel.rotating_frame">rotating_frame (GeneratorModel attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel.rotating_frame">(HamiltonianModel attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.rotating_frame">(LindbladModel attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.rotating_wave_approximation.html#qiskit_dynamics.models.rotating_wave_approximation">rotating_wave_approximation() (in module qiskit_dynamics.models)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame">RotatingFrame (class in qiskit_dynamics.models)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.run.html#qiskit_dynamics.backend.DynamicsBackend.run">run() (DynamicsBackend method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal.samples">samples (DiscreteSignal attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.samples">(DiscreteSignalSum attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.array.Array.set_default_backend.html#qiskit_dynamics.array.Array.set_default_backend">set_default_backend() (Array class method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.set_options.html#qiskit_dynamics.backend.DynamicsBackend.set_options">set_options() (DynamicsBackend method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial.shape">shape (ArrayPolynomial attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal">Signal (class in qiskit_dynamics.signals)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.SignalList.html#qiskit_dynamics.signals.SignalList">SignalList (class in qiskit_dynamics.signals)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel.signals">signals (GeneratorModel attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel.signals">(HamiltonianModel attribute)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.signals">(LindbladModel attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.signals.SignalSum.html#qiskit_dynamics.signals.SignalSum">SignalSum (class in qiskit_dynamics.signals)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.solvers.DysonSolver.solve.html#qiskit_dynamics.solvers.DysonSolver.solve">solve() (DysonSolver method)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.solvers.MagnusSolver.solve.html#qiskit_dynamics.solvers.MagnusSolver.solve">(MagnusSolver method)</a>
+</li>
+        <li><a href="stubs/qiskit_dynamics.solvers.Solver.solve.html#qiskit_dynamics.solvers.Solver.solve">(Solver method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.solvers.solve_lmde.html#qiskit_dynamics.solvers.solve_lmde">solve_lmde() (in module qiskit_dynamics.solvers)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html#qiskit_dynamics.perturbation.solve_lmde_perturbation">solve_lmde_perturbation() (in module qiskit_dynamics.perturbation)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.solvers.solve_ode.html#qiskit_dynamics.solvers.solve_ode">solve_ode() (in module qiskit_dynamics.solvers)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver">Solver (class in qiskit_dynamics.solvers)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal.start_time">start_time (DiscreteSignal attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.start_time">(DiscreteSignalSum attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.state_into_frame.html#qiskit_dynamics.models.RotatingFrame.state_into_frame">state_into_frame() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.state_into_frame_basis.html#qiskit_dynamics.models.RotatingFrame.state_into_frame_basis">state_into_frame_basis() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.state_out_of_frame.html#qiskit_dynamics.models.RotatingFrame.state_out_of_frame">state_out_of_frame() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.state_out_of_frame_basis.html#qiskit_dynamics.models.RotatingFrame.state_out_of_frame_basis">state_out_of_frame_basis() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.static_dissipators">static_dissipators (LindbladModel attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel.static_hamiltonian">static_hamiltonian (LindbladModel attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.GeneratorModel.html#qiskit_dynamics.models.GeneratorModel.static_operator">static_operator (GeneratorModel attribute)</a>
+
+      <ul>
+        <li><a href="stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel.static_operator">(HamiltonianModel attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.sum.html#qiskit_dynamics.perturbation.ArrayPolynomial.sum">sum() (ArrayPolynomial method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.target">target (DynamicsBackend attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.trace.html#qiskit_dynamics.perturbation.ArrayPolynomial.trace">trace() (ArrayPolynomial method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.perturbation.ArrayPolynomial.transpose.html#qiskit_dynamics.perturbation.ArrayPolynomial.transpose">transpose() (ArrayPolynomial method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame.vectorized_frame_basis">vectorized_frame_basis (RotatingFrame attribute)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame.vectorized_frame_basis_adjoint">vectorized_frame_basis_adjoint (RotatingFrame attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.models.RotatingFrame.vectorized_map_into_frame.html#qiskit_dynamics.models.RotatingFrame.vectorized_map_into_frame">vectorized_map_into_frame() (RotatingFrame method)</a>
+</li>
+      <li><a href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.version">version (DynamicsBackend attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="stubs/qiskit_dynamics.array.wrap.html#qiskit_dynamics.array.wrap">wrap() (in module qiskit_dynamics.array)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

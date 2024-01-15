@@ -1,0 +1,6 @@
+qiskit\_dynamics.perturbation.ArrayPolynomial.transpose
+=======================================================
+
+.. currentmodule:: qiskit_dynamics.perturbation
+
+.. automethod:: ArrayPolynomial.transpose

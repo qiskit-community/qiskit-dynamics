@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>ArrayPolynomial &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../apidocs/index.html">Qiskit Dynamics API Reference</a> &gt;</li>
+        
+          <li><a href="../apidocs/perturbation.html">Perturbation Theory (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.perturbation</span></code>)</a> &gt;</li>
+        
+      <li>ArrayPolynomial</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="arraypolynomial">
+<h1>ArrayPolynomial<a class="headerlink" href="#arraypolynomial" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_dynamics.perturbation.ArrayPolynomial">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ArrayPolynomial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constant_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_coefficients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monomial_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/perturbation/array_polynomial.html#ArrayPolynomial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.perturbation.ArrayPolynomial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A polynomial with array-valued coefficients.</p>
+<p>This class represents a multi-variable function of the form:</p>
+<div class="math notranslate nohighlight">
+\[f(c_1, \dots, c_r) = A_\emptyset + \sum_{I \in S} c_I A_I,\]</div>
+<p>where in the above:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(S\)</span> is a finite set of multisets
+indicating non-zero monomial terms,</p></li>
+<li><p>For a given multiset of non-negative integers <span class="math notranslate nohighlight">\(I=(i_1, \dots, i_k)\)</span>,
+<span class="math notranslate nohighlight">\(c_I = c_{i_1} \times \dots \times c_{i_k}\)</span>, and</p></li>
+<li><p>The <span class="math notranslate nohighlight">\(A_I\)</span> are arrays of the same shape, indexed by the first dimension.</p></li>
+</ul>
+</div></blockquote>
+<p>See the <a class="reference internal" href="../discussions/dyson_magnus.html#multiset-power-series"><span class="std std-ref">multiset and power series notation section</span></a>
+of the perturbation review for an explanation of the multiset notation.</p>
+<p>An <a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial" title="qiskit_dynamics.perturbation.ArrayPolynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a> is instantiated with the arguments:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">constant_term</span></code> specifying the array <span class="math notranslate nohighlight">\(A_\emptyset\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">array_coefficients</span></code> specifying a list of the arrays <span class="math notranslate nohighlight">\(A_I\)</span>, or as a single array
+whose first index lists the <span class="math notranslate nohighlight">\(A_I\)</span>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">monomial_labels</span></code> specifying the set <span class="math notranslate nohighlight">\(S\)</span> as a list of
+<code class="docutils literal notranslate"><span class="pre">Multiset</span></code> instances ordered in
+correspondence with <code class="docutils literal notranslate"><span class="pre">array_coefficients</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<p>For example, the <a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial" title="qiskit_dynamics.perturbation.ArrayPolynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a> corresponding to the mathematical polynomial</p>
+<div class="math notranslate nohighlight">
+\[f(c_0, c_1) = A_\emptyset
+    + c_{(0)} A_{(0)} + c_{(0, 1)}A_{(0, 1)} + c_{(1, 1)}A_{(1, 1)}\]</div>
+<p>for arrays <span class="math notranslate nohighlight">\(A_\emptyset, A_{(0)}, A_{(0, 1)}, A_{(1, 1)}\)</span> stored in variables
+<code class="docutils literal notranslate"><span class="pre">A_c</span></code>, <code class="docutils literal notranslate"><span class="pre">A0</span></code>, <code class="docutils literal notranslate"><span class="pre">A01</span></code>, and <code class="docutils literal notranslate"><span class="pre">A11</span></code> can be instantiated with</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ap</span> <span class="o">=</span> <span class="n">ArrayPolynomial</span><span class="p">(</span>
+    <span class="n">constant_term</span> <span class="o">=</span> <span class="n">A_c</span>
+    <span class="n">array_coefficients</span><span class="o">=</span><span class="p">[</span><span class="n">A0</span><span class="p">,</span> <span class="n">A01</span><span class="p">,</span> <span class="n">A11</span><span class="p">],</span>
+    <span class="n">monomial_labels</span><span class="o">=</span><span class="p">[</span><span class="n">Multiset</span><span class="p">({</span><span class="mi">0</span><span class="p">:</span> <span class="mi">1</span><span class="p">}),</span> <span class="n">Multiset</span><span class="p">({</span><span class="mi">0</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">}),</span> <span class="n">Multiset</span><span class="p">({</span><span class="mi">1</span><span class="p">:</span> <span class="mi">2</span><span class="p">})]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Once instantiated, the polynomial can be evaluated on an array of variable values, e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c0</span><span class="p">,</span> <span class="n">c1</span><span class="p">])</span>
+<span class="n">ap</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="c1"># polynomial evaluated on variables</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial" title="qiskit_dynamics.perturbation.ArrayPolynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a> supports some array properties, e.g. <code class="docutils literal notranslate"><span class="pre">ap.shape</span></code> and <code class="docutils literal notranslate"><span class="pre">ap.ndim</span></code>
+return the shape and number of dimensions of the output of the polynomial. Some array
+methods are also supported, such as <code class="docutils literal notranslate"><span class="pre">transpose</span></code> and <code class="docutils literal notranslate"><span class="pre">trace</span></code>, and their output produces
+a new <a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial" title="qiskit_dynamics.perturbation.ArrayPolynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a> which evaluates to the array one would obtain by first
+evaluating the original, then calling the array method. E.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ap2</span> <span class="o">=</span> <span class="n">ap1</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+<span class="n">ap2</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="n">ap1</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Finally, <a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial" title="qiskit_dynamics.perturbation.ArrayPolynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a> supports algebraic operations, e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ap3</span> <span class="o">=</span> <span class="n">ap1</span> <span class="o">@</span> <span class="n">ap2</span>
+<span class="n">ap3</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="n">ap1</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">@</span> <span class="n">ap2</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It also has specialized algebraic methods that perform algebraic operations while
+“ignoring” terms. E.g., for two instances <code class="docutils literal notranslate"><span class="pre">ap1</span></code> and <code class="docutils literal notranslate"><span class="pre">ap2</span></code>, the call</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ap1</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">ap2</span><span class="p">,</span> <span class="n">monomial_filter</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>is similar to <code class="docutils literal notranslate"><span class="pre">ap1</span> <span class="pre">&#64;</span> <span class="pre">ap2</span></code>, but will result in an <a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial" title="qiskit_dynamics.perturbation.ArrayPolynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a> in which all
+terms of degree larger than <code class="docutils literal notranslate"><span class="pre">3</span></code> will not be included in the results.</p>
+<p>Construct a multivariable matrix polynomial.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constant_term</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>]</span>) – An array representing the constant term of the polynomial.</p></li>
+<li><p><strong>array_coefficients</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>]</span>) – A 3d array representing a list of array coefficients.</p></li>
+<li><p><strong>monomial_labels</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Multiset</span></code>]]</span>) – A list of multisets with non-negative integer entries of the same
+length as <code class="docutils literal notranslate"><span class="pre">array_coefficients</span></code> indicating the monomial coefficient
+for each corresponding <code class="docutils literal notranslate"><span class="pre">array_coefficients</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>QiskitError</strong> – If insufficient information is supplied to define an ArrayPolynomial,
+    or if monomial labels contain anything other than non-negative integers.</p>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.perturbation.ArrayPolynomial.add.html#qiskit_dynamics.perturbation.ArrayPolynomial.add" title="qiskit_dynamics.perturbation.ArrayPolynomial.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></a></p></td>
+<td><p>Add two polynomials with bounds on which terms to keep.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.perturbation.ArrayPolynomial.compute_monomials.html#qiskit_dynamics.perturbation.ArrayPolynomial.compute_monomials" title="qiskit_dynamics.perturbation.ArrayPolynomial.compute_monomials"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_monomials</span></code></a></p></td>
+<td><p>Vectorized computation of all scalar monomial terms in the polynomial as specified by <code class="docutils literal notranslate"><span class="pre">self.monomial_labels</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.perturbation.ArrayPolynomial.conj.html#qiskit_dynamics.perturbation.ArrayPolynomial.conj" title="qiskit_dynamics.perturbation.ArrayPolynomial.conj"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conj</span></code></a></p></td>
+<td><p>Return an ArrayPolynomial that is the conjugate of self.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.perturbation.ArrayPolynomial.matmul.html#qiskit_dynamics.perturbation.ArrayPolynomial.matmul" title="qiskit_dynamics.perturbation.ArrayPolynomial.matmul"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matmul</span></code></a></p></td>
+<td><p>Matmul self &#64; other with bounds on which terms to keep.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.perturbation.ArrayPolynomial.mul.html#qiskit_dynamics.perturbation.ArrayPolynomial.mul" title="qiskit_dynamics.perturbation.ArrayPolynomial.mul"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mul</span></code></a></p></td>
+<td><p>Entrywise multiplication of two ArrayPolynomials with bounds on which terms to keep.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.perturbation.ArrayPolynomial.sum.html#qiskit_dynamics.perturbation.ArrayPolynomial.sum" title="qiskit_dynamics.perturbation.ArrayPolynomial.sum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sum</span></code></a></p></td>
+<td><p>Perform a sum on the coefficients.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qiskit_dynamics.perturbation.ArrayPolynomial.trace.html#qiskit_dynamics.perturbation.ArrayPolynomial.trace" title="qiskit_dynamics.perturbation.ArrayPolynomial.trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace</span></code></a></p></td>
+<td><p>Take the trace of the coefficients.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qiskit_dynamics.perturbation.ArrayPolynomial.transpose.html#qiskit_dynamics.perturbation.ArrayPolynomial.transpose" title="qiskit_dynamics.perturbation.ArrayPolynomial.transpose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transpose</span></code></a></p></td>
+<td><p>Return the ArrayPolynomial when transposing all coefficients.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.perturbation.ArrayPolynomial.array_coefficients">
+<span class="sig-name descname"><span class="pre">array_coefficients</span></span><a class="headerlink" href="#qiskit_dynamics.perturbation.ArrayPolynomial.array_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>The array coefficients for non-constant terms.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.perturbation.ArrayPolynomial.constant_term">
+<span class="sig-name descname"><span class="pre">constant_term</span></span><a class="headerlink" href="#qiskit_dynamics.perturbation.ArrayPolynomial.constant_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>The constant term.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.perturbation.ArrayPolynomial.monomial_labels">
+<span class="sig-name descname"><span class="pre">monomial_labels</span></span><a class="headerlink" href="#qiskit_dynamics.perturbation.ArrayPolynomial.monomial_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>The monomial labels corresponding to non-constant terms.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.perturbation.ArrayPolynomial.ndim">
+<span class="sig-name descname"><span class="pre">ndim</span></span><a class="headerlink" href="#qiskit_dynamics.perturbation.ArrayPolynomial.ndim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dimensions of the coefficients of the polynomial.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.perturbation.ArrayPolynomial.real">
+<span class="sig-name descname"><span class="pre">real</span></span><a class="headerlink" href="#qiskit_dynamics.perturbation.ArrayPolynomial.real" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the real part of self.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.perturbation.ArrayPolynomial.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#qiskit_dynamics.perturbation.ArrayPolynomial.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape of the arrays in the polynomial.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="qiskit_dynamics.perturbation.ArrayPolynomial.add.html" class="btn btn-neutral float-right" title="qiskit_dynamics.perturbation.ArrayPolynomial.add" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="qiskit_dynamics.perturbation.solve_lmde_perturbation.html" class="btn btn-neutral" title="qiskit_dynamics.perturbation.solve_lmde_perturbation" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">ArrayPolynomial</a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial"><code class="docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial.array_coefficients"><code class="docutils literal notranslate"><span class="pre">ArrayPolynomial.array_coefficients</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial.constant_term"><code class="docutils literal notranslate"><span class="pre">ArrayPolynomial.constant_term</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial.monomial_labels"><code class="docutils literal notranslate"><span class="pre">ArrayPolynomial.monomial_labels</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial.ndim"><code class="docutils literal notranslate"><span class="pre">ArrayPolynomial.ndim</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial.real"><code class="docutils literal notranslate"><span class="pre">ArrayPolynomial.real</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.perturbation.ArrayPolynomial.shape"><code class="docutils literal notranslate"><span class="pre">ArrayPolynomial.shape</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

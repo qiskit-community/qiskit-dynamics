@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.backend.backend_string_parser.hamiltonian_string_parser &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/gallery.css" type="text/css" /><script src="../../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.backend.backend_string_parser.hamiltonian_string_parser</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.backend.backend_string_parser.hamiltonian_string_parser</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2022.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functionality for importing qiskit.pulse model string representation.</span>
+
+<span class="sd">This file is meant for internal use and may be changed at any point.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="c1"># required for calls to exec</span>
+<span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+
+<span class="kn">from</span> <span class="nn">.regex_parser</span> <span class="kn">import</span> <span class="n">_regex_parser</span>
+
+
+<span class="c1"># valid channel characters</span>
+<span class="n">CHANNEL_CHARS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;U&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="parse_backend_hamiltonian_dict"><a class="viewcode-back" href="../../../../stubs/qiskit_dynamics.backend.parse_backend_hamiltonian_dict.html#qiskit_dynamics.backend.parse_backend_hamiltonian_dict">[docs]</a><span class="k">def</span> <span class="nf">parse_backend_hamiltonian_dict</span><span class="p">(</span>
+    <span class="n">hamiltonian_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">subsystem_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Convert Pulse backend Hamiltonian dictionary into concrete array format</span>
+<span class="sd">    with an ordered list of corresponding channels.</span>
+
+<span class="sd">    The Pulse backend Hamiltonian dictionary, ``hamiltonian_dict``, must have the</span>
+<span class="sd">    following keys:</span>
+
+<span class="sd">    * ``&#39;h_str&#39;``: List of Hamiltonian terms in string format (see below).</span>
+<span class="sd">    * ``&#39;qub&#39;``: Dictionary giving subsystem dimensions. Keys are subsystem labels,</span>
+<span class="sd">      values are their dimensions.</span>
+<span class="sd">    * ``&#39;vars&#39;``: Dictionary whose keys are the variables appearing in the terms in</span>
+<span class="sd">      the ``h_str`` list, and values being the numerical values of the variables.</span>
+
+<span class="sd">    The optional argument ``subsystem_list`` specifies a subset of subsystems to keep when parsing.</span>
+<span class="sd">    If ``None``, all subsystems are kept. If ``subsystem_list`` is specified, then terms</span>
+<span class="sd">    including subsystems not in the list will be ignored.</span>
+
+<span class="sd">    Entries in the list ``hamiltonian_dict[&#39;h_str&#39;]`` must be formatted as a product of</span>
+<span class="sd">    constants (either numerical constants or variables in ``hamiltonian_dict[&#39;vars&#39;].keys()``)</span>
+<span class="sd">    with operators. Operators are indicated with a capital letters followed by an integer</span>
+<span class="sd">    indicating the subsystem the operator acts on. Accepted operator strings are:</span>
+
+<span class="sd">    * ``&#39;X&#39;``: If the target subsystem is two dimensional, the</span>
+<span class="sd">      Pauli :math:`X` operator, and if greater than two dimensional, returns</span>
+<span class="sd">      :math:`a + a^\dagger`, where :math:`a` and :math:`a^\dagger` are the</span>
+<span class="sd">      annihiliation and creation operators, respectively.</span>
+<span class="sd">    * ``&#39;Y&#39;``: If the target subsystem is two dimensional, the</span>
+<span class="sd">      Pauli :math:`Y` operator, and if greater than two dimensional, returns</span>
+<span class="sd">      :math:`-i(a - a^\dagger)`, where :math:`a` and :math:`a^\dagger` are the</span>
+<span class="sd">      annihiliation and creation operators, respectively.</span>
+<span class="sd">    * ``&#39;Z&#39;``: If the target subsystem is two dimensional, the</span>
+<span class="sd">      Pauli :math:`Z` operator, and if greater than two dimensional, returns</span>
+<span class="sd">      :math:`I - 2 * N`, where :math:`N` is the number operator.</span>
+<span class="sd">    * ``&#39;a&#39;``, ``&#39;A&#39;``, or ``&#39;Sm&#39;``: If two dimensional, the sigma minus operator, and if greater,</span>
+<span class="sd">      generalizes to the operator.</span>
+<span class="sd">    * ``&#39;C&#39;``, or ``&#39;Sp&#39;``: If two dimensional, sigma plus operator, and if greater,</span>
+<span class="sd">      generalizes to the creation operator.</span>
+<span class="sd">    * ``&#39;N&#39;``, or ``&#39;O&#39;``: The number operator.</span>
+<span class="sd">    * ``&#39;I&#39;``: The identity operator.</span>
+
+<span class="sd">    In addition to the above, a term in ``hamiltonian_dict[&#39;h_str&#39;]`` can be associated with</span>
+<span class="sd">    a channel by ending it with a string of the form ``&#39;||Sxx&#39;``, where ``S`` is a valid channel</span>
+<span class="sd">    label, and ``&#39;xx&#39;`` is an integer. Accepted channel labels are:</span>
+
+<span class="sd">    * ``&#39;D&#39;`` or ``&#39;d&#39;`` for drive channels.</span>
+<span class="sd">    * ``&#39;U&#39;`` or ``&#39;u&#39;`` for control channels.</span>
+<span class="sd">    * ``&#39;M&#39;`` or ``&#39;m&#39;`` for measurement channels.</span>
+<span class="sd">    * ``&#39;A&#39;`` or ``&#39;a&#39;`` for acquire channels.</span>
+
+<span class="sd">    Finally, summations of terms of the above form can be indicated in</span>
+<span class="sd">    ``hamiltonian_dict[&#39;h_str&#39;]`` via strings with syntax ``&#39;_SUM[i, lb, ub, aa||S{i}]&#39;``,</span>
+<span class="sd">    where:</span>
+
+<span class="sd">    * ``i`` is the summation variable.</span>
+<span class="sd">    * ``lb`` and ``ub`` are the summation endpoints (inclusive).</span>
+<span class="sd">    * ``aa`` is a valid operator string, possibly including the string ``{i}`` to indicate</span>
+<span class="sd">      operators acting on subsystem ``i``.</span>
+<span class="sd">    * ``S{i}`` is the specification of a channel indexed by ``i``.</span>
+
+
+<span class="sd">    For example, the following ``hamiltonian_dict`` specifies a single</span>
+<span class="sd">    transmon with 4 levels:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        hamiltonian_dict = {</span>
+<span class="sd">            &quot;h_str&quot;: [&quot;v*np.pi*O0&quot;, &quot;alpha*np.pi*O0*O0&quot;, &quot;r*np.pi*X0||D0&quot;],</span>
+<span class="sd">            &quot;qub&quot;: {&quot;0&quot;: 4},</span>
+<span class="sd">            &quot;vars&quot;: {&quot;v&quot;: 2.1, &quot;alpha&quot;: -0.33, &quot;r&quot;: 0.02},</span>
+<span class="sd">        }</span>
+
+<span class="sd">    The following example specifies a two transmon system, with single system terms specified</span>
+<span class="sd">    using the summation format:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        hamiltonian_dict = {</span>
+<span class="sd">            &quot;h_str&quot;: [</span>
+<span class="sd">                &quot;_SUM[i,0,1,wq{i}/2*(I{i}-Z{i})]&quot;,</span>
+<span class="sd">                &quot;_SUM[i,0,1,delta{i}/2*O{i}*O{i}]&quot;,</span>
+<span class="sd">                &quot;_SUM[i,0,1,-delta{i}/2*O{i}]&quot;,</span>
+<span class="sd">                &quot;_SUM[i,0,1,omegad{i}*X{i}||D{i}]&quot;,</span>
+<span class="sd">                &quot;jq0q1*Sp0*Sm1&quot;,</span>
+<span class="sd">                &quot;jq0q1*Sm0*Sp1&quot;,</span>
+<span class="sd">                &quot;omegad1*X0||U0&quot;,</span>
+<span class="sd">                &quot;omegad0*X1||U1&quot;</span>
+<span class="sd">            ],</span>
+<span class="sd">            &quot;qub&quot;: {&quot;0&quot;: 4, &quot;1&quot;: 4},</span>
+<span class="sd">            &quot;vars&quot;: {</span>
+<span class="sd">                &quot;delta0&quot;: -2.111793476400394,</span>
+<span class="sd">                &quot;delta1&quot;: -2.0894421352015744,</span>
+<span class="sd">                &quot;jq0q1&quot;: 0.010495754104003914,</span>
+<span class="sd">                &quot;omegad0&quot;: 0.9715458990879812,</span>
+<span class="sd">                &quot;omegad1&quot;: 0.9803812537440838,</span>
+<span class="sd">                &quot;wq0&quot;: 32.517894442809514,</span>
+<span class="sd">                &quot;wq1&quot;: 33.0948996120196,</span>
+<span class="sd">            },</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        hamiltonian_dict: Pulse backend Hamiltonian dictionary.</span>
+<span class="sd">        subsystem_list: List of subsystems to include in the model. If ``None`` all are kept.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple: Model converted into concrete arrays - the static Hamiltonian,</span>
+<span class="sd">        a list of Hamiltonians corresponding to different channels, a list of</span>
+<span class="sd">        channel labels corresponding to the list of time-dependent Hamiltonians,</span>
+<span class="sd">        and a dictionary with subsystem dimensions whose keys are the subsystem labels.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># raise errors for invalid hamiltonian_dict</span>
+    <span class="n">_hamiltonian_pre_parse_exceptions</span><span class="p">(</span><span class="n">hamiltonian_dict</span><span class="p">)</span>
+
+    <span class="c1"># get variables</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s2">&quot;vars&quot;</span> <span class="ow">in</span> <span class="n">hamiltonian_dict</span><span class="p">:</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">hamiltonian_dict</span><span class="p">[</span><span class="s2">&quot;vars&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Get qubit subspace dimensions</span>
+    <span class="k">if</span> <span class="n">subsystem_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">subsystem_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">hamiltonian_dict</span><span class="p">[</span><span class="s2">&quot;qub&quot;</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># if user supplied, make a copy and sort it</span>
+        <span class="n">subsystem_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">subsystem_list</span><span class="p">)</span>
+
+    <span class="c1"># force keys in hamiltonian[&#39;qub&#39;] to be ints</span>
+    <span class="n">qub_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">hamiltonian_dict</span><span class="p">[</span><span class="s2">&quot;qub&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">subsystem_dims_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">qubit</span><span class="p">):</span> <span class="n">qub_dict</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">qubit</span><span class="p">)]</span> <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">subsystem_list</span><span class="p">}</span>
+
+    <span class="c1"># Parse the Hamiltonian</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">_regex_parser</span><span class="p">(</span>
+        <span class="n">operator_str</span><span class="o">=</span><span class="n">hamiltonian_dict</span><span class="p">[</span><span class="s2">&quot;h_str&quot;</span><span class="p">],</span>
+        <span class="n">subsystem_dims_dict</span><span class="o">=</span><span class="n">subsystem_dims_dict</span><span class="p">,</span>
+        <span class="n">subsystem_list</span><span class="o">=</span><span class="n">subsystem_list</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Extract which channels are associated with which Hamiltonian terms.</span>
+    <span class="c1"># Assumes one channel appearing in each term appearing at the end.</span>
+    <span class="n">channels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">ham_str</span> <span class="ow">in</span> <span class="n">system</span><span class="p">:</span>
+        <span class="n">chan_idx</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">CHANNEL_CHARS</span><span class="p">:</span>
+            <span class="c1"># if c in ham_str, and all characters after are digits, treat</span>
+            <span class="c1"># as channel</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ham_str</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ham_str</span><span class="p">[</span><span class="n">ham_str</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]):</span>
+                    <span class="n">chan_idx</span> <span class="o">=</span> <span class="n">ham_str</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">chan_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ham_str</span><span class="p">[</span><span class="n">chan_idx</span><span class="p">:])</span>
+
+    <span class="c1"># evaluate coefficients</span>
+    <span class="n">local_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">chan</span><span class="p">:</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span> <span class="k">if</span> <span class="n">chan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">local_vars</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+
+    <span class="n">evaluated_ops</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">op</span><span class="p">,</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="n">system</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=exec-used</span>
+        <span class="n">exec</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;evaluated_coeff = </span><span class="si">{</span><span class="n">coeff</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="n">local_vars</span><span class="p">)</span>
+        <span class="n">evaluated_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_vars</span><span class="p">[</span><span class="s2">&quot;evaluated_coeff&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">op</span><span class="p">)</span>
+
+    <span class="c1"># merge terms based on channel</span>
+    <span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">hamiltonian_operators</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">reduced_channels</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">channel</span><span class="p">,</span> <span class="n">op</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">evaluated_ops</span><span class="p">):</span>
+        <span class="c1"># if None, add it to the static hamiltonian</span>
+        <span class="k">if</span> <span class="n">channel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">static_hamiltonian</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="n">op</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">static_hamiltonian</span> <span class="o">+=</span> <span class="n">op</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">reduced_channels</span><span class="p">:</span>
+                <span class="n">hamiltonian_operators</span><span class="p">[</span><span class="n">reduced_channels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">channel</span><span class="p">)]</span> <span class="o">+=</span> <span class="n">op</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hamiltonian_operators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+                <span class="n">reduced_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+    <span class="c1"># sort channels/operators according to channel ordering</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reduced_channels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">reduced_channels</span><span class="p">,</span> <span class="n">hamiltonian_operators</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">reduced_channels</span><span class="p">,</span> <span class="n">hamiltonian_operators</span><span class="p">))</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">static_hamiltonian</span><span class="p">,</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">hamiltonian_operators</span><span class="p">),</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">reduced_channels</span><span class="p">),</span>
+        <span class="n">subsystem_dims_dict</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_hamiltonian_pre_parse_exceptions</span><span class="p">(</span><span class="n">hamiltonian_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raises exceptions for improperly formatted or unsupported elements of</span>
+<span class="sd">    hamiltonian dict specification.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        hamiltonian_dict: Dictionary specification of hamiltonian.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: If some part of the Hamiltonian dictionary is unsupported or invalid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ham_str</span> <span class="o">=</span> <span class="n">hamiltonian_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;h_str&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">if</span> <span class="n">ham_str</span> <span class="ow">in</span> <span class="p">([],</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Hamiltonian dict requires a non-empty &#39;h_str&#39; entry.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">hamiltonian_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;qub&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="o">==</span> <span class="p">{}:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+            <span class="s2">&quot;Hamiltonian dict requires non-empty &#39;qub&#39; entry with subsystem dimensions.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">hamiltonian_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;osc&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="o">!=</span> <span class="p">{}:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Oscillator-type systems are not supported.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># verify that if terms in h_str have the divider ||, then the channels are in the valid format</span>
+    <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">hamiltonian_dict</span><span class="p">[</span><span class="s2">&quot;h_str&quot;</span><span class="p">]:</span>
+        <span class="n">malformed_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Term &#39;</span><span class="si">{</span><span class="n">term</span><span class="si">}</span><span class="s2">&#39; does not conform to required string format.</span>
+<span class="s2">                            Channels may only be specified in the format</span>
+<span class="s2">                            &#39;aa||Cxx&#39;, where &#39;aa&#39; specifies an operator,</span>
+<span class="s2">                            C is a valid channel character,</span>
+<span class="s2">                            and &#39;xx&#39; is a string of digits.&quot;&quot;&quot;</span>
+
+        <span class="c1"># if two vertical bars used together, check if channels in correct format</span>
+        <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">term</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;||&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># get the string reserved for channel</span>
+            <span class="n">channel_str</span> <span class="o">=</span> <span class="n">term</span><span class="p">[</span><span class="n">term</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;||&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:]</span>
+
+            <span class="c1"># if channel string is empty</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">channel_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="n">malformed_text</span><span class="p">)</span>
+
+            <span class="c1"># if first entry in channel string isn&#39;t a valid channel character</span>
+            <span class="k">if</span> <span class="n">channel_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">CHANNEL_CHARS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="n">malformed_text</span><span class="p">)</span>
+
+            <span class="c1"># Verify either that: all remaining characters are digits, or,</span>
+            <span class="c1"># if term starts with _SUM[ and ends with ], all remaining characters</span>
+            <span class="c1"># are either digits, or starts and ends with {}</span>
+            <span class="k">if</span> <span class="n">term</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;]&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">term</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="ow">and</span> <span class="n">term</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_SUM[&quot;</span><span class="p">:</span>
+                <span class="c1"># drop the closing ]</span>
+                <span class="n">channel_str</span> <span class="o">=</span> <span class="n">channel_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="c1"># if channel string doesn&#39;t contain anything other than channel character</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">channel_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="n">malformed_text</span><span class="p">)</span>
+
+                <span class="c1"># if starts with opening bracket, verify that it ends with closing bracket</span>
+                <span class="k">if</span> <span class="n">channel_str</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;{&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">channel_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;}&quot;</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="n">malformed_text</span><span class="p">)</span>
+                <span class="c1"># otherwise verify that the remainder of terms only contains digits</span>
+                <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">channel_str</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="n">malformed_text</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># if channel string doesn&#39;t contain anything other than channel character</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">channel_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="n">malformed_text</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">channel_str</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="n">malformed_text</span><span class="p">)</span>
+
+        <span class="c1"># if bars present but not in correct format, raise error</span>
+        <span class="k">elif</span> <span class="n">term</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="n">malformed_text</span><span class="p">)</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

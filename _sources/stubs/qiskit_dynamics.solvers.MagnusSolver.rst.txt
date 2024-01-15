@@ -1,0 +1,22 @@
+﻿MagnusSolver
+============
+
+.. currentmodule:: qiskit_dynamics.solvers
+
+.. autoclass:: MagnusSolver
+   :no-members:
+   :show-inheritance:
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      :toctree: ../stubs/
+
+      ~MagnusSolver.solve
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: model

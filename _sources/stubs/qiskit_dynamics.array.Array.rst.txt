@@ -1,0 +1,25 @@
+﻿Array
+=====
+
+.. currentmodule:: qiskit_dynamics.array
+
+.. autoclass:: Array
+   :no-members:
+   :show-inheritance:
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      :toctree: ../stubs/
+
+      ~Array.available_backends
+      ~Array.default_backend
+      ~Array.set_default_backend
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: backend
+   .. autoattribute:: data

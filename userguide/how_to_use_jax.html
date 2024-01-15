@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>How-to use JAX with qiskit-dynamics &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Qiskit Dynamics User Guide</a> &gt;</li>
+        
+      <li>How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="how-to-use-jax-with-qiskit-dynamics">
+<span id="how-to-use-jax"></span><h1>How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code><a class="headerlink" href="#how-to-use-jax-with-qiskit-dynamics" title="Permalink to this heading">¶</a></h1>
+<p>JAX enables just-in-time compilation, automatic differentation, and GPU
+execution. JAX is integrated into <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code> via the
+<a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> class, which allows most parts of the package to be
+executed with either <code class="docutils literal notranslate"><span class="pre">numpy</span></code> or <code class="docutils literal notranslate"><span class="pre">jax.numpy</span></code>.</p>
+<p>This guide addresses the following topics:</p>
+<ol class="arabic simple">
+<li><p>How do I configure dynamics to run with JAX?</p></li>
+<li><p>How do I write code using dispatch that can be executed with either
+<code class="docutils literal notranslate"><span class="pre">numpy</span></code> or JAX?</p></li>
+<li><p>How do I write JAX-transformable functions using the objects and
+functions in <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>?</p></li>
+<li><p>Gotchas when using JAX with dynamics.</p></li>
+</ol>
+<section id="how-do-i-configure-dynamics-to-run-with-jax">
+<h2>1. How do I configure dynamics to run with JAX?<a class="headerlink" href="#how-do-i-configure-dynamics-to-run-with-jax" title="Permalink to this heading">¶</a></h2>
+<p>The <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> class provides a means of controlling whether array
+operations are performed using <code class="docutils literal notranslate"><span class="pre">numpy</span></code> or <code class="docutils literal notranslate"><span class="pre">jax.numpy</span></code>. In many
+cases, the “default backend” is used to determine which of the two
+options is used.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># configure jax to use 64 bit mode</span>
+<span class="kn">import</span> <span class="nn">jax</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># tell JAX we are using CPU</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s1">&#39;jax_platform_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+
+<span class="c1"># import Array and set default backend</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="n">Array</span><span class="o">.</span><span class="n">set_default_backend</span><span class="p">(</span><span class="s1">&#39;jax&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>The default backend can be observed via:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>&#39;jax&#39;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="how-do-i-write-code-using-array-that-can-be-executed-with-either-numpy-or-jax">
+<h2>2. How do I write code using Array that can be executed with either <code class="docutils literal notranslate"><span class="pre">numpy</span></code> or JAX?<a class="headerlink" href="#how-do-i-write-code-using-array-that-can-be-executed-with-either-numpy-or-jax" title="Permalink to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Array</span></code> class wraps both <code class="docutils literal notranslate"><span class="pre">numpy</span></code> and <code class="docutils literal notranslate"><span class="pre">jax.numpy</span></code>
+arrays. The particular type is indicated by the <code class="docutils literal notranslate"><span class="pre">backend</span></code> property,
+and <code class="docutils literal notranslate"><span class="pre">numpy</span></code> functions called on an <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> will automatically be
+dispatched to <code class="docutils literal notranslate"><span class="pre">numpy</span></code> or <code class="docutils literal notranslate"><span class="pre">jax.numpy</span></code> based on the <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>’s
+backend. See the API documentation for <code class="docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code> for
+details.</p>
+</section>
+<section id="how-do-i-write-jax-transformable-functions-using-the-objects-and-functions-in-qiskit-dynamics">
+<h2>3. How do I write JAX-transformable functions using the objects and functions in <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>?<a class="headerlink" href="#how-do-i-write-jax-transformable-functions-using-the-objects-and-functions-in-qiskit-dynamics" title="Permalink to this heading">¶</a></h2>
+<p>JAX-transformable functions must be:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>JAX-executable.</p></li>
+<li><p>Take JAX arrays as input and output (see the
+<a class="reference external" href="https://jax.readthedocs.io/en/latest/">JAX documentation</a>
+for more details on accepted input and output types).</p></li>
+<li><p>Pure, in the sense that they have no side-effects.</p></li>
+</ul>
+</div></blockquote>
+<p>The previous section shows how to handle the first two points using
+<a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>. The last point further restricts the type of
+code that can be safely transformed. Qiskit Dynamics uses various objects which
+can be updated by setting properties (models, solvers). If a function to
+be transformed requires updating an already-constructed object of this
+form, it is necessary to first make a <em>copy</em>.</p>
+<p>We demonstrate this process for both just-in-time compilation and
+automatic differentiation in the context of an anticipated common
+use-case: parameterized simulation of a model of a quantum system.</p>
+<section id="just-in-time-compiling-a-parameterized-simulation">
+<h3>3.1 Just-in-time compiling a parameterized simulation<a class="headerlink" href="#just-in-time-compiling-a-parameterized-simulation" title="Permalink to this heading">¶</a></h3>
+<p>“Just-in-time compiling” a function means to compile it at run time. Just-in-time compilation
+incurs an initial cost associated with the construction of the compiled function,
+but subsequent calls to the function will generally be faster than the uncompiled version.
+In JAX, just-in-time compilation is performed using the <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> function,
+which transforms a JAX-compatible function into optimized code using
+<a class="reference external" href="https://www.tensorflow.org/xla">XLA</a>. We demonstrate here how, using the JAX backend,
+functions built using Qiskit Dynamics can be
+just-in-time compiled, resulting in faster simulation times.</p>
+<p>For convenience, the <code class="docutils literal notranslate"><span class="pre">wrap</span></code> function can be used to transform
+<code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> to also work on functions that have <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> objects as
+inputs and outputs.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">wrap</span>
+
+<span class="n">jit</span> <span class="o">=</span> <span class="n">wrap</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">,</span> <span class="n">decorator</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Construct a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance with a model that will be used to solve.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">Signal</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+
+<span class="n">r</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">w</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">)</span>
+
+<span class="n">static_hamiltonian</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">w</span> <span class="o">*</span> <span class="n">Z</span><span class="o">/</span><span class="mi">2</span>
+<span class="n">hamiltonian_operators</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">X</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
+    <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
+    <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">hamiltonian_operators</span><span class="p">,</span>
+    <span class="n">rotating_frame</span><span class="o">=</span><span class="n">static_hamiltonian</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Next, define the function to be compiled:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The input is the amplitude of a constant-envelope signal on resonance, driven over time
+<span class="math notranslate nohighlight">\([0, 3]\)</span>.</p></li>
+<li><p>The output is the state of the system, starting in the ground state, at
+<code class="docutils literal notranslate"><span class="pre">100</span></code> points over the total evolution time.</p></li>
+</ul>
+</div></blockquote>
+<p>Note, as described at the beginning of this section, we need to make a copy of <code class="docutils literal notranslate"><span class="pre">solver</span></code>
+before setting the signals, to ensure the simulation function remains pure.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sim_function</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+
+    <span class="c1"># define a constant signal</span>
+    <span class="n">amp</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+    <span class="n">signals</span> <span class="o">=</span> <span class="p">[</span><span class="n">Signal</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">w</span><span class="p">)]</span>
+
+    <span class="c1"># simulate and return results</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+        <span class="n">t_span</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">],</span>
+        <span class="n">y0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+        <span class="n">signals</span><span class="o">=</span><span class="n">signals</span><span class="p">,</span>
+        <span class="n">t_eval</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+        <span class="n">method</span><span class="o">=</span><span class="s1">&#39;jax_odeint&#39;</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results</span><span class="o">.</span><span class="n">y</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Compile the function.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fast_sim</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">sim_function</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>The first time the function is called, JAX will compile an
+<a class="reference external" href="https://www.tensorflow.org/xla">XLA</a> version of the function, which is then executed.
+Hence, the time taken on the first call <em>includes</em> compilation time.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> ys = fast_sim(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 721 ms, sys: 16.3 ms, total: 737 ms
+Wall time: 725 ms
+</pre></div>
+</div>
+</div>
+</div>
+<p>On subsequent calls the compiled function is directly executed,
+demonstrating the true speed of the compiled function.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">timeit</span> fast_sim(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>127 µs ± 249 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+</pre></div>
+</div>
+</div>
+</div>
+<p>We use this function to plot the <span class="math notranslate nohighlight">\(Z\)</span> expectation value over a
+range of input amplitudes.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="k">for</span> <span class="n">amp</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="n">fast_sim</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ys</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ys</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/how_to_use_jax_8_0.png" src="../_images/how_to_use_jax_8_0.png" />
+</div>
+</div>
+</section>
+<section id="automatically-differentiating-a-parameterized-simulation">
+<h3>3.2 Automatically differentiating a parameterized simulation<a class="headerlink" href="#automatically-differentiating-a-parameterized-simulation" title="Permalink to this heading">¶</a></h3>
+<p>Next, we use <code class="docutils literal notranslate"><span class="pre">jax.grad</span></code> to automatically differentiate a parameterized
+simulation. In this case, <code class="docutils literal notranslate"><span class="pre">jax.grad</span></code> requires that the output be a
+real number, so we specifically compute the population in the excited
+state at the end of the previous simulation</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">excited_state_pop</span><span class="p">(</span><span class="n">amp</span><span class="p">):</span>
+    <span class="n">yf</span> <span class="o">=</span> <span class="n">sim_function</span><span class="p">(</span><span class="n">amp</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">yf</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="o">**</span><span class="mi">2</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Wrap <code class="docutils literal notranslate"><span class="pre">jax.grad</span></code> in the same way, then differentiate and compile
+<code class="docutils literal notranslate"><span class="pre">excited_state_pop</span></code>.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">grad</span> <span class="o">=</span> <span class="n">wrap</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">decorator</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">excited_pop_grad</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">excited_state_pop</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>As before, the first execution includes compilation time.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">time</span> excited_pop_grad(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.77 s, sys: 16.4 ms, total: 1.79 s
+Wall time: 1.77 s
+</pre></div>
+</div>
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Array(-2.33674306)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Subsequent runs of the function reveal the execution time once compiled.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">timeit</span> excited_pop_grad(1.).block_until_ready()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>727 µs ± 8.32 µs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="pitfalls-when-using-jax-with-dynamics">
+<h2>4. Pitfalls when using JAX with Dynamics<a class="headerlink" href="#pitfalls-when-using-jax-with-dynamics" title="Permalink to this heading">¶</a></h2>
+<section id="jax-must-be-set-as-the-default-backend-before-building-any-objects-in-qiskit-dynamics">
+<h3>4.1 JAX must be set as the default backend before building any objects in Qiskit Dynamics<a class="headerlink" href="#jax-must-be-set-as-the-default-backend-before-building-any-objects-in-qiskit-dynamics" title="Permalink to this heading">¶</a></h3>
+<p>To get dynamics to run with JAX, it is necessary to configure dynamics
+to run with JAX <em>before</em> building any objects or running any functions.
+The internal behaviour of some objects is modified by what the default
+backend is <em>at the time of instantiation</em>. For example, at instantiation
+the operators in a model or <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance will be wrapped in an
+<a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> whose backend is the current default backend, and changing the
+default backend after building the object won’t change this.</p>
+</section>
+<section id="running-dynamics-with-jax-on-cpu-vs-gpu">
+<h3>4.2 Running Dynamics with JAX on CPU vs GPU<a class="headerlink" href="#running-dynamics-with-jax-on-cpu-vs-gpu" title="Permalink to this heading">¶</a></h3>
+<p>Certain JAX-based features in Dynamics are primarily recommended for use only with CPU
+or only with GPU. In such cases, a warning is raised if non-recommended hardware is used,
+however users are not prevented from configuring Dynamics and JAX in whatever way they choose.</p>
+<dl class="simple">
+<dt>Instances of such features are:</dt><dd><ul class="simple">
+<li><p>Setting <code class="docutils literal notranslate"><span class="pre">evaluation_mode='sparse'</span></code> for solvers and models is only recommended for use on CPU.</p></li>
+<li><p>Parallel fixed step solver options in <code class="docutils literal notranslate"><span class="pre">solve_lmde</span></code> are recommended only for use on GPU.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="how_to_configure_simulations.html" class="btn btn-neutral float-right" title="How-to customize simulations using model transformations and evaluation modes" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="index.html" class="btn btn-neutral" title="Qiskit Dynamics User Guide" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a><ul>
+<li><a class="reference internal" href="#how-do-i-configure-dynamics-to-run-with-jax">1. How do I configure dynamics to run with JAX?</a></li>
+<li><a class="reference internal" href="#how-do-i-write-code-using-array-that-can-be-executed-with-either-numpy-or-jax">2. How do I write code using Array that can be executed with either <code class="docutils literal notranslate"><span class="pre">numpy</span></code> or JAX?</a></li>
+<li><a class="reference internal" href="#how-do-i-write-jax-transformable-functions-using-the-objects-and-functions-in-qiskit-dynamics">3. How do I write JAX-transformable functions using the objects and functions in <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>?</a><ul>
+<li><a class="reference internal" href="#just-in-time-compiling-a-parameterized-simulation">3.1 Just-in-time compiling a parameterized simulation</a></li>
+<li><a class="reference internal" href="#automatically-differentiating-a-parameterized-simulation">3.2 Automatically differentiating a parameterized simulation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pitfalls-when-using-jax-with-dynamics">4. Pitfalls when using JAX with Dynamics</a><ul>
+<li><a class="reference internal" href="#jax-must-be-set-as-the-default-backend-before-building-any-objects-in-qiskit-dynamics">4.1 JAX must be set as the default backend before building any objects in Qiskit Dynamics</a></li>
+<li><a class="reference internal" href="#running-dynamics-with-jax-on-cpu-vs-gpu">4.2 Running Dynamics with JAX on CPU vs GPU</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

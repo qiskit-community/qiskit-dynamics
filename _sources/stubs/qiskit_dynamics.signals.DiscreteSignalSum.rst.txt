@@ -1,0 +1,37 @@
+﻿DiscreteSignalSum
+=================
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. autoclass:: DiscreteSignalSum
+   :no-members:
+   :show-inheritance:
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      :toctree: ../stubs/
+
+      ~DiscreteSignalSum.add_samples
+      ~DiscreteSignalSum.complex_value
+      ~DiscreteSignalSum.conjugate
+      ~DiscreteSignalSum.draw
+      ~DiscreteSignalSum.envelope
+      ~DiscreteSignalSum.flatten
+      ~DiscreteSignalSum.from_Signal
+      ~DiscreteSignalSum.from_SignalSum
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: carrier_freq
+   .. autoattribute:: components
+   .. autoattribute:: dt
+   .. autoattribute:: duration
+   .. autoattribute:: is_constant
+   .. autoattribute:: name
+   .. autoattribute:: phase
+   .. autoattribute:: samples
+   .. autoattribute:: start_time

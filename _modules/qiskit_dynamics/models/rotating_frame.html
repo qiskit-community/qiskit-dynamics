@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.models.rotating_frame &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.models.rotating_frame</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.models.rotating_frame</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2021.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module for rotating frame handling classes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">issparse</span><span class="p">,</span> <span class="n">csr_matrix</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators</span> <span class="kn">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.predicates</span> <span class="kn">import</span> <span class="n">is_hermitian_matrix</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.type_utils</span> <span class="kn">import</span> <span class="n">to_array</span><span class="p">,</span> <span class="n">to_BCOO</span><span class="p">,</span> <span class="n">to_numeric_matrix_type</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+    <span class="kn">from</span> <span class="nn">jax.experimental</span> <span class="kn">import</span> <span class="n">sparse</span> <span class="k">as</span> <span class="n">jsparse</span>
+
+    <span class="n">jsparse_matmul</span> <span class="o">=</span> <span class="n">jsparse</span><span class="o">.</span><span class="n">sparsify</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">matmul</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="RotatingFrame"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame">[docs]</a><span class="k">class</span> <span class="nc">RotatingFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Class for representing a rotation frame transformation.</span>
+
+<span class="sd">    This class provides functionality for transforming various objects into or out-of a rotating</span>
+<span class="sd">    frame specified by an anti-Hermitian operator :math:`F = -iH`. For example:</span>
+
+<span class="sd">        * Bringing a &quot;state&quot; into/out of the frame: :math:`t, y \mapsto e^{\mp tF}y`</span>
+<span class="sd">        * Bringing an &quot;operator&quot; into/out of the frame: :math:`t, A \mapsto e^{\mp tF}Ae^{\pm tF}`</span>
+<span class="sd">        * Bringing a generator for a LMDE into/out of the frame:</span>
+<span class="sd">          :math:`t, G \mapsto e^{\mp tF}Ge^{\pm tF} - F`</span>
+
+<span class="sd">    This class also contains functions for bringing states/operators into/out of the basis in which</span>
+<span class="sd">    :math:`F` is diagonalized, which we refer to as the &quot;frame basis&quot;. All previously mentioned</span>
+<span class="sd">    functions also include optional arguments specifying whether the input/output are meant to be in</span>
+<span class="sd">    the frame basis.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        :class:`~qiskit_dynamics.models.RotatingFrame` can be instantiated</span>
+<span class="sd">        with a 1d array, which is understood to correspond to the diagonal entries</span>
+<span class="sd">        of a diagonal :math:`H` or :math:`F = -i H`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">frame_operator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">Operator</span><span class="p">],</span> <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize with a frame operator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frame_operator: The frame operator, which must be either Hermitian or anti-Hermitian.</span>
+<span class="sd">            atol: Absolute tolerance when verifying that the ``frame_operator`` is Hermitian or</span>
+<span class="sd">                anti-Hermitian.</span>
+<span class="sd">            rtol: Relative tolerance when verifying that the ``frame_operator`` is Hermitian or</span>
+<span class="sd">                anti-Hermitian.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frame_operator</span><span class="p">,</span> <span class="n">RotatingFrame</span><span class="p">):</span>
+            <span class="n">frame_operator</span> <span class="o">=</span> <span class="n">frame_operator</span><span class="o">.</span><span class="n">frame_operator</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame_operator</span> <span class="o">=</span> <span class="n">frame_operator</span>
+        <span class="n">frame_operator</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">frame_operator</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">frame_operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_diag</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_basis</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_basis_adjoint</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># if frame_operator is a 1d array, assume already diagonalized</span>
+        <span class="k">elif</span> <span class="n">frame_operator</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># verify Hermitian or anti-Hermitian</span>
+            <span class="c1"># if Hermitian convert to anti-Hermitian</span>
+            <span class="n">frame_operator</span> <span class="o">=</span> <span class="n">_enforce_anti_herm</span><span class="p">(</span><span class="n">frame_operator</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_diag</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">frame_operator</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_basis</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_basis_adjoint</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_diag</span><span class="p">)</span>
+        <span class="c1"># if not, diagonalize it</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># verify Hermitian or anti-Hermitian</span>
+            <span class="c1"># if Hermitian convert to anti-Hermitian</span>
+            <span class="n">frame_operator</span> <span class="o">=</span> <span class="n">_enforce_anti_herm</span><span class="p">(</span><span class="n">frame_operator</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+
+            <span class="c1"># diagonalize with eigh, utilizing assumption of anti-hermiticity</span>
+            <span class="n">frame_diag</span><span class="p">,</span> <span class="n">frame_basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">frame_operator</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_diag</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">frame_diag</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_basis</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">frame_basis</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_basis_adjoint</span> <span class="o">=</span> <span class="n">frame_basis</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_diag</span><span class="p">)</span>
+
+        <span class="c1"># lazily evaluate change-of-basis matrices for vectorized operators.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis_adjoint</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The dimension of the frame.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frame_operator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The original frame operator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_operator</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frame_diag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The diagonal of the frame operator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_diag</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frame_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The array containing diagonalizing unitary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_basis</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frame_basis_adjoint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The adjoint of the diagonalizing unitary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_basis_adjoint</span>
+
+<div class="viewcode-block" id="RotatingFrame.state_into_frame_basis"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.state_into_frame_basis.html#qiskit_dynamics.models.RotatingFrame.state_into_frame_basis">[docs]</a>    <span class="k">def</span> <span class="nf">state_into_frame_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Take a state into the frame basis, i.e. return ``self.frame_basis_adjoint @ y``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: The state.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The state in the frame basis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis_adjoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">y</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis_adjoint</span> <span class="o">@</span> <span class="n">y</span></div>
+
+<div class="viewcode-block" id="RotatingFrame.state_out_of_frame_basis"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.state_out_of_frame_basis.html#qiskit_dynamics.models.RotatingFrame.state_out_of_frame_basis">[docs]</a>    <span class="k">def</span> <span class="nf">state_out_of_frame_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Take a state out of the frame basis, i.e. ``return self.frame_basis @ y``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: The state.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The state in the frame basis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">y</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="o">@</span> <span class="n">y</span></div>
+
+<div class="viewcode-block" id="RotatingFrame.operator_into_frame_basis"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.operator_into_frame_basis.html#qiskit_dynamics.models.RotatingFrame.operator_into_frame_basis">[docs]</a>    <span class="k">def</span> <span class="nf">operator_into_frame_basis</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">op</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Operator</span><span class="p">],</span> <span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="n">convert_type</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Take an operator into the frame basis, i.e. return</span>
+<span class="sd">        ``self.frame_basis_adjoint @ A @ self.frame_basis``</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            op: The operator or array of operators.</span>
+<span class="sd">            convert_type: Whether or not to initially convert ``op`` into an expected type. Should</span>
+<span class="sd">                          only be set to ``False`` in situations in which it is gauranteed that</span>
+<span class="sd">                          ``op`` is a handled input type.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The operator in the frame basis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">convert_type</span><span class="p">:</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">op</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">op</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">operator_into_frame_basis</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">convert_type</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">op</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">op</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;BCOO&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis_adjoint</span> <span class="o">@</span> <span class="n">jsparse_matmul</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># parentheses are necessary for sparse op evaluation</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis_adjoint</span> <span class="o">@</span> <span class="p">(</span><span class="n">op</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RotatingFrame.operator_out_of_frame_basis"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.operator_out_of_frame_basis.html#qiskit_dynamics.models.RotatingFrame.operator_out_of_frame_basis">[docs]</a>    <span class="k">def</span> <span class="nf">operator_out_of_frame_basis</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">op</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Operator</span><span class="p">],</span> <span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="n">convert_type</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Take an operator out of the frame basis, i.e. return</span>
+<span class="sd">        ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            op: The operator or array of operators.</span>
+<span class="sd">            convert_type: Whether or not to initially convert ``op`` into an expected type. Should</span>
+<span class="sd">                          only be set to ``False`` in situations in which it is gauranteed that</span>
+<span class="sd">                          that ``op`` is a handled input type.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The operator in the frame basis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">convert_type</span><span class="p">:</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">op</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">op</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">convert_type</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">op</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">op</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;BCOO&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="o">@</span> <span class="n">jsparse_matmul</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis_adjoint</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># parentheses are necessary for sparse op evaluation</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="o">@</span> <span class="p">(</span><span class="n">op</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis_adjoint</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RotatingFrame.state_into_frame"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.state_into_frame.html#qiskit_dynamics.models.RotatingFrame.state_into_frame">[docs]</a>    <span class="k">def</span> <span class="nf">state_into_frame</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+        <span class="n">y_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Take a state into the rotating frame, i.e. return ``exp(-tF) @ y``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t: The time.</span>
+<span class="sd">            y: The state.</span>
+<span class="sd">            y_in_frame_basis: Whether or not the array y is already in the basis in which the frame</span>
+<span class="sd">                is diagonal.</span>
+<span class="sd">            return_in_frame_basis: Whether or not to return the result in the frame basis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The state in the rotating frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">y</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">y</span>
+
+        <span class="c1"># if not in frame basis convert it</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">y_in_frame_basis</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_into_frame_basis</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="c1"># go into the frame using fast diagonal matrix multiplication</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_diag</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">t</span><span class="p">))</span> <span class="o">*</span> <span class="n">out</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>  <span class="c1"># = e^{tF}out</span>
+
+        <span class="c1"># if output is requested to not be in the frame basis, convert it</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">return_in_frame_basis</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_out_of_frame_basis</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="RotatingFrame.state_out_of_frame"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.state_out_of_frame.html#qiskit_dynamics.models.RotatingFrame.state_out_of_frame">[docs]</a>    <span class="k">def</span> <span class="nf">state_out_of_frame</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+        <span class="n">y_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Take a state out of the rotating frame, i.e. return ``exp(tF) @ y``.</span>
+
+<span class="sd">        Calls ``self.state_into_frame`` with time reversed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t: The time.</span>
+<span class="sd">            y: The state..</span>
+<span class="sd">            y_in_frame_basis: Whether or not the array y is already in the basis in which the frame</span>
+<span class="sd">                is diagonal.</span>
+<span class="sd">            return_in_frame_basis: Whether or not to return the result in the frame basis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The state out of the rotating frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_into_frame</span><span class="p">(</span><span class="o">-</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_in_frame_basis</span><span class="p">,</span> <span class="n">return_in_frame_basis</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_conjugate_and_add</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">operator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">],</span>
+        <span class="n">op_to_add_in_fb</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">operator_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">vectorized_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;General helper function for computing :math:`\exp(-tF)G\exp(tF) + B`.</span>
+
+<span class="sd">        Note: :math:`B` is added in the frame basis before any potential final change</span>
+<span class="sd">        out of the frame basis.</span>
+
+<span class="sd">        Note that there are two conventions for passing multiple operators at the same time. For</span>
+<span class="sd">        evaluation with ``vectorized_operators=False``, these operators should be passed as ``(k,</span>
+<span class="sd">        dim, dim)`` array objects, with the :math:`i^{th}` operator being stored as the ``[i,:,:]``</span>
+<span class="sd">        entry. For ``vectorized_operators = True``, these (vectorized) operators should be passed as</span>
+<span class="sd">        a ``(dim**2, k)`` array, with the :math:`i^{th}` vectorized operator stored as the ``[:,i]``</span>
+<span class="sd">        entry.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t: The time.</span>
+<span class="sd">            operator: The operator :math:`G`.</span>
+<span class="sd">            op_to_add_in_fb: The additional operator :math:`B`.</span>
+<span class="sd">            operator_in_fame_basis: Whether ``operator`` is already in the basis in which the frame</span>
+<span class="sd">                operator is diagonal.</span>
+<span class="sd">            vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``</span>
+<span class="sd">                Array, rather than a ``(dim,dim)`` Array.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array of the newly conjugated operator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">operator</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">operator</span><span class="p">)</span>
+        <span class="n">op_to_add_in_fb</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">op_to_add_in_fb</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">vectorized_operators</span><span class="p">:</span>
+            <span class="c1"># If passing vectorized operator, undo vectorization temporarily</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">op_to_add_in_fb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">operator</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">operator</span> <span class="o">+</span> <span class="n">op_to_add_in_fb</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">operator</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">operator</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">op_to_add_in_fb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">operator</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">op_to_add_in_fb</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">issparse</span><span class="p">(</span><span class="n">operator</span><span class="p">):</span>
+                        <span class="n">op_to_add_in_fb</span> <span class="o">=</span> <span class="n">csr_matrix</span><span class="p">(</span><span class="n">op_to_add_in_fb</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">operator</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;BCOO&quot;</span><span class="p">:</span>
+                        <span class="n">op_to_add_in_fb</span> <span class="o">=</span> <span class="n">to_BCOO</span><span class="p">(</span><span class="n">op_to_add_in_fb</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">operator</span> <span class="o">+</span> <span class="n">op_to_add_in_fb</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">operator</span>
+
+        <span class="c1"># if not in frame basis convert it</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">operator_in_frame_basis</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator_into_frame_basis</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="c1"># get frame transformation matrix in diagonal basis</span>
+        <span class="c1"># assumption that F is anti-Hermitian implies conjugation of</span>
+        <span class="c1"># diagonal gives inversion</span>
+        <span class="n">exp_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_diag</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">frame_mat</span> <span class="o">=</span> <span class="n">exp_freq</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">exp_freq</span>
+        <span class="k">if</span> <span class="n">issparse</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">frame_mat</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;BCOO&quot;</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">*</span> <span class="n">frame_mat</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">frame_mat</span> <span class="o">*</span> <span class="n">out</span>
+
+        <span class="k">if</span> <span class="n">op_to_add_in_fb</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">issparse</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+                <span class="n">op_to_add_in_fb</span> <span class="o">=</span> <span class="n">csr_matrix</span><span class="p">(</span><span class="n">op_to_add_in_fb</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;BCOO&quot;</span><span class="p">:</span>
+                <span class="n">op_to_add_in_fb</span> <span class="o">=</span> <span class="n">to_BCOO</span><span class="p">(</span><span class="n">op_to_add_in_fb</span><span class="p">)</span>
+
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">+</span> <span class="n">op_to_add_in_fb</span>
+
+        <span class="c1"># if output is requested to not be in the frame basis, convert it</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">return_in_frame_basis</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">vectorized_operators</span><span class="p">:</span>
+            <span class="c1"># If a vectorized output is required, reshape correctly</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">**</span><span class="mi">2</span><span class="p">,),</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">return</span> <span class="n">out</span>
+
+<div class="viewcode-block" id="RotatingFrame.operator_into_frame"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.operator_into_frame.html#qiskit_dynamics.models.RotatingFrame.operator_into_frame">[docs]</a>    <span class="k">def</span> <span class="nf">operator_into_frame</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">operator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">],</span>
+        <span class="n">operator_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">vectorized_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Bring an operator into the frame, i.e. return</span>
+<span class="sd">        ``exp(-tF) @ operator @ exp(tF)``.</span>
+
+<span class="sd">        The default implementation is to use ``self._conjugate_and_add``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t: The time.</span>
+<span class="sd">            operator: An array of appropriate size.</span>
+<span class="sd">            operator_in_frame_basis: Whether or not the operator is already in the basis in which</span>
+<span class="sd">                the frame is diagonal.</span>
+<span class="sd">            return_in_frame_basis: Whether or not to return the result in the frame basis.</span>
+<span class="sd">            vectorized_operators: Whether ``operator`` is passed as a vectorized,</span>
+<span class="sd">                ``(dim**2,)`` Array, rather than a ``(dim,dim)`` Array.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The operator in the rotating frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conjugate_and_add</span><span class="p">(</span>
+            <span class="n">t</span><span class="p">,</span>
+            <span class="n">operator</span><span class="p">,</span>
+            <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="n">operator_in_frame_basis</span><span class="p">,</span>
+            <span class="n">return_in_frame_basis</span><span class="o">=</span><span class="n">return_in_frame_basis</span><span class="p">,</span>
+            <span class="n">vectorized_operators</span><span class="o">=</span><span class="n">vectorized_operators</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="RotatingFrame.operator_out_of_frame"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.operator_out_of_frame.html#qiskit_dynamics.models.RotatingFrame.operator_out_of_frame">[docs]</a>    <span class="k">def</span> <span class="nf">operator_out_of_frame</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">operator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">],</span>
+        <span class="n">operator_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">vectorized_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Bring an operator into the rotating frame, i.e. return</span>
+<span class="sd">        ``exp(tF) @ operator @ exp(-tF)``.</span>
+
+<span class="sd">        The default implmentation is to use `self.operator_into_frame`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t: Time.</span>
+<span class="sd">            operator: An array of appropriate size.</span>
+<span class="sd">            operator_in_frame_basis: Whether or not the operator is already in the basis in which</span>
+<span class="sd">                the frame is diagonal.</span>
+<span class="sd">            return_in_frame_basis: Whether or not to return the result in the frame basis.</span>
+<span class="sd">            vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``</span>
+<span class="sd">                Array, rather than a ``(dim,dim)`` Array.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The operator out of the rotating frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator_into_frame</span><span class="p">(</span>
+            <span class="o">-</span><span class="n">t</span><span class="p">,</span>
+            <span class="n">operator</span><span class="p">,</span>
+            <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="n">operator_in_frame_basis</span><span class="p">,</span>
+            <span class="n">return_in_frame_basis</span><span class="o">=</span><span class="n">return_in_frame_basis</span><span class="p">,</span>
+            <span class="n">vectorized_operators</span><span class="o">=</span><span class="n">vectorized_operators</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="RotatingFrame.generator_into_frame"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.generator_into_frame.html#qiskit_dynamics.models.RotatingFrame.generator_into_frame">[docs]</a>    <span class="k">def</span> <span class="nf">generator_into_frame</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">operator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">],</span>
+        <span class="n">operator_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">vectorized_operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Take an generator into the rotating frame, i.e. return</span>
+<span class="sd">        ``exp(-tF) @ operator @ exp(tF) - F``.</span>
+
+<span class="sd">        The default implementation is to use :meth:`_conjugate_and_add`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t: Time.</span>
+<span class="sd">            operator: Generator (array of appropriate size).</span>
+<span class="sd">            operator_in_frame_basis: Whether or not the generator is already in the basis in which</span>
+<span class="sd">                the frame is diagonal.</span>
+<span class="sd">            return_in_frame_basis: Whether or not to return the result in the frame basis.</span>
+<span class="sd">            vectorized_operators: Whether ``operator`` is passed as a vectorized, ``(dim**2,)``</span>
+<span class="sd">                Array, rather than a ``(dim,dim)`` Array.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The generator in the rotating frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">operator</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># conjugate and subtract the frame diagonal</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conjugate_and_add</span><span class="p">(</span>
+                <span class="n">t</span><span class="p">,</span>
+                <span class="n">operator</span><span class="p">,</span>
+                <span class="n">op_to_add_in_fb</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_diag</span><span class="p">),</span>
+                <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="n">operator_in_frame_basis</span><span class="p">,</span>
+                <span class="n">return_in_frame_basis</span><span class="o">=</span><span class="n">return_in_frame_basis</span><span class="p">,</span>
+                <span class="n">vectorized_operators</span><span class="o">=</span><span class="n">vectorized_operators</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="RotatingFrame.generator_out_of_frame"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.generator_out_of_frame.html#qiskit_dynamics.models.RotatingFrame.generator_out_of_frame">[docs]</a>    <span class="k">def</span> <span class="nf">generator_out_of_frame</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">operator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">],</span>
+        <span class="n">operator_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Take an operator out of the frame using the generator transformaton rule, i.e. return</span>
+<span class="sd">        ``exp(tF) @ operator @ exp(-tF) + F``.</span>
+
+<span class="sd">        The default implementation is to use ``self._conjugate_and_add``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t: The time</span>
+<span class="sd">            operator: Generator (array of appropriate size).</span>
+<span class="sd">            operator_in_frame_basis: Whether or not the operator is already in the basis in which</span>
+<span class="sd">                the frame is diagonal.</span>
+<span class="sd">            return_in_frame_basis: Whether or not to return the result in the frame basis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The generator out of the rotating frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">operator</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># conjugate and add the frame diagonal</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conjugate_and_add</span><span class="p">(</span>
+                <span class="o">-</span><span class="n">t</span><span class="p">,</span>
+                <span class="n">operator</span><span class="p">,</span>
+                <span class="n">op_to_add_in_fb</span><span class="o">=</span><span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_diag</span><span class="p">)),</span>
+                <span class="n">operator_in_frame_basis</span><span class="o">=</span><span class="n">operator_in_frame_basis</span><span class="p">,</span>
+                <span class="n">return_in_frame_basis</span><span class="o">=</span><span class="n">return_in_frame_basis</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vectorized_frame_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazily evaluated operator for mapping vectorized operators into the frame basis.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span><span class="o">.</span><span class="n">conj</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis_adjoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vectorized_frame_basis_adjoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazily evaluated operator for mapping vectorized operators out of the frame basis.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis_adjoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># trigger lazy evaluation of vectorized_frame_basis</span>
+            <span class="c1"># pylint: disable=pointless-statement</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vectorized_frame_basis</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vectorized_frame_basis_adjoint</span>
+
+<div class="viewcode-block" id="RotatingFrame.vectorized_map_into_frame"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.vectorized_map_into_frame.html#qiskit_dynamics.models.RotatingFrame.vectorized_map_into_frame">[docs]</a>    <span class="k">def</span> <span class="nf">vectorized_map_into_frame</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">op</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+        <span class="n">operator_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_in_frame_basis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Given an operator ``op`` of dimension ``dim**2`` assumed to represent vectorized linear</span>
+<span class="sd">        map in column stacking convention, returns:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            ((e^{tF})^T \otimes e^{-tF}) \times op \times ((e^{-tF})^T \otimes e^{tF}).</span>
+
+<span class="sd">        Utilizes element-wise multiplication :math:`op \to \Delta\otimes\bar{\Delta} \odot op`,</span>
+<span class="sd">        where :math:`\Delta_{ij}=\exp((-d_i+d_j)t)` is the frame difference matrix, as well as</span>
+<span class="sd">        caches array :math:`\bar{C}\otimes C`, where ``C = self.frame_basis`` for future use.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time: The time :math:`t`.</span>
+<span class="sd">            op: The ``(dim**2,dim**2)`` Array.</span>
+<span class="sd">            operator_in_frame_basis: Whether the operator is in the frame basis.</span>
+<span class="sd">            return_in_frame_basis: Whether the operator should be returned in the frame basis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``op`` in the frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_diag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Put the vectorized operator into the frame basis</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">operator_in_frame_basis</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vectorized_frame_basis_adjoint</span> <span class="o">@</span> <span class="p">(</span><span class="n">op</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">vectorized_frame_basis</span><span class="p">)</span>
+
+            <span class="n">expvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_diag</span> <span class="o">*</span> <span class="n">time</span><span class="p">)</span>  <span class="c1"># = e^{td_i} = e^{it*Im(d_i)}</span>
+            <span class="c1"># = kron(e^{-it*Im(d_i)},e^{it*Im(d_i)}), but ~3x faster</span>
+            <span class="n">temp_outer</span> <span class="o">=</span> <span class="p">(</span><span class="n">expvals</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">expvals</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">delta_bar_otimes_delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span>
+                <span class="n">temp_outer</span><span class="o">.</span><span class="n">conj</span><span class="p">(),</span> <span class="n">temp_outer</span>
+            <span class="p">)</span>  <span class="c1"># = kron(delta.conj(),delta) but &gt;3x faster</span>
+            <span class="k">if</span> <span class="n">issparse</span><span class="p">(</span><span class="n">op</span><span class="p">):</span>
+                <span class="n">op</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">delta_bar_otimes_delta</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">op</span> <span class="o">=</span> <span class="n">delta_bar_otimes_delta</span> <span class="o">*</span> <span class="n">op</span>  <span class="c1"># hadamard product</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">return_in_frame_basis</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_basis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vectorized_frame_basis</span> <span class="o">@</span> <span class="p">(</span><span class="n">op</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">vectorized_frame_basis_adjoint</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">op</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_enforce_anti_herm</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span> <span class="n">atol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">rtol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Given ``mat``, the logic of this function is:</span>
+<span class="sd">        - if ``mat`` is hermitian, return ``-1j * mat``</span>
+<span class="sd">        - if ``mat`` is anti-hermitian, return ``mat``</span>
+<span class="sd">        - otherwise:</span>
+<span class="sd">            - if ``mat.backend == &#39;jax&#39;`` return ``jnp.inf * mat``</span>
+<span class="sd">            - otherwise raise an error</span>
+
+<span class="sd">    The main purpose of this function is to hide the pecularities of implementing the above logic in</span>
+<span class="sd">    a compileable way in ``jax``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mat: The array to check.</span>
+<span class="sd">        atol: The absolute tolerance.</span>
+<span class="sd">        rtol: The relative tolerance.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Array: Anti-hermitian version of ``mat``, if applicable.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ImportError: If the backend is jax and jax is not installed.</span>
+<span class="sd">        QiskitError: If ``mat`` is not Hermitian or anti-Hermitian.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mat</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">jax.lax</span> <span class="kn">import</span> <span class="n">cond</span>
+
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="k">if</span> <span class="n">mat</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># this function checks if pure imaginary. If yes it returns the</span>
+            <span class="c1"># array, otherwise it multiplies it by jnp.nan to raise an error</span>
+            <span class="c1"># Note: pathways in conditionals in jax cannot raise Exceptions</span>
+            <span class="k">def</span> <span class="nf">anti_herm_conditional</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+                <span class="n">aherm_pred</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="o">-</span><span class="n">b</span><span class="o">.</span><span class="n">conj</span><span class="p">(),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">cond</span><span class="p">(</span><span class="n">aherm_pred</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">A</span><span class="p">:</span> <span class="n">A</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">A</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">nan</span> <span class="o">*</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+            <span class="c1"># Check if it is purely real, if not apply anti_herm_conditional</span>
+            <span class="n">herm_pred</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">mat</span><span class="o">.</span><span class="n">conj</span><span class="p">(),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Array</span><span class="p">(</span><span class="n">cond</span><span class="p">(</span><span class="n">herm_pred</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">A</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">A</span><span class="p">,</span> <span class="n">anti_herm_conditional</span><span class="p">,</span> <span class="n">mat</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># this function checks if anti-hermitian, if yes returns the array,</span>
+            <span class="c1"># otherwise it multiplies it by jnp.nan</span>
+            <span class="k">def</span> <span class="nf">anti_herm_conditional</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+                <span class="n">aherm_pred</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="o">-</span><span class="n">b</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">cond</span><span class="p">(</span><span class="n">aherm_pred</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">A</span><span class="p">:</span> <span class="n">A</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">A</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">nan</span> <span class="o">*</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+            <span class="c1"># the following lines check if a is hermitian, otherwise it feeds</span>
+            <span class="c1"># it into the anti_herm_conditional</span>
+            <span class="n">herm_pred</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">mat</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Array</span><span class="p">(</span><span class="n">cond</span><span class="p">(</span><span class="n">herm_pred</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">A</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">A</span><span class="p">,</span> <span class="n">anti_herm_conditional</span><span class="p">,</span> <span class="n">mat</span><span class="p">))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mat</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">mat</span><span class="o">.</span><span class="n">conj</span><span class="p">(),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">):</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">mat</span>
+            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="o">-</span><span class="n">mat</span><span class="o">.</span><span class="n">conj</span><span class="p">(),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">mat</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_hermitian_matrix</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">):</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">mat</span>
+            <span class="k">elif</span> <span class="n">is_hermitian_matrix</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">mat</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">mat</span>
+
+        <span class="c1"># raise error if execution has made it this far</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;frame_operator must be either a Hermitian or anti-Hermitian matrix.&quot;&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.signals.signals &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.signals.signals</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.signals.signals</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2021.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name, unidiomatic-typecheck, super-init-not-called</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module for representation of model coefficients.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+
+
+<div class="viewcode-block" id="Signal"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal">[docs]</a><span class="k">class</span> <span class="nc">Signal</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;General signal class.</span>
+
+<span class="sd">    Represents a function of the form:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        Re[f(t)e^{i (2 \pi \nu t + \phi)}]</span>
+<span class="sd">                = Re[f(t)]\cos(2 \pi \nu t + \phi) - Im[f(t)]\sin(2 \pi \nu t + \phi),</span>
+
+<span class="sd">    where</span>
+
+<span class="sd">    - :math:`f(t)` is the envelope function.</span>
+<span class="sd">    - :math:`\nu` is the carrier frequency.</span>
+<span class="sd">    - :math:`\phi` is the phase.</span>
+
+<span class="sd">    The envelope function can be specified either as a constant numeric value</span>
+<span class="sd">    (indicating a constant function), or as a complex-valued callable,</span>
+<span class="sd">    and the frequency and phase must be real.</span>
+
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        :class:`~qiskit_dynamics.signals.Signal` assumes the envelope ``f`` is</span>
+<span class="sd">        *array vectorized* in the sense that ``f`` can operate on arrays of arbitrary shape</span>
+<span class="sd">        and satisfy ``f(x)[idx] == f(x[idx])`` for a multidimensional index ``idx``. This</span>
+<span class="sd">        can be ensured either by writing ``f`` to be vectorized, or by using the ``vectorize``</span>
+<span class="sd">        function in ``numpy`` or ``jax.numpy``.</span>
+
+<span class="sd">        For example, for an unvectorized envelope function ``f``:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            import numpy as np</span>
+<span class="sd">            vectorized_f = np.vectorize(f)</span>
+<span class="sd">            signal = Signal(envelope=vectorized_f, carrier_freq=2.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">envelope</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Array</span><span class="p">],</span>
+        <span class="n">carrier_freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">phase</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a signal given by an envelope and a carrier.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            envelope: Envelope function of the signal, must be vectorized.</span>
+<span class="sd">            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums</span>
+<span class="sd">                          represent the carriers of each signal in an array.</span>
+<span class="sd">            phase: The phase of the carrier. Subclasses such as SignalSums</span>
+<span class="sd">                   represent the phase of each signal in an array.</span>
+<span class="sd">            name: Name of the signal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_constant</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">envelope</span><span class="p">,</span> <span class="p">(</span><span class="nb">complex</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="n">envelope</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="nb">complex</span><span class="p">(</span><span class="n">envelope</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">envelope</span><span class="p">,</span> <span class="n">Array</span><span class="p">):</span>
+            <span class="c1"># if envelope is constant and the carrier is zero, this is a constant signal</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># try block is for catching JAX tracer errors</span>
+                <span class="k">if</span> <span class="n">carrier_freq</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_is_constant</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+                <span class="k">pass</span>
+
+            <span class="k">if</span> <span class="n">envelope</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_envelope</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">envelope</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_envelope</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">envelope</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">callable</span><span class="p">(</span><span class="n">envelope</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_envelope</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">Array</span><span class="p">(</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_envelope</span> <span class="o">=</span> <span class="n">envelope</span>
+
+        <span class="c1"># set carrier and phase</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">carrier_freq</span> <span class="o">=</span> <span class="n">carrier_freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the name of the signal.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Whether or not the signal is constant.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_constant</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">carrier_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The carrier frequency of the signal.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_carrier_freq</span>
+
+    <span class="nd">@carrier_freq</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">carrier_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">carrier_freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">Array</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Carrier frequency setter. List handling is to support subclasses storing a</span>
+<span class="sd">        list of frequencies.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">carrier_freq</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">carrier_freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">Array</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">carrier_freq</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_carrier_freq</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">carrier_freq</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_carrier_arg</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_carrier_freq</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The phase of the signal.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span>
+
+    <span class="nd">@phase</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">Array</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Phase setter. List handling is to support subclasses storing a</span>
+<span class="sd">        list of phases.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="p">[</span><span class="n">Array</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">phase</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phase_arg</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span>
+
+<div class="viewcode-block" id="Signal.envelope"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.Signal.envelope.html#qiskit_dynamics.signals.Signal.envelope">[docs]</a>    <span class="k">def</span> <span class="nf">envelope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized evaluation of the envelope at time t.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Signal.complex_value"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.Signal.complex_value.html#qiskit_dynamics.signals.Signal.complex_value">[docs]</a>    <span class="k">def</span> <span class="nf">complex_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized evaluation of the complex value at time t.&quot;&quot;&quot;</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_carrier_arg</span> <span class="o">*</span> <span class="n">t</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_arg</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized evaluation of the signal at time(s) t.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">complex_value</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return string representation.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Constant(</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Signal(carrier_freq=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">)</span><span class="si">}</span><span class="s2">, phase=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Signal&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalSum&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">signal_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Signal&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalSum&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Signal&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalSum&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">signal_multiply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Signal&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalSum&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalSum&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Signal&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalSum&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Signal&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalSum&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">other</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Signal.conjugate"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.Signal.conjugate.html#qiskit_dynamics.signals.Signal.conjugate">[docs]</a>    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new signal whose complex value is the complex conjugate of this one.&quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">conj_env</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">Signal</span><span class="p">(</span><span class="n">conj_env</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Signal.draw"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.Signal.draw.html#qiskit_dynamics.signals.Signal.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">tf</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;signal&quot;</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the signal over an interval.</span>
+
+<span class="sd">        The ``function`` arg specifies which function to</span>
+<span class="sd">        plot:</span>
+
+<span class="sd">            - ``function == &#39;signal&#39;`` plots the full signal.</span>
+<span class="sd">            - ``function == &#39;envelope&#39;`` plots the complex envelope.</span>
+<span class="sd">            - ``function == &#39;complex_value&#39;`` plots the ``complex_value``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t0: Initial time.</span>
+<span class="sd">            tf: Final time.</span>
+<span class="sd">            n: Number of points to sample in interval.</span>
+<span class="sd">            function: Which function to plot.</span>
+<span class="sd">            axis: The axis to use for plotting.</span>
+<span class="sd">            title: Title of plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plotter</span> <span class="o">=</span> <span class="n">plt</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plotter</span> <span class="o">=</span> <span class="n">axis</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="n">t_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+        <span class="n">y_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">data_type</span> <span class="o">=</span> <span class="s2">&quot;real&quot;</span>
+        <span class="k">if</span> <span class="n">function</span> <span class="o">==</span> <span class="s2">&quot;signal&quot;</span><span class="p">:</span>
+            <span class="n">y_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">t_vals</span><span class="p">)</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Value of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">function</span> <span class="o">==</span> <span class="s2">&quot;envelope&quot;</span><span class="p">:</span>
+            <span class="n">y_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t_vals</span><span class="p">)</span>
+            <span class="n">data_type</span> <span class="o">=</span> <span class="s2">&quot;complex&quot;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Envelope of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">function</span> <span class="o">==</span> <span class="s2">&quot;complex_value&quot;</span><span class="p">:</span>
+            <span class="n">y_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complex_value</span><span class="p">(</span><span class="n">t_vals</span><span class="p">)</span>
+            <span class="n">data_type</span> <span class="o">=</span> <span class="s2">&quot;complex&quot;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Complex value of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">legend</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;complex&quot;</span><span class="p">:</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_vals</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">y_vals</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Real&quot;</span><span class="p">)</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_vals</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">y_vals</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Imag&quot;</span><span class="p">)</span>
+            <span class="n">legend</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_vals</span><span class="p">,</span> <span class="n">y_vals</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">legend</span><span class="p">:</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="DiscreteSignal"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignal.html#qiskit_dynamics.signals.DiscreteSignal">[docs]</a><span class="k">class</span> <span class="nc">DiscreteSignal</span><span class="p">(</span><span class="n">Signal</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Piecewise constant signal implemented as an array of samples.</span>
+
+<span class="sd">    The envelope is specified by an array of samples ``s = [s_0, ..., s_k]``, sample width ``dt``,</span>
+<span class="sd">    and a start time ``t_0``, with the envelope being evaluated as</span>
+<span class="sd">    :math:`f(t) =` ``s[floor((t - t0)/dt)]`` if ``t`` is in the interval with endpoints</span>
+<span class="sd">    ``start_time`` and ``start_time + dt * len(samples)``, and ``0.0`` otherwise.</span>
+<span class="sd">    By default a :class:`~qiskit_dynamics.signals.DiscreteSignal` is defined to start at</span>
+<span class="sd">    :math:`t=0` but a custom start time can be set via the ``start_time`` kwarg.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">samples</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">List</span><span class="p">],</span>
+        <span class="n">start_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">carrier_freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">phase</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a piecewise constant signal.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dt: The duration of each sample.</span>
+<span class="sd">            samples: The array of samples.</span>
+<span class="sd">            start_time: The time at which the signal starts.</span>
+<span class="sd">            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums</span>
+<span class="sd">                          represent the carriers of each signal in an array.</span>
+<span class="sd">            phase: The phase of the carrier. Subclasses such as SignalSums</span>
+<span class="sd">                   represent the phase of each signal in an array.</span>
+<span class="sd">            name: name of the signal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span> <span class="o">=</span> <span class="n">dt</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">zero_pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">zero_pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padded_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">zero_pad</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="n">start_time</span>
+
+        <span class="c1"># define internal envelope function</span>
+        <span class="k">if</span> <span class="n">samples</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                    <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">t</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+                    <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padded_samples</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">t</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+                    <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padded_samples</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="n">Signal</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">envelope</span><span class="o">=</span><span class="n">envelope</span><span class="p">,</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">carrier_freq</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DiscreteSignal.from_Signal"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignal.from_Signal.html#qiskit_dynamics.signals.DiscreteSignal.from_Signal">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_Signal</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">signal</span><span class="p">:</span> <span class="n">Signal</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">start_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">sample_carrier</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Constructs a ``DiscreteSignal`` object by sampling a ``Signal``\.</span>
+
+<span class="sd">        The optional argument ``sample_carrier`` controls whether or not to include the carrier</span>
+<span class="sd">        in the sampling. I.e.:</span>
+
+<span class="sd">            - If ``sample_carrier == False``\, a ``DiscreteSignal`` is constructed with:</span>
+<span class="sd">                - ``samples`` obtained by sampling ``signal.envelope``\.</span>
+<span class="sd">                - ``carrier_freq = signal.carrier_freq``\.</span>
+<span class="sd">                - ``phase = signal.phase``\.</span>
+
+<span class="sd">            - If ``sample_carrier == True``\, a ``DiscreteSignal`` is constructed with:</span>
+<span class="sd">                - ``samples`` obtained by sampling ``signal`` (as a ``callable``\)</span>
+<span class="sd">                - ``carrier_freq = 0``\.</span>
+<span class="sd">                - ``phase = signal.phase``\.</span>
+
+<span class="sd">        In either case, samples are obtained from the midpoint of each interval.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            signal: Signal to sample.</span>
+<span class="sd">            dt: Time increment to use.</span>
+<span class="sd">            n_samples: Number of steps to resample with.</span>
+<span class="sd">            start_time: Start time from which to resample.</span>
+<span class="sd">            sample_carrier: Whether or not to include the carrier in the sampling.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DiscreteSignal: The discretized ``Signal``\.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">times</span> <span class="o">=</span> <span class="n">start_time</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">carrier_freq</span>
+
+        <span class="k">if</span> <span class="n">sample_carrier</span><span class="p">:</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">DiscreteSignal</span><span class="p">(</span>
+            <span class="n">dt</span><span class="p">,</span>
+            <span class="n">samples</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+            <span class="n">carrier_freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span>
+            <span class="n">phase</span><span class="o">=</span><span class="n">signal</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">signal</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            duration: The duration of the signal in samples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">             dt: the duration of each sample.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            samples: the samples of the piecewise constant signal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_padded_samples</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            start_time: The time at which the list of samples start.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span>
+
+<div class="viewcode-block" id="DiscreteSignal.conjugate"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignal.conjugate.html#qiskit_dynamics.signals.DiscreteSignal.conjugate">[docs]</a>    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
+            <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span>
+            <span class="n">samples</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">),</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span><span class="p">,</span>
+            <span class="n">carrier_freq</span><span class="o">=-</span><span class="bp">self</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span>
+            <span class="n">phase</span><span class="o">=-</span><span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="DiscreteSignal.add_samples"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignal.add_samples.html#qiskit_dynamics.signals.DiscreteSignal.add_samples">[docs]</a>    <span class="k">def</span> <span class="nf">add_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_sample</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="n">List</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Appends samples to the pulse starting at start_sample, filling any gap with zeros.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start_sample: Index of the sample at which the new samples should be appended.</span>
+<span class="sd">            samples: List of samples to append.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If start_sample is less than the current length of samples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">start_sample</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Samples can only be added afer the last sample.&quot;</span><span class="p">)</span>
+
+        <span class="n">zero_pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">new_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">start_sample</span><span class="p">:</span>
+            <span class="n">new_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">new_samples</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">zero_pad</span><span class="p">,</span> <span class="n">start_sample</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="n">new_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_samples</span><span class="p">,</span> <span class="n">samples</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padded_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_samples</span><span class="p">,</span> <span class="n">zero_pad</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return string representation.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;DiscreteSignal(dt=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="si">}</span><span class="s2">, carrier_freq=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">)</span><span class="si">}</span><span class="s2">,</span>
+<span class="s2">                phase=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;&quot;&quot;</span></div>
+
+
+<span class="k">class</span> <span class="nc">SignalCollection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for a list-like collection of signals.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize by storing list of signals.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            signal_list: List of signals.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_constant</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="n">signal_list</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">components</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The list of components.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of components.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="nb">slice</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Signal</span><span class="p">,</span> <span class="s2">&quot;SignalCollection&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get item with NumPy-style subscripting, as if this class were a 1d array.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="ow">and</span> <span class="n">idx</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+        <span class="c1"># get a list of the subcomponents</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="c1"># handle lists</span>
+            <span class="n">sublist</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">idx</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+
+            <span class="c1"># output will either be a single signal or a tuple of Signals</span>
+            <span class="c1"># convert to list if tuple</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sublist</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">:</span>
+                <span class="n">sublist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sublist</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># handle slices or singletons</span>
+            <span class="n">sublist</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="n">idx</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+
+        <span class="c1"># at this point sublist should either be a single Signal, or a list of Signals</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sublist</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">sublist</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sublist</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return iterator over component list.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">conjugate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalCollection&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the conjugation of this collection.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">([</span><span class="n">sig</span><span class="o">.</span><span class="n">conjugate</span><span class="p">()</span> <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="SignalSum"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.SignalSum.html#qiskit_dynamics.signals.SignalSum">[docs]</a><span class="k">class</span> <span class="nc">SignalSum</span><span class="p">(</span><span class="n">SignalCollection</span><span class="p">,</span> <span class="n">Signal</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Represents a sum of signals.</span>
+
+<span class="sd">    I.e. a sum of ``Signal`` objects:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        s_1(t) + \dots + s_k(t)</span>
+
+<span class="sd">    For basic evaluation, this class behaves in the same manner as ``Signal``:</span>
+
+<span class="sd">        - ``__call__`` evaluates the sum.</span>
+<span class="sd">        - ``complex_value`` evaluates the sum of the complex values of the individual summands.</span>
+
+<span class="sd">    Attributes ``carrier_freq`` and ``phase`` here correspond to an ``Array`` of</span>
+<span class="sd">    frequencies/phases for each term in the sum, and the ``envelope`` method returns an</span>
+<span class="sd">    ``Array`` of the envelopes for each summand.</span>
+
+<span class="sd">    Internally, the signals are stored as a list in the ``components`` attribute, which can</span>
+<span class="sd">    be accessed via direct subscripting of the object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">signals</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Initialize with a list of Signal objects through ``args``\.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            signals: ``Signal`` subclass objects.</span>
+<span class="sd">            name: Name of the sum.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If ``signals`` are not subclasses of ``Signal``\.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="n">components</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="n">signals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">sig</span> <span class="o">=</span> <span class="n">SignalSum</span><span class="p">(</span><span class="o">*</span><span class="n">sig</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">):</span>
+                <span class="n">components</span> <span class="o">+=</span> <span class="n">sig</span><span class="o">.</span><span class="n">components</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">Signal</span><span class="p">):</span>
+                <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">Array</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sig</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">):</span>
+                <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Signal</span><span class="p">(</span><span class="n">sig</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                    <span class="s2">&quot;Components of a SignalSum must be instances of a Signal subclass.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="n">SignalCollection</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">)</span>
+
+        <span class="c1"># set up routine for evaluating envelopes if jax</span>
+        <span class="k">if</span> <span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+            <span class="n">jax_arraylist_eval</span> <span class="o">=</span> <span class="n">array_funclist_evaluate</span><span class="p">([</span><span class="n">sig</span><span class="o">.</span><span class="n">envelope</span> <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">])</span>
+
+            <span class="k">def</span> <span class="nf">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">jax_arraylist_eval</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">([</span><span class="n">sig</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">carrier_freqs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+            <span class="n">carrier_freqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">)</span>
+
+        <span class="n">phases</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+            <span class="n">phases</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span>
+
+        <span class="n">Signal</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">envelope</span><span class="o">=</span><span class="n">envelope</span><span class="p">,</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">carrier_freqs</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phases</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="SignalSum.complex_value"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.SignalSum.complex_value.html#qiskit_dynamics.signals.SignalSum.complex_value">[docs]</a>    <span class="k">def</span> <span class="nf">complex_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the sum of the complex values of each component.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">exp_phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_carrier_arg</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_arg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">exp_phases</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;SignalSum()&quot;</span>
+
+        <span class="n">default_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">default_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; + </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">default_str</span>
+
+<div class="viewcode-block" id="SignalSum.flatten"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.SignalSum.flatten.html#qiskit_dynamics.signals.SignalSum.flatten">[docs]</a>    <span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Signal</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Merge into a single ``Signal``\. The output frequency is given by the</span>
+<span class="sd">        average.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Signal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">ave_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">shifted_arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_carrier_arg</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ave_freq</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">merged_env</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+            <span class="n">exp_phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">shifted_arg</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_arg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">exp_phases</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Signal</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">merged_env</span><span class="p">,</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">ave_freq</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="DiscreteSignalSum"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum">[docs]</a><span class="k">class</span> <span class="nc">DiscreteSignalSum</span><span class="p">(</span><span class="n">DiscreteSignal</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a sum of piecewise constant signals, all with the same</span>
+<span class="sd">    time parameters: dt, number of samples, and start time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">samples</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Array</span><span class="p">],</span>
+        <span class="n">start_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">carrier_freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">phase</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Directly initialize a ``DiscreteSignalSum``\. Samples of all terms in the</span>
+<span class="sd">        sum are specified as a 2d array, with 0th axis indicating time, and 1st axis</span>
+<span class="sd">        indicating a term in the sum.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dt: The duration of each sample.</span>
+<span class="sd">            samples: The 2d array representing a list whose elements are all envelope values</span>
+<span class="sd">                     at a given time.</span>
+<span class="sd">            start_time: The time at which the signal starts.</span>
+<span class="sd">            carrier_freq: Array with the carrier frequencies of each term in the sum.</span>
+<span class="sd">            phase: Array with the phases of each term in the sum.</span>
+<span class="sd">            name: name of the signal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">carrier_freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">carrier_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">phase</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">DiscreteSignal</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+            <span class="n">carrier_freq</span><span class="o">=</span><span class="n">carrier_freq</span><span class="p">,</span>
+            <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># construct individual components so they can be accessed as in SignalSum</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sample_row</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">phi</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">carrier_freq</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">DiscreteSignal</span><span class="p">(</span>
+                    <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                    <span class="n">samples</span><span class="o">=</span><span class="n">sample_row</span><span class="p">,</span>
+                    <span class="n">start_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                    <span class="n">carrier_freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span>
+                    <span class="n">phase</span><span class="o">=</span><span class="n">phi</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="n">components</span>
+
+<div class="viewcode-block" id="DiscreteSignalSum.from_SignalSum"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignalSum.from_SignalSum.html#qiskit_dynamics.signals.DiscreteSignalSum.from_SignalSum">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_SignalSum</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">signal_sum</span><span class="p">:</span> <span class="n">SignalSum</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">start_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">sample_carrier</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Constructs a ``DiscreteSignalSum`` object by sampling a ``SignalSum``\.</span>
+
+<span class="sd">        The optional argument ``sample_carrier`` controls whether or not to include the carrier</span>
+<span class="sd">        in the sampling. I.e.:</span>
+
+<span class="sd">            - If ``sample_carrier == False``, a ``DiscreteSignalSum`` is constructed with:</span>
+<span class="sd">                - ``samples`` obtained by sampling ``signal_sum.envelope``\.</span>
+<span class="sd">                - ``carrier_freq = signal_sum.carrier_freq``\.</span>
+<span class="sd">                - ``phase = signal_sum.phase``\.</span>
+
+<span class="sd">            - If ``sample_carrier == True``\, a ``DiscreteSignal`` is constructed with:</span>
+<span class="sd">                - ``samples`` obtained by sampling ``signal_sum`` (as a ``callable``\)</span>
+<span class="sd">                - ``carrier_freq = 0``\.</span>
+<span class="sd">                - ``phase = signal_sum.phase``\.</span>
+
+<span class="sd">        In either case, samples are obtained from the midpoint of each interval.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            signal_sum: SignalSum to sample.</span>
+<span class="sd">            dt: Time increment to use.</span>
+<span class="sd">            n_samples: Number of steps to resample with.</span>
+<span class="sd">            start_time: Start time from which to resample.</span>
+<span class="sd">            sample_carrier: Whether or not to include the carrier in the sampling.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DiscreteSignalSum: The discretized ``SignalSum``\.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">times</span> <span class="o">=</span> <span class="n">start_time</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span>
+
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">signal_sum</span><span class="o">.</span><span class="n">carrier_freq</span>
+
+        <span class="k">if</span> <span class="n">sample_carrier</span><span class="p">:</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">freq</span>
+            <span class="n">exp_phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">signal_sum</span><span class="o">.</span><span class="n">_carrier_arg</span><span class="p">)</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">signal_sum</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">*</span> <span class="n">exp_phases</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">signal_sum</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">DiscreteSignalSum</span><span class="p">(</span>
+            <span class="n">dt</span><span class="p">,</span>
+            <span class="n">samples</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+            <span class="n">carrier_freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span>
+            <span class="n">phase</span><span class="o">=</span><span class="n">signal_sum</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">signal_sum</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the string rep.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;DiscreteSignalSum()&quot;</span>
+
+        <span class="n">default_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">default_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; + </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">default_str</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="nb">slice</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Signal</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Enables numpy-style subscripting, as if this class were a 1d array.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;index out of range for DiscreteSignalSum of length &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span>
+        <span class="n">carrier_freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">samples</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">Array</span><span class="p">([</span><span class="n">samples</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">carrier_freqs</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">carrier_freqs</span> <span class="o">=</span> <span class="n">Array</span><span class="p">([</span><span class="n">carrier_freqs</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">phases</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">phases</span> <span class="o">=</span> <span class="n">Array</span><span class="p">([</span><span class="n">phases</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">DiscreteSignal</span><span class="p">(</span>
+                <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">start_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                <span class="n">carrier_freq</span><span class="o">=</span><span class="n">carrier_freqs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">phase</span><span class="o">=</span><span class="n">phases</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">DiscreteSignalSum</span><span class="p">(</span>
+            <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+            <span class="n">carrier_freq</span><span class="o">=</span><span class="n">carrier_freqs</span><span class="p">,</span>
+            <span class="n">phase</span><span class="o">=</span><span class="n">phases</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SignalList"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.SignalList.html#qiskit_dynamics.signals.SignalList">[docs]</a><span class="k">class</span> <span class="nc">SignalList</span><span class="p">(</span><span class="n">SignalCollection</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A list of signals with functionality for simultaneous evaluation.</span>
+
+<span class="sd">    The passed list is stored in the ``components`` attribute.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">]):</span>
+        <span class="n">signal_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_SignalSum</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span> <span class="k">for</span> <span class="n">signal</span> <span class="ow">in</span> <span class="n">signal_list</span><span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">signal_list</span><span class="p">)</span>
+
+        <span class="c1"># setup complex value and full signal evaluation</span>
+        <span class="k">if</span> <span class="n">Array</span><span class="o">.</span><span class="n">default_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;jax&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eval_complex_value</span> <span class="o">=</span> <span class="n">array_funclist_evaluate</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">sig</span><span class="o">.</span><span class="n">complex_value</span> <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eval_signals</span> <span class="o">=</span> <span class="n">array_funclist_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eval_complex_value</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="n">sig</span><span class="o">.</span><span class="n">complex_value</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eval_signals</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="n">sig</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">]</span>
+
+<div class="viewcode-block" id="SignalList.complex_value"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.SignalList.complex_value.html#qiskit_dynamics.signals.SignalList.complex_value">[docs]</a>    <span class="k">def</span> <span class="nf">complex_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized evaluation of complex value of components.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_eval_complex_value</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized evaluation of all components.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_eval_signals</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SignalList.flatten"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.signals.SignalList.flatten.html#qiskit_dynamics.signals.SignalList.flatten">[docs]</a>    <span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SignalList&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a ``SignalList`` with each component flattened.&quot;&quot;&quot;</span>
+        <span class="n">flattened_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">):</span>
+                <span class="n">flattened_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flattened_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">SignalList</span><span class="p">(</span><span class="n">flattened_list</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">drift</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the drift ``Array``\, i.e. return an ``Array`` whose entries are the sum</span>
+<span class="sd">        of the constant parts of the corresponding component of this ``SignalList``\.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">drift_array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sig_entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig_entry</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">):</span>
+                <span class="n">sig_entry</span> <span class="o">=</span> <span class="n">SignalSum</span><span class="p">(</span><span class="n">sig_entry</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">sig_entry</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">is_constant</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">+=</span> <span class="n">Array</span><span class="p">(</span><span class="n">term</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span><span class="o">.</span><span class="n">data</span>
+
+            <span class="n">drift_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Array</span><span class="p">(</span><span class="n">drift_array</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">signal_add</span><span class="p">(</span><span class="n">sig1</span><span class="p">:</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">sig2</span><span class="p">:</span> <span class="n">Signal</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SignalSum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add two signals.&quot;&quot;&quot;</span>
+
+    <span class="c1"># generic routine</span>
+    <span class="c1"># convert to SignalSum instances</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sig1</span> <span class="o">=</span> <span class="n">to_SignalSum</span><span class="p">(</span><span class="n">sig1</span><span class="p">)</span>
+        <span class="n">sig2</span> <span class="o">=</span> <span class="n">to_SignalSum</span><span class="p">(</span><span class="n">sig2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">QiskitError</span> <span class="k">as</span> <span class="n">qe</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Only a number or a Signal instance can be added to a Signal.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">qe</span>
+
+    <span class="c1"># if both are DiscreteSignalSum objects with compatible structure, append data together</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">sig1</span><span class="o">.</span><span class="n">dt</span> <span class="o">==</span> <span class="n">sig2</span><span class="o">.</span><span class="n">dt</span>
+            <span class="ow">and</span> <span class="n">sig1</span><span class="o">.</span><span class="n">start_time</span> <span class="o">==</span> <span class="n">sig2</span><span class="o">.</span><span class="n">start_time</span>
+            <span class="ow">and</span> <span class="n">sig1</span><span class="o">.</span><span class="n">duration</span> <span class="o">==</span> <span class="n">sig2</span><span class="o">.</span><span class="n">duration</span>
+        <span class="p">):</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">carrier_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span> <span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">)</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">sig2</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">DiscreteSignalSum</span><span class="p">(</span>
+                <span class="n">dt</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span>
+                <span class="n">start_time</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                <span class="n">carrier_freq</span><span class="o">=</span><span class="n">carrier_freq</span><span class="p">,</span>
+                <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="n">sig_sum</span> <span class="o">=</span> <span class="n">SignalSum</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">components</span> <span class="o">+</span> <span class="n">sig2</span><span class="o">.</span><span class="n">components</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">sig_sum</span>
+
+
+<span class="k">def</span> <span class="nf">signal_multiply</span><span class="p">(</span><span class="n">sig1</span><span class="p">:</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">sig2</span><span class="p">:</span> <span class="n">Signal</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SignalSum</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Multiply two ``Signal``\s. For a pair of elementary (non-``SignalSum``\) ``Signal``\s,</span>
+<span class="sd">    expands the product of two signals into a ``SignalSum`` via the formula:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        Re[f(t)e^{i(2 \pi \nu t + \phi)}] \times Re[g(t)e^{i(2 \pi \omega t + \psi)}]</span>
+<span class="sd">         = Re[\frac{1}{2} f(t)g(t)e^{i(2\pi (\omega + \nu)t + (\phi + \psi))} ]</span>
+<span class="sd">          + Re[\frac{1}{2} f(t)\overline{g(t)}e^{i(2\pi (\omega - \nu)t + (\phi - \psi))} ]</span>
+
+<span class="sd">    If either (or both) of ``sig1`` or ``sig2`` are ``SignalSum``\s, the multiplication is</span>
+<span class="sd">    distributed over addition.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># convert to SignalSum instances</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sig1</span> <span class="o">=</span> <span class="n">to_SignalSum</span><span class="p">(</span><span class="n">sig1</span><span class="p">)</span>
+        <span class="n">sig2</span> <span class="o">=</span> <span class="n">to_SignalSum</span><span class="p">(</span><span class="n">sig2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">QiskitError</span> <span class="k">as</span> <span class="n">qe</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Only a number or a Signal instance can multiply a Signal.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">qe</span>
+
+    <span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span> <span class="o">=</span> <span class="n">sort_signals</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span><span class="p">)</span>
+
+    <span class="c1"># if sig1 contains only a constant and sig2 is a DiscreteSignalSum</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">sig1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_constant</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DiscreteSignalSum</span><span class="p">(</span>
+            <span class="n">dt</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">samples</span><span class="o">=</span><span class="n">sig1</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+            <span class="n">carrier_freq</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span>
+            <span class="n">phase</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="c1"># if both are DiscreteSignalSum objects with compatible structure, append data together</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">sig1</span><span class="o">.</span><span class="n">dt</span> <span class="o">==</span> <span class="n">sig2</span><span class="o">.</span><span class="n">dt</span>
+            <span class="ow">and</span> <span class="n">sig1</span><span class="o">.</span><span class="n">start_time</span> <span class="o">==</span> <span class="n">sig2</span><span class="o">.</span><span class="n">start_time</span>
+            <span class="ow">and</span> <span class="n">sig1</span><span class="o">.</span><span class="n">duration</span> <span class="o">==</span> <span class="n">sig2</span><span class="o">.</span><span class="n">duration</span>
+        <span class="p">):</span>
+            <span class="c1"># this vectorized operation produces a 2d array whose columns are the products of</span>
+            <span class="c1"># the original columns</span>
+            <span class="n">new_samples</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span>
+                <span class="mf">0.5</span>
+                <span class="o">*</span> <span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">samples</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sig1</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">new_samples_conj</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span>
+                <span class="mf">0.5</span>
+                <span class="o">*</span> <span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">samples</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">conj</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sig1</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_samples</span><span class="p">,</span> <span class="n">new_samples_conj</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">new_freqs</span> <span class="o">=</span> <span class="n">sig1</span><span class="o">.</span><span class="n">carrier_freq</span> <span class="o">+</span> <span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span>
+            <span class="n">new_freqs_conj</span> <span class="o">=</span> <span class="n">sig1</span><span class="o">.</span><span class="n">carrier_freq</span> <span class="o">-</span> <span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">new_freqs</span><span class="p">),</span> <span class="n">Array</span><span class="p">(</span><span class="n">new_freqs_conj</span><span class="p">))</span>
+
+            <span class="n">new_phases</span> <span class="o">=</span> <span class="n">sig1</span><span class="o">.</span><span class="n">phase</span> <span class="o">+</span> <span class="n">sig2</span><span class="o">.</span><span class="n">phase</span>
+            <span class="n">new_phases_conj</span> <span class="o">=</span> <span class="n">sig1</span><span class="o">.</span><span class="n">phase</span> <span class="o">-</span> <span class="n">sig2</span><span class="o">.</span><span class="n">phase</span>
+            <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">new_phases</span><span class="p">),</span> <span class="n">Array</span><span class="p">(</span><span class="n">new_phases_conj</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">DiscreteSignalSum</span><span class="p">(</span>
+                <span class="n">dt</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span>
+                <span class="n">start_time</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                <span class="n">carrier_freq</span><span class="o">=</span><span class="n">freqs</span><span class="p">,</span>
+                <span class="n">phase</span><span class="o">=</span><span class="n">phases</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="c1"># initialize to empty sum</span>
+    <span class="n">product</span> <span class="o">=</span> <span class="n">SignalSum</span><span class="p">()</span>
+
+    <span class="c1"># loop through every pair of components and multiply</span>
+    <span class="k">for</span> <span class="n">comp1</span><span class="p">,</span> <span class="n">comp2</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">sig2</span><span class="o">.</span><span class="n">components</span><span class="p">):</span>
+        <span class="n">product</span> <span class="o">+=</span> <span class="n">base_signal_multiply</span><span class="p">(</span><span class="n">comp1</span><span class="p">,</span> <span class="n">comp2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">product</span>
+
+
+<span class="k">def</span> <span class="nf">base_signal_multiply</span><span class="p">(</span><span class="n">sig1</span><span class="p">:</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">sig2</span><span class="p">:</span> <span class="n">Signal</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Signal</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Utility function for multiplying two elementary (non ``SignalSum``\) signals.</span>
+<span class="sd">    This function assumes ``sig1`` and ``sig2`` are legitimate instances of ``Signal``</span>
+<span class="sd">    subclasses.</span>
+
+<span class="sd">    Special cases:</span>
+
+<span class="sd">        - Multiplication of two constant ``Signal``\s returns a constant ``Signal``\.</span>
+<span class="sd">        - Multiplication of a constant ``Signal`` and a ``DiscreteSignal`` returns</span>
+<span class="sd">        a ``DiscreteSignal``\.</span>
+<span class="sd">        - If two ``DiscreteSignal``\s have compatible parameters, the resulting signals are</span>
+<span class="sd">        ``DiscreteSignal``\, with the multiplication being implemented by array multiplication of</span>
+<span class="sd">        the samples.</span>
+<span class="sd">        - Lastly, if no special rules apply, the two ``Signal``\s are multiplied generically via</span>
+<span class="sd">        multiplication of the envelopes as functions.</span>
+
+<span class="sd">    When a sum with two signals is produced, the carrier frequency (phase) of each component are,</span>
+<span class="sd">    respectively, the sum and difference of the two frequencies (phases). For special cases</span>
+<span class="sd">    involving constant ``Signal``\s and a non-constant ``Signal``, the carrier frequency and phase</span>
+<span class="sd">    are preserved as that of the non-constant piece.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sig1: First signal.</span>
+<span class="sd">        sig2: Second signal.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        SignalSum: Representing the RHS of the formula when two Signals are multiplied.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># ensure signals are ordered from most to least specialized</span>
+    <span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span> <span class="o">=</span> <span class="n">sort_signals</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sig1</span><span class="o">.</span><span class="n">is_constant</span> <span class="ow">and</span> <span class="n">sig2</span><span class="o">.</span><span class="n">is_constant</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Signal</span><span class="p">(</span><span class="n">sig1</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">sig2</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">sig1</span><span class="o">.</span><span class="n">is_constant</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">sig2</span><span class="p">)</span> <span class="ow">is</span> <span class="n">DiscreteSignal</span><span class="p">:</span>
+        <span class="c1"># multiply the samples by the constant</span>
+        <span class="k">return</span> <span class="n">DiscreteSignal</span><span class="p">(</span>
+            <span class="n">dt</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">samples</span><span class="o">=</span><span class="n">sig1</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+            <span class="n">carrier_freq</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span>
+            <span class="n">phase</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sig1</span><span class="o">.</span><span class="n">is_constant</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">sig2</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Signal</span><span class="p">:</span>
+        <span class="n">const</span> <span class="o">=</span> <span class="n">sig1</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">new_env</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">const</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Signal</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">new_env</span><span class="p">,</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">sig1</span><span class="p">)</span> <span class="ow">is</span> <span class="n">DiscreteSignal</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">sig2</span><span class="p">)</span> <span class="ow">is</span> <span class="n">DiscreteSignal</span><span class="p">:</span>
+        <span class="c1"># verify compatible parameters before applying special rule</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">sig1</span><span class="o">.</span><span class="n">start_time</span> <span class="o">==</span> <span class="n">sig2</span><span class="o">.</span><span class="n">start_time</span>
+            <span class="ow">and</span> <span class="n">sig1</span><span class="o">.</span><span class="n">dt</span> <span class="o">==</span> <span class="n">sig2</span><span class="o">.</span><span class="n">dt</span>
+            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig1</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">pwc1</span> <span class="o">=</span> <span class="n">DiscreteSignal</span><span class="p">(</span>
+                <span class="n">dt</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sig1</span><span class="o">.</span><span class="n">samples</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span>
+                <span class="n">start_time</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                <span class="n">carrier_freq</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">carrier_freq</span> <span class="o">+</span> <span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span>
+                <span class="n">phase</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">phase</span> <span class="o">+</span> <span class="n">sig2</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">pwc2</span> <span class="o">=</span> <span class="n">DiscreteSignal</span><span class="p">(</span>
+                <span class="n">dt</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sig1</span><span class="o">.</span><span class="n">samples</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">sig2</span><span class="o">.</span><span class="n">samples</span><span class="p">),</span>
+                <span class="n">start_time</span><span class="o">=</span><span class="n">sig2</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                <span class="n">carrier_freq</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">carrier_freq</span> <span class="o">-</span> <span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span>
+                <span class="n">phase</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">phase</span> <span class="o">-</span> <span class="n">sig2</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">pwc1</span> <span class="o">+</span> <span class="n">pwc2</span>
+
+    <span class="c1"># if no special cases apply, implement generic rule</span>
+    <span class="k">def</span> <span class="nf">new_env1</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">sig1</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">sig2</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">new_env2</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">sig1</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">sig2</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+    <span class="n">prod1</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span>
+        <span class="n">envelope</span><span class="o">=</span><span class="n">new_env1</span><span class="p">,</span>
+        <span class="n">carrier_freq</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">carrier_freq</span> <span class="o">+</span> <span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span>
+        <span class="n">phase</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">phase</span> <span class="o">+</span> <span class="n">sig2</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">prod2</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span>
+        <span class="n">envelope</span><span class="o">=</span><span class="n">new_env2</span><span class="p">,</span>
+        <span class="n">carrier_freq</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">carrier_freq</span> <span class="o">-</span> <span class="n">sig2</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span>
+        <span class="n">phase</span><span class="o">=</span><span class="n">sig1</span><span class="o">.</span><span class="n">phase</span> <span class="o">-</span> <span class="n">sig2</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">prod1</span> <span class="o">+</span> <span class="n">prod2</span>
+
+
+<span class="k">def</span> <span class="nf">sort_signals</span><span class="p">(</span><span class="n">sig1</span><span class="p">:</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">sig2</span><span class="p">:</span> <span class="n">Signal</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Signal</span><span class="p">,</span> <span class="n">Signal</span><span class="p">]:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Utility function for ordering a pair of ``Signal``\s according to the partial order:</span>
+<span class="sd">    ``sig1 &lt;= sig2`` if and only if:</span>
+<span class="sd">        - ``type(sig1)`` precedes ``type(sig2)`` in the list</span>
+<span class="sd">        ``[constant, DiscreteSignal, Signal, SignalSum, DiscreteSignalSum]``\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">sig1</span><span class="o">.</span><span class="n">is_constant</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">sig2</span><span class="o">.</span><span class="n">is_constant</span><span class="p">:</span>
+        <span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span> <span class="o">=</span> <span class="n">sig2</span><span class="p">,</span> <span class="n">sig1</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">DiscreteSignal</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">DiscreteSignal</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="n">sig2</span><span class="p">,</span> <span class="n">sig1</span> <span class="o">=</span> <span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">Signal</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">Signal</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">):</span>
+        <span class="n">sig2</span><span class="p">,</span> <span class="n">sig1</span> <span class="o">=</span> <span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="n">sig2</span><span class="p">,</span> <span class="n">sig1</span> <span class="o">=</span> <span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig1</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="n">sig2</span><span class="p">,</span> <span class="n">sig1</span> <span class="o">=</span> <span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span>
+
+    <span class="k">return</span> <span class="n">sig1</span><span class="p">,</span> <span class="n">sig2</span>
+
+
+<span class="k">def</span> <span class="nf">to_SignalSum</span><span class="p">(</span><span class="n">sig</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Signal</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SignalSum</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Convert the input to a SignalSum according to:</span>
+
+<span class="sd">        - If it is already a ``SignalSum``\, do nothing.</span>
+<span class="sd">        - If it is a Signal but not a ``SignalSum``\, wrap in a ``SignalSum``\.</span>
+<span class="sd">        - If it is a number, wrap in constant ``Signal`` in a ``SignalSum``\.</span>
+<span class="sd">        - Otherwise, raise an error.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sig: A SignalSum compatible input.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        SignalSum</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: If the input type is incompatible with SignalSum.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">Array</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sig</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SignalSum</span><span class="p">(</span><span class="n">Signal</span><span class="p">(</span><span class="n">sig</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">DiscreteSignal</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">DiscreteSignalSum</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Array</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,):</span>
+            <span class="n">new_samples</span> <span class="o">=</span> <span class="n">Array</span><span class="p">([</span><span class="n">sig</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">data</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_samples</span> <span class="o">=</span> <span class="n">Array</span><span class="p">([</span><span class="n">sig</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">data</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DiscreteSignalSum</span><span class="p">(</span>
+            <span class="n">dt</span><span class="o">=</span><span class="n">sig</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">samples</span><span class="o">=</span><span class="n">new_samples</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="n">sig</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+            <span class="n">carrier_freq</span><span class="o">=</span><span class="n">Array</span><span class="p">([</span><span class="n">sig</span><span class="o">.</span><span class="n">carrier_freq</span><span class="o">.</span><span class="n">data</span><span class="p">]),</span>
+            <span class="n">phase</span><span class="o">=</span><span class="n">Array</span><span class="p">([</span><span class="n">sig</span><span class="o">.</span><span class="n">phase</span><span class="o">.</span><span class="n">data</span><span class="p">]),</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">Signal</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SignalSum</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">SignalSum</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sig</span>
+
+    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;Input type incompatible with SignalSum.&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">array_funclist_evaluate</span><span class="p">(</span><span class="n">func_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Utility for evaluating a list of functions in a way that respects Arrays.</span>
+<span class="sd">    Currently relevant for JAX evaluation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">eval_func</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Array</span><span class="p">([</span><span class="n">Array</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">t</span><span class="p">))</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">func_list</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">eval_func</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

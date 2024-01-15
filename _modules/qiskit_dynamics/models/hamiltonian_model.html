@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.models.hamiltonian_model &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.models.hamiltonian_model</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.models.hamiltonian_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Hamiltonian models module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">csr_matrix</span><span class="p">,</span> <span class="n">issparse</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse.linalg</span> <span class="kn">import</span> <span class="n">norm</span> <span class="k">as</span> <span class="n">spnorm</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators</span> <span class="kn">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.signals</span> <span class="kn">import</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">SignalList</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.type_utils</span> <span class="kn">import</span> <span class="n">to_numeric_matrix_type</span><span class="p">,</span> <span class="n">to_array</span>
+<span class="kn">from</span> <span class="nn">.generator_model</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GeneratorModel</span><span class="p">,</span>
+    <span class="n">transfer_static_operator_between_frames</span><span class="p">,</span>
+    <span class="n">transfer_operators_between_frames</span><span class="p">,</span>
+    <span class="n">construct_operator_collection</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.rotating_frame</span> <span class="kn">import</span> <span class="n">RotatingFrame</span>
+
+
+<div class="viewcode-block" id="HamiltonianModel"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel">[docs]</a><span class="k">class</span> <span class="nc">HamiltonianModel</span><span class="p">(</span><span class="n">GeneratorModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A model of a Hamiltonian for the Schrodinger equation.</span>
+
+<span class="sd">    This class represents a Hamiltonian as a time-dependent decomposition the form:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        H(t) = H_d + \sum_j s_j(t) H_j,</span>
+
+<span class="sd">    where :math:`H_j` are Hermitian operators, :math:`H_d` is the static component, and the</span>
+<span class="sd">    :math:`s_j(t)` are either :class:`~qiskit_dynamics.signals.Signal` objects or numerical</span>
+<span class="sd">    constants. Constructing a :class:`~qiskit_dynamics.models.HamiltonianModel` requires specifying</span>
+<span class="sd">    the above decomposition, e.g.:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        hamiltonian = HamiltonianModel(static_operator=static_operator,</span>
+<span class="sd">                                       operators=operators,</span>
+<span class="sd">                                       signals=signals)</span>
+
+<span class="sd">    This class inherits most functionality from :class:`GeneratorModel`, with the following</span>
+<span class="sd">    modifications:</span>
+
+<span class="sd">        * The operators :math:`H_d` and :math:`H_j` are assumed and verified to be Hermitian.</span>
+<span class="sd">        * Rotating frames are dealt with assuming the structure of the Schrodinger equation. I.e.</span>
+<span class="sd">          Evaluating the Hamiltonian :math:`H(t)` in a frame :math:`F = -iH_0`, evaluates the</span>
+<span class="sd">          expression :math:`e^{-tF}H(t)e^{tF} - H_0`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">static_operator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">operators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Operator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">signals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">SignalList</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rotating_frame</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">RotatingFrame</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">in_frame_basis</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">evaluation_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dense&quot;</span><span class="p">,</span>
+        <span class="n">validate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize, ensuring that the operators are Hermitian.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            static_operator: Time-independent term in the Hamiltonian.</span>
+<span class="sd">            operators: List of Operator objects.</span>
+<span class="sd">            signals: List of coefficients :math:`s_i(t)`. Not required at instantiation, but</span>
+<span class="sd">                     necessary for evaluation of the model.</span>
+<span class="sd">            rotating_frame: Rotating frame operator.</span>
+<span class="sd">                            If specified with a 1d array, it is interpreted as the</span>
+<span class="sd">                            diagonal of a diagonal matrix. Assumed to store</span>
+<span class="sd">                            the antihermitian matrix F = -iH.</span>
+<span class="sd">            in_frame_basis: Whether to represent the model in the basis in which the rotating</span>
+<span class="sd">                            frame operator is diagonalized.</span>
+<span class="sd">            evaluation_mode: Evaluation mode to use. Supported options are ``&#39;dense&#39;`` and</span>
+<span class="sd">                             ``&#39;sparse&#39;``. Call ``help(HamiltonianModel.evaluation_mode)`` for more</span>
+<span class="sd">                             details.</span>
+<span class="sd">            validate: If True check input operators are Hermitian.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: if operators are not Hermitian</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># verify operators are Hermitian, and if so instantiate</span>
+        <span class="n">operators</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">operators</span><span class="p">)</span>
+        <span class="n">static_operator</span> <span class="o">=</span> <span class="n">to_numeric_matrix_type</span><span class="p">(</span><span class="n">static_operator</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_hermitian</span><span class="p">(</span><span class="n">operators</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;HamiltonianModel operators must be Hermitian.&quot;&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">static_operator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_hermitian</span><span class="p">(</span><span class="n">static_operator</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;HamiltonianModel static_operator must be Hermitian.&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">static_operator</span><span class="o">=</span><span class="n">static_operator</span><span class="p">,</span>
+            <span class="n">operators</span><span class="o">=</span><span class="n">operators</span><span class="p">,</span>
+            <span class="n">signals</span><span class="o">=</span><span class="n">signals</span><span class="p">,</span>
+            <span class="n">rotating_frame</span><span class="o">=</span><span class="n">rotating_frame</span><span class="p">,</span>
+            <span class="n">in_frame_basis</span><span class="o">=</span><span class="n">in_frame_basis</span><span class="p">,</span>
+            <span class="n">evaluation_mode</span><span class="o">=</span><span class="n">evaluation_mode</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rotating_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RotatingFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The rotating frame.</span>
+
+<span class="sd">        This property can be set with a :class:`RotatingFrame` instance, or any valid constructor</span>
+<span class="sd">        argument to this class. It can either be Hermitian or anti-Hermitian, and in either case</span>
+<span class="sd">        only the anti-Hermitian version :math:`F=-iH` will be stored.</span>
+
+<span class="sd">        Setting this property updates the internal operator list to use the new frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">rotating_frame</span>
+
+    <span class="nd">@rotating_frame</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">rotating_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotating_frame</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Operator</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">RotatingFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+        <span class="n">new_frame</span> <span class="o">=</span> <span class="n">RotatingFrame</span><span class="p">(</span><span class="n">rotating_frame</span><span class="p">)</span>
+
+        <span class="c1"># convert static operator to new frame setup</span>
+        <span class="n">static_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_static_operator</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">static_op</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">static_op</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">static_op</span>
+
+        <span class="n">new_static_operator</span> <span class="o">=</span> <span class="n">transfer_static_operator_between_frames</span><span class="p">(</span>
+            <span class="n">static_op</span><span class="p">,</span>
+            <span class="n">new_frame</span><span class="o">=</span><span class="n">new_frame</span><span class="p">,</span>
+            <span class="n">old_frame</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">new_static_operator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_static_operator</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">new_static_operator</span>
+
+        <span class="c1"># convert operators to new frame set up</span>
+        <span class="n">new_operators</span> <span class="o">=</span> <span class="n">transfer_operators_between_frames</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_operators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">new_frame</span><span class="o">=</span><span class="n">new_frame</span><span class="p">,</span>
+            <span class="n">old_frame</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rotating_frame</span> <span class="o">=</span> <span class="n">new_frame</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operator_collection</span> <span class="o">=</span> <span class="n">construct_operator_collection</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_mode</span><span class="p">,</span> <span class="n">new_static_operator</span><span class="p">,</span> <span class="n">new_operators</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="HamiltonianModel.evaluate"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.HamiltonianModel.evaluate.html#qiskit_dynamics.models.HamiltonianModel.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the model in array format as a matrix, independent of state.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time: The time to evaluate the model at.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array: The evaluated model as an anti-Hermitian matrix.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If model cannot be evaluated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">time</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HamiltonianModel.evaluate_rhs"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.HamiltonianModel.evaluate_rhs.html#qiskit_dynamics.models.HamiltonianModel.evaluate_rhs">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_rhs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Evaluate ``-1j * H(t) @ y``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time: The time to evaluate the model at .</span>
+<span class="sd">            y: Array specifying system state.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array defined by :math:`G(t) \times y`.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            QiskitError: If model cannot be evaluated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate_rhs</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">is_hermitian</span><span class="p">(</span>
+    <span class="n">operators</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">csr_matrix</span><span class="p">],</span> <span class="s2">&quot;BCOO&quot;</span><span class="p">],</span> <span class="n">tol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-10</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate that operators are Hermitian.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        operators: Either a 2d array representing a single operator, a 3d array representing a list</span>
+<span class="sd">            of operators, a ``csr_matrix``, or a list of ``csr_matrix``.</span>
+<span class="sd">        tol: Tolerance for checking zeros.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: Whether or not the operators are Hermitian to within tolerance.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        QiskitError: If an unexpeted type is received.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Array</span><span class="p">)):</span>
+        <span class="n">adj</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">operators</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">operators</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">operators</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">operators</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">adj</span> <span class="o">-</span> <span class="n">operators</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span>
+    <span class="k">elif</span> <span class="n">issparse</span><span class="p">(</span><span class="n">operators</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">spnorm</span><span class="p">(</span><span class="n">operators</span> <span class="o">-</span> <span class="n">operators</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span> <span class="o">&lt;</span> <span class="n">tol</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">issparse</span><span class="p">(</span><span class="n">operators</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">spnorm</span><span class="p">(</span><span class="n">op</span> <span class="o">-</span> <span class="n">op</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span> <span class="o">&lt;</span> <span class="n">tol</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">operators</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">operators</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;BCOO&quot;</span><span class="p">:</span>
+        <span class="c1"># fall back on array case for BCOO</span>
+        <span class="k">return</span> <span class="n">is_hermitian</span><span class="p">(</span><span class="n">to_array</span><span class="p">(</span><span class="n">operators</span><span class="p">))</span>
+
+    <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="s2">&quot;is_hermitian got an unexpected type.&quot;</span><span class="p">)</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

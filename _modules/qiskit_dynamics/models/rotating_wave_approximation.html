@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qiskit_dynamics.models.rotating_wave_approximation &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" /><script src="../../../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>qiskit_dynamics.models.rotating_wave_approximation</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for qiskit_dynamics.models.rotating_wave_approximation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2021.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name, inconsistent-return-statements</span>
+
+<span class="sd">&quot;&quot;&quot;Functions for performing the Rotating Wave Approximation</span>
+<span class="sd">on Model classes.&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.models</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseGeneratorModel</span><span class="p">,</span>
+    <span class="n">GeneratorModel</span><span class="p">,</span>
+    <span class="n">HamiltonianModel</span><span class="p">,</span>
+    <span class="n">LindbladModel</span><span class="p">,</span>
+    <span class="n">RotatingFrame</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.signals</span> <span class="kn">import</span> <span class="n">SignalSum</span><span class="p">,</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">SignalList</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">qiskit_dynamics.type_utils</span> <span class="kn">import</span> <span class="n">to_array</span>
+
+
+<div class="viewcode-block" id="rotating_wave_approximation"><a class="viewcode-back" href="../../../stubs/qiskit_dynamics.models.rotating_wave_approximation.html#qiskit_dynamics.models.rotating_wave_approximation">[docs]</a><span class="k">def</span> <span class="nf">rotating_wave_approximation</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">BaseGeneratorModel</span><span class="p">,</span> <span class="n">cutoff_freq</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">return_signal_map</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseGeneratorModel</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Construct a new model by performing the rotating wave approximation with a given cutoff</span>
+<span class="sd">    frequency. The outputs of this function can be used in JAX-transformable functions, however this</span>
+<span class="sd">    function itself cannot (see below).</span>
+
+<span class="sd">    Performs elementwise rotating wave approximation (RWA) with cutoff frequency ``cutoff_freq`` on</span>
+<span class="sd">    each operator in a model, returning a new model. The new model contains a modified list of</span>
+<span class="sd">    signal coefficients, and setting the optional argument ``return_signal_map=True`` results in</span>
+<span class="sd">    the additional return of the function ``f`` which maps the signals of the input model to those</span>
+<span class="sd">    of the output RWA model, such that the code blocks:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        model.signals = new_signals</span>
+<span class="sd">        rwa_model = rotating_wave_approximation(model, cutoff_freq)</span>
+
+<span class="sd">    and</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        rwa_model, f = rotating_wave_approximation(model, cutoff_freq, return_signal_map=True)</span>
+<span class="sd">        rwa_model.signals = f(new_signals)</span>
+
+<span class="sd">    result in an ``rwa_model`` with the same updated signals.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        The ``rotating_wave_approximation`` function itself cannot be included in a function</span>
+<span class="sd">        to-be JAX-transformed, however the resulting model and ``signal_map`` can. For example,</span>
+<span class="sd">        the following function is **not** JAX-transformable:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            def function_with_rwa(t):</span>
+<span class="sd">                operators = ...</span>
+<span class="sd">                signals = ...</span>
+<span class="sd">                model = GeneratorModel(operators=operators, signals=signals)</span>
+<span class="sd">                rwa_model = rotating_wave_approximation(model, cutoff_freq)</span>
+<span class="sd">                return rwa_model(t)</span>
+
+<span class="sd">        Whereas, defining:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            rwa_model, signal_map = rotating_wave_approximation(model,</span>
+<span class="sd">                                                                cutoff_freq,</span>
+<span class="sd">                                                                return_signal_map=True)</span>
+
+<span class="sd">        The following function **is** JAX-transformable:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            def jax_transformable_func(t):</span>
+<span class="sd">                rwa_model_copy = rwa_model.copy()</span>
+<span class="sd">                rwa_model_copy.signals = signal_map(new_signals)</span>
+<span class="sd">                return rwa_model_copy(t)</span>
+
+<span class="sd">        In this way, the outputs of ``rotating_wave_approximation`` can be used in JAX-transformable</span>
+<span class="sd">        functions, however ``rotating_wave_approximation`` itself cannot.</span>
+
+
+<span class="sd">    We now describe the formalism. When considering :math:`s_i(t) e^{-tF}G_ie^{tF}`, in the basis in</span>
+<span class="sd">    which :math:`F` is diagonal, the :math:`(j, k)` element of :math:`G_i` has effective frequency</span>
+<span class="sd">    :math:`\tilde\nu_{ijk}^\pm = \pm\nu_i + Im[-d_j+d_k]/2\pi`, where the :math:`\pm\nu_i` comes</span>
+<span class="sd">    from expressing :math:`s_i(t) = Re[a_i(t)e^{2\pi i\nu_i t}] = a_i(t)e^{i(2\pi\nu_i t+\phi_i)}/2</span>
+<span class="sd">    + c.c.` and the other term comes from the rotating frame. Define :math:`G_i^\pm` the matrix</span>
+<span class="sd">    whose entries :math:`(G_i^\pm)_{jk}` are the entries of :math:`G_i` s.t.</span>
+<span class="sd">    :math:`|\nu_{ijk}^\pm|&lt;\nu_*` for some cutoff frequency :math:`\nu_*`. Then, after the RWA, we</span>
+<span class="sd">    may write</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        s_i(t)G_i \to G_i^+ a_ie^{i(2\pi \nu_i t+\phi_i)}/2</span>
+<span class="sd">                        + G_i^- \overline{a_i}e^{-i(2\pi \nu_i t+\phi_i)}/2.</span>
+
+<span class="sd">    When we regroup these to use only the real components of the signal, we find that</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        s_i(t)G_i \to  s_i(t)(G_i^+ + G_i^-)/2 + s_i&#39;(t)(iG_i^+-iG_i^-)</span>
+
+<span class="sd">    where :math:`s_i&#39;(t)` is a signal with the same frequency and amplitude as :math:`s_i`, but with</span>
+<span class="sd">    a phase shift of :math:`\phi_i - \pi/2`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: The model to approximate.</span>
+<span class="sd">        cutoff_freq: The cutoff frequency for the approximation.</span>
+<span class="sd">        return_signal_map: Whether to also return the function for mapping pre-RWA signals to</span>
+<span class="sd">            post-RWA signals.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        :class:`GeneratorModel` with twice as many terms, and, if ``return_signal_map``,</span>
+<span class="sd">        also the function ``f``.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the model has no signals.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dim</span>
+
+    <span class="n">frame_freqs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">frame_diag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">frame_freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">diag</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">frame_diag</span>
+        <span class="n">diff_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">diag</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">diag</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">frame_freqs</span> <span class="o">=</span> <span class="n">diff_matrix</span><span class="o">.</span><span class="n">imag</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">frame_diag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">frame_shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">frame_diag</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">(</span><span class="n">HamiltonianModel</span><span class="p">,</span> <span class="n">LindbladModel</span><span class="p">)):</span>
+            <span class="n">frame_shift</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">frame_shift</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">frame_shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">GeneratorModel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">signals</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model must have nontrivial signals to perform the RWA.&quot;</span><span class="p">)</span>
+
+        <span class="n">cur_drift</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_get_static_operator</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">cur_drift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cur_drift</span> <span class="o">=</span> <span class="n">cur_drift</span> <span class="o">+</span> <span class="n">frame_shift</span>
+            <span class="n">rwa_drift</span> <span class="o">=</span> <span class="n">cur_drift</span> <span class="o">*</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">frame_freqs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cutoff_freq</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">rwa_drift</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">rwa_drift</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rwa_drift</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">rwa_operators</span> <span class="o">=</span> <span class="n">get_rwa_operators</span><span class="p">(</span>
+            <span class="n">to_array</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_get_operators</span><span class="p">(</span><span class="kc">True</span><span class="p">)),</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">signals</span><span class="p">,</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+            <span class="n">frame_freqs</span><span class="p">,</span>
+            <span class="n">cutoff_freq</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">rwa_signals</span> <span class="o">=</span> <span class="n">get_rwa_signals</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">signals</span><span class="p">)</span>
+
+        <span class="c1"># works for both GeneratorModel and HamiltonianModel</span>
+        <span class="n">rwa_model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
+            <span class="n">static_operator</span><span class="o">=</span><span class="n">rwa_drift</span><span class="p">,</span>
+            <span class="n">operators</span><span class="o">=</span><span class="n">rwa_operators</span><span class="p">,</span>
+            <span class="n">signals</span><span class="o">=</span><span class="n">rwa_signals</span><span class="p">,</span>
+            <span class="n">rotating_frame</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+            <span class="n">in_frame_basis</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">in_frame_basis</span><span class="p">,</span>
+            <span class="n">evaluation_mode</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">evaluation_mode</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_signal_map</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rwa_model</span><span class="p">,</span> <span class="n">get_rwa_signals</span>
+        <span class="k">return</span> <span class="n">rwa_model</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">LindbladModel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">signals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">hamiltonian_operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model must have nontrivial Hamiltonian signals to perform the RWA.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">signals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">dissipator_operators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model must have nontrivial dissipator signals to perform the RWA.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># static hamiltonian part</span>
+        <span class="n">cur_drift</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_get_static_hamiltonian</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span> <span class="o">+</span> <span class="n">frame_shift</span>
+        <span class="n">rwa_drift</span> <span class="o">=</span> <span class="n">cur_drift</span> <span class="o">*</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">frame_freqs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cutoff_freq</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">rwa_drift</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">rwa_drift</span><span class="p">)</span>
+
+        <span class="c1"># static dissipator part</span>
+        <span class="n">cur_static_dis</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_get_static_dissipators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">rwa_static_dis</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">cur_static_dis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rwa_static_dis</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">cur_static_dis</span><span class="p">:</span>
+                <span class="n">op</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+                <span class="n">rwa_op</span> <span class="o">=</span> <span class="n">op</span> <span class="o">*</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">frame_freqs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cutoff_freq</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                <span class="n">rwa_op</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span><span class="n">rwa_op</span><span class="p">)</span>
+                <span class="n">rwa_static_dis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rwa_op</span><span class="p">)</span>
+
+        <span class="n">cur_ham_ops</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_get_hamiltonian_operators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">cur_dis_ops</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_get_dissipator_operators</span><span class="p">(</span><span class="n">in_frame_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+        <span class="n">cur_ham_sig</span><span class="p">,</span> <span class="n">cur_dis_sig</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">signals</span>
+
+        <span class="n">rwa_ham_ops</span> <span class="o">=</span> <span class="n">get_rwa_operators</span><span class="p">(</span>
+            <span class="n">cur_ham_ops</span><span class="p">,</span> <span class="n">cur_ham_sig</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span> <span class="n">frame_freqs</span><span class="p">,</span> <span class="n">cutoff_freq</span>
+        <span class="p">)</span>
+        <span class="n">rwa_ham_sig</span> <span class="o">=</span> <span class="n">get_rwa_signals</span><span class="p">(</span><span class="n">cur_ham_sig</span><span class="p">)</span>
+
+        <span class="n">rwa_dis_ops</span> <span class="o">=</span> <span class="n">get_rwa_operators</span><span class="p">(</span>
+            <span class="n">cur_dis_ops</span><span class="p">,</span> <span class="n">cur_dis_sig</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span> <span class="n">frame_freqs</span><span class="p">,</span> <span class="n">cutoff_freq</span>
+        <span class="p">)</span>
+
+        <span class="n">rwa_dis_sig</span> <span class="o">=</span> <span class="n">get_rwa_signals</span><span class="p">(</span><span class="n">cur_dis_sig</span><span class="p">)</span>
+
+        <span class="n">rwa_model</span> <span class="o">=</span> <span class="n">LindbladModel</span><span class="p">(</span>
+            <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">rwa_drift</span><span class="p">,</span>
+            <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">rwa_ham_ops</span><span class="p">,</span>
+            <span class="n">hamiltonian_signals</span><span class="o">=</span><span class="n">rwa_ham_sig</span><span class="p">,</span>
+            <span class="n">static_dissipators</span><span class="o">=</span><span class="n">rwa_static_dis</span><span class="p">,</span>
+            <span class="n">dissipator_operators</span><span class="o">=</span><span class="n">rwa_dis_ops</span><span class="p">,</span>
+            <span class="n">dissipator_signals</span><span class="o">=</span><span class="n">rwa_dis_sig</span><span class="p">,</span>
+            <span class="n">rotating_frame</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">rotating_frame</span><span class="p">,</span>
+            <span class="n">in_frame_basis</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">in_frame_basis</span><span class="p">,</span>
+            <span class="n">evaluation_mode</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">evaluation_mode</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_signal_map</span><span class="p">:</span>
+            <span class="n">signal_translator</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="p">(</span><span class="n">get_rwa_signals</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">get_rwa_signals</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="n">rwa_model</span><span class="p">,</span> <span class="n">signal_translator</span>
+        <span class="k">return</span> <span class="n">rwa_model</span></div>
+
+
+<span class="k">def</span> <span class="nf">get_rwa_operators</span><span class="p">(</span>
+    <span class="n">current_ops</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">current_sigs</span><span class="p">:</span> <span class="n">SignalList</span><span class="p">,</span>
+    <span class="n">rotating_frame</span><span class="p">:</span> <span class="n">RotatingFrame</span><span class="p">,</span>
+    <span class="n">frame_freqs</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">cutoff_freq</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Given a set of operators as a ``(k,n,n)`` array, a set of frequencies</span>
+<span class="sd">    :math:`\operatorname{frame_freqs}_{jk} = \operatorname{Im}[-d_j+d_k]` where :math:`d_i` the</span>
+<span class="sd">    :math:`i^{th}` eigenlvalue of the frame operator :math:`F`, the current signals of a model, and</span>
+<span class="sd">    a cutoff frequency, returns the new operators and signals that should be passed to create a new</span>
+<span class="sd">    Model class after the RWA.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        current_ops: The current operator list, a ``(k,n,n)`` array.</span>
+<span class="sd">        current_sigs: ``(k,)`` length :class:`SignalList`.</span>
+<span class="sd">        rotating_frame: The current :class:`~RotatingFrame` object of the pre-RWA model</span>
+<span class="sd">        frame_freqs: The effective frequencies of different matrix elements due to the conjugation</span>
+<span class="sd">            by :math:`e^{\pm Ft}` in the rotating frame.</span>
+<span class="sd">        cutoff_freq: The maximum frequency allowed under the RWA.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        SignaLList: ``(2k,n,n)`` array of new operators post RWA.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">current_ops</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">current_sigs</span> <span class="o">=</span> <span class="n">current_sigs</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">carrier_freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">current_ops</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sig_sum</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">current_sigs</span><span class="o">.</span><span class="n">components</span><span class="p">):</span>
+        <span class="n">sig</span> <span class="o">=</span> <span class="n">sig_sum</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">carrier_freqs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">carrier_freq</span>
+
+    <span class="n">num_components</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">carrier_freqs</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">current_ops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">frame_freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">frame_freqs</span><span class="p">,</span> <span class="p">(</span><span class="n">num_components</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="n">carrier_freqs</span> <span class="o">=</span> <span class="n">carrier_freqs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">num_components</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">pos_pass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">carrier_freqs</span> <span class="o">+</span> <span class="n">frame_freqs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cutoff_freq</span>
+    <span class="n">pos_terms</span> <span class="o">=</span> <span class="n">current_ops</span> <span class="o">*</span> <span class="n">pos_pass</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>  <span class="c1"># G_i^+</span>
+
+    <span class="n">neg_pass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="o">-</span><span class="n">carrier_freqs</span> <span class="o">+</span> <span class="n">frame_freqs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cutoff_freq</span>
+    <span class="n">neg_terms</span> <span class="o">=</span> <span class="n">current_ops</span> <span class="o">*</span> <span class="n">neg_pass</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>  <span class="c1"># G_i^-</span>
+
+    <span class="n">real_component</span> <span class="o">=</span> <span class="n">pos_terms</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">neg_terms</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">imag_component</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">pos_terms</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">neg_terms</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="k">return</span> <span class="n">rotating_frame</span><span class="o">.</span><span class="n">operator_out_of_frame_basis</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">real_component</span><span class="p">,</span> <span class="n">imag_component</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_rwa_signals</span><span class="p">(</span><span class="n">curr_signal_list</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">],</span> <span class="n">SignalList</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function that converts pre-RWA signals to post-RWA signals.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        curr_signal_list: The pre-RWA signals.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The post-RWA signals.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">curr_signal_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">curr_signal_list</span>
+
+    <span class="n">real_signal_components</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">imag_signal_components</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">curr_signal_list</span><span class="p">,</span> <span class="n">SignalList</span><span class="p">):</span>
+        <span class="n">curr_signal_list</span> <span class="o">=</span> <span class="n">SignalList</span><span class="p">(</span><span class="n">curr_signal_list</span><span class="p">)</span>
+
+    <span class="n">curr_signal_list</span> <span class="o">=</span> <span class="n">curr_signal_list</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">sig_sum</span> <span class="ow">in</span> <span class="n">curr_signal_list</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+        <span class="n">sig</span> <span class="o">=</span> <span class="n">sig_sum</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">real_signal_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+        <span class="n">imag_signal_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">SignalSum</span><span class="p">(</span><span class="n">Signal</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">envelope</span><span class="p">,</span> <span class="n">sig</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">,</span> <span class="n">sig</span><span class="o">.</span><span class="n">phase</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">SignalList</span><span class="p">(</span><span class="n">real_signal_components</span> <span class="o">+</span> <span class="n">imag_signal_components</span><span class="p">)</span>
+</pre></div>
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

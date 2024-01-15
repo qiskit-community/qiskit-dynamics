@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+  <html class="no-js" lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Solving the Lindblad dynamics of a qubit chain &mdash; Qiskit Dynamics 0.4.2 documentation</title>
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/jupyter-sphinx.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/thebelab.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" /><script src="../_static/js/web-components/top-nav-bar.js"></script>
+
+  <!-- SEGMENT ANALYTICS -->
+    <script>
+      (function () {
+        window._analytics = {
+          segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
+          coremetrics: false,
+          optimizely: false,
+          googleAddServices: false,
+          fullStory: false,
+          autoPageEventSpa: false,
+          autoFormEvents: false,
+          autoPageView: false
+        }
+
+        window.digitalData = {
+          page: {
+            pageInfo: {
+              productTitle: 'IBM Q Experience',
+              analytics: {
+                category: 'Qiskit.org'
+              }
+            }
+          }
+        }
+      }());
+    </script>
+    <script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
+    <script>
+      (function () {
+        'use strict'
+
+        if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+        const category = window.digitalData.page.pageInfo.analytics.category
+        const productTitle = window.digitalData.page.pageInfo.productTitle
+        const routeName = 'documentation'
+
+        window.bluemixAnalytics.pageEvent(category, routeName, {
+          navigationType: 'pushState',
+          productTitle: productTitle,
+          title: document.title
+        })
+
+        window.trackCta = (action) => {
+          if (!window.bluemixAnalytics || !window.digitalData) { return }
+
+          const category = window.digitalData.page.pageInfo.analytics.category
+          const productTitle = window.digitalData.page.pageInfo.productTitle
+
+          window.bluemixAnalytics.trackEvent('CTA Clicked', {
+            productTitle,
+            category,
+            CTA: action
+          })
+        }
+
+      }());
+    </script></head>
+<body class="pytorch-body">
+  <!-- UNIFIED TOP MENU -->
+  <qiskit-ui-shell variant="hide-account"></qiskit-ui-shell>
+
+   
+
+    <!-- LEFT SIDE BAR -->
+
+    <!-- if translations available, display language dropdown menu -->
+    
+
+    <!-- Menu becomes dropdown in mobile view -->
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <!-- left side bar main content -->
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <div class="sidebar">
+    <div class="pytorch-left-menu-search">
+        <div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Qiskit Dynamics Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    </div>
+
+    <!-- render sidebar from the toctree -->
+    
+    
+        <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../userguide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../discussions/index.html">Discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+    
+
+    <!-- PREVIOUS RELEASES -->
+        
+
+    </div>
+  </div>
+</nav>
+
+<!-- OPTIONAL EXPANDABLE FUNCTIONALITY -->
+
+
+<!-- STYLING -->
+<script>
+    // indent subheadings under captions
+    expandable_rows = document.getElementsByClassName("caption");
+    var i;
+    for (i = 0; i < expandable_rows.length; i++) {
+        expandable_rows[i].nextElementSibling.style.marginLeft = "1rem"
+
+        // un-bold subheadings in dropdown
+        var subheadings = expandable_rows[i].nextElementSibling
+        for (j = 0; j < subheadings.children.length; j++) {
+            subheadings.children[j].style.fontWeight = "unset"
+        }
+    }
+
+    // adjust toctree class name to style external links
+    var toc_rows = document.getElementsByClassName("toctree-l1");
+    var i;
+    for (i = 0; i < toc_rows.length; i++) {
+        if (toc_rows[i].children[0].className === "reference external") {
+            toc_rows[i].className = "toctree-l1-external"
+            }
+    }
+
+    // expand and unexpand previous releases dropdown when clicked
+    var release_rows = document.getElementsByClassName("sidebar-l1-expandable");
+    for (i = 0; i < release_rows.length; i++) {
+        release_rows[i].addEventListener("click", function() {
+            this.classList.toggle("open");
+            var clicked_subheadings = this.nextElementSibling;
+            if (clicked_subheadings.style.display === "block") {
+            clicked_subheadings.style.display = "none";
+            } else {
+            clicked_subheadings.style.display = "block";
+            }
+        });
+    }
+</script>
+
+    <div class="pytorch-container">
+
+      <!-- BREADCRUMB MINI MENU BELOW TOP NAV BAR -->
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Qiskit Dynamics  documentation
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Dynamics Tutorials</a> &gt;</li>
+        
+      <li>Solving the Lindblad dynamics of a qubit chain</li>
+    
+  </ul>
+</div>
+        </div>
+      </div>
+
+      <!-- MAIN CENTRE CONTENT -->
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        
+        <div class="pytorch-content-left">
+          <div class="rst-content">
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <section id="solving-the-lindblad-dynamics-of-a-qubit-chain">
+<h1>Solving the Lindblad dynamics of a qubit chain<a class="headerlink" href="#solving-the-lindblad-dynamics-of-a-qubit-chain" title="Permalink to this heading">¶</a></h1>
+<p>In this tutorial we walk through an example of solving the time
+evolution of the density matrix of coupled qubits using
+<code class="docutils literal notranslate"><span class="pre">qiskit_dynamics</span></code>. The model that we solve consists of a
+time-independent Hamiltonian for qubits interacting with their nearest
+neighbors along a ring. In addition, energy relaxation terms acting on
+each qubit are modeled by using a non-Markovian master equation in
+Lindblad form. We will discuss the system’s steady state as a function
+of the model parameters.</p>
+<p>In the sections below we define a model, solve the dynamics and plot
+some observables using the following steps:</p>
+<ol class="arabic simple">
+<li><p>Define the number of qubits and precompute some matrix operators.</p></li>
+<li><p>Define all relevant parameters and setup a <code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code> instance with the model of the system,
+consisting of the Hamiltonian and the jump operators of the Lindblad dissipator.</p></li>
+<li><p>Define the initial state and other parameters for the initial value problem,
+and evolve the system state.</p></li>
+<li><p>Define observables and calculate their values as a function of time.</p></li>
+<li><p>Plot some observables and discuss the results.</p></li>
+</ol>
+<p>The model that we solve describes the time evolution of <span class="math notranslate nohighlight">\(N\)</span> qubits
+with coherent dynamics dictated by a given Hamiltonian, and the
+environment modeled as a memory-less (Markovian) bath. Together, the
+density matrix evolves according to the Lindblad master equation,</p>
+<div class="math notranslate nohighlight">
+\[\partial_t\rho = -\frac{i}{\hbar} \left[H,\rho\right] + \mathcal{D}[\rho].\]</div>
+<p>The Hamiltonian is composed of a sum of single-qubit terms and two-qubit
+interactions,</p>
+<div class="math notranslate nohighlight">
+\[H = H_0 + H_I.\]</div>
+<p>We take the qubits to have identical parameters, with a diagonal term of
+frequency <span class="math notranslate nohighlight">\(\nu_z\)</span> and a transverse term of amplitude
+<span class="math notranslate nohighlight">\(\nu_x\)</span>. The single-qubit part of the Hamiltonian is</p>
+<div class="math notranslate nohighlight">
+\[H_0 = \frac{1}{2}\sum_i^N \left[2 \pi \nu_z {Z}_i + 2 \pi \nu_x {X}_i\right],\]</div>
+<p>where <span class="math notranslate nohighlight">\(\{X_i,Y_i,Z_i\}\)</span> are the Pauli matrices for qubit <span class="math notranslate nohighlight">\(i\)</span>
+(also written as <span class="math notranslate nohighlight">\(\sigma_i^a\)</span> with <span class="math notranslate nohighlight">\(a\in\{x,y,z\}\)</span>).</p>
+<p>We set the interactions between nearest-neighbor qubits to be of
+“flip-flop” type, also called “XY” coupling. We consider periodic
+boundary conditions, such that the last qubit is connected to the first
+qubit as well, with</p>
+<div class="math notranslate nohighlight">
+\[H_I =  \frac{1}{2} \sum_{\langle i,j\rangle}2 \pi J \left[{X_i X_j} + {Y_i Y_j}\right]\]</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">qiskit</span></code>, each qubit’s ground state is by convention the state
+<span class="math notranslate nohighlight">\(|0\rangle\)</span> which is the eigenstate of <span class="math notranslate nohighlight">\(Z\)</span> with eigenvalue 1
+(the state that is known also as “up”). Therefore the action of energy
+relaxation terms describing damping into the environment tend to bring
+qubits to this state, as generated by the Lindblad dissipator</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{D}[\rho] = \sum_i \Gamma\left(\sigma_i^+ \rho\sigma_i^- - \frac{1}{2} \{\sigma_i^- \sigma_i^+,\rho\}\right),\]</div>
+<p>with <span class="math notranslate nohighlight">\(\sigma_i^{\pm}= \frac{1}{2}\left(X_i\pm i Y_i\right)\)</span>.</p>
+<section id="prepare-the-single-qubit-operators">
+<h2>1. Prepare the single-qubit operators<a class="headerlink" href="#prepare-the-single-qubit-operators" title="Permalink to this heading">¶</a></h2>
+<p>In <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>, dynamical simulations are defined using the
+operators that act on the states appearing in the differential
+equations. We start by creating the single-qubit operators that act on
+each qubit in the simulation, and are represented as matrices in the
+Hilbert space of <span class="math notranslate nohighlight">\(N\)</span> qubits. Using <code class="docutils literal notranslate"><span class="pre">qiskit</span></code> library routines, it
+is easy to create <span class="math notranslate nohighlight">\(N\)</span>-qubit operators that are products of basic
+single-qubit operators, by using labels (descriptive strings), and the
+callable syntax of <code class="docutils literal notranslate"><span class="pre">Pauli</span></code> classes to indicate a qubit number, as
+below.</p>
+<p>Below, we first set the number of qubits <span class="math notranslate nohighlight">\(N\)</span> to be simulated, and
+then prepare and store the single-qubit Pauli operators that will be
+used in the rest of this tutorial.</p>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Operator</span><span class="p">,</span> <span class="n">Pauli</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">6</span>
+
+<span class="n">x_ops</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">y_ops</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">z_ops</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">qubits</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+<span class="n">zeros</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span> <span class="o">**</span> <span class="n">N</span><span class="p">,</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">N</span><span class="p">)))</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">zeros</span> <span class="o">+</span> <span class="n">Pauli</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">x_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">zeros</span> <span class="o">+</span> <span class="n">Pauli</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">)(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">y_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">zeros</span> <span class="o">+</span> <span class="n">Pauli</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">)(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">z_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="setup-the-solver">
+<h2>2. Setup the solver<a class="headerlink" href="#setup-the-solver" title="Permalink to this heading">¶</a></h2>
+<p>In this section we setup a <code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code> class that stores and manipulates
+the model to be solved. In the following, we will set <span class="math notranslate nohighlight">\(\hbar=1\)</span>
+and set the driving amplitude to be <span class="math notranslate nohighlight">\(\nu_x \equiv 1\)</span>. This sets the
+time units, with the other frequency
+parameters scaled accordingly. Below, we first set a few values for
+these free parameters, and then create the Hamiltonian matrix and the
+list of dissipator operators. We build the full Hamiltonian matrix by
+summing all single-qubit and two-qubit terms. Since there are no
+time-dependent terms, and we do not plan to take partial derivatives of
+parameters, we do not use the <code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code> class in this tutorial. See the other tutorials for various
+generalizations of this approach supported with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">Signal</span>
+
+<span class="n">nu_z</span> <span class="o">=</span> <span class="mf">4.</span>
+<span class="n">nu_x</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">J</span> <span class="o">=</span> <span class="mf">4.</span>
+<span class="n">Gamma</span> <span class="o">=</span> <span class="mf">4.</span>
+
+<span class="n">H</span> <span class="o">=</span> <span class="n">zeros</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">x_ops</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">z_ops</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">H</span> <span class="o">+=</span> <span class="mf">.5</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">nu_x</span> <span class="o">*</span> <span class="n">X</span>
+    <span class="n">H</span> <span class="o">+=</span> <span class="mf">.5</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">nu_z</span> <span class="o">*</span> <span class="n">Z</span>
+
+    <span class="k">if</span> <span class="n">N</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>  <span class="c1"># Nearest neighbors, with periodic boundary conditions</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">zeros</span> <span class="o">+</span> <span class="n">Pauli</span><span class="p">(</span><span class="s1">&#39;XX&#39;</span><span class="p">)(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">+=</span> <span class="mf">.5</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">J</span> <span class="o">*</span> <span class="n">op</span>
+
+        <span class="n">op</span> <span class="o">=</span> <span class="n">zeros</span> <span class="o">+</span> <span class="n">Pauli</span><span class="p">(</span><span class="s1">&#39;YY&#39;</span><span class="p">)(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">+=</span> <span class="mf">.5</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">J</span> <span class="o">*</span> <span class="n">op</span>
+
+<span class="n">L_ops</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">L_sig</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">x_ops</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">y_ops</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">L_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Gamma</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">X</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">Y</span><span class="p">))</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span><span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">H</span><span class="p">,</span> <span class="n">static_dissipators</span><span class="o">=</span><span class="n">L_ops</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="define-the-simulation-parameters-and-solve-the-dynamics">
+<h2>3. Define the simulation parameters and solve the dynamics<a class="headerlink" href="#define-the-simulation-parameters-and-solve-the-dynamics" title="Permalink to this heading">¶</a></h2>
+<p>We now define the initial state for the simulation, the time span to
+simulate for, and the intermediate times for which the solution is
+requested.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">DensityMatrix</span>
+
+<span class="n">t_final</span> <span class="o">=</span> <span class="mf">8.</span> <span class="o">/</span> <span class="n">Gamma</span>
+<span class="n">tau</span> <span class="o">=</span> <span class="mf">.01</span>
+
+<span class="c1"># A density matrix with all qubits in ground state</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="n">DensityMatrix</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;0&#39;</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span>
+
+<span class="n">n_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">t_final</span> <span class="o">/</span> <span class="n">tau</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">t_eval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">t_final</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">)</span>
+
+<span class="n">sol</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">t_span</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="n">t_final</span><span class="p">],</span> <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="define-the-observables-and-calculate-their-values">
+<h2>4. Define the observables and calculate their values<a class="headerlink" href="#define-the-observables-and-calculate-their-values" title="Permalink to this heading">¶</a></h2>
+<p>Below we calculate single-qubit Pauli expectation values for each qubit
+as a function of time (which define also the Bloch vector),</p>
+<div class="math notranslate nohighlight">
+\[\langle\sigma_i^a(t)\rangle,\]</div>
+<p>and also the mean components of the collective Bloch vector over all
+qubits, at each evaluation time,</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{N}\sum_i\langle\sigma_i^a(t)\rangle.\]</div>
+<p>Since both the model and the initial state as defined above are
+translation invariant (all qubits have identical parameters, and there
+is no boundary), we expect the solution to remain translation invariant
+as well. Hence the mean Bloch vector should be equal to any qubit’s
+Bloch vector, and observing that this equality holds is a simple and
+useful verification of the numerical solution that will be added in the
+next section.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_times</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+<span class="n">x_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">n_times</span><span class="p">))</span>
+<span class="n">y_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">n_times</span><span class="p">))</span>
+<span class="n">z_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">n_times</span><span class="p">))</span>
+<span class="n">x_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_times</span><span class="p">,))</span>
+<span class="n">y_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_times</span><span class="p">,))</span>
+<span class="n">z_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_times</span><span class="p">,))</span>
+
+<span class="k">for</span> <span class="n">t_i</span><span class="p">,</span> <span class="n">sol_t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">obs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x_ops</span><span class="p">):</span>
+        <span class="n">x_data</span><span class="p">[</span><span class="n">qubit</span><span class="p">,</span> <span class="n">t_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sol_t</span><span class="o">.</span><span class="n">expectation_value</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+    <span class="n">x_mean</span><span class="p">[</span><span class="n">t_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_data</span><span class="p">[:,</span> <span class="n">t_i</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">obs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y_ops</span><span class="p">):</span>
+        <span class="n">y_data</span><span class="p">[</span><span class="n">qubit</span><span class="p">,</span> <span class="n">t_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sol_t</span><span class="o">.</span><span class="n">expectation_value</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+    <span class="n">y_mean</span><span class="p">[</span><span class="n">t_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_data</span><span class="p">[:,</span> <span class="n">t_i</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">qubit</span><span class="p">,</span> <span class="n">obs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">z_ops</span><span class="p">):</span>
+        <span class="n">z_data</span><span class="p">[</span><span class="n">qubit</span><span class="p">,</span> <span class="n">t_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sol_t</span><span class="o">.</span><span class="n">expectation_value</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+    <span class="n">z_mean</span><span class="p">[</span><span class="n">t_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">z_data</span><span class="p">[:,</span> <span class="n">t_i</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+</section>
+<section id="plot-some-observables-and-discuss-the-results">
+<h2>5. Plot some observables and discuss the results<a class="headerlink" href="#plot-some-observables-and-discuss-the-results" title="Permalink to this heading">¶</a></h2>
+<p>Finally, let’s plot some of the results of our dynamical simulation,
+using the single-qubit observables calculated as a function of time. We
+plot both the time evolution of the collective Bloch vector, and the
+Bloch vector at the final time, depicted in 3D within the Bloch sphere.
+We also print a warning if the Bloch vector at the final time is not
+translation invariant according to a simplified random check of two
+values (taken up to a small numerical precision).</p>
+<p>Looking at the figures below, we see that for the above parameters the
+steady state is nearly pure, with a large ground state component and a
+small tilt along the negative <span class="math notranslate nohighlight">\(x\)</span> axis. The direction and
+magnitude of the collective Bloch vector is determined by a nontrivial
+competition between the single-site terms, the qubit interactions, and
+the damping. To test this statement, if you go back and vary the
+interaction strength <span class="math notranslate nohighlight">\(J\)</span>, you can see that the steady state may
+change significantly. For example for <span class="math notranslate nohighlight">\(J=1\)</span> the collective Bloch
+vector will significantly tilt along <span class="math notranslate nohighlight">\(+x\)</span>, while for <span class="math notranslate nohighlight">\(J=3\)</span> it
+will significantly shorten (the steady state becomes a mixed state),
+becoming tilted along <span class="math notranslate nohighlight">\(-y\)</span>. This complex dependence of the
+Bloch vector on the parameters can be systematically analyzed - we encourage you to try
+it!</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.visualization</span> <span class="kn">import</span> <span class="n">plot_bloch_vector</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="o">%</span><span class="k">matplotlib</span> inline
+
+<span class="n">fontsize</span> <span class="o">=</span> <span class="mi">16</span>
+
+<span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="n">fontsize</span><span class="p">})</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_eval</span><span class="p">,</span> <span class="n">x_mean</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;$ N^{-1}\sum_i </span><span class="se">\\</span><span class="s1">langle X_i </span><span class="se">\\</span><span class="s1">rangle$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_eval</span><span class="p">,</span> <span class="n">y_mean</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;$ N^{-1}\sum_i </span><span class="se">\\</span><span class="s1">langle Y_i </span><span class="se">\\</span><span class="s1">rangle$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_eval</span><span class="p">,</span> <span class="n">z_mean</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;$ N^{-1}\sum_i </span><span class="se">\\</span><span class="s1">langle Z_i </span><span class="se">\\</span><span class="s1">rangle$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span> <span class="o">=</span> <span class="n">fontsize</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;$t$&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">fontsize</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Mean Bloch vector vs. $t$&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">fontsize</span><span class="p">)</span>
+
+<span class="n">display</span><span class="p">(</span><span class="n">plot_bloch_vector</span><span class="p">([</span><span class="n">x_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+                  <span class="sa">f</span><span class="s1">&#39;Mean Bloch vector at $t = </span><span class="si">{</span><span class="n">t_eval</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">$&#39;</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="n">N</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">((</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e-5</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">x_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-5</span> <span class="ow">or</span>
+              <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">z_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e-5</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">z_data</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">z_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-5</span><span class="p">))):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The solution at the final time appears to break translation invariance. &quot;</span>
+          <span class="s2">&quot;The precision of the simulation should be examined.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/Lindblad_dynamics_simulation_5_0.png" src="../_images/Lindblad_dynamics_simulation_5_0.png" />
+<img alt="../_images/Lindblad_dynamics_simulation_5_1.png" src="../_images/Lindblad_dynamics_simulation_5_1.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+             </article>
+            </div>
+            <footer>
+<!-- USER FEEDBACK -->
+  
+
+    <hr class="helpful-hr hr-top">
+      <div class="helpful-container">
+        <div class="helpful-question">Was this page helpful?</div>
+        <a class="helpful-question yes-link" onclick="clicked('yes')">Yes</a>
+        <a class="helpful-question no-link" onclick="clicked('no')">No</a>
+        <div class="was-helpful-thank-you" id="was-helpful-thank-you">Thank you!</div>
+      </div>
+    <hr class="helpful-hr hr-bottom"/>
+  
+  
+
+  <!-- NEXT/PREVIOUS BUTTONS -->
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+      <a href="qiskit_pulse.html" class="btn btn-neutral float-right" title="Simulating Qiskit Pulse Schedules with Qiskit Dynamics" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-purple.svg" class="next-page"></a>
+    
+    
+      <a href="Rabi_oscillations.html" class="btn btn-neutral" title="Simulating Rabi oscillations with noise and decoherence" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-purple.svg" class="previous-page"> Previous</a>
+    
+  </div>
+
+  <div role="contentinfo">
+    <p>
+    <!-- SHOW QISKIT COPYRIGHT TEXT -->
+        &copy; Copyright 2020, Qiskit Development Team.
+
+    <!-- SHOW DATE PAGE LAST UPDATED -->
+      Last updated on 2024/01/15.
+
+    </p>
+  </div>
+
+<!-- SHOW 'MADE WITH SPHINX' TEXT -->
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using <a href="https://github.com/Qiskit/qiskit_sphinx_theme">Qiskit Sphinx Theme </a> (based on <a href="https://github.com/pytorch/pytorch_sphinx_theme"> PyTorch Sphinx Theme</a>).
+      </div>
+     
+<br>
+</footer>
+
+<script>
+  function clicked(ctaType) {
+    document.getElementById('was-helpful-thank-you').style.visibility = 'visible';
+    window.trackCta(`Helpful - ${ctaType}`);
+  }
+</script>
+
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE AUTOSUMMARY MENU -->
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Solving the Lindblad dynamics of a qubit chain</a><ul>
+<li><a class="reference internal" href="#prepare-the-single-qubit-operators">1. Prepare the single-qubit operators</a></li>
+<li><a class="reference internal" href="#setup-the-solver">2. Setup the solver</a></li>
+<li><a class="reference internal" href="#define-the-simulation-parameters-and-solve-the-dynamics">3. Define the simulation parameters and solve the dynamics</a></li>
+<li><a class="reference internal" href="#define-the-observables-and-calculate-their-values">4. Define the observables and calculate their values</a></li>
+<li><a class="reference internal" href="#plot-some-observables-and-discuss-the-results">5. Plot some observables and discuss the results</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> 
+
+  <!-- MOBILE MENU FOR SIDEBAR -->
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ddf8ff60"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <!-- enable language dropdown menu expand -->
+  <script type="text/javascript">
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+
+</body>
+</html>

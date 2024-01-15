@@ -1,0 +1,6 @@
+qiskit\_dynamics.backend.DynamicsBackend.run
+============================================
+
+.. currentmodule:: qiskit_dynamics.backend
+
+.. automethod:: DynamicsBackend.run
