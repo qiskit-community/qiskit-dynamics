@@ -1,0 +1,10 @@
+---
+prelude: >
+    Qiskit Dynamics 0.4.3 is a minor maintenance release.
+upgrade:
+  - |
+    The package now depends on ``qiskit`` rather than ``qiskit-terra``.
+other:
+  - |
+    The documentation page has been moved to
+    [github pages](https://qiskit-extensions.github.io/qiskit-dynamics/).
