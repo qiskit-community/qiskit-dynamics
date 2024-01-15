@@ -86,7 +86,7 @@ def _is_jax_method(method: any) -> bool:
 def _is_diffrax_method(method: any) -> bool:
     """Check if method is a diffrax method."""
     try:
-        from diffrax.solver import AbstractSolver
+        from diffrax import AbstractSolver
 
         return isinstance(method, AbstractSolver)
     except ImportError:
@@ -156,7 +156,7 @@ def solve_ode(
     - ``'jax_RK4'``: JAX backend implementation of ``'RK4'`` method.
     - ``'jax_odeint'``: Calls ``jax.experimental.ode.odeint`` variable step solver.
     - ``diffrax.diffeqsolve`` - a JAX solver function, called by passing ``method``
-      as a valid ``diffrax.solver.AbstractSolver`` instance. Requires the ``diffrax`` library.
+      as a valid ``diffrax.AbstractSolver`` instance. Requires the ``diffrax`` library.
 
     Results are returned as a :class:`OdeResult` object.
 

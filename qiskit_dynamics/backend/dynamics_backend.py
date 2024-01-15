@@ -18,13 +18,14 @@ Pulse-enabled simulator backend.
 """
 
 import datetime
+import inspect
 import uuid
 import warnings
 
 from typing import List, Optional, Union, Dict, Tuple
 import copy
 import numpy as np
-from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
+from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import pulse
 from qiskit.qobj.utils import MeasLevel, MeasReturnType
@@ -43,6 +44,9 @@ from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit import QiskitError, QuantumCircuit
 from qiskit import schedule as build_schedule
 from qiskit.quantum_info import Statevector, DensityMatrix
+from qiskit.quantum_info.operators.base_operator import BaseOperator
+from qiskit.quantum_info.states.quantum_state import QuantumState
+
 
 from qiskit_dynamics import RotatingFrame
 from qiskit_dynamics.array import Array
@@ -337,6 +341,56 @@ class DynamicsBackend(BackendV2):
         self._dressed_evals = dressed_evals
         self._dressed_states = dressed_states
         self._dressed_states_adjoint = self._dressed_states.conj().transpose()
+
+    def solve(
+        self,
+        solve_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
+        t_span: Array,
+        y0: Optional[Union[Array, QuantumState, BaseOperator]] = None,
+        convert_results: Optional[bool] = True,
+        validate: Optional[bool] = True,
+    ) -> Union[OdeResult, List[OdeResult]]:
+        """Simulate a list of :class:`~qiskit.circuit.QuantumCircuit`,
+        :class:`~qiskit.pulse.Schedule`, or :class:`~qiskit.pulse.ScheduleBlock` instances and
+        return the ``OdeResult``.
+
+        This method is analogous to :meth:`.Solver.solve`, however it additionally utilizes
+        transpilation and the backend configuration to convert
+        :class:`~qiskit.circuit.QuantumCircuit` instances into pulse-level schedules for simulation.
+        The options for the solver will be drawn from ``self.options.solver_options``, and if
+        ``y0`` is not specified, it will be set from ``self.options.initial_state``.
+
+        Args:
+            t_span: Time interval to integrate over.
+            y0: Initial state.
+            solve_input: Time evolution of the system in terms of quantum circuits or qiskit
+                         pulse schedules.
+            convert_results: If ``True``, convert returned solver state results to the same class
+                             as y0. If ``False``, states will be returned in the native array type
+                             used by the specified solver method.
+            validate: Whether or not to run validation checks on the input.
+
+        Returns:
+            OdeResult: object with formatted output types.
+        """
+        if validate:
+            _validate_run_input(solve_input)
+        schedules, _ = _to_schedule_list(solve_input, backend=self)
+
+        # use default y0 if not given as parameter
+        if y0 is None:
+            y0 = self.options.initial_state
+        if y0 == "ground_state":
+            y0 = Statevector(self._dressed_states[:, 0])
+
+        solver_results = self.options.solver.solve(
+            t_span=t_span,
+            y0=y0,
+            signals=schedules,
+            convert_results=convert_results,
+            **self.options.solver_options,
+        )
+        return solver_results
 
     # pylint: disable=arguments-differ
     def run(
@@ -871,16 +925,20 @@ def default_experiment_result_function(
         raise QiskitError(f"meas_level=={backend.options.meas_level} not implemented.")
 
 
-def _validate_run_input(run_input, accept_list=True):
+def _validate_run_input(run_input, accept_list=True, caller_func_name: str = None):
     """Raise errors if the run_input is not one of QuantumCircuit, Schedule, ScheduleBlock, or
     a list of these.
     """
+    if caller_func_name is None:
+        caller_func_name = inspect.stack()[1].function
     if isinstance(run_input, list) and accept_list:
         # if list apply recursively, but no longer accept lists
         for x in run_input:
-            _validate_run_input(x, accept_list=False)
+            _validate_run_input(x, accept_list=False, caller_func_name=caller_func_name)
     elif not isinstance(run_input, (QuantumCircuit, Schedule, ScheduleBlock)):
-        raise QiskitError(f"Input type {type(run_input)} not supported by DynamicsBackend.run.")
+        raise QiskitError(
+            f"Input type {type(run_input)} not supported by DynamicsBackend.{caller_func_name}."
+        )
 
 
 def _get_acquire_instruction_timings(
