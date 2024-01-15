@@ -20,11 +20,11 @@ automatic differentiation, and GPU execution, and therefore is well-suited to ta
 repeated evaluation of functions with different parameters; E.g. simulating a model of a quantum
 system over a range of parameter values, or optimizing the parameters of control sequence.
 
-Reference documentation may be found [here](https://qiskit.org/ecosystem/dynamics/), including
-[tutorials](https://qiskit.org/ecosystem/dynamics/tutorials/index.html),
-[user guide](https://qiskit.org/ecosystem/dynamics/userguide/index.html),
-[API reference](https://qiskit.org/ecosystem/dynamics/apidocs/index.html), and
-[Discussions](https://qiskit.org/ecosystem/dynamics/discussions/index.html).
+Reference documentation may be found [here](https://qiskit-extensions.github.io/qiskit-dynamics/), including
+[tutorials](https://qiskit-extensions.github.io/qiskit-dynamics/tutorials/index.html),
+[user guide](https://qiskit-extensions.github.io/qiskit-dynamics/userguide/index.html),
+[API reference](https://qiskit-extensions.github.io/qiskit-dynamics/apidocs/index.html), and
+[Discussions](https://qiskit-extensions.github.io/qiskit-dynamics/discussions/index.html).
 
 ## Installation
 
