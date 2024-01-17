@@ -1,6 +1,0 @@
-qiskit\_dynamics.pulse.InstructionToSignals.get\_signals
-========================================================
-
-.. currentmodule:: qiskit_dynamics.pulse
-
-.. automethod:: InstructionToSignals.get_signals

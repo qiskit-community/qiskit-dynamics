@@ -1,6 +1,0 @@
-qiskit\_dynamics.models.RotatingFrame.vectorized\_map\_into\_frame
-==================================================================
-
-.. currentmodule:: qiskit_dynamics.models
-
-.. automethod:: RotatingFrame.vectorized_map_into_frame

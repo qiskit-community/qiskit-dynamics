@@ -1,6 +1,0 @@
-qiskit\_dynamics.models.RotatingFrame.state\_out\_of\_frame\_basis
-==================================================================
-
-.. currentmodule:: qiskit_dynamics.models
-
-.. automethod:: RotatingFrame.state_out_of_frame_basis

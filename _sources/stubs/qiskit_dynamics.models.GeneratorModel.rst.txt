@@ -6,16 +6,15 @@
 .. autoclass:: GeneratorModel
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~GeneratorModel.copy
-      ~GeneratorModel.evaluate
-      ~GeneratorModel.evaluate_rhs
+   .. automethod:: GeneratorModel.copy
+   .. automethod:: GeneratorModel.evaluate
+   .. automethod:: GeneratorModel.evaluate_rhs
 
 
 

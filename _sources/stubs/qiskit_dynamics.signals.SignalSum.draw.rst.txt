@@ -1,6 +1,0 @@
-qiskit\_dynamics.signals.SignalSum.draw
-=======================================
-
-.. currentmodule:: qiskit_dynamics.signals
-
-.. automethod:: SignalSum.draw

@@ -1,6 +1,0 @@
-qiskit\_dynamics.pulse.InstructionToSignals.get\_awg\_signals
-=============================================================
-
-.. currentmodule:: qiskit_dynamics.pulse
-
-.. automethod:: InstructionToSignals.get_awg_signals

@@ -6,18 +6,17 @@
 .. autoclass:: LindbladModel
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~LindbladModel.copy
-      ~LindbladModel.evaluate
-      ~LindbladModel.evaluate_hamiltonian
-      ~LindbladModel.evaluate_rhs
-      ~LindbladModel.from_hamiltonian
+   .. automethod:: LindbladModel.copy
+   .. automethod:: LindbladModel.evaluate
+   .. automethod:: LindbladModel.evaluate_hamiltonian
+   .. automethod:: LindbladModel.evaluate_rhs
+   .. automethod:: LindbladModel.from_hamiltonian
 
 
 

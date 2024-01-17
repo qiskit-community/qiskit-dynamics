@@ -1,6 +1,0 @@
-qiskit\_dynamics.perturbation.ArrayPolynomial.trace
-===================================================
-
-.. currentmodule:: qiskit_dynamics.perturbation
-
-.. automethod:: ArrayPolynomial.trace

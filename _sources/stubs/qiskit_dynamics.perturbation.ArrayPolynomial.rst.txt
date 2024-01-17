@@ -6,21 +6,20 @@
 .. autoclass:: ArrayPolynomial
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~ArrayPolynomial.add
-      ~ArrayPolynomial.compute_monomials
-      ~ArrayPolynomial.conj
-      ~ArrayPolynomial.matmul
-      ~ArrayPolynomial.mul
-      ~ArrayPolynomial.sum
-      ~ArrayPolynomial.trace
-      ~ArrayPolynomial.transpose
+   .. automethod:: ArrayPolynomial.add
+   .. automethod:: ArrayPolynomial.compute_monomials
+   .. automethod:: ArrayPolynomial.conj
+   .. automethod:: ArrayPolynomial.matmul
+   .. automethod:: ArrayPolynomial.mul
+   .. automethod:: ArrayPolynomial.sum
+   .. automethod:: ArrayPolynomial.trace
+   .. automethod:: ArrayPolynomial.transpose
 
 
 

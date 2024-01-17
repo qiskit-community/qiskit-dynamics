@@ -6,16 +6,15 @@
 .. autoclass:: Array
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~Array.available_backends
-      ~Array.default_backend
-      ~Array.set_default_backend
+   .. automethod:: Array.available_backends
+   .. automethod:: Array.default_backend
+   .. automethod:: Array.set_default_backend
 
 
 

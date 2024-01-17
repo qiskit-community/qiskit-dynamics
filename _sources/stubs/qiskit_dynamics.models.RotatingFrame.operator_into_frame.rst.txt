@@ -1,6 +1,0 @@
-qiskit\_dynamics.models.RotatingFrame.operator\_into\_frame
-===========================================================
-
-.. currentmodule:: qiskit_dynamics.models
-
-.. automethod:: RotatingFrame.operator_into_frame

@@ -1,6 +1,0 @@
-qiskit\_dynamics.perturbation.ArrayPolynomial.sum
-=================================================
-
-.. currentmodule:: qiskit_dynamics.perturbation
-
-.. automethod:: ArrayPolynomial.sum

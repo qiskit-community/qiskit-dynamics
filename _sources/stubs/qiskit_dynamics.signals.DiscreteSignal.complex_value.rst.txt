@@ -1,6 +1,0 @@
-qiskit\_dynamics.signals.DiscreteSignal.complex\_value
-======================================================
-
-.. currentmodule:: qiskit_dynamics.signals
-
-.. automethod:: DiscreteSignal.complex_value

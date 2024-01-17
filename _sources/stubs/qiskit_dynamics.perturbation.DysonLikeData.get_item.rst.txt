@@ -1,6 +1,0 @@
-qiskit\_dynamics.perturbation.DysonLikeData.get\_item
-=====================================================
-
-.. currentmodule:: qiskit_dynamics.perturbation
-
-.. automethod:: DysonLikeData.get_item

@@ -1,6 +1,0 @@
-qiskit\_dynamics.array.Array.default\_backend
-=============================================
-
-.. currentmodule:: qiskit_dynamics.array
-
-.. automethod:: Array.default_backend

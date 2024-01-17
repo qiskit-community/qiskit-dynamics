@@ -6,14 +6,13 @@
 .. autoclass:: DysonLikeData
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~DysonLikeData.get_item
+   .. automethod:: DysonLikeData.get_item
 
 
 

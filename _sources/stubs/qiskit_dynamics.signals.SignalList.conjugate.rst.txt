@@ -1,6 +1,0 @@
-qiskit\_dynamics.signals.SignalList.conjugate
-=============================================
-
-.. currentmodule:: qiskit_dynamics.signals
-
-.. automethod:: SignalList.conjugate

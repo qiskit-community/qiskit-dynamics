@@ -1,6 +1,0 @@
-qiskit\_dynamics.signals.DiscreteSignal.add\_samples
-====================================================
-
-.. currentmodule:: qiskit_dynamics.signals
-
-.. automethod:: DiscreteSignal.add_samples

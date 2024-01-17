@@ -1,6 +1,0 @@
-qiskit\_dynamics.models.HamiltonianModel.evaluate\_rhs
-======================================================
-
-.. currentmodule:: qiskit_dynamics.models
-
-.. automethod:: HamiltonianModel.evaluate_rhs

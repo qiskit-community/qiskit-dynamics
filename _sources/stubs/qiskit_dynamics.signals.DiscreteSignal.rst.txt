@@ -6,19 +6,18 @@
 .. autoclass:: DiscreteSignal
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~DiscreteSignal.add_samples
-      ~DiscreteSignal.complex_value
-      ~DiscreteSignal.conjugate
-      ~DiscreteSignal.draw
-      ~DiscreteSignal.envelope
-      ~DiscreteSignal.from_Signal
+   .. automethod:: DiscreteSignal.add_samples
+   .. automethod:: DiscreteSignal.complex_value
+   .. automethod:: DiscreteSignal.conjugate
+   .. automethod:: DiscreteSignal.draw
+   .. automethod:: DiscreteSignal.envelope
+   .. automethod:: DiscreteSignal.from_Signal
 
 
 

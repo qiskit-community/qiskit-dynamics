@@ -6,24 +6,23 @@
 .. autoclass:: RotatingFrame
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~RotatingFrame.generator_into_frame
-      ~RotatingFrame.generator_out_of_frame
-      ~RotatingFrame.operator_into_frame
-      ~RotatingFrame.operator_into_frame_basis
-      ~RotatingFrame.operator_out_of_frame
-      ~RotatingFrame.operator_out_of_frame_basis
-      ~RotatingFrame.state_into_frame
-      ~RotatingFrame.state_into_frame_basis
-      ~RotatingFrame.state_out_of_frame
-      ~RotatingFrame.state_out_of_frame_basis
-      ~RotatingFrame.vectorized_map_into_frame
+   .. automethod:: RotatingFrame.generator_into_frame
+   .. automethod:: RotatingFrame.generator_out_of_frame
+   .. automethod:: RotatingFrame.operator_into_frame
+   .. automethod:: RotatingFrame.operator_into_frame_basis
+   .. automethod:: RotatingFrame.operator_out_of_frame
+   .. automethod:: RotatingFrame.operator_out_of_frame_basis
+   .. automethod:: RotatingFrame.state_into_frame
+   .. automethod:: RotatingFrame.state_into_frame_basis
+   .. automethod:: RotatingFrame.state_out_of_frame
+   .. automethod:: RotatingFrame.state_out_of_frame_basis
+   .. automethod:: RotatingFrame.vectorized_map_into_frame
 
 
 

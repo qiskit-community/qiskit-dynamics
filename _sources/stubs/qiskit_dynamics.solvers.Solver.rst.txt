@@ -6,14 +6,13 @@
 .. autoclass:: Solver
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~Solver.solve
+   .. automethod:: Solver.solve
 
 
 

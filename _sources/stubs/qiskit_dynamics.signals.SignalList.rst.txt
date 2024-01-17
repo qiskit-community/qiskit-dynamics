@@ -6,16 +6,15 @@
 .. autoclass:: SignalList
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~SignalList.complex_value
-      ~SignalList.conjugate
-      ~SignalList.flatten
+   .. automethod:: SignalList.complex_value
+   .. automethod:: SignalList.conjugate
+   .. automethod:: SignalList.flatten
 
 
 

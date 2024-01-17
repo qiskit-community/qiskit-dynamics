@@ -6,6 +6,8 @@
 .. autoclass:: Convolution
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
 
 

@@ -1,6 +1,0 @@
-qiskit\_dynamics.signals.Signal.draw
-====================================
-
-.. currentmodule:: qiskit_dynamics.signals
-
-.. automethod:: Signal.draw

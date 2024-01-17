@@ -1,6 +1,0 @@
-qiskit\_dynamics.signals.DiscreteSignalSum.from\_Signal
-=======================================================
-
-.. currentmodule:: qiskit_dynamics.signals
-
-.. automethod:: DiscreteSignalSum.from_Signal

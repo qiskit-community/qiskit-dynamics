@@ -1,6 +1,0 @@
-qiskit\_dynamics.models.LindbladModel.copy
-==========================================
-
-.. currentmodule:: qiskit_dynamics.models
-
-.. automethod:: LindbladModel.copy

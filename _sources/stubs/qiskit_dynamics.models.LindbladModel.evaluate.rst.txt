@@ -1,6 +1,0 @@
-qiskit\_dynamics.models.LindbladModel.evaluate
-==============================================
-
-.. currentmodule:: qiskit_dynamics.models
-
-.. automethod:: LindbladModel.evaluate

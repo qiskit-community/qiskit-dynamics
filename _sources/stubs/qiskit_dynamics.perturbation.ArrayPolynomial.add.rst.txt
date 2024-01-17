@@ -1,6 +1,0 @@
-qiskit\_dynamics.perturbation.ArrayPolynomial.add
-=================================================
-
-.. currentmodule:: qiskit_dynamics.perturbation
-
-.. automethod:: ArrayPolynomial.add

@@ -6,21 +6,20 @@
 .. autoclass:: DiscreteSignalSum
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~DiscreteSignalSum.add_samples
-      ~DiscreteSignalSum.complex_value
-      ~DiscreteSignalSum.conjugate
-      ~DiscreteSignalSum.draw
-      ~DiscreteSignalSum.envelope
-      ~DiscreteSignalSum.flatten
-      ~DiscreteSignalSum.from_Signal
-      ~DiscreteSignalSum.from_SignalSum
+   .. automethod:: DiscreteSignalSum.add_samples
+   .. automethod:: DiscreteSignalSum.complex_value
+   .. automethod:: DiscreteSignalSum.conjugate
+   .. automethod:: DiscreteSignalSum.draw
+   .. automethod:: DiscreteSignalSum.envelope
+   .. automethod:: DiscreteSignalSum.flatten
+   .. automethod:: DiscreteSignalSum.from_Signal
+   .. automethod:: DiscreteSignalSum.from_SignalSum
 
 
 

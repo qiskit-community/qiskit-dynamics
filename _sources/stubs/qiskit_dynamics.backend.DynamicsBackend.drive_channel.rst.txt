@@ -1,6 +1,0 @@
-qiskit\_dynamics.backend.DynamicsBackend.drive\_channel
-=======================================================
-
-.. currentmodule:: qiskit_dynamics.backend
-
-.. automethod:: DynamicsBackend.drive_channel

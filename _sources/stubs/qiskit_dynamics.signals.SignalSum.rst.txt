@@ -6,18 +6,17 @@
 .. autoclass:: SignalSum
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~SignalSum.complex_value
-      ~SignalSum.conjugate
-      ~SignalSum.draw
-      ~SignalSum.envelope
-      ~SignalSum.flatten
+   .. automethod:: SignalSum.complex_value
+   .. automethod:: SignalSum.conjugate
+   .. automethod:: SignalSum.draw
+   .. automethod:: SignalSum.envelope
+   .. automethod:: SignalSum.flatten
 
 
 

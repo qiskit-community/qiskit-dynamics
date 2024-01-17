@@ -1,6 +1,0 @@
-qiskit\_dynamics.backend.DynamicsBackend.from\_backend
-======================================================
-
-.. currentmodule:: qiskit_dynamics.backend
-
-.. automethod:: DynamicsBackend.from_backend

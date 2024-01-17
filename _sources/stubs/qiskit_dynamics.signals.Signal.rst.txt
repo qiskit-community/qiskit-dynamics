@@ -6,17 +6,16 @@
 .. autoclass:: Signal
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~Signal.complex_value
-      ~Signal.conjugate
-      ~Signal.draw
-      ~Signal.envelope
+   .. automethod:: Signal.complex_value
+   .. automethod:: Signal.conjugate
+   .. automethod:: Signal.draw
+   .. automethod:: Signal.envelope
 
 
 

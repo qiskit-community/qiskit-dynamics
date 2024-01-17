@@ -1,6 +1,0 @@
-qiskit\_dynamics.signals.DiscreteSignal.envelope
-================================================
-
-.. currentmodule:: qiskit_dynamics.signals
-
-.. automethod:: DiscreteSignal.envelope

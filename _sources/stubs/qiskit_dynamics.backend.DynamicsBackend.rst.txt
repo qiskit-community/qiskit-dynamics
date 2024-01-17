@@ -6,23 +6,22 @@
 .. autoclass:: DynamicsBackend
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~DynamicsBackend.acquire_channel
-      ~DynamicsBackend.configuration
-      ~DynamicsBackend.control_channel
-      ~DynamicsBackend.defaults
-      ~DynamicsBackend.drive_channel
-      ~DynamicsBackend.from_backend
-      ~DynamicsBackend.measure_channel
-      ~DynamicsBackend.qubit_properties
-      ~DynamicsBackend.run
-      ~DynamicsBackend.set_options
+   .. automethod:: DynamicsBackend.acquire_channel
+   .. automethod:: DynamicsBackend.configuration
+   .. automethod:: DynamicsBackend.control_channel
+   .. automethod:: DynamicsBackend.defaults
+   .. automethod:: DynamicsBackend.drive_channel
+   .. automethod:: DynamicsBackend.from_backend
+   .. automethod:: DynamicsBackend.measure_channel
+   .. automethod:: DynamicsBackend.qubit_properties
+   .. automethod:: DynamicsBackend.run
+   .. automethod:: DynamicsBackend.set_options
 
 
 

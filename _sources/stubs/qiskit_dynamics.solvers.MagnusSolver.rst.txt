@@ -6,14 +6,13 @@
 .. autoclass:: MagnusSolver
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~MagnusSolver.solve
+   .. automethod:: MagnusSolver.solve
 
 
 

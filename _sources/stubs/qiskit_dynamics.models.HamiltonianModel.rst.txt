@@ -6,16 +6,15 @@
 .. autoclass:: HamiltonianModel
    :no-members:
    :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
 
    .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-      :toctree: ../stubs/
 
-      ~HamiltonianModel.copy
-      ~HamiltonianModel.evaluate
-      ~HamiltonianModel.evaluate_rhs
+   .. automethod:: HamiltonianModel.copy
+   .. automethod:: HamiltonianModel.evaluate
+   .. automethod:: HamiltonianModel.evaluate_rhs
 
 
 

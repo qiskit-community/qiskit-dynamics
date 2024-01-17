@@ -1,6 +1,0 @@
-qiskit\_dynamics.models.LindbladModel.evaluate\_rhs
-===================================================
-
-.. currentmodule:: qiskit_dynamics.models
-
-.. automethod:: LindbladModel.evaluate_rhs
