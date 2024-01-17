@@ -7,4 +7,4 @@ upgrade:
 other:
   - |
     The documentation page has been moved to
-    [github pages](https://qiskit-extensions.github.io/qiskit-dynamics/).
+    `github pages <https://qiskit-extensions.github.io/qiskit-dynamics/>`_.
