@@ -172,7 +172,7 @@ def is_hermitian(operator: ArrayLike, tol: Optional[float] = 1e-10) -> bool:
         return is_hermitian(operator.todense())
     elif isinstance(operator, ArrayLike):
         adj = None
-        adj = np.transpose(np.conjugate(operator))
+        adj = unp.transpose(unp.conjugate(operator))
         return np.linalg.norm(adj - operator) < tol
 
     raise QiskitError("is_hermitian got an unexpected type.")

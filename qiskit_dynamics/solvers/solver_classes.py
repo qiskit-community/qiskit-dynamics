@@ -19,10 +19,11 @@ Solver classes.
 
 
 from typing import Optional, Union, Tuple, Any, Type, List, Callable
+from warnings import warn
 
 import numpy as np
 
-from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
+from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
 from qiskit.pulse import Schedule, ScheduleBlock
@@ -34,6 +35,10 @@ from qiskit.quantum_info.operators.channel.quantum_channel import QuantumChannel
 from qiskit.quantum_info.states.quantum_state import QuantumState
 from qiskit.quantum_info import SuperOp, Operator, DensityMatrix
 
+from qiskit_dynamics import ArrayLike
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+
 from qiskit_dynamics.models import (
     HamiltonianModel,
     LindbladModel,
@@ -42,8 +47,6 @@ from qiskit_dynamics.models import (
 )
 from qiskit_dynamics.signals import Signal, DiscreteSignal, SignalList
 from qiskit_dynamics.pulse import InstructionToSignals
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.dispatch.dispatch import Dispatch
 
 from .solver_functions import solve_lmde, _is_diffrax_method
 from .solver_utils import (
@@ -169,9 +172,9 @@ class Solver:
       frequencies will be used for the RWA.
     * ``dt``: The envelope sample width.
 
-    If configured to simulate Pulse schedules while ``Array.default_backend() == 'jax'``,
-    calling :meth:`.Solver.solve` will automatically compile
-    simulation runs when calling with a JAX-based solver method.
+    If configured to simulate Pulse schedules, and a JAX-based solver method is chosen when calling
+    :meth:`.Solver.solve`, :meth:`.Solver.solve` will automatically attempt to compile a single
+    function to re-use for all schedule simulations.
 
     The evolution given by the model can be simulated by calling :meth:`.Solver.solve`, which
     calls :func:`.solve_lmde`, and does various automatic
@@ -180,19 +183,20 @@ class Solver:
 
     def __init__(
         self,
-        static_hamiltonian: Optional[Array] = None,
-        hamiltonian_operators: Optional[Array] = None,
-        static_dissipators: Optional[Array] = None,
-        dissipator_operators: Optional[Array] = None,
+        static_hamiltonian: Optional[ArrayLike] = None,
+        hamiltonian_operators: Optional[ArrayLike] = None,
+        static_dissipators: Optional[ArrayLike] = None,
+        dissipator_operators: Optional[ArrayLike] = None,
         hamiltonian_channels: Optional[List[str]] = None,
         dissipator_channels: Optional[List[str]] = None,
         channel_carrier_freqs: Optional[dict] = None,
         dt: Optional[float] = None,
-        rotating_frame: Optional[Union[Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
         in_frame_basis: bool = False,
-        evaluation_mode: str = "dense",
+        array_library: Optional[str] = None,
+        vectorized: Optional[bool] = None,
         rwa_cutoff_freq: Optional[float] = None,
-        rwa_carrier_freqs: Optional[Union[Array, Tuple[Array, Array]]] = None,
+        rwa_carrier_freqs: Optional[Union[ArrayLike, Tuple[ArrayLike, ArrayLike]]] = None,
         validate: bool = True,
     ):
         """Initialize solver with model information.
@@ -218,10 +222,9 @@ class Solver:
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                             frame operator is diagonalized. See class documentation for a more
                             detailed explanation on how this argument affects object behaviour.
-            evaluation_mode: Method for model evaluation. See documentation for
-                             ``HamiltonianModel.evaluation_mode`` or
-                             ``LindbladModel.evaluation_mode``.
-                             (if dissipators in model) for valid modes.
+            array_library: Array library to use for storing operators of underlying model.
+            vectorized: If including dissipator terms, whether or not to construct the
+                :class:`.LindbladModel` in vectorized form.
             rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
                              approximation is made.
             rwa_carrier_freqs: Carrier frequencies to use for rotating wave approximation.
@@ -312,7 +315,7 @@ class Solver:
                 operators=hamiltonian_operators,
                 rotating_frame=rotating_frame,
                 in_frame_basis=in_frame_basis,
-                evaluation_mode=evaluation_mode,
+                array_library=array_library,
                 validate=validate,
             )
         else:
@@ -323,7 +326,8 @@ class Solver:
                 dissipator_operators=dissipator_operators,
                 rotating_frame=rotating_frame,
                 in_frame_basis=in_frame_basis,
-                evaluation_mode=evaluation_mode,
+                array_library=array_library,
+                vectorized=vectorized,
                 validate=validate,
             )
 
@@ -385,8 +389,8 @@ class Solver:
 
     def solve(
         self,
-        t_span: Array,
-        y0: Union[Array, QuantumState, BaseOperator],
+        t_span: ArrayLike,
+        y0: Union[ArrayLike, QuantumState, BaseOperator],
         signals: Optional[
             Union[
                 List[Union[Schedule, ScheduleBlock]],
@@ -440,7 +444,7 @@ class Solver:
              - Model type
              - ``yf`` type
              - Description
-           * - ``Array``, ``np.ndarray``, ``Operator``
+           * - ``ArrayLike``, ``np.ndarray``, ``Operator``
              - Any
              - Same as ``y0``
              - Solves either the Schrodinger equation or Lindblad equation
@@ -468,8 +472,8 @@ class Solver:
            * - ``QuantumChannel``
              - ``LindbladModel``
              - ``SuperOp``
-             - Solves the vectorized Lindblad equation with initial state ``y0``.
-               ``evaluation_mode`` must be set to a vectorized option.
+             - Solves the vectorized Lindblad equation with initial state ``y0``. ``vectorized``
+               must be set to ``True``.
 
         In some cases (e.g. if using JAX), wrapping the returned states in the type
         given in the ``yf`` type column above may be undesirable. Setting
@@ -520,12 +524,19 @@ class Solver:
         all_results = None
         method = kwargs.get("method", "")
         if (
-            Array.default_backend() == "jax"
-            and (method == "jax_odeint" or _is_diffrax_method(method))
+            (method == "jax_odeint" or _is_diffrax_method(method))
             and all(isinstance(x, Schedule) for x in signals_list)
             # check if jit transformation is already performed.
             and not (isinstance(jnp.array(0), core.Tracer))
         ):
+            if self.model.array_library not in ["numpy", "jax", "jax_sparse"]:
+                warn(
+                    "Attempting to internally JAX-compile simulation of schedules, with "
+                    'Solver.model.array_library not in ["numpy", "jax", "jax_sparse"]. If an error '
+                    "is not raised, explicitly set array_library at Solver instantation to one of "
+                    "these options to remove this warning."
+                )
+
             all_results = self._solve_schedule_list_jax(
                 t_span_list=t_span_list,
                 y0_list=y0_list,
@@ -552,8 +563,8 @@ class Solver:
 
     def _solve_list(
         self,
-        t_span_list: List[Array],
-        y0_list: List[Union[Array, QuantumState, BaseOperator]],
+        t_span_list: List[ArrayLike],
+        y0_list: List[Union[ArrayLike, QuantumState, BaseOperator]],
         signals_list: Optional[
             Union[List[Schedule], List[List[Signal]], List[Tuple[List[Signal], List[Signal]]]]
         ] = None,
@@ -588,8 +599,8 @@ class Solver:
 
     def _solve_schedule_list_jax(
         self,
-        t_span_list: List[Array],
-        y0_list: List[Union[Array, QuantumState, BaseOperator]],
+        t_span_list: List[ArrayLike],
+        y0_list: List[Union[ArrayLike, QuantumState, BaseOperator]],
         schedule_list: List[Schedule],
         convert_results: bool = True,
         **kwargs,
@@ -637,7 +648,7 @@ class Solver:
             # reset signals to ensure purity
             self.model.signals = model_sigs
 
-            return Array(results.t).data, Array(results.y).data
+            return results.t, results.y
 
         jit_sim_function = jit(sim_function, static_argnums=(4,))
 
@@ -657,9 +668,13 @@ class Solver:
                 all_samples[idx, 0 : len(sig.samples)] = np.array(sig.samples)
 
             results_t, results_y = jit_sim_function(
-                Array(t_span).data, Array(y0).data, all_samples, Array(y0_input).data, y0_cls
+                unp.asarray(t_span),
+                unp.asarray(y0),
+                unp.asarray(all_samples),
+                unp.asarray(y0_input),
+                y0_cls,
             )
-            results = OdeResult(t=results_t, y=Array(results_y, backend="jax", dtype=complex))
+            results = OdeResult(t=results_t, y=results_y)
 
             if y0_cls is not None and convert_results:
                 results.y = [state_type_wrapper(yi) for yi in results.y]
@@ -698,7 +713,7 @@ class Solver:
         )
 
 
-def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
+def initial_state_converter(obj: Any) -> Tuple[ArrayLike, Type, Callable]:
     """Convert initial state object to an Array, the type of the initial input, and return
     function for constructing a state of the same type.
 
@@ -710,23 +725,23 @@ def initial_state_converter(obj: Any) -> Tuple[Array, Type, Callable]:
     """
     # pylint: disable=invalid-name
     y0_cls = None
-    if isinstance(obj, Array):
+    if isinstance(obj, ArrayLike):
         y0, y0_cls, wrapper = obj, None, lambda x: x
     if isinstance(obj, QuantumState):
-        y0, y0_cls = Array(obj.data), obj.__class__
+        y0, y0_cls = obj.data, obj.__class__
         wrapper = lambda x: y0_cls(np.array(x), dims=obj.dims())
     elif isinstance(obj, QuantumChannel):
-        y0, y0_cls = Array(SuperOp(obj).data), SuperOp
+        y0, y0_cls = SuperOp(obj).data, SuperOp
         wrapper = lambda x: SuperOp(
             np.array(x), input_dims=obj.input_dims(), output_dims=obj.output_dims()
         )
     elif isinstance(obj, (BaseOperator, Gate, QuantumCircuit)):
-        y0, y0_cls = Array(Operator(obj.data)), Operator
+        y0, y0_cls = Operator(obj.data), Operator
         wrapper = lambda x: Operator(
             np.array(x), input_dims=obj.input_dims(), output_dims=obj.output_dims()
         )
     else:
-        y0, y0_cls, wrapper = Array(obj), None, lambda x: x
+        y0, y0_cls, wrapper = unp.asarray(obj), None, lambda x: x
 
     return y0, y0_cls, wrapper
 
@@ -758,8 +773,8 @@ def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, Li
     # validate types
     if (y0_cls is SuperOp) and is_lindblad_model_not_vectorized(model):
         raise QiskitError(
-            """Simulating SuperOp for a LindbladModel requires setting
-            vectorized evaluation. Set LindbladModel.evaluation_mode to a vectorized option.
+            """Simulating SuperOp for a LindbladModel requires setting vectorized evaluation.
+            Set vectorized=True when constructing LindbladModel.
             """
         )
 
@@ -767,11 +782,7 @@ def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, Li
     if y0_cls in [DensityMatrix, SuperOp] and isinstance(model, HamiltonianModel):
         y0 = np.eye(model.dim, dtype=complex)
     # if LindbladModel is vectorized and simulating a density matrix, flatten
-    elif (
-        (y0_cls is DensityMatrix)
-        and isinstance(model, LindbladModel)
-        and "vectorized" in model.evaluation_mode
-    ):
+    elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(model):
         y0 = y0.flatten(order="F")
 
     # validate y0 shape before passing to solve_lmde
@@ -794,7 +805,7 @@ def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, Li
 def format_final_states(y, model, y0_input, y0_cls):
     """Format final states for a single simulation."""
 
-    y = Array(y)
+    y = unp.asarray(y)
 
     if y0_cls is DensityMatrix and isinstance(model, HamiltonianModel):
         # conjugate by unitary
@@ -802,9 +813,9 @@ def format_final_states(y, model, y0_input, y0_cls):
     elif y0_cls is SuperOp and isinstance(model, HamiltonianModel):
         # convert to SuperOp and compose
         return (
-            np.einsum("nka,nlb->nklab", y.conj(), y).reshape(
-                y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2
-            )
+            numpy_alias(like=y)
+            .einsum("nka,nlb->nklab", y.conj(), y)
+            .reshape(y.shape[0], y.shape[1] ** 2, y.shape[1] ** 2)
             @ y0_input
         )
     elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(model):
@@ -903,7 +914,7 @@ def _nested_ndim(x):
     """Determine the 'ndim' of x, which could be composed of nested lists and array types."""
     if isinstance(x, (list, tuple)):
         return 1 + _nested_ndim(x[0])
-    elif issubclass(type(x), Dispatch.REGISTERED_TYPES) or isinstance(x, Array):
+    elif hasattr(x, "ndim"):
         return x.ndim
 
     # assume scalar
