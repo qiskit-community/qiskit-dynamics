@@ -17,13 +17,13 @@
 Utility functions for solvers.
 """
 
-from typing import Optional, Union, List, Tuple, Callable
+from typing import Optional, List, Tuple, Callable
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.models import LindbladModel
 
 try:
@@ -35,17 +35,15 @@ except ImportError:
 
 def is_lindblad_model_vectorized(obj: any) -> bool:
     """Return True if obj is a vectorized LindbladModel."""
-    return isinstance(obj, LindbladModel) and ("vectorized" in obj.evaluation_mode)
+    return isinstance(obj, LindbladModel) and obj.vectorized
 
 
 def is_lindblad_model_not_vectorized(obj: any) -> bool:
     """Return True if obj is a non-vectorized LindbladModel."""
-    return isinstance(obj, LindbladModel) and ("vectorized" not in obj.evaluation_mode)
+    return isinstance(obj, LindbladModel) and not obj.vectorized
 
 
-def merge_t_args(
-    t_span: Union[List, Tuple, Array], t_eval: Optional[Union[List, Tuple, Array]] = None
-) -> Union[List, Tuple, Array]:
+def merge_t_args(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> np.ndarray:
     """Merge ``t_span`` and ``t_eval`` into a single array.
 
     Validition is similar to scipy ``solve_ivp``: ``t_eval`` must be contained in ``t_span``, and be
@@ -61,7 +59,7 @@ def merge_t_args(
         t_eval: Time points to include in returned results.
 
     Returns:
-        Union[List, Tuple, Array]: Combined list of times.
+        np.ndarray: Combined list of times.
 
     Raises:
         ValueError: If one of several validation checks fail.
@@ -70,13 +68,13 @@ def merge_t_args(
     if t_eval is None:
         return t_span
 
-    t_span = Array(t_span, backend="numpy")
+    t_span = np.array(t_span)
 
     t_min = np.min(t_span)
     t_max = np.max(t_span)
     t_direction = np.sign(t_span[1] - t_span[0])
 
-    t_eval = Array(t_eval, backend="numpy")
+    t_eval = np.array(t_eval)
 
     if t_eval.ndim > 1:
         raise ValueError("t_eval must be 1 dimensional.")
@@ -92,12 +90,12 @@ def merge_t_args(
     # add endpoints
     t_eval = np.append(np.append(t_span[0], t_eval), t_span[1])
 
-    return Array(t_eval, backend="numpy")
+    return t_eval
 
 
 def trim_t_results(
     results: OdeResult,
-    t_eval: Optional[Union[List, Tuple, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ) -> OdeResult:
     """Trim ``OdeResult`` object if ``t_eval is not None``.
 
@@ -116,14 +114,12 @@ def trim_t_results(
 
     # remove endpoints
     results.t = results.t[1:-1]
-    results.y = Array(results.y[1:-1])
+    results.y = results.y[1:-1]
 
     return results
 
 
-def merge_t_args_jax(
-    t_span: Union[List, Tuple, Array], t_eval: Optional[Union[List, Tuple, Array]] = None
-) -> Union[List, Tuple, Array]:
+def merge_t_args_jax(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> jnp.ndarray:
     """JAX-compilable version of merge_t_args.
 
     Rather than raise errors, sets return values to ``jnp.nan`` to signal errors.
@@ -139,17 +135,17 @@ def merge_t_args_jax(
         t_eval: Time points to include in returned results.
 
     Returns:
-        Union[List, Tuple, Array]: Combined list of times.
+        jnp.ndarray: Combined list of times.
 
     Raises:
         ValueError: If either argument is not one dimensional.
     """
 
     if t_eval is None:
-        return Array(t_span, backend="jax")
+        return jnp.array(t_span)
 
-    t_span = Array(t_span, backend="jax").data
-    t_eval = Array(t_eval, backend="jax").data
+    t_span = jnp.array(t_span)
+    t_eval = jnp.array(t_eval)
 
     # raise error if not one dimensional
     if t_eval.ndim > 1:
@@ -178,12 +174,12 @@ def merge_t_args_jax(
     # if out[-1] == out[-2], set out[-2] == (out[-3] + out[-1])/2
     out = cond(out[-1] == out[-2], lambda x: x.at[-2].set((x[-3] + x[-1]) / 2), lambda x: x, out)
 
-    return Array(out)
+    return out
 
 
 def trim_t_results_jax(
     results: OdeResult,
-    t_eval: Optional[Union[List, Tuple, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ) -> OdeResult:
     """JAX-compilable version of trim_t_results.
 
@@ -203,35 +199,29 @@ def trim_t_results_jax(
 
     if t_eval is not None:
         # remove second entry if t_eval[0] == results.t[0], as this indicates a repeated time
-        results.y = Array(
-            cond(
-                t_eval[0] == results.t[0],
-                lambda y: jnp.append(jnp.array([y[0]]), y[2:], axis=0),
-                lambda y: y[1:],
-                Array(results.y).data,
-            )
+        results.y = cond(
+            t_eval[0] == results.t[0],
+            lambda y: jnp.append(jnp.array([y[0]]), y[2:], axis=0),
+            lambda y: y[1:],
+            jnp.array(results.y),
         )
 
         # remove second last entry if t_eval[-1] == results.t[-1], as this indicates a repeated time
-        results.y = Array(
-            cond(
-                t_eval[-1] == results.t[-1],
-                lambda y: jnp.append(y[:-2], jnp.array([y[-1]]), axis=0),
-                lambda y: y[:-1],
-                Array(results.y).data,
-            )
+        results.y = cond(
+            t_eval[-1] == results.t[-1],
+            lambda y: jnp.append(y[:-2], jnp.array([y[-1]]), axis=0),
+            lambda y: y[:-1],
+            jnp.array(results.y),
         )
 
-        results.t = Array(t_eval)
+        results.t = t_eval
 
     # this handles the odd case that t_span == [a, a]
-    results.y = Array(
-        cond(
-            results.t[0] == results.t[-1],
-            lambda y: y.at[-1].set(y[0]),
-            lambda y: y,
-            Array(results.y).data,
-        )
+    results.y = cond(
+        results.t[0] == results.t[-1],
+        lambda y: y.at[-1].set(y[0]),
+        lambda y: y,
+        jnp.array(results.y),
     )
 
     return results

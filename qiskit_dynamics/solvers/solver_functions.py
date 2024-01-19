@@ -17,15 +17,16 @@ r"""
 Solver functions.
 """
 
-from typing import Optional, Union, Callable, Tuple, List, TypeVar
+from typing import Optional, Union, Callable, Tuple, TypeVar
 from warnings import warn
 
 from scipy.integrate import OdeSolver
 
-from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
+from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias import ArrayLike
 
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
@@ -95,18 +96,20 @@ def _is_diffrax_method(method: any) -> bool:
 
 def _lanczos_validation(
     rhs: Union[Callable, BaseGeneratorModel],
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     k_dim: int,
 ):
     """Validation checks to run lanczos based solvers."""
+    t_span = unp.asarray(t_span)
+    y0 = unp.asarray(y0)
     if isinstance(rhs, BaseGeneratorModel):
         if not isinstance(rhs, HamiltonianModel):
             raise QiskitError(
                 """Lanczos solver can only be used for HamiltonianModel or function-based
                     anti-Hermitian generators."""
             )
-        if "sparse" not in rhs.evaluation_mode:
+        if "sparse" not in rhs.array_library:
             warn(
                 """lanczos_diag should be used with a generator in sparse mode
                 for better performance.""",
@@ -124,12 +127,12 @@ def _lanczos_validation(
 
 def solve_ode(
     rhs: Union[Callable, BaseGeneratorModel],
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
-):
+) -> OdeResult:
     r"""General interface for solving Ordinary Differential Equations (ODEs).
 
     ODEs are differential equations of the form
@@ -181,7 +184,7 @@ def solve_ode(
     ):
         raise QiskitError("Method " + str(method) + " not supported by solve_ode.")
 
-    y0 = Array(y0)
+    y0 = unp.asarray(y0)
 
     if isinstance(rhs, BaseGeneratorModel):
         _, solver_rhs, y0, model_in_frame_basis = setup_generator_model_rhs_y0_in_frame_basis(
@@ -205,7 +208,7 @@ def solve_ode(
     # convert results out of frame basis if necessary
     if isinstance(rhs, BaseGeneratorModel):
         if not model_in_frame_basis:
-            results.y = results_y_out_of_frame_basis(rhs, Array(results.y), y0.ndim)
+            results.y = results_y_out_of_frame_basis(rhs, results.y, y0.ndim)
 
         # convert model back to original basis
         rhs.in_frame_basis = model_in_frame_basis
@@ -215,12 +218,12 @@ def solve_ode(
 
 def solve_lmde(
     generator: Union[Callable, BaseGeneratorModel],
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     method: Optional[Union[str, OdeSolver, DiffraxAbstractSolver]] = "DOP853",
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
-):
+) -> OdeResult:
     r"""General interface for solving Linear Matrix Differential Equations (LMDEs)
     in standard form.
 
@@ -241,7 +244,7 @@ def solve_lmde(
         Not all model classes are by-default in standard form. E.g.
         :class:`~qiskit_dynamics.models.LindbladModel` represents an LMDE which is not typically
         written in standard form. As such, using LMDE-specific methods with this generator requires
-        setting a vectorized evaluation mode.
+        the equation to be vectorized.
 
     The ``method`` argument exposes solvers specialized to both LMDEs, as well as general ODE
     solvers. If the method is not specific to LMDEs, the problem will be passed to
@@ -270,12 +273,12 @@ def solve_lmde(
       behaviour. Note that this method contains calls to ``jax.numpy.eigh``, which may have limited
       validity when automatically differentiated.
     - ``'jax_expm'``: JAX-implemented version of ``'scipy_expm'``, with the same arguments and
-      behaviour. Note that this method cannot be used for a model in sparse evaluation mode.
+      behaviour. Note that this method cannot be used for a model using a sparse array library.
     - ``'jax_expm_parallel'``: Same as ``'jax_expm'``, however all loops are implemented using
       parallel operations. I.e. all matrix-exponentials for taking a single step are computed in
       parallel using ``jax.vmap``, and are subsequently multiplied together in parallel using
       ``jax.lax.associative_scan``. This method is only recommended for use with GPU execution. Note
-      that this method cannot be used for a model in sparse evaluation mode.
+      that this method cannot be used for a model using a sparse array library.
     - ``'jax_RK4_parallel'``: 4th order Runge-Kutta fixed step solver. Under the assumption of the
       structure of an LMDE, utilizes the same parallelization approach as ``'jax_expm_parallel'``,
       however the single step rule is the standard 4th order Runge-Kutta rule, rather than
@@ -303,8 +306,8 @@ def solve_lmde(
     Additional Information:
         While all :class:`~qiskit_dynamics.models.BaseGeneratorModel` subclasses represent LMDEs,
         they are not all in standard form by defualt. Using an LMDE-specific models like
-        :class:`~qiskit_dynamics.models.LindbladModel` requires first setting a vectorized
-        evaluation mode.
+        :class:`~qiskit_dynamics.models.LindbladModel` requires first setting the model to be
+        vectorized.
     """
 
     # delegate to solve_ode if necessary
@@ -329,11 +332,10 @@ def solve_lmde(
     # lmde-specific methods can't be used with LindbladModel unless vectorized
     if is_lindblad_model_not_vectorized(generator):
         raise QiskitError(
-            """LMDE-specific methods with LindbladModel requires setting a
-               vectorized evaluation mode."""
+            "LMDE-specific methods with LindbladModel requires setting a vectorized=True."
         )
 
-    y0 = Array(y0)
+    y0 = unp.asarray(y0)
 
     # setup generator and rhs functions to pass to numerical methods
     if isinstance(generator, BaseGeneratorModel):
@@ -352,7 +354,7 @@ def solve_lmde(
         elif method == "jax_lanczos_diag":
             results = jax_lanczos_diag_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm":
-        if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.evaluation_mode:
+        if isinstance(generator, BaseGeneratorModel) and "sparse" in generator.array_library:
             raise QiskitError("jax_expm cannot be used with a generator in sparse mode.")
         results = jax_expm_solver(solver_generator, t_span, y0, t_eval=t_eval, **kwargs)
     elif method == "jax_expm_parallel":
@@ -363,7 +365,7 @@ def solve_lmde(
     # convert results to correct basis if necessary
     if isinstance(generator, BaseGeneratorModel):
         if not model_in_frame_basis:
-            results.y = results_y_out_of_frame_basis(generator, Array(results.y), y0.ndim)
+            results.y = results_y_out_of_frame_basis(generator, results.y, y0.ndim)
 
         generator.in_frame_basis = model_in_frame_basis
 
@@ -371,8 +373,8 @@ def solve_lmde(
 
 
 def setup_generator_model_rhs_y0_in_frame_basis(
-    generator_model: BaseGeneratorModel, y0: Array
-) -> Tuple[Callable, Callable, Array]:
+    generator_model: BaseGeneratorModel, y0: ArrayLike
+) -> Tuple[Callable, Callable, ArrayLike]:
     """Helper function for setting up a subclass of
     :class:`~qiskit_dynamics.models.BaseGeneratorModel` to be solved in the frame basis.
 
@@ -391,10 +393,7 @@ def setup_generator_model_rhs_y0_in_frame_basis(
 
     # if model not specified in frame basis, transform initial state into frame basis
     if not model_in_frame_basis:
-        if (
-            isinstance(generator_model, LindbladModel)
-            and "vectorized" in generator_model.evaluation_mode
-        ):
+        if isinstance(generator_model, LindbladModel) and generator_model.vectorized:
             if generator_model.rotating_frame.frame_basis is not None:
                 y0 = generator_model.rotating_frame.vectorized_frame_basis_adjoint @ y0
         elif isinstance(generator_model, LindbladModel):
@@ -416,8 +415,8 @@ def setup_generator_model_rhs_y0_in_frame_basis(
 
 
 def results_y_out_of_frame_basis(
-    generator_model: BaseGeneratorModel, results_y: Array, y0_ndim: int
-) -> Array:
+    generator_model: BaseGeneratorModel, results_y: ArrayLike, y0_ndim: int
+) -> ArrayLike:
     """Convert the results of a simulation for :class:`~qiskit_dynamics.models.BaseGeneratorModel`
     out of the frame basis.
 
@@ -436,10 +435,7 @@ def results_y_out_of_frame_basis(
     if y0_ndim == 1:
         results_y = results_y.T
 
-    if (
-        isinstance(generator_model, LindbladModel)
-        and "vectorized" in generator_model.evaluation_mode
-    ):
+    if isinstance(generator_model, LindbladModel) and generator_model.vectorized:
         if generator_model.rotating_frame.frame_basis is not None:
             results_y = generator_model.rotating_frame.vectorized_frame_basis @ results_y
     elif isinstance(generator_model, LindbladModel):
