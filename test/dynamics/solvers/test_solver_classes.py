@@ -747,7 +747,7 @@ class TestSolverSimulationJAXTransformations:
 
 @partial(test_array_backends, array_libraries=["jax"])
 class TestSolverConstructionJAXTransformations:
-    """Test construction of Solver within a function to be JAX transformed.."""
+    """Test construction of Solver within a function to be JAX transformed."""
 
     def test_transform_through_construction_when_validate_false(self):
         """Test that a function building a Solver can be compiled if validate=False."""

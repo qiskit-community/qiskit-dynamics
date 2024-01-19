@@ -782,7 +782,7 @@ def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, Li
     if y0_cls in [DensityMatrix, SuperOp] and isinstance(model, HamiltonianModel):
         y0 = np.eye(model.dim, dtype=complex)
     # if LindbladModel is vectorized and simulating a density matrix, flatten
-    elif (y0_cls is DensityMatrix) and isinstance(model, LindbladModel) and model.vectorized:
+    elif (y0_cls is DensityMatrix) and is_lindblad_model_vectorized(model):
         y0 = y0.flatten(order="F")
 
     # validate y0 shape before passing to solve_lmde
