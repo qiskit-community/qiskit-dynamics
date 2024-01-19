@@ -100,7 +100,7 @@ class _PerturbativeSolver(ABC):
                     or (
                         "jax"
                         == _preferred_lib(
-                            self.model.expansion_polynomial.array_coefficients,
+                            self.model.expansion_polynomial.constant_term,
                             self.model.expansion_polynomial.array_coefficients,
                         )
                     )
