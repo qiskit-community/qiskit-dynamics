@@ -312,6 +312,12 @@ class DiffraxTestBase(unittest.TestCase):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 import diffrax  # pylint: disable=import-outside-toplevel,unused-import
+
+            # pylint: disable=import-outside-toplevel
+            import jax
+
+            jax.config.update("jax_enable_x64", True)
+            jax.config.update("jax_platform_name", "cpu")
         except Exception as err:
             raise unittest.SkipTest("Skipping diffrax tests.") from err
 

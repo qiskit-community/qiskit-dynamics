@@ -15,14 +15,14 @@
 Wrapper for calling scipy.integrate.solve_ivp.
 """
 
-from typing import Callable, Union, Optional, Tuple, List
+from typing import Callable, Union, Optional
 
 import numpy as np
 from scipy.integrate import solve_ivp, OdeSolver
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias import ArrayLike
 from ..type_utils import StateTypeConverter
 
 # Supported scipy ODE methods
@@ -33,10 +33,10 @@ SOLVE_IVP_METHODS = COMPLEX_METHODS + REAL_METHODS
 
 def scipy_solve_ivp(
     rhs: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     method: Union[str, OdeSolver],
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ):
     """Routine for calling `scipy.integrate.solve_ivp`.
@@ -84,7 +84,7 @@ def scipy_solve_ivp(
     # convert to the standardized results format
     # solve_ivp returns the states as a 2d array with columns being the states
     results.y = results.y.transpose()
-    results.y = Array([type_converter.inner_to_outer(y) for y in results.y])
+    results.y = np.array([type_converter.inner_to_outer(y) for y in results.y])
 
     return OdeResult(**dict(results))
 

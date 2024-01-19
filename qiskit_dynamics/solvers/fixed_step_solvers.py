@@ -15,7 +15,7 @@
 Custom fixed step solvers.
 """
 
-from typing import Callable, Optional, Union, Tuple, List
+from typing import Callable, Optional, Tuple
 from warnings import warn
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
@@ -23,8 +23,9 @@ from scipy.linalg import expm
 
 from qiskit import QiskitError
 
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.dispatch import requires_backend
-from qiskit_dynamics.array import Array, wrap
+from qiskit_dynamics.arraylias import ArrayLike
 
 try:
     import jax
@@ -37,17 +38,15 @@ except ImportError:
 
 from .solver_utils import merge_t_args, trim_t_results
 from .lanczos import lanczos_expm
-from .lanczos import jax_lanczos_expm as jax_lanczos_expm_
-
-jax_lanczos_expm = wrap(jax_lanczos_expm_)
+from .lanczos import jax_lanczos_expm
 
 
 def RK4_solver(
     rhs: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ):
     """Fixed step RK4 solver.
 
@@ -74,21 +73,17 @@ def RK4_solver(
 
         return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
 
-    # ensure the output of rhs_func is a raw array
-    def wrapped_rhs_func(*args):
-        return Array(rhs(*args)).data
-
     return fixed_step_solver_template(
-        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
 def scipy_expm_solver(
     generator: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     magnus_order: int = 1,
 ):
     """Fixed-step size matrix exponential based solver implemented with
@@ -109,22 +104,18 @@ def scipy_expm_solver(
     """
     take_step = get_exponential_take_step(magnus_order, expm_func=expm)
 
-    # ensure the output of rhs_func is a raw array
-    def wrapped_rhs_func(*args):
-        return Array(generator(*args)).data
-
     return fixed_step_solver_template(
-        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
 def lanczos_diag_solver(
     generator: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
     k_dim: int,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ):
     """Fixed-step size matrix exponential based solver implemented using
     lanczos algorithm. Solves the specified problem by taking steps of
@@ -156,19 +147,19 @@ def lanczos_diag_solver(
 @requires_backend("jax")
 def jax_lanczos_diag_solver(
     generator: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
     k_dim: int,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ):
     """JAX version of lanczos_diag_solver."""
 
     def take_step(generator, t0, y, h):
         eval_time = t0 + (h / 2)
-        return jax_lanczos_expm(generator(eval_time), y, k_dim, h).data
+        return jax_lanczos_expm(generator(eval_time), y, k_dim, h)
 
-    y0 = Array(y0, dtype=complex)
+    y0 = unp.asarray(y0, dtype=complex)
 
     return fixed_step_solver_template_jax(
         take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
@@ -178,10 +169,10 @@ def jax_lanczos_diag_solver(
 @requires_backend("jax")
 def jax_RK4_solver(
     rhs: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ):
     """JAX version of RK4_solver.
 
@@ -208,21 +199,18 @@ def jax_RK4_solver(
 
         return y + div6 * h * (k1 + 2 * k2 + 2 * k3 + k4)
 
-    def wrapped_rhs_func(*args):
-        return Array(rhs(*args), backend="jax").data
-
     return fixed_step_solver_template_jax(
-        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=rhs, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
 @requires_backend("jax")
 def jax_RK4_parallel_solver(
     generator: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ):
     """Parallel version of :func:`jax_RK4_solver` specialized to LMDEs.
 
@@ -260,10 +248,10 @@ def jax_RK4_parallel_solver(
 @requires_backend("jax")
 def jax_expm_solver(
     generator: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     magnus_order: int = 1,
 ):
     """Fixed-step size matrix exponential based solver implemented with ``jax``.
@@ -283,21 +271,18 @@ def jax_expm_solver(
     """
     take_step = get_exponential_take_step(magnus_order, expm_func=jexpm)
 
-    def wrapped_rhs_func(*args):
-        return Array(generator(*args), backend="jax").data
-
     return fixed_step_solver_template_jax(
-        take_step, rhs_func=wrapped_rhs_func, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
+        take_step, rhs_func=generator, t_span=t_span, y0=y0, max_dt=max_dt, t_eval=t_eval
     )
 
 
 @requires_backend("jax")
 def jax_expm_parallel_solver(
     generator: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     magnus_order: int = 1,
 ):
     """Parallel version of :func:`jax_expm_solver` implemented with JAX parallel operations.
@@ -321,7 +306,7 @@ def jax_expm_parallel_solver(
     )
 
 
-def matrix_commutator(m1: Array, m2: Array) -> Array:
+def matrix_commutator(m1: ArrayLike, m2: ArrayLike) -> ArrayLike:
     """Compute the commutator of two matrices.
 
     Args:
@@ -422,10 +407,10 @@ def get_exponential_take_step(
 def fixed_step_solver_template(
     take_step: Callable,
     rhs_func: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ):
     """Helper function for implementing fixed-step solvers supporting both
     ``t_span`` and ``max_dt`` arguments. ``take_step`` is assumed to be a
@@ -456,7 +441,7 @@ def fixed_step_solver_template(
         OdeResult: Results object.
     """
 
-    y0 = Array(y0).data
+    y0 = unp.asarray(y0)
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
 
@@ -468,7 +453,7 @@ def fixed_step_solver_template(
             y = take_step(rhs_func, inner_t, y, h)
             inner_t = inner_t + h
         ys.append(y)
-    ys = Array(ys)
+    ys = unp.asarray(ys)
 
     results = OdeResult(t=t_list, y=ys)
 
@@ -478,10 +463,10 @@ def fixed_step_solver_template(
 def fixed_step_solver_template_jax(
     take_step: Callable,
     rhs_func: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ):
     """This function is the jax control-flow version of
     :meth:`fixed_step_solver_template`. See the documentation of :meth:`fixed_step_solver_template`
@@ -499,7 +484,7 @@ def fixed_step_solver_template_jax(
         OdeResult: Results object.
     """
 
-    y0 = Array(y0).data
+    y0 = jnp.array(y0)
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
 
@@ -530,7 +515,7 @@ def fixed_step_solver_template_jax(
         xs=(jnp.array(t_list[:-1]), jnp.array(h_list), jnp.array(n_steps_list)),
     )[1]
 
-    ys = Array(jnp.append(jnp.expand_dims(y0, axis=0), ys, axis=0), backend="jax")
+    ys = jnp.append(jnp.expand_dims(y0, axis=0), ys, axis=0)
 
     results = OdeResult(t=t_list, y=ys)
 
@@ -540,10 +525,10 @@ def fixed_step_solver_template_jax(
 def fixed_step_lmde_solver_parallel_template_jax(
     take_step: Callable,
     generator: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     max_dt: float,
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
 ):
     """Parallelized and LMDE specific version of fixed_step_solver_template_jax.
 
@@ -588,11 +573,7 @@ def fixed_step_lmde_solver_parallel_template_jax(
             stacklevel=2,
         )
 
-    # ensure the output of rhs_func is a raw array
-    def wrapped_generator(*args):
-        return Array(generator(*args), backend="jax").data
-
-    y0 = Array(y0).data
+    y0 = jnp.array(y0)
 
     t_list, h_list, n_steps_list = get_fixed_step_sizes(t_span, t_eval, max_dt)
 
@@ -606,7 +587,7 @@ def fixed_step_lmde_solver_parallel_template_jax(
         t_list_locations = np.append(t_list_locations, [t_list_locations[-1] + n_steps])
 
     # compute propagators over each time step in parallel
-    step_propagators = vmap(lambda t, h: take_step(wrapped_generator, t, h))(all_times, all_h)
+    step_propagators = vmap(lambda t, h: take_step(generator, t, h))(all_times, all_h)
 
     # multiply propagators together in parallel
     ys = None
@@ -625,12 +606,14 @@ def fixed_step_lmde_solver_parallel_template_jax(
         intermediate_y = intermediate_props[t_list_locations[1:] - 1] @ y0
         ys = jnp.append(jnp.array([y0]), intermediate_y, axis=0)
 
-    results = OdeResult(t=t_list, y=Array(ys, backend="jax"))
+    results = OdeResult(t=t_list, y=ys)
 
     return trim_t_results(results, t_eval)
 
 
-def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[Array, Array, Array]:
+def get_fixed_step_sizes(
+    t_span: ArrayLike, t_eval: ArrayLike, max_dt: float
+) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
     """Merge ``t_span`` and ``t_eval``, and determine the number of time steps and
     and step sizes (no larger than ``max_dt``) required to fixed-step integrate between
     each time point.
@@ -645,8 +628,8 @@ def get_fixed_step_sizes(t_span: Array, t_eval: Array, max_dt: float) -> Tuple[A
         between time points, and list of corresponding number of steps to take between time steps.
     """
     # time args are non-differentiable
-    t_span = Array(t_span, backend="numpy").data
-    max_dt = Array(max_dt, backend="numpy").data
+    t_span = np.array(t_span)
+    max_dt = np.array(max_dt)
     t_list = np.array(merge_t_args(t_span, t_eval))
 
     # set the number of time steps required in each interval so that

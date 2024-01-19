@@ -20,7 +20,6 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from qiskit_dynamics.dispatch import requires_backend
-from qiskit_dynamics.array import Array
 
 try:
     import jax.numpy as jnp
@@ -148,7 +147,7 @@ def lanczos_expm(
 
 
 @requires_backend("jax")
-def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
+def jax_lanczos_basis(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
     """JAX version of lanczos_basis."""
 
     data_type = jnp.result_type(A.dtype, y0.dtype)
@@ -204,7 +203,7 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
 
 
 @requires_backend("jax")
-def jax_lanczos_eigh(A: Array, y0: Array, k_dim: int):
+def jax_lanczos_eigh(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
     """JAX version of lanczos_eigh."""
 
     tridiagonal, q_basis = jax_lanczos_basis(A, y0, k_dim)
@@ -215,8 +214,8 @@ def jax_lanczos_eigh(A: Array, y0: Array, k_dim: int):
 
 @requires_backend("jax")
 def jax_lanczos_expm(
-    A: Array,
-    y0: Array,
+    A: jnp.ndarray,
+    y0: jnp.ndarray,
     k_dim: int,
     scale_factor: Optional[float] = 1,
 ):

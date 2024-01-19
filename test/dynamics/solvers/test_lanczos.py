@@ -24,7 +24,7 @@ from qiskit_dynamics.solvers.lanczos import (
     jax_lanczos_eigh,
     jax_lanczos_expm,
 )
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 
 class TestLanczos(QiskitDynamicsTestCase):
@@ -77,7 +77,7 @@ class TestLanczos(QiskitDynamicsTestCase):
         self.assertAllClose(expAy_s, expAy_l)
 
 
-class TestJaxLanczos(TestLanczos, TestJaxBase):
+class TestJaxLanczos(TestLanczos, JAXTestBase):
     """Tests for jax functions in lanczos.py."""
 
     def setUp(self):
