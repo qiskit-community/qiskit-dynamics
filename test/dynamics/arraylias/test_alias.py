@@ -125,7 +125,7 @@ class Test_preferred_lib(JAXTestBase):
         """Test that it prefers jax_sparse over jax."""
         self.assertEqual(_preferred_lib(jnp.array(1.0)), "jax")
         self.assertEqual(_preferred_lib(jnp.array(1.0), BCOO.fromdense([1.0, 2.0])), "jax_sparse")
-    
+
     def test_prefers_scipy_sparse_over_numpy(self):
         """Test that it prefers scipy_sparse over numpy."""
         self.assertEqual(_preferred_lib(np.array(1.0)), "numpy")
