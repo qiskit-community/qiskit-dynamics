@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Fixes a bug in :func:`.solve_lmde_perturbation` in which the ``perturbation_labels`` argument
+    being unexpectedly re-ordered, leading to errors when retrieving results.
+    
