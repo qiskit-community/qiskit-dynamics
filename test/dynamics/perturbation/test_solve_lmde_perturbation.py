@@ -576,6 +576,81 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         self.assertAllClose(expected_D0001, results.perturbation_data.get_item([1, 1, 1, 10])[-1])
         self.assertAllClose(expected_D0011, results.perturbation_data.get_item([1, 1, 10, 10])[-1])
 
+    def test_dyson_analytic_case1_1d_reverse_order_labeled(self):
+        """This is the same numerical test as test_dyson_analytic_case1_1d, however it relabels
+        the perturbation indices as 0 -> 1, and 1 -> 0. This is an integration test that would
+        have caught multiset sorting bug that broke solve_lmde_perturbation results computation.
+        """
+
+        def generator(t):
+            return Array([[1, 0], [0, 1]], dtype=complex).data
+
+        def A0(t):
+            return Array([[0, t], [t**2, 0]], dtype=complex).data
+
+        def A1(t):
+            return Array([[t, 0], [0, t**2]], dtype=complex).data
+
+        T = np.pi * 1.2341
+
+        results = solve_lmde_perturbation(
+            perturbations=[A0, A1],
+            t_span=[0, T],
+            generator=generator,
+            y0=np.array([0.0, 1.0], dtype=complex),
+            expansion_method="dyson",
+            expansion_order=2,
+            expansion_labels=[[1, 1, 0], [1, 1, 1, 0], [1, 1, 0, 0]],
+            perturbation_labels=[[1], [0]],
+            dyson_in_frame=False,
+            integration_method=self.integration_method,
+            atol=1e-13,
+            rtol=1e-13,
+        )
+
+        T2 = T**2
+        T3 = T * T2
+        T4 = T * T3
+        T5 = T * T4
+        T6 = T * T5
+        T7 = T * T6
+        T8 = T * T7
+        T9 = T * T8
+        T10 = T * T9
+        T11 = T * T10
+
+        U = expm(np.array(generator(0)) * T)
+
+        expected_D0 = U @ np.array([[T2 / 2], [0]], dtype=complex)
+        expected_D1 = U @ np.array([[0], [T3 / 3]], dtype=complex)
+        expected_D00 = U @ np.array([[0], [T5 / 10]], dtype=complex)
+        expected_D01 = U @ (
+            np.array([[T5 / 15], [0]], dtype=complex) + np.array([[T4 / 8], [0]], dtype=complex)
+        )
+        expected_D11 = U @ np.array([[0], [T6 / 18]], dtype=complex)
+        expected_D001 = U @ (
+            np.array([[0], [T8 / 120]], dtype=complex)
+            + np.array([[0], [T7 / 56]], dtype=complex)
+            + np.array([[0], [T8 / 80]], dtype=complex)
+        )
+        expected_D0001 = U @ np.array([[(T10 / 480) + (T9 / 280)], [0]], dtype=complex)
+        expected_D0011 = U @ np.array(
+            [
+                [0],
+                [(T11 / 396) + 23 * (T10 / 8400) + (T9 / 432)],
+            ],
+            dtype=complex,
+        )
+
+        self.assertAllClose(expected_D0, results.perturbation_data.get_item([1])[-1])
+        self.assertAllClose(expected_D1, results.perturbation_data.get_item([0])[-1])
+        self.assertAllClose(expected_D00, results.perturbation_data.get_item([1, 1])[-1])
+        self.assertAllClose(expected_D01, results.perturbation_data.get_item([1, 0])[-1])
+        self.assertAllClose(expected_D11, results.perturbation_data.get_item([0, 0])[-1])
+        self.assertAllClose(expected_D001, results.perturbation_data.get_item([1, 1, 0])[-1])
+        self.assertAllClose(expected_D0001, results.perturbation_data.get_item([1, 1, 1, 0])[-1])
+        self.assertAllClose(expected_D0011, results.perturbation_data.get_item([1, 1, 0, 0])[-1])
+
     def test_dyson_analytic_case1(self):
         """Analytic test of computing dyson terms.
 
