@@ -230,8 +230,8 @@ def solve_lmde_perturbation(
         else:
             # validate perturbation_labels
             perturbations_len = len(perturbation_labels)
-            perturbation_labels = _clean_multisets(perturbation_labels)
-            if len(perturbation_labels) != perturbations_len:
+            perturbation_labels_reduced = _clean_multisets(perturbation_labels)
+            if len(perturbation_labels_reduced) != perturbations_len:
                 raise QiskitError("perturbation_labels argument contains duplicates as multisets.")
 
         expansion_labels = _merge_multiset_expansion_order_labels(
