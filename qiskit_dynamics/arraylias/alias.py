@@ -100,6 +100,8 @@ def _preferred_lib(*args, **kwargs):
         return "jax_sparse"
     elif lib0 == "jax" or lib1 == "jax":
         return "jax"
+    elif lib0 == "scipy_sparse" or lib1 == "scipy_sparse":
+        return "scipy_sparse"
 
     raise QiskitError("_preferred_lib could not resolve preferred library.")
 

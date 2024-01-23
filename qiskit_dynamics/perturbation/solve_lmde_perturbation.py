@@ -18,13 +18,15 @@ Compute perturbation theory terms for an LMDE.
 
 from typing import List, Optional, Callable
 
-from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
+from scipy.integrate._ivp.ivp import OdeResult
 
 from multiset import Multiset
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import ArrayLike
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.solvers.solver_functions import _is_diffrax_method, _is_jax_method
 from qiskit_dynamics.perturbation.multiset_utils import _clean_multisets
 from qiskit_dynamics.perturbation.perturbation_utils import (
     _merge_multiset_expansion_order_labels,
@@ -41,16 +43,16 @@ from qiskit_dynamics.perturbation.dyson_magnus import (
 
 def solve_lmde_perturbation(
     perturbations: List[Callable],
-    t_span: Array,
+    t_span: ArrayLike,
     expansion_method: str,
     expansion_order: Optional[int] = None,
     expansion_labels: Optional[List[Multiset]] = None,
     perturbation_labels: Optional[List[Multiset]] = None,
     generator: Optional[Callable] = None,
-    y0: Optional[Array] = None,
+    y0: Optional[ArrayLike] = None,
     dyson_in_frame: Optional[bool] = True,
     integration_method: Optional[str] = "DOP853",
-    t_eval: Optional[Array] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
     r"""Compute time-dependent perturbation theory terms for an LMDE.
@@ -186,7 +188,7 @@ def solve_lmde_perturbation(
         y0: Optional initial state for frame generator LMDE. Defaults to the identity matrix.
         dyson_in_frame: For ``expansion_method`` ``'dyson'`` or ``'dyson_like'``, whether or not
             to remove the frame transformation pre-factor from the Dyson terms.
-        integration_method: Integration method to use.
+        integration_method: Integration method to use. Must be supported by :func:`.solve_ode`.
         t_eval: Points at which to evaluate the system.
         **kwargs: Additional arguments to pass to ode integration method used to compute terms.
 
@@ -215,7 +217,7 @@ def solve_lmde_perturbation(
 
         # if 1d in a dyson case, turn into a column vector
         if y0.ndim == 1:
-            y0 = Array([y0]).transpose()
+            y0 = unp.asarray([y0]).transpose()
 
     if perturbation_labels is not None and expansion_method == "dyson_like":
         raise QiskitError(
@@ -247,9 +249,11 @@ def solve_lmde_perturbation(
             expansion_labels=expansion_labels,
         )
 
+    use_jax = _is_jax_method(integration_method) or _is_diffrax_method(integration_method)
+
     if expansion_method in ["dyson", "dyson_like"]:
         dyson_like = expansion_method == "dyson_like"
-        if not Array.default_backend() == "jax":
+        if not use_jax:
             return _solve_lmde_dyson(
                 perturbations=perturbations,
                 t_span=t_span,
@@ -278,7 +282,7 @@ def solve_lmde_perturbation(
                 **kwargs,
             )
     elif expansion_method == "magnus":
-        if not Array.default_backend() == "jax":
+        if not use_jax:
             return _solve_lmde_magnus(
                 perturbations=perturbations,
                 t_span=t_span,

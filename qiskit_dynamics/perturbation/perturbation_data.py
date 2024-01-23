@@ -20,7 +20,6 @@ from dataclasses import dataclass
 from multiset import Multiset
 
 from qiskit import QiskitError
-from qiskit_dynamics.array import Array
 
 
 @dataclass
@@ -38,40 +37,29 @@ class _LabeledData:
         label = self._preprocess_label(label)
 
         if label in self.labels:
-            return self._post_process_item(self.data[self.labels.index(label)])
+            return self.data[self.labels.index(label)]
 
         raise QiskitError("label is not present in self.labels.")
 
     def _preprocess_label(self, label: any) -> any:
         return label
 
-    def _post_process_item(self, item: any) -> any:
-        return item
-
 
 class PowerSeriesData(_LabeledData):
     """Storage container for power series data. Labels are assumed to be ``Multiset`` instances,
-    and data is assumed to be an ``Array``.
+    and data is assumed to be a dense ``ArrayLike``.
     """
 
     def _preprocess_label(self, label: Multiset) -> Multiset:
         """Cast to a Multiset."""
         return Multiset(label)
 
-    def _post_process_item(self, item: Array) -> Array:
-        """Wrap in an Array."""
-        return Array(item, backend=self.data.backend)
-
 
 class DysonLikeData(_LabeledData):
     """Storage container for DysonLike series data. Labels are assumed to be lists of ints,
-    and data is assumed to be an ``Array``.
+    and data is assumed to be a dense ``ArrayLike``.
     """
 
     def _preprocess_label(self, label: list) -> list:
         """Cast to a list."""
         return list(label)
-
-    def _post_process_item(self, item: Array) -> Array:
-        """Wrap in an array."""
-        return Array(item, backend=self.data.backend)

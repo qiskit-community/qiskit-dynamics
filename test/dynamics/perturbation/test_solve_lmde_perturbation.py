@@ -9,19 +9,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=unused-argument, invalid-name
+# pylint: disable=unused-argument,invalid-name,no-member
 
 """Tests for solve_lmde_perturbation and related functions."""
+
+from functools import partial
 
 import numpy as np
 from scipy.linalg import expm
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
 from qiskit_dynamics.perturbation.solve_lmde_perturbation import solve_lmde_perturbation
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, test_array_backends
 
 try:
     from jax import jit, grad
@@ -94,11 +97,16 @@ class Testsolve_lmde_perturbation_errors(QiskitDynamicsTestCase):
             )
 
 
-class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
+class Testsolve_lmde_perturbation:
     """Test cases for perturbation theory computation."""
 
     def setUp(self):
-        self.integration_method = "DOP853"
+        """Set integration method based on array library."""
+        if self.array_library() == "jax":
+            self.integration_method = "jax_odeint"
+        else:
+            self.integration_method = "DOP853"
 
     def test_dyson_like_analytic_case1_1d(self):
         """Analytic test of computing dyson_like terms for 1d initial state.
@@ -107,13 +115,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -173,13 +185,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -237,13 +253,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -289,15 +309,13 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         v = 5.0
 
         def generator(t):
-            return -1j * 2 * np.pi * v * Array([[1, 0], [0, -1]], dtype=complex).data / 2
+            return -1j * 2 * np.pi * v * unp.array([[1, 0], [0, -1]], dtype=complex) / 2
 
         def A0(t):
-            t = Array(t)
-            return np.cos(2 * np.pi * v * t) * Array([[0, 1], [1, 0]], dtype=complex).data
+            return unp.cos(2 * np.pi * v * t) * unp.array([[0, 1], [1, 0]], dtype=complex)
 
         def A1(t):
-            t = Array(t)
-            return np.sin(2 * np.pi * 1.1 * v * t) * Array([[0, -1j], [1j, 0]], dtype=complex).data
+            return unp.sin(2 * np.pi * 1.1 * v * t) * unp.array([[0, -1j], [1j, 0]], dtype=complex)
 
         T = 1.1 / v
 
@@ -434,13 +452,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -508,13 +530,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -662,13 +688,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -738,13 +768,17 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -825,16 +859,13 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         v = 5.0
 
         def generator(t):
-            t = Array(t)
-            return -1j * 2 * np.pi * v * Array([[1, 0], [0, -1]], dtype=complex) / 2
+            return -1j * 2 * np.pi * v * unp.array([[1, 0], [0, -1]], dtype=complex) / 2
 
         def A0(t):
-            t = Array(t)
-            return np.cos(2 * np.pi * v * t) * Array([[0, 1], [1, 0]], dtype=complex)
+            return unp.cos(2 * np.pi * v * t) * unp.array([[0, 1], [1, 0]], dtype=complex)
 
         def A1(t):
-            t = Array(t)
-            return np.sin(2 * np.pi * 1.1 * v * t) * Array([[0, -1j], [1j, 0]], dtype=complex)
+            return unp.sin(2 * np.pi * 1.1 * v * t) * unp.array([[0, -1j], [1j, 0]], dtype=complex)
 
         T = 1.1 / v
 
@@ -947,16 +978,13 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         v = 5.0
 
         def generator(t):
-            t = Array(t)
-            return -1j * 2 * np.pi * v * Array([[1, 0], [0, -1]], dtype=complex) / 2
+            return -1j * 2 * np.pi * v * unp.array([[1, 0], [0, -1]], dtype=complex) / 2
 
         def A0(t):
-            t = Array(t)
-            return np.cos(2 * np.pi * v * t) * Array([[0, 1], [1, 0]], dtype=complex)
+            return unp.cos(2 * np.pi * v * t) * unp.array([[0, 1], [1, 0]], dtype=complex)
 
         def A1(t):
-            t = Array(t)
-            return np.sin(2 * np.pi * 1.1 * v * t) * Array([[0, -1j], [1j, 0]], dtype=complex)
+            return unp.sin(2 * np.pi * 1.1 * v * t) * unp.array([[0, -1j], [1j, 0]], dtype=complex)
 
         T = 1.1 / v
 
@@ -1016,27 +1044,33 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """Test consistency of computing power series decompositions across different methods."""
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         def A00(t):
-            return Array([[1.0, 2.0 * 1j], [3.0 * (t**2), 4.0 * t]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[1.0, 2.0 * 1j], [3.0 * (t**2), 4.0 * t]], dtype=complex
+            )
 
         def A01(t):
-            return Array(
+            return numpy_alias(like=self.array_library()).array(
                 [[4.0, 2.0 * 1j * t], [1j + 3.0 * (t**2), 4.0 * (t**3)]], dtype=complex
-            ).data
+            )
 
         def A11(t):
-            return Array(
+            return numpy_alias(like=self.array_library()).array(
                 [[4j + (t + t**2), 2.0 * 1j * t], [1.0 + 3j * (t**2), 1.0 * (t**3)]],
                 dtype=complex,
-            ).data
+            )
 
         T = np.pi * 1.2341 / 3
 
@@ -1140,34 +1174,34 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         d = 10
 
         def generator(t):
-            return Array(np.eye(d), dtype=complex).data
+            return unp.array(np.eye(d), dtype=complex)
 
-        A0_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A0_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A0_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A0_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A0(t):
             return A0_0 + t * A0_1
 
-        A1_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A1_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A1_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A1_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A1(t):
             return 1j * A1_0 + (t**2) * A1_1
 
-        A2_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A2_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A2_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A2_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A2(t):
             return 1j * t * A2_0 + (t**3) * A2_1
 
-        A00_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A00_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A00_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A00_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A00(t):
             return A00_0 * (t**2) + A00_1 * (t**3) * 1j
 
-        A01_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A01_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A01_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A01_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A01(t):
             return A01_0 * t + A01_1 * (t**4) * 1j
@@ -1210,27 +1244,33 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         """Test consistency of computing power series decompositions across different methods."""
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         def A00(t):
-            return Array([[1.0, 2.0 * 1j], [3.0 * (t**2), 4.0 * t]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[1.0, 2.0 * 1j], [3.0 * (t**2), 4.0 * t]], dtype=complex
+            )
 
         def A01(t):
-            return Array(
+            return numpy_alias(like=self.array_library()).array(
                 [[4.0, 2.0 * 1j * t], [1j + 3.0 * (t**2), 4.0 * (t**3)]], dtype=complex
-            ).data
+            )
 
         def A11(t):
-            return Array(
+            return numpy_alias(like=self.array_library()).array(
                 [[4j + (t + t**2), 2.0 * 1j * t], [1.0 + 3j * (t**2), 1.0 * (t**3)]],
                 dtype=complex,
-            ).data
+            )
 
         T = np.pi * 1.2341 / 3
 
@@ -1299,34 +1339,34 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         d = 10
 
         def generator(t):
-            return Array(np.eye(d), dtype=complex).data
+            return unp.array(np.eye(d), dtype=complex).data
 
-        A0_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A0_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A0_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A0_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A0(t):
             return A0_0 + t * A0_1
 
-        A1_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A1_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A1_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A1_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A1(t):
             return 1j * A1_0 + (t**2) * A1_1
 
-        A2_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A2_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A2_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A2_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A2(t):
             return 1j * t * A2_0 + (t**3) * A2_1
 
-        A00_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A00_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A00_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A00_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A00(t):
             return A00_0 * (t**2) + A00_1 * (t**3) * 1j
 
-        A01_0 = Array(rng.uniform(size=(d, d)), dtype=complex).data
-        A01_1 = Array(rng.uniform(size=(d, d)), dtype=complex).data
+        A01_0 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
+        A01_1 = unp.array(rng.uniform(size=(d, d)), dtype=complex)
 
         def A01(t):
             return A01_0 * t + A01_1 * (t**4) * 1j
@@ -1366,20 +1406,20 @@ class Testsolve_lmde_perturbation(QiskitDynamicsTestCase):
         )
 
 
-class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
+@partial(test_array_backends, array_libraries=["jax"])
+class Testsolve_lmde_perturbationJAXTransformations:
     """Test cases for jax perturbation theory computation."""
-
-    def setUp(self):
-        self.integration_method = "jax_odeint"
 
     def test_jit_grad_dyson_like(self):
         """Test that we can jit and grad a dyson computation."""
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(a, t):
-            return (a**2) * Array([[0, t], [t**2, 0]], dtype=complex).data
+            return (a**2) * numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -1390,7 +1430,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
                 generator=generator,
                 expansion_method="dyson_like",
                 expansion_labels=[[0]],
-                integration_method=self.integration_method,
+                integration_method="jax_odeint",
                 atol=1e-13,
                 rtol=1e-13,
             )
@@ -1415,13 +1455,17 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
         """Test that we can jit and grad a Dyson/Magnus computation."""
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(a, t):
-            return (a**2) * Array([[0, t], [t**2, 0]], dtype=complex).data
+            return (a**2) * numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
@@ -1432,7 +1476,7 @@ class Testsolve_lmde_perturbationJAX(Testsolve_lmde_perturbation, TestJaxBase):
                 generator=generator,
                 expansion_method="magnus",
                 expansion_labels=[[0, 1]],
-                integration_method=self.integration_method,
+                integration_method="jax_odeint",
                 atol=1e-13,
                 rtol=1e-13,
             )
