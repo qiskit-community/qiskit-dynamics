@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="Time-dependent perturbation theory and multi-variable series expansions review" href="discussions/dyson_magnus.html" />
 
     <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Release Notes - Qiskit Dynamics 0.4.3 documentation</title>
+        <title>Release Notes - Qiskit Dynamics 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -200,7 +200,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">Qiskit Dynamics 0.4.3 documentation</div></a>
+      <a href="index.html"><div class="brand">Qiskit Dynamics 0.4.4 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +227,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.3 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.4 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -345,8 +345,18 @@
         <article role="main">
           <section id="release-notes">
 <h1>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this heading">#</a></h1>
+<section id="release-notes-0-4-4">
+<span id="id1"></span><h2>0.4.4<a class="headerlink" href="#release-notes-0-4-4" title="Permalink to this heading">#</a></h2>
+<section id="bug-fixes">
+<span id="release-notes-0-4-4-bug-fixes"></span><h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Fixes a bug in <a class="reference internal" href="stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html#qiskit_dynamics.perturbation.solve_lmde_perturbation" title="qiskit_dynamics.perturbation.solve_lmde_perturbation"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_lmde_perturbation()</span></code></a> in which the <code class="docutils literal notranslate"><span class="pre">perturbation_labels</span></code> argument
+was being unexpectedly re-ordered, leading to errors when retrieving results.</p></li>
+</ul>
+</section>
+</section>
 <section id="release-notes-0-4-3">
-<span id="id1"></span><h2>0.4.3<a class="headerlink" href="#release-notes-0-4-3" title="Permalink to this heading">#</a></h2>
+<span id="id2"></span><h2>0.4.3<a class="headerlink" href="#release-notes-0-4-3" title="Permalink to this heading">#</a></h2>
 <section id="prelude">
 <span id="release-notes-0-4-3-prelude"></span><h3>Prelude<a class="headerlink" href="#prelude" title="Permalink to this heading">#</a></h3>
 <p>Qiskit Dynamics 0.4.3 is a minor maintenance release.</p>
@@ -366,13 +376,13 @@
 </section>
 </section>
 <section id="release-notes-0-4-2">
-<span id="id2"></span><h2>0.4.2<a class="headerlink" href="#release-notes-0-4-2" title="Permalink to this heading">#</a></h2>
+<span id="id3"></span><h2>0.4.2<a class="headerlink" href="#release-notes-0-4-2" title="Permalink to this heading">#</a></h2>
 <section id="release-notes-0-4-2-prelude">
-<span id="id3"></span><h3>Prelude<a class="headerlink" href="#release-notes-0-4-2-prelude" title="Permalink to this heading">#</a></h3>
+<span id="id4"></span><h3>Prelude<a class="headerlink" href="#release-notes-0-4-2-prelude" title="Permalink to this heading">#</a></h3>
 <p>Qiskit Dynamics 0.4.2 is an incremental release with minor bug fixes and additional warnings to help guide users through issues.</p>
 </section>
 <section id="release-notes-0-4-2-upgrade-notes">
-<span id="id4"></span><h3>Upgrade Notes<a class="headerlink" href="#release-notes-0-4-2-upgrade-notes" title="Permalink to this heading">#</a></h3>
+<span id="id5"></span><h3>Upgrade Notes<a class="headerlink" href="#release-notes-0-4-2-upgrade-notes" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">subsystem_labels</span></code> option has been removed from the <a class="reference internal" href="stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>. This
 removal impacts some technical aspects of the backend returned by
@@ -388,8 +398,8 @@ quantum systems with a single state). This change is made only for technical boo
 purposes, and has no impact on the core simulation behaviour.</p></li>
 </ul>
 </section>
-<section id="bug-fixes">
-<span id="release-notes-0-4-2-bug-fixes"></span><h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading">#</a></h3>
+<section id="release-notes-0-4-2-bug-fixes">
+<span id="id6"></span><h3>Bug Fixes<a class="headerlink" href="#release-notes-0-4-2-bug-fixes" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>In the case that <code class="docutils literal notranslate"><span class="pre">envelope</span></code> is a constant, the <code class="xref py py-meth docutils literal notranslate"><span class="pre">Signal.__init__()</span></code> method has been
 updated to not attempt to evaluate <code class="docutils literal notranslate"><span class="pre">carrier_freq</span> <span class="pre">==</span> <span class="pre">0.0</span></code> if <code class="docutils literal notranslate"><span class="pre">carrier_freq</span></code> is a JAX tracer.
@@ -406,7 +416,7 @@ distribution over outcomes is normalized before sampling outcomes.</p></li>
 </ul>
 </section>
 <section id="release-notes-0-4-2-other-notes">
-<span id="id5"></span><h3>Other Notes<a class="headerlink" href="#release-notes-0-4-2-other-notes" title="Permalink to this heading">#</a></h3>
+<span id="id7"></span><h3>Other Notes<a class="headerlink" href="#release-notes-0-4-2-other-notes" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>For users that have JAX installed, a warning has been added upon import of Qiskit Dynamics to
 notify the user of issues with certain versions: JAX versions newer than <code class="docutils literal notranslate"><span class="pre">0.4.6</span></code> break the
@@ -423,9 +433,9 @@ size <code class="docutils literal notranslate"><span class="pre">dt</span></cod
 </section>
 </section>
 <section id="release-notes-0-4-1">
-<span id="id6"></span><h2>0.4.1<a class="headerlink" href="#release-notes-0-4-1" title="Permalink to this heading">#</a></h2>
+<span id="id8"></span><h2>0.4.1<a class="headerlink" href="#release-notes-0-4-1" title="Permalink to this heading">#</a></h2>
 <section id="release-notes-0-4-1-prelude">
-<span id="id7"></span><h3>Prelude<a class="headerlink" href="#release-notes-0-4-1-prelude" title="Permalink to this heading">#</a></h3>
+<span id="id9"></span><h3>Prelude<a class="headerlink" href="#release-notes-0-4-1-prelude" title="Permalink to this heading">#</a></h3>
 <p>Qiskit Dynamics 0.4.1 is an incremental release with minor bug fixes, documentation updates, and usability features.</p>
 </section>
 <section id="new-features">
@@ -443,7 +453,7 @@ of JAX, Dynamics is also now only compatible with diffrax&lt;=0.3.1 and equinox&
 </ul>
 </section>
 <section id="release-notes-0-4-1-bug-fixes">
-<span id="id8"></span><h3>Bug Fixes<a class="headerlink" href="#release-notes-0-4-1-bug-fixes" title="Permalink to this heading">#</a></h3>
+<span id="id10"></span><h3>Bug Fixes<a class="headerlink" href="#release-notes-0-4-1-bug-fixes" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>A bug in <code class="xref py py-meth docutils literal notranslate"><span class="pre">DynamicsBackend.__init__()</span></code> causing existing measurement instructions for a
 user-supplied <code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code> to be overwritten has been fixed.</p></li>
@@ -455,7 +465,7 @@ present.</p></li>
 </ul>
 </section>
 <section id="release-notes-0-4-1-other-notes">
-<span id="id9"></span><h3>Other Notes<a class="headerlink" href="#release-notes-0-4-1-other-notes" title="Permalink to this heading">#</a></h3>
+<span id="id11"></span><h3>Other Notes<a class="headerlink" href="#release-notes-0-4-1-other-notes" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>The repository has been moved from 
 [github.com/Qiskit/qiskit-dynamics](<a class="reference external" href="https://github.com/Qiskit/qiskit-dynamics">https://github.com/Qiskit/qiskit-dynamics</a>) to 
@@ -507,7 +517,7 @@ and the documentation has been moved from
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/01/17</div>
+              Last updated on 2024/01/23</div>
           </div>
           <div class="right-details">
             
@@ -529,6 +539,10 @@ and the documentation has been moved from
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Release Notes</a><ul>
+<li><a class="reference internal" href="#release-notes-0-4-4">0.4.4</a><ul>
+<li><a class="reference internal" href="#bug-fixes">Bug Fixes</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#release-notes-0-4-3">0.4.3</a><ul>
 <li><a class="reference internal" href="#prelude">Prelude</a></li>
 <li><a class="reference internal" href="#upgrade-notes">Upgrade Notes</a></li>
@@ -538,7 +552,7 @@ and the documentation has been moved from
 <li><a class="reference internal" href="#release-notes-0-4-2">0.4.2</a><ul>
 <li><a class="reference internal" href="#release-notes-0-4-2-prelude">Prelude</a></li>
 <li><a class="reference internal" href="#release-notes-0-4-2-upgrade-notes">Upgrade Notes</a></li>
-<li><a class="reference internal" href="#bug-fixes">Bug Fixes</a></li>
+<li><a class="reference internal" href="#release-notes-0-4-2-bug-fixes">Bug Fixes</a></li>
 <li><a class="reference internal" href="#release-notes-0-4-2-other-notes">Other Notes</a></li>
 </ul>
 </li>
@@ -563,7 +577,7 @@ and the documentation has been moved from
   </div>
 </div><script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=79807b79"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b209ebb4"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>

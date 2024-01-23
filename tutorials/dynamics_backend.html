@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Qiskit Dynamics User Guide" href="../userguide/index.html" /><link rel="prev" title="Gradient optimization of a pulse sequence" href="optimizing_pulse_sequence.html" />
 
     <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Simulating backends at the pulse-level with DynamicsBackend - Qiskit Dynamics 0.4.3 documentation</title>
+        <title>Simulating backends at the pulse-level with DynamicsBackend - Qiskit Dynamics 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -200,7 +200,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.3 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.4 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +227,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.3 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.4 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -559,8 +559,8 @@ impact on the returned results.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 2.89 s, sys: 13.8 ms, total: 2.91 s
-Wall time: 4.17 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 2.84 s, sys: 15.6 ms, total: 2.86 s
+Wall time: 3.99 s
 </pre></div>
 </div>
 </div>
@@ -585,7 +585,7 @@ backend.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 50, &#39;1&#39;: 50}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 43, &#39;1&#39;: 57}
 </pre></div>
 </div>
 </div>
@@ -645,11 +645,11 @@ the schedule to implement the Hadamard gate with high fidelity.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.22 s, sys: 34.7 ms, total: 1.25 s
-Wall time: 1.22 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.4 s, sys: 40.4 ms, total: 1.44 s
+Wall time: 1.47 s
 </pre></div>
 </div>
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 794, &#39;1&#39;: 230}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 773, &#39;1&#39;: 251}
 </pre></div>
 </div>
 </div>
@@ -685,8 +685,8 @@ gate to the circuit object.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.53 s, sys: 9.94 ms, total: 1.54 s
-Wall time: 1.62 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.47 s, sys: 11.3 ms, total: 1.48 s
+Wall time: 1.53 s
 </pre></div>
 </div>
 </div>
@@ -698,7 +698,7 @@ Wall time: 1.62 s
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 767, &#39;1&#39;: 257}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 760, &#39;1&#39;: 264}
 </pre></div>
 </div>
 </div>
@@ -815,35 +815,35 @@ template library to initialize our calibrations.</p>
   <tbody>
     <tr>
       <th>0</th>
-      <td>duration</td>
-      <td>()</td>
-      <td>sx</td>
-      <td>160.00</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-01-17 16:40:58.173824+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>σ</td>
-      <td>()</td>
-      <td>sx</td>
-      <td>40.00</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-01-17 16:40:58.173841+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>2</th>
       <td>β</td>
       <td>()</td>
       <td>sx</td>
       <td>0.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:40:58.173858+0000</td>
+      <td>2024-01-23 00:45:24.281141+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>β</td>
+      <td>()</td>
+      <td>x</td>
+      <td>0.00</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-01-23 00:45:24.281118+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>amp</td>
+      <td>()</td>
+      <td>sx</td>
+      <td>0.25</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-01-23 00:45:24.281134+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -854,51 +854,51 @@ template library to initialize our calibrations.</p>
       <td>0.50</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:40:58.173711+0000</td>
+      <td>2024-01-23 00:45:24.281108+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>duration</td>
+      <td>σ</td>
       <td>()</td>
-      <td>x</td>
-      <td>160.00</td>
+      <td>sx</td>
+      <td>40.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:40:58.173746+0000</td>
+      <td>2024-01-23 00:45:24.281193+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>5</th>
-      <td>amp</td>
-      <td>()</td>
-      <td>sx</td>
-      <td>0.25</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-01-17 16:40:58.173806+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>β</td>
-      <td>()</td>
-      <td>x</td>
-      <td>0.00</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-01-17 16:40:58.173768+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>7</th>
       <td>σ</td>
       <td>()</td>
       <td>x</td>
       <td>40.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:40:58.173787+0000</td>
+      <td>2024-01-23 00:45:24.281126+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>duration</td>
+      <td>()</td>
+      <td>sx</td>
+      <td>160.00</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-01-23 00:45:24.281176+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>duration</td>
+      <td>()</td>
+      <td>x</td>
+      <td>160.00</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-01-23 00:45:24.281082+0000</td>
       <td>None</td>
     </tr>
   </tbody>
@@ -935,8 +935,8 @@ experiments.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 7.61 s, sys: 779 ms, total: 8.39 s
-Wall time: 7.63 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 8.25 s, sys: 788 ms, total: 9.04 s
+Wall time: 8.27 s
 </pre></div>
 </div>
 </div>
@@ -1004,32 +1004,32 @@ Wall time: 7.63 s
       <td>amp</td>
       <td>(0,)</td>
       <td>sx</td>
-      <td>0.05934+0.00000j</td>
+      <td>0.059549+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:41:00.444091+0000</td>
-      <td>1044682d-de4a-4138-a766-a3e8df93468e</td>
+      <td>2024-01-23 00:45:26.854636+0000</td>
+      <td>9615b077-8af7-402b-ac36-e5309e271392</td>
     </tr>
     <tr>
       <th>1</th>
       <td>amp</td>
       <td>()</td>
-      <td>x</td>
-      <td>0.50000+0.00000j</td>
+      <td>sx</td>
+      <td>0.250000+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:40:58.173711+0000</td>
+      <td>2024-01-23 00:45:24.281134+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>2</th>
       <td>amp</td>
       <td>()</td>
-      <td>sx</td>
-      <td>0.25000+0.00000j</td>
+      <td>x</td>
+      <td>0.500000+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:40:58.173806+0000</td>
+      <td>2024-01-23 00:45:24.281108+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -1037,11 +1037,11 @@ Wall time: 7.63 s
       <td>amp</td>
       <td>(0,)</td>
       <td>x</td>
-      <td>0.11868+0.00000j</td>
+      <td>0.119098+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:41:00.444091+0000</td>
-      <td>1044682d-de4a-4138-a766-a3e8df93468e</td>
+      <td>2024-01-23 00:45:26.854636+0000</td>
+      <td>9615b077-8af7-402b-ac36-e5309e271392</td>
     </tr>
   </tbody>
 </table>
@@ -1079,8 +1079,8 @@ as above.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 39.2 s, sys: 19.4 s, total: 58.5 s
-Wall time: 35 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 42.9 s, sys: 17.8 s, total: 1min
+Wall time: 39.4 s
 </pre></div>
 </div>
 </div>
@@ -1147,32 +1147,32 @@ Wall time: 35 s
       <td>amp</td>
       <td>(0,)</td>
       <td>sx</td>
-      <td>0.05934+0.00000j</td>
+      <td>0.059549+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:41:00.444091+0000</td>
-      <td>1044682d-de4a-4138-a766-a3e8df93468e</td>
+      <td>2024-01-23 00:45:26.854636+0000</td>
+      <td>9615b077-8af7-402b-ac36-e5309e271392</td>
     </tr>
     <tr>
       <th>1</th>
       <td>amp</td>
       <td>()</td>
-      <td>x</td>
-      <td>0.50000+0.00000j</td>
+      <td>sx</td>
+      <td>0.250000+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:40:58.173711+0000</td>
+      <td>2024-01-23 00:45:24.281134+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>2</th>
       <td>amp</td>
       <td>()</td>
-      <td>sx</td>
-      <td>0.25000+0.00000j</td>
+      <td>x</td>
+      <td>0.500000+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:40:58.173806+0000</td>
+      <td>2024-01-23 00:45:24.281108+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -1180,11 +1180,11 @@ Wall time: 35 s
       <td>amp</td>
       <td>(0,)</td>
       <td>x</td>
-      <td>0.11868+0.00000j</td>
+      <td>0.119098+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-17 16:41:00.444091+0000</td>
-      <td>1044682d-de4a-4138-a766-a3e8df93468e</td>
+      <td>2024-01-23 00:45:26.854636+0000</td>
+      <td>9615b077-8af7-402b-ac36-e5309e271392</td>
     </tr>
   </tbody>
 </table>
@@ -1246,8 +1246,8 @@ values for the single qubit gates calibrated above.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 28 s, sys: 6.83 s, total: 34.8 s
-Wall time: 27.6 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 28.3 s, sys: 6.3 s, total: 34.6 s
+Wall time: 27.9 s
 </pre></div>
 </div>
 </div>
@@ -1312,7 +1312,7 @@ Wall time: 27.6 s
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/01/17</div>
+              Last updated on 2024/01/23</div>
           </div>
           <div class="right-details">
             
@@ -1363,7 +1363,7 @@ Wall time: 27.6 s
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=79807b79"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b209ebb4"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
