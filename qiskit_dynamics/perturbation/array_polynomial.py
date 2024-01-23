@@ -25,7 +25,10 @@ from numpy.typing import DTypeLike
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics.arraylias.alias import _preferred_lib, _numpy_multi_dispatch, ArrayLike
+
 from qiskit_dynamics.perturbation.multiset_utils import (
     _validate_non_negative_ints,
     _get_all_submultisets,
@@ -126,9 +129,10 @@ class ArrayPolynomial:
 
     def __init__(
         self,
-        constant_term: Optional[Array] = None,
-        array_coefficients: Optional[Array] = None,
+        constant_term: Optional[ArrayLike] = None,
+        array_coefficients: Optional[ArrayLike] = None,
         monomial_labels: Optional[List[Multiset]] = None,
+        array_library: Optional[str] = None,
     ):
         """Construct a multivariable matrix polynomial.
 
@@ -136,11 +140,12 @@ class ArrayPolynomial:
             constant_term: An array representing the constant term of the polynomial.
             array_coefficients: A 3d array representing a list of array coefficients.
             monomial_labels: A list of multisets with non-negative integer entries of the same
-                             length as ``array_coefficients`` indicating the monomial coefficient
-                             for each corresponding ``array_coefficients``.
+                length as ``array_coefficients`` indicating the monomial coefficient for each
+                corresponding ``array_coefficients``.
+            array_library: Array library for stored array terms.
         Raises:
             QiskitError: If insufficient information is supplied to define an ArrayPolynomial,
-                         or if monomial labels contain anything other than non-negative integers.
+                or if monomial labels contain anything other than non-negative integers.
         """
 
         if array_coefficients is None and constant_term is None:
@@ -155,31 +160,17 @@ class ArrayPolynomial:
         else:
             self._monomial_labels = []
 
-        # If operating in jax mode, wrap in Arrays
-        if Array.default_backend() == "jax":
-            if array_coefficients is not None:
-                self._array_coefficients = Array(array_coefficients)
-            else:
-                self._array_coefficients = None
+        self._array_coefficients = None
+        if array_coefficients is not None:
+            self._array_coefficients = numpy_alias(like=array_library).asarray(array_coefficients)
 
-            if constant_term is not None:
-                self._constant_term = Array(constant_term)
-            else:
-                self._constant_term = None
+        self._constant_term = None
+        if constant_term is not None:
+            self._constant_term = numpy_alias(like=array_library).asarray(constant_term)
 
-            self._compute_monomials = _get_monomial_compute_function_jax(self._monomial_labels)
-        else:
-            if constant_term is not None:
-                self._constant_term = np.array(constant_term)
-            else:
-                self._constant_term = None
-
-            if array_coefficients is not None:
-                self._array_coefficients = np.array(array_coefficients)
-            else:
-                self._array_coefficients = None
-
-            self._compute_monomials = _get_monomial_compute_function(self._monomial_labels)
+        # there is redundancy here as both perform pre-computation on self._monomial_labels
+        self._compute_monomials = _get_monomial_compute_function(self._monomial_labels)
+        self._compute_monomials_jax = _get_monomial_compute_function_jax(self._monomial_labels)
 
     @property
     def monomial_labels(self) -> Union[List, None]:
@@ -187,16 +178,16 @@ class ArrayPolynomial:
         return self._monomial_labels
 
     @property
-    def array_coefficients(self) -> Union[Array, None]:
+    def array_coefficients(self) -> Union[ArrayLike, None]:
         """The array coefficients for non-constant terms."""
         return self._array_coefficients
 
     @property
-    def constant_term(self) -> Union[Array, None]:
+    def constant_term(self) -> Union[ArrayLike, None]:
         """The constant term."""
         return self._constant_term
 
-    def compute_monomials(self, c: Array) -> Union[Array, None]:
+    def compute_monomials(self, c: ArrayLike) -> ArrayLike:
         """Vectorized computation of all scalar monomial terms in the polynomial as specified by
         ``self.monomial_labels``.
 
@@ -205,6 +196,11 @@ class ArrayPolynomial:
         Returns:
             Array of all monomial terms ordered according to ``self.monomial_labels``.
         """
+        lib = _preferred_lib(c, self.constant_term, self.array_coefficients)
+
+        if "jax" in lib:
+            return self._compute_monomials_jax(c)
+
         return self._compute_monomials(c)
 
     @property
@@ -230,10 +226,10 @@ class ArrayPolynomial:
         coefficients = None
 
         if self._constant_term is not None:
-            constant_term = np.conj(self._constant_term)
+            constant_term = unp.conj(self._constant_term)
 
         if self._array_coefficients is not None:
-            coefficients = np.conj(self._array_coefficients)
+            coefficients = unp.conj(self._array_coefficients)
 
         return ArrayPolynomial(
             array_coefficients=coefficients,
@@ -248,7 +244,7 @@ class ArrayPolynomial:
         coefficients = None
 
         if self._constant_term is not None:
-            constant_term = np.transpose(self._constant_term, axes)
+            constant_term = unp.transpose(self._constant_term, axes)
 
         if self._array_coefficients is not None:
             if axes is None:
@@ -256,7 +252,7 @@ class ArrayPolynomial:
             else:
                 axes = tuple(ax + 1 for ax in axes)
             axes = (0,) + axes
-            coefficients = np.transpose(self._array_coefficients, axes)
+            coefficients = unp.transpose(self._array_coefficients, axes)
 
         return ArrayPolynomial(
             array_coefficients=coefficients,
@@ -280,12 +276,12 @@ class ArrayPolynomial:
         coefficients = None
 
         if self._constant_term is not None:
-            constant_term = np.trace(
+            constant_term = unp.trace(
                 self._constant_term, offset=offset, axis1=axis1, axis2=axis2, dtype=dtype
             )
 
         if self._array_coefficients is not None:
-            coefficients = np.trace(
+            coefficients = unp.trace(
                 self._array_coefficients,
                 offset=offset,
                 axis1=axis1 + 1,
@@ -312,7 +308,7 @@ class ArrayPolynomial:
         # axis must be shifted for array coefficients
         if self.array_coefficients is not None:
             if self.ndim == 0 and axis is None:
-                coefficients = np.array(self.array_coefficients, dtype=dtype)
+                coefficients = unp.array(self.array_coefficients, dtype=dtype)
             else:
                 if axis is None:
                     axis = tuple(k for k in range(1, self.ndim + 1))
@@ -350,7 +346,7 @@ class ArrayPolynomial:
 
     def add(
         self,
-        other: Union["ArrayPolynomial", int, float, complex, Array],
+        other: Union["ArrayPolynomial", ArrayLike],
         monomial_filter: Optional[Callable] = None,
     ) -> "ArrayPolynomial":
         """Add two polynomials with bounds on which terms to keep.
@@ -370,7 +366,7 @@ class ArrayPolynomial:
             QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
 
-        if isinstance(other, (int, float, complex, np.ndarray, Array)):
+        if isinstance(other, ArrayLike):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -382,7 +378,7 @@ class ArrayPolynomial:
 
     def matmul(
         self,
-        other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
+        other: Union["ArrayPolynomial", ArrayLike],
         monomial_filter: Optional[Callable] = None,
     ) -> "ArrayPolynomial":
         """Matmul self @ other with bounds on which terms to keep.
@@ -401,7 +397,7 @@ class ArrayPolynomial:
         Raises:
             QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
-        if isinstance(other, (int, float, complex, np.ndarray, Array)):
+        if isinstance(other, ArrayLike):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -413,7 +409,7 @@ class ArrayPolynomial:
 
     def mul(
         self,
-        other: Union["ArrayPolynomial", int, float, complex, np.ndarray, Array],
+        other: Union["ArrayPolynomial", ArrayLike],
         monomial_filter: Optional[Callable] = None,
     ) -> "ArrayPolynomial":
         """Entrywise multiplication of two ArrayPolynomials with bounds on which terms to keep.
@@ -433,7 +429,7 @@ class ArrayPolynomial:
             QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
 
-        if isinstance(other, (int, float, complex, np.ndarray, Array)):
+        if isinstance(other, ArrayLike):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -443,15 +439,11 @@ class ArrayPolynomial:
 
         raise QiskitError(f"Type {type(other)} not supported by ArrayPolynomial.mul.")
 
-    def __add__(
-        self, other: Union["ArrayPolynomial", int, float, complex, Array]
-    ) -> "ArrayPolynomial":
+    def __add__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for addition of two ArrayPolynomials."""
         return self.add(other)
 
-    def __radd__(
-        self, other: Union["ArrayPolynomial", int, float, complex, Array]
-    ) -> "ArrayPolynomial":
+    def __radd__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for right-addition of two ArrayPolynomials."""
         return self.add(other)
 
@@ -472,35 +464,27 @@ class ArrayPolynomial:
             array_coefficients=array_coefficients,
         )
 
-    def __sub__(
-        self, other: Union["ArrayPolynomial", int, float, complex, Array]
-    ) -> "ArrayPolynomial":
+    def __sub__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         return self + (-other)
 
-    def __rsub__(
-        self, other: Union["ArrayPolynomial", int, float, complex, Array]
-    ) -> "ArrayPolynomial":
+    def __rsub__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         return other + (-self)
 
-    def __mul__(
-        self, other: Union["ArrayPolynomial", int, float, complex, Array]
-    ) -> "ArrayPolynomial":
+    def __mul__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for entry-wise multiplication."""
         return self.mul(other)
 
-    def __rmul__(
-        self, other: Union["ArrayPolynomial", int, float, complex, Array]
-    ) -> "ArrayPolynomial":
+    def __rmul__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for right-multiplication."""
         return self.mul(other)
 
-    def __matmul__(self, other: Union["ArrayPolynomial", Array]) -> "ArrayPolynomial":
+    def __matmul__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for matmul."""
         return self.matmul(other)
 
-    def __rmatmul__(self, other: Union["ArrayPolynomial", Array]) -> "ArrayPolynomial":
+    def __rmatmul__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for rmatmul."""
-        if isinstance(other, (int, float, complex, np.ndarray, Array)):
+        if isinstance(other, ArrayLike):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -536,7 +520,7 @@ class ArrayPolynomial:
 
         return num_terms
 
-    def __call__(self, c: Optional[Array] = None) -> Array:
+    def __call__(self, c: Optional[ArrayLike] = None) -> ArrayLike:
         """Evaluate the polynomial.
 
         Args:
@@ -546,13 +530,15 @@ class ArrayPolynomial:
         """
 
         if self._array_coefficients is not None and self._constant_term is not None:
-            monomials = self._compute_monomials(c)
-            return self._constant_term + np.tensordot(
-                self._array_coefficients, monomials, axes=(0, 0)
+            monomials = self.compute_monomials(c)
+            return self._constant_term + _numpy_multi_dispatch(
+                self._array_coefficients, monomials, path="tensordot", axes=(0, 0)
             )
         elif self._array_coefficients is not None:
-            monomials = self._compute_monomials(c)
-            return np.tensordot(self._array_coefficients, monomials, axes=(0, 0))
+            monomials = self.compute_monomials(c)
+            return _numpy_multi_dispatch(
+                self._array_coefficients, monomials, path="tensordot", axes=(0, 0)
+            )
         else:
             return self._constant_term
 
@@ -815,21 +801,21 @@ def _array_polynomial_distributive_binary_op(
 
     lmats = None
     if ap1.constant_term is not None:
-        lmats = np.expand_dims(ap1.constant_term, 0)
+        lmats = unp.expand_dims(ap1.constant_term, 0)
     else:
-        lmats = np.expand_dims(np.zeros_like(Array(ap1.array_coefficients[0])), 0)
+        lmats = unp.expand_dims(unp.zeros_like(ap1.array_coefficients[0]), 0)
 
     if ap1.array_coefficients is not None:
-        lmats = np.append(lmats, ap1.array_coefficients, axis=0)
+        lmats = _numpy_multi_dispatch(lmats, ap1.array_coefficients, path="append", axis=0)
 
     rmats = None
     if ap2.constant_term is not None:
-        rmats = np.expand_dims(ap2.constant_term, 0)
+        rmats = unp.expand_dims(ap2.constant_term, 0)
     else:
-        rmats = np.expand_dims(np.zeros_like(Array(ap2.array_coefficients[0])), 0)
+        rmats = unp.expand_dims(unp.zeros_like(ap2.array_coefficients[0]), 0)
 
     if ap2.array_coefficients is not None:
-        rmats = np.append(rmats, ap2.array_coefficients, axis=0)
+        rmats = _numpy_multi_dispatch(rmats, ap2.array_coefficients, path="append", axis=0)
 
     custom_binary_op = _CustomBinaryOp(
         operation_rule=operation_rule,
@@ -908,9 +894,9 @@ def _array_polynomial_addition(
     array_coefficients1 = np.zeros((1,) + ap1.shape, dtype=complex)
     array_coefficients2 = np.zeros((1,) + ap1.shape, dtype=complex)
     if ap1.array_coefficients is not None:
-        array_coefficients1 = np.append(ap1.array_coefficients, array_coefficients1, axis=0)
+        array_coefficients1 = unp.append(ap1.array_coefficients, array_coefficients1, axis=0)
     if ap2.array_coefficients is not None:
-        array_coefficients2 = np.append(ap2.array_coefficients, array_coefficients2, axis=0)
+        array_coefficients2 = unp.append(ap2.array_coefficients, array_coefficients2, axis=0)
 
     new_coefficients = array_coefficients1[idx1] + array_coefficients2[idx2]
 

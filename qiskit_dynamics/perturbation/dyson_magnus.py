@@ -35,11 +35,11 @@ from typing import Optional, List, Callable, Tuple, Union
 import numpy as np
 from scipy.special import factorial
 
-from scipy.integrate._ivp.ivp import OdeResult  # pylint: disable=unused-import
+from scipy.integrate._ivp.ivp import OdeResult
 
 from multiset import Multiset
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import ArrayLike
 from qiskit_dynamics.solvers.solver_functions import solve_ode
 
 from qiskit_dynamics.perturbation.custom_binary_op import (
@@ -65,15 +65,15 @@ except ImportError:
 
 def _solve_lmde_dyson(
     perturbations: List[Callable],
-    t_span: Array,
+    t_span: ArrayLike,
     dyson_terms: Union[List[List[int]], List[Multiset]],
     perturbation_labels: Optional[Union[List[List], List[Multiset]]] = None,
     generator: Optional[Callable] = None,
-    y0: Optional[Array] = None,
+    y0: Optional[ArrayLike] = None,
     dyson_in_frame: Optional[bool] = True,
     dyson_like: Optional[bool] = False,
     integration_method: Optional[str] = "DOP853",
-    t_eval: Optional[Array] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
     """Helper function for computing Dyson terms using methods in References [4, 5].
@@ -152,7 +152,7 @@ def _solve_lmde_dyson(
         DataClass = DysonLikeData
 
     results.perturbation_data = DataClass(
-        data=Array(dyson_terms),
+        data=dyson_terms,
         labels=complete_term_list,
         metadata={"expansion_type": expansion_type},
     )
@@ -162,13 +162,13 @@ def _solve_lmde_dyson(
 
 def _solve_lmde_magnus(
     perturbations: List[Callable],
-    t_span: Array,
+    t_span: ArrayLike,
     magnus_terms: List[Multiset],
     perturbation_labels: Optional[List[Multiset]] = None,
     generator: Optional[Callable] = None,
-    y0: Optional[Array] = None,
+    y0: Optional[ArrayLike] = None,
     integration_method: Optional[str] = "DOP853",
-    t_eval: Optional[Array] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
     """Helper function for computing Magnus terms using method in Reference [5].
@@ -209,22 +209,22 @@ def _solve_lmde_magnus(
         results.perturbation_data.labels, results.perturbation_data.data
     )
     results.perturbation_data.metadata = {"expansion_type": "magnus"}
-    results.perturbation_data.data = Array(magnus_terms)
+    results.perturbation_data.data = magnus_terms
 
     return results
 
 
 def _solve_lmde_dyson_jax(
     perturbations: List[Callable],
-    t_span: Array,
+    t_span: ArrayLike,
     dyson_terms: Union[List[List[int]], List[Multiset]],
     perturbation_labels: Optional[Union[List[List], List[Multiset]]] = None,
     generator: Optional[Callable] = None,
-    y0: Optional[Array] = None,
+    y0: Optional[ArrayLike] = None,
     dyson_in_frame: Optional[bool] = True,
     dyson_like: Optional[bool] = True,
     integration_method: Optional[str] = "jax_odeint",
-    t_eval: Optional[Array] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
     """JAX version of ``_solve_lmde_dyson``.
@@ -260,18 +260,6 @@ def _solve_lmde_dyson_jax(
 
     if y0 is None:
         y0 = jnp.eye(mat_dim, dtype=complex)
-    else:
-        y0 = Array(y0).data
-
-    # ensure perturbations and generator to return raw jax arrays
-    def func_transform(f):
-        def new_func(t):
-            return Array(f(t), backend="jax").data
-
-        return new_func
-
-    generator = func_transform(generator)
-    perturbations = [func_transform(a_func) for a_func in perturbations]
 
     # construct term list an RHS based on whether dyson or dyson-like
     complete_term_list = None
@@ -314,7 +302,7 @@ def _solve_lmde_dyson_jax(
         DataClass = DysonLikeData
 
     results.perturbation_data = DataClass(
-        data=Array(dyson_terms, backend="jax"),
+        data=dyson_terms,
         labels=complete_term_list,
         metadata={"expansion_type": expansion_type},
     )
@@ -324,13 +312,13 @@ def _solve_lmde_dyson_jax(
 
 def _solve_lmde_magnus_jax(
     perturbations: List[Callable],
-    t_span: Array,
+    t_span: ArrayLike,
     magnus_terms: List[Multiset],
     perturbation_labels: Optional[List[Multiset]] = None,
     generator: Optional[Callable] = None,
-    y0: Optional[Array] = None,
+    y0: Optional[ArrayLike] = None,
     integration_method: Optional[str] = "DOP853",
-    t_eval: Optional[Array] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
     """JAX version of ``_solve_lmde_magnus``.
@@ -368,10 +356,10 @@ def _solve_lmde_magnus_jax(
 
     # compute Magnus terms from Dyson and update the results
     magnus_terms = _magnus_from_dyson_jax(
-        results.perturbation_data.labels, Array(results.perturbation_data.data).data
+        results.perturbation_data.labels, results.perturbation_data.data
     )
     results.perturbation_data.metadata = {"expansion_type": "magnus"}
-    results.perturbation_data.data = Array(magnus_terms, backend="jax")
+    results.perturbation_data.data = magnus_terms
 
     return results
 
@@ -470,7 +458,7 @@ def _setup_dyson_rhs_jax(
         ]
         lmult_rule = _get_dyson_lmult_rule(oc_dyson_indices, reduced_perturbation_labels)
 
-    custom_matmul = _CustomMatmul(lmult_rule, index_offset=1, backend="jax")
+    custom_matmul = _CustomMatmul(lmult_rule, index_offset=1)
 
     perturbations_evaluation_order = np.array(perturbations_evaluation_order, dtype=int)
 

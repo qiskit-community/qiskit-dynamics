@@ -287,7 +287,7 @@ def jax_expm_parallel_solver(
 ):
     """Parallel version of :func:`jax_expm_solver` implemented with JAX parallel operations.
 
-        Args:
+    Args:
         generator: Generator for the LMDE.
         t_span: Interval to solve over.
         y0: Initial state.
