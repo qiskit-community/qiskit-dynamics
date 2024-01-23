@@ -25,12 +25,10 @@ from qiskit.quantum_info.operators.predicates import is_hermitian_matrix
 from qiskit_dynamics.arraylias import ArrayLike
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY_ALIAS
 from qiskit_dynamics.arraylias import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.alias import _numpy_multi_dispatch
 
 try:
     import jax.numpy as jnp
-    from jax.experimental import sparse as jsparse
-
-    jsparse_matmul = jsparse.sparsify(jnp.matmul)
 except ImportError:
     pass
 
@@ -352,7 +350,7 @@ class RotatingFrame:
         exp_freq = unp.exp(self.frame_diag * t)
         frame_mat = exp_freq.conj().reshape(self.dim, 1) * exp_freq
 
-        out = unp.multiply(out, frame_mat)
+        out = _numpy_multi_dispatch(out, frame_mat, path="multiply")
 
         if op_to_add_in_fb is not None:
             op_to_add_in_fb = DYNAMICS_NUMPY_ALIAS(like=out).asarray(op_to_add_in_fb)

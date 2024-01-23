@@ -18,17 +18,17 @@ Perturbative solver base class.
 """
 
 from abc import ABC, abstractmethod
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Optional
 
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
 
-from qiskit_dynamics import Signal
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics import Signal, ArrayLike
+from qiskit_dynamics.arraylias.alias import _preferred_lib
 from qiskit_dynamics.signals import SignalList
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.dispatch.dispatch import Dispatch
 
 from .expansion_model import ExpansionModel
 from ..solver_utils import setup_args_lists
@@ -62,8 +62,9 @@ class _PerturbativeSolver(ABC):
         self,
         t0: Union[float, List[float]],
         n_steps: Union[int, List[int]],
-        y0: Union[Array, List[Array]],
+        y0: Union[ArrayLike, List[ArrayLike]],
         signals: Union[List[Signal], List[List[Signal]]],
+        jax_control_flow: Optional[bool] = None,
     ) -> Union[OdeResult, List[OdeResult]]:
         """Solve given an initial time, number of steps, signals, and initial state.
 
@@ -77,6 +78,10 @@ class _PerturbativeSolver(ABC):
             n_steps: Number of time steps to solve for.
             y0: Initial state at time ``t0``.
             signals: List of signals.
+            jax_control_flow: Whether or not to use JAX control flow during solver runs. If
+                unspecified it will be automatically determined based on the input state type,
+                whether the call is taking place within a JAX transformation, or if the underlying
+                expansion polynomial consists of JAX arrays.
 
         Returns:
             OdeResult: Results object, or list of results objects.
@@ -84,6 +89,24 @@ class _PerturbativeSolver(ABC):
         Raises:
             QiskitError: If improperly formatted arguments.
         """
+
+        if jax_control_flow is None:
+            try:
+                from jax import core
+
+                jax_control_flow = (
+                    ("jax" in numpy_alias.infer_libs(y0))
+                    or isinstance(jnp.array(0), core.Tracer)
+                    or (
+                        "jax"
+                        == _preferred_lib(
+                            self.model.expansion_polynomial.constant_term,
+                            self.model.expansion_polynomial.array_coefficients,
+                        )
+                    )
+                )
+            except ImportError:
+                jax_control_flow = False
 
         # validate and setup list of simulations
         [t0_list, n_steps_list, y0_list, signals_list], multiple_sims = setup_args_lists(
@@ -102,7 +125,13 @@ class _PerturbativeSolver(ABC):
             if len(args[-1]) != len(self.model.operators):
                 raise QiskitError("Signals must be the same length as the operators in the model.")
             all_results.append(
-                self._solve(t0=args[0], n_steps=args[1], y0=args[2], signals=args[3])
+                self._solve(
+                    t0=args[0],
+                    n_steps=args[1],
+                    y0=args[2],
+                    signals=args[3],
+                    jax_control_flow=jax_control_flow,
+                )
             )
 
         if multiple_sims is False:
@@ -111,7 +140,14 @@ class _PerturbativeSolver(ABC):
         return all_results
 
     @abstractmethod
-    def _solve(self, t0: float, n_steps: int, y0: Array, signals: List[Signal]) -> OdeResult:
+    def _solve(
+        self,
+        t0: float,
+        n_steps: int,
+        y0: ArrayLike,
+        signals: List[Signal],
+        jax_control_flow: bool = False,
+    ) -> OdeResult:
         """Solve once for a list of signals, initial state, initial time, and number of steps.
 
         Args:
@@ -119,6 +155,7 @@ class _PerturbativeSolver(ABC):
             n_steps: Number of time steps to solve for.
             y0: Initial state at time t0.
             signals: List of signals.
+            jax_control_flow: Whether or not to use JAX control flow during solver runs.
 
         Returns:
             OdeResult: Results object.
@@ -158,14 +195,12 @@ def _perturbative_solve_jax(
     n_steps: int,
 ) -> np.ndarray:
     """JAX version of _perturbative_solve."""
-    U0 = model.rotating_frame.state_out_of_frame(
-        t0, jnp.eye(model.Udt.shape[0], dtype=complex)
-    ).data
+    U0 = model.rotating_frame.state_out_of_frame(t0, jnp.eye(model.Udt.shape[0], dtype=complex))
     Uf = model.rotating_frame.state_into_frame(
         t0 + n_steps * model.dt, jnp.eye(U0.shape[0], dtype=complex)
-    ).data
+    )
 
-    sig_cheb_coeffs = model.approximate_signals(signals, t0, n_steps).data
+    sig_cheb_coeffs = model.approximate_signals(signals, t0, n_steps)
 
     y = U0 @ y0
 
@@ -226,7 +261,7 @@ def _nested_ndim(x):
     """Determine the 'ndim' of x, which could be composed of nested lists and array types."""
     if isinstance(x, (list, tuple)):
         return 1 + _nested_ndim(x[0])
-    elif issubclass(type(x), Dispatch.REGISTERED_TYPES) or isinstance(x, Array):
+    elif hasattr(x, "ndim"):
         return x.ndim
 
     # assume scalar

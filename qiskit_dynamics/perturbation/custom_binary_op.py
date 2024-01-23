@@ -19,7 +19,7 @@ from typing import Optional, List, Tuple, Callable
 
 import numpy as np
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias.alias import _preferred_lib
 
 try:
     import jax.numpy as jnp
@@ -70,7 +70,6 @@ class _CustomBinaryOp:
         binary_op: Callable,
         index_offset: Optional[int] = 0,
         operation_rule_compiled: Optional[bool] = False,
-        backend: Optional[str] = None,
     ):
         """Initialize the binary operation.
 
@@ -78,9 +77,8 @@ class _CustomBinaryOp:
             operation_rule: Rule for the binary op as described in the doc string.
             binary_op: The binary operation.
             index_offset: Shift to be added to the indices in operation_rule.
-            operation_rule_compiled: True if the operation_rule already corresponds to a
-                                     rule that has been compiled to the internal representation.
-            backend: Whether to use JAX or other looping logic.
+            operation_rule_compiled: True if the operation_rule already corresponds to a rule that
+                has been compiled to the internal representation.
         """
 
         # store binary op and compile rule to internal format for evaluation
@@ -89,32 +87,22 @@ class _CustomBinaryOp:
         if not operation_rule_compiled:
             operation_rule = _compile_custom_operation_rule(operation_rule, index_offset)
         self._unique_evaluation_pairs, self._linear_combo_rule = operation_rule
-        self._backend = backend or Array.default_backend()
-
-        # establish which version of functions to use
-        if self._backend == "jax":
-            self.__compute_unique_evaluations = lambda A, B: _compute_unique_evaluations_jax(
-                A, B, self._unique_evaluation_pairs, vmap(self._binary_op)
-            )
-            self.__compute_linear_combos = lambda C: _compute_linear_combos_jax(
-                C, self._linear_combo_rule
-            )
-        else:
-            self.__compute_unique_evaluations = lambda A, B: _compute_unique_evaluations(
-                A, B, self._unique_evaluation_pairs, self._binary_op
-            )
-            self.__compute_linear_combos = lambda C: _compute_linear_combos(
-                C, self._linear_combo_rule
-            )
 
     def __call__(self, A: np.ndarray, B: np.ndarray) -> np.ndarray:
         """Evaluate the custom binary operation on arrays A, B."""
-        if self._backend == "jax":
-            A = Array(A).data
-            B = Array(B).data
 
-        unique_evaluations = self.__compute_unique_evaluations(A, B)
-        return self.__compute_linear_combos(unique_evaluations)
+        lib = _preferred_lib(A, B)
+
+        if lib == "jax":
+            unique_evaluations = _compute_unique_evaluations_jax(
+                A, B, self._unique_evaluation_pairs, vmap(self._binary_op)
+            )
+            return _compute_linear_combos_jax(unique_evaluations, self._linear_combo_rule)
+
+        unique_evaluations = _compute_unique_evaluations(
+            A, B, self._unique_evaluation_pairs, self._binary_op
+        )
+        return _compute_linear_combos(unique_evaluations, self._linear_combo_rule)
 
 
 class _CustomMatmul(_CustomBinaryOp):
@@ -125,7 +113,6 @@ class _CustomMatmul(_CustomBinaryOp):
         operation_rule: List,
         index_offset: Optional[int] = 0,
         operation_rule_compiled: Optional[bool] = False,
-        backend: Optional[str] = None,
     ):
         """Initialize."""
 
@@ -135,7 +122,6 @@ class _CustomMatmul(_CustomBinaryOp):
             binary_op=binary_op,
             index_offset=index_offset,
             operation_rule_compiled=operation_rule_compiled,
-            backend=backend,
         )
 
 
@@ -147,7 +133,6 @@ class _CustomMul(_CustomBinaryOp):
         operation_rule: List,
         index_offset: Optional[int] = 0,
         operation_rule_compiled: Optional[bool] = False,
-        backend: Optional[str] = None,
     ):
         """Initialize."""
 
@@ -157,7 +142,6 @@ class _CustomMul(_CustomBinaryOp):
             binary_op=binary_op,
             index_offset=index_offset,
             operation_rule_compiled=operation_rule_compiled,
-            backend=backend,
         )
 
 
@@ -286,11 +270,11 @@ def _compute_linear_combos(
 
 
 def _compute_unique_evaluations_jax(
-    A: np.array,
-    B: np.array,
+    A: jnp.ndarray,
+    B: jnp.ndarray,
     unique_evaluation_pairs: np.array,
     binary_op: Callable,
-) -> np.array:
+) -> jnp.ndarray:
     """JAX version of a single loop step of :meth:`linear_combos`. Note that in this function
     binary_op is assumed to be vectorized."""
     A = jnp.append(A, jnp.zeros((1,) + A[0].shape, dtype=complex), axis=0)
@@ -300,8 +284,8 @@ def _compute_unique_evaluations_jax(
 
 
 def _compute_single_linear_combo_jax(
-    unique_evaluations: np.array, single_combo_rule: Tuple[np.array, np.array]
-) -> np.array:
+    unique_evaluations: jnp.ndarray, single_combo_rule: Tuple[np.array, np.array]
+) -> jnp.ndarray:
     """JAX version of :meth:`unique_products`."""
     coeffs, indices = single_combo_rule
     return jnp.tensordot(coeffs, unique_evaluations[indices], axes=1)

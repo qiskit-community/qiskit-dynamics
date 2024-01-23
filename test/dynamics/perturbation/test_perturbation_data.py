@@ -12,11 +12,12 @@
 
 """Tests for perturbation_results.py"""
 
+import numpy as np
+
 from qiskit import QiskitError
 
 from multiset import Multiset
 
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.perturbation.perturbation_data import PowerSeriesData, DysonLikeData
 
 from ..common import QiskitDynamicsTestCase
@@ -27,12 +28,12 @@ class TestDysonLikeData(QiskitDynamicsTestCase):
 
     def test_get_item(self):
         """Test that get_term works."""
-        results = DysonLikeData(data=Array([5, 6, 7]), labels=[[0], [1], [0, 1]])
-        self.assertTrue(results.get_item([1]) == Array(6))
+        results = DysonLikeData(data=np.array([5, 6, 7]), labels=[[0], [1], [0, 1]])
+        self.assertTrue(results.get_item([1]) == 6)
 
     def test_get_item_error(self):
         """Test an error gets raised when a requested term doesn't exist."""
-        results = DysonLikeData(data=Array([5, 6, 7]), labels=[[0], [1], [0, 1]])
+        results = DysonLikeData(data=np.array([5, 6, 7]), labels=[[0], [1], [0, 1]])
         with self.assertRaises(QiskitError):
             # pylint: disable=pointless-statement
             results.get_item([2])
@@ -44,21 +45,21 @@ class TestPowerSeriesData(QiskitDynamicsTestCase):
     def test_get_item(self):
         """Test that get_term works."""
         results = PowerSeriesData(
-            data=Array([5, 6, 7]), labels=[Multiset([0]), Multiset([1]), Multiset([0, 1])]
+            data=np.array([5, 6, 7]), labels=[Multiset([0]), Multiset([1]), Multiset([0, 1])]
         )
-        self.assertTrue(results.get_item(Multiset([1])) == Array(6))
+        self.assertTrue(results.get_item(Multiset([1])) == np.array(6))
 
     def test_automatic_casting(self):
         """Test that get_item works with automatic casting to Multiset."""
         results = PowerSeriesData(
-            data=Array([5, 6, 7]), labels=[Multiset([0]), Multiset([1]), Multiset([0, 1])]
+            data=np.array([5, 6, 7]), labels=[Multiset([0]), Multiset([1]), Multiset([0, 1])]
         )
-        self.assertTrue(results.get_item([1, 0]) == Array(7))
+        self.assertTrue(results.get_item([1, 0]) == np.array(7))
 
     def test_get_item_error(self):
         """Test an error gets raised when a requested term doesn't exist."""
         results = PowerSeriesData(
-            data=Array([5, 6, 7]), labels=[Multiset([0]), Multiset([1]), Multiset([0, 1])]
+            data=np.array([5, 6, 7]), labels=[Multiset([0]), Multiset([1]), Multiset([0, 1])]
         )
         with self.assertRaises(QiskitError):
             # pylint: disable=pointless-statement
