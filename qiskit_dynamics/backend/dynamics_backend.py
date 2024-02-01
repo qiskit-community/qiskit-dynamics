@@ -49,7 +49,7 @@ from qiskit.quantum_info.states.quantum_state import QuantumState
 
 
 from qiskit_dynamics import RotatingFrame
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias.alias import ArrayLike
 from qiskit_dynamics.solvers.solver_classes import Solver
 
 from .dynamics_job import DynamicsJob
@@ -345,8 +345,8 @@ class DynamicsBackend(BackendV2):
     def solve(
         self,
         solve_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
-        t_span: Array,
-        y0: Optional[Union[Array, QuantumState, BaseOperator]] = None,
+        t_span: ArrayLike,
+        y0: Optional[Union[ArrayLike, QuantumState, BaseOperator]] = None,
         convert_results: Optional[bool] = True,
         validate: Optional[bool] = True,
     ) -> Union[OdeResult, List[OdeResult]]:
@@ -593,7 +593,7 @@ class DynamicsBackend(BackendV2):
         cls,
         backend: BackendV1,
         subsystem_list: Optional[List[int]] = None,
-        rotating_frame: Optional[Union[Array, RotatingFrame, str]] = "auto",
+        rotating_frame: Optional[Union[ArrayLike, RotatingFrame, str]] = "auto",
         evaluation_mode: str = "dense",
         rwa_cutoff_freq: Optional[float] = None,
         **options,

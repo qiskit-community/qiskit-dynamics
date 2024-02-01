@@ -31,7 +31,7 @@ from qiskit_dynamics.backend.backend_utils import (
     _get_subsystem_probabilities,
     _get_iq_data,
 )
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 
 class TestDressedStateDecomposition(QiskitDynamicsTestCase):
@@ -167,7 +167,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
         self.assertAllClose(output, np.zeros((2, 2)))
 
 
-class TestLabFrameStaticHamiltonianJAX(TestLabFrameStaticHamiltonian, TestJaxBase):
+class TestLabFrameStaticHamiltonianJAX(TestLabFrameStaticHamiltonian, JAXTestBase):
     """Tests _get_lab_frame_static_hamiltonian when in JAX mode."""
 
 
