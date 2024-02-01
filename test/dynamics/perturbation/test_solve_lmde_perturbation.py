@@ -609,13 +609,17 @@ class Testsolve_lmde_perturbation:
         """
 
         def generator(t):
-            return Array([[1, 0], [0, 1]], dtype=complex).data
+            return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return Array([[0, t], [t**2, 0]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[0, t], [t**2, 0]], dtype=complex
+            )
 
         def A1(t):
-            return Array([[t, 0], [0, t**2]], dtype=complex).data
+            return numpy_alias(like=self.array_library()).array(
+                [[t, 0], [0, t**2]], dtype=complex
+            )
 
         T = np.pi * 1.2341
 
