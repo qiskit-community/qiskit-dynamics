@@ -136,7 +136,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
             hamiltonian_operators=[self.X],
             rotating_frame=self.X,
             array_library=array_library,
-            vectorized=vectorized
+            vectorized=vectorized,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
@@ -152,7 +152,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
             hamiltonian_operators=[self.X],
             rotating_frame=np.diag(self.Z),
             array_library=array_library,
-            vectorized=vectorized
+            vectorized=vectorized,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
