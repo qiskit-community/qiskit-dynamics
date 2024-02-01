@@ -45,6 +45,7 @@ class TestExperimentsIntegration(JAXTestBase):
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=1.0 / 4.5,
+            array_library="jax",
         )
 
         # build target gate definitions
