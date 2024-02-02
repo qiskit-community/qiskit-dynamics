@@ -20,8 +20,9 @@ import sympy as sym
 from qiskit import pulse
 from qiskit.pulse import Schedule
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
-from qiskit.providers.fake_provider import FakeQuito
 from qiskit import QiskitError
+
+from qiskit_ibm_runtime.fake_provider import FakeQuito
 
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.signals import DiscreteSignal
