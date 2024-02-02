@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Qiskit Dynamics User Guide" href="../userguide/index.html" /><link rel="prev" title="Gradient optimization of a pulse sequence" href="optimizing_pulse_sequence.html" />
 
     <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Simulating backends at the pulse-level with DynamicsBackend - Qiskit Dynamics 0.4.4 documentation</title>
+        <title>Simulating backends at the pulse-level with DynamicsBackend - Qiskit Dynamics 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -200,7 +200,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.4 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +227,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.4 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -356,7 +356,7 @@ definitions, and calibration and characterization experiments from Qiskit Experi
 <li><p>Simulating pulse schedules on the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>.</p></li>
 <li><p>Simulating circuits at the pulse level using the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>.</p></li>
 <li><p>Simulating single-qubit calibration processes via Qiskit Experiments.</p></li>
-<li><p>Simulating 2 qubit interaction characterization via the <a class="reference external" href="https://qiskit.org/ecosystem/experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> experiment.</p></li>
+<li><p>Simulating 2 qubit interaction characterization via the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> experiment.</p></li>
 </ol>
 <section id="configure-dynamics-to-use-jax">
 <h2>1. Configure Dynamics to use JAX<a class="headerlink" href="#configure-dynamics-to-use-jax" title="Permalink to this heading">#</a></h2>
@@ -559,8 +559,8 @@ impact on the returned results.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 2.84 s, sys: 15.6 ms, total: 2.86 s
-Wall time: 3.99 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 2.8 s, sys: 11.7 ms, total: 2.81 s
+Wall time: 4.35 s
 </pre></div>
 </div>
 </div>
@@ -585,7 +585,7 @@ backend.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 43, &#39;1&#39;: 57}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 42, &#39;1&#39;: 58}
 </pre></div>
 </div>
 </div>
@@ -645,11 +645,11 @@ the schedule to implement the Hadamard gate with high fidelity.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.4 s, sys: 40.4 ms, total: 1.44 s
-Wall time: 1.47 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.41 s, sys: 16.6 ms, total: 1.42 s
+Wall time: 1.41 s
 </pre></div>
 </div>
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 773, &#39;1&#39;: 251}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 798, &#39;1&#39;: 226}
 </pre></div>
 </div>
 </div>
@@ -685,8 +685,8 @@ gate to the circuit object.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.47 s, sys: 11.3 ms, total: 1.48 s
-Wall time: 1.53 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.49 s, sys: 7.52 ms, total: 1.5 s
+Wall time: 1.56 s
 </pre></div>
 </div>
 </div>
@@ -698,7 +698,7 @@ Wall time: 1.53 s
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 760, &#39;1&#39;: 264}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 779, &#39;1&#39;: 245}
 </pre></div>
 </div>
 </div>
@@ -714,7 +714,7 @@ Wall time: 1.53 s
 <p>To enable running of the single qubit experiments, we add the following to the <code class="docutils literal notranslate"><span class="pre">target</span></code>:</p>
 <ul class="simple">
 <li><p>Qubit frequency properties (needed by experiments like
-<a class="reference external" href="https://qiskit.org/ecosystem/experiments/stubs/qiskit_experiments.library.calibration.RoughFrequencyCal.html#qiskit_experiments.library.calibration.RoughFrequencyCal" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoughFrequencyCal</span></code></a>). Note that
+<a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.calibration.RoughFrequencyCal.html#qiskit_experiments.library.calibration.RoughFrequencyCal" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoughFrequencyCal</span></code></a>). Note that
 setting the qubit frequencies in the <code class="docutils literal notranslate"><span class="pre">target</span></code> does not impact the behaviour of the
 <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> itself. It is purely a data field that does not impact functionality.
 Previously set frequency properties, such as <code class="docutils literal notranslate"><span class="pre">channel_carrier_freqs</span></code> in the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a>,
@@ -766,10 +766,10 @@ will pass.</p></li>
 </div>
 </section>
 <section id="prepare-calibrations-object">
-<h3>5.2 Prepare <a class="reference external" href="https://qiskit.org/ecosystem/experiments/stubs/qiskit_experiments.calibration_management.Calibrations.html#qiskit_experiments.calibration_management.Calibrations" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calibrations</span></code></a> object<a class="headerlink" href="#prepare-calibrations-object" title="Permalink to this heading">#</a></h3>
-<p>Next, prepare the <a class="reference external" href="https://qiskit.org/ecosystem/experiments/stubs/qiskit_experiments.calibration_management.Calibrations.html#qiskit_experiments.calibration_management.Calibrations" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calibrations</span></code></a>
+<h3>5.2 Prepare <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.Calibrations.html#qiskit_experiments.calibration_management.Calibrations" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calibrations</span></code></a> object<a class="headerlink" href="#prepare-calibrations-object" title="Permalink to this heading">#</a></h3>
+<p>Next, prepare the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.Calibrations.html#qiskit_experiments.calibration_management.Calibrations" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calibrations</span></code></a>
 object. Here we use the
-<a class="reference external" href="https://qiskit.org/ecosystem/experiments/stubs/qiskit_experiments.calibration_management.FixedFrequencyTransmon.html#qiskit_experiments.calibration_management.FixedFrequencyTransmon" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedFrequencyTransmon</span></code></a>
+<a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.FixedFrequencyTransmon.html#qiskit_experiments.calibration_management.FixedFrequencyTransmon" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedFrequencyTransmon</span></code></a>
 template library to initialize our calibrations.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
@@ -815,13 +815,13 @@ template library to initialize our calibrations.</p>
   <tbody>
     <tr>
       <th>0</th>
-      <td>β</td>
+      <td>σ</td>
       <td>()</td>
       <td>sx</td>
-      <td>0.00</td>
+      <td>40.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281141+0000</td>
+      <td>2024-02-02 22:05:26.666895+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -832,7 +832,7 @@ template library to initialize our calibrations.</p>
       <td>0.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281118+0000</td>
+      <td>2024-02-02 22:05:26.666836+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -843,7 +843,7 @@ template library to initialize our calibrations.</p>
       <td>0.25</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281134+0000</td>
+      <td>2024-02-02 22:05:26.666930+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -854,29 +854,29 @@ template library to initialize our calibrations.</p>
       <td>0.50</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281108+0000</td>
+      <td>2024-02-02 22:05:26.666858+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>4</th>
       <td>σ</td>
       <td>()</td>
-      <td>sx</td>
-      <td>40.00</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-01-23 00:45:24.281193+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>σ</td>
-      <td>()</td>
       <td>x</td>
       <td>40.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281126+0000</td>
+      <td>2024-02-02 22:05:26.666788+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>β</td>
+      <td>()</td>
+      <td>sx</td>
+      <td>0.00</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-02-02 22:05:26.666912+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -887,7 +887,7 @@ template library to initialize our calibrations.</p>
       <td>160.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281176+0000</td>
+      <td>2024-02-02 22:05:26.666946+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -898,7 +898,7 @@ template library to initialize our calibrations.</p>
       <td>160.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281082+0000</td>
+      <td>2024-02-02 22:05:26.666877+0000</td>
       <td>None</td>
     </tr>
   </tbody>
@@ -935,8 +935,8 @@ experiments.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 8.25 s, sys: 788 ms, total: 9.04 s
-Wall time: 8.27 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 7.83 s, sys: 774 ms, total: 8.61 s
+Wall time: 7.74 s
 </pre></div>
 </div>
 </div>
@@ -1003,23 +1003,23 @@ Wall time: 8.27 s
       <th>0</th>
       <td>amp</td>
       <td>(0,)</td>
-      <td>sx</td>
-      <td>0.059549+0.000000j</td>
+      <td>x</td>
+      <td>0.118811+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:26.854636+0000</td>
-      <td>9615b077-8af7-402b-ac36-e5309e271392</td>
+      <td>2024-02-02 22:05:29.225822+0000</td>
+      <td>da08297a-d38c-4e18-80c5-df6c9cfdfbd7</td>
     </tr>
     <tr>
       <th>1</th>
       <td>amp</td>
-      <td>()</td>
+      <td>(0,)</td>
       <td>sx</td>
-      <td>0.250000+0.000000j</td>
+      <td>0.059406+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281134+0000</td>
-      <td>None</td>
+      <td>2024-02-02 22:05:29.225822+0000</td>
+      <td>da08297a-d38c-4e18-80c5-df6c9cfdfbd7</td>
     </tr>
     <tr>
       <th>2</th>
@@ -1029,19 +1029,19 @@ Wall time: 8.27 s
       <td>0.500000+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281108+0000</td>
+      <td>2024-02-02 22:05:26.666858+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>3</th>
       <td>amp</td>
-      <td>(0,)</td>
-      <td>x</td>
-      <td>0.119098+0.000000j</td>
+      <td>()</td>
+      <td>sx</td>
+      <td>0.250000+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:26.854636+0000</td>
-      <td>9615b077-8af7-402b-ac36-e5309e271392</td>
+      <td>2024-02-02 22:05:26.666930+0000</td>
+      <td>None</td>
     </tr>
   </tbody>
 </table>
@@ -1079,8 +1079,8 @@ as above.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 42.9 s, sys: 17.8 s, total: 1min
-Wall time: 39.4 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 32.6 s, sys: 20.1 s, total: 52.7 s
+Wall time: 28.2 s
 </pre></div>
 </div>
 </div>
@@ -1146,23 +1146,23 @@ Wall time: 39.4 s
       <th>0</th>
       <td>amp</td>
       <td>(0,)</td>
-      <td>sx</td>
-      <td>0.059549+0.000000j</td>
+      <td>x</td>
+      <td>0.118811+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:26.854636+0000</td>
-      <td>9615b077-8af7-402b-ac36-e5309e271392</td>
+      <td>2024-02-02 22:05:29.225822+0000</td>
+      <td>da08297a-d38c-4e18-80c5-df6c9cfdfbd7</td>
     </tr>
     <tr>
       <th>1</th>
       <td>amp</td>
-      <td>()</td>
+      <td>(0,)</td>
       <td>sx</td>
-      <td>0.250000+0.000000j</td>
+      <td>0.059406+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281134+0000</td>
-      <td>None</td>
+      <td>2024-02-02 22:05:29.225822+0000</td>
+      <td>da08297a-d38c-4e18-80c5-df6c9cfdfbd7</td>
     </tr>
     <tr>
       <th>2</th>
@@ -1172,19 +1172,19 @@ Wall time: 39.4 s
       <td>0.500000+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:24.281108+0000</td>
+      <td>2024-02-02 22:05:26.666858+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>3</th>
       <td>amp</td>
-      <td>(0,)</td>
-      <td>x</td>
-      <td>0.119098+0.000000j</td>
+      <td>()</td>
+      <td>sx</td>
+      <td>0.250000+0.000000j</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-01-23 00:45:26.854636+0000</td>
-      <td>9615b077-8af7-402b-ac36-e5309e271392</td>
+      <td>2024-02-02 22:05:26.666930+0000</td>
+      <td>None</td>
     </tr>
   </tbody>
 </table>
@@ -1193,8 +1193,8 @@ Wall time: 39.4 s
 </section>
 </section>
 <section id="simulating-2-qubit-interaction-characterization-via-the-crhamitonian-experiment">
-<h2>6. Simulating 2 qubit interaction characterization via the <a class="reference external" href="https://qiskit.org/ecosystem/experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> experiment<a class="headerlink" href="#simulating-2-qubit-interaction-characterization-via-the-crhamitonian-experiment" title="Permalink to this heading">#</a></h2>
-<p>Finally, simulate the <a class="reference external" href="https://qiskit.org/ecosystem/experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> characterization experiment.</p>
+<h2>6. Simulating 2 qubit interaction characterization via the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> experiment<a class="headerlink" href="#simulating-2-qubit-interaction-characterization-via-the-crhamitonian-experiment" title="Permalink to this heading">#</a></h2>
+<p>Finally, simulate the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> characterization experiment.</p>
 <p>First, we further configure the backend to run this experiment. This requires defining the control
 channel map, which is a dictionary mapping control-target qubit index pairs (given as a tuple) to
 the control channel index used to drive the corresponding cross-resonance interaction. This is
@@ -1246,8 +1246,8 @@ values for the single qubit gates calibrated above.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 28.3 s, sys: 6.3 s, total: 34.6 s
-Wall time: 27.9 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 28.2 s, sys: 6.81 s, total: 35 s
+Wall time: 27.7 s
 </pre></div>
 </div>
 </div>
@@ -1312,7 +1312,7 @@ Wall time: 27.9 s
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/01/23</div>
+              Last updated on 2024/02/02</div>
           </div>
           <div class="right-details">
             
@@ -1363,7 +1363,7 @@ Wall time: 27.9 s
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b209ebb4"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
