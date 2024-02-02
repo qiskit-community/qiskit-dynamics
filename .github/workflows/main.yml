@@ -35,6 +35,35 @@ jobs:
       - name: Install and Run Tests
         run: tox -e py
         if: runner.os == 'Windows'
+  test-qiskit-1:
+    name: tests-python3.10-ubuntu-latest-qiskit-1.0
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-tests-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.python-version }}-pip-tests-
+            ${{ runner.os }}-${{ matrix.python-version }}-pip-
+            ${{ runner.os }}-${{ matrix.python-version }}
+      - name: Install package
+        run: |
+          set -e
+          python -m pip install -U pip
+          python -m pip install \
+            -c constraints.txt \
+            -r requirements-dev.txt \
+            jax jaxlib diffrax \
+            'qiskit>=1.0.0rc1' \
+            .
+      - name: Run tests
+        run: stestr run
+
   lint:
     name: lint
     runs-on: ubuntu-latest

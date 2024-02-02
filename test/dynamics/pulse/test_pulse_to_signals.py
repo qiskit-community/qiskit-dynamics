@@ -17,11 +17,16 @@ from ddt import ddt, data, unpack
 import numpy as np
 import sympy as sym
 
+import qiskit
 from qiskit import pulse
 from qiskit.pulse import Schedule
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
-from qiskit.providers.fake_provider import FakeQuito
 from qiskit import QiskitError
+
+if qiskit.__version__.startswith("0."):
+    from qiskit.providers.fake_provider import FakeNairobi as Fake7QPulseV1
+else:
+    from qiskit.providers.fake_provider import Fake7QPulseV1
 
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.signals import DiscreteSignal
@@ -338,7 +343,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         """Test correct parsing of schedule with barrier instructions."""
 
         # this example needs any backend with at least 2 qubits
-        backend = FakeQuito()
+        backend = Fake7QPulseV1()
 
         with pulse.build(backend) as sched_block:
             pulse.play(pulse.Constant(duration=3, amp=0.5), pulse.DriveChannel(0))
