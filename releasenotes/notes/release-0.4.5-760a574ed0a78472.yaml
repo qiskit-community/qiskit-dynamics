@@ -1,0 +1,4 @@
+---
+prelude: >
+    Release 0.4.5 removes version pin ``qiskit<1.0`` from ``setup.py``. Otherwise there are no
+    material changes.
