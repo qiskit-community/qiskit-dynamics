@@ -200,7 +200,7 @@ class RotatingFrame:
         convert_type: bool = True,
     ) -> ArrayLike:
         r"""Take an operator out of the frame basis, i.e. return
-        ``self.frame_basis @ to_array(op) @ self.frame_basis_adjoint``.
+        ``self.frame_basis @ op @ self.frame_basis_adjoint``.
 
         Args:
             op: The operator or array of operators.

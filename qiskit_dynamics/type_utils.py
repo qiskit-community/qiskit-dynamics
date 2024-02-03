@@ -18,35 +18,30 @@ reshaping arrays, and handling qiskit types that wrap arrays.
 """
 
 from typing import Union, List
-from collections.abc import Iterable
 import numpy as np
-from scipy.sparse import csr_matrix, issparse, spmatrix
+from scipy.sparse import csr_matrix, issparse
 from scipy.sparse import kron as sparse_kron
 from scipy.sparse import identity as sparse_identity
 
-from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.dispatch import requires_backend
-
-try:
-    from jax.experimental import sparse as jsparse
-except ImportError:
-    pass
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.alias import ArrayLike, _to_dense
 
 
 class StateTypeConverter:
-    """Contains descriptions of two type specifications for DE solvers/methods,
+    """This class is legacy code that should be simplified or removed.
+    
+    Contains descriptions of two type specifications for DE solvers/methods,
     with functions for converting states and rhs functions between
     representations.
 
     A type specification is a `dict` describing a specific expected type,
     e.g. an array of a given
-    shape. Currently only handled types `Array`s, specified via:
+    shape. Currently only handled types `'array'`, specified via:
         - {'type': 'array', 'shape': tuple}
 
     While this class stores exact type specifications, it can be
     instantiated with a concrete type and a more general type.
-    This facilitates the situation in which a solver requires a 1d `Array`,
+    This facilitates the situation in which a solver requires a 1d array,
     which is specified by the type:
         - {'type': 'array', 'ndim': 1}
     """
@@ -123,7 +118,7 @@ class StateTypeConverter:
             raise Exception("inner_type_spec needs a 'type' key.")
 
         if inner_type == "array":
-            outer_y_as_array = Array(outer_y)
+            outer_y_as_array = unp.asarray(outer_y)
 
             # if a specific shape is given attempt to instantiate from a
             # reshaped outer_y
@@ -178,7 +173,7 @@ class StateTypeConverter:
         if (self.inner_type_spec["type"] != "array") or (self.outer_type_spec["type"] != "array"):
             raise Exception(
                 """RHS generator transformation only
-                               valid for state types Array."""
+                               valid for array state types."""
             )
         if len(self.inner_type_spec["shape"]) != 1:
             raise Exception(
@@ -189,26 +184,26 @@ class StateTypeConverter:
         if self.order == "C":
             # create identity of size the second dimension of the
             # outer type
-            ident = Array(np.eye(self.outer_type_spec["shape"][1]))
+            ident = np.eye(self.outer_type_spec["shape"][1])
 
             def new_generator(t):
-                return Array(np.kron(generator(t), ident))
+                return np.kron(generator(t), ident)
 
             return new_generator
         elif self.order == "F":
             # create identity of size the second dimension of the
             # outer type
-            ident = Array(np.eye(self.outer_type_spec["shape"][1]))
+            ident = np.eye(self.outer_type_spec["shape"][1])
 
             def new_generator(t):
-                return Array(np.kron(ident, generator(t)))
+                return unp.kron(ident, generator(t))
 
             return new_generator
         else:
             raise Exception("""Unsupported order for generator conversion.""")
 
 
-def convert_state(y: Array, type_spec: dict, order="F"):
+def convert_state(y: ArrayLike, type_spec: dict, order="F"):
     """Convert the de state y into the type specified by type_spec.
     Accepted values of type_spec are given at the beginning of the file.
 
@@ -225,7 +220,7 @@ def convert_state(y: Array, type_spec: dict, order="F"):
 
     if type_spec["type"] == "array":
         # default array data type to complex
-        new_y = Array(y, dtype=type_spec.get("dtype", "complex"))
+        new_y = unp.array(y, dtype=type_spec.get("dtype", "complex"))
 
         shape = type_spec.get("shape")
         if shape is not None:
@@ -237,7 +232,7 @@ def convert_state(y: Array, type_spec: dict, order="F"):
 def type_spec_from_instance(y):
     """Determine type spec from an instance."""
     type_spec = {}
-    if isinstance(y, (Array, np.ndarray)):
+    if isinstance(y, ArrayLike):
         type_spec["type"] = "array"
         type_spec["shape"] = y.shape
 
@@ -245,8 +240,8 @@ def type_spec_from_instance(y):
 
 
 def vec_commutator(
-    A: Union[Array, csr_matrix, List[csr_matrix]]
-) -> Union[Array, csr_matrix, List[csr_matrix]]:
+    A: Union[ArrayLike, csr_matrix, List[csr_matrix]]
+) -> Union[ArrayLike, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map X -> -i[A, X]
     in column-stacking convention. In column-stacking convention we have
 
@@ -279,8 +274,8 @@ def vec_commutator(
         out = [-1j * (sparse_kron(sp_iden, mat) - sparse_kron(mat.T, sp_iden)) for mat in A]
         return np.array(out)
 
-    A = to_array(A)
-    iden = Array(np.eye(A.shape[-1]))
+    A = _to_dense(A)
+    iden = np.eye(A.shape[-1])
     axes = list(range(A.ndim))
     axes[-1] = axes[-2]
     axes[-2] += 1
@@ -288,8 +283,8 @@ def vec_commutator(
 
 
 def vec_dissipator(
-    L: Union[Array, csr_matrix, List[csr_matrix]]
-) -> Union[Array, csr_matrix, List[csr_matrix]]:
+    L: Union[ArrayLike, csr_matrix, List[csr_matrix]]
+) -> Union[ArrayLike, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)
     in column stacking convention.
@@ -319,10 +314,10 @@ def vec_dissipator(
         ]
         return np.array(out)
 
-    iden = Array(np.eye(L.shape[-1]))
+    iden = np.eye(L.shape[-1])
     axes = list(range(L.ndim))
 
-    L = to_array(L)
+    L = _to_dense(L)
     axes[-1] = axes[-2]
     axes[-2] += 1
     Lconj = L.conj()
@@ -332,170 +327,3 @@ def vec_dissipator(
     return np.kron(Lconj, iden) @ np.kron(iden, L) - 0.5 * (
         np.kron(iden, LdagL) + np.kron(LdagLtrans, iden)
     )
-
-
-def isinstance_qutip_qobj(obj):
-    """Check if the object is a qutip Qobj.
-
-    Args:
-        obj (any): Any object for testing.
-
-    Returns:
-        Bool: True if obj is qutip Qobj
-    """
-    if (
-        type(obj).__name__ == "Qobj"
-        and hasattr(obj, "_data")
-        and type(obj._data).__name__ == "fast_csr_matrix"
-    ):
-        return True
-    return False
-
-
-#####################################################################################################
-# try to remove this
-# pylint: disable=too-many-return-statements
-def to_array(op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False):
-    """Convert an operator or list of operators to an Array.
-    Args:
-        op: Either an Operator to be converted to an array, a list of Operators
-            to be converted to a 3d array, or an array (which simply gets
-            returned)
-        no_iter (Bool): Boolean determining whether to recursively unroll `Iterables`.
-            If recurring, this should be True to avoid making each element of the
-            input array into a separate Array.
-    Returns:
-        Array: Array version of input
-    """
-    if op is None:
-        return op
-
-    if isinstance(op, np.ndarray) and op.dtype != "O":
-        if Array.default_backend() in [None, "numpy"]:
-            return op
-        else:
-            return Array(op)
-
-    if isinstance(op, Array):
-        return op
-
-    if issparse(op):
-        return Array(op.toarray())
-
-    if type(op).__name__ == "BCOO":
-        return Array(op.todense())
-
-    if isinstance(op, Iterable) and not no_iter:
-        op = Array([to_array(sub_op, no_iter=True) for sub_op in op])
-    elif isinstance(op, Iterable) and no_iter:
-        return op
-    else:
-        op = Array(op)
-
-    if op.backend == "numpy":
-        return op.data
-    else:
-        return op
-
-
-#####################################################################################################
-# try to remove this
-# pylint: disable=too-many-return-statements
-def to_csr(
-    op: Union[Operator, Array, List[Operator], List[Array], spmatrix], no_iter=False
-) -> csr_matrix:
-    """Convert an operator or list of operators to a sparse matrix.
-    Args:
-        op: Either an Operator to be converted to an sparse matrix, a list of Operators
-            to be converted to a 3d sparse matrix, or a sparse matrix (which simply gets
-            returned)
-        no_iter (Bool): Boolean determining whether to recursively unroll `Iterables`.
-            If recurring, this should be True to avoid making each element of the
-            input into a separate csr_matrix.
-    Returns:
-        csr_matrix: Sparse matrix version of input
-    """
-    if op is None:
-        return op
-
-    if isinstance(op, csr_matrix):
-        return op
-    if isinstance_qutip_qobj(op):
-        return op.data
-    if isinstance(op, np.ndarray) and op.dtype == "O":
-        op = list(op)
-    if isinstance(op, (Array, np.ndarray)) and op.ndim < 3:
-        return csr_matrix(op)
-
-    if isinstance(op, Iterable) and not no_iter:
-        return [to_csr(item, no_iter=True) for item in op]
-    else:
-        return csr_matrix(op)
-
-
-#####################################################################################################
-# try to remove this
-@requires_backend("jax")
-def to_BCOO(op: Union[Operator, Array, List[Operator], List[Array], spmatrix, "BCOO"]) -> "BCOO":
-    """Convert input op or list of ops to a jax BCOO sparse array.
-
-    Calls ``to_array`` to handle general conversion to a numpy or jax array, then
-    builds the BCOO sparse array from the result.
-
-    Args:
-        op: Operator or list of operators to convert.
-
-    Returns:
-        BCOO: BCOO sparse version of the operator.
-    """
-    if op is None:
-        return op
-
-    if type(op).__name__ == "BCOO":
-        return op
-
-    return jsparse.BCOO.fromdense(to_array(op).data)
-
-
-#####################################################################################################
-# try to remove this
-def to_numeric_matrix_type(
-    op: Union[Operator, Array, spmatrix, List[Operator], List[Array], List[spmatrix]]
-):
-    """Given an operator, array, sparse matrix, or a list of operators, arrays, or sparse matrices,
-    attempts to leave them in their original form, only converting the operator to an array,
-    and converting lists as necessary. Summarized below:
-    - operator is converted to array
-    - spmatrix and Array are unchanged
-    - lists of Arrays and sparse matrices are passed to their respective to_ functions
-    - anything else is passed to to_array
-    Args:
-        op: An operator, array, sparse matrix, or list of operators, arrays or sparse matrices.
-    Returns:
-        Array: Array version of input
-        csr_matrix: Sparse matrix version of input
-    """
-
-    if op is None:
-        return op
-
-    elif isinstance_qutip_qobj(op):
-        return to_csr(op.data)
-
-    elif isinstance(op, Array):
-        return op
-    elif isinstance(op, spmatrix):
-        return op
-    elif type(op).__name__ == "BCOO":
-        return op
-    elif isinstance(op, Operator):
-        return to_array(op)
-
-    elif isinstance(op, Iterable) and isinstance(op[0], spmatrix):
-        return to_csr(op)
-
-    elif isinstance(op, Iterable) and isinstance_qutip_qobj(op[0]):
-        return to_csr(op)
-
-    else:
-        return to_array(op)
