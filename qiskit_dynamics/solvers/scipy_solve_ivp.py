@@ -59,15 +59,11 @@ def scipy_solve_ivp(
     if kwargs.get("dense_output", False) is True:
         raise QiskitError("dense_output not supported for solve_ivp.")
 
-    # solve_ivp requires 1d arrays internally
-    internal_state_spec = {"type": "array", "ndim": 1}
-    type_converter = StateTypeConverter.from_outer_instance_inner_type_spec(y0, internal_state_spec)
-
-    # modify the rhs to work with 1d arrays or real solvers
-    rhs = type_converter.rhs_outer_to_inner(rhs)
-
-    # convert y0 to the flattened version
-    y0 = type_converter.outer_to_inner(y0)
+    y_shape = y0.shape
+    
+    # flatten y0 and rhs
+    y0 = y0.flatten(order="F")
+    rhs = flat_rhs(rhs, y_shape)
 
     # Check if solver is real only
     # TODO: Also check if model or y0 are complex
@@ -84,9 +80,18 @@ def scipy_solve_ivp(
     # convert to the standardized results format
     # solve_ivp returns the states as a 2d array with columns being the states
     results.y = results.y.transpose()
-    results.y = np.array([type_converter.inner_to_outer(y) for y in results.y])
+    results.y = np.array([y.reshape(y_shape, order="F") for y in results.y])
 
     return OdeResult(**dict(results))
+
+
+def flat_rhs(rhs, shape):
+    """Convert an RHS with arbitrary state shape into one that is 1d."""
+
+    def _flat_rhs(t, y):
+        return rhs(t, y.reshape(shape, order="F")).flatten(order="F")
+    
+    return _flat_rhs
 
 
 def real_rhs(rhs):
