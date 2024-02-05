@@ -26,10 +26,10 @@ from qiskit_experiments.calibration_management.calibrations import Calibrations
 from qiskit_experiments.library.calibration.rough_frequency import RoughFrequencyCal
 
 from qiskit_dynamics import Solver, DynamicsBackend
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import JAXTestBase
 
 
-class TestExperimentsIntegration(QiskitDynamicsTestCase, TestJaxBase):
+class TestExperimentsIntegration(JAXTestBase):
     """Test class for verifying correct integration with qiskit-experiments. Set to use JAX for
     speed.
     """
@@ -45,6 +45,7 @@ class TestExperimentsIntegration(QiskitDynamicsTestCase, TestJaxBase):
             hamiltonian_channels=["d0"],
             channel_carrier_freqs={"d0": 5.0},
             dt=1.0 / 4.5,
+            array_library="jax",
         )
 
         # build target gate definitions
