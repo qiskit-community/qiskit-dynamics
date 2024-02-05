@@ -213,10 +213,10 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
             operators=ham_ops, static_operator=Operator(static_operator_numpy_array)
         )
         sparse_collection_array_list = ScipySparseOperatorCollection(
-            operators=ham_ops_alt, static_operator=to_array(static_operator_numpy_array)
+            operators=ham_ops_alt, static_operator=static_operator_numpy_array
         )
         sparse_collection_pure_array = ScipySparseOperatorCollection(
-            operators=to_array(ham_ops), static_operator=to_array(static_operator_numpy_array)
+            operators=ham_ops, static_operator=static_operator_numpy_array
         )
         a = sparse_collection_operator_list(sigVals)
         b = sparse_collection_array_list(sigVals)

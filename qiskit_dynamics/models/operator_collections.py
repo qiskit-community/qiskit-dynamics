@@ -1032,7 +1032,7 @@ class VectorizedLindbladCollection:
         return numpy_alias(like=self._array_library).asarray(obj)
 
     def _convert_to_array_type_list(self, obj: Any) -> ArrayLike:
-        return _to_csr_object_array(obj, self._decimals)
+        return numpy_alias(like=self._array_library).asarray(obj)
 
     def _construct_operator_collection(self, *args, **kwargs):
         """The class used for evaluating the vectorized model or RHS."""
