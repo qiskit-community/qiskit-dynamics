@@ -1083,7 +1083,7 @@ class ScipySparseVectorizedLindbladCollection(VectorizedLindbladCollection):
         if obj is None:
             return None
         
-        numpy_alias(like="scipy_sparse").asarray(np.round(obj, self._decimals))
+        return numpy_alias(like="scipy_sparse").asarray(np.round(obj, self._decimals))
     
     def _convert_to_array_type_list(self, obj: any) -> np.ndarray[csr_matrix]:
         return _to_csr_object_array(obj, self._decimals)
