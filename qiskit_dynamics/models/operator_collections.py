@@ -15,7 +15,7 @@
 
 from typing import Any, Union, List, Optional
 import numpy as np
-from scipy.sparse import csr_matrix, issparse
+from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
@@ -1082,9 +1082,9 @@ class ScipySparseVectorizedLindbladCollection(VectorizedLindbladCollection):
     def _convert_to_array_type(self, obj: any) -> csr_matrix:
         if obj is None:
             return None
-        
+
         return numpy_alias(like="scipy_sparse").asarray(np.round(obj, self._decimals))
-    
+
     def _convert_to_array_type_list(self, obj: any) -> np.ndarray[csr_matrix]:
         return _to_csr_object_array(obj, self._decimals)
 

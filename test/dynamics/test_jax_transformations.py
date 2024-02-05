@@ -51,11 +51,7 @@ class TestJaxTransformations(TestJaxBase):
         def param_sim(amp, drive_freq):
             signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
-            ham = HamiltonianModel(
-                operators=self.operators,
-                signals=signals,
-                validate=False
-            )
+            ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
             results = solve_lmde(
                 ham,
@@ -75,11 +71,7 @@ class TestJaxTransformations(TestJaxBase):
         def t_eval_param_sim(amp, drive_freq):
             signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
-            ham = HamiltonianModel(
-                operators=self.operators,
-                signals=signals,
-                validate=False
-            )
+            ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
             results = solve_lmde(
                 ham,
@@ -107,11 +99,7 @@ class TestJaxTransformations(TestJaxBase):
         def param_sim(amp, drive_freq):
             signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
-            ham = HamiltonianModel(
-                operators=self.operators,
-                signals=signals,
-                validate=False
-            )
+            ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
             results = solve_lmde(
                 ham,

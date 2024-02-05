@@ -59,7 +59,7 @@ def scipy_solve_ivp(
         raise QiskitError("dense_output not supported for solve_ivp.")
 
     y_shape = y0.shape
-    
+
     # flatten y0 and rhs
     y0 = y0.flatten()
     rhs = flat_rhs(rhs, y_shape)
@@ -89,7 +89,7 @@ def flat_rhs(rhs, shape):
 
     def _flat_rhs(t, y):
         return rhs(t, y.reshape(shape)).flatten()
-    
+
     return _flat_rhs
 
 
