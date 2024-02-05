@@ -322,7 +322,7 @@ class DiffraxTestBase(unittest.TestCase):
             raise unittest.SkipTest("Skipping diffrax tests.") from err
 
 
-class QutipTestBase(unittest.TestCase):
+class QutipTestBase(QiskitDynamicsTestCase):
     """Base class for tests that utilize Qutip."""
 
     @classmethod
