@@ -57,18 +57,21 @@ from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 from qiskit_dynamics.array import Array, wrap
 
 
+def _is_sparse_object_array(A):
+    return isinstance(A, np.ndarray) and A.ndim > 0 and issparse(A[0])
+
 class QiskitDynamicsTestCase(unittest.TestCase):
     """Helper class that contains common functionality."""
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
-        if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(A)):
-            if isinstance(A, list):
+        if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(A)) or _is_sparse_object_array(A):
+            if isinstance(A, list) or _is_sparse_object_array(A):
                 A = [x.todense() for x in A]
             else:
                 A = A.todense()
-        if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(B)):
-            if isinstance(B, list):
+        if any("sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(B)) or _is_sparse_object_array(B):
+            if isinstance(B, list) or _is_sparse_object_array(B):
                 B = [x.todense() for x in B]
             else:
                 B = B.todense()

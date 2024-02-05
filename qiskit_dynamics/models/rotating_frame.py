@@ -217,7 +217,7 @@ class RotatingFrame:
         if self.frame_basis is None or op is None:
             return op
 
-        if isinstance(op, list):
+        if isinstance(op, list) or (isinstance(op, np.ndarray) and issparse(op[0])):
             return [self.operator_out_of_frame_basis(x, convert_type=False) for x in op]
 
         return unp.rmatmul(unp.matmul(op, self.frame_basis_adjoint), self.frame_basis)
