@@ -75,7 +75,6 @@ class QiskitDynamicsTestCase(unittest.TestCase):
                 B = [x.todense() for x in B]
             else:
                 B = B.todense()
-
         A = np.array(A)
         B = np.array(B)
 

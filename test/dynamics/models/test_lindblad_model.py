@@ -369,7 +369,7 @@ class TestLindbladModel:
         lindblad_model.in_frame_basis = True
         self.assertAllClose(
             into_frame_basis(rand_diss),
-            np.array(lindblad_model.dissipator_operators),
+            lindblad_model.dissipator_operators,
         )
         self.assertAllClose(
             into_frame_basis(rand_ham_ops),
