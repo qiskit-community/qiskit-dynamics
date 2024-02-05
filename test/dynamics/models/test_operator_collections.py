@@ -30,7 +30,6 @@ from qiskit_dynamics.models.operator_collections import (
     VectorizedLindbladCollection,
     ScipySparseVectorizedLindbladCollection,
 )
-from qiskit_dynamics.array import Array
 from ..common import test_array_backends, QiskitDynamicsTestCase
 
 
@@ -170,12 +169,12 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
 
         # 2d case
         value = collection(np.array([1.0, 2.0]), np.ones((2, 2)))
-        self.assertTrue(isinstance(value, (np.ndarray, Array)))
+        self.assertTrue(isinstance(value, np.ndarray))
         self.assertAllClose(value, 3.0 * np.ones((2, 2)))
 
         # 1d case
         value = collection(np.array([1.0, 2.0]), np.array([1.0, 1.0]))
-        self.assertTrue(isinstance(value, (np.ndarray, Array)))
+        self.assertTrue(isinstance(value, np.ndarray))
         self.assertAllClose(value, np.array([3.0, 3.0]))
 
     def test_consistency_with_dense_pseudorandom(self):
@@ -206,7 +205,7 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
         for _ in range(4):
             op = r(3, 3)
             ham_ops.append(Operator(op))
-            ham_ops_alt.append(Array(op))
+            ham_ops_alt.append(op)
         sigVals = r(4)
         static_operator_numpy_array = r(3, 3)
         sparse_collection_operator_list = ScipySparseOperatorCollection(
