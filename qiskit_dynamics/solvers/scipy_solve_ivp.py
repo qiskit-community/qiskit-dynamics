@@ -23,7 +23,6 @@ from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
 from qiskit_dynamics.arraylias import ArrayLike
-from ..type_utils import StateTypeConverter
 
 # Supported scipy ODE methods
 COMPLEX_METHODS = ["RK45", "RK23", "BDF", "DOP853"]
@@ -62,7 +61,7 @@ def scipy_solve_ivp(
     y_shape = y0.shape
     
     # flatten y0 and rhs
-    y0 = y0.flatten(order="F")
+    y0 = y0.flatten()
     rhs = flat_rhs(rhs, y_shape)
 
     # Check if solver is real only
@@ -80,7 +79,7 @@ def scipy_solve_ivp(
     # convert to the standardized results format
     # solve_ivp returns the states as a 2d array with columns being the states
     results.y = results.y.transpose()
-    results.y = np.array([y.reshape(y_shape, order="F") for y in results.y])
+    results.y = np.array([y.reshape(y_shape) for y in results.y])
 
     return OdeResult(**dict(results))
 
@@ -89,7 +88,7 @@ def flat_rhs(rhs, shape):
     """Convert an RHS with arbitrary state shape into one that is 1d."""
 
     def _flat_rhs(t, y):
-        return rhs(t, y.reshape(shape, order="F")).flatten(order="F")
+        return rhs(t, y.reshape(shape)).flatten()
     
     return _flat_rhs
 
