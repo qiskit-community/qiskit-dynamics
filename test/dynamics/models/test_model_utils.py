@@ -16,13 +16,12 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import (
+from qiskit_dynamics.models.model_utils import (
     vec_dissipator,
     vec_commutator,
 )
 
-from .common import QiskitDynamicsTestCase
+from ..common import QiskitDynamicsTestCase
 
 
 class Testvec_commutator_dissipator(QiskitDynamicsTestCase):

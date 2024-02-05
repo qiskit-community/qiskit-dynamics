@@ -13,9 +13,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Utilities for type handling/conversion, primarily dealing with
-reshaping arrays, and handling qiskit types that wrap arrays.
-"""
+"""Utilities model module."""
 
 from typing import Union, List
 import numpy as np
@@ -23,8 +21,11 @@ from scipy.sparse import csr_matrix, issparse
 from scipy.sparse import kron as sparse_kron
 from scipy.sparse import identity as sparse_identity
 
-from qiskit_dynamics import DYNAMICS_NUMPY as unp
-from qiskit_dynamics.arraylias.alias import ArrayLike, _to_dense
+from qiskit_dynamics.arraylias.alias import ArrayLike, _to_dense, _numpy_multi_dispatch
+
+
+def _kron(A, B):
+    return _numpy_multi_dispatch(A, B, path="kron")
 
 
 def vec_commutator(
@@ -67,7 +68,7 @@ def vec_commutator(
     axes = list(range(A.ndim))
     axes[-1] = axes[-2]
     axes[-2] += 1
-    return -1j * (np.kron(iden, A) - np.kron(A.transpose(axes), iden))
+    return -1j * (_kron(iden, A) - _kron(A.transpose(axes), iden))
 
 
 def vec_dissipator(
@@ -112,6 +113,6 @@ def vec_dissipator(
     LdagL = Lconj.transpose(axes) @ L
     LdagLtrans = LdagL.transpose(axes)
 
-    return np.kron(Lconj, iden) @ np.kron(iden, L) - 0.5 * (
-        np.kron(iden, LdagL) + np.kron(LdagLtrans, iden)
+    return _kron(Lconj, iden) @ _kron(iden, L) - 0.5 * (
+        _kron(iden, LdagL) + _kron(LdagLtrans, iden)
     )

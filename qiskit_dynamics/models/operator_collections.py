@@ -21,7 +21,7 @@ from qiskit import QiskitError
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
 from qiskit_dynamics.arraylias.alias import ArrayLike, _numpy_multi_dispatch
-from qiskit_dynamics.type_utils import vec_commutator, vec_dissipator
+from .model_utils import vec_commutator, vec_dissipator
 
 
 def _linear_combo(coeffs, mats):
