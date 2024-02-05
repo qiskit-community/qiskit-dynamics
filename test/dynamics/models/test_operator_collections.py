@@ -31,7 +31,6 @@ from qiskit_dynamics.models.operator_collections import (
     ScipySparseVectorizedLindbladCollection,
 )
 from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_array
 from ..common import test_array_backends, QiskitDynamicsTestCase
 
 

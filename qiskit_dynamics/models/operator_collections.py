@@ -21,7 +21,7 @@ from qiskit import QiskitError
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
 from qiskit_dynamics.arraylias.alias import ArrayLike, _numpy_multi_dispatch
-from qiskit_dynamics.type_utils import to_csr, vec_commutator, vec_dissipator
+from qiskit_dynamics.type_utils import vec_commutator, vec_dissipator
 
 
 def _linear_combo(coeffs, mats):
@@ -879,13 +879,13 @@ class VectorizedLindbladCollection:
             self._static_hamiltonian = None
 
         if hamiltonian_operators is not None:
-            self._hamiltonian_operators = self._convert_to_array_type(hamiltonian_operators)
+            self._hamiltonian_operators = self._convert_to_array_type_list(hamiltonian_operators)
             self._vec_hamiltonian_operators = vec_commutator(self._hamiltonian_operators)
         else:
             self._hamiltonian_operators = None
 
         if static_dissipators is not None:
-            self._static_dissipators = self._convert_to_array_type(static_dissipators)
+            self._static_dissipators = self._convert_to_array_type_list(static_dissipators)
             self._vec_static_dissipators_sum = unp.sum(
                 vec_dissipator(self._static_dissipators), axis=0
             )
@@ -893,7 +893,7 @@ class VectorizedLindbladCollection:
             self._static_dissipators = None
 
         if dissipator_operators is not None:
-            self._dissipator_operators = self._convert_to_array_type(dissipator_operators)
+            self._dissipator_operators = self._convert_to_array_type_list(dissipator_operators)
             self._vec_dissipator_operators = vec_dissipator(self._dissipator_operators)
         else:
             self._dissipator_operators = None
@@ -1031,6 +1031,9 @@ class VectorizedLindbladCollection:
     def _convert_to_array_type(self, obj: Any) -> ArrayLike:
         return numpy_alias(like=self._array_library).asarray(obj)
 
+    def _convert_to_array_type_list(self, obj: Any) -> ArrayLike:
+        return _to_csr_object_array(obj, self._decimals)
+
     def _construct_operator_collection(self, *args, **kwargs):
         """The class used for evaluating the vectorized model or RHS."""
         return OperatorCollection(*args, **kwargs, array_library=self._array_library)
@@ -1076,15 +1079,14 @@ class ScipySparseVectorizedLindbladCollection(VectorizedLindbladCollection):
             dissipator_operators=dissipator_operators,
         )
 
-    def _convert_to_array_type(self, obj: any) -> Union[csr_matrix, List[csr_matrix]]:
+    def _convert_to_array_type(self, obj: any) -> csr_matrix:
         if obj is None:
             return None
-
-        obj = to_csr(obj)
-        if issparse(obj):
-            return np.round(obj, decimals=self._decimals)
-        else:
-            return [np.round(sub_obj, decimals=self._decimals) for sub_obj in obj]
+        
+        numpy_alias(like="scipy_sparse").asarray(np.round(obj, self._decimals))
+    
+    def _convert_to_array_type_list(self, obj: any) -> np.ndarray[csr_matrix]:
+        return _to_csr_object_array(obj, self._decimals)
 
     def _construct_operator_collection(self, *args, **kwargs):
         """The class used for evaluating the vectorized model or RHS."""
