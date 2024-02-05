@@ -736,7 +736,7 @@ def initial_state_converter(obj: Any) -> Tuple[ArrayLike, Type, Callable]:
             np.array(x), input_dims=obj.input_dims(), output_dims=obj.output_dims()
         )
     elif isinstance(obj, (BaseOperator, Gate, QuantumCircuit)):
-        y0, y0_cls = Operator(obj.data), Operator
+        y0, y0_cls = obj.data, Operator
         wrapper = lambda x: Operator(
             np.array(x), input_dims=obj.input_dims(), output_dims=obj.output_dims()
         )

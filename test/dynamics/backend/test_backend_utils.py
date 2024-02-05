@@ -31,7 +31,7 @@ from qiskit_dynamics.backend.backend_utils import (
     _get_subsystem_probabilities,
     _get_iq_data,
 )
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 
 class TestDressedStateDecomposition(QiskitDynamicsTestCase):
@@ -78,41 +78,41 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
         self.X = np.array([[0.0, 1.0], [1.0, 0.0]])
 
     @unpack
-    @data(("dense",), ("sparse",))
-    def test_HamiltonianModel(self, evaluation_mode):
+    @data(("numpy",), ("scipy_sparse",))
+    def test_HamiltonianModel(self, array_library):
         """Test correct functioning on HamiltonianModel."""
         model = HamiltonianModel(
             static_operator=self.Z + self.X,
             operators=[self.X],
             rotating_frame=self.X,
-            evaluation_mode=evaluation_mode,
+            array_library=array_library,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, self.Z + self.X)
 
     @unpack
-    @data(("dense",), ("sparse",))
-    def test_HamiltonianModel_diagonal(self, evaluation_mode):
+    @data(("numpy",), ("scipy_sparse",))
+    def test_HamiltonianModel_diagonal(self, array_library):
         """Test correct functioning on HamiltonianModel with explicitly diagonal frame."""
         model = HamiltonianModel(
             static_operator=self.Z + self.X,
             operators=[self.X],
             rotating_frame=np.diag(self.Z),
-            evaluation_mode=evaluation_mode,
+            array_library=array_library,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, self.Z + self.X)
 
     @unpack
-    @data(("dense",), ("sparse",))
-    def test_HamiltonianModel_lab_frame(self, evaluation_mode):
+    @data(("numpy",), ("scipy_sparse",))
+    def test_HamiltonianModel_lab_frame(self, array_library):
         """Test correct functioning on HamiltonianModel if no rotating frame."""
         model = HamiltonianModel(
             static_operator=self.Z + self.X,
             operators=[self.X],
-            evaluation_mode=evaluation_mode,
+            array_library=array_library,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
@@ -127,30 +127,32 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
         self.assertAllClose(output, np.zeros((2, 2)))
 
     @unpack
-    @data(("dense",), ("sparse",), ("dense_vectorized",), ("sparse_vectorized",))
-    def test_LindbladModel(self, evaluation_mode):
+    @data(("numpy", False), ("scipy_sparse", False), ("numpy", True), ("scipy_sparse", True))
+    def test_LindbladModel(self, array_library, vectorized):
         """Test correct functioning on LindbladModel."""
 
         model = LindbladModel(
             static_hamiltonian=self.Z + self.X,
             hamiltonian_operators=[self.X],
             rotating_frame=self.X,
-            evaluation_mode=evaluation_mode,
+            array_library=array_library,
+            vectorized=vectorized,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
         self.assertAllClose(output, self.Z + self.X)
 
     @unpack
-    @data(("dense",), ("sparse",), ("dense_vectorized",), ("sparse_vectorized",))
-    def test_LindbladModel_diagonal(self, evaluation_mode):
+    @data(("numpy", False), ("scipy_sparse", False), ("numpy", True), ("scipy_sparse", True))
+    def test_LindbladModel_diagonal(self, array_library, vectorized):
         """Test correct functioning on LindbladModel with explicitly diagonal frame."""
 
         model = LindbladModel(
             static_hamiltonian=self.Z + self.X,
             hamiltonian_operators=[self.X],
             rotating_frame=np.diag(self.Z),
-            evaluation_mode=evaluation_mode,
+            array_library=array_library,
+            vectorized=vectorized,
         )
 
         output = _get_lab_frame_static_hamiltonian(model)
@@ -167,7 +169,7 @@ class TestLabFrameStaticHamiltonian(QiskitDynamicsTestCase):
         self.assertAllClose(output, np.zeros((2, 2)))
 
 
-class TestLabFrameStaticHamiltonianJAX(TestLabFrameStaticHamiltonian, TestJaxBase):
+class TestLabFrameStaticHamiltonianJAX(TestLabFrameStaticHamiltonian, JAXTestBase):
     """Tests _get_lab_frame_static_hamiltonian when in JAX mode."""
 
 

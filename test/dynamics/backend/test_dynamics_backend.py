@@ -32,7 +32,6 @@ from qiskit.providers.models.backendconfiguration import UchannelLO
 from qiskit.providers.backend import QubitProperties
 
 from qiskit_dynamics import Solver, DynamicsBackend
-from qiskit_dynamics.array import Array
 from qiskit_dynamics.backend import default_experiment_result_function
 from qiskit_dynamics.backend.dynamics_backend import (
     _get_acquire_instruction_timings,
@@ -808,7 +807,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
             },
         )
 
-        self.assertTrue(isinstance(solver.model.static_operator, Array))
+        self.assertTrue(isinstance(solver.model.static_operator, np.ndarray))
 
         N0 = np.diag(np.kron([1.0, 1.0, 1.0], [0.0, 1.0, 2.0]))
         N1 = np.diag(np.kron([0.0, 1.0, 2.0], [1.0, 1.0, 1.0]))
@@ -861,7 +860,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
         """Test construction from_backend in sparse mode."""
 
         backend = DynamicsBackend.from_backend(
-            self.valid_backend, subsystem_list=[0, 1], evaluation_mode="sparse"
+            self.valid_backend, subsystem_list=[0, 1], array_library="scipy_sparse"
         )
 
         self.assertTrue(backend.target.dt == 2e-9 / 9)
@@ -931,7 +930,7 @@ class TestDynamicsBackend_from_backend(QiskitDynamicsTestCase):
             },
         )
 
-        self.assertTrue(isinstance(solver.model.static_operator, Array))
+        self.assertTrue(isinstance(solver.model.static_operator, np.ndarray))
 
         N0 = np.diag(np.kron([1.0, 1.0, 1.0], [0.0, 1.0, 2.0]))
         N4 = np.diag(np.kron([0.0, 1.0, 2.0], [1.0, 1.0, 1.0]))
