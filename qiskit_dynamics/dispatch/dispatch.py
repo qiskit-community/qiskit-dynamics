@@ -14,6 +14,7 @@
 import functools
 from types import FunctionType
 from typing import Optional, Union, Tuple, Callable
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 from .exceptions import DispatchError
 
 
@@ -306,9 +307,10 @@ def asarray(
 def requires_backend(backend: str) -> Callable:
     """Return a function and class decorator for checking a backend is available.
 
-    If the the required backend is not in the list of :func:`available_backends`
-    any decorated function or method will raise an exception when called, and
-    any decorated class will raise an exeption when its ``__init__`` is called.
+    If the the required backend is not in the list of the registered library
+    for global alias instances, any decorated function or method will raise
+    an exception when called, and any decorated class will raise an exeption
+    when its ``__init__`` is called.
 
     Args:
         backend: the backend name required by class or function.
@@ -322,7 +324,7 @@ def requires_backend(backend: str) -> Callable:
         """Specify that the decorated object requires a specifc Array backend."""
 
         def check_backend(descriptor):
-            if backend not in Dispatch.REGISTERED_BACKENDS:
+            if not DYNAMICS_NUMPY_ALIAS.infer_libs(backend):
                 raise DispatchError(
                     f"Array backend '{backend}' required by {descriptor} "
                     "is not installed. Please install the optional "
