@@ -324,7 +324,7 @@ def requires_backend(backend: str) -> Callable:
         """Specify that the decorated object requires a specifc Array backend."""
 
         def check_backend(descriptor):
-            if not DYNAMICS_NUMPY_ALIAS.infer_libs(backend):
+            if backend not in DYNAMICS_NUMPY_ALIAS.registered_libs():
                 raise DispatchError(
                     f"Array backend '{backend}' required by {descriptor} "
                     "is not installed. Please install the optional "
