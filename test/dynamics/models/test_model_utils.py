@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 # pylint: disable=invalid-name
 
-"""Tests for type_utils.py."""
+"""Tests for model_utils.py."""
 
 import numpy as np
 from scipy.sparse import csr_matrix
