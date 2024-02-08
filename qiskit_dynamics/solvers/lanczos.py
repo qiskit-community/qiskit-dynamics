@@ -19,7 +19,7 @@ from typing import Union, Optional
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from qiskit_dynamics.arraylias import ArrayLike, requires_array_library
+from qiskit_dynamics.arraylias import requires_array_library
 
 try:
     import jax.numpy as jnp
