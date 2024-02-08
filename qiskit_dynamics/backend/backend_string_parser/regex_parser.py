@@ -90,7 +90,7 @@ class _HamiltonianParser:
         # convert to reverse Polish notation
         for ham in self.h_str:
             if len(re.findall(r"\|\|", ham)) > 1:
-                raise Exception(f"Multiple time-dependent terms in {ham}")
+                raise ValueError(f"Multiple time-dependent terms in {ham}")
             p_td = re.search(r"(?P<opr>[\S]+)\|\|(?P<ch>[\S]+)", ham)
 
             # find time-dependent term
@@ -135,7 +135,7 @@ class _HamiltonianParser:
             p_sums = list(sum_str.finditer(ham))
             p_brks = list(brk_str.finditer(ham))
             if len(p_sums) != len(p_brks):
-                raise Exception(f"Missing correct number of brackets in {ham}")
+                raise ValueError(f"Missing correct number of brackets in {ham}")
 
             # find correct sum-bracket correspondence
             if any(p_sums) == 0:
@@ -223,7 +223,7 @@ class _HamiltonianParser:
                     prev = _key
                     break
             else:
-                raise Exception(f"Invalid input string {op_str} is found")
+                raise ValueError(f"Invalid input string {op_str} is found")
 
         # split coefficient
         coef = ""
@@ -235,7 +235,7 @@ class _HamiltonianParser:
                         token_list = token_list[ii + 1 :]
                         break
             else:
-                raise Exception(f"Invalid order of operators and coefficients in {op_str}")
+                raise ValueError(f"Invalid order of operators and coefficients in {op_str}")
 
         return coef, token_list
 
@@ -259,12 +259,12 @@ class _HamiltonianParser:
                 while stack[-1].type not in ["BrkL", "Func"]:
                     queue.append(stack.pop(-1))
                     if not any(stack):
-                        raise Exception("Missing correct number of brackets")
+                        raise ValueError("Missing correct number of brackets")
                 pop = stack.pop(-1)
                 if pop.type == "Func":
                     queue.append(pop)
             else:
-                raise Exception(f"Invalid token {token.name} is found")
+                raise ValueError(f"Invalid token {token.name} is found")
 
         while any(stack):
             queue.append(stack.pop(-1))
@@ -297,12 +297,12 @@ class _HamiltonianParser:
                 if token.name == "dag":
                     stack.append(np.conjugate(np.transpose(stack.pop(-1))))
                 else:
-                    raise Exception(f"Invalid token {token.name} of type Func, Ext.")
+                    raise ValueError(f"Invalid token {token.name} of type Func, Ext.")
             else:
-                raise Exception(f"Invalid token {token.name} is found.")
+                raise ValueError(f"Invalid token {token.name} is found.")
 
         if len(stack) > 1:
-            raise Exception("Invalid mathematical operation in string.")
+            raise ValueError("Invalid mathematical operation in string.")
 
         return stack[0]
 
@@ -363,7 +363,7 @@ def parse_binop(op_str, operands={}, cast_str=True):
                     retv = 0
             break
     else:
-        raise Exception(f"Invalid string {op_str}")
+        raise ValueError(f"Invalid string {op_str}")
 
     if cast_str:
         return str(retv)

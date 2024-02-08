@@ -243,8 +243,12 @@ class TestRotatingWaveApproximation:
         """Compare evaluation of static dissipators with non-static."""
 
         np.random.seed(2314)
-        random_mats = lambda *args: np.random.uniform(-1, 1, args)
-        random_complex_mats = lambda *args: random_mats(*args) + 1j * random_mats(*args)
+
+        def random_mats(*args):
+            return np.random.uniform(-1, 1, args)
+
+        def random_complex_mats(*args):
+            return random_mats(*args) + 1j * random_mats(*args)
 
         random_diss = random_complex_mats(3, 2, 2)
 
@@ -327,8 +331,13 @@ class TestRotatingWaveApproximation:
     def test_rwa_operators(self):
         """Tests get_rwa_operators using pseudorandom numbers."""
         np.random.seed(123098123)
-        r = lambda *args: np.random.uniform(-1, 1, args)
-        rj = lambda *args: r(*args) + 1j * r(*args)
+
+        def r(*args):
+            return np.random.uniform(-1, 1, args)
+
+        def rj(*args):
+            return r(*args) + 1j * r(*args)
+
         ops = rj(4, 3, 3)
         carrier_freqs = r(4)
         cutoff_freq = 0.3

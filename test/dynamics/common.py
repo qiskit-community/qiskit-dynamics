@@ -152,9 +152,7 @@ class JAXTestBase(QiskitDynamicsTestCase):
         Returns:
             JIT-compiled gradient of function.
         """
-        wf = lambda f: jit(grad(f))
-        f = lambda *args: np.sum(func_to_test(*args)).real
-        return wf(f)
+        return jit(grad(lambda *args: np.sum(func_to_test(*args)).real))
 
 
 class ScipySparseTestBase(QiskitDynamicsTestCase):
@@ -210,9 +208,7 @@ class JAXSparseTestBase(QiskitDynamicsTestCase):
         Returns:
             JIT-compiled gradient of function.
         """
-        wf = lambda f: jit(grad(f))
-        f = lambda *args: np.sum(func_to_test(*args)).real
-        return wf(f)
+        return jit(grad(lambda *args: np.sum(func_to_test(*args)).real))
 
 
 class ArrayNumpyTestBase(QiskitDynamicsTestCase):
@@ -387,6 +383,6 @@ class TestJaxBase(unittest.TestCase):
         Returns:
             JIT-compiled gradient of function.
         """
-        wf = wrap(lambda f: jit(grad(f)), decorator=True)
-        f = lambda *args: np.sum(func_to_test(*args)).real
-        return wf(f)
+        return wrap(lambda f: jit(grad(f)), decorator=True)(
+            lambda *args: np.sum(func_to_test(*args)).real
+        )

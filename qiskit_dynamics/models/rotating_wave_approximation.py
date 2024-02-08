@@ -238,8 +238,7 @@ def rotating_wave_approximation(
         )
 
         if return_signal_map:
-            signal_translator = lambda a: (get_rwa_signals(a[0]), get_rwa_signals(a[1]))
-            return rwa_model, signal_translator
+            return rwa_model, lambda a: (get_rwa_signals(a[0]), get_rwa_signals(a[1]))
         return rwa_model
 
 

@@ -590,7 +590,10 @@ def fixed_step_lmde_solver_parallel_template_jax(
 
     # multiply propagators together in parallel
     ys = None
-    reverse_mul = lambda A, B: jnp.matmul(B, A)
+
+    def reverse_mul(A, B):
+        return jnp.matmul(B, A)
+
     if y0.ndim == 2 and y0.shape[0] == y0.shape[1]:
         # if square, append y0 as the first step propagator, scan, and extract
         intermediate_props = associative_scan(

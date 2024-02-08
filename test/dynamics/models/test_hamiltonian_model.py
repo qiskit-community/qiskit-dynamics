@@ -218,11 +218,11 @@ class TestHamiltonianModel:
         )
         randoperators = randoperators + randoperators.conj().transpose([0, 2, 1])
 
-        rand_coeffs = rng.uniform(low=-b, high=b, size=(num_terms)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_terms)
+        rand_coeffs = rng.uniform(low=-b, high=b, size=num_terms) + 1j * rng.uniform(
+            low=-b, high=b, size=num_terms
         )
-        rand_carriers = rng.uniform(low=-b, high=b, size=(num_terms))
-        rand_phases = rng.uniform(low=-b, high=b, size=(num_terms))
+        rand_carriers = rng.uniform(low=-b, high=b, size=num_terms)
+        rand_phases = rng.uniform(low=-b, high=b, size=num_terms)
 
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
@@ -243,11 +243,11 @@ class TestHamiltonianModel:
         )
         randoperators = randoperators + randoperators.conj().transpose([0, 2, 1])
 
-        rand_coeffs = rng.uniform(low=-b, high=b, size=(num_terms)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_terms)
+        rand_coeffs = rng.uniform(low=-b, high=b, size=num_terms) + 1j * rng.uniform(
+            low=-b, high=b, size=num_terms
         )
-        rand_carriers = rng.uniform(low=-b, high=b, size=(num_terms))
-        rand_phases = rng.uniform(low=-b, high=b, size=(num_terms))
+        rand_carriers = rng.uniform(low=-b, high=b, size=num_terms)
+        rand_phases = rng.uniform(low=-b, high=b, size=num_terms)
 
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 

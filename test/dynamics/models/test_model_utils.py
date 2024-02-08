@@ -32,7 +32,9 @@ class Testvec_commutator_dissipator(QiskitDynamicsTestCase):
         identical results, whether the array passed is a (k,n,n)
         Array or a (k,) Array of (n,n) sparse matrices."""
         np.random.seed(21301239)
-        r = lambda *args: np.random.uniform(-1, 1, args)
+
+        def r(*args):
+            return np.random.uniform(-1, 1, args)
 
         spm = csr_matrix(r(8, 8))
         self.assertAllClose(vec_commutator(spm).toarray(), vec_commutator(spm.toarray()))

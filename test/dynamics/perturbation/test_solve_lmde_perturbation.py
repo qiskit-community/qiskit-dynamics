@@ -118,14 +118,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 
@@ -188,14 +184,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 
@@ -256,14 +248,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 
@@ -455,14 +443,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 
@@ -533,14 +517,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 
@@ -612,14 +592,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 
@@ -695,14 +671,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 
@@ -775,14 +747,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 
@@ -1051,14 +1019,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         def A00(t):
             return numpy_alias(like=self.array_library()).array(
@@ -1251,14 +1215,10 @@ class Testsolve_lmde_perturbation:
             return unp.array([[1, 0], [0, 1]], dtype=complex)
 
         def A0(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[0, t], [t**2, 0]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[0, t], [t**2, 0]], dtype=complex)
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         def A00(t):
             return numpy_alias(like=self.array_library()).array(
@@ -1467,9 +1427,7 @@ class Testsolve_lmde_perturbationJAXTransformations:
             )
 
         def A1(t):
-            return numpy_alias(like=self.array_library()).array(
-                [[t, 0], [0, t**2]], dtype=complex
-            )
+            return numpy_alias(like=self.array_library()).array([[t, 0], [0, t**2]], dtype=complex)
 
         T = np.pi * 1.2341
 

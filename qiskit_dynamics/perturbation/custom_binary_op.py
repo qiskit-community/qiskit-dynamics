@@ -116,10 +116,9 @@ class _CustomMatmul(_CustomBinaryOp):
     ):
         """Initialize."""
 
-        binary_op = lambda A, B: A @ B
         super().__init__(
             operation_rule=operation_rule,
-            binary_op=binary_op,
+            binary_op=lambda A, B: A @ B,
             index_offset=index_offset,
             operation_rule_compiled=operation_rule_compiled,
         )
@@ -136,10 +135,9 @@ class _CustomMul(_CustomBinaryOp):
     ):
         """Initialize."""
 
-        binary_op = lambda A, B: A * B
         super().__init__(
             operation_rule=operation_rule,
-            binary_op=binary_op,
+            binary_op=lambda A, B: A * B,
             index_offset=index_offset,
             operation_rule_compiled=operation_rule_compiled,
         )

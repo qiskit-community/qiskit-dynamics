@@ -436,9 +436,8 @@ def _signal_list_envelope_DCT(
     if include_imag is None:
         include_imag = [True] * len(signal_list)
 
-    envelope_DCT = lambda sig, freq, degree: _signal_envelope_DCT(
-        sig, freq, degree, t0, dt, n_intervals
-    )
+    def envelope_DCT(sig, freq, degree):
+        return _signal_envelope_DCT(sig, freq, degree, t0, dt, n_intervals)
 
     # initialize coefficient array with first signal
     coeffs = envelope_DCT(signal_list[0], reference_freqs[0], degrees[0])
