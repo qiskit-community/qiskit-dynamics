@@ -104,19 +104,6 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
         with self.assertRaisesRegex(QiskitError, "not supported"):
             solve_lmde(lambda t: t, t_span=[0.0, 1.0], y0=np.array([1.0]), method="notamethod")
 
-    def test_jax_expm_sparse_mode(self):
-        """Verify an error gets raised if the jax expm solver is attempted to be used
-        in sparse mode."""
-
-        model = GeneratorModel(
-            static_operator=np.array([[0.0, 1.0], [1.0, 0.0]]), array_library="jax_sparse"
-        )
-
-        with self.assertRaisesRegex(QiskitError, "jax_expm cannot be used"):
-            solve_lmde(
-                model, t_span=[0.0, 1.0], y0=np.array([1.0, 1.0]), method="jax_expm", max_dt=0.1
-            )
-
     def test_scipy_expm_magnus_order_exception(self):
         """Verify error gets raised if scipy_expm_solver is called with magnus_order > 3."""
 
@@ -133,6 +120,19 @@ class Testsolve_lmde_exceptions(QiskitDynamicsTestCase):
 
 class Testsolve_lmde_exceptionsJAX(JAXTestBase):
     """Test solve_lmde exceptions requiring JAX to reach."""
+
+    def test_jax_expm_sparse_mode(self):
+        """Verify an error gets raised if the jax expm solver is attempted to be used
+        in sparse mode."""
+
+        model = GeneratorModel(
+            static_operator=np.array([[0.0, 1.0], [1.0, 0.0]]), array_library="jax_sparse"
+        )
+
+        with self.assertRaisesRegex(QiskitError, "jax_expm cannot be used"):
+            solve_lmde(
+                model, t_span=[0.0, 1.0], y0=np.array([1.0, 1.0]), method="jax_expm", max_dt=0.1
+            )
 
     def test_jax_expm_magnus_order_exception(self):
         """Verify error gets raised if jax_expm_solver is called with magnus_order > 3."""

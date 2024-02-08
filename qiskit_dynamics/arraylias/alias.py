@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name
 
 """
 Global alias instances.
@@ -74,6 +75,13 @@ register_transpose(alias=DYNAMICS_NUMPY_ALIAS)
 
 
 ArrayLike = Union[Union[DYNAMICS_NUMPY_ALIAS.registered_types()], list]
+
+
+def _isArrayLike(x: any) -> bool:
+    """Return true if x is an ArrayLike object. Equivalent to isinstance(x, ArrayLike), which does
+    not work in Python 3.9.
+    """
+    return isinstance(x, (DYNAMICS_NUMPY_ALIAS.registered_types(), list))
 
 
 def _preferred_lib(*args, **kwargs):

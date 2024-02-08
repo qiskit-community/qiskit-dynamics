@@ -119,7 +119,7 @@ def trim_t_results(
     return results
 
 
-def merge_t_args_jax(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> jnp.ndarray:
+def merge_t_args_jax(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> np.ndarray:
     """JAX-compilable version of merge_t_args.
 
     Rather than raise errors, sets return values to ``jnp.nan`` to signal errors.
@@ -135,7 +135,7 @@ def merge_t_args_jax(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> j
         t_eval: Time points to include in returned results.
 
     Returns:
-        jnp.ndarray: Combined list of times.
+        np.ndarray: Combined list of times.
 
     Raises:
         ValueError: If either argument is not one dimensional.

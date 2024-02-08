@@ -24,7 +24,7 @@ from qiskit import QiskitError
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
-from qiskit_dynamics.arraylias.alias import ArrayLike
+from qiskit_dynamics.arraylias.alias import ArrayLike, _isArrayLike
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_model import GeneratorModel
 from .rotating_frame import RotatingFrame
@@ -170,7 +170,7 @@ def is_hermitian(operator: ArrayLike, tol: Optional[float] = 1e-10) -> bool:
     elif type(operator).__name__ == "BCOO":
         # fall back on array case for BCOO
         return is_hermitian(operator.todense())
-    elif isinstance(operator, ArrayLike):
+    elif _isArrayLike(operator):
         adj = None
         adj = unp.transpose(unp.conjugate(operator))
         return np.linalg.norm(adj - operator) < tol
