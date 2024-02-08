@@ -20,7 +20,7 @@ import numpy.random as rand
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
-from qiskit_dynamics.arraylias.alias import ArrayLike
+from qiskit_dynamics.arraylias.alias import _isArrayLike
 from qiskit_dynamics.models import GeneratorModel, RotatingFrame
 from qiskit_dynamics.models.generator_model import (
     _static_operator_into_frame_basis,
@@ -198,7 +198,7 @@ class TestGeneratorModel:
         if isinstance(frame_operator, Operator):
             frame_operator = frame_operator.data
 
-        if isinstance(frame_operator, ArrayLike) and frame_operator.ndim == 1:
+        if _isArrayLike(frame_operator) and frame_operator.ndim == 1:
             frame_operator = np.diag(frame_operator)
 
         value = basic_model(t)

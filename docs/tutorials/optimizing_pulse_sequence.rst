@@ -30,6 +30,12 @@ for a more detailed explanation of why this step is necessary.
 
 .. jupyter-execute::
 
+    ################################################################################# 
+    # Remove this
+    #################################################################################
+    import warnings
+    warnings.filterwarnings("ignore")
+    
     import jax
     jax.config.update("jax_enable_x64", True)
 

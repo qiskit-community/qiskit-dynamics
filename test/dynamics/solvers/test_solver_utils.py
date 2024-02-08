@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 # pylint can't determine member or type for return from trim_t_results
-# pylint: disable=no-member
+# pylint: disable=no-member, invalid-name
 
 """
 Tests to convert from pulse schedules to signals.

@@ -268,11 +268,11 @@ def _compute_linear_combos(
 
 
 def _compute_unique_evaluations_jax(
-    A: jnp.ndarray,
-    B: jnp.ndarray,
+    A: np.ndarray,
+    B: np.ndarray,
     unique_evaluation_pairs: np.array,
     binary_op: Callable,
-) -> jnp.ndarray:
+) -> np.ndarray:
     """JAX version of a single loop step of :meth:`linear_combos`. Note that in this function
     binary_op is assumed to be vectorized."""
     A = jnp.append(A, jnp.zeros((1,) + A[0].shape, dtype=complex), axis=0)
@@ -282,8 +282,8 @@ def _compute_unique_evaluations_jax(
 
 
 def _compute_single_linear_combo_jax(
-    unique_evaluations: jnp.ndarray, single_combo_rule: Tuple[np.array, np.array]
-) -> jnp.ndarray:
+    unique_evaluations: np.ndarray, single_combo_rule: Tuple[np.array, np.array]
+) -> np.ndarray:
     """JAX version of :meth:`unique_products`."""
     coeffs, indices = single_combo_rule
     return jnp.tensordot(coeffs, unique_evaluations[indices], axes=1)
