@@ -1,7 +1,7 @@
 stestr>=3.0.0
 astroid==2.14.2
 pylint==2.16.2
-black~=22.0
+black~=24.1
 qiskit-sphinx-theme~=1.16.0
 sphinx-autodoc-typehints
 jupyter-sphinx
