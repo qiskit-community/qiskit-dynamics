@@ -114,10 +114,16 @@ class MagnusSolver(_PerturbativeSolver):
     ) -> OdeResult:
         ys = None
         if jax_control_flow:
-            single_step = lambda x: self.model.Udt @ jexpm(self.model.evaluate(x))
+
+            def single_step(x):
+                return self.model.Udt @ jexpm(self.model.evaluate(x))
+
             ys = [y0, _perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)]
         else:
-            single_step = lambda coeffs, y: self.model.Udt @ expm(self.model.evaluate(coeffs)) @ y
+
+            def single_step(coeffs, y):
+                return self.model.Udt @ expm(self.model.evaluate(coeffs)) @ y
+
             ys = [y0, _perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)]
 
         return OdeResult(t=[t0, t0 + n_steps * self.model.dt], y=ys)

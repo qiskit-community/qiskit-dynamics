@@ -271,9 +271,7 @@ def setup_args_lists(
         if arg_len not in (1, max_len):
             max_name = args_names[arg_lens.index(max_len)]
 
-            arg_name_sequence = ""
-            for name in args_names[:-1]:
-                arg_name_sequence += f"{name}, "
+            arg_name_sequence = "".join(f"{name}, " for name in args_names[:-1])
             arg_name_sequence += f"and {args_names[-1]}"
 
             raise QiskitError(

@@ -65,6 +65,7 @@ LMDE_METHODS = [
 ]
 
 # diffrax solver type placeholder
+# pylint: disable=typevar-name-mismatch
 DiffraxAbstractSolver = TypeVar("AbstractSolver")
 
 

@@ -292,7 +292,7 @@ class GeneratorModel(BaseGeneratorModel):
                 )
             sig_vals = None
         else:
-            sig_vals = self._signals.__call__(time)
+            sig_vals = self._signals(time)
 
         if self.rotating_frame is not None:
             # First, compute e^{tF}y as a pre-rotation in the frame basis

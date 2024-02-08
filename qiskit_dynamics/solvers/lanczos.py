@@ -180,10 +180,13 @@ def jax_lanczos_basis(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
 
     def cond_func(qpb, _):
         _, _, beta_i = qpb
-        zeros_func = lambda _: (
-            [jnp.zeros_like(y0), jnp.zeros_like(y0), 0.0],
-            [jnp.zeros(1, dtype=data_type)[0], 0.0, jnp.zeros_like(y0)],
-        )
+
+        def zeros_func(_):
+            return (
+                [jnp.zeros_like(y0), jnp.zeros_like(y0), 0.0],
+                [jnp.zeros(1, dtype=data_type)[0], 0.0, jnp.zeros_like(y0)],
+            )
+
         carry_next2, accumulate2 = cond(
             beta_i > 0, lambda carry: lanczos_iter(carry, _), zeros_func, qpb
         )
