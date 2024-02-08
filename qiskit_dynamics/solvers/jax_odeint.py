@@ -21,8 +21,7 @@ from typing import Callable, Optional
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
-from qiskit_dynamics.arraylias import ArrayLike
-from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.arraylias import ArrayLike, requires_array_library
 
 from .solver_utils import merge_t_args_jax, trim_t_results_jax
 
@@ -32,7 +31,7 @@ except ImportError:
     pass
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_odeint(
     rhs: Callable,
     t_span: ArrayLike,

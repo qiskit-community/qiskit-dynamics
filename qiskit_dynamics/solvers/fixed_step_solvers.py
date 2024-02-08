@@ -24,8 +24,7 @@ from scipy.linalg import expm
 from qiskit import QiskitError
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
-from qiskit_dynamics.dispatch import requires_backend
-from qiskit_dynamics.arraylias import ArrayLike
+from qiskit_dynamics.arraylias import ArrayLike, requires_array_library
 
 try:
     import jax
@@ -144,7 +143,7 @@ def lanczos_diag_solver(
     )
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_lanczos_diag_solver(
     generator: Callable,
     t_span: ArrayLike,
@@ -166,7 +165,7 @@ def jax_lanczos_diag_solver(
     )
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_RK4_solver(
     rhs: Callable,
     t_span: ArrayLike,
@@ -204,7 +203,7 @@ def jax_RK4_solver(
     )
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_RK4_parallel_solver(
     generator: Callable,
     t_span: ArrayLike,
@@ -245,7 +244,7 @@ def jax_RK4_parallel_solver(
     )
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_expm_solver(
     generator: Callable,
     t_span: ArrayLike,
@@ -276,7 +275,7 @@ def jax_expm_solver(
     )
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_expm_parallel_solver(
     generator: Callable,
     t_span: ArrayLike,
