@@ -28,4 +28,5 @@ from .alias import (
     DYNAMICS_NUMPY,
     DYNAMICS_SCIPY,
     ArrayLike,
+    requires_array_library,
 )
