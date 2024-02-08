@@ -21,7 +21,21 @@ from typing import Iterable
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
 
-from qiskit_dynamics.type_utils import isinstance_qutip_qobj
+
+def _isinstance_qutip_qobj(obj):
+    """Check if the object is a qutip Qobj.
+    Args:
+        obj (any): Any object for testing.
+    Returns:
+        Bool: True if obj is qutip Qobj
+    """
+    if (
+        type(obj).__name__ == "Qobj"
+        and hasattr(obj, "_data")
+        and type(obj._data).__name__ == "fast_csr_matrix"
+    ):
+        return True
+    return False
 
 
 def register_asarray(alias):
@@ -29,7 +43,7 @@ def register_asarray(alias):
 
     @alias.register_default(path="asarray")
     def _(arr):
-        if isinstance_qutip_qobj(arr):
+        if _isinstance_qutip_qobj(arr):
             return csr_matrix(arr)
         return np.asarray(arr)
 

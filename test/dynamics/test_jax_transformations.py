@@ -21,7 +21,6 @@ from qiskit.quantum_info.operators import Operator
 from qiskit_dynamics.models import HamiltonianModel
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics import solve_lmde
-from qiskit_dynamics.array import Array
 
 from .common import TestJaxBase
 
@@ -43,24 +42,21 @@ class TestJaxTransformations(TestJaxBase):
         self.r = 0.1
 
         operators = [
-            2 * np.pi * self.w * Array(Operator.from_label("Z").data) / 2,
-            2 * np.pi * self.r * Array(Operator.from_label("X").data) / 2,
+            2 * np.pi * self.w * Operator.from_label("Z").data / 2,
+            2 * np.pi * self.r * Operator.from_label("X").data / 2,
         ]
 
-        ham = HamiltonianModel(operators=operators)
-
-        self.ham = ham
+        self.operators = operators
 
         def param_sim(amp, drive_freq):
             signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
-            ham_copy = ham.copy()
-            ham_copy.signals = signals
+            ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
             results = solve_lmde(
-                ham_copy,
+                ham,
                 t_span=[0.0, 1 / self.r],
-                y0=Array([0.0, 1.0], dtype=complex),
+                y0=np.array([0.0, 1.0], dtype=complex),
                 method="jax_odeint",
                 atol=1e-10,
                 rtol=1e-10,
@@ -75,19 +71,18 @@ class TestJaxTransformations(TestJaxBase):
         def t_eval_param_sim(amp, drive_freq):
             signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
-            ham_copy = self.ham.copy()
-            ham_copy.signals = signals
+            ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
             results = solve_lmde(
-                ham_copy,
-                t_span=[0.0, 1 / self.r],
-                y0=Array([0.0, 1.0], dtype=complex),
+                ham,
+                t_span=np.array([0.0, 1 / self.r]),
+                y0=np.array([0.0, 1.0], dtype=complex),
                 method="jax_odeint",
                 t_eval=[0.0, 0.5 / self.r, 1 / self.r],
                 atol=1e-10,
                 rtol=1e-10,
             )
-            return results.y.data
+            return results.y
 
         jit_sim = jit(t_eval_param_sim)
 
@@ -104,13 +99,12 @@ class TestJaxTransformations(TestJaxBase):
         def param_sim(amp, drive_freq):
             signals = [1.0, Signal(lambda t: amp, carrier_freq=drive_freq)]
 
-            ham_copy = self.ham.copy()
-            ham_copy.signals = signals
+            ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
             results = solve_lmde(
-                ham_copy,
+                ham,
                 t_span=[0.0, (1 / self.r) * amp],
-                y0=Array([0.0, 1.0], dtype=complex),
+                y0=np.array([0.0, 1.0], dtype=complex),
                 method="jax_odeint",
                 atol=1e-10,
                 rtol=1e-10,
