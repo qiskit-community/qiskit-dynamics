@@ -33,12 +33,7 @@ class TestTransferFunctions(QiskitDynamicsTestCase):
 
         def gaussian(t):
             sigma = 4
-            return (
-                2.0
-                * ts[1]
-                / np.sqrt(2.0 * np.pi * sigma**2)
-                * np.exp(-(t**2) / (2 * sigma**2))
-            )
+            return 2.0 * ts[1] / np.sqrt(2.0 * np.pi * sigma**2) * np.exp(-(t**2) / (2 * sigma**2))
 
         # Test the simple convolution of a signal without a carrier
         convolve = Convolution(gaussian)

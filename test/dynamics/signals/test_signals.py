@@ -136,8 +136,7 @@ class TestSignal:
             self.asarray(
                 [
                     (2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
-                    (2 * (1.23**2) + 1j * 1.23)
-                    * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
+                    (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
                 ]
             ),
         )
@@ -242,8 +241,7 @@ class TestSignal:
             self.asarray(
                 [
                     (2 * (1.1**2) + 1j * 1.1) * np.exp(1j * 2 * np.pi * 0.1 * 1.1 + 1j * (-0.1)),
-                    (2 * (1.23**2) + 1j * 1.23)
-                    * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
+                    (2 * (1.23**2) + 1j * 1.23) * np.exp(1j * 2 * np.pi * 0.1 * 1.23 + 1j * (-0.1)),
                 ]
             ).real,
         )
@@ -1013,9 +1011,7 @@ class TestSignalsJaxTransformations:
             + np.real(self.discrete_signal.samples[5])
             * (-2 * np.pi * 2.0)
             * np.sin(2 * np.pi * 2.0 * t),
-            complex_deriv_val=(2.25**2)
-            * (1j * 2 * np.pi * 3.0)
-            * np.exp(1j * 2 * np.pi * 3.0 * t)
+            complex_deriv_val=(2.25**2) * (1j * 2 * np.pi * 3.0) * np.exp(1j * 2 * np.pi * 3.0 * t)
             + self.discrete_signal.samples[5]
             * (1j * 2 * np.pi * 2.0)
             * np.exp(1j * 2 * np.pi * 2.0 * t),

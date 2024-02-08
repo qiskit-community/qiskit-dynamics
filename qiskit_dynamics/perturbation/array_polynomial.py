@@ -125,6 +125,7 @@ class ArrayPolynomial:
     is similar to ``ap1 @ ap2``, but will result in an :class:`.ArrayPolynomial` in which all
     terms of degree larger than ``3`` will not be included in the results.
     """
+
     __array_priority__ = 20
 
     def __init__(
