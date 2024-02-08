@@ -147,7 +147,7 @@ def lanczos_expm(
 
 
 @requires_array_library("jax")
-def jax_lanczos_basis(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
+def jax_lanczos_basis(A: np.ndarray, y0: np.ndarray, k_dim: int):
     """JAX version of lanczos_basis."""
 
     data_type = jnp.result_type(A.dtype, y0.dtype)
@@ -206,7 +206,7 @@ def jax_lanczos_basis(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
 
 
 @requires_array_library("jax")
-def jax_lanczos_eigh(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
+def jax_lanczos_eigh(A: np.ndarray, y0: np.ndarray, k_dim: int):
     """JAX version of lanczos_eigh."""
 
     tridiagonal, q_basis = jax_lanczos_basis(A, y0, k_dim)
@@ -217,8 +217,8 @@ def jax_lanczos_eigh(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
 
 @requires_array_library("jax")
 def jax_lanczos_expm(
-    A: jnp.ndarray,
-    y0: jnp.ndarray,
+    A: np.ndarray,
+    y0: np.ndarray,
     k_dim: int,
     scale_factor: Optional[float] = 1,
 ):

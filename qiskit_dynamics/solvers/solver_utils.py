@@ -135,7 +135,7 @@ def merge_t_args_jax(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> n
         t_eval: Time points to include in returned results.
 
     Returns:
-        jnp.ndarray: Combined list of times.
+        np.ndarray: Combined list of times.
 
     Raises:
         ValueError: If either argument is not one dimensional.
