@@ -58,6 +58,12 @@ explanation of how to work with JAX in Qiskit Dynamics.
 
 .. jupyter-execute::
 
+    ################################################################################# 
+    # Remove this
+    #################################################################################
+    import warnings
+    warnings.filterwarnings("ignore")
+    
     # configure jax to use 64 bit mode
     import jax
     jax.config.update("jax_enable_x64", True)
