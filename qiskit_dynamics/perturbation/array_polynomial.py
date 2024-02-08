@@ -125,6 +125,7 @@ class ArrayPolynomial:
     is similar to ``ap1 @ ap2``, but will result in an :class:`.ArrayPolynomial` in which all
     terms of degree larger than ``3`` will not be included in the results.
     """
+
     __array_priority__ = 20
 
     def __init__(
@@ -743,7 +744,9 @@ def _array_polynomial_distributive_binary_op(
 
     # if no filter is provided, set to always return True
     if monomial_filter is None:
-        monomial_filter = lambda x: True
+
+        def monomial_filter(_):
+            return True
 
     if ap1.constant_term is not None:
         for multiset in ap2.monomial_labels:
@@ -845,7 +848,9 @@ def _array_polynomial_addition(
             )
 
     if monomial_filter is None:
-        monomial_filter = lambda x: True
+
+        def monomial_filter(_):
+            return True
 
     # construct constant term
     new_constant_term = None

@@ -296,11 +296,11 @@ class TestLindbladModel:
         rand_ham_ops = randoperators + randoperators.conj().transpose([0, 2, 1])
 
         # generate random hamiltonian coefficients
-        rand_ham_coeffs = rng.uniform(low=-b, high=b, size=(num_ham)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_ham)
+        rand_ham_coeffs = rng.uniform(low=-b, high=b, size=num_ham) + 1j * rng.uniform(
+            low=-b, high=b, size=num_ham
         )
-        rand_ham_carriers = rng.uniform(low=-b, high=b, size=(num_ham))
-        rand_ham_phases = rng.uniform(low=-b, high=b, size=(num_ham))
+        rand_ham_carriers = rng.uniform(low=-b, high=b, size=num_ham)
+        rand_ham_phases = rng.uniform(low=-b, high=b, size=num_ham)
 
         ham_sigs = []
         for coeff, freq, phase in zip(rand_ham_coeffs, rand_ham_carriers, rand_ham_phases):
@@ -319,11 +319,11 @@ class TestLindbladModel:
         )
 
         # random dissipator coefficients
-        rand_diss_coeffs = rng.uniform(low=-b, high=b, size=(num_diss)) + 1j * rng.uniform(
+        rand_diss_coeffs = rng.uniform(low=-b, high=b, size=num_diss) + 1j * rng.uniform(
             low=-b, high=b, size=(num_diss)
         )
-        rand_diss_carriers = rng.uniform(low=-b, high=b, size=(num_diss))
-        rand_diss_phases = rng.uniform(low=-b, high=b, size=(num_diss))
+        rand_diss_carriers = rng.uniform(low=-b, high=b, size=num_diss)
+        rand_diss_phases = rng.uniform(low=-b, high=b, size=num_diss)
 
         diss_sigs = []
         for coeff, freq, phase in zip(rand_diss_coeffs, rand_diss_carriers, rand_diss_phases):
@@ -337,7 +337,9 @@ class TestLindbladModel:
         )
         frame_op = rand_op - rand_op.conj().transpose()
         evect = np.linalg.eigh(1j * frame_op)[1]
-        into_frame_basis = lambda x: evect.T.conj() @ x @ evect
+
+        def into_frame_basis(x):
+            return evect.T.conj() @ x @ evect
 
         # construct model
         lindblad_model = LindbladModel(
@@ -455,7 +457,7 @@ class TestLindbladModel:
 
         self.assertAllClose(static_model(0.0, rand_input), non_static_model(0.0, rand_input))
 
-    # pylint: disable=no-self-use,too-many-arguments
+    # pylint: disable=too-many-arguments
     def _evaluate_lindblad_rhs(
         self,
         A,

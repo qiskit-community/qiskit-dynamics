@@ -417,7 +417,10 @@ class TestLanczosDiagSolver(TestFixedStepBase):
 
     def test_case_ix(self):
         """Standalone test case 1."""
-        gen = lambda t: -1j * np.array([[0.0, 1.0], [1.0, 0.0]])
+
+        def gen(_):
+            return -1j * np.array([[0.0, 1.0], [1.0, 0.0]])
+
         y0 = np.array([0.0, 1.0])
         t_span = [0.0, np.pi / 4]
         result = self.solve(
@@ -431,7 +434,10 @@ class TestLanczosDiagSolver(TestFixedStepBase):
 
     def test_case_iz(self):
         """Standalone test case 2."""
-        gen = lambda t: -1j * np.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, -1]])
+
+        def gen(_):
+            return -1j * np.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, -1]])
+
         y01 = np.array([0.0, 0.0, 1.0])
         y02 = np.array([0.0, 1.0, 1.0])
         t_span = [0.0, np.pi / 4]

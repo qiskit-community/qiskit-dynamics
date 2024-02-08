@@ -200,7 +200,10 @@ class DysonSolver(_PerturbativeSolver):
                 _perturbative_solve_jax(self.model.evaluate, self.model, signals, y0, t0, n_steps),
             ]
         else:
-            single_step = lambda coeffs, y: self.model.evaluate(coeffs) @ y
+
+            def single_step(coeffs, y):
+                return self.model.evaluate(coeffs) @ y
+
             ys = [y0, _perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)]
 
         return OdeResult(t=[t0, t0 + n_steps * self.model.dt], y=ys)

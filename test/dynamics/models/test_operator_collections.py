@@ -180,7 +180,10 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
     def test_consistency_with_dense_pseudorandom(self):
         """Tests if SparseOperatorCollection agrees with
         the DenseOperatorCollection."""
-        r = lambda *args: np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
+
+        def r(*args):
+            return np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
+
         state = r(16)
         mat = r(4, 16, 16)
         sigVals = r(4)
@@ -200,7 +203,9 @@ class TestScipySparseOperatorCollection(QiskitDynamicsTestCase):
         is able to convert Operator types to csr_matrix."""
         ham_ops = []
         ham_ops_alt = []
-        r = lambda *args: np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
+
+        def r(*args):
+            return np.random.uniform(-1, 1, [*args]) + 1j * np.random.uniform(-1, 1, [*args])
 
         for _ in range(4):
             op = r(3, 3)
@@ -552,17 +557,15 @@ class TestVectorizedLindbladCollection:
         n = 16
         k = 4
         m = 2
-        r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
-
-        self.r = r
-        self.rand_ham = r(k, n, n)
-        self.rand_dis = r(m, n, n)
-        self.rand_dft = r(n, n)
-        self.rand_static_dis = r(k, n, n)
-        self.rho = r(n, n)
-        self.t = r()
-        self.rand_ham_coeffs = r(k)
-        self.rand_dis_coeffs = r(m)
+        self.r = lambda *args: rand.uniform(-1, 1, [*args]) + 1j * rand.uniform(-1, 1, [*args])
+        self.rand_ham = self.r(k, n, n)
+        self.rand_dis = self.r(m, n, n)
+        self.rand_dft = self.r(n, n)
+        self.rand_static_dis = self.r(k, n, n)
+        self.rho = self.r(n, n)
+        self.t = self.r()
+        self.rand_ham_coeffs = self.r(k)
+        self.rand_dis_coeffs = self.r(m)
 
     def _build_vectorized_collection(self, *args, **kwargs):
         if self.array_library() == "scipy_sparse":

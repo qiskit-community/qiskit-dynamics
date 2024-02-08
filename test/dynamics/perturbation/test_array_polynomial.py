@@ -243,8 +243,8 @@ class TestArrayPolynomialAlgebra:
         )
 
         ms = Multiset({0: 3})
-        monomial_filter = lambda x: len(x) <= 2 or x <= ms
-        result = ap1.add(ap2, monomial_filter=monomial_filter)
+
+        result = ap1.add(ap2, monomial_filter=lambda x: len(x) <= 2 or x <= ms)
 
         expected_coefficients = np.array(
             [
@@ -278,8 +278,7 @@ class TestArrayPolynomialAlgebra:
         )
 
         ms_list = [Multiset({0: 3})]
-        monomial_filter = lambda x: x in ms_list
-        result = ap1.add(ap2, monomial_filter=monomial_filter)
+        result = ap1.add(ap2, monomial_filter=lambda x: x in ms_list)
 
         expected_coefficients = np.array([ap1.array_coefficients[1]])
         expected_monomial_labels = [Multiset({0: 3})]
@@ -513,8 +512,7 @@ class TestArrayPolynomialAlgebra:
 
         # keep if degree <= 2 or if it is a submultiset of Multiset({0: 3})
         ms = Multiset({0: 3})
-        monomial_filter = lambda x: len(x) <= 2 or x <= ms
-        result = getattr(ap1, method_name)(ap2, monomial_filter=monomial_filter)
+        result = getattr(ap1, method_name)(ap2, monomial_filter=lambda x: len(x) <= 2 or x <= ms)
         expected_constant_term = binary_op(ap1.constant_term, ap2.constant_term)
         expected_monomial_labels = [
             Multiset({0: 1}),
@@ -559,8 +557,7 @@ class TestArrayPolynomialAlgebra:
 
         # keep only a specific set of terms
         ms_list = [Multiset({0: 2, 1: 1})]
-        monomial_filter = lambda x: x in ms_list
-        result = getattr(ap1, method_name)(ap2, monomial_filter=monomial_filter)
+        result = getattr(ap1, method_name)(ap2, monomial_filter=lambda x: x in ms_list)
         expected_monomial_labels = [Multiset({0: 2, 1: 1})]
         expected_coefficients = np.array(
             [binary_op(ap1.array_coefficients[1], ap2.array_coefficients[1])]
