@@ -24,8 +24,6 @@ from qiskit_dynamics.backend.backend_string_parser.hamiltonian_string_parser imp
     parse_backend_hamiltonian_dict,
 )
 
-from qiskit_dynamics.type_utils import to_array
-
 from ...common import QiskitDynamicsTestCase
 
 
@@ -144,7 +142,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(static_ham, 2.1 * np.pi * self.Z)
-        self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * self.X])
+        self.assertAllClose(ham_ops, [0.02 * np.pi * self.X])
         self.assertTrue(channels == ["d0"])
         self.assertTrue(subsystem_dims_dict == {0: 2})
 
@@ -161,7 +159,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(static_ham, 2 * 2.1 * np.pi * self.Z)
-        self.assertAllClose(to_array(ham_ops), [2 * 0.02 * np.pi * self.X])
+        self.assertAllClose(ham_ops, [2 * 0.02 * np.pi * self.X])
         self.assertTrue(channels == ["d0"])
         self.assertTrue(subsystem_dims_dict == {0: 2})
 
@@ -180,7 +178,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(static_ham, 2 * 2.1 * np.pi * self.Z)
-        self.assertAllClose(to_array(ham_ops), [2 * 0.02 * np.pi * self.X])
+        self.assertAllClose(ham_ops, [2 * 0.02 * np.pi * self.X])
         self.assertTrue(channels == ["d0"])
         self.assertTrue(subsystem_dims_dict == {0: 2})
 
@@ -211,7 +209,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             + 0.02 * np.pi * np.kron(self.Y, self.X),
         )
         self.assertAllClose(
-            to_array(ham_ops),
+            ham_ops,
             [0.02 * np.pi * np.kron(ident, self.X), 0.03 * np.pi * np.kron(self.X, ident)],
         )
         self.assertTrue(channels == ["d0", "d1"])
@@ -244,7 +242,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             + 0.02 * np.pi * np.kron(self.Y, self.X),
         )
         self.assertAllClose(
-            to_array(ham_ops),
+            ham_ops,
             [0.02 * np.pi * np.kron(ident, self.X), 0.03 * np.pi * np.kron(self.X, ident)],
         )
         self.assertTrue(channels == ["d0", "m1"])
@@ -264,7 +262,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(static_ham, 2.1 * np.pi * self.N - 0.33 * np.pi * self.N * self.N)
-        self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
+        self.assertAllClose(ham_ops, [0.02 * np.pi * (self.a + self.adag)])
         self.assertTrue(channels == ["d0"])
         self.assertTrue(subsystem_dims_dict == {0: 4})
 
@@ -300,7 +298,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
             + 0.02 * np.pi * np.kron(-1j * (self.a - self.adag), self.a + self.adag),
         )
         self.assertAllClose(
-            to_array(ham_ops),
+            ham_ops,
             [
                 0.02 * np.pi * np.kron(ident, self.a + self.adag),
                 0.03 * np.pi * np.kron(self.a + self.adag, ident),
@@ -322,7 +320,7 @@ class TestParseHamiltonianDict(QiskitDynamicsTestCase):
         )
 
         self.assertAllClose(static_ham, 2.1 * np.pi * (np.eye(4) - 2 * self.N))
-        self.assertAllClose(to_array(ham_ops), [0.02 * np.pi * (self.a + self.adag)])
+        self.assertAllClose(ham_ops, [0.02 * np.pi * (self.a + self.adag)])
         self.assertTrue(channels == ["d0"])
         self.assertTrue(subsystem_dims_dict == {0: 4})
 

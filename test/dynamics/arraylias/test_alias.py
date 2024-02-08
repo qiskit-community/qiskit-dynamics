@@ -32,7 +32,7 @@ from qiskit_dynamics.arraylias.alias import (
     _to_dense_list,
 )
 
-from ..common import test_array_backends, JAXTestBase
+from ..common import test_array_backends, JAXTestBase, QutipTestBase
 
 try:
     import jax.numpy as jnp
@@ -171,3 +171,17 @@ class Test_to_dense_list:
             self.assertTrue(isinstance(out, jnp.ndarray))
 
         self.assertAllClose(out, np.array(x))
+
+
+class Test_qutip_qobj_asarray(QutipTestBase):
+    """Test Qutip Qobj handling."""
+
+    def test_qutip_conversion(self):
+        """Test unp.asarray on qutip qobj."""
+        from qutip import Qobj
+
+        qobj = Qobj([[0, 1], [1, 0]])
+
+        out = unp.asarray(qobj)
+        self.assertTrue(isinstance(out, csr_matrix))
+        self.assertAllClose(out.todense(), np.array([[0.0, 1.0], [1.0, 0.0]]))
