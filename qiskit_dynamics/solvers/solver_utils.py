@@ -119,7 +119,7 @@ def trim_t_results(
     return results
 
 
-def merge_t_args_jax(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> jnp.ndarray:
+def merge_t_args_jax(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> np.ndarray:
     """JAX-compilable version of merge_t_args.
 
     Rather than raise errors, sets return values to ``jnp.nan`` to signal errors.
