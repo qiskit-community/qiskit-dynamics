@@ -31,16 +31,18 @@ First, configure Dynamics to use JAX.
 
 .. jupyter-execute::
 
+    ################################################################################# 
+    # Remove this
+    #################################################################################
+    import warnings
+    warnings.filterwarnings("ignore")
+
     # configure jax to use 64 bit mode
     import jax
     jax.config.update("jax_enable_x64", True)
 
     # tell JAX we are using CPU
     jax.config.update('jax_platform_name', 'cpu')
-
-    # import Array and set default backend
-    from qiskit_dynamics.array import Array
-    Array.set_default_backend('jax')
 
 
 2. How to define a Gaussian pulse using :class:`~qiskit.pulse.library.ScalableSymbolicPulse`

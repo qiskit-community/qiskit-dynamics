@@ -39,8 +39,6 @@ jax>` for more information.
     import jax
     jax.config.update("jax_enable_x64", True)
     jax.config.update("jax_platform_name", "cpu")
-    from qiskit_dynamics.array import Array
-    Array.set_default_backend("jax")
 
 2. Instantiating a minimally-configured :class:`.DynamicsBackend` with a 2 qubit model
 --------------------------------------------------------------------------------------
@@ -386,10 +384,10 @@ experiments.
     from qiskit_experiments.library.calibration import RoughXSXAmplitudeCal
     
     # rabi experiments for qubit 0
-    rabi0 = RoughXSXAmplitudeCal(0, cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
+    rabi0 = RoughXSXAmplitudeCal([0], cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
     
     # rabi experiments for qubit 1
-    rabi1 = RoughXSXAmplitudeCal(1, cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
+    rabi1 = RoughXSXAmplitudeCal([1], cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
 
 Run the Rabi experiments.
 
@@ -425,8 +423,8 @@ as above.
 
     from qiskit_experiments.library.calibration import RoughDragCal
     
-    cal_drag0 = RoughDragCal(0, cals, backend=backend, betas=np.linspace(-20, 20, 15))
-    cal_drag1 = RoughDragCal(1, cals, backend=backend, betas=np.linspace(-20, 20, 15))
+    cal_drag0 = RoughDragCal([0], cals, backend=backend, betas=np.linspace(-20, 20, 15))
+    cal_drag1 = RoughDragCal([1], cals, backend=backend, betas=np.linspace(-20, 20, 15))
     
     cal_drag0.set_experiment_options(reps=[3, 5, 7])
     cal_drag1.set_experiment_options(reps=[3, 5, 7])
@@ -474,27 +472,27 @@ values for the single qubit gates calibrated above.
 
 .. jupyter-execute::
 
-    from qiskit_experiments.library import CrossResonanceHamiltonian
+    #from qiskit_experiments.library import CrossResonanceHamiltonian
 
-    cr_ham_experiment = CrossResonanceHamiltonian(
-        qubits=(0, 1), 
-        flat_top_widths=np.linspace(0, 5000, 17), 
-        backend=backend
-    )
+    #cr_ham_experiment = CrossResonanceHamiltonian(
+    #    physical_qubits=(0, 1), 
+    #    durations=np.linspace(10, 5000, 17), 
+    #    backend=backend
+    #)
     
-    backend.target.update_from_instruction_schedule_map(cals.get_inst_map())
+    #backend.target.update_from_instruction_schedule_map(cals.get_inst_map())
 
 .. jupyter-execute::
 
-    cr_ham_experiment.circuits()[10].draw("mpl")
+    #cr_ham_experiment.circuits()[10].draw("mpl")
 
 Run the simulation.
 
 .. jupyter-execute::
 
-    %time data_cr = cr_ham_experiment.run().block_for_results()
+    #%time data_cr = cr_ham_experiment.run().block_for_results()
 
 
 .. jupyter-execute::
 
-    data_cr.figure(0)
+    #data_cr.figure(0)

@@ -36,8 +36,7 @@ for a more detailed explanation of why this step is necessary.
     # tell JAX we are using CPU
     jax.config.update('jax_platform_name', 'cpu')
 
-    from qiskit_dynamics.array import Array
-    Array.set_default_backend('jax')
+    import jax.numpy as jnp
 
 
 2. Setup the solver
@@ -163,12 +162,10 @@ implemented by the pulse via the standard fidelity measure:
 
 .. jupyter-execute::
 
-    X_op = Array(Operator.from_label('X'))
+    X_op = Operator.from_label('X').data
 
     def fidelity(U):
-        U = Array(U)
-
-        return np.abs(np.sum(X_op * U))**2 / 4.
+        return jnp.abs(jnp.sum(X_op * U))**2 / 4.
 
 5. Define the objective function
 --------------------------------
@@ -200,7 +197,7 @@ The function we want to optimize consists of:
 
         # compute and return infidelity
         fid = fidelity(U)
-        return 1. - fid.data
+        return 1. - fid
 
 6. Perform JAX transformations and optimize
 -------------------------------------------
@@ -273,6 +270,10 @@ entry on :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for ja
 
 .. jupyter-execute::
 
+    # how to get rid of this?
+    from qiskit_dynamics.array import Array
+    Array.set_default_backend("jax")
+    
     import sympy as sym
     from qiskit import pulse
 
@@ -351,7 +352,7 @@ to a signal, and simulate the equation over the length of the pulse sequence.
             atol=1e-8,
             rtol=1e-8
         )
-        return 1. - fidelity(Array(result[0].y[-1])).data
+        return 1. - fidelity(result[0].y[-1])
 
 
 We set the initial values of ``sigma`` and ``width`` for the optimization as
