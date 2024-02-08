@@ -161,7 +161,9 @@ class TestJaxOdeint(JAXTestBase):
         y0 = jnp.array([1.0])
 
         def sim_function(a):
-            rhs = lambda t, y: (a**2) * self.simple_rhs(t, y)
+            def rhs(t, y):
+                return (a**2) * self.simple_rhs(t, y)
+
             results = jax_odeint(rhs, t_span, y0, t_eval=t_eval, atol=1e-10, rtol=1e-10)
             return results.y[-1].real.sum()
 

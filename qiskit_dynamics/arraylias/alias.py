@@ -198,6 +198,6 @@ def requires_array_library(lib: str) -> Callable:
             return obj
 
         else:
-            raise Exception(f"Cannot decorate object {obj} that is not a class or function.")
+            raise ValueError(f"Cannot decorate object {obj} that is not a class or function.")
 
     return decorator
