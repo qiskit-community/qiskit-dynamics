@@ -102,7 +102,9 @@ class Test_CustomBinaryOp:
 
     def test_matmul_unequal_shapes(self):
         """Test custom matmul with uneven shapes."""
-        binary_op = lambda A, B: A @ B
+
+        def binary_op(A, B):
+            return A @ B
 
         rng = np.random.default_rng(21319)
         A = self.asarray(rng.uniform(size=(3, 2, 5)))
@@ -121,7 +123,9 @@ class Test_CustomBinaryOp:
 
     def test_mul_unequal_shapes(self):
         """Test custom mul with uneven shapes."""
-        binary_op = lambda A, B: A * B
+
+        def binary_op(A, B):
+            return A * B
 
         rng = np.random.default_rng(21319)
         A = self.asarray(rng.uniform(size=(3, 2, 5)))

@@ -765,7 +765,9 @@ class TestWorkaround(QiskitDynamicsTestCase):
 
                 multiple_eval = vmap(single_eval, in_axes=(0, None))
                 idx_list = jnp.array([0, 1])
-                rhs = lambda y, t: multiple_eval(idx_list, t) * y
+
+                def rhs(y, t):
+                    return multiple_eval(idx_list, t) * y
 
                 out = odeint(rhs, y0=y0, t=jnp.array([0, T], dtype=float), atol=1e-13, rtol=1e-13)
                 return out

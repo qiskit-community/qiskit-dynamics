@@ -279,11 +279,11 @@ class TestGeneratorModel:
             low=-b, high=b, size=(num_terms, dim, dim)
         )
 
-        rand_coeffs = rng.uniform(low=-b, high=b, size=(num_terms)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_terms)
+        rand_coeffs = rng.uniform(low=-b, high=b, size=num_terms) + 1j * rng.uniform(
+            low=-b, high=b, size=num_terms
         )
-        rand_carriers = rng.uniform(low=-b, high=b, size=(num_terms))
-        rand_phases = rng.uniform(low=-b, high=b, size=(num_terms))
+        rand_carriers = rng.uniform(low=-b, high=b, size=num_terms)
+        rand_phases = rng.uniform(low=-b, high=b, size=num_terms)
 
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
@@ -299,11 +299,11 @@ class TestGeneratorModel:
             low=-b, high=b, size=(num_terms, dim, dim)
         )
 
-        rand_coeffs = rng.uniform(low=-b, high=b, size=(num_terms)) + 1j * rng.uniform(
-            low=-b, high=b, size=(num_terms)
+        rand_coeffs = rng.uniform(low=-b, high=b, size=num_terms) + 1j * rng.uniform(
+            low=-b, high=b, size=num_terms
         )
-        rand_carriers = rng.uniform(low=-b, high=b, size=(num_terms))
-        rand_phases = rng.uniform(low=-b, high=b, size=(num_terms))
+        rand_carriers = rng.uniform(low=-b, high=b, size=num_terms)
+        rand_phases = rng.uniform(low=-b, high=b, size=num_terms)
 
         self._test_evaluate(frame_op, randoperators, rand_coeffs, rand_carriers, rand_phases)
 
