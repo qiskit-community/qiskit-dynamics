@@ -15,12 +15,17 @@
 """
 Global alias instances.
 """
+import functools
 
-from typing import Union
+from types import FunctionType
+
+from typing import Union, Callable
 
 from scipy.sparse import spmatrix
 
 from arraylias import numpy_alias, scipy_alias
+
+from arraylias.exceptions import LibraryError
 
 from qiskit import QiskitError
 
@@ -141,3 +146,58 @@ def _to_dense_list(x):
     elif "jax_sparse" in libs:
         return x.todense()
     return x
+
+
+def requires_array_library(lib: str) -> Callable:
+    """Return a function and class decorator for checking a library is available.
+
+    If the the required library is not in the list of the registered library
+    for global alias instances, any decorated function or method will raise
+    an exception when called, and any decorated class will raise an exeption
+    when its ``__init__`` is called.
+
+    Args:
+        lib: the library name required by class or function.
+
+    Returns:
+        Callable: A decorator that may be used to specify that a function, class,
+                  or class method requires a specific library to be installed.
+    """
+
+    def decorator(obj):
+        """Specify that the decorated object requires a specifc Array library."""
+
+        def check_library(descriptor):
+            if lib not in DYNAMICS_NUMPY_ALIAS.registered_libs():
+                raise LibraryError(
+                    f"Array library '{lib}' required by {descriptor} "
+                    "is not installed. Please install the optional "
+                    f"library '{lib}'."
+                )
+
+        # Decorate a function or method
+        if isinstance(obj, FunctionType):
+
+            @functools.wraps(obj)
+            def decorated_func(*args, **kwargs):
+                check_library(f"function {obj}")
+                return obj(*args, **kwargs)
+
+            return decorated_func
+
+        # Decorate a class
+        elif isinstance(obj, type):
+            obj_init = obj.__init__
+
+            @functools.wraps(obj_init)
+            def decorated_init(self, *args, **kwargs):
+                check_library(f"class {obj}")
+                obj_init(self, *args, **kwargs)
+
+            obj.__init__ = decorated_init
+            return obj
+
+        else:
+            raise Exception(f"Cannot decorate object {obj} that is not a class or function.")
+
+    return decorator

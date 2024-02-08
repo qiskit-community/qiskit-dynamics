@@ -21,8 +21,7 @@ from typing import Callable, Optional
 from scipy.integrate._ivp.ivp import OdeResult
 from qiskit import QiskitError
 
-from qiskit_dynamics.arraylias import ArrayLike
-from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.arraylias import ArrayLike, requires_array_library
 
 try:
     import jax.numpy as jnp
@@ -30,7 +29,7 @@ except ImportError:
     pass
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def diffrax_solver(
     rhs: Callable,
     t_span: ArrayLike,

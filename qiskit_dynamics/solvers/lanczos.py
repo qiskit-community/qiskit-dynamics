@@ -19,7 +19,7 @@ from typing import Union, Optional
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from qiskit_dynamics.dispatch import requires_backend
+from qiskit_dynamics.arraylias import ArrayLike, requires_array_library
 
 try:
     import jax.numpy as jnp
@@ -146,7 +146,7 @@ def lanczos_expm(
     return y_dt
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_lanczos_basis(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
     """JAX version of lanczos_basis."""
 
@@ -202,7 +202,7 @@ def jax_lanczos_basis(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
     return tridiagonal, q_basis
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_lanczos_eigh(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
     """JAX version of lanczos_eigh."""
 
@@ -212,7 +212,7 @@ def jax_lanczos_eigh(A: jnp.ndarray, y0: jnp.ndarray, k_dim: int):
     return q_basis, eigen_values, eigen_vectors_t
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_lanczos_expm(
     A: jnp.ndarray,
     y0: jnp.ndarray,
