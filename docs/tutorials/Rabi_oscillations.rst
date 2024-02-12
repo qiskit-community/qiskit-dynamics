@@ -21,9 +21,11 @@ Hamiltonian containing a diagonal term of frequency :math:`\nu_z` and a
 transverse term of amplitude :math:`\nu_x` and harmonic driving
 frequency :math:`\nu_d` (see how the Hamiltonians are derived on 
 `Qiskit Textbook page on Introduction to Transmon Physics
-<https://qiskit.org/textbook/ch-quantum-hardware/transmon-physics.html>`_),
+<https://github.com/Qiskit/platypus/blob/main/notebooks/v2/quantum-hardware-pulses/transmon-physics.ipynb>`_),
 
-.. math:: H = \frac{1}{2} \times 2 \pi \nu_z {Z} + 2 \pi \nu_x \cos(2 \pi \nu_d t){X},
+.. math::
+
+    H = \frac{1}{2} \times 2 \pi \nu_z {Z} + 2 \pi \nu_x \cos(2 \pi \nu_d t){X},
 
 where :math:`\{X,Y,Z\}` are the Pauli matrices (also written as
 :math:`\sigma^a` with :math:`a\in\{x,y,z\}`).

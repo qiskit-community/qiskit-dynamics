@@ -71,7 +71,7 @@ setuptools.setup(
     project_urls={
         "Bug Tracker": "https://github.com/Qiskit-Extensions/qiskit-dynamics/issues",
         "Source Code": "https://github.com/Qiskit-Extensions/qiskit-dynamics",
-        "Documentation": "https://qiskit.org/ecosystem/dynamics/",
+        "Documentation": "https://qiskit-extensions.github.io/qiskit-dynamics/",
     },
     install_requires=requirements,
     include_package_data=True,
