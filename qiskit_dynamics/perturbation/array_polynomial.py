@@ -27,7 +27,12 @@ from qiskit import QiskitError
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
-from qiskit_dynamics.arraylias.alias import _preferred_lib, _numpy_multi_dispatch, ArrayLike
+from qiskit_dynamics.arraylias.alias import (
+    _preferred_lib,
+    _numpy_multi_dispatch,
+    ArrayLike,
+    _isArrayLike,
+)
 
 from qiskit_dynamics.perturbation.multiset_utils import (
     _validate_non_negative_ints,
@@ -367,7 +372,7 @@ class ArrayPolynomial:
             QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
 
-        if isinstance(other, ArrayLike):
+        if _isArrayLike(other):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -398,7 +403,7 @@ class ArrayPolynomial:
         Raises:
             QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
-        if isinstance(other, ArrayLike):
+        if _isArrayLike(other):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -430,7 +435,7 @@ class ArrayPolynomial:
             QiskitError: if other cannot be cast as an ArrayPolynomial.
         """
 
-        if isinstance(other, ArrayLike):
+        if _isArrayLike(other):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):
@@ -485,7 +490,7 @@ class ArrayPolynomial:
 
     def __rmatmul__(self, other: Union["ArrayPolynomial", ArrayLike]) -> "ArrayPolynomial":
         """Dunder method for rmatmul."""
-        if isinstance(other, ArrayLike):
+        if _isArrayLike(other):
             other = ArrayPolynomial(constant_term=other)
 
         if isinstance(other, ArrayPolynomial):

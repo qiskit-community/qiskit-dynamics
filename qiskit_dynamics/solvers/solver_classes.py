@@ -38,6 +38,7 @@ from qiskit.quantum_info import SuperOp, Operator, DensityMatrix
 from qiskit_dynamics import ArrayLike
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS as numpy_alias
+from qiskit_dynamics.arraylias.alias import _isArrayLike
 
 from qiskit_dynamics.models import (
     HamiltonianModel,
@@ -725,7 +726,7 @@ def initial_state_converter(obj: Any) -> Tuple[ArrayLike, Type, Callable]:
     """
     # pylint: disable=invalid-name
     y0_cls = None
-    if isinstance(obj, ArrayLike):
+    if _isArrayLike(obj):
         y0, y0_cls, wrapper = obj, None, lambda x: x
     if isinstance(obj, QuantumState):
         y0, y0_cls = obj.data, obj.__class__

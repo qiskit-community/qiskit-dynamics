@@ -21,7 +21,7 @@ from scipy.linalg import expm
 
 from qiskit import QiskitError
 from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.arraylias.alias import ArrayLike
+from qiskit_dynamics.arraylias.alias import _isArrayLike
 from qiskit_dynamics.models import HamiltonianModel
 from qiskit_dynamics.models.hamiltonian_model import is_hermitian
 from qiskit_dynamics.signals import Signal, SignalList
@@ -116,7 +116,7 @@ class TestHamiltonianModel:
         # convert to 2d array
         if isinstance(frame_operator, Operator):
             frame_operator = frame_operator.data
-        if isinstance(frame_operator, ArrayLike) and frame_operator.ndim == 1:
+        if _isArrayLike(frame_operator) and frame_operator.ndim == 1:
             frame_operator = np.diag(frame_operator)
 
         value = basic_hamiltonian(t) / -1j
