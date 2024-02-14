@@ -78,8 +78,8 @@ ArrayLike = Union[Union[DYNAMICS_NUMPY_ALIAS.registered_types()], list]
 
 
 def _isArrayLike(x: any) -> bool:
-    """Return true if x is an ArrayLike object. Equivalent to isinstance(x, ArrayLike),
-    however this does not work in Python 3.9.
+    """Return true if x is an ArrayLike object. Equivalent to isinstance(x, ArrayLike), which does
+    not work in Python 3.9.
     """
     return isinstance(x, (DYNAMICS_NUMPY_ALIAS.registered_types(), list))
 
