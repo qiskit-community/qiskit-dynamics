@@ -25,10 +25,15 @@ from qiskit import QiskitError
 
 from qiskit_ibm_runtime.fake_provider import FakeQuito
 
+try:
+    from jax import jit
+except ImportError:
+    pass
+
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.signals import DiscreteSignal
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 
 class TestPulseToSignals(QiskitDynamicsTestCase):
@@ -358,7 +363,7 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         self.assertAllClose(sigs[1].samples, np.array([0.0, 0.0, 0.0, -0.5, -0.5, -0.5]))
 
 
-class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
+class TestPulseToSignalsJAXTransformations(JAXTestBase):
     """Tests InstructionToSignals class by using Jax."""
 
     def setUp(self):
@@ -393,9 +398,9 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
             converter = InstructionToSignals(self._dt, carriers={"d0": 5})
             return converter.get_signals(schedule)[0].samples
 
-        self.jit_wrap(jit_func_instruction_to_signals)(0.1)
-        self.jit_grad_wrap(jit_func_instruction_to_signals)(0.1)
-        jit_samples = self.jit_wrap(jit_func_instruction_to_signals)(0.1)
+        jit(jit_func_instruction_to_signals)(0.1)
+        self.jit_grad(jit_func_instruction_to_signals)(0.1)
+        jit_samples = jit(jit_func_instruction_to_signals)(0.1)
         self.assertAllClose(jit_samples, self.constant_get_waveform_samples, atol=1e-7, rtol=1e-7)
 
     def test_pulse_types_combination_with_jax(self):
@@ -430,8 +435,8 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
             converter = InstructionToSignals(self._dt, carriers={"d0": 5})
             return converter.get_signals(schedule)[0].samples
 
-        self.jit_wrap(jit_func_symbolic_pulse)(0.1)
-        self.jit_grad_wrap(jit_func_symbolic_pulse)(0.1)
+        jit(jit_func_symbolic_pulse)(0.1)
+        self.jit_grad(jit_func_symbolic_pulse)(0.1)
 
 
 @ddt
