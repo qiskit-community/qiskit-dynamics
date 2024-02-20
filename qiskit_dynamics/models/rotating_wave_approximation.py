@@ -17,6 +17,9 @@ on Model classes."""
 
 from typing import List, Optional, Union
 import numpy as np
+
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.alias import ArrayLike, _to_dense, _to_dense_list
 from qiskit_dynamics.models import (
     BaseGeneratorModel,
     GeneratorModel,
@@ -25,8 +28,6 @@ from qiskit_dynamics.models import (
     RotatingFrame,
 )
 from qiskit_dynamics.signals import SignalSum, Signal, SignalList
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_array
 
 
 def rotating_wave_approximation(
@@ -147,7 +148,10 @@ def rotating_wave_approximation(
         if model.signals is None and model.operators is not None:
             raise ValueError("Model must have nontrivial signals to perform the RWA.")
 
-        cur_drift = to_array(model._get_static_operator(True))
+        cur_drift = _to_dense(model._operator_collection.static_operator)
+        if isinstance(model, HamiltonianModel) and cur_drift is not None:
+            cur_drift = 1j * cur_drift
+
         if cur_drift is not None:
             cur_drift = cur_drift + frame_shift
             rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
@@ -155,8 +159,12 @@ def rotating_wave_approximation(
         else:
             rwa_drift = None
 
+        operators = _to_dense_list(model._operator_collection.operators)
+        if isinstance(model, HamiltonianModel) and operators is not None:
+            operators = 1j * operators
+
         rwa_operators = get_rwa_operators(
-            to_array(model._get_operators(True)),
+            operators,
             model.signals,
             model.rotating_frame,
             frame_freqs,
@@ -171,7 +179,7 @@ def rotating_wave_approximation(
             signals=rwa_signals,
             rotating_frame=model.rotating_frame,
             in_frame_basis=model.in_frame_basis,
-            evaluation_mode=model.evaluation_mode,
+            array_library=model.array_library,
         )
         if return_signal_map:
             return rwa_model, get_rwa_signals
@@ -185,23 +193,23 @@ def rotating_wave_approximation(
             raise ValueError("Model must have nontrivial dissipator signals to perform the RWA.")
 
         # static hamiltonian part
-        cur_drift = to_array(model._get_static_hamiltonian(True)) + frame_shift
+        cur_drift = _to_dense(model._operator_collection.static_hamiltonian) + frame_shift
         rwa_drift = cur_drift * (abs(frame_freqs) < cutoff_freq).astype(int)
         rwa_drift = model.rotating_frame.operator_out_of_frame_basis(rwa_drift)
 
         # static dissipator part
-        cur_static_dis = to_array(model._get_static_dissipators(in_frame_basis=True))
+        cur_static_dis = _to_dense_list(model._operator_collection.static_dissipators)
         rwa_static_dis = None
         if cur_static_dis is not None:
             rwa_static_dis = []
             for op in cur_static_dis:
-                op = Array(op)
+                op = unp.asarray(op)
                 rwa_op = op * (abs(frame_freqs) < cutoff_freq).astype(int)
                 rwa_op = model.rotating_frame.operator_out_of_frame_basis(rwa_op)
                 rwa_static_dis.append(rwa_op)
 
-        cur_ham_ops = to_array(model._get_hamiltonian_operators(in_frame_basis=True))
-        cur_dis_ops = to_array(model._get_dissipator_operators(in_frame_basis=True))
+        cur_ham_ops = _to_dense_list(model._operator_collection.hamiltonian_operators)
+        cur_dis_ops = _to_dense_list(model._operator_collection.dissipator_operators)
 
         cur_ham_sig, cur_dis_sig = model.signals
 
@@ -225,22 +233,22 @@ def rotating_wave_approximation(
             dissipator_signals=rwa_dis_sig,
             rotating_frame=model.rotating_frame,
             in_frame_basis=model.in_frame_basis,
-            evaluation_mode=model.evaluation_mode,
+            array_library=model.array_library,
+            vectorized=model.vectorized,
         )
 
         if return_signal_map:
-            signal_translator = lambda a: (get_rwa_signals(a[0]), get_rwa_signals(a[1]))
-            return rwa_model, signal_translator
+            return rwa_model, lambda a: (get_rwa_signals(a[0]), get_rwa_signals(a[1]))
         return rwa_model
 
 
 def get_rwa_operators(
-    current_ops: Array,
+    current_ops: ArrayLike,
     current_sigs: SignalList,
     rotating_frame: RotatingFrame,
-    frame_freqs: Array,
+    frame_freqs: ArrayLike,
     cutoff_freq: float,
-):
+) -> ArrayLike:
     r"""Given a set of operators as a ``(k,n,n)`` array, a set of frequencies
     :math:`\operatorname{frame_freqs}_{jk} = \operatorname{Im}[-d_j+d_k]` where :math:`d_i` the
     :math:`i^{th}` eigenlvalue of the frame operator :math:`F`, the current signals of a model, and
@@ -288,7 +296,7 @@ def get_rwa_operators(
     )
 
 
-def get_rwa_signals(curr_signal_list: Union[List[Signal], SignalList]):
+def get_rwa_signals(curr_signal_list: Union[List[Signal], SignalList]) -> SignalList:
     """Helper function that converts pre-RWA signals to post-RWA signals.
 
     Args:

@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    Similar to the :class:`.Solver` initialization method, the :meth:`.DynamicsBackend.from_backend`
+    constructor method argument ``evaluation_mode`` has been removed and replaced by the arguments
+    ``array_library`` and ``vectorized``.

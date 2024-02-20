@@ -15,15 +15,14 @@
 Wrapper for calling scipy.integrate.solve_ivp.
 """
 
-from typing import Callable, Union, Optional, Tuple, List
+from typing import Callable, Union, Optional
 
 import numpy as np
 from scipy.integrate import solve_ivp, OdeSolver
 from scipy.integrate._ivp.ivp import OdeResult
 
 from qiskit import QiskitError
-from qiskit_dynamics.array import Array
-from ..type_utils import StateTypeConverter
+from qiskit_dynamics.arraylias import ArrayLike
 
 # Supported scipy ODE methods
 COMPLEX_METHODS = ["RK45", "RK23", "BDF", "DOP853"]
@@ -33,10 +32,10 @@ SOLVE_IVP_METHODS = COMPLEX_METHODS + REAL_METHODS
 
 def scipy_solve_ivp(
     rhs: Callable,
-    t_span: Array,
-    y0: Array,
+    t_span: ArrayLike,
+    y0: ArrayLike,
     method: Union[str, OdeSolver],
-    t_eval: Optional[Union[Tuple, List, Array]] = None,
+    t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ):
     """Routine for calling `scipy.integrate.solve_ivp`.
@@ -59,15 +58,11 @@ def scipy_solve_ivp(
     if kwargs.get("dense_output", False) is True:
         raise QiskitError("dense_output not supported for solve_ivp.")
 
-    # solve_ivp requires 1d arrays internally
-    internal_state_spec = {"type": "array", "ndim": 1}
-    type_converter = StateTypeConverter.from_outer_instance_inner_type_spec(y0, internal_state_spec)
+    y_shape = y0.shape
 
-    # modify the rhs to work with 1d arrays or real solvers
-    rhs = type_converter.rhs_outer_to_inner(rhs)
-
-    # convert y0 to the flattened version
-    y0 = type_converter.outer_to_inner(y0)
+    # flatten y0 and rhs
+    y0 = y0.flatten()
+    rhs = flat_rhs(rhs, y_shape)
 
     # Check if solver is real only
     # TODO: Also check if model or y0 are complex
@@ -84,9 +79,18 @@ def scipy_solve_ivp(
     # convert to the standardized results format
     # solve_ivp returns the states as a 2d array with columns being the states
     results.y = results.y.transpose()
-    results.y = Array([type_converter.inner_to_outer(y) for y in results.y])
+    results.y = np.array([y.reshape(y_shape) for y in results.y])
 
     return OdeResult(**dict(results))
+
+
+def flat_rhs(rhs, shape):
+    """Convert an RHS with arbitrary state shape into one that is 1d."""
+
+    def _flat_rhs(t, y):
+        return rhs(t, y.reshape(shape)).flatten()
+
+    return _flat_rhs
 
 
 def real_rhs(rhs):

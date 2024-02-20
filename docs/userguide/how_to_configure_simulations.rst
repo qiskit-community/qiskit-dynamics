@@ -50,6 +50,12 @@ First, construct the components of the model:
 
 .. jupyter-execute::
 
+    ################################################################################# 
+    # Remove this
+    #################################################################################
+    import warnings
+    warnings.filterwarnings("ignore")
+
     import numpy as np
     from qiskit.quantum_info import Operator
     from qiskit_dynamics import Solver, Signal
@@ -215,17 +221,12 @@ Start off by configuring to use JAX.
 
 .. jupyter-execute::
 
-    from qiskit_dynamics.array import Array
-
     # configure jax to use 64 bit mode
     import jax
     jax.config.update("jax_enable_x64", True)
 
     # tell JAX we are using CPU
     jax.config.update('jax_platform_name', 'cpu')
-
-    # set default backend
-    Array.set_default_backend('jax')
 
 Reconstruct the model pieces at a much larger dimension, to observe the
 benefits of using sparse arrays. Furthermore, set up the initial state to
@@ -289,7 +290,7 @@ diagonal, but we explicitly highlight the need for this.
     sparse_solver = Solver(static_hamiltonian=static_hamiltonian,
                            hamiltonian_operators=[drive_hamiltonian],
                            rotating_frame=np.diag(static_hamiltonian),
-                           evaluation_mode='sparse')
+                           array_library='jax_sparse')
 
     def sparse_func(amp):
         drive_signal = Signal(amp, carrier_freq=v)

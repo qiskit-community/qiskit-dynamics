@@ -26,8 +26,7 @@ from multiset import Multiset
 
 from qiskit.quantum_info import Operator
 
-from qiskit_dynamics import Signal, RotatingFrame
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import Signal, RotatingFrame, ArrayLike
 
 from .expansion_model import ExpansionModel
 from .perturbative_solver import _PerturbativeSolver, _perturbative_solve, _perturbative_solve_jax
@@ -56,9 +55,9 @@ class MagnusSolver(_PerturbativeSolver):
     def __init__(
         self,
         operators: List[Operator],
-        rotating_frame: Union[Array, Operator, RotatingFrame, None],
+        rotating_frame: Union[ArrayLike, RotatingFrame, None],
         dt: float,
-        carrier_freqs: Array,
+        carrier_freqs: ArrayLike,
         chebyshev_orders: List[int],
         expansion_order: Optional[int] = None,
         expansion_labels: Optional[List[Multiset]] = None,
@@ -105,13 +104,26 @@ class MagnusSolver(_PerturbativeSolver):
         )
         super().__init__(model=model)
 
-    def _solve(self, t0: float, n_steps: int, y0: Array, signals: List[Signal]) -> OdeResult:
+    def _solve(
+        self,
+        t0: float,
+        n_steps: int,
+        y0: ArrayLike,
+        signals: List[Signal],
+        jax_control_flow: bool = False,
+    ) -> OdeResult:
         ys = None
-        if Array.default_backend() == "jax":
-            single_step = lambda x: self.model.Udt @ jexpm(self.model.evaluate(x).data)
+        if jax_control_flow:
+
+            def single_step(x):
+                return self.model.Udt @ jexpm(self.model.evaluate(x))
+
             ys = [y0, _perturbative_solve_jax(single_step, self.model, signals, y0, t0, n_steps)]
         else:
-            single_step = lambda coeffs, y: self.model.Udt @ expm(self.model.evaluate(coeffs)) @ y
+
+            def single_step(coeffs, y):
+                return self.model.Udt @ expm(self.model.evaluate(coeffs)) @ y
+
             ys = [y0, _perturbative_solve(single_step, self.model, signals, y0, t0, n_steps)]
 
         return OdeResult(t=[t0, t0 + n_steps * self.model.dt], y=ys)

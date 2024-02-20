@@ -42,15 +42,23 @@ import unittest
 import inspect
 
 import numpy as np
-from scipy.sparse import issparse
+from scipy.sparse import csr_matrix, issparse
 
 try:
     from jax import jit, grad
     import jax.numpy as jnp
+    from jax.experimental.sparse import BCOO
+
 except ImportError:
     pass
 
+from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
+
 from qiskit_dynamics.array import Array, wrap
+
+
+def _is_sparse_object_array(A):
+    return isinstance(A, np.ndarray) and A.ndim > 0 and issparse(A[0])
 
 
 class QiskitDynamicsTestCase(unittest.TestCase):
@@ -58,6 +66,20 @@ class QiskitDynamicsTestCase(unittest.TestCase):
 
     def assertAllClose(self, A, B, rtol=1e-8, atol=1e-8):
         """Call np.allclose and assert true."""
+        if any(
+            "sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(A)
+        ) or _is_sparse_object_array(A):
+            if isinstance(A, list) or _is_sparse_object_array(A):
+                A = [x.todense() for x in A]
+            else:
+                A = A.todense()
+        if any(
+            "sparse" in x for x in DYNAMICS_NUMPY_ALIAS.infer_libs(B)
+        ) or _is_sparse_object_array(B):
+            if isinstance(B, list) or _is_sparse_object_array(B):
+                B = [x.todense() for x in B]
+            else:
+                B = B.todense()
         A = np.array(A)
         B = np.array(B)
 
@@ -120,6 +142,73 @@ class JAXTestBase(QiskitDynamicsTestCase):
     def assertArrayType(self, a):
         """Assert the correct array type."""
         return isinstance(a, jnp.ndarray)
+
+    def jit_grad(self, func_to_test: Callable) -> Callable:
+        """Tests whether a function can be graded. Converts
+        all functions to scalar, real functions if they are not
+        already.
+        Args:
+            func_to_test: The function whose gradient will be graded.
+        Returns:
+            JIT-compiled gradient of function.
+        """
+        return jit(grad(lambda *args: np.sum(func_to_test(*args)).real))
+
+
+class ScipySparseTestBase(QiskitDynamicsTestCase):
+    """Base class for tests working with scipy_sparse arrays."""
+
+    @classmethod
+    def array_library(cls):
+        """Library method."""
+        return "scipy_sparse"
+
+    def asarray(self, a):
+        """Array generation method."""
+        return csr_matrix(a)
+
+    def assertArrayType(self, a):
+        """Assert the correct array type."""
+        return issparse(a)
+
+
+class JAXSparseTestBase(QiskitDynamicsTestCase):
+    """Base class for tests working with jax_sparse arrays."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            # pylint: disable=import-outside-toplevel
+            import jax
+
+            jax.config.update("jax_enable_x64", True)
+            jax.config.update("jax_platform_name", "cpu")
+        except Exception as err:
+            raise unittest.SkipTest("Skipping jax tests.") from err
+
+    @classmethod
+    def array_library(cls):
+        """Library method."""
+        return "jax_sparse"
+
+    def asarray(self, a):
+        """Array generation method."""
+        return BCOO.fromdense(a)
+
+    def assertArrayType(self, a):
+        """Assert the correct array type."""
+        return type(a).__name__ == "BCOO"
+
+    def jit_grad(self, func_to_test: Callable) -> Callable:
+        """Tests whether a function can be graded. Converts
+        all functions to scalar, real functions if they are not
+        already.
+        Args:
+            func_to_test: The function whose gradient will be graded.
+        Returns:
+            JIT-compiled gradient of function.
+        """
+        return jit(grad(lambda *args: np.sum(func_to_test(*args)).real))
 
 
 class ArrayNumpyTestBase(QiskitDynamicsTestCase):
@@ -226,11 +315,17 @@ class DiffraxTestBase(unittest.TestCase):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 import diffrax  # pylint: disable=import-outside-toplevel,unused-import
+
+            # pylint: disable=import-outside-toplevel
+            import jax
+
+            jax.config.update("jax_enable_x64", True)
+            jax.config.update("jax_platform_name", "cpu")
         except Exception as err:
             raise unittest.SkipTest("Skipping diffrax tests.") from err
 
 
-class QutipTestBase(unittest.TestCase):
+class QutipTestBase(QiskitDynamicsTestCase):
     """Base class for tests that utilize Qutip."""
 
     @classmethod
@@ -288,6 +383,6 @@ class TestJaxBase(unittest.TestCase):
         Returns:
             JIT-compiled gradient of function.
         """
-        wf = wrap(lambda f: jit(grad(f)), decorator=True)
-        f = lambda *args: np.sum(func_to_test(*args)).real
-        return wf(f)
+        return wrap(lambda f: jit(grad(f)), decorator=True)(
+            lambda *args: np.sum(func_to_test(*args)).real
+        )

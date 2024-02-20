@@ -19,8 +19,7 @@ from typing import Union, Optional
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from qiskit_dynamics.dispatch import requires_backend
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias import requires_array_library
 
 try:
     import jax.numpy as jnp
@@ -147,8 +146,8 @@ def lanczos_expm(
     return y_dt
 
 
-@requires_backend("jax")
-def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
+@requires_array_library("jax")
+def jax_lanczos_basis(A: np.ndarray, y0: np.ndarray, k_dim: int):
     """JAX version of lanczos_basis."""
 
     data_type = jnp.result_type(A.dtype, y0.dtype)
@@ -181,10 +180,13 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
 
     def cond_func(qpb, _):
         _, _, beta_i = qpb
-        zeros_func = lambda _: (
-            [jnp.zeros_like(y0), jnp.zeros_like(y0), 0.0],
-            [jnp.zeros(1, dtype=data_type)[0], 0.0, jnp.zeros_like(y0)],
-        )
+
+        def zeros_func(_):
+            return (
+                [jnp.zeros_like(y0), jnp.zeros_like(y0), 0.0],
+                [jnp.zeros(1, dtype=data_type)[0], 0.0, jnp.zeros_like(y0)],
+            )
+
         carry_next2, accumulate2 = cond(
             beta_i > 0, lambda carry: lanczos_iter(carry, _), zeros_func, qpb
         )
@@ -203,8 +205,8 @@ def jax_lanczos_basis(A: Array, y0: Array, k_dim: int):
     return tridiagonal, q_basis
 
 
-@requires_backend("jax")
-def jax_lanczos_eigh(A: Array, y0: Array, k_dim: int):
+@requires_array_library("jax")
+def jax_lanczos_eigh(A: np.ndarray, y0: np.ndarray, k_dim: int):
     """JAX version of lanczos_eigh."""
 
     tridiagonal, q_basis = jax_lanczos_basis(A, y0, k_dim)
@@ -213,10 +215,10 @@ def jax_lanczos_eigh(A: Array, y0: Array, k_dim: int):
     return q_basis, eigen_values, eigen_vectors_t
 
 
-@requires_backend("jax")
+@requires_array_library("jax")
 def jax_lanczos_expm(
-    A: Array,
-    y0: Array,
+    A: np.ndarray,
+    y0: np.ndarray,
     k_dim: int,
     scale_factor: Optional[float] = 1,
 ):

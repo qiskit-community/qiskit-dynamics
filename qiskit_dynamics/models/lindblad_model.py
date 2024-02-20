@@ -17,27 +17,21 @@ Lindblad model module.
 
 from typing import Tuple, Union, List, Optional
 from warnings import warn
-from scipy.sparse import csr_matrix
 
 from qiskit import QiskitError
-from qiskit.quantum_info.operators import Operator
-from qiskit_dynamics.array import Array
-from qiskit_dynamics.type_utils import to_numeric_matrix_type
+from qiskit_dynamics.arraylias.alias import ArrayLike, _to_dense, _to_dense_list
 from qiskit_dynamics.signals import Signal, SignalList
 from .generator_model import (
     BaseGeneratorModel,
-    transfer_static_operator_between_frames,
-    transfer_operators_between_frames,
+    _static_operator_into_frame_basis,
+    _operators_into_frame_basis,
 )
 from .hamiltonian_model import HamiltonianModel, is_hermitian
 from .operator_collections import (
-    BaseLindbladOperatorCollection,
-    DenseLindbladCollection,
-    DenseVectorizedLindbladCollection,
-    SparseLindbladCollection,
-    JAXSparseLindbladCollection,
-    SparseVectorizedLindbladCollection,
-    JAXSparseVectorizedLindbladCollection,
+    LindbladCollection,
+    ScipySparseLindbladCollection,
+    VectorizedLindbladCollection,
+    ScipySparseVectorizedLindbladCollection,
 )
 from .rotating_frame import RotatingFrame
 
@@ -105,15 +99,16 @@ class LindbladModel(BaseGeneratorModel):
 
     def __init__(
         self,
-        static_hamiltonian: Optional[Union[Array, csr_matrix]] = None,
-        hamiltonian_operators: Optional[Union[Array, List[csr_matrix]]] = None,
+        static_hamiltonian: Optional[ArrayLike] = None,
+        hamiltonian_operators: Optional[ArrayLike] = None,
         hamiltonian_signals: Optional[Union[List[Signal], SignalList]] = None,
-        static_dissipators: Optional[Union[Array, csr_matrix]] = None,
-        dissipator_operators: Optional[Union[Array, List[csr_matrix]]] = None,
+        static_dissipators: Optional[ArrayLike] = None,
+        dissipator_operators: Optional[ArrayLike] = None,
         dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        rotating_frame: Optional[Union[Operator, Array, RotatingFrame]] = None,
+        rotating_frame: Optional[Union[ArrayLike, RotatingFrame]] = None,
         in_frame_basis: bool = False,
-        evaluation_mode: Optional[str] = "dense",
+        array_library: Optional[str] = None,
+        vectorized: bool = False,
         validate: bool = True,
     ):
         """Initialize.
@@ -130,8 +125,13 @@ class LindbladModel(BaseGeneratorModel):
                 assumed that all operators were already in the frame basis.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                 frame operator is diagonalized.
-            evaluation_mode: Evaluation mode to use. Call ``help(LindbladModel.evaluation_mode)``
-                for more details.
+            array_library: Array library for storing the operators in the model. Supported options
+                are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
+                the arrays will be handled by general dispatching rules.
+            vectorized: Whether or not to setup the Lindblad equation in vectorized mode.
+                If ``True``, the operators in the model are stored as :math:`(dim^2,dim^2)` matrices
+                that act on vectorized density matrices by left-multiplication. Setting this to
+                ``True`` is necessary for ``SuperOp`` simulation.
             validate: If True check input hamiltonian_operators and static_hamiltonian are
                 Hermitian.
 
@@ -151,28 +151,61 @@ class LindbladModel(BaseGeneratorModel):
                 "to be specified at construction."
             )
 
-        static_hamiltonian = to_numeric_matrix_type(static_hamiltonian)
-        hamiltonian_operators = to_numeric_matrix_type(hamiltonian_operators)
         if validate:
-            if (hamiltonian_operators is not None) and (not is_hermitian(hamiltonian_operators)):
-                raise QiskitError("""LinbladModel hamiltonian_operators must be Hermitian.""")
             if (static_hamiltonian is not None) and (not is_hermitian(static_hamiltonian)):
                 raise QiskitError("""LinbladModel static_hamiltonian must be Hermitian.""")
+            if (hamiltonian_operators is not None) and any(
+                not is_hermitian(op) for op in hamiltonian_operators
+            ):
+                raise QiskitError("""LindbladModel hamiltonian_operators must be Hermitian.""")
 
-        self._operator_collection = construct_lindblad_operator_collection(
-            evaluation_mode=evaluation_mode,
+        self._array_library = array_library
+        self._vectorized = vectorized
+        self._rotating_frame = RotatingFrame(rotating_frame)
+        self._in_frame_basis = in_frame_basis
+
+        # jax sparse arrays cannot be used directly at this stage
+        setup_library = array_library
+        if array_library == "jax_sparse":
+            setup_library = "jax"
+
+        # set up internal operators
+        if static_hamiltonian is not None:
+            static_hamiltonian = -1j * static_hamiltonian
+        static_hamiltonian = _static_operator_into_frame_basis(
+            static_operator=static_hamiltonian,
+            rotating_frame=self._rotating_frame,
+            array_library=setup_library,
+        )
+        if static_hamiltonian is not None:
+            static_hamiltonian = 1j * static_hamiltonian
+
+        hamiltonian_operators = _operators_into_frame_basis(
+            operators=hamiltonian_operators,
+            rotating_frame=self._rotating_frame,
+            array_library=setup_library,
+        )
+
+        static_dissipators = _operators_into_frame_basis(
+            operators=static_dissipators,
+            rotating_frame=self._rotating_frame,
+            array_library=setup_library,
+        )
+
+        dissipator_operators = _operators_into_frame_basis(
+            operators=dissipator_operators,
+            rotating_frame=self._rotating_frame,
+            array_library=setup_library,
+        )
+
+        self._operator_collection = _get_lindblad_operator_collection(
+            array_library=array_library,
+            vectorized=vectorized,
             static_hamiltonian=static_hamiltonian,
             hamiltonian_operators=hamiltonian_operators,
             static_dissipators=static_dissipators,
             dissipator_operators=dissipator_operators,
         )
-        self._evaluation_mode = evaluation_mode
-        self.vectorized_operators = "vectorized" in evaluation_mode
-
-        self._rotating_frame = None
-        self.rotating_frame = rotating_frame
-        self._in_frame_basis = None
-        self.in_frame_basis = in_frame_basis
 
         self.signals = (hamiltonian_signals, dissipator_signals)
 
@@ -180,10 +213,11 @@ class LindbladModel(BaseGeneratorModel):
     def from_hamiltonian(
         cls,
         hamiltonian: HamiltonianModel,
-        static_dissipators: Optional[Union[Array, csr_matrix]] = None,
-        dissipator_operators: Optional[Union[Array, List[csr_matrix]]] = None,
-        dissipator_signals: Optional[Union[List[Signal], SignalList]] = None,
-        evaluation_mode: Optional[str] = None,
+        static_dissipators: Optional[ArrayLike] = None,
+        dissipator_operators: Optional[ArrayLike] = None,
+        dissipator_signals: Optional[ArrayLike] = None,
+        array_library: Optional[str] = None,
+        vectorized: bool = False,
     ):
         """Construct from a :class:`HamiltonianModel`.
 
@@ -192,29 +226,35 @@ class LindbladModel(BaseGeneratorModel):
             static_dissipators: List of dissipators with coefficient 1.
             dissipator_operators: List of dissipators with time-dependent coefficients.
             dissipator_signals: List time-dependent coefficients for dissipator_operators.
-            evaluation_mode: Evaluation mode. Call ``help(LindbladModel.evaluation_mode)`` for more
-                information.
+            array_library: Array library to use.
+            vectorized: Whether or not to vectorize the Lindblad equation.
 
         Returns:
             LindbladModel: Linblad model from parameters.
         """
 
-        if evaluation_mode is None:
-            evaluation_mode = hamiltonian.evaluation_mode
+        # store whether hamiltonian is in_frame_basis and set to False
+        in_frame_basis = hamiltonian.in_frame_basis
+        hamiltonian.in_frame_basis = False
 
-        ham_copy = hamiltonian.copy()
-        ham_copy.rotating_frame = None
+        # get the operators
+        static_hamiltonian = hamiltonian.static_operator
+        hamiltonian_operators = hamiltonian.operators
+
+        # return to previous value
+        hamiltonian.in_frame_basis = in_frame_basis
 
         return cls(
-            static_hamiltonian=ham_copy._get_static_operator(in_frame_basis=False),
-            hamiltonian_operators=ham_copy._get_operators(in_frame_basis=False),
-            hamiltonian_signals=ham_copy.signals,
-            static_dissipators=static_dissipators,
-            dissipator_operators=dissipator_operators,
+            static_hamiltonian=_to_dense(static_hamiltonian),
+            hamiltonian_operators=_to_dense_list(hamiltonian_operators),
+            hamiltonian_signals=hamiltonian.signals,
+            static_dissipators=_to_dense_list(static_dissipators),
+            dissipator_operators=_to_dense_list(dissipator_operators),
             dissipator_signals=dissipator_signals,
             rotating_frame=hamiltonian.rotating_frame,
             in_frame_basis=hamiltonian.in_frame_basis,
-            evaluation_mode=evaluation_mode,
+            array_library=array_library,
+            vectorized=vectorized,
         )
 
     @property
@@ -308,216 +348,69 @@ class LindbladModel(BaseGeneratorModel):
         self._in_frame_basis = in_frame_basis
 
     @property
-    def static_hamiltonian(self) -> Array:
+    def static_hamiltonian(self) -> ArrayLike:
         """The static Hamiltonian term."""
-        return self._get_static_hamiltonian(in_frame_basis=self._in_frame_basis)
+        if self._operator_collection.static_hamiltonian is None:
+            return None
 
-    @static_hamiltonian.setter
-    def static_hamiltonian(self, static_hamiltonian: Array):
-        self._set_static_hamiltonian(
-            new_static_hamiltonian=static_hamiltonian, operator_in_frame_basis=self._in_frame_basis
+        if self.in_frame_basis:
+            return self._operator_collection.static_hamiltonian
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.static_hamiltonian
         )
 
     @property
-    def hamiltonian_operators(self) -> Array:
+    def hamiltonian_operators(self) -> ArrayLike:
         """The Hamiltonian operators."""
-        return self._get_hamiltonian_operators(in_frame_basis=self._in_frame_basis)
+        if self._operator_collection.hamiltonian_operators is None:
+            return None
+
+        if self.in_frame_basis:
+            return self._operator_collection.hamiltonian_operators
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.hamiltonian_operators
+        )
 
     @property
-    def static_dissipators(self) -> Array:
+    def static_dissipators(self) -> ArrayLike:
         """The static dissipator operators."""
-        return self._get_static_dissipators(in_frame_basis=self._in_frame_basis)
+        if self._operator_collection.static_dissipators is None:
+            return None
+
+        if self.in_frame_basis:
+            return self._operator_collection.static_dissipators
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.static_dissipators
+        )
 
     @property
-    def dissipator_operators(self) -> Array:
+    def dissipator_operators(self) -> ArrayLike:
         """The dissipator operators."""
-        return self._get_dissipator_operators(in_frame_basis=self._in_frame_basis)
+        if self._operator_collection.dissipator_operators is None:
+            return None
 
-    def _get_static_hamiltonian(self, in_frame_basis: Optional[bool] = False) -> Array:
-        """Get the constant Hamiltonian term.
-
-        Args:
-            in_frame_basis: Flag for whether the returned ``static_operator`` should be in the basis
-                in which the frame is diagonal.
-
-        Returns:
-            The static operator term.
-        """
-        op = self._operator_collection.static_hamiltonian
-        if not in_frame_basis and self.rotating_frame is not None:
-            return self.rotating_frame.operator_out_of_frame_basis(op)
-        else:
-            return op
-
-    def _set_static_hamiltonian(
-        self,
-        new_static_hamiltonian: Array,
-        operator_in_frame_basis: Optional[bool] = False,
-    ):
-        """Set the constant Hamiltonian term.
-
-        Note that if the model has a rotating frame this will override any contributions to the
-        static term due to the frame transformation.
-
-        Args:
-            new_static_hamiltonian: The static operator operator.
-            operator_in_frame_basis: Whether ``new_static_operator`` is already in the rotating
-                frame basis.
-        """
-        if new_static_hamiltonian is None:
-            self._operator_collection.static_hamiltonian = None
-        else:
-            if not operator_in_frame_basis and self.rotating_frame is not None:
-                new_static_hamiltonian = self.rotating_frame.operator_into_frame_basis(
-                    new_static_hamiltonian
-                )
-
-            self._operator_collection.static_hamiltonian = new_static_hamiltonian
-
-    def _get_hamiltonian_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
-        """Get the Hamiltonian operators, either in the frame basis or not.
-
-        Args:
-            in_frame_basis: Whether to return in frame basis or not.
-
-        Returns:
-            Hamiltonian operators.
-        """
-        ham_ops = self._operator_collection.hamiltonian_operators
-        if not in_frame_basis and self.rotating_frame is not None:
-            ham_ops = self.rotating_frame.operator_out_of_frame_basis(ham_ops)
-
-        return ham_ops
-
-    def _get_static_dissipators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
-        """Get the static dissipators, either in the frame basis or not.
-
-        Args:
-            in_frame_basis: Whether to return in frame basis or not.
-
-        Returns:
-            Dissipator operators.
-        """
-        diss_ops = self._operator_collection.static_dissipators
-        if not in_frame_basis and self.rotating_frame is not None:
-            diss_ops = self.rotating_frame.operator_out_of_frame_basis(diss_ops)
-
-        return diss_ops
-
-    def _get_dissipator_operators(self, in_frame_basis: Optional[bool] = False) -> Tuple[Array]:
-        """Get the dissipator operators, either in the frame basis or not.
-
-        Args:
-            in_frame_basis: Whether to return in frame basis or not.
-
-        Returns:
-            Dissipator operators.
-        """
-        diss_ops = self._operator_collection.dissipator_operators
-        if not in_frame_basis and self.rotating_frame is not None:
-            diss_ops = self.rotating_frame.operator_out_of_frame_basis(diss_ops)
-
-        return diss_ops
+        if self.in_frame_basis:
+            return self._operator_collection.dissipator_operators
+        return self.rotating_frame.operator_out_of_frame_basis(
+            self._operator_collection.dissipator_operators
+        )
 
     @property
-    def evaluation_mode(self) -> str:
-        """Numerical evaluation mode of the model.
+    def array_library(self) -> Union[None, str]:
+        """Array library used to store the operators in the model."""
+        return self._array_library
 
-        Available options:
-
-         * ``'dense'``: Stores Hamiltonian and dissipator terms as dense Array types.
-         * ``'dense_vectorized'``: Stores the Hamiltonian and dissipator terms as
-           :math:`(dim^2,dim^2)` matrices that acts on a vectorized density matrix by
-           left-multiplication. Allows for direct evaluate generator.
-         * ``'sparse'``: Like dense, but matrices stored in sparse format. If the default Array
-           backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy :class:`csr_matrix`
-           sparse type.
-         * ```sparse_vectorized```: Like dense_vectorized, but matrices stored in sparse format. If
-           the default Array backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
-           :class:`csr_matrix` sparse type. Note that JAX sparse mode is only recommended for use
-           on CPU.
-
-        Raises:
-            NotImplementedError: If this property is set to something other than one of the above
-                modes.
-        """
-        return self._evaluation_mode
-
-    @evaluation_mode.setter
-    def evaluation_mode(self, new_mode: str):
-        if new_mode != self._evaluation_mode:
-            self._operator_collection = construct_lindblad_operator_collection(
-                evaluation_mode=new_mode,
-                static_hamiltonian=self._operator_collection.static_hamiltonian,
-                hamiltonian_operators=self._operator_collection.hamiltonian_operators,
-                static_dissipators=self._operator_collection.static_dissipators,
-                dissipator_operators=self._operator_collection.dissipator_operators,
-            )
-
-            self.vectorized_operators = "vectorized" in new_mode
-            self._evaluation_mode = new_mode
+    @property
+    def vectorized(self) -> bool:
+        """Whether or not the Lindblad equation is vectorized."""
+        return self._vectorized
 
     @property
     def rotating_frame(self):
-        """The rotating frame.
-
-        This property can be set with a :class:`RotatingFrame` instance, or any valid constructor
-        argument to this class.
-
-        Setting this property updates the internal operator to use the new frame.
-        """
+        """The rotating frame."""
         return self._rotating_frame
 
-    @rotating_frame.setter
-    def rotating_frame(self, rotating_frame: Union[Operator, Array, RotatingFrame]):
-        new_frame = RotatingFrame(rotating_frame)
-
-        # convert static hamiltonian to new frame setup
-        static_ham = self._get_static_hamiltonian(in_frame_basis=True)
-        if static_ham is not None:
-            static_ham = -1j * static_ham
-
-        new_static_hamiltonian = transfer_static_operator_between_frames(
-            static_ham,
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
-        )
-
-        if new_static_hamiltonian is not None:
-            new_static_hamiltonian = 1j * new_static_hamiltonian
-
-        # convert hamiltonian operators and dissipator operators
-        ham_ops = self._get_hamiltonian_operators(in_frame_basis=True)
-        static_diss_ops = self._get_static_dissipators(in_frame_basis=True)
-        diss_ops = self._get_dissipator_operators(in_frame_basis=True)
-
-        new_hamiltonian_operators = transfer_operators_between_frames(
-            ham_ops,
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
-        )
-        new_static_dissipators = transfer_operators_between_frames(
-            static_diss_ops,
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
-        )
-        new_dissipator_operators = transfer_operators_between_frames(
-            diss_ops,
-            new_frame=new_frame,
-            old_frame=self.rotating_frame,
-        )
-
-        self._rotating_frame = new_frame
-
-        self._operator_collection = construct_lindblad_operator_collection(
-            evaluation_mode=self.evaluation_mode,
-            static_hamiltonian=new_static_hamiltonian,
-            hamiltonian_operators=new_hamiltonian_operators,
-            static_dissipators=new_static_dissipators,
-            dissipator_operators=new_dissipator_operators,
-        )
-
-    def evaluate_hamiltonian(self, time: float) -> Array:
+    def evaluate_hamiltonian(self, time: float) -> ArrayLike:
         """Evaluates Hamiltonian matrix at a given time.
 
         Args:
@@ -538,12 +431,12 @@ class LindbladModel(BaseGeneratorModel):
                 ham,
                 operator_in_frame_basis=True,
                 return_in_frame_basis=self._in_frame_basis,
-                vectorized_operators=self.vectorized_operators,
+                vectorized_operators=self.vectorized,
             )
 
         return ham
 
-    def evaluate(self, time: float) -> Array:
+    def evaluate(self, time: float) -> ArrayLike:
         """Evaluate the model in array format as a matrix, independent of state.
 
         Args:
@@ -574,7 +467,7 @@ class LindbladModel(BaseGeneratorModel):
                 "without dissipator signals."
             )
 
-        if self.vectorized_operators:
+        if self.vectorized:
             out = self._operator_collection.evaluate(hamiltonian_sig_vals, dissipator_sig_vals)
             return self.rotating_frame.vectorized_map_into_frame(
                 time, out, operator_in_frame_basis=True, return_in_frame_basis=self._in_frame_basis
@@ -584,7 +477,7 @@ class LindbladModel(BaseGeneratorModel):
                 "Non-vectorized Lindblad models cannot be represented without a given state."
             )
 
-    def evaluate_rhs(self, time: Union[float, int], y: Array) -> Array:
+    def evaluate_rhs(self, time: float, y: ArrayLike) -> ArrayLike:
         """Evaluates the Lindblad model at a given time.
 
         Args:
@@ -624,7 +517,7 @@ class LindbladModel(BaseGeneratorModel):
                 y,
                 operator_in_frame_basis=self._in_frame_basis,
                 return_in_frame_basis=True,
-                vectorized_operators=self.vectorized_operators,
+                vectorized_operators=self.vectorized,
             )
 
             rhs = self._operator_collection.evaluate_rhs(
@@ -637,7 +530,7 @@ class LindbladModel(BaseGeneratorModel):
                 rhs,
                 operator_in_frame_basis=True,
                 return_in_frame_basis=self._in_frame_basis,
-                vectorized_operators=self.vectorized_operators,
+                vectorized_operators=self.vectorized,
             )
 
         else:
@@ -648,65 +541,60 @@ class LindbladModel(BaseGeneratorModel):
         return rhs
 
 
-def construct_lindblad_operator_collection(
-    evaluation_mode: str,
-    static_hamiltonian: Union[None, Array, csr_matrix],
-    hamiltonian_operators: Union[None, Array, List[csr_matrix]],
-    static_dissipators: Union[None, Array, csr_matrix],
-    dissipator_operators: Union[None, Array, List[csr_matrix]],
-) -> BaseLindbladOperatorCollection:
+def _get_lindblad_operator_collection(
+    array_library: Optional[str],
+    vectorized: bool,
+    static_hamiltonian: Optional[ArrayLike],
+    hamiltonian_operators: Optional[ArrayLike],
+    static_dissipators: Optional[ArrayLike],
+    dissipator_operators: Optional[ArrayLike],
+) -> Union[
+    LindbladCollection,
+    ScipySparseLindbladCollection,
+    VectorizedLindbladCollection,
+    ScipySparseVectorizedLindbladCollection,
+]:
     """Construct a Lindblad operator collection.
 
     Args:
-        evaluation_mode: String specifying new mode. Available options are ``'dense'``,
-            ``'sparse'``, ``'dense_vectorized'``, and ``'sparse_vectorized'``.
+        array_library: Array library to use.
+        vectorized: Whether or not to vectorize the Lindblad equation.
         static_hamiltonian: Constant part of the Hamiltonian.
         hamiltonian_operators: Operators in Hamiltonian with time-dependent coefficients.
         static_dissipators: Dissipation operators with coefficient 1.
         dissipator_operators: Dissipation operators with variable coefficients.
 
     Returns:
-        BaseLindbladOperatorCollection: Right-hand side evaluation object.
-
-    Raises:
-        NotImplementedError: If ``evaluation_mode`` is not one of the above supported evaluation
-            modes.
+        Union[
+            LindbladCollection,
+            ScipySparseLindbladCollection,
+            VectorizedLindbladCollection,
+            ScipySparseVectorizedLindbladCollection,
+        ]: Right-hand side evaluation object.
     """
 
-    # raise warning if sparse mode set with JAX not on cpu
-    if (
-        Array.default_backend() == "jax"
-        and "sparse" in evaluation_mode
-        and jax.default_backend() != "cpu"
-    ):
-        warn(
-            """Using sparse mode with JAX is primarily recommended for use on CPU.""",
-            stacklevel=2,
-        )
+    operator_kwargs = {
+        "static_hamiltonian": static_hamiltonian,
+        "hamiltonian_operators": hamiltonian_operators,
+        "static_dissipators": static_dissipators,
+        "dissipator_operators": dissipator_operators,
+    }
 
-    if evaluation_mode == "dense":
-        CollectionClass = DenseLindbladCollection
-    elif evaluation_mode == "sparse":
-        if Array.default_backend() == "jax":
-            CollectionClass = JAXSparseLindbladCollection
-        else:
-            CollectionClass = SparseLindbladCollection
-    elif evaluation_mode == "dense_vectorized":
-        CollectionClass = DenseVectorizedLindbladCollection
-    elif evaluation_mode == "sparse_vectorized":
-        if Array.default_backend() == "jax":
-            CollectionClass = JAXSparseVectorizedLindbladCollection
-        else:
-            CollectionClass = SparseVectorizedLindbladCollection
-    else:
-        raise NotImplementedError(
-            f"Evaluation mode '{evaluation_mode}' is not supported. See "
-            "help(LindbladModel.evaluation_mode) for available options."
-        )
+    if array_library == "scipy_sparse":
+        if vectorized:
+            return ScipySparseVectorizedLindbladCollection(**operator_kwargs)
 
-    return CollectionClass(
-        static_hamiltonian=static_hamiltonian,
-        hamiltonian_operators=hamiltonian_operators,
-        static_dissipators=static_dissipators,
-        dissipator_operators=dissipator_operators,
-    )
+        return ScipySparseLindbladCollection(**operator_kwargs)
+
+    if array_library == "jax_sparse":
+        # warn that sparse mode when using JAX is primarily recommended for use on CPU
+        if jax.default_backend() != "cpu":
+            warn(
+                """Using sparse mode with JAX is primarily recommended for use on CPU.""",
+                stacklevel=2,
+            )
+
+    if vectorized:
+        return VectorizedLindbladCollection(**operator_kwargs, array_library=array_library)
+
+    return LindbladCollection(**operator_kwargs, array_library=array_library)

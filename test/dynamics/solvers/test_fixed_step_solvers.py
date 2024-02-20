@@ -21,7 +21,7 @@ import numpy as np
 
 from scipy.linalg import expm
 
-from qiskit_dynamics.array import Array
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.solvers.fixed_step_solvers import (
     RK4_solver,
     scipy_expm_solver,
@@ -37,10 +37,11 @@ from qiskit_dynamics.solvers.lanczos import (
     jax_lanczos_expm,
 )
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 try:
     from jax.scipy.linalg import expm as jexpm
+    from jax import jit, grad
 # pylint: disable=broad-except
 except Exception:
     pass
@@ -56,7 +57,8 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
         """Setup RHS functions for testing of fixed step solvers. Constructed as LMDEs
         so that the tests can be used for both LMDE and ODE methods.
         """
-        self.constant_generator = lambda t: -1j * Array([[0.0, 1.0], [1.0, 0.0]]).data
+        X = np.array([[0.0, 1.0], [1.0, 0.0]])
+        self.constant_generator = lambda t: -1j * X
 
         def constant_rhs(t, y=None):
             if y is None:
@@ -66,9 +68,8 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
 
         self.constant_rhs = constant_rhs
 
-        self.linear_generator = (
-            lambda t: -1j * Array([[0.0, 1.0 - 1j * t], [1.0 + 1j * t, 0.0]]).data
-        )
+        Y = np.array([[0.0, -1j], [1j, 0.0]])
+        self.linear_generator = lambda t: -1j * (X + t * Y)
 
         def linear_rhs(t, y=None):
             if y is None:
@@ -96,9 +97,7 @@ class TestFixedStepBase(ABC, QiskitDynamicsTestCase):
         )
 
         def random_generator(t):
-            t = Array(t)
-            output = np.sin(t) * rand_ops[0] + (t**5) * rand_ops[1] + np.exp(t) * rand_ops[2]
-            return Array(output).data
+            return unp.sin(t) * rand_ops[0] + (t**5) * rand_ops[1] + unp.exp(t) * rand_ops[2]
 
         self.random_generator = random_generator
 
@@ -418,7 +417,10 @@ class TestLanczosDiagSolver(TestFixedStepBase):
 
     def test_case_ix(self):
         """Standalone test case 1."""
-        gen = lambda t: -1j * np.array([[0.0, 1.0], [1.0, 0.0]])
+
+        def gen(_):
+            return -1j * np.array([[0.0, 1.0], [1.0, 0.0]])
+
         y0 = np.array([0.0, 1.0])
         t_span = [0.0, np.pi / 4]
         result = self.solve(
@@ -432,7 +434,10 @@ class TestLanczosDiagSolver(TestFixedStepBase):
 
     def test_case_iz(self):
         """Standalone test case 2."""
-        gen = lambda t: -1j * np.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, -1]])
+
+        def gen(_):
+            return -1j * np.array([[1.0, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, -1]])
+
         y01 = np.array([0.0, 0.0, 1.0])
         y02 = np.array([0.0, 1.0, 1.0])
         t_span = [0.0, np.pi / 4]
@@ -453,8 +458,8 @@ class TestLanczosDiagSolver(TestFixedStepBase):
         self.assertAllClose(result2[-1], expm(gen(0) * t_span[-1]) @ y02)
 
 
-class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
-    """JAX version of TestFixedStepBase, adding JAX setup class TestJaxBase,
+class TestJaxFixedStepBase(TestFixedStepBase, JAXTestBase):
+    """JAX version of TestFixedStepBase, adding JAX setup class JAXTestBase,
     and adding jit/grad test.
     """
 
@@ -466,14 +471,14 @@ class TestJaxFixedStepBase(TestFixedStepBase, TestJaxBase):
             results = self.solve(
                 lambda *args: amp * self.constant_rhs(*args), t_span, self.id2, max_dt=0.1
             )
-            return Array(results.y[-1]).data
+            return results.y[-1]
 
-        jit_func = self.jit_wrap(func)
+        jit_func = jit(func)
         output = jit_func(1.0)
         expected_y = self.take_n_steps(self.constant_rhs, t=0.0, y=self.id2, h=0.1, n_steps=10)
         self.assertAllClose(expected_y, output)
 
-        grad_func = self.jit_grad_wrap(func)
+        grad_func = jit(grad(lambda *args: func(*args).real.sum()))
         grad_func(1.0)
 
 

@@ -11,7 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, arguments-differ
 
 """
 Pulse-enabled simulator backend.
@@ -49,7 +49,7 @@ from qiskit.quantum_info.states.quantum_state import QuantumState
 
 
 from qiskit_dynamics import RotatingFrame
-from qiskit_dynamics.array import Array
+from qiskit_dynamics.arraylias.alias import ArrayLike
 from qiskit_dynamics.solvers.solver_classes import Solver
 
 from .dynamics_job import DynamicsJob
@@ -345,8 +345,8 @@ class DynamicsBackend(BackendV2):
     def solve(
         self,
         solve_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
-        t_span: Array,
-        y0: Optional[Union[Array, QuantumState, BaseOperator]] = None,
+        t_span: ArrayLike,
+        y0: Optional[Union[ArrayLike, QuantumState, BaseOperator]] = None,
         convert_results: Optional[bool] = True,
         validate: Optional[bool] = True,
     ) -> Union[OdeResult, List[OdeResult]]:
@@ -593,8 +593,9 @@ class DynamicsBackend(BackendV2):
         cls,
         backend: BackendV1,
         subsystem_list: Optional[List[int]] = None,
-        rotating_frame: Optional[Union[Array, RotatingFrame, str]] = "auto",
-        evaluation_mode: str = "dense",
+        rotating_frame: Optional[Union[ArrayLike, RotatingFrame, str]] = "auto",
+        array_library: Optional[str] = None,
+        vectorized: Optional[bool] = False,
         rwa_cutoff_freq: Optional[float] = None,
         **options,
     ) -> "DynamicsBackend":
@@ -649,17 +650,17 @@ class DynamicsBackend(BackendV2):
         constructed :class:`DynamicsBackend`. All other qubits are dropped from the model.
 
         Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``,
-        ``evaluation_mode``, and ``rwa_cutoff_freq`` options. In contrast to :class:`.Solver`
-        initialization, ``rotating_frame`` defaults to the string ``"auto"``, which allows this
-        method to choose the rotating frame based on ``evaluation_mode``:
+        ``array_library``, ``vectorized``, and ``rwa_cutoff_freq`` options. In contrast
+        to :class:`.Solver` initialization, ``rotating_frame`` defaults to the string ``"auto"``,
+        which allows this method to choose the rotating frame based on ``array_library``:
 
-        * If a dense evaluation mode is chosen, the rotating frame will be set to the
+        * If a dense ``array_library`` is chosen, the rotating frame will be set to the
           ``static_hamiltonian`` indicated by the Hamiltonian in ``backend.configuration()``.
-        * If a sparse evaluation mode is chosen, the rotating frame will be set to the diagonal of
+        * If a sparse ``array_library`` is chosen, the rotating frame will be set to the diagonal of
           ``static_hamiltonian``.
 
-        Otherwise the ``rotating_frame``, ``evaluation_mode``, and ``rwa_cutoff_freq`` are passed
-        directly to the :class:`.Solver` initialization.
+        Otherwise the ``rotating_frame``, ``array_library``, ``vectorized``, and
+        ``rwa_cutoff_freq`` are passed directly to the :class:`.Solver` initialization.
 
         Args:
             backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.
@@ -671,7 +672,9 @@ class DynamicsBackend(BackendV2):
             subsystem_list: The list of qubits in the backend to include in the model.
             rotating_frame: Rotating frame argument for the internal :class:`.Solver`. Defaults to
                 ``"auto"``, allowing this method to pick a rotating frame.
-            evaluation_mode: Evaluation mode argument for the internal :class:`.Solver`.
+            array_library: Array library with which to store the operators in the :class:`.Solver`.
+            vectorized: If a Lindblad terms are present, whether or not to build the
+                :class:`.Solver` in a vectorized mode.
             rwa_cutoff_freq: Rotating wave approximation argument for the internal :class:`.Solver`.
             **options: Additional options to be applied in construction of the
                 :class:`.DynamicsBackend`.
@@ -762,10 +765,10 @@ class DynamicsBackend(BackendV2):
 
         # build the solver
         if rotating_frame == "auto":
-            if "dense" in evaluation_mode:
-                rotating_frame = static_hamiltonian
-            else:
+            if array_library is not None and "sparse" in array_library:
                 rotating_frame = np.diag(static_hamiltonian)
+            else:
+                rotating_frame = static_hamiltonian
 
         # get time step size
         if backend_target is not None and backend_target.dt is not None:
@@ -781,7 +784,8 @@ class DynamicsBackend(BackendV2):
             channel_carrier_freqs=channel_freqs,
             dt=dt,
             rotating_frame=rotating_frame,
-            evaluation_mode=evaluation_mode,
+            array_library=array_library,
+            vectorized=vectorized,
             rwa_cutoff_freq=rwa_cutoff_freq,
         )
 

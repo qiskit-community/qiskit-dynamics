@@ -9,9 +9,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """Tests for functions in dyson_magnus.py."""
+
+from functools import partial
 
 import numpy as np
 
@@ -28,7 +30,7 @@ from qiskit_dynamics.perturbation.dyson_magnus import (
     _magnus_from_dyson_jax,
 )
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, test_array_backends
 
 try:
     from jax import jit
@@ -36,11 +38,16 @@ except ImportError:
     pass
 
 
-class TestMagnusFromDyson(QiskitDynamicsTestCase):
-    """Test _magnus_from_dyson function."""
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
+class TestMagnusFromDyson:
+    """Test _magnus_from_dyson and _magnus_from_dyson_jax functions."""
 
     def setUp(self):
-        self._magnus_from_dyson = _magnus_from_dyson
+        """Set dyson to magnus conversion function based on array library."""
+        if self.array_library() == "jax":
+            self._magnus_from_dyson = _magnus_from_dyson_jax
+        else:
+            self._magnus_from_dyson = _magnus_from_dyson
 
     def test__magnus_from_dyson_case1(self):
         """Case 1: a single base index to high order."""
@@ -218,11 +225,9 @@ class TestMagnusFromDyson(QiskitDynamicsTestCase):
         self.assertAllClose(expected, output)
 
 
-class TestMagnusFromDysonJax(TestMagnusFromDyson, TestJaxBase):
-    """Jax version of TestMagnusFromDyson."""
-
-    def setUp(self):
-        self._magnus_from_dyson = _magnus_from_dyson_jax
+@partial(test_array_backends, array_libraries=["jax"])
+class TestMagnusFromDysonJAXTransformations:
+    """Test JAX transformations on _magnus_from_dyson_jax"""
 
     def test__magnus_from_dyson_jit(self):
         """Test that the function works with jitting."""
@@ -240,7 +245,7 @@ class TestMagnusFromDysonJax(TestMagnusFromDyson, TestJaxBase):
         D = rng.uniform(size=(5, 8, 8))
 
         # jit and compute
-        jitted_func = jit(lambda x: self._magnus_from_dyson(oc_symmetric_indices, x))
+        jitted_func = jit(lambda x: _magnus_from_dyson_jax(oc_symmetric_indices, x))
         output = jitted_func(D)
 
         # compute expected output via manual application of Magnus recursion relations
@@ -760,7 +765,9 @@ class TestWorkaround(QiskitDynamicsTestCase):
 
                 multiple_eval = vmap(single_eval, in_axes=(0, None))
                 idx_list = jnp.array([0, 1])
-                rhs = lambda y, t: multiple_eval(idx_list, t) * y
+
+                def rhs(y, t):
+                    return multiple_eval(idx_list, t) * y
 
                 out = odeint(rhs, y0=y0, t=jnp.array([0, T], dtype=float), atol=1e-13, rtol=1e-13)
                 return out

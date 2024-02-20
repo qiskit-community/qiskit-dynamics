@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 # pylint can't determine member or type for return from trim_t_results
-# pylint: disable=no-member
+# pylint: disable=no-member, invalid-name
 
 """
 Tests to convert from pulse schedules to signals.
@@ -26,7 +26,7 @@ from qiskit_dynamics.solvers.solver_utils import (
     trim_t_results_jax,
 )
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 try:
     import jax.numpy as jnp
@@ -173,7 +173,7 @@ class TestTimeArgsHandling(QiskitDynamicsTestCase):
         self.assertAllClose(trimmed_obj.y, np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]]))
 
 
-class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
+class TestTimeArgsHandlingJAX(TestTimeArgsHandling, JAXTestBase):
     """Tests for merge_t_args_jax and trim_t_results_jax functions."""
 
     def test_merge_t_args_with_overlap(self):
@@ -219,19 +219,19 @@ class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
     def test_merge_t_args_interval_error(self):
         """Test output nan if t_eval not in t_span."""
         out = self.merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([1.5]))
-        self.assertTrue(jnp.isnan(out.data).all())
+        self.assertTrue(jnp.isnan(out).all())
         self.assertTrue(out.shape == (3,))
 
     def test_merge_t_args_interval_error_backwards(self):
         """Test output nan if t_eval not in t_span for backwards integration."""
         out = self.merge_t_args(t_span=np.array([0.0, -1.0]), t_eval=np.array([-1.5]))
-        self.assertTrue(jnp.isnan(out.data).all())
+        self.assertTrue(jnp.isnan(out).all())
         self.assertTrue(out.shape == (3,))
 
     def test_merge_t_args_sort_error(self):
         """Test output nan if t_eval is not correctly sorted."""
         out = self.merge_t_args(t_span=np.array([0.0, 1.0]), t_eval=np.array([0.75, 0.25]))
-        self.assertTrue(jnp.isnan(out.data).all())
+        self.assertTrue(jnp.isnan(out).all())
         self.assertTrue(out.shape == (4,))
 
     def test_merge_t_args_sort_error_backwards(self):
@@ -239,7 +239,7 @@ class TestTimeArgsHandlingJAX(TestTimeArgsHandling, TestJaxBase):
         backwards integration.
         """
         out = self.merge_t_args(t_span=np.array([0.0, -1.0]), t_eval=np.array([-0.75, -0.25]))
-        self.assertTrue(jnp.isnan(out.data).all())
+        self.assertTrue(jnp.isnan(out).all())
         self.assertTrue(out.shape == (4,))
 
     def test_trim_t_results_t0_duplicate(self):

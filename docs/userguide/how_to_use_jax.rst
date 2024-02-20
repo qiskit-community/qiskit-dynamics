@@ -27,6 +27,12 @@ options is used.
 
 .. jupyter-execute::
 
+    ################################################################################# 
+    # Remove this
+    #################################################################################
+    import warnings
+    warnings.filterwarnings("ignore")
+    
     # configure jax to use 64 bit mode
     import jax
     jax.config.update("jax_enable_x64", True)
@@ -34,15 +40,7 @@ options is used.
     # tell JAX we are using CPU
     jax.config.update('jax_platform_name', 'cpu')
 
-    # import Array and set default backend
-    from qiskit_dynamics.array import Array
-    Array.set_default_backend('jax')
-
-The default backend can be observed via:
-
-.. jupyter-execute::
-
-    Array.default_backend()
+    import jax.numpy as jnp
 
 
 2. How do I write code using Array that can be executed with either ``numpy`` or JAX?
@@ -93,12 +91,6 @@ For convenience, the ``wrap`` function can be used to transform
 ``jax.jit`` to also work on functions that have :class:`.Array` objects as
 inputs and outputs.
 
-.. jupyter-execute::
-
-    from qiskit_dynamics.array import wrap
-
-    jit = wrap(jax.jit, decorator=True)
-
 Construct a :class:`.Solver` instance with a model that will be used to solve.
 
 .. jupyter-execute::
@@ -106,7 +98,6 @@ Construct a :class:`.Solver` instance with a model that will be used to solve.
     import numpy as np
     from qiskit.quantum_info import Operator
     from qiskit_dynamics import Solver, Signal
-    from qiskit_dynamics.array import Array
 
     r = 0.5
     w = 1.
@@ -155,6 +146,7 @@ Compile the function.
 
 .. jupyter-execute::
 
+    from jax import jit
     fast_sim = jit(sim_function)
 
 The first time the function is called, JAX will compile an
@@ -198,15 +190,14 @@ state at the end of the previous simulation
 
     def excited_state_pop(amp):
         yf = sim_function(amp)[-1]
-        return np.abs(Array(yf[0]))**2
+        return jnp.abs(yf[0])**2
 
 Wrap ``jax.grad`` in the same way, then differentiate and compile
 ``excited_state_pop``.
 
 .. jupyter-execute::
 
-    grad = wrap(jax.grad, decorator=True)
-
+    from jax import grad
     excited_pop_grad = jit(grad(excited_state_pop))
 
 As before, the first execution includes compilation time.

@@ -12,21 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-r"""
-=========================================
-Models (:mod:`qiskit_dynamics.arraylias`)
-=========================================
-
-.. currentmodule:: qiskit_dynamics.arraylias
-
-Module for Qiskit Dynamics global NumPy and SciPy aliases.
+"""
+Registering transpose.
 """
 
-from .alias import (
-    DYNAMICS_NUMPY_ALIAS,
-    DYNAMICS_SCIPY_ALIAS,
-    DYNAMICS_NUMPY,
-    DYNAMICS_SCIPY,
-    ArrayLike,
-    requires_array_library,
-)
+
+def register_transpose(alias):
+    """Register linear functions for each array library."""
+
+    try:
+        from jax.experimental.sparse import bcoo_transpose
+
+        @alias.register_function(lib="jax_sparse", path="transpose")
+        def _(arr, axes=None):
+            return bcoo_transpose(arr, permutation=axes)
+
+    except ImportError:
+        pass

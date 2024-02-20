@@ -19,7 +19,7 @@ import numpy as np
 
 from qiskit_dynamics.solvers.diffrax_solver import diffrax_solver
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import JAXTestBase
 
 try:
     import jax.numpy as jnp
@@ -30,7 +30,7 @@ except Exception:
     pass
 
 
-class TestDiffraxDopri5(QiskitDynamicsTestCase, TestJaxBase):
+class TestDiffraxDopri5(JAXTestBase):
     """Test cases for diffrax_solver."""
 
     def setUp(self):

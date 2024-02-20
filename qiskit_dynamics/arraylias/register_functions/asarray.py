@@ -16,8 +16,26 @@
 Registering asarray functions to alias
 """
 
+from typing import Iterable
+
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
+
+
+def _isinstance_qutip_qobj(obj):
+    """Check if the object is a qutip Qobj.
+    Args:
+        obj (any): Any object for testing.
+    Returns:
+        Bool: True if obj is qutip Qobj
+    """
+    if (
+        type(obj).__name__ == "Qobj"
+        and hasattr(obj, "_data")
+        and type(obj._data).__name__ == "fast_csr_matrix"
+    ):
+        return True
+    return False
 
 
 def register_asarray(alias):
@@ -25,11 +43,13 @@ def register_asarray(alias):
 
     @alias.register_default(path="asarray")
     def _(arr):
+        if _isinstance_qutip_qobj(arr):
+            return csr_matrix(arr)
         return np.asarray(arr)
 
     @alias.register_function(lib="scipy_sparse", path="asarray")
     def _(arr):
-        if issparse(arr):
+        if issparse(arr) or (isinstance(arr, Iterable) and issparse(arr[0])):
             return arr
         return csr_matrix(arr)
 

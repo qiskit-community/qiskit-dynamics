@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name, no-member
+# pylint: disable=invalid-name, no-member, unnecessary-lambda-assignment
 
 """Tests for perturbative solvers."""
 
@@ -20,7 +20,6 @@ from ddt import ddt, data, unpack
 from qiskit import QiskitError
 
 from qiskit_dynamics import Signal, Solver, DysonSolver, MagnusSolver
-from qiskit_dynamics.array import Array
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 
 from qiskit_dynamics.solvers.perturbative_solvers.expansion_model import (
@@ -32,7 +31,7 @@ from qiskit_dynamics.solvers.perturbative_solvers.expansion_model import (
     _evaluate_cheb_series_jax,
 )
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 try:
     from jax import jit, grad
@@ -73,6 +72,9 @@ class Test_DysonMagnusSolver_Validation(QiskitDynamicsTestCase):
 
 class Test_PerturbativeSolver(QiskitDynamicsTestCase):
     """Tests for perturbative solver."""
+
+    def setUp(self):
+        self.jax_control_flow = False
 
     @classmethod
     def setUpClass(cls):
@@ -241,13 +243,18 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
                 n_steps=self.n_steps,
                 y0=np.eye(2, dtype=complex),
                 signals=[self.gauss_signal, self.gauss_signal],
+                jax_control_flow=self.jax_control_flow,
             )
 
     def test_simple_dyson_solver(self):
         """Test dyson solver on a simple qubit model."""
 
         dyson_yf = self.simple_dyson_solver.solve(
-            t0=0.0, n_steps=self.n_steps, y0=np.eye(2, dtype=complex), signals=[self.gauss_signal]
+            t0=0.0,
+            n_steps=self.n_steps,
+            y0=np.eye(2, dtype=complex),
+            signals=[self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
         ).y[-1]
 
         self.assertAllClose(dyson_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
@@ -256,7 +263,11 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
         """Test magnus solver on a simple qubit model."""
 
         magnus_yf = self.simple_magnus_solver.solve(
-            t0=0.0, n_steps=self.n_steps, y0=np.eye(2, dtype=complex), signals=[self.gauss_signal]
+            t0=0.0,
+            n_steps=self.n_steps,
+            y0=np.eye(2, dtype=complex),
+            signals=[self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
         ).y[-1]
 
         self.assertAllClose(magnus_yf, self.simple_yf, rtol=1e-6, atol=1e-6)
@@ -269,6 +280,7 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
             n_steps=self.n_steps_2q,
             y0=np.eye(self.dim_2q**2, dtype=complex),
             signals=[self.gauss_signal, self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
         ).y[-1]
         # measure similarity with fidelity
         self.assertTrue(
@@ -284,6 +296,7 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
             n_steps=self.n_steps_2q,
             y0=np.eye(self.dim_2q**2, dtype=complex),
             signals=[self.gauss_signal, self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
         ).y[-1]
 
         # measure similarity with fidelity
@@ -300,6 +313,7 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
             n_steps=self.n_steps_2q,
             y0=np.eye(self.dim_2q**2, dtype=complex),
             signals=[self.gauss_signal, self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
         ).y[-1]
         # measure similarity with fidelity
         self.assertTrue(
@@ -319,15 +333,24 @@ class Test_PerturbativeSolver(QiskitDynamicsTestCase):
         )
 
         dyson_results = self.simple_dyson_solver.solve(
-            t0=0.0, n_steps=self.n_steps, y0=[y00, y01], signals=[self.gauss_signal]
+            t0=0.0,
+            n_steps=self.n_steps,
+            y0=[y00, y01],
+            signals=[self.gauss_signal],
+            jax_control_flow=self.jax_control_flow,
         )
 
         self.assertAllClose(dyson_results[0].y[-1], self.simple_yf @ y00, rtol=1e-6, atol=1e-6)
         self.assertAllClose(dyson_results[1].y[-1], self.simple_yf @ y01, rtol=1e-6, atol=1e-6)
 
 
-class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
-    """Tests for perturbative solver operating in JAX mode."""
+class Test_PerturbativeSolverJAX(JAXTestBase, Test_PerturbativeSolver):
+    """Tests for perturbative solver operating in JAX mode. Note that jax_control_flow is not
+    used in the transformation tests to confirm the JAX control flow is automatically used.
+    """
+
+    def setUp(self):
+        self.jax_control_flow = True
 
     @classmethod
     def setUpClass(cls):
@@ -348,11 +371,8 @@ class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
             ).y[-1]
             return dyson_yf
 
-        jitted_func = self.jit_wrap(func)
-        self.assertAllClose(func(1.0), jitted_func(1.0))
-
-        jit_grad_func = self.jit_grad_wrap(func)
-        jit_grad_func(1.0)
+        self.assertAllClose(jit(func)(1.0), func(1.0))
+        self.jit_grad(1.0)
 
     def test_simple_magnus_solve_jit_grad(self):
         """Test jitting of and gradding of magnus solve."""
@@ -366,11 +386,8 @@ class Test_PerturbativeSolverJAX(TestJaxBase, Test_PerturbativeSolver):
             ).y[-1]
             return magnus_yf
 
-        jitted_func = self.jit_wrap(func)
-        self.assertAllClose(func(1.0), jitted_func(1.0))
-
-        jit_grad_func = self.jit_grad_wrap(func)
-        jit_grad_func(1.0)
+        self.assertAllClose(jit(func)(1.0), func(1.0))
+        self.jit_grad(1.0)
 
 
 class TestChebyshevFunctions(QiskitDynamicsTestCase):
@@ -400,7 +417,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t0 + dt, t0 + 2 * dt]
         int2 = [t0 + 2 * dt, t0 + 3 * dt]
 
-        f = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
+        f = lambda t: 1.0 + t**2 + t**3 + unp.sin(3.123 * t)
         multi_int_coeffs = _multi_interval_DCT(f, degree=4, t0=t0, dt=dt, n_intervals=3)
 
         # force to resolve to numpy arrays for comparison to numpy functions
@@ -429,7 +446,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
+        f = lambda t: 1.0 + t**2 + t**3 + unp.sin(3.123 * t)
         carrier_freq = 1.0
         reference_freq = 0.23
         signal = Signal(f, carrier_freq)
@@ -468,12 +485,12 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + unp.sin(3.123 * t)
         carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + unp.cos(3.123 * t)
         carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
@@ -546,12 +563,12 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + unp.sin(3.123 * t)
         carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + unp.cos(3.123 * t)
         carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
@@ -625,12 +642,12 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         int1 = [t1, t2]
         int2 = [t2, t3]
 
-        f1 = lambda t: 1.0 + t**2 + t**3 + np.sin(Array(3.123) * t)
+        f1 = lambda t: 1.0 + t**2 + t**3 + unp.sin(3.123 * t)
         carrier_freq1 = 1.0
         reference_freq1 = 0.23
         signal1 = Signal(f1, carrier_freq1)
 
-        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(Array(3.123) * t)
+        f2 = lambda t: 2.1 + t**2 + t**4 + np.cos(3.123 * t)
         carrier_freq2 = 2.0
         reference_freq2 = 1.1
         signal2 = Signal(f2, carrier_freq2)
@@ -726,7 +743,7 @@ class TestChebyshevFunctions(QiskitDynamicsTestCase):
         self.assertAllClose(expected, output)
 
 
-class TestChebyshevFunctionsJax(TestChebyshevFunctions, TestJaxBase):
+class TestChebyshevFunctionsJax(TestChebyshevFunctions, JAXTestBase):
     """JAX version of TestChebyshevFunctions."""
 
     def setUp(self):
@@ -767,13 +784,11 @@ class TestChebyshevFunctionsJax(TestChebyshevFunctions, TestJaxBase):
             sig = Signal(lambda t: a * t, carrier_freq=1.0)
             return _signal_list_envelope_DCT(
                 [sig], reference_freqs=[1.0], degrees=[2], t0=0.0, dt=0.5, n_intervals=3
-            ).data
+            )
 
-        jit_func = jit(func)
-        self.assertAllClose(jit_func(1.0), func(1.0))
+        self.assertAllClose(jit(func)(1.0), func(1.0))
 
         def func2(a):
             return func(a).sum()
 
-        jit_grad_func = jit(grad(func2))
-        jit_grad_func(1.0)
+        jit(grad(func2))(1.0)

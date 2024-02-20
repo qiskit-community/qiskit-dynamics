@@ -1,0 +1,4 @@
+---
+upgrade:
+  - |
+    Support for Python 3.12 has been added, and Python 3.8 has been dropped.

@@ -58,8 +58,12 @@ explanation of how to work with JAX in Qiskit Dynamics.
 
 .. jupyter-execute::
 
-    from qiskit_dynamics.array import Array
-
+    ################################################################################# 
+    # Remove this
+    #################################################################################
+    import warnings
+    warnings.filterwarnings("ignore")
+    
     # configure jax to use 64 bit mode
     import jax
     jax.config.update("jax_enable_x64", True)
@@ -67,8 +71,6 @@ explanation of how to work with JAX in Qiskit Dynamics.
     # tell JAX we are using CPU if using a system without a GPU
     jax.config.update('jax_platform_name', 'cpu')
 
-    # set default backend
-    Array.set_default_backend('jax')
 
 2. Construct the model
 ----------------------
@@ -298,7 +300,7 @@ Setup simulation function.
 
     @jit
     def magnus_sim(amp):
-        drive_signal = Signal(lambda t: Array(amp) * envelope_func(t), carrier_freq=v)
+        drive_signal = Signal(lambda t: amp * envelope_func(t), carrier_freq=v)
         return magnus_solver.solve(
             signals=[drive_signal],
             y0=np.eye(dim, dtype=complex),

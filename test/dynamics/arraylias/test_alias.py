@@ -25,8 +25,20 @@ from scipy.sparse import csr_matrix
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import DYNAMICS_SCIPY as usp
+from qiskit_dynamics.arraylias.alias import (
+    _preferred_lib,
+    _numpy_multi_dispatch,
+    _to_dense,
+    _to_dense_list,
+)
 
-from ..common import test_array_backends
+from ..common import test_array_backends, JAXTestBase, QutipTestBase
+
+try:
+    import jax.numpy as jnp
+    from jax.experimental.sparse import BCOO
+except ImportError:
+    pass
 
 
 @partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
@@ -57,8 +69,8 @@ class TestDynamicsScipy:
         self.assertAllClose(output, expected)
 
 
-class TestDynamicsNumpyAliasType(unittest.TestCase):
-    """Test cases for which types are registered in dynamics_numpy_alias."""
+class TestDynamicsNumpyScipySparseType(unittest.TestCase):
+    """Test case verifying scipy sparse types are registered in dynamics_numpy_alias."""
 
     def test_spmatrix_type(self):
         """Test spmatrix is registered as scipy_sparse."""
@@ -66,13 +78,110 @@ class TestDynamicsNumpyAliasType(unittest.TestCase):
         registered_type_name = "scipy_sparse"
         self.assertTrue(registered_type_name in DYNAMICS_NUMPY_ALIAS.infer_libs(sp_matrix))
 
-    def test_bcoo_type(self):
-        """Test bcoo is registered."""
-        try:
-            from jax.experimental.sparse import BCOO
 
-            bcoo = BCOO.fromdense([[0.0, 1.0], [1.0, 0.0]])
-            registered_type_name = "jax_sparse"
-            self.assertTrue(registered_type_name in DYNAMICS_NUMPY_ALIAS.infer_libs(bcoo)[0])
-        except ImportError as err:
-            raise unittest.SkipTest("Skipping jax tests.") from err
+class TestDynamicsNumpyJAXBCOOType(JAXTestBase):
+    """Test case verifying JAX sparse types are registered in dynamics_numpy_alias."""
+
+    def test_bcoo_type(self):
+        """Test that BCOO type is correctly registered."""
+        bcoo = BCOO.fromdense([[0.0, 1.0], [1.0, 0.0]])
+        registered_type_name = "jax_sparse"
+        self.assertTrue(registered_type_name in DYNAMICS_NUMPY_ALIAS.infer_libs(bcoo)[0])
+
+
+@partial(test_array_backends, array_libraries=["numpy", "jax", "jax_sparse"])
+class Test_linear_combo:
+    """Test registered linear_combo function."""
+
+    def test_simple_case(self):
+        """Simple test case for linear combo."""
+        mats = self.asarray([[[0.0, 1.0], [1.0, 0.0]], [[1j, 0.0], [0.0, -1j]]])
+        coeffs = np.array([1.0, 2.0])
+        out = _numpy_multi_dispatch(coeffs, mats, path="linear_combo")
+        self.assertArrayType(out)
+        self.assertAllClose(out, np.array([[2j, 1.0], [1.0, -2j]]))
+
+
+class Test_preferred_lib(JAXTestBase):
+    """Test class for preferred_lib functions. Inherits from JAXTestBase as this functionality
+    is primarily to facilitate JAX types.
+    """
+
+    def test_defaults_to_numpy(self):
+        """Test that it defaults to numpy."""
+        self.assertEqual(_preferred_lib(None), "numpy")
+
+    def test_prefers_jax_over_numpy(self):
+        """Test that it chooses jax over numpy."""
+        self.assertEqual(_preferred_lib(1.0), "numpy")
+        self.assertEqual(_preferred_lib(jnp.array(1.0), 1.0), "jax")
+
+    def test_prefers_jax_sparse_over_numpy(self):
+        """Test that it prefers jax_sparse over numpy."""
+        self.assertEqual(_preferred_lib(np.array(1.0)), "numpy")
+        self.assertEqual(_preferred_lib(np.array(1.0), BCOO.fromdense([1.0, 2.0])), "jax_sparse")
+
+    def test_prefers_jax_sparse_over_jax(self):
+        """Test that it prefers jax_sparse over jax."""
+        self.assertEqual(_preferred_lib(jnp.array(1.0)), "jax")
+        self.assertEqual(_preferred_lib(jnp.array(1.0), BCOO.fromdense([1.0, 2.0])), "jax_sparse")
+
+    def test_prefers_scipy_sparse_over_numpy(self):
+        """Test that it prefers scipy_sparse over numpy."""
+        self.assertEqual(_preferred_lib(np.array(1.0)), "numpy")
+        self.assertEqual(_preferred_lib(np.array(1.0), csr_matrix([[1.0, 2.0]])), "scipy_sparse")
+
+
+@partial(test_array_backends, array_libraries=["numpy", "scipy_sparse", "jax", "jax_sparse"])
+class Test_to_dense:
+    """Tests for _to_dense utility function."""
+
+    def test_2d_array(self):
+        """Simple type checking test."""
+
+        x = self.asarray([[0.0, 1.0], [1.0, 0.0]])
+        out = _to_dense(x)
+
+        if self.array_library() in ["numpy", "scipy_sparse"]:
+            self.assertTrue(isinstance(out, np.ndarray))
+
+        if "jax" in self.array_library():
+            self.assertTrue(isinstance(out, jnp.ndarray))
+
+
+@partial(test_array_backends, array_libraries=["numpy", "scipy_sparse", "jax", "jax_sparse"])
+class Test_to_dense_list:
+    """Tests for _to_dense_list utility function."""
+
+    def test_list(self):
+        """Simple type checking test."""
+
+        x = [[[0.0, 1.0], [1.0, 0.0]], [[0.0, -1j], [1j, 0.0]], [[1.0, 0.0], [0.0, -1.0]]]
+        if self.array_library() == "scipy_sparse":
+            op_list = [self.asarray(op) for op in x]
+        else:
+            op_list = self.asarray(x)
+
+        out = _to_dense_list(op_list)
+
+        if self.array_library() in ["numpy", "scipy_sparse"]:
+            self.assertTrue(isinstance(out, np.ndarray))
+
+        if "jax" in self.array_library():
+            self.assertTrue(isinstance(out, jnp.ndarray))
+
+        self.assertAllClose(out, np.array(x))
+
+
+class Test_qutip_qobj_asarray(QutipTestBase):
+    """Test Qutip Qobj handling."""
+
+    def test_qutip_conversion(self):
+        """Test unp.asarray on qutip qobj."""
+        from qutip import Qobj
+
+        qobj = Qobj([[0, 1], [1, 0]])
+
+        out = unp.asarray(qobj)
+        self.assertTrue(isinstance(out, csr_matrix))
+        self.assertAllClose(out.todense(), np.array([[0.0, 1.0], [1.0, 0.0]]))
