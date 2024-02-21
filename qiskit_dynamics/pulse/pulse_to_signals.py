@@ -360,7 +360,10 @@ def get_samples(pulse: SymbolicPulse) -> ArrayLike:
                 f"Pulse parameter '{symbol.name}' is not defined for this instance. "
                 "Please check your waveform expression is correct."
             ) from ex
-    return _lru_cache_expr(envelope, "jax" if any(isinstance(v, jax.core.Tracer) for v in pulse_params.values()) else "numpy")(*args)
+    return _lru_cache_expr(
+        envelope,
+        "jax" if any(isinstance(v, jax.core.Tracer) for v in pulse_params.values()) else "numpy",
+    )(*args)
 
 
 @functools.lru_cache(maxsize=None)
