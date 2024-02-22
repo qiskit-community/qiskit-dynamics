@@ -371,6 +371,9 @@ class TestPulseToSignalsJAXTransformations(JAXTestBase):
         self.constant_get_waveform_samples = (
             pulse.Constant(duration=5, amp=0.1).get_waveform().samples
         )
+        self.gaussian_get_waveform_samples = (
+            pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
+        )
         self._dt = 0.222
 
     def test_InstructionToSignals_with_JAX(self):
@@ -414,7 +417,7 @@ class TestPulseToSignalsJAXTransformations(JAXTestBase):
 
         jit(jit_func_gaussian_to_signals)(0.983)
         self.jit_grad(jit_func_gaussian_to_signals)(0.983)
-        jit_samples = jit(jit_func_gaussian_to_signals)(0.983)
+        jit_gaussian_samples = jit(jit_func_gaussian_to_signals)(0.983)
         self.assertAllClose(
             jit_gaussian_samples, self.gaussian_get_waveform_samples, atol=1e-7, rtol=1e-7
         )
