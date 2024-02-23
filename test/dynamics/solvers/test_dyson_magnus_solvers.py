@@ -354,7 +354,7 @@ class Test_PerturbativeSolverJAX(JAXTestBase, Test_PerturbativeSolver):
 
     @classmethod
     def setUpClass(cls):
-        # calls TestJaxBase setUpClass
+        # calls JAXTestBase setUpClass
         super().setUpClass()
         # builds common objects
         Test_PerturbativeSolver.build_testing_objects(cls, integration_method="jax_odeint")
