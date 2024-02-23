@@ -348,6 +348,12 @@ def get_samples(pulse: SymbolicPulse) -> ArrayLike:
         raise PulseError("Pulse envelope expression is not assigned.")
 
     args = []
+    try:
+        backend = (
+            "jax" if any(isinstance(v, jax.core.Tracer) for v in pulse_params.values()) else "numpy"
+        )
+    except (ImportError, NameError):
+        backend = "numpy"
     for symbol in sorted(envelope.free_symbols, key=lambda s: s.name):
         if symbol.name == "t":
             times = unp.arange(0, pulse_params["duration"]) + 1 / 2
@@ -362,7 +368,7 @@ def get_samples(pulse: SymbolicPulse) -> ArrayLike:
             ) from ex
     return _lru_cache_expr(
         envelope,
-        "jax" if any(isinstance(v, jax.core.Tracer) for v in pulse_params.values()) else "numpy",
+        backend,
     )(*args)
 
 
