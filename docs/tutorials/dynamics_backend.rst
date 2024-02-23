@@ -47,7 +47,7 @@ To create the :class:`.DynamicsBackend`, first specify a :class:`.Solver` instan
 details. Note that the choice of model depends on the type of device you wish to simulate. Here, we
 will use a :math:`2` qubit fixed-frequency transmon model with fixed coupling, with the following
 Hamiltonian (see the `Qiskit Textbook page on Circuit Quantum Electrodynamics
-<https://qiskit.org/textbook/ch-quantum-hardware/cQED-JC-SW.html>`_ for details on how transmon
+<https://github.com/Qiskit/platypus/blob/main/notebooks/v2/quantum-hardware-pulses/cQED-JC-SW.ipynb>`_ for details on how transmon
 Hamiltonians are derived):
 
 .. math:: 
