@@ -1,7 +1,7 @@
 ---
 prelude: >
     This release primarily focuses on tooling for simulating `Qiskit Pulse
-    <https://qiskit.org/documentation/apidoc/pulse.html>`__ schedules. The major changes related to
+    <https://docs.quantum.ibm.com/api/qiskit/pulse>`__ schedules. The major changes related to
     this are:
       - This release adds the :class:`.DynamicsBackend` class, which provides a
         :class:`~qiskit.providers.BackendV2` interface for running simulations. Once constructed and

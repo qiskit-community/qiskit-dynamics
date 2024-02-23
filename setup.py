@@ -50,7 +50,7 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url="https://github.com/Qiskit-Extensions/qiskit-dynamics",
     author="Qiskit Development Team",
-    author_email="qiskit@qiskit.org",
+    author_email="qiskit@us.ibm.com",
     license="Apache 2.0",
     classifiers=[
         "Environment :: Console",
@@ -71,7 +71,7 @@ setuptools.setup(
     project_urls={
         "Bug Tracker": "https://github.com/Qiskit-Extensions/qiskit-dynamics/issues",
         "Source Code": "https://github.com/Qiskit-Extensions/qiskit-dynamics",
-        "Documentation": "https://qiskit.org/ecosystem/dynamics/",
+        "Documentation": "https://qiskit-extensions.github.io/qiskit-dynamics/",
     },
     install_requires=requirements,
     include_package_data=True,
