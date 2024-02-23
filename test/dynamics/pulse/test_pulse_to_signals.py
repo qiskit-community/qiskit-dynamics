@@ -25,10 +25,15 @@ from qiskit import QiskitError
 
 from qiskit_ibm_runtime.fake_provider import FakeQuito
 
+try:
+    from jax import jit
+except ImportError:
+    pass
+
 from qiskit_dynamics.pulse import InstructionToSignals
 from qiskit_dynamics.signals import DiscreteSignal
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import QiskitDynamicsTestCase, JAXTestBase
 
 
 class TestPulseToSignals(QiskitDynamicsTestCase):
@@ -358,13 +363,16 @@ class TestPulseToSignals(QiskitDynamicsTestCase):
         self.assertAllClose(sigs[1].samples, np.array([0.0, 0.0, 0.0, -0.5, -0.5, -0.5]))
 
 
-class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
+class TestPulseToSignalsJAXTransformations(JAXTestBase):
     """Tests InstructionToSignals class by using Jax."""
 
     def setUp(self):
         """Set up gaussian waveform samples for comparison."""
         self.constant_get_waveform_samples = (
             pulse.Constant(duration=5, amp=0.1).get_waveform().samples
+        )
+        self.gaussian_get_waveform_samples = (
+            pulse.Gaussian(duration=5, amp=0.983, sigma=2.0).get_waveform().samples
         )
         self._dt = 0.222
 
@@ -378,8 +386,8 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
                 (1, sym.And(_time >= 0, _time <= _duration)), (0, True)
             )
             valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
-            # we can use only SymbolicPulse when jax-jitting
-            # bacause jax-jitting doesn't correspond to validate_parameters in qiskit.pulse.
+            # we need to set disable_validation True to enable jax-jitting.
+            pulse.SymbolicPulse.disable_validation = True
             instance = pulse.SymbolicPulse(
                 pulse_type="Constant",
                 duration=5,
@@ -393,10 +401,26 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
             converter = InstructionToSignals(self._dt, carriers={"d0": 5})
             return converter.get_signals(schedule)[0].samples
 
-        self.jit_wrap(jit_func_instruction_to_signals)(0.1)
-        self.jit_grad_wrap(jit_func_instruction_to_signals)(0.1)
-        jit_samples = self.jit_wrap(jit_func_instruction_to_signals)(0.1)
+        def jit_func_gaussian_to_signals(amp):
+            pulse.Gaussian.disable_validation = True
+            instance = pulse.Gaussian(duration=5, amp=amp, sigma=2.0)
+            with pulse.build() as schedule:
+                pulse.play(instance, pulse.DriveChannel(0))
+
+            converter = InstructionToSignals(self._dt, carriers={"d0": 5})
+            return converter.get_signals(schedule)[0].samples
+
+        jit(jit_func_instruction_to_signals)(0.1)
+        self.jit_grad(jit_func_instruction_to_signals)(0.1)
+        jit_samples = jit(jit_func_instruction_to_signals)(0.1)
         self.assertAllClose(jit_samples, self.constant_get_waveform_samples, atol=1e-7, rtol=1e-7)
+
+        jit(jit_func_gaussian_to_signals)(0.983)
+        self.jit_grad(jit_func_gaussian_to_signals)(0.983)
+        jit_gaussian_samples = jit(jit_func_gaussian_to_signals)(0.983)
+        self.assertAllClose(
+            jit_gaussian_samples, self.gaussian_get_waveform_samples, atol=1e-7, rtol=1e-7
+        )
 
     def test_pulse_types_combination_with_jax(self):
         """Test that converting schedule including some pulse types with Jax works well"""
@@ -408,6 +432,8 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
                 (1, sym.And(_time >= 0, _time <= _duration)), (0, True)
             )
             valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
+            # we need to set disable_validation True to enable jax-jitting.
+            pulse.SymbolicPulse.disable_validation = True
             instance = pulse.SymbolicPulse(
                 pulse_type="Constant",
                 duration=5,
@@ -430,8 +456,8 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
             converter = InstructionToSignals(self._dt, carriers={"d0": 5})
             return converter.get_signals(schedule)[0].samples
 
-        self.jit_wrap(jit_func_symbolic_pulse)(0.1)
-        self.jit_grad_wrap(jit_func_symbolic_pulse)(0.1)
+        jit(jit_func_symbolic_pulse)(0.1)
+        self.jit_grad(jit_func_symbolic_pulse)(0.1)
 
 
 @ddt
