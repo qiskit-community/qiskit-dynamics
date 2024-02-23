@@ -54,7 +54,7 @@ except ImportError:
 
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 
-from qiskit_dynamics.array import Array, wrap
+from qiskit_dynamics.array import Array
 
 
 def _is_sparse_object_array(A):
