@@ -39,7 +39,6 @@ from qiskit.pulse.exceptions import PulseError
 from qiskit.pulse.library import SymbolicPulse
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import ArrayLike
 
@@ -349,6 +348,12 @@ def get_samples(pulse: SymbolicPulse) -> ArrayLike:
         raise PulseError("Pulse envelope expression is not assigned.")
 
     args = []
+    try:
+        backend = (
+            "jax" if any(isinstance(v, jax.core.Tracer) for v in pulse_params.values()) else "numpy"
+        )
+    except (ImportError, NameError):
+        backend = "numpy"
     for symbol in sorted(envelope.free_symbols, key=lambda s: s.name):
         if symbol.name == "t":
             times = unp.arange(0, pulse_params["duration"]) + 1 / 2
@@ -361,7 +366,10 @@ def get_samples(pulse: SymbolicPulse) -> ArrayLike:
                 f"Pulse parameter '{symbol.name}' is not defined for this instance. "
                 "Please check your waveform expression is correct."
             ) from ex
-    return _lru_cache_expr(envelope, Array.default_backend())(*args)
+    return _lru_cache_expr(
+        envelope,
+        backend,
+    )(*args)
 
 
 @functools.lru_cache(maxsize=None)

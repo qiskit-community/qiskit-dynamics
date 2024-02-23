@@ -121,6 +121,9 @@ JAX-compiled (or more generally, JAX-transformed).
             _amp * sym.exp(sym.I * _angle) * lifted_gaussian(_t, _center, _duration + 1, _sigma)
         )
 
+        # we need to set disable_validation True to enable jax-jitting.
+        pulse.ScalableSymbolicPulse.disable_validation = True
+
         gaussian_pulse = pulse.ScalableSymbolicPulse(
                 pulse_type="Gaussian",
                 duration=160,
