@@ -510,9 +510,16 @@ class LindbladCollection:
                 )
 
             if self._static_dissipators is None:
+                # real and imag broken up to avoid real/complex tensordot warning
+                mats = _matmul(self._dissipator_operators, _matmul(y, self._dissipator_operators_adj))
                 both_mult_contribution = _numpy_multi_dispatch(
                     dis_coefficients,
-                    _matmul(self._dissipator_operators, _matmul(y, self._dissipator_operators_adj)),
+                    mats.real,
+                    path="tensordot",
+                    axes=(-1, -3),
+                ) + _numpy_multi_dispatch(
+                    dis_coefficients,
+                    mats.imag,
                     path="tensordot",
                     axes=(-1, -3),
                 )
@@ -522,12 +529,19 @@ class LindbladCollection:
                     axis=-3,
                 )
             else:
+                # real and imag broken up to avoid real/complex tensordot warning
+                mats = _matmul(self._dissipator_operators, _matmul(y, self._dissipator_operators_adj))
                 both_mult_contribution = unp.sum(
                     _matmul(self._static_dissipators, _matmul(y, self._static_dissipators_adj)),
                     axis=-3,
                 ) + _numpy_multi_dispatch(
                     dis_coefficients,
-                    _matmul(self._dissipator_operators, _matmul(y, self._dissipator_operators_adj)),
+                    mats.real,
+                    path="tensordot",
+                    axes=(-1, -3),
+                ) + _numpy_multi_dispatch(
+                    dis_coefficients,
+                    mats.imag,
                     path="tensordot",
                     axes=(-1, -3),
                 )
