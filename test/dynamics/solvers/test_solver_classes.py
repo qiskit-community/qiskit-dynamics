@@ -452,7 +452,9 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
         self.assertTrue(lindblad_solver.model.signals == (None, None))
 
         td_lindblad_solver = Solver(hamiltonian_operators=[self.X], dissipator_operators=[self.X])
-        td_lindblad_solver.solve(signals=([1.0], [1.0]), t_span=[0.0, 0.01], y0=np.eye(2, dtype=complex))
+        td_lindblad_solver.solve(
+            signals=([1.0], [1.0]), t_span=[0.0, 0.01], y0=np.eye(2, dtype=complex)
+        )
         self.assertTrue(td_lindblad_solver.model.signals == (None, None))
 
 

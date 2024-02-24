@@ -37,7 +37,9 @@ def register_linear_combo(alias):
         @alias.register_function(lib="jax", path="linear_combo")
         def _(coeffs, mats):
             # real and imag broken up to avoid real/complex tensordot warning
-            return jnp.tensordot(coeffs, mats.real, axes=1) + 1j * jnp.tensordot(coeffs, mats.imag, axes=1)
+            return jnp.tensordot(coeffs, mats.real, axes=1) + 1j * jnp.tensordot(
+                coeffs, mats.imag, axes=1
+            )
 
         from jax.experimental.sparse import sparsify
 
