@@ -519,7 +519,7 @@ class LindbladCollection:
                     mats.real,
                     path="tensordot",
                     axes=(-1, -3),
-                ) + _numpy_multi_dispatch(
+                ) + 1j * _numpy_multi_dispatch(
                     dis_coefficients,
                     mats.imag,
                     path="tensordot",
@@ -546,7 +546,7 @@ class LindbladCollection:
                         path="tensordot",
                         axes=(-1, -3),
                     )
-                    + _numpy_multi_dispatch(
+                    + 1j * _numpy_multi_dispatch(
                         dis_coefficients,
                         mats.imag,
                         path="tensordot",
