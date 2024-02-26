@@ -65,7 +65,8 @@ autosummary_generate_overwrite = False
 autoclass_content = "both"
 intersphinx_mapping = {
     "qiskit": ("https://docs.quantum.ibm.com/api/qiskit", None),
-    "qiskit_experiments": ("https://qiskit-extensions.github.io/qiskit-experiments/", None)
+    "qiskit_experiments": ("https://qiskit-extensions.github.io/qiskit-experiments/", None),
+    "arraylias": ("https://qiskit-extensions.github.io/arraylias/", None)
 }
 
 # nbsphinx options (for tutorials)

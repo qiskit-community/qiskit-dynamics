@@ -13,13 +13,27 @@
 # that they have been altered from the originals.
 
 r"""
-=========================================
-Models (:mod:`qiskit_dynamics.arraylias`)
-=========================================
+============================================
+Arraylias (:mod:`qiskit_dynamics.arraylias`)
+============================================
 
 .. currentmodule:: qiskit_dynamics.arraylias
 
-Module for Qiskit Dynamics global NumPy and SciPy aliases.
+Qiskit Dynamics uses `Arraylias <https://qiskit-extensions.github.io/arraylias/>`_ to manage
+dispatching of array operations for different array types coming from different array libraries.
+
+This module contains Qiskit Dynamics-global extensions of the default NumPy and SciPy aliases
+provided by Arraylias <https://qiskit-extensions.github.io/arraylias/>`_, which have been configured
+to support the `JAX <https://jax.readthedocs.io/en/latest/>`_ `BCOO` sparse array type, as well as
+the sparse types offered by SciPy.
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   DYNAMICS_NUMPY_ALIAS
+   DYNAMICS_SCIPY_ALIAS
+   DYNAMICS_NUMPY
+   DYNAMICS_SCIPY
 """
 
 from .alias import (
