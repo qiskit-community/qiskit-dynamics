@@ -22,7 +22,7 @@ from qiskit_dynamics.models import HamiltonianModel
 from qiskit_dynamics.signals import Signal
 from qiskit_dynamics import solve_lmde
 
-from .common import TestJaxBase
+from .common import JAXTestBase
 
 try:
     from jax import jit, grad
@@ -32,7 +32,7 @@ except Exception:
     pass
 
 
-class TestJaxTransformations(TestJaxBase):
+class TestJaxTransformations(JAXTestBase):
     """Class for testing jax transformations of integrated use cases."""
 
     def setUp(self):

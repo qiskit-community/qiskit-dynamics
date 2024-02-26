@@ -9,7 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """
 Tests for algebraic operations on signals.
@@ -19,7 +19,7 @@ import numpy as np
 
 from qiskit_dynamics.signals import Signal, DiscreteSignal, SignalSum, DiscreteSignalSum
 
-from ..common import QiskitDynamicsTestCase, TestJaxBase
+from ..common import test_array_backends, JAXTestBase
 
 try:
     from jax import jit, grad
@@ -28,7 +28,8 @@ except ImportError:
     pass
 
 
-class TestSignalAddition(QiskitDynamicsTestCase):
+@test_array_backends
+class TestSignalAddition:
     """Testing special handling of signal addition."""
 
     def test_SignalSum_construction(self):
@@ -81,7 +82,8 @@ class TestSignalAddition(QiskitDynamicsTestCase):
         self.assertAllClose(sig_sum.envelope(1.5), np.array([3.0, -1.0]))
 
 
-class TestSignalMultiplication(QiskitDynamicsTestCase):
+@test_array_backends
+class TestSignalMultiplication:
     """Test special handling of signal multiplication."""
 
     def test_DiscreteSignal_products(self):
@@ -198,15 +200,7 @@ class TestSignalMultiplication(QiskitDynamicsTestCase):
         self.assertAllClose(sig_prod(t_vals), expected)
 
 
-class TestSignalAdditionJax(TestSignalAddition, TestJaxBase):
-    """Jax version of TestSignalAddition."""
-
-
-class TestSignalMultiplicationJax(TestSignalMultiplication, TestJaxBase):
-    """Jax version of TestSignalMultiplication."""
-
-
-class TestSignalAlgebraJaxTransformations(QiskitDynamicsTestCase, TestJaxBase):
+class TestSignalAlgebraJaxTransformations(JAXTestBase):
     """Test cases for jax transformations through signal algebraic operations."""
 
     def setUp(self):

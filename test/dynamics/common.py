@@ -54,7 +54,7 @@ except ImportError:
 
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 
-from qiskit_dynamics.array import Array, wrap
+from qiskit_dynamics.array import Array
 
 
 def _is_sparse_object_array(A):
@@ -336,53 +336,3 @@ class QutipTestBase(QiskitDynamicsTestCase):
                 import qutip  # pylint: disable=import-outside-toplevel,unused-import
         except Exception as err:
             raise unittest.SkipTest("Skipping qutip tests.") from err
-
-
-# to be removed for 0.5.0
-class TestJaxBase(unittest.TestCase):
-    """Base class with setUpClass and tearDownClass for setting jax as the
-    default backend.
-
-    Test cases that inherit from this class will automatically work with jax
-    backend.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            # pylint: disable=import-outside-toplevel
-            import jax
-
-            jax.config.update("jax_enable_x64", True)
-            jax.config.update("jax_platform_name", "cpu")
-        except Exception as err:
-            raise unittest.SkipTest("Skipping jax tests.") from err
-
-        Array.set_default_backend("jax")
-
-    @classmethod
-    def tearDownClass(cls):
-        """Set numpy back to the default backend."""
-        Array.set_default_backend("numpy")
-
-    def jit_wrap(self, func_to_test: Callable) -> Callable:
-        """Wraps and jits func_to_test.
-        Args:
-            func_to_test: The function to be jited.
-        Returns:
-            Wrapped and jitted function."""
-        wf = wrap(jit, decorator=True)
-        return wf(wrap(func_to_test))
-
-    def jit_grad_wrap(self, func_to_test: Callable) -> Callable:
-        """Tests whether a function can be graded. Converts
-        all functions to scalar, real functions if they are not
-        already.
-        Args:
-            func_to_test: The function whose gradient will be graded.
-        Returns:
-            JIT-compiled gradient of function.
-        """
-        return wrap(lambda f: jit(grad(f)), decorator=True)(
-            lambda *args: np.sum(func_to_test(*args)).real
-        )
