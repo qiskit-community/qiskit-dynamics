@@ -82,10 +82,10 @@ class HamiltonianModel(GeneratorModel):
                 F = -iH.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                 frame operator is diagonalized.
-            array_library: Array library for storing the operators in the model. Supported options
-                are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
-                the arrays will be handled by general dispatching rules. Call
-                ``help(GeneratorModel.array_library)`` for more details.
+            array_library: Array library with which to represent the operators in the model, and to 
+                evaluate the model. See the list of supported array libraries in the 
+                :mod:`.arraylias` submodule API documentation. If ``None``, the arrays will be
+                handled by general dispatching rules.
             validate: If ``True`` check input operators are Hermitian. Note that this is
                 incompatible with JAX transformations.
 
