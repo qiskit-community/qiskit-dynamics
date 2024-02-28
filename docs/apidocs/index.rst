@@ -15,5 +15,6 @@ Qiskit Dynamics API Reference
    signals
    pulse
    perturbation
+   arraylias
    array
    dispatch
