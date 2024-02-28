@@ -208,9 +208,13 @@ class Solver:
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                 frame operator is diagonalized. See class documentation for a more detailed
                 explanation on how this argument affects object behaviour.
-            array_library: Array library to use for storing operators of underlying model.
+            array_library: Array library to use for storing operators of underlying model. See the
+                :ref:`model evaluation section of the Models API documentation <model evaluation>`
+                for a more detailed description of this argument.
             vectorized: If including dissipator terms, whether or not to construct the
-                :class:`.LindbladModel` in vectorized form.
+                :class:`.LindbladModel` in vectorized form. See the
+                :ref:`model evaluation section of the Models API documentation <model evaluation>`
+                for a more detailed description of this argument.
             rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
                 approximation is made.
             rwa_carrier_freqs: Carrier frequencies to use for rotating wave approximation.
