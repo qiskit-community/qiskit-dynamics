@@ -198,8 +198,8 @@ def solve_lmde_perturbation(
         perturbation theory terms.
 
     Raises:
-        QiskitError: If problem with inputs, either ``expansion_method`` is unsupported,
-                     or both of ``expansion_order`` and ``expansion_labels`` unspecified.
+        QiskitError: If problem with inputs, either ``expansion_method`` is unsupported, or both of
+            ``expansion_order`` and ``expansion_labels`` unspecified.
 
     .. footbibliography::
     """

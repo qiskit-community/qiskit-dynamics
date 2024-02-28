@@ -59,23 +59,21 @@ class ArrayPolynomial:
 
     where in the above:
 
-        - :math:`S` is a finite set of multisets
-          indicating non-zero monomial terms,
+        - :math:`S` is a finite set of multisets indicating non-zero monomial terms,
         - For a given multiset of non-negative integers :math:`I=(i_1, \dots, i_k)`,
           :math:`c_I = c_{i_1} \times \dots \times c_{i_k}`, and
         - The :math:`A_I` are arrays of the same shape, indexed by the first dimension.
 
-    See the :ref:`multiset and power series notation section <multiset power series>`
-    of the perturbation review for an explanation of the multiset notation.
+    See the :ref:`multiset and power series notation section <multiset power series>` of the
+    perturbation review for an explanation of the multiset notation.
 
     An :class:`.ArrayPolynomial` is instantiated with the arguments:
 
         - ``constant_term`` specifying the array :math:`A_\emptyset`.
         - ``array_coefficients`` specifying a list of the arrays :math:`A_I`, or as a single array
           whose first index lists the :math:`A_I`,
-        - ``monomial_labels`` specifying the set :math:`S` as a list of
-          ``Multiset`` instances ordered in
-          correspondence with ``array_coefficients``.
+        - ``monomial_labels`` specifying the set :math:`S` as a list of ``Multiset`` instances
+          ordered in correspondence with ``array_coefficients``.
 
     For example, the :class:`.ArrayPolynomial` corresponding to the mathematical polynomial
 
@@ -84,8 +82,8 @@ class ArrayPolynomial:
         f(c_0, c_1) = A_\emptyset
             + c_{(0)} A_{(0)} + c_{(0, 1)}A_{(0, 1)} + c_{(1, 1)}A_{(1, 1)}
 
-    for arrays :math:`A_\emptyset, A_{(0)}, A_{(0, 1)}, A_{(1, 1)}` stored in variables
-    ``A_c``, ``A0``, ``A01``, and ``A11`` can be instantiated with
+    for arrays :math:`A_\emptyset, A_{(0)}, A_{(0, 1)}, A_{(1, 1)}` stored in variables ``A_c``,
+    ``A0``, ``A01``, and ``A11`` can be instantiated with
 
     .. code-block:: python
 
@@ -103,10 +101,10 @@ class ArrayPolynomial:
         ap(c) # polynomial evaluated on variables
 
     :class:`.ArrayPolynomial` supports some array properties, e.g. ``ap.shape`` and ``ap.ndim``
-    return the shape and number of dimensions of the output of the polynomial. Some array
-    methods are also supported, such as ``transpose`` and ``trace``, and their output produces
-    a new :class:`.ArrayPolynomial` which evaluates to the array one would obtain by first
-    evaluating the original, then calling the array method. E.g.
+    return the shape and number of dimensions of the output of the polynomial. Some array methods
+    are also supported, such as ``transpose`` and ``trace``, and their output produces a new
+    :class:`.ArrayPolynomial` which evaluates to the array one would obtain by first evaluating the
+    original, then calling the array method. E.g.
 
     .. code-block:: python
 
@@ -120,15 +118,15 @@ class ArrayPolynomial:
         ap3 = ap1 @ ap2
         ap3(c) == ap1(c) @ ap2(c)
 
-    It also has specialized algebraic methods that perform algebraic operations while
-    "ignoring" terms. E.g., for two instances ``ap1`` and ``ap2``, the call
+    It also has specialized algebraic methods that perform algebraic operations while "ignoring"
+    terms. E.g., for two instances ``ap1`` and ``ap2``, the call
 
     .. code-block:: python
 
         ap1.matmul(ap2, monomial_filter=lambda x: len(x) <= 3)
 
-    is similar to ``ap1 @ ap2``, but will result in an :class:`.ArrayPolynomial` in which all
-    terms of degree larger than ``3`` will not be included in the results.
+    is similar to ``ap1 @ ap2``, but will result in an :class:`.ArrayPolynomial` in which all terms
+    of degree larger than ``3`` will not be included in the results.
     """
 
     __array_priority__ = 20
@@ -357,11 +355,10 @@ class ArrayPolynomial:
     ) -> "ArrayPolynomial":
         """Add two polynomials with bounds on which terms to keep.
 
-        Optionally, a function ``monomial_filter`` can be provided to limit which monomials
-        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,
-        and a term with label given by ``multiset`` will be included only if
-        ``monomial_filter(multiset) == True``, and will not be computed if
-        ``monomial_filter(multiset) == False``.
+        Optionally, a function ``monomial_filter`` can be provided to limit which monomials appear
+        in the output. It must accept as input a ``Multiset`` and return a ``bool``, and a term with
+        label given by ``multiset`` will be included only if ``monomial_filter(multiset) == True``,
+        and will not be computed if ``monomial_filter(multiset) == False``.
 
         Args:
             other: Other to add to self.
@@ -389,11 +386,10 @@ class ArrayPolynomial:
     ) -> "ArrayPolynomial":
         """Matmul self @ other with bounds on which terms to keep.
 
-        Optionally, a function ``monomial_filter`` can be provided to limit which monomials
-        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,
-        and a term with label given by ``multiset`` will be included only if
-        ``monomial_filter(multiset) == True``, and will not be computed if
-        ``monomial_filter(multiset) == False``.
+        Optionally, a function ``monomial_filter`` can be provided to limit which monomials appear
+        in the output. It must accept as input a ``Multiset`` and return a ``bool``, and a term with
+        label given by ``multiset`` will be included only if ``monomial_filter(multiset) == True``,
+        and will not be computed if ``monomial_filter(multiset) == False``.
 
         Args:
             other: Other to add to self.
@@ -420,11 +416,10 @@ class ArrayPolynomial:
     ) -> "ArrayPolynomial":
         """Entrywise multiplication of two ArrayPolynomials with bounds on which terms to keep.
 
-        Optionally, a function ``monomial_filter`` can be provided to limit which monomials
-        appear in the output. It must accept as input a ``Multiset`` and return a ``bool``,
-        and a term with label given by ``multiset`` will be included only if
-        ``monomial_filter(multiset) == True``, and will not be computed if
-        ``monomial_filter(multiset) == False``.
+        Optionally, a function ``monomial_filter`` can be provided to limit which monomials appear
+        in the output. It must accept as input a ``Multiset`` and return a ``bool``, and a term with
+        label given by ``multiset`` will be included only if ``monomial_filter(multiset) == True``,
+        and will not be computed if ``monomial_filter(multiset) == False``.
 
         Args:
             other: Other to add to self.
@@ -553,14 +548,14 @@ def _get_monomial_compute_function(multisets: List[Multiset]) -> Callable:
     """Construct a vectorized function for computing multivariable monomial terms indicated by
     multisets.
 
-    The returned function takes in the individual variables as an array, and returns an array
-    of computed monomial terms in the order indicated by multisets.
+    The returned function takes in the individual variables as an array, and returns an array of
+    computed monomial terms in the order indicated by multisets.
 
     The returned function is vectorized in the sense that the supplied first order terms can be
     arrays.
 
-    The algorithm computes monomial terms of increasing order, recursively utilizing lower
-    order terms.
+    The algorithm computes monomial terms of increasing order, recursively utilizing lower order
+    terms.
 
     Args:
         multisets: list of multisets.
