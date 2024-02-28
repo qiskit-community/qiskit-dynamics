@@ -75,18 +75,19 @@ def rotating_wave_approximation(
 
         .. code-block:: python
 
-            rwa_model, signal_map = rotating_wave_approximation(model,
-                                                                cutoff_freq,
-                                                                return_signal_map=True)
+            rwa_model, signal_map = rotating_wave_approximation(
+                model,
+                cutoff_freq,
+                return_signal_map=True
+            )
 
         The following function **is** JAX-transformable:
 
         .. code-block:: python
 
             def jax_transformable_func(t):
-                rwa_model_copy = rwa_model.copy()
-                rwa_model_copy.signals = signal_map(new_signals)
-                return rwa_model_copy(t)
+                rwa_model.signals = signal_map(new_signals)
+                return rwa_model(t)
 
         In this way, the outputs of ``rotating_wave_approximation`` can be used in JAX-transformable
         functions, however ``rotating_wave_approximation`` itself cannot.
