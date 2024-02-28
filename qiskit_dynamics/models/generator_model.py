@@ -45,6 +45,10 @@ class BaseGeneratorModel(ABC):
     map :math:`\Lambda(t, \cdot)`.
     """
 
+    def __init__(self, array_library: Optional[str] = None):
+        """Set up general information used by all subclasses."""
+        self._array_library = array_library
+
     @property
     @abstractmethod
     def dim(self) -> int:
@@ -61,9 +65,9 @@ class BaseGeneratorModel(ABC):
         """Whether or not the model is evaluated in the basis in which the frame is diagonalized."""
 
     @property
-    @abstractmethod
     def array_library(self) -> Union[None, str]:
         """Array library used to store the operators in the model."""
+        return self._array_library
 
     @abstractmethod
     def evaluate(self, time: float) -> ArrayLike:
@@ -144,7 +148,6 @@ class GeneratorModel(BaseGeneratorModel):
                 "be specified at construction."
             )
 
-        self._array_library = array_library
         self._rotating_frame = RotatingFrame(rotating_frame)
         self._in_frame_basis = in_frame_basis
 
@@ -166,6 +169,8 @@ class GeneratorModel(BaseGeneratorModel):
         self._signals = None
         self.signals = signals
 
+        super().__init__(array_library=array_library)
+
     @property
     def dim(self) -> int:
         """The matrix dimension."""
@@ -184,11 +189,6 @@ class GeneratorModel(BaseGeneratorModel):
     @in_frame_basis.setter
     def in_frame_basis(self, in_frame_basis: bool):
         self._in_frame_basis = in_frame_basis
-
-    @property
-    def array_library(self) -> Union[None, str]:
-        """Array library used to store the operators in the model."""
-        return self._array_library
 
     @property
     def static_operator(self) -> Union[ArrayLike, None]:

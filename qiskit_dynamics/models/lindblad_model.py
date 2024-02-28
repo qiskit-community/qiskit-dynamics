@@ -159,7 +159,6 @@ class LindbladModel(BaseGeneratorModel):
             ):
                 raise QiskitError("""LindbladModel hamiltonian_operators must be Hermitian.""")
 
-        self._array_library = array_library
         self._vectorized = vectorized
         self._rotating_frame = RotatingFrame(rotating_frame)
         self._in_frame_basis = in_frame_basis
@@ -208,6 +207,8 @@ class LindbladModel(BaseGeneratorModel):
         )
 
         self.signals = (hamiltonian_signals, dissipator_signals)
+
+        super().__init__(array_library=array_library)
 
     @classmethod
     def from_hamiltonian(
@@ -394,11 +395,6 @@ class LindbladModel(BaseGeneratorModel):
         return self.rotating_frame.operator_out_of_frame_basis(
             self._operator_collection.dissipator_operators
         )
-
-    @property
-    def array_library(self) -> Union[None, str]:
-        """Array library used to store the operators in the model."""
-        return self._array_library
 
     @property
     def vectorized(self) -> bool:
