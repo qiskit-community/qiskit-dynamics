@@ -92,19 +92,18 @@ its documentation for details.
 
 .. _evaluation modes:
 
-Numerical methods and evaluation modes
-======================================
+Controlling model evaluation: array libraries and vectorization
+===============================================================
 
-All model classes offer different underlying numerical implementations that a user can choose using
-the ``evaluation_mode`` property. For example, :class:`~qiskit_dynamics.models.HamiltonianModel` can
-internally use either sparse or dense arrays to compute :math:`H(t)` or a product :math:`-iH(t)y`.
-The default is dense arrays, and a model can be set to use sparse arrays via:
+The underlying array library used by any model class can be controlled via the ``array_library``
+instantiation argument. The model will store the underlying arrays using the specified library, and
+use this library to evaluate the model. See the :mod:`.arraylias` submodule API documentation for a
+list of ``array_library`` options. If unspecified, the model will use the general dispatching rules
+of the configured aliases in :mod:`.arraylias` to determine which library to use based on how the
+operators are specified.
 
-.. code-block:: python
-
-    model.evaluation_mode = "sparse"
-
-See the ``evaluation_mode`` property for each model class for available modes.
+Additionally, the :class:`.LindbladModel` class can be set to store and evaluate the Lindblad
+equation in a matrix-vector vectorized format using the ``vectorized`` instatiation argument.
 
 .. note::
 

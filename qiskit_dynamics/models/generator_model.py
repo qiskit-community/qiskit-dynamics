@@ -66,7 +66,12 @@ class BaseGeneratorModel(ABC):
 
     @property
     def array_library(self) -> Union[None, str]:
-        """Array library used to store the operators in the model."""
+        """Array library with which to represent the operators in the model, and to evaluate the
+        model.
+        
+        See the list of supported array libraries in the :mod:`.arraylias` submodule API
+        documentation.
+        """
         return self._array_library
 
     @abstractmethod
@@ -136,9 +141,10 @@ class GeneratorModel(BaseGeneratorModel):
             rotating_frame: Rotating frame operator.
             in_frame_basis: Whether to represent the model in the basis in which the rotating frame
                 operator is diagonalized.
-            array_library: Array library for storing the operators in the model. Supported options
-                are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
-                the arrays will be handled by general dispatching rules.
+            array_library: Array library with which to represent the operators in the model, and to 
+                evaluate the model. See the list of supported array libraries in the 
+                :mod:`.arraylias` submodule API documentation. If ``None``, the arrays will be
+                handled by general dispatching rules.
         Raises:
             QiskitError: If model not sufficiently specified.
         """
