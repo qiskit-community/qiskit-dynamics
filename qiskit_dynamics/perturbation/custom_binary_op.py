@@ -219,7 +219,8 @@ def _compile_custom_operation_rule(
 def _compute_unique_evaluations(
     A: np.array, B: np.array, unique_evaluation_pairs: np.array, binary_op: Callable
 ) -> np.array:
-    """Compute ``binary_op(A[j], B[k])`` for index pairs ``[j, k]`` in ``unique_evaluation_pairs``.
+    """Compute ``binary_op(A[j], B[k])`` for index pairs ``[j, k]`` in
+    ``unique_evaluation_pairs``.
     """
 
     # evaluate first pair (assumes not all evaluation pairs are paddings of [-1, -1])
