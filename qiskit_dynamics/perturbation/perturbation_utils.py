@@ -33,16 +33,16 @@ def _merge_multiset_expansion_order_labels(
     expansion_order: Optional[int] = None,
     expansion_labels: Optional[List[Multiset]] = None,
 ) -> List[Multiset]:
-    """Helper function for merging expansion_order and expansion_labels arguments
-    in the multiset case for functions that require specifying expansion terms to compute.
+    """Helper function for merging expansion_order and expansion_labels arguments in the multiset
+    case for functions that require specifying expansion terms to compute.
 
-    Generates a list of all Multisets of a given size given by expansion_order,
-    and includes any additional multisets specified by expansion_labels. The elements
-    of the multisets are drawn from perturbation_labels, which is either a list of
-    ints, or a list of Multisets from which the ints are drawn.
+    Generates a list of all Multisets of a given size given by expansion_order, and includes any
+    additional multisets specified by expansion_labels. The elements of the multisets are drawn from
+    perturbation_labels, which is either a list of ints, or a list of Multisets from which the ints
+    are drawn.
 
-    At least one of expansion_order or expansion_labels must be specified. Accepts
-    only multisets and labels consisting of non-negative integers.
+    At least one of expansion_order or expansion_labels must be specified. Accepts only multisets
+    and labels consisting of non-negative integers.
 
     Args:
         perturbation_labels: Specification of elements of the multisets to generate.
@@ -101,8 +101,8 @@ def _merge_list_expansion_order_labels(
     expansion_order: Optional[int] = None,
     expansion_labels: Optional[List[List[int]]] = None,
 ) -> List[int]:
-    """Helper function for merging expansion_order and expansion_labels arguments
-    in the list case for functions that require specifying expansion terms to compute.
+    """Helper function for merging expansion_order and expansion_labels arguments in the list case
+    for functions that require specifying expansion terms to compute.
 
     Generates a list of all lists of integers in [0, ..., perturbation_num - 1] of a given size
     given by expansion_order, and includes any additional lists specified by expansion_labels.
@@ -121,10 +121,7 @@ def _merge_list_expansion_order_labels(
 
     # validate
     if expansion_order is None and expansion_labels is None:
-        raise QiskitError(
-            """At least one of expansion_order or
-                          expansion_labels must be specified."""
-        )
+        raise QiskitError("At least one of expansion_order or expansion_labels must be specified.")
 
     if expansion_order is None:
         return expansion_labels

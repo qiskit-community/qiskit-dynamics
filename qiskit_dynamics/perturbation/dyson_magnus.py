@@ -12,10 +12,9 @@
 # pylint: disable=invalid-name
 
 r"""
-Core functionality for computing Dyson series [1] and Magnus expansion [2, 3] terms.
-Specifically, Dyson-like terms are computed via the algorithm in [4], and
-Dyson series and Magnus expansion terms are computed via the
-method in [5].
+Core functionality for computing Dyson series [1] and Magnus expansion [2, 3] terms. Specifically,
+Dyson-like terms are computed via the algorithm in [4], and Dyson series and Magnus expansion terms
+are computed via the method in [5].
 
 References:
     1. F. Dyson, *The radiation theories of Tomonaga, Schwinger, and Feynman*,
@@ -76,19 +75,18 @@ def _solve_lmde_dyson(
     t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
-    """Helper function for computing Dyson terms using methods in References [4, 5].
-    See documentation for :meth:`solve_lmde_perturbation`.
+    """Helper function for computing Dyson terms using methods in References [4, 5]. See
+    documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
         perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         dyson_terms: Terms to compute.
-        perturbation_labels: Ordering/specification of the elements of perturbations. Only used
-                             for dyson_like==False.
+        perturbation_labels: Ordering/specification of the elements of perturbations. Only used for
+            dyson_like==False.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
-        dyson_in_frame: Whether to return the Dyson terms in the frame of the
-                        the frame generator.
+        dyson_in_frame: Whether to return the Dyson terms in the frame of the the frame generator.
         dyson_like: Compute either Dyson or Dyson-like terms.
         integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
@@ -171,8 +169,8 @@ def _solve_lmde_magnus(
     t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
-    """Helper function for computing Magnus terms using method in Reference [5].
-    See documentaiton for :meth:`solve_lmde_perturbation`.
+    """Helper function for computing Magnus terms using method in Reference [5]. See documentation
+    for :meth:`solve_lmde_perturbation`.
 
     Args:
         perturbations: List of callable matrix functions to appear in Dyson terms.
@@ -227,19 +225,17 @@ def _solve_lmde_dyson_jax(
     t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
-    """JAX version of ``_solve_lmde_dyson``.
-    See documentation for :meth:`solve_lmde_perturbation`.
+    """JAX version of ``_solve_lmde_dyson``. See documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
         perturbations: List of callable matrix functions to appear in Dyson terms.
         t_span: Integration limits.
         dyson_terms: Terms to compute.
         perturbation_labels: Ordering/specification of the elements of perturbations. Only used if
-                             dyson_like==False.
+            dyson_like==False.
         generator: Optional frame generator.
         y0: Optional initial state for frame generator LMDE.
-        dyson_in_frame: Whether to return the Dyson terms in the frame of the
-                        the frame generator.
+        dyson_in_frame: Whether to return the Dyson terms in the frame of the the frame generator.
         dyson_like: Compute either Dyson or Dyson-like terms.
         integration_method: Integration method.
         t_eval: Optional additional time points at which to return the solution.
@@ -321,8 +317,7 @@ def _solve_lmde_magnus_jax(
     t_eval: Optional[ArrayLike] = None,
     **kwargs,
 ) -> OdeResult:
-    """JAX version of ``_solve_lmde_magnus``.
-    See documentation for :meth:`solve_lmde_perturbation`.
+    """JAX version of ``_solve_lmde_magnus``. See documentation for :meth:`solve_lmde_perturbation`.
 
     Args:
         perturbations: List of callable matrix functions to appear in Dyson terms.
@@ -380,8 +375,8 @@ def _setup_dyson_rhs(
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
         mat_dim: Dimension of outputs of generator and functions in perturbations.
         dyson_like: Whether the computation is for Dyson or Dyson-like terms.
-        perturbation_labels: List of lists specifying index information for perturbations.
-                             Only used when dyson_like==False.
+        perturbation_labels: List of lists specifying index information for perturbations. Only used
+            when dyson_like==False.
 
     Returns:
         Callable
@@ -435,8 +430,8 @@ def _setup_dyson_rhs_jax(
         perturbations: List of matrix functions appearing in Dyson terms.
         oc_dyson_indices: Ordered complete list of Dyson terms to compute.
         dyson_like: Whether the computation is for Dyson or Dyson-like terms.
-        perturbation_labels: List of lists specifying index information for perturbations.
-                             Only used when dyson_like==False.
+        perturbation_labels: List of lists specifying index information for perturbations. Only used
+            when dyson_like==False.
 
     Returns:
         Callable
@@ -474,9 +469,7 @@ def _setup_dyson_rhs_jax(
 
 
 def _required_dyson_generator_indices(complete_dyson_indices: List) -> List:
-    """Given a complete list of dyson indices, determine which generator terms
-    are actually required.
-    """
+    """Given a complete list of dyson indices, determine which generator terms are required."""
     generator_indices = []
     for term in complete_dyson_indices:
         if term[0] not in generator_indices:
@@ -489,11 +482,11 @@ def _required_dyson_generator_indices(complete_dyson_indices: List) -> List:
 def _get_dyson_like_lmult_rule(
     complete_dyson_indices: List[List[int]], generator_indices: List[List[int]]
 ) -> List:
-    """Construct custom product rules, in the format required by ``custom_product``,
-    for a given set of Dyson terms.
+    """Construct custom product rules, in the format required by ``custom_product``, for a given set
+    of Dyson terms.
 
-    Assumption: the supplied list is complete, i.e. if a term depends on other
-    terms, then the terms it depends on are also in the list.
+    Assumption: the supplied list is complete, i.e. if a term depends on other terms, then the terms
+    it depends on are also in the list.
 
     Convention: G(t) is given the index -1 to preserve the indexing of perturbations.
 
@@ -530,10 +523,9 @@ def _get_dyson_like_lmult_rule(
 
 
 def _get_complete_dyson_like_indices(dyson_terms: List[List[int]]) -> List[List[int]]:
-    """Given a list of Dyson terms to compute specified as lists of indices,
-    recursively construct all other Dyson terms that need to be computed,
-    returned as a list, ordered by increasing Dyson order, and
-    in lexicographic order within an order.
+    """Given a list of Dyson terms to compute specified as lists of indices, recursively construct
+    all other Dyson terms that need to be computed, returned as a list, ordered by increasing Dyson
+    order, and in lexicographic order within an order.
 
     Args:
         dyson_terms: Terms to compute.
@@ -571,9 +563,8 @@ def _get_complete_dyson_like_indices(dyson_terms: List[List[int]]) -> List[List[
 
 
 def _magnus_from_dyson(complete_index_multisets: List[Multiset], dyson_terms: np.array) -> np.array:
-    """Compute magnus terms from dyson terms using the recursion
-    relation presented in [5]. The term "Q Matrices" in helper functions refers to
-    the matrices used in the recursion relation in [5].
+    """Compute magnus terms from dyson terms using the recursion relation presented in [5]. The term
+    "Q Matrices" in helper functions refers to the matrices used in the recursion relation in [5].
 
     Args:
         complete_index_multisets: A complete and canonically ordered list of index Multisets.
@@ -645,11 +636,10 @@ def _magnus_from_dyson_jax(
 
 
 def _q_recursive_compiled_rules(ordered_q_terms: List) -> Tuple[int, np.array, Tuple]:
-    """Construct compiled custom product rules for recursive computation
-    of Q matrices.
+    """Construct compiled custom product rules for recursive computation of Q matrices.
 
-    Note: this function "stacks" the rules into a single tuple whose formatting
-    is chosen to be usable with jax loop constructs.
+    Note: this function "stacks" the rules into a single tuple whose formatting is chosen to be
+    usable with jax loop constructs.
 
     Args:
         ordered_q_terms: Ordered list of Q matrix specifications.
@@ -708,17 +698,15 @@ def _q_recursive_compiled_rules(ordered_q_terms: List) -> Tuple[int, np.array, T
 
 
 def _q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
-    """Given a specification of a Q matrix and an ordered complete
-    list of Q matrix specifications, constructs the recursion relation required to
-    compute q_term, specified as a custom product rule for instantiating
-    a CustomProduct.
+    """Given a specification of a Q matrix and an ordered complete list of Q matrix specifications,
+    constructs the recursion relation required to compute q_term, specified as a custom product rule
+    for instantiating a CustomProduct.
 
     Note:
-        - This assumes len(sym_index) > 1, as the purpose of this
-          function is to apply the recursion rules, and no rule is required
-          when len(sym_index) == 1.
-        - This function also assumes that q_term, and oc_q_term_list are
-          correctly formatted in terms of internal sorting.
+        - This assumes len(sym_index) > 1, as the purpose of this function is to apply the recursion
+          rules, and no rule is required when len(sym_index) == 1.
+        - This function also assumes that q_term, and oc_q_term_list are correctly formatted in
+          terms of internal sorting.
 
     Args:
         q_term: Tuple with a Multiset and a product order (int)
@@ -762,15 +750,12 @@ def _q_product_rule(q_term: Tuple, oc_q_term_list: List[Tuple]) -> List:
 
 
 def _get_q_term_list(complete_index_multisets: List[Multiset]) -> List:
-    """Construct a specification of the recursive Q matrices
-    required to compute all Magnus terms specified by
-    ``complete_index_multisets``. Each Q matrix is specified as
-    a 2-tuple with first entry a Multiset indexing the term,
-    and second entry the product order of the Q matrix.
+    """Construct a specification of the recursive Q matrices required to compute all Magnus terms
+    specified by ``complete_index_multisets``. Each Q matrix is specified as a 2-tuple with first
+    entry a Multiset indexing the term, and second entry the product order of the Q matrix.
 
-    Note: This function assumes ``complete_index_multisets`` are
-    canonically ordered and correctly formatted. The output is then
-    a canonical ordering of the Q matrices.
+    Note: This function assumes ``complete_index_multisets`` are canonically ordered and correctly
+    formatted. The output is then a canonical ordering of the Q matrices.
 
     Args:
         complete_index_multisets: Canonically ordered complete list of index Multisets.
