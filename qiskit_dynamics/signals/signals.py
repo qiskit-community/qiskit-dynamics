@@ -46,18 +46,17 @@ class Signal:
     - :math:`\nu` is the carrier frequency.
     - :math:`\phi` is the phase.
 
-    The envelope function can be specified either as a constant numeric value
-    (indicating a constant function), or as a complex-valued callable,
-    and the frequency and phase must be real.
+    The envelope function can be specified either as a constant numeric value (indicating a constant
+    function), or as a complex-valued callable, and the frequency and phase must be real.
 
 
     .. note::
 
-        :class:`~qiskit_dynamics.signals.Signal` assumes the envelope ``f`` is
-        *array vectorized* in the sense that ``f`` can operate on arrays of arbitrary shape
-        and satisfy ``f(x)[idx] == f(x[idx])`` for a multidimensional index ``idx``. This
-        can be ensured either by writing ``f`` to be vectorized, or by using the ``vectorize``
-        function in ``numpy`` or ``jax.numpy``.
+        :class:`~qiskit_dynamics.signals.Signal` assumes the envelope ``f`` is *array vectorized* in
+        the sense that ``f`` can operate on arrays of arbitrary shape and satisfy
+        ``f(x)[idx] == f(x[idx])`` for a multidimensional index ``idx``. This can be ensured either
+        by writing ``f`` to be vectorized, or by using the ``vectorize`` function in ``numpy`` or
+        ``jax.numpy``.
 
         For example, for an unvectorized envelope function ``f``:
 
@@ -80,10 +79,10 @@ class Signal:
 
         Args:
             envelope: Envelope function of the signal, must be vectorized.
-            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums
-                          represent the carriers of each signal in an array.
-            phase: The phase of the carrier. Subclasses such as SignalSums
-                   represent the phase of each signal in an array.
+            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums represent the
+                carriers of each signal in an array.
+            phase: The phase of the carrier. Subclasses such as SignalSums represent the phase of
+                each signal in an array.
             name: Name of the signal.
         """
         self._name = name
@@ -125,8 +124,9 @@ class Signal:
 
     @carrier_freq.setter
     def carrier_freq(self, carrier_freq: ArrayLike):
-        """Carrier frequency setter. List handling is to support subclasses storing a
-        list of frequencies."""
+        """Carrier frequency setter. List handling is to support subclasses storing a list of
+        frequencies.
+        """
         self._carrier_freq = unp.asarray(carrier_freq)
         self._carrier_arg = 1j * 2 * np.pi * self._carrier_freq
 
@@ -137,8 +137,7 @@ class Signal:
 
     @phase.setter
     def phase(self, phase: ArrayLike):
-        """Phase setter. List handling is to support subclasses storing a
-        list of phases."""
+        """Phase setter. List handling is to support subclasses storing a list of phases."""
         self._phase = unp.asarray(phase)
         self._phase_arg = 1j * self._phase
 
@@ -205,8 +204,7 @@ class Signal:
     ):
         """Plot the signal over an interval.
 
-        The ``function`` arg specifies which function to
-        plot:
+        The ``function`` arg specifies which function to plot:
 
             - ``function == 'signal'`` plots the full signal.
             - ``function == 'envelope'`` plots the complex envelope.
@@ -262,9 +260,9 @@ class DiscreteSignal(Signal):
     The envelope is specified by an array of samples ``s = [s_0, ..., s_k]``, sample width ``dt``,
     and a start time ``t_0``, with the envelope being evaluated as
     :math:`f(t) =` ``s[floor((t - t0)/dt)]`` if ``t`` is in the interval with endpoints
-    ``start_time`` and ``start_time + dt * len(samples)``, and ``0.0`` otherwise.
-    By default a :class:`~qiskit_dynamics.signals.DiscreteSignal` is defined to start at
-    :math:`t=0` but a custom start time can be set via the ``start_time`` kwarg.
+    ``start_time`` and ``start_time + dt * len(samples)``, and ``0.0`` otherwise. By default a
+    :class:`~qiskit_dynamics.signals.DiscreteSignal` is defined to start at :math:`t=0` but a custom
+    start time can be set via the ``start_time`` kwarg.
     """
 
     def __init__(
@@ -282,11 +280,11 @@ class DiscreteSignal(Signal):
             dt: The duration of each sample.
             samples: The array of samples.
             start_time: The time at which the signal starts.
-            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums
-                          represent the carriers of each signal in an array.
-            phase: The phase of the carrier. Subclasses such as SignalSums
-                   represent the phase of each signal in an array.
-            name: name of the signal.
+            carrier_freq: Frequency of the carrier. Subclasses such as SignalSums represent the
+                carriers of each signal in an array.
+            phase: The phase of the carrier. Subclasses such as SignalSums represent the phase of
+                each signal in an array.
+            name: Name of the signal.
         """
         self._dt = dt
 
@@ -325,8 +323,8 @@ class DiscreteSignal(Signal):
     ):
         r"""Constructs a ``DiscreteSignal`` object by sampling a ``Signal``\.
 
-        The optional argument ``sample_carrier`` controls whether or not to include the carrier
-        in the sampling. I.e.:
+        The optional argument ``sample_carrier`` controls whether or not to include the carrier in
+        the sampling. I.e.:
 
             - If ``sample_carrier == False``\, a ``DiscreteSignal`` is constructed with:
                 - ``samples`` obtained by sampling ``signal.envelope``\.
@@ -521,8 +519,8 @@ class SignalSum(SignalCollection, Signal):
     frequencies/phases for each term in the sum, and the ``envelope`` method returns an
     ``ArrayLike`` of the envelopes for each summand.
 
-    Internally, the signals are stored as a list in the ``components`` attribute, which can
-    be accessed via direct subscripting of the object.
+    Internally, the signals are stored as a list in the ``components`` attribute, which can be
+    accessed via direct subscripting of the object.
     """
 
     def __init__(self, *signals, name: Optional[str] = None):
@@ -612,8 +610,8 @@ class SignalSum(SignalCollection, Signal):
 
 
 class DiscreteSignalSum(DiscreteSignal, SignalSum):
-    """Represents a sum of piecewise constant signals, all with the same
-    time parameters: dt, number of samples, and start time.
+    """Represents a sum of piecewise constant signals, all with the same time parameters: dt, number
+    of samples, and start time.
     """
 
     def __init__(
@@ -626,13 +624,13 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
         name: str = None,
     ):
         r"""Directly initialize a ``DiscreteSignalSum``\. Samples of all terms in the
-        sum are specified as a 2d array, with 0th axis indicating time, and 1st axis
-        indicating a term in the sum.
+        sum are specified as a 2d array, with 0th axis indicating time, and 1st axis indicating a
+        term in the sum.
 
         Args:
             dt: The duration of each sample.
-            samples: The 2d array representing a list whose elements are all envelope values
-                     at a given time.
+            samples: The 2d array representing a list whose elements are all envelope values at a
+                given time.
             start_time: The time at which the signal starts.
             carrier_freq: Array with the carrier frequencies of each term in the sum.
             phase: Array with the phases of each term in the sum.
@@ -682,8 +680,8 @@ class DiscreteSignalSum(DiscreteSignal, SignalSum):
     ):
         r"""Constructs a ``DiscreteSignalSum`` object by sampling a ``SignalSum``\.
 
-        The optional argument ``sample_carrier`` controls whether or not to include the carrier
-        in the sampling. I.e.:
+        The optional argument ``sample_carrier`` controls whether or not to include the carrier in
+        the sampling. I.e.:
 
             - If ``sample_carrier == False``, a ``DiscreteSignalSum`` is constructed with:
                 - ``samples`` obtained by sampling ``signal_sum.envelope``\.
@@ -960,18 +958,17 @@ def signal_multiply(sig1: Signal, sig2: Signal) -> SignalSum:
 
 
 def base_signal_multiply(sig1: Signal, sig2: Signal) -> Signal:
-    r"""Utility function for multiplying two elementary (non ``SignalSum``\) signals.
-    This function assumes ``sig1`` and ``sig2`` are legitimate instances of ``Signal``
-    subclasses.
+    r"""Utility function for multiplying two elementary (non ``SignalSum``\) signals. This function
+    assumes ``sig1`` and ``sig2`` are legitimate instances of ``Signal`` subclasses.
 
     Special cases:
 
         - Multiplication of two constant ``Signal``\s returns a constant ``Signal``\.
-        - Multiplication of a constant ``Signal`` and a ``DiscreteSignal`` returns
-        a ``DiscreteSignal``\.
+        - Multiplication of a constant ``Signal`` and a ``DiscreteSignal`` returns a
+          ``DiscreteSignal``\.
         - If two ``DiscreteSignal``\s have compatible parameters, the resulting signals are
-        ``DiscreteSignal``\, with the multiplication being implemented by array multiplication of
-        the samples.
+          ``DiscreteSignal``\, with the multiplication being implemented by array multiplication of
+          the samples.
         - Lastly, if no special rules apply, the two ``Signal``\s are multiplied generically via
         multiplication of the envelopes as functions.
 
