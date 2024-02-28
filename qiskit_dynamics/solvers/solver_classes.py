@@ -65,37 +65,33 @@ except ImportError:
 
 
 class Solver:
-    r"""Solver class for simulating both Hamiltonian and Lindblad dynamics, with high
-    level type-handling of input states.
+    r"""Solver class for simulating both Hamiltonian and Lindblad dynamics, with high level
+    type-handling of input states.
 
-    If only Hamiltonian information is provided, this class will internally construct
-    a :class:`.HamiltonianModel` instance, and simulate the model
-    using the Schrodinger equation :math:`\dot{y}(t) = -iH(t)y(t)`
-    (see the :meth:`.Solver.solve` method documentation for details
-    on how different initial state types are handled).
-    :class:`.HamiltonianModel` represents a decomposition of the Hamiltonian of the form:
+    If only Hamiltonian information is provided, this class will internally construct a
+    :class:`.HamiltonianModel` instance, and simulate the model using the Schrodinger equation
+    :math:`\dot{y}(t) = -iH(t)y(t)` (see the :meth:`.Solver.solve` method documentation for details
+    on how different initial state types are handled). :class:`.HamiltonianModel` represents a
+    decomposition of the Hamiltonian of the form:
 
     .. math::
 
         H(t) = H_0 + \sum_i s_i(t) H_i,
 
-    where :math:`H_0` is the static component, the :math:`H_i` are the
-    time-dependent components of the Hamiltonian, and the :math:`s_i(t)` are the
-    time-dependent signals, specifiable as either :class:`.Signal`
-    objects, or constructed from Qiskit Pulse schedules if :class:`.Solver`
-    is configured for Pulse simulation (see below).
+    where :math:`H_0` is the static component, the :math:`H_i` are the time-dependent components of
+    the Hamiltonian, and the :math:`s_i(t)` are the time-dependent signals, specifiable as either
+    :class:`.Signal` objects, or constructed from Qiskit Pulse schedules if :class:`.Solver` is
+    configured for Pulse simulation (see below).
 
-    If dissipators are specified as part of the model, then a
-    :class:`.LindbladModel` is constructed, and simulations are performed
-    by solving the Lindblad equation:
+    If dissipators are specified as part of the model, then a :class:`.LindbladModel` is
+    constructed, and simulations are performed by solving the Lindblad equation:
 
     .. math::
 
         \dot{y}(t) = -i[H(t), y(t)] + \mathcal{D}_0(y(t)) + \mathcal{D}(t)(y(t)),
 
-    where :math:`H(t)` is the Hamiltonian part, specified as above, and :math:`\mathcal{D}_0`
-    and :math:`\mathcal{D}(t)` are the static and time-dependent portions of the dissipator,
-    given by:
+    where :math:`H(t)` is the Hamiltonian part, specified as above, and :math:`\mathcal{D}_0` and
+    :math:`\mathcal{D}(t)` are the static and time-dependent portions of the dissipator, given by:
 
     .. math::
 
@@ -109,55 +105,47 @@ class Solver:
         \mathcal{D}(t)(y(t)) = \sum_j \gamma_j(t) L_j y(t) L_j^\dagger
                                   - \frac{1}{2} \{L_j^\dagger L_j, y(t)\},
 
-    with :math:`N_j` the static dissipators, :math:`L_j` the time-dependent dissipator
-    operators, and :math:`\gamma_j(t)` the time-dependent signals
-    specifiable as either :class:`.Signal`
-    objects, or constructed from Qiskit Pulse schedules if :class:`.Solver`
-    is configured for Pulse simulation (see below).
+    with :math:`N_j` the static dissipators, :math:`L_j` the time-dependent dissipator operators,
+    and :math:`\gamma_j(t)` the time-dependent signals specifiable as either :class:`.Signal`
+    objects, or constructed from Qiskit Pulse schedules if :class:`.Solver` is configured for Pulse
+    simulation (see below).
 
     Transformations on the model can be specified via the optional arguments:
 
-    * ``rotating_frame``: Transforms the model into a rotating frame. Note that the
-      operator specifying the frame will be substracted from the ``static_hamiltonian``.
-      If supplied as a 1d array, ``rotating_frame`` is interpreted as the diagonal
-      elements of a diagonal matrix. Given a frame operator :math:`F = -i H_0`,
-      for the Schrodinger equation entering the rotating frame of :math:`F`, corresponds
-      to transforming the solution as :math:`y(t) \mapsto exp(-tF)y(t)`, and for the
-      Lindblad equation it corresponds to transforming the solution as
-      :math:`y(t) \mapsto exp(-tF)y(t)exp(tF)`.
-      See :class:`.RotatingFrame` for more details.
-    * ``in_frame_basis``: Whether to represent the model in the basis in which the frame
-      operator is diagonal, henceforth called the "frame basis".
-      If ``rotating_frame`` is ``None`` or was supplied as a 1d array,
-      this kwarg has no effect. If ``rotating_frame`` was specified as a 2d array,
-      the frame basis is the diagonalizing basis supplied by ``np.linalg.eigh``.
-      If ``in_frame_basis==True``, this objects behaves as if all
-      operators were supplied in the frame basis: calls to ``solve`` will assume the initial
-      state is supplied in the frame basis, and the results will be returned in the frame basis.
-      If ``in_frame_basis==False``, the system will still be solved in the frame basis for
-      efficiency, however the initial state (and final output states) will automatically be
-      transformed into (and, respectively, out of) the frame basis.
-    * ``rwa_cutoff_freq`` and ``rwa_carrier_freqs``: Performs a rotating wave approximation (RWA)
-      on the model with cutoff frequency ``rwa_cutoff_freq``, assuming the time-dependent
-      coefficients of the model have carrier frequencies specified by ``rwa_carrier_freqs``.
-      If ``dissipator_operators is None``, ``rwa_carrier_freqs`` must be a list of floats
-      of length equal to ``hamiltonian_operators``, and if ``dissipator_operators is not None``,
-      ``rwa_carrier_freqs`` must be a ``tuple`` of lists of floats, with the first entry
-      the list of carrier frequencies for ``hamiltonian_operators``, and the second
-      entry the list of carrier frequencies for ``dissipator_operators``.
-      See :func:`.rotating_wave_approximation` for details on
-      the mathematical approximation.
+    * ``rotating_frame``: Transforms the model into a rotating frame. Note that the operator
+      specifying the frame will be substracted from the ``static_hamiltonian``. If supplied as a 1d
+      array, ``rotating_frame`` is interpreted as the diagonal elements of a diagonal matrix. Given
+      a frame operator :math:`F = -i H_0`, for the Schrodinger equation entering the rotating frame
+      of :math:`F`, corresponds to transforming the solution as :math:`y(t) \mapsto exp(-tF)y(t)`,
+      and for the Lindblad equation it corresponds to transforming the solution as
+      :math:`y(t) \mapsto exp(-tF)y(t)exp(tF)`. See :class:`.RotatingFrame` for more details.
+    * ``in_frame_basis``: Whether to represent the model in the basis in which the frame operator is
+      diagonal, henceforth called the "frame basis". If ``rotating_frame`` is ``None`` or was
+      supplied as a 1d array, this kwarg has no effect. If ``rotating_frame`` was specified as a 2d
+      array, the frame basis is the diagonalizing basis supplied by ``np.linalg.eigh``. If
+      ``in_frame_basis==True``, this objects behaves as if all operators were supplied in the frame
+      basis: calls to ``solve`` will assume the initial state is supplied in the frame basis, and
+      the results will be returned in the frame basis. If ``in_frame_basis==False``, the system will
+      still be solved in the frame basis for efficiency, however the initial state (and final output
+      states) will automatically be transformed into (and, respectively, out of) the frame basis.
+    * ``rwa_cutoff_freq`` and ``rwa_carrier_freqs``: Performs a rotating wave approximation (RWA) on
+      the model with cutoff frequency ``rwa_cutoff_freq``, assuming the time-dependent coefficients
+      of the model have carrier frequencies specified by ``rwa_carrier_freqs``. If
+      ``dissipator_operators is None``, ``rwa_carrier_freqs`` must be a list of floats of length
+      equal to ``hamiltonian_operators``, and if ``dissipator_operators is not None``,
+      ``rwa_carrier_freqs`` must be a ``tuple`` of lists of floats, with the first entry the list of
+      carrier frequencies for ``hamiltonian_operators``, and the second entry the list of carrier
+      frequencies for ``dissipator_operators``. See :func:`.rotating_wave_approximation` for details
+      on the mathematical approximation.
 
       .. note::
-            When using the ``rwa_cutoff_freq`` optional argument,
-            :class:`.Solver` cannot be instantiated within
-            a JAX-transformable function. However, after construction, instances can
-            still be used within JAX-transformable functions regardless of whether an
+            When using the ``rwa_cutoff_freq`` optional argument, :class:`.Solver` cannot be
+            instantiated within a JAX-transformable function. However, after construction, instances
+            can still be used within JAX-transformable functions regardless of whether an
             ``rwa_cutoff_freq`` is set.
 
-    :class:`.Solver` can be configured to simulate Qiskit Pulse schedules
-    by setting all of the following parameters, which determine how Pulse schedules are
-    interpreted:
+    :class:`.Solver` can be configured to simulate Qiskit Pulse schedules by setting all of the
+    following parameters, which determine how Pulse schedules are interpreted:
 
     * ``hamiltonian_channels``: List of channels in string format corresponding to the
       time-dependent coefficients of ``hamiltonian_operators``.
@@ -165,21 +153,20 @@ class Solver:
       coefficients of ``dissipator_operators``.
     * ``channel_carrier_freqs``: Dictionary mapping channel names to frequencies. A frequency
       must be specified for every channel appearing in ``hamiltonian_channels`` and
-      ``dissipator_channels``. When simulating ``schedule``\s, these frequencies are
-      interpreted as the analog carrier frequencies associated with the channel; deviations from
-      these frequencies due to ``SetFrequency`` or ``ShiftFrequency`` instructions are
-      implemented by digitally modulating the samples for the channel envelope.
-      If an ``rwa_cutoff_freq`` is specified, and no ``rwa_carrier_freqs`` is specified, these
-      frequencies will be used for the RWA.
+      ``dissipator_channels``. When simulating ``schedule``\s, these frequencies are interpreted as
+      the analog carrier frequencies associated with the channel; deviations from these frequencies
+      due to ``SetFrequency`` or ``ShiftFrequency`` instructions are implemented by digitally
+      modulating the samples for the channel envelope. If an ``rwa_cutoff_freq`` is specified, and
+      no ``rwa_carrier_freqs`` is specified, these frequencies will be used for the RWA.
     * ``dt``: The envelope sample width.
 
     If configured to simulate Pulse schedules, and a JAX-based solver method is chosen when calling
     :meth:`.Solver.solve`, :meth:`.Solver.solve` will automatically attempt to compile a single
     function to re-use for all schedule simulations.
 
-    The evolution given by the model can be simulated by calling :meth:`.Solver.solve`, which
-    calls :func:`.solve_lmde`, and does various automatic
-    type handling operations for :mod:`qiskit.quantum_info` state and super operator types.
+    The evolution given by the model can be simulated by calling :meth:`.Solver.solve`, which calls
+    :func:`.solve_lmde`, and does various automatic type handling operations for
+    :mod:`qiskit.quantum_info` state and super operator types.
     """
 
     def __init__(
@@ -204,36 +191,33 @@ class Solver:
 
         Args:
             static_hamiltonian: Constant Hamiltonian term. If a ``rotating_frame``
-                                is specified, the ``frame_operator`` will be subtracted from
-                                the static_hamiltonian.
+                is specified, the ``frame_operator`` will be subtracted from the static_hamiltonian.
             hamiltonian_operators: Hamiltonian operators.
             static_dissipators: Constant dissipation operators.
             dissipator_operators: Dissipation operators with time-dependent coefficients.
             hamiltonian_channels: List of channel names in pulse schedules corresponding to
-                                  Hamiltonian operators.
+                Hamiltonian operators.
             dissipator_channels: List of channel names in pulse schedules corresponding to
-                                 dissipator operators.
-            channel_carrier_freqs: Dictionary mapping channel names to floats which represent
-                                   the carrier frequency of the pulse channel with the
-                                   corresponding name.
+                dissipator operators.
+            channel_carrier_freqs: Dictionary mapping channel names to floats which represent the
+                carrier frequency of the pulse channel with the corresponding name.
             dt: Sample rate for simulating pulse schedules.
-            rotating_frame: Rotating frame to transform the model into. Rotating frames which
-                            are diagonal can be supplied as a 1d array of the diagonal elements,
-                            to explicitly indicate that they are diagonal.
+            rotating_frame: Rotating frame to transform the model into. Rotating frames which are
+                diagonal can be supplied as a 1d array of the diagonal elements, to explicitly
+                indicate that they are diagonal.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
-                            frame operator is diagonalized. See class documentation for a more
-                            detailed explanation on how this argument affects object behaviour.
+                frame operator is diagonalized. See class documentation for a more detailed
+                explanation on how this argument affects object behaviour.
             array_library: Array library to use for storing operators of underlying model.
             vectorized: If including dissipator terms, whether or not to construct the
                 :class:`.LindbladModel` in vectorized form.
             rwa_cutoff_freq: Rotating wave approximation cutoff frequency. If ``None``, no
-                             approximation is made.
+                approximation is made.
             rwa_carrier_freqs: Carrier frequencies to use for rotating wave approximation.
-                               If no time dependent coefficients in model leave as ``None``,
-                               if no time-dependent dissipators specify as a list of frequencies
-                               for each Hamiltonian operator, and if time-dependent dissipators
-                               present specify as a tuple of lists of frequencies, one for
-                               Hamiltonian operators and one for dissipators.
+                If no time dependent coefficients in model leave as ``None``, if no time-dependent
+                dissipators specify as a list of frequencies for each Hamiltonian operator, and if
+                time-dependent dissipators present specify as a tuple of lists of frequencies, one
+                for Hamiltonian operators and one for dissipators.
             validate: Whether or not to validate Hamiltonian operators as being Hermitian.
 
         Raises:
@@ -414,14 +398,13 @@ class Solver:
             t_span: Time interval to integrate over.
             y0: Initial state.
             signals: Specification of time-dependent coefficients to simulate, either in
-                     Signal format or as Qiskit Pulse Pulse schedules.
-                     If specifying in Signal format, if ``dissipator_operators is None``,
-                     specify as a list of signals for the Hamiltonian component, otherwise
-                     specify as a tuple of two lists, one for Hamiltonian components, and
-                     one for the ``dissipator_operators`` coefficients.
+                Signal format or as Qiskit Pulse Pulse schedules. If specifying in Signal format, if
+                ``dissipator_operators is None``, specify as a list of signals for the Hamiltonian
+                component, otherwise specify as a tuple of two lists, one for Hamiltonian
+                components, and one for the ``dissipator_operators`` coefficients.
             convert_results: If ``True``, convert returned solver state results to the same class
-                             as y0. If ``False``, states will be returned in the native array type
-                             used by the specified solver method.
+                as ``y0``. If ``False``, states will be returned in the native array type used by
+                the specified solver method.
             **kwargs: Keyword args passed to :func:`.solve_lmde`.
 
         Returns:
@@ -429,13 +412,13 @@ class Solver:
 
         Raises:
             QiskitError: Initial state ``y0`` is of invalid shape. If ``signals`` specifies
-                         ``Schedule`` simulation but ``Solver`` hasn't been configured to
-                         simulate pulse schedules.
+                ``Schedule`` simulation but ``Solver`` hasn't been configured to simulate pulse
+                schedules.
 
         Additional Information:
 
-        The behaviour of this method is impacted by the input type of ``y0``
-        and the internal model, summarized in the following table:
+        The behaviour of this method is impacted by the input type of ``y0`` and the internal model,
+        summarized in the following table:
 
         .. list-table:: Type-based behaviour
            :widths: 10 10 10 70
@@ -476,16 +459,15 @@ class Solver:
              - Solves the vectorized Lindblad equation with initial state ``y0``. ``vectorized``
                must be set to ``True``.
 
-        In some cases (e.g. if using JAX), wrapping the returned states in the type
-        given in the ``yf`` type column above may be undesirable. Setting
-        ``convert_results=False`` prevents this wrapping, while still allowing
-        usage of the automatic type-handling for the input state.
+        In some cases (e.g. if using JAX), wrapping the returned states in the type given in the
+        ``yf`` type column above may be undesirable. Setting ``convert_results=False`` prevents this
+        wrapping, while still allowing usage of the automatic type-handling for the input state.
 
         In addition to the above, this method can be used to specify multiple simulations
-        simultaneously. This can be done by specifying one or more of the arguments
-        ``t_span``, ``y0``, or ``signals`` as a list of valid inputs.
-        For this mode of operation, all of these arguments must be either lists of the same
-        length, or a single valid input, which will be used repeatedly.
+        simultaneously. This can be done by specifying one or more of the arguments ``t_span``,
+        ``y0``, or ``signals`` as a list of valid inputs. For this mode of operation, all of these
+        arguments must be either lists of the same length, or a single valid input, which will be
+        used repeatedly.
 
         For example the following code runs three simulations, returning results in a list:
 
@@ -497,8 +479,8 @@ class Solver:
 
             results = solver.solve(t_span=t_span, y0=y0, signals=signals)
 
-        The following code block runs three simulations, for different sets of signals,
-        repeatedly using the same ``t_span`` and ``y0``:
+        The following code block runs three simulations, for different sets of signals, repeatedly
+        using the same ``t_span`` and ``y0``:
 
         .. code-block:: python
 
@@ -608,8 +590,8 @@ class Solver:
     ) -> List[OdeResult]:
         """Run a list of schedule simulations utilizing JAX compilation.
         The jitting strategy is to define a function whose inputs are t_span, y0 as an array, the
-        samples for all channels in a single large array, and other initial state information.
-        To avoid recompilation for schedules with a different number of samples, i.e. a different
+        samples for all channels in a single large array, and other initial state information. To
+        avoid recompilation for schedules with a different number of samples, i.e. a different
         duration, all schedules are padded to be the length of the schedule with the max duration.
         """
 
@@ -748,17 +730,17 @@ def initial_state_converter(obj: Any) -> Tuple[ArrayLike, Type, Callable]:
 
 
 def validate_and_format_initial_state(y0: any, model: Union[HamiltonianModel, LindbladModel]):
-    """Format initial state for simulation. This function encodes the logic of how
-    simulations are run based on initial state type.
+    """Format initial state for simulation. This function encodes the logic of how simulations are
+    run based on initial state type.
 
     Args:
         y0: The user-specified input state.
         model: The model contained in the solver.
 
     Returns:
-        Tuple containing the input state to pass to the solver, the user-specified input
-        as an array, the class of the user specified input, and a function for converting
-        the output states to the right class.
+        Tuple containing the input state to pass to the solver, the user-specified input as an
+        array, the class of the user specified input, and a function for converting the output
+        states to the right class.
 
     Raises:
         QiskitError: Initial state ``y0`` is of invalid shape relative to the model.
@@ -826,8 +808,8 @@ def format_final_states(y, model, y0_input, y0_cls):
 
 
 def t_span_to_list(t_span):
-    """Check if t_span is validly specified as a single interval or a list of intervals,
-    and return as a list in either case."""
+    """Check if t_span is validly specified as a single interval or a list of intervals, and return
+    as a list in either case."""
     was_list = False
     t_span_ndim = _nested_ndim(t_span)
     if t_span_ndim > 2:
@@ -841,8 +823,8 @@ def t_span_to_list(t_span):
 
 
 def _y0_to_list(y0):
-    """Check if y0 is validly specified as a single initial state or a list of initial states,
-    and return as a list in either case."""
+    """Check if y0 is validly specified as a single initial state or a list of initial states, and
+    return as a list in either case."""
     was_list = False
     if not isinstance(y0, list):
         y0 = [y0]
@@ -853,8 +835,8 @@ def _y0_to_list(y0):
 
 
 def _signals_to_list(signals):
-    """Check if signals is validly specified as a single signal specification or a list of
-    such specifications, and return as a list in either case."""
+    """Check if signals is validly specified as a single signal specification or a list of such
+    specifications, and return as a list in either case."""
     was_list = False
     if signals is None:
         signals = [signals]
@@ -888,8 +870,8 @@ def organize_signals_to_channels(
     all_signals, all_channels, model_class, hamiltonian_channels, dissipator_channels
 ):
     """Restructures a list of signals with order corresponding to all_channels, into the correctly
-    formatted data structure to pass into model.signals, according to the ordering specified
-    by hamiltonian_channels and dissipator_channels.
+    formatted data structure to pass into model.signals, according to the ordering specified by
+    hamiltonian_channels and dissipator_channels.
     """
 
     if model_class == HamiltonianModel:
