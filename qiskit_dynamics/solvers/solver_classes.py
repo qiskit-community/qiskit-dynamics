@@ -137,6 +137,11 @@ class Solver:
       carrier frequencies for ``hamiltonian_operators``, and the second entry the list of carrier
       frequencies for ``dissipator_operators``. See :func:`.rotating_wave_approximation` for details
       on the mathematical approximation.
+    
+    Additionally, the ``array_library`` argument controls the underlying array representation used
+    to store and evaluate the model. See the
+    :ref:`model evaluation section of the Models API documentation <model evaluation>`
+    for a more detailed description of this argument.
 
       .. note::
             When using the ``rwa_cutoff_freq`` optional argument, :class:`.Solver` cannot be
