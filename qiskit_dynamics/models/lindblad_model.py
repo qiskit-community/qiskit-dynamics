@@ -125,8 +125,8 @@ class LindbladModel(BaseGeneratorModel):
                 assumed that all operators were already in the frame basis.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                 frame operator is diagonalized.
-            array_library: Array library with which to represent the operators in the model, and to 
-                evaluate the model. See the list of supported array libraries in the 
+            array_library: Array library with which to represent the operators in the model, and to
+                evaluate the model. See the list of supported array libraries in the
                 :mod:`.arraylias` submodule API documentation. If ``None``, the arrays will be
                 handled by general dispatching rules.
             vectorized: Whether or not to setup the Lindblad equation in vectorized mode.
