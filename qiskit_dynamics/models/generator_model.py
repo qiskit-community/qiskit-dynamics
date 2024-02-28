@@ -91,7 +91,7 @@ class BaseGeneratorModel(ABC):
             y: Optional state.
 
         Returns:
-            Array: Either the evaluated model, or the RHS for the given y.
+            ArrayLike: Either the evaluated model, or the RHS for the given y.
         """
         return self.evaluate(time) if y is None else self.evaluate_rhs(time, y)
 
@@ -254,7 +254,7 @@ class GeneratorModel(BaseGeneratorModel):
             time: The time to evaluate the model at.
 
         Returns:
-            Array: The evaluated model as a matrix.
+            ArrayLike: The evaluated model as a matrix.
 
         Raises:
             QiskitError: If model cannot be evaluated.

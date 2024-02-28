@@ -50,7 +50,7 @@ def vec_commutator(
            list of sparse matrices.
 
     Returns:
-        Array: vectorized version of the map.
+        ArrayLike: Vectorized version of the map.
     """
 
     if issparse(A):

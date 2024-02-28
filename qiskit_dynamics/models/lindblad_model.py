@@ -417,7 +417,7 @@ class LindbladModel(BaseGeneratorModel):
             time: The time at which to evaluate the Hamiltonian.
 
         Returns:
-            Array: Hamiltonian matrix.
+            ArrayLike: Hamiltonian matrix.
         """
 
         hamiltonian_sig_vals = None
@@ -443,7 +443,7 @@ class LindbladModel(BaseGeneratorModel):
             time: The time to evaluate the model at.
 
         Returns:
-            Array: The evaluated model as an anti-Hermitian matrix.
+            ArrayLike: The evaluated model as an anti-Hermitian matrix.
 
         Raises:
             QiskitError: If model cannot be evaluated.
@@ -482,11 +482,11 @@ class LindbladModel(BaseGeneratorModel):
 
         Args:
             time: The time at which the model should be evaluated.
-            y: Density matrix as an (n,n) Array if not using a vectorized evaluation_mode, or an
-               (n^2) Array if using vectorized evaluation.
+            y: Density matrix as an (n,n) Array if not vectorized, or an (n^2) Array if using
+                vectorized evaluation.
 
         Returns:
-            Array: Either the evaluated generator or the state.
+            ArrayLike: Either the evaluated generator or the state.
 
         Raises:
             QiskitError: If signals not sufficiently specified.

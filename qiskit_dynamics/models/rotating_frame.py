@@ -158,7 +158,7 @@ class RotatingFrame:
             y: The state.
 
         Returns:
-            Array: The state in the frame basis.
+            ArrayLike: The state in the frame basis.
         """
         y = unp.asarray(y)
         if self.frame_basis is None:
@@ -181,7 +181,7 @@ class RotatingFrame:
                           ``op`` is a handled input type.
 
         Returns:
-            Array: The operator in the frame basis.
+            ArrayLike: The operator in the frame basis.
         """
         if convert_type:
             op = unp.asarray(op)
