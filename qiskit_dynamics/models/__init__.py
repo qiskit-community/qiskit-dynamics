@@ -90,7 +90,7 @@ time-dependent components, above a given cutoff frequency, are removed from a mo
 transformation is implemented in :meth:`~qiskit_dynamics.models.rotating_wave_approximation`, see
 its documentation for details.
 
-.. _evaluation modes:
+.. _model evaluation:
 
 Controlling model evaluation: array libraries and vectorization
 ===============================================================

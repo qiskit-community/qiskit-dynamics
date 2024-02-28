@@ -204,7 +204,7 @@ with extra emphasis on the following:
 .. note::
 
     As stated in the
-    :ref:`evaluation modes section of the Models API documentation <evaluation modes>`,
+    :ref:`model evaluation section of the Models API documentation <model evaluation>`,
     when using a sparse evaluation mode, to preserve sparsity, it is recommended to
     only use *diagonal* rotating frames, which can be specified as a 1d array to the
     ``rotating_frame`` kwarg of :class:`.Solver` instantiation.
