@@ -443,17 +443,18 @@ class TestSolverSignalHandling(QiskitDynamicsTestCase):
 
     def test_signals_are_None(self):
         """Test the model signals return to being None after simulation."""
-
         ham_solver = Solver(hamiltonian_operators=[self.X])
-        ham_solver.solve(signals=[1.0], t_span=[0.0, 0.01], y0=np.array([0.0, 1.0]))
+        ham_solver.solve(signals=[1.0], t_span=[0.0, 0.01], y0=np.array([0.0, 1.0], dtype=complex))
         self.assertTrue(ham_solver.model.signals is None)
 
         lindblad_solver = Solver(hamiltonian_operators=[self.X], static_dissipators=[self.X])
-        lindblad_solver.solve(signals=[1.0], t_span=[0.0, 0.01], y0=np.eye(2))
+        lindblad_solver.solve(signals=[1.0], t_span=[0.0, 0.01], y0=np.eye(2, dtype=complex))
         self.assertTrue(lindblad_solver.model.signals == (None, None))
 
         td_lindblad_solver = Solver(hamiltonian_operators=[self.X], dissipator_operators=[self.X])
-        td_lindblad_solver.solve(signals=([1.0], [1.0]), t_span=[0.0, 0.01], y0=np.eye(2))
+        td_lindblad_solver.solve(
+            signals=([1.0], [1.0]), t_span=[0.0, 0.01], y0=np.eye(2, dtype=complex)
+        )
         self.assertTrue(td_lindblad_solver.model.signals == (None, None))
 
 
@@ -719,7 +720,7 @@ class TestSolverSimulationJAXTransformations:
         def func(a):
             yf = self.ham_solver.solve(
                 t_span=np.array([0.0, 1.0]),
-                y0=np.array([0.0, 1.0]),
+                y0=np.array([0.0, 1.0], dtype=complex),
                 signals=[Signal(lambda t: a, 5.0)],
                 method="jax_odeint",
             ).y[-1]
