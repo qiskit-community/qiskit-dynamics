@@ -31,7 +31,7 @@ Time-dependent perturbation theory
 
 The function :func:`.solve_lmde_perturbation` computes Dyson series :footcite:`dyson_radiation_1949`
 and Magnus expansion :footcite:`magnus_exponential_1954,blanes_magnus_2009` terms in a
-multi-variable setting via algorithms in :footcite:`puzzuoli_sensitivity_2022`. It can also be used
+multi-variable setting via algorithms in :footcite:`puzzuoli_algorithms_2023`. It can also be used
 to compute Dyson-like integrals using the algorithm in :footcite:`haas_engineering_2019`. Results
 are returned in either a :class:`PowerSeriesData` or :class:`DysonLikeData` class, which are data
 classes with functionality for indexing and accessing specific perturbation terms. See the function

@@ -67,7 +67,7 @@ Perturbative Solvers
 
 The classes :class:`~qiskit_dynamics.solvers.DysonSolver` and
 :class:`~qiskit_dynamics.solvers.MagnusSolver` implement advanced solvers detailed in
-:footcite:`puzzuoli_sensitivity_2022`, with the :class:`~qiskit_dynamics.solvers.DysonSolver`
+:footcite:`puzzuoli_algorithms_2023`, with the :class:`~qiskit_dynamics.solvers.DysonSolver`
 implementing a variant of the *Dysolve* algorithm originally introduced in
 :footcite:p:`shillito_fast_2020`.
 
